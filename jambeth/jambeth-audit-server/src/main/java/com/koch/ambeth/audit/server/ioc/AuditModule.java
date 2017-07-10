@@ -47,18 +47,12 @@ import com.koch.ambeth.ioc.config.IBeanConfiguration;
 import com.koch.ambeth.ioc.config.Property;
 import com.koch.ambeth.ioc.factory.IBeanContextFactory;
 import com.koch.ambeth.job.IJobExtendable;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.IMergeListenerExtendable;
 import com.koch.ambeth.persistence.api.database.ITransactionListenerExtendable;
 import com.koch.ambeth.service.cache.ClearAllCachesEvent;
 
 @FrameworkModule
 public class AuditModule implements IInitializingModule {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	@Property(name = AuditConfigurationConstants.AuditActive, defaultValue = "false")
 	protected boolean auditActive;
 
@@ -77,15 +71,15 @@ public class AuditModule implements IInitializingModule {
 			beanContextFactory.registerBean(AuditEntryReader.class).autowireable(IAuditEntryReader.class);
 
 			if (auditVerifierCrontab != null) {
-				IBeanConfiguration auditVerifierJob =
-						beanContextFactory.registerBean(AuditVerifierJob.class);
+				IBeanConfiguration auditVerifierJob = beanContextFactory
+						.registerBean(AuditVerifierJob.class);
 				beanContextFactory.link(auditVerifierJob).to(IJobExtendable.class)
 						.with(AuditVerifierJob.class.getSimpleName(), auditVerifierCrontab).optional();
 			}
 
-			IBeanConfiguration auditEntryVerifier =
-					beanContextFactory.registerBean(AuditEntryVerifier.class)
-							.autowireable(IAuditEntryVerifier.class, IVerifyOnLoad.class);
+			IBeanConfiguration auditEntryVerifier = beanContextFactory
+					.registerBean(AuditEntryVerifier.class)
+					.autowireable(IAuditEntryVerifier.class, IVerifyOnLoad.class);
 			beanContextFactory.link(auditEntryVerifier, AuditEntryVerifier.HANDLE_CLEAR_ALL_CACHES_EVENT)
 					.to(IEventListenerExtendable.class).with(ClearAllCachesEvent.class);
 
@@ -95,8 +89,8 @@ public class AuditModule implements IInitializingModule {
 			beanContextFactory.registerBean(AuditEntryToSignature.class)
 					.autowireable(IAuditEntryToSignature.class, IAuditEntryWriterExtendable.class);
 
-			IBeanConfiguration auditEntryWriterV1 =
-					beanContextFactory.registerBean(AuditEntryWriterV1.class);
+			IBeanConfiguration auditEntryWriterV1 = beanContextFactory
+					.registerBean(AuditEntryWriterV1.class);
 			beanContextFactory.link(auditEntryWriterV1).to(IAuditEntryWriterExtendable.class)
 					.with(Integer.valueOf(1));
 

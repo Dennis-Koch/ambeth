@@ -26,8 +26,6 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.config.Property;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.ICUDResultHelper;
 import com.koch.ambeth.merge.cache.ICache;
 import com.koch.ambeth.merge.model.CreateOrUpdateContainerBuild;
@@ -56,10 +54,6 @@ public class IncrementalMergeState implements IIncrementalMergeState {
 		}
 	}
 
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	@Autowired
 	protected IConversionHelper conversionHelper;
 
@@ -72,16 +66,13 @@ public class IncrementalMergeState implements IIncrementalMergeState {
 	@Property
 	protected ICache stateCache;
 
-	public final IdentityHashMap<Object, StateEntry> entityToStateMap =
-			new IdentityHashMap<>();
+	public final IdentityHashMap<Object, StateEntry> entityToStateMap = new IdentityHashMap<>();
 
 	public final HashMap<IObjRef, StateEntry> objRefToStateMap = new HashMap<>();
 
-	private final HashMap<Class<?>, HashMap<String, Integer>> typeToMemberNameToIndexMap =
-			new HashMap<>();
+	private final HashMap<Class<?>, HashMap<String, Integer>> typeToMemberNameToIndexMap = new HashMap<>();
 
-	private final HashMap<Class<?>, HashMap<String, Integer>> typeToPrimitiveMemberNameToIndexMap =
-			new HashMap<>();
+	private final HashMap<Class<?>, HashMap<String, Integer>> typeToPrimitiveMemberNameToIndexMap = new HashMap<>();
 
 	private final Lock writeLock = new ReentrantLock();
 

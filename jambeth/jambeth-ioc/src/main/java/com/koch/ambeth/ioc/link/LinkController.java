@@ -28,17 +28,11 @@ import com.koch.ambeth.ioc.ServiceContext;
 import com.koch.ambeth.ioc.config.BeanConfiguration;
 import com.koch.ambeth.ioc.config.IBeanConfiguration;
 import com.koch.ambeth.ioc.extendable.IExtendableRegistry;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.util.ParamChecker;
 import com.koch.ambeth.util.config.IProperties;
 import com.koch.ambeth.util.proxy.IProxyFactory;
 
 public class LinkController implements ILinkController, IInitializingBean {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	private static final Object[] emptyArgs = new Object[0];
 
 	protected IExtendableRegistry extendableRegistry;
@@ -75,8 +69,8 @@ public class LinkController implements ILinkController, IInitializingBean {
 	@Override
 	public ILinkRegistryNeededRuntime<?> link(IServiceContext serviceContext, String listenerBeanName,
 			String methodName) {
-		LinkRuntime<Object> linkRuntime =
-				new LinkRuntime<>((ServiceContext) serviceContext, LinkContainer.class);
+		LinkRuntime<Object> linkRuntime = new LinkRuntime<>((ServiceContext) serviceContext,
+				LinkContainer.class);
 		linkRuntime.listener(listenerBeanName);
 		if (methodName != null) {
 			linkRuntime.listenerMethod(methodName);
@@ -93,8 +87,8 @@ public class LinkController implements ILinkController, IInitializingBean {
 	@Override
 	public ILinkRegistryNeededRuntime<?> link(IServiceContext serviceContext,
 			IBeanConfiguration listenerBean, String methodName) {
-		LinkRuntime<Object> linkRuntime =
-				new LinkRuntime<>((ServiceContext) serviceContext, LinkContainer.class);
+		LinkRuntime<Object> linkRuntime = new LinkRuntime<>((ServiceContext) serviceContext,
+				LinkContainer.class);
 		linkRuntime.listener(listenerBean);
 		if (methodName != null) {
 			linkRuntime.listenerMethod(methodName);
@@ -111,8 +105,8 @@ public class LinkController implements ILinkController, IInitializingBean {
 		else if (listener instanceof IBeanConfiguration) {
 			return link(serviceContext, (IBeanConfiguration) listener);
 		}
-		LinkRuntime<Object> linkRuntime =
-				new LinkRuntime<>((ServiceContext) serviceContext, LinkContainer.class);
+		LinkRuntime<Object> linkRuntime = new LinkRuntime<>((ServiceContext) serviceContext,
+				LinkContainer.class);
 		linkRuntime.listener(listener);
 		if (methodName != null) {
 			linkRuntime.listenerMethod(methodName);
@@ -122,8 +116,8 @@ public class LinkController implements ILinkController, IInitializingBean {
 
 	@Override
 	public <D> ILinkRegistryNeededRuntime<D> link(IServiceContext serviceContext, D listener) {
-		LinkRuntime<D> linkRuntime =
-				new LinkRuntime<>((ServiceContext) serviceContext, LinkContainer.class);
+		LinkRuntime<D> linkRuntime = new LinkRuntime<>((ServiceContext) serviceContext,
+				LinkContainer.class);
 		linkRuntime.listener(listener);
 		return linkRuntime;
 	}
@@ -131,8 +125,8 @@ public class LinkController implements ILinkController, IInitializingBean {
 	@Override
 	public LinkConfiguration<Object> createLinkConfiguration(String listenerBeanName,
 			String methodName) {
-		LinkConfiguration<Object> linkConfiguration =
-				new LinkConfiguration<>(LinkContainer.class, proxyFactory, props);
+		LinkConfiguration<Object> linkConfiguration = new LinkConfiguration<>(LinkContainer.class,
+				proxyFactory, props);
 		linkConfiguration.propertyValue(AbstractLinkContainer.PROPERTY_LISTENER_NAME, listenerBeanName);
 		if (methodName != null) {
 			linkConfiguration.propertyValue(AbstractLinkContainer.PROPERTY_LISTENER_METHOD_NAME,
@@ -144,8 +138,8 @@ public class LinkController implements ILinkController, IInitializingBean {
 	@Override
 	public LinkConfiguration<Object> createLinkConfiguration(IBeanConfiguration listenerBean,
 			String methodName) {
-		LinkConfiguration<Object> linkConfiguration =
-				new LinkConfiguration<>(LinkContainer.class, proxyFactory, props);
+		LinkConfiguration<Object> linkConfiguration = new LinkConfiguration<>(LinkContainer.class,
+				proxyFactory, props);
 		linkConfiguration.propertyValue(AbstractLinkContainer.PROPERTY_LISTENER_BEAN, listenerBean);
 		if (methodName != null) {
 			linkConfiguration.propertyValue(AbstractLinkContainer.PROPERTY_LISTENER_METHOD_NAME,
@@ -166,8 +160,8 @@ public class LinkController implements ILinkController, IInitializingBean {
 		// {
 		// throw new Exception("Illegal state: Delegate can not have an additional methodName");
 		// }
-		LinkConfiguration<Object> linkConfiguration =
-				new LinkConfiguration<>(LinkContainer.class, proxyFactory, props);
+		LinkConfiguration<Object> linkConfiguration = new LinkConfiguration<>(LinkContainer.class,
+				proxyFactory, props);
 		linkConfiguration.propertyValue(AbstractLinkContainer.PROPERTY_LISTENER, listener);
 		if (methodName != null) {
 			linkConfiguration.propertyValue(AbstractLinkContainer.PROPERTY_LISTENER_METHOD_NAME,
@@ -178,8 +172,8 @@ public class LinkController implements ILinkController, IInitializingBean {
 
 	@Override
 	public <D> LinkConfiguration<D> createLinkConfiguration(D listener) {
-		LinkConfiguration<D> linkConfiguration =
-				new LinkConfiguration<>(LinkContainer.class, proxyFactory, props);
+		LinkConfiguration<D> linkConfiguration = new LinkConfiguration<>(LinkContainer.class,
+				proxyFactory, props);
 		linkConfiguration.propertyValue(AbstractLinkContainer.PROPERTY_LISTENER, listener);
 		return linkConfiguration;
 	}
@@ -237,8 +231,8 @@ public class LinkController implements ILinkController, IInitializingBean {
 
 		int expectedParamCount = arguments.length + 1;
 
-		Method[] methods =
-				extendableRegistry.getAddRemoveMethods(autowiredRegistryClass, arguments, null);
+		Method[] methods = extendableRegistry.getAddRemoveMethods(autowiredRegistryClass, arguments,
+				null);
 
 		Object[] realArguments = new Object[expectedParamCount];
 		System.arraycopy(arguments, 0, realArguments, 1, arguments.length);
@@ -272,8 +266,8 @@ public class LinkController implements ILinkController, IInitializingBean {
 
 		int expectedParamCount = arguments.length + 1;
 
-		Method[] methods =
-				extendableRegistry.getAddRemoveMethods(autowiredRegistryClass, arguments, null);
+		Method[] methods = extendableRegistry.getAddRemoveMethods(autowiredRegistryClass, arguments,
+				null);
 
 		Object[] realArguments = new Object[expectedParamCount];
 		System.arraycopy(arguments, 0, realArguments, 1, arguments.length);
@@ -312,8 +306,8 @@ public class LinkController implements ILinkController, IInitializingBean {
 		Object[] realArguments = new Object[expectedParamCount];
 		System.arraycopy(arguments, 0, realArguments, 1, arguments.length);
 
-		BeanConfiguration beanConfiguration =
-				new BeanConfiguration(LinkContainerOld.class, null, proxyFactory, props);
+		BeanConfiguration beanConfiguration = new BeanConfiguration(LinkContainerOld.class, null,
+				proxyFactory, props);
 		beanConfiguration.propertyValue("RegistryBeanName", registryBeanName);
 		beanConfiguration.propertyValue("ListenerBeanName", listenerBeanName);
 		beanConfiguration.propertyValue("AddMethod", methods[0]);
@@ -339,14 +333,14 @@ public class LinkController implements ILinkController, IInitializingBean {
 
 		int expectedParamCount = arguments.length + 1;
 
-		Method[] methods =
-				extendableRegistry.getAddRemoveMethods(autowiredRegistryClass, arguments, null);
+		Method[] methods = extendableRegistry.getAddRemoveMethods(autowiredRegistryClass, arguments,
+				null);
 
 		Object[] realArguments = new Object[expectedParamCount];
 		System.arraycopy(arguments, 0, realArguments, 1, arguments.length);
 
-		BeanConfiguration beanConfiguration =
-				new BeanConfiguration(LinkContainerOld.class, null, proxyFactory, props);
+		BeanConfiguration beanConfiguration = new BeanConfiguration(LinkContainerOld.class, null,
+				proxyFactory, props);
 		beanConfiguration.propertyValue("RegistryBeanAutowiredType", autowiredRegistryClass);
 		beanConfiguration.propertyValue("ListenerBeanName", listenerBeanName);
 		beanConfiguration.propertyValue("AddMethod", methods[0]);

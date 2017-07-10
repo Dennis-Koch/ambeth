@@ -74,6 +74,7 @@ public class CacheWalker implements ICacheWalker {
 	@Autowired(optional = true)
 	protected ITransactionState transactionState;
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public <T> ICacheWalkerResult walkEntities(T... entities) {
 		IList<IObjRef> objRefs = new ArrayList<>(entities.length);
@@ -106,8 +107,7 @@ public class CacheWalker implements ICacheWalker {
 	}
 
 	protected ICacheWalkerResult walkIntern(IObjRef[] objRefs, IdentityHashSet<ICache> allCachesSet) {
-		IdentityHashMap<ICache, List<ICache>> cacheToChildCaches =
-				new IdentityHashMap<>();
+		IdentityHashMap<ICache, List<ICache>> cacheToChildCaches = new IdentityHashMap<>();
 		IdentityHashMap<ICache, ICache> cacheToProxyCache = new IdentityHashMap<>();
 
 		ICache currentCommittedRootCache = committedRootCache.getCurrentCache();
@@ -140,14 +140,14 @@ public class CacheWalker implements ICacheWalker {
 			objRefs = new HashSet<>(objRefs).toArray(IObjRef.class);
 			Arrays.sort(objRefs, ObjRef.comparator);
 		}
-		CacheWalkerResult rootEntry =
-				buildWalkedEntry(currentCommittedRootCache, objRefs, cacheToChildCaches, cacheToProxyCache);
+		CacheWalkerResult rootEntry = buildWalkedEntry(currentCommittedRootCache, objRefs,
+				cacheToChildCaches, cacheToProxyCache);
 
 		if (objRefs == allEntityRefs) {
 			HashMap<IObjRef, Integer> allObjRefs = new HashMap<>();
 			collectAllObjRefs(rootEntry, allObjRefs);
-			objRefs =
-					!allObjRefs.isEmpty() ? allObjRefs.keyList().toArray(IObjRef.class) : ObjRef.EMPTY_ARRAY;
+			objRefs = !allObjRefs.isEmpty() ? allObjRefs.keyList().toArray(IObjRef.class)
+					: ObjRef.EMPTY_ARRAY;
 			Arrays.sort(objRefs, ObjRef.comparator);
 			for (int a = objRefs.length; a-- > 0;) {
 				allObjRefs.put(objRefs[a], Integer.valueOf(a));
@@ -230,8 +230,8 @@ public class CacheWalker implements ICacheWalker {
 		else {
 			childCacheEntries = new CacheWalkerResult[childCaches.size()];
 			for (int a = childCaches.size(); a-- > 0;) {
-				childCacheEntries[a] =
-						buildWalkedEntry(childCaches.get(a), objRefs, cacheToChildCaches, cacheToProxyCache);
+				childCacheEntries[a] = buildWalkedEntry(childCaches.get(a), objRefs, cacheToChildCaches,
+						cacheToProxyCache);
 			}
 		}
 		ICache proxyCache = cacheToProxyCache.get(cache);

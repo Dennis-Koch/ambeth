@@ -316,6 +316,7 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 		}
 	}
 
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	protected IDirectObjRef getOrCreateRef(IObjRef objRef, AuditControllerState auditControllerState,
 			IMap<IObjRef, IDirectObjRef> objRefToRefMap) {
 		IDirectObjRef ref = objRefToRefMap.get(objRef);

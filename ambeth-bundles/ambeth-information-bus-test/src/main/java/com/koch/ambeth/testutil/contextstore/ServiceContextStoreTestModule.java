@@ -22,8 +22,6 @@ limitations under the License.
 
 import com.koch.ambeth.ioc.IInitializingModule;
 import com.koch.ambeth.ioc.factory.IBeanContextFactory;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 
 public class ServiceContextStoreTestModule implements IInitializingModule {
 	public static final String BLA_DSERVICE = "blaDService";
@@ -39,10 +37,6 @@ public class ServiceContextStoreTestModule implements IInitializingModule {
 	public static final String BLA_PROV_4 = "blaDServiceProvider4";
 
 	public static final String BLA_PROV_5 = "blaDServiceProvider5";
-
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
 
 	@Override
 	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {

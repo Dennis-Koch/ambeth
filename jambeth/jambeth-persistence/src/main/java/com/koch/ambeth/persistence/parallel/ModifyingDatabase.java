@@ -24,15 +24,9 @@ import java.sql.Connection;
 import java.sql.SQLException;
 
 import com.koch.ambeth.ioc.annotation.Autowired;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
 public class ModifyingDatabase implements IModifyingDatabase {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	@Autowired(optional = true)
 	protected Connection connection;
 

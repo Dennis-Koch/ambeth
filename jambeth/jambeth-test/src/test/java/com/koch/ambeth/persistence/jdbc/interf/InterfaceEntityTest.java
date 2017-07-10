@@ -24,8 +24,6 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.koch.ambeth.informationbus.persistence.setup.SQLStructure;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.IMergeProcess;
 import com.koch.ambeth.service.config.ServiceConfigurationConstants;
 import com.koch.ambeth.testutil.AbstractInformationBusWithPersistenceTest;
@@ -35,13 +33,8 @@ import com.koch.ambeth.util.ParamChecker;
 
 @TestModule({})
 @SQLStructure("structure.sql")
-@TestProperties(name = ServiceConfigurationConstants.mappingFile,
-		value = "com/koch/ambeth/persistence/jdbc/interf/orm.xml")
+@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "com/koch/ambeth/persistence/jdbc/interf/orm.xml")
 public class InterfaceEntityTest extends AbstractInformationBusWithPersistenceTest {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	protected IMergeProcess mergeProcess;
 
 	@Override

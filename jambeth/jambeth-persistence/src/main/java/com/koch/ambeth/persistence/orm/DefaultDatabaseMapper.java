@@ -24,8 +24,6 @@ import java.sql.Connection;
 
 import com.koch.ambeth.ioc.IInitializingBean;
 import com.koch.ambeth.ioc.annotation.Autowired;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.persistence.api.IDatabaseMetaData;
 import com.koch.ambeth.persistence.api.IFieldMetaData;
 import com.koch.ambeth.persistence.api.ITableMetaData;
@@ -33,10 +31,6 @@ import com.koch.ambeth.persistence.database.IDatabaseMapper;
 import com.koch.ambeth.util.ParamChecker;
 
 public class DefaultDatabaseMapper implements IDatabaseMapper, IInitializingBean {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	protected String idName = "Id";
 
 	protected String versionName = "Version";
@@ -53,7 +47,8 @@ public class DefaultDatabaseMapper implements IDatabaseMapper, IInitializingBean
 	/**
 	 * Setter for the name of the ID member. (default = "Id")
 	 *
-	 * @param idName New name of the ID member.
+	 * @param idName
+	 *          New name of the ID member.
 	 */
 	public void setIdName(String idName) {
 		this.idName = idName;
@@ -62,7 +57,8 @@ public class DefaultDatabaseMapper implements IDatabaseMapper, IInitializingBean
 	/**
 	 * Setter for the name of the version member. (default = "Version")
 	 *
-	 * @param versionName New name of the version member.
+	 * @param versionName
+	 *          New name of the version member.
 	 */
 	public void setVersionName(String versionName) {
 		this.versionName = versionName;
@@ -77,7 +73,8 @@ public class DefaultDatabaseMapper implements IDatabaseMapper, IInitializingBean
 	 * type and between the database fields and the entity members. Including the ID and version
 	 * fields.
 	 *
-	 * @param database Database to map to.
+	 * @param database
+	 *          Database to map to.
 	 */
 	@Override
 	public void mapFields(Connection connection, String[] schemaNames, IDatabaseMetaData database) {
@@ -87,7 +84,8 @@ public class DefaultDatabaseMapper implements IDatabaseMapper, IInitializingBean
 	/**
 	 * TODO JavaDoc comment.
 	 *
-	 * @param database Database to map to.
+	 * @param database
+	 *          Database to map to.
 	 */
 	@Override
 	public void mapLinks(Connection connection, String[] schemaNames, IDatabaseMetaData database) {
@@ -97,7 +95,8 @@ public class DefaultDatabaseMapper implements IDatabaseMapper, IInitializingBean
 	/**
 	 * Creates the mapping between ID and version fields and members.
 	 *
-	 * @param table Table to map to.
+	 * @param table
+	 *          Table to map to.
 	 */
 	protected void mapIdAndVersion(ITableMetaData table) {
 		mapIdAndVersion(table, idName, versionName);
@@ -106,9 +105,12 @@ public class DefaultDatabaseMapper implements IDatabaseMapper, IInitializingBean
 	/**
 	 * Creates the mapping between ID and version fields and members.
 	 *
-	 * @param table Table to map to.
-	 * @param idName Name of the id field.
-	 * @param versionName Name of the version field.
+	 * @param table
+	 *          Table to map to.
+	 * @param idName
+	 *          Name of the id field.
+	 * @param versionName
+	 *          Name of the version field.
 	 */
 	protected void mapIdAndVersion(ITableMetaData table, String idName, String versionName) {
 		IFieldMetaData[] idFields = table.getIdFields();

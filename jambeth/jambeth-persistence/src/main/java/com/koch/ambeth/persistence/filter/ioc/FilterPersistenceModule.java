@@ -27,8 +27,6 @@ import com.koch.ambeth.ioc.IInitializingModule;
 import com.koch.ambeth.ioc.annotation.FrameworkModule;
 import com.koch.ambeth.ioc.config.IBeanConfiguration;
 import com.koch.ambeth.ioc.factory.IBeanContextFactory;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.persistence.event.IDatabaseReleaseEvent;
 import com.koch.ambeth.persistence.filter.FilterToQueryBuilder;
 import com.koch.ambeth.persistence.filter.QueryResultCache;
@@ -38,10 +36,6 @@ import com.koch.ambeth.service.cache.ClearAllCachesEvent;
 
 @FrameworkModule
 public class FilterPersistenceModule implements IInitializingModule {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	@Override
 	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
 		beanContextFactory.registerBean(FilterToQueryBuilder.class)

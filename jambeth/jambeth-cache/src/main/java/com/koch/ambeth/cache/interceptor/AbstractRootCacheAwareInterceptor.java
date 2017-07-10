@@ -30,8 +30,6 @@ import com.koch.ambeth.ioc.IBeanRuntime;
 import com.koch.ambeth.ioc.IServiceContext;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.threadlocal.IThreadLocalCleanupBean;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.cache.IWritableCache;
 import com.koch.ambeth.service.IOfflineListenerExtendable;
 import com.koch.ambeth.util.Lock;
@@ -54,10 +52,6 @@ public abstract class AbstractRootCacheAwareInterceptor extends AbstractSimpleIn
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
-
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
 
 	@Autowired(optional = true)
 	protected IOfflineListenerExtendable offlineListenerExtendable;

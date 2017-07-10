@@ -34,8 +34,6 @@ import javax.persistence.PersistenceException;
 
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.config.Property;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.persistence.IColumnEntry;
 import com.koch.ambeth.persistence.SelectPosition;
 import com.koch.ambeth.persistence.api.sql.ISqlBuilder;
@@ -54,11 +52,11 @@ import com.koch.ambeth.util.collections.LinkedHashMap;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
 public class MariaDialect extends AbstractConnectionDialect {
-	public static final Pattern BIN_TABLE_NAME =
-			Pattern.compile("BIN\\$.{22}==\\$0", Pattern.CASE_INSENSITIVE);
+	public static final Pattern BIN_TABLE_NAME = Pattern.compile("BIN\\$.{22}==\\$0",
+			Pattern.CASE_INSENSITIVE);
 
-	public static final Pattern IDX_TABLE_NAME =
-			Pattern.compile("DR\\$.*?\\$.", Pattern.CASE_INSENSITIVE);
+	public static final Pattern IDX_TABLE_NAME = Pattern.compile("DR\\$.*?\\$.",
+			Pattern.CASE_INSENSITIVE);
 
 	public static final String SEQUENCE_TABLE_NAME = "sequence_data";
 
@@ -76,8 +74,8 @@ public class MariaDialect extends AbstractConnectionDialect {
 
 	public static final String NEXT_VAL_FUNCTION_NAME = "nextval";
 
-	protected static final LinkedHashMap<String, Class<?>> arrayTypeNameToTypeMap =
-			new LinkedHashMap<>(128, 0.5f);
+	protected static final LinkedHashMap<String, Class<?>> arrayTypeNameToTypeMap = new LinkedHashMap<>(
+			128, 0.5f);
 
 	public static int getOptimisticLockErrorCode() {
 		return 20800;
@@ -87,10 +85,6 @@ public class MariaDialect extends AbstractConnectionDialect {
 		// 54 = RESOURCE BUSY acquiring with NOWAIT (pessimistic lock)
 		return 54;
 	}
-
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
 
 	@Autowired
 	protected ISqlBuilder sqlBuilder;
@@ -289,8 +283,8 @@ public class MariaDialect extends AbstractConnectionDialect {
 
 				Class<?> javaType = JdbcUtil.getJavaTypeFromJdbcType(typeIndex, scale, digits);
 
-				ColumnEntry entry =
-						new ColumnEntry(fieldName, columnIndex, javaType, typeName, nullable, radix, true);
+				ColumnEntry entry = new ColumnEntry(fieldName, columnIndex, javaType, typeName, nullable,
+						radix, true);
 				columns.add(entry);
 			}
 			return columns;

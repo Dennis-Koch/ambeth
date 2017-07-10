@@ -24,15 +24,9 @@ import com.koch.ambeth.ioc.IInitializingModule;
 import com.koch.ambeth.ioc.ProcessorOrder;
 import com.koch.ambeth.ioc.config.Property;
 import com.koch.ambeth.ioc.factory.IBeanContextFactory;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 
 public class BeanPostProcessorTestModule implements IInitializingModule {
 	public static final String NumberOfPostProcessors = "numberOfPostProcessors";
-
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
 
 	@Property(name = NumberOfPostProcessors)
 	protected int number;

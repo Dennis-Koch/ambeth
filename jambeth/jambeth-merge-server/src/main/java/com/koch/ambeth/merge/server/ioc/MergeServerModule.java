@@ -27,8 +27,6 @@ import com.koch.ambeth.ioc.IInitializingModule;
 import com.koch.ambeth.ioc.annotation.FrameworkModule;
 import com.koch.ambeth.ioc.config.IBeanConfiguration;
 import com.koch.ambeth.ioc.factory.IBeanContextFactory;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.IFimExtensionExtendable;
 import com.koch.ambeth.merge.event.IEntityMetaDataEvent;
 import com.koch.ambeth.merge.server.DatabaseFimExtension;
@@ -46,10 +44,6 @@ import com.koch.ambeth.service.cache.ClearAllCachesEvent;
 public class MergeServerModule implements IInitializingModule {
 	public static final String MERGE_SERVICE_SERVER = "mergeservice.server";
 
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	@Override
 	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
 		beanContextFactory.registerBean(DatabaseToEntityMetaData.class)
@@ -58,8 +52,8 @@ public class MergeServerModule implements IInitializingModule {
 				.propertyRef(DatabaseToEntityMetaData.P_PersistenceCacheRetriever,
 						CacheModule.DEFAULT_CACHE_RETRIEVER);
 
-		IBeanConfiguration databaseFimExtension =
-				beanContextFactory.registerBean(DatabaseFimExtension.class);
+		IBeanConfiguration databaseFimExtension = beanContextFactory
+				.registerBean(DatabaseFimExtension.class);
 		beanContextFactory.link(databaseFimExtension).to(IFimExtensionExtendable.class);
 
 		IBeanConfiguration relationMergeService = beanContextFactory
@@ -69,11 +63,10 @@ public class MergeServerModule implements IInitializingModule {
 		beanContextFactory.link(relationMergeService).to(IEventListenerExtendable.class)
 				.with(ClearAllCachesEvent.class);
 
-		beanContextFactory.registerBean(MERGE_SERVICE_SERVER,
-				PersistenceMergeServiceExtension.class);
+		beanContextFactory.registerBean(MERGE_SERVICE_SERVER, PersistenceMergeServiceExtension.class);
 
-		IBeanConfiguration localToPublicDispatcher =
-				beanContextFactory.registerBean(LocalToPublicDispatcher.class);
+		IBeanConfiguration localToPublicDispatcher = beanContextFactory
+				.registerBean(LocalToPublicDispatcher.class);
 
 		beanContextFactory.link(localToPublicDispatcher).to(IEventListenerExtendable.class)
 				.with(IDataChangeOfSession.class);

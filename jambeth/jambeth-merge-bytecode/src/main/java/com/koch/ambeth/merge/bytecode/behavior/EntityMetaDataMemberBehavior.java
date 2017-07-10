@@ -29,8 +29,6 @@ import com.koch.ambeth.bytecode.behavior.IBytecodeBehavior;
 import com.koch.ambeth.bytecode.behavior.IBytecodeBehaviorState;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.bytecode.IBytecodeEnhancer;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.bytecode.EmbeddedEnhancementHint;
 import com.koch.ambeth.merge.bytecode.visitor.EntityMetaDataEmbeddedMemberVisitor;
 import com.koch.ambeth.merge.bytecode.visitor.EntityMetaDataMemberVisitor;
@@ -49,10 +47,6 @@ import com.koch.ambeth.util.typeinfo.IPropertyInfo;
 import com.koch.ambeth.util.typeinfo.IPropertyInfoProvider;
 
 public class EntityMetaDataMemberBehavior extends AbstractBehavior {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	@Autowired
 	protected IBytecodeEnhancer bytecodeEnhancer;
 
@@ -67,8 +61,8 @@ public class EntityMetaDataMemberBehavior extends AbstractBehavior {
 
 	@Override
 	public Class<?>[] getEnhancements() {
-		return new Class<?>[] {IRelationMemberWrite.class, IPrimitiveMemberWrite.class,
-				IEmbeddedMember.class};
+		return new Class<?>[] { IRelationMemberWrite.class, IPrimitiveMemberWrite.class,
+				IEmbeddedMember.class };
 	}
 
 	@Override
@@ -79,8 +73,8 @@ public class EntityMetaDataMemberBehavior extends AbstractBehavior {
 		if (memberHint == null) {
 			return visitor;
 		}
-		RelationMemberEnhancementHint relationMemberHint =
-				state.getContext(RelationMemberEnhancementHint.class);
+		RelationMemberEnhancementHint relationMemberHint = state
+				.getContext(RelationMemberEnhancementHint.class);
 
 		String[] memberNameSplit = EmbeddedMember.split(memberHint.getMemberName());
 		if (memberNameSplit.length == 1) {

@@ -34,8 +34,6 @@ import org.xmlpull.mxp1.MXParser;
 import org.xmlpull.v1.XmlPullParser;
 
 import com.koch.ambeth.ioc.annotation.Autowired;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.util.IConversionHelper;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.objectcollector.IThreadLocalObjectCollector;
@@ -53,10 +51,6 @@ import com.koch.ambeth.xml.pending.IObjectFutureHandlerRegistry;
 import com.koch.ambeth.xml.postprocess.IPostProcessReader;
 
 public class SimpleXmlReader implements ICyclicXmlReader {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	@Autowired
 	protected ICommandBuilder commandBuilder;
 
@@ -261,8 +255,8 @@ public class SimpleXmlReader implements ICyclicXmlReader {
 			xmlReader = new MXParser();
 			xmlReader.setInput(reader);
 
-			DefaultXmlReader pullParserReader =
-					new DefaultXmlReader(xmlReader, xmlController, objectFutureHandlerRegistry);
+			DefaultXmlReader pullParserReader = new DefaultXmlReader(xmlReader, xmlController,
+					objectFutureHandlerRegistry);
 			if (!pullParserReader.nextTag()) {
 				return null;
 			}

@@ -27,8 +27,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Set;
 
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.persistence.jdbc.AbstractConnectionTestDialect;
 import com.koch.ambeth.persistence.jdbc.JdbcUtil;
 import com.koch.ambeth.util.collections.EmptyList;
@@ -37,10 +35,6 @@ import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
 public class H2TestDialect extends AbstractConnectionTestDialect {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	@Override
 	public void preProcessConnectionForTest(Connection connection, String[] schemaNames,
 			boolean forcePreProcessing) {
@@ -103,9 +97,9 @@ public class H2TestDialect extends AbstractConnectionTestDialect {
 	public String[] createOptimisticLockTrigger(Connection connection, String tableName)
 			throws SQLException {
 		String forTriggerName = "TR_" + tableName + "_OL";
-		return new String[] {"CREATE TRIGGER " + escapeName(null, forTriggerName) + " AFTER UPDATE ON "
+		return new String[] { "CREATE TRIGGER " + escapeName(null, forTriggerName) + " AFTER UPDATE ON "
 				+ escapeName(null, tableName) + " FOR EACH ROW CALL \""
-				+ OptimisticLockTrigger.class.getName() + "\""};
+				+ OptimisticLockTrigger.class.getName() + "\"" };
 	}
 
 	@Override

@@ -50,22 +50,18 @@ import com.koch.ambeth.util.io.AbstractFileVisitor;
 
 public class FileExistsCache
 		implements IDisposableBean, Runnable, IFileExistsCache, IPathMonitorConfiguration {
-	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 
 	@SuppressWarnings("unchecked")
 	private static final WatchEvent.Kind<Path>[] CREATE_AND_DELETE = new WatchEvent.Kind[] {
-			StandardWatchEventKinds.ENTRY_CREATE, StandardWatchEventKinds.ENTRY_DELETE};
+			StandardWatchEventKinds.ENTRY_CREATE, StandardWatchEventKinds.ENTRY_DELETE };
 
-	protected final IdentityWeakHashMap<FileSystem, WatchService> fileSystemToWatchServiceMap =
-			new IdentityWeakHashMap<>();
+	protected final IdentityWeakHashMap<FileSystem, WatchService> fileSystemToWatchServiceMap = new IdentityWeakHashMap<>();
 
-	protected final Tuple2KeyHashMap<WatchService, Path, Object> watchServiceMap =
-			new Tuple2KeyHashMap<>();
+	protected final Tuple2KeyHashMap<WatchService, Path, Object> watchServiceMap = new Tuple2KeyHashMap<>();
 
-	protected final IdentityWeakHashMap<FileSystem, ISet<String>> existingPathsMap =
-			new IdentityWeakHashMap<>();
+	protected final IdentityWeakHashMap<FileSystem, ISet<String>> existingPathsMap = new IdentityWeakHashMap<>();
 
 	protected final java.util.concurrent.locks.Lock readLock;
 
@@ -139,6 +135,7 @@ public class FileExistsCache
 		registerForFileSystemEvents(path, existsDelegate, CREATE_AND_DELETE);
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public void registerForFileSystemEvents(Path path, IFileSystemEventListener callback,
 			WatchEvent.Kind<Path>... kinds) {
@@ -174,6 +171,7 @@ public class FileExistsCache
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public void unregisterForFileSystemEvents(Path path, IFileSystemEventListener callback,
 			Kind<Path>... kinds) {
@@ -327,7 +325,7 @@ public class FileExistsCache
 		if (callbacks != null) {
 			if (callbacks instanceof IFileSystemEventListener) {
 				watchServiceMap.put(watchService, dir,
-						new IFileSystemEventListener[] {(IFileSystemEventListener) callbacks, callback});
+						new IFileSystemEventListener[] { (IFileSystemEventListener) callbacks, callback });
 			}
 			else {
 				IFileSystemEventListener[] arr = (IFileSystemEventListener[]) callbacks;

@@ -26,8 +26,6 @@ import java.util.List;
 import com.koch.ambeth.cache.service.ICacheRetriever;
 import com.koch.ambeth.cache.transfer.LoadContainer;
 import com.koch.ambeth.ioc.IInitializingBean;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.compositeid.CompositeIdMember;
 import com.koch.ambeth.merge.compositeid.ICompositeIdFactory;
 import com.koch.ambeth.merge.transfer.ObjRef;
@@ -41,15 +39,11 @@ import com.koch.ambeth.util.ParamChecker;
 import com.koch.ambeth.util.collections.ArrayList;
 
 public class CompositeIdEntityCacheRetriever implements ICacheRetriever, IInitializingBean {
-	public static final Object[] id1_2_data =
-			{(int) 1, "einszwo", "name_einszwo1", (short) 2, (long) 3};
+	public static final Object[] id1_2_data = { (int) 1, "einszwo", "name_einszwo1", (short) 2,
+			(long) 3 };
 
-	public static final Object[] entity2_id1_2_data =
-			{(int) 1, "einszwo", "name_einszwo1", (short) 2, "alt_einszwo"};
-
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
+	public static final Object[] entity2_id1_2_data = { (int) 1, "einszwo", "name_einszwo1",
+			(short) 2, "alt_einszwo" };
 
 	protected ICompositeIdFactory compositeIdFactory;
 

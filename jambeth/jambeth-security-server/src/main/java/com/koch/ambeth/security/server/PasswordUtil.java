@@ -77,7 +77,6 @@ import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
 public class PasswordUtil implements IInitializingBean, IPasswordUtil,
 		IPasswordValidationExtendable, IThreadLocalCleanupBean {
-	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 

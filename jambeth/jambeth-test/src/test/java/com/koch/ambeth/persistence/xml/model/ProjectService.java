@@ -24,8 +24,6 @@ import java.util.List;
 
 import com.koch.ambeth.ioc.IStartingBean;
 import com.koch.ambeth.ioc.annotation.Autowired;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.proxy.PersistenceContext;
 import com.koch.ambeth.query.IQuery;
 import com.koch.ambeth.query.IQueryBuilder;
@@ -35,10 +33,6 @@ import com.koch.ambeth.service.proxy.Service;
 @Service(IProjectService.class)
 @PersistenceContext
 public class ProjectService implements IProjectService, IStartingBean {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	@Autowired
 	protected IQueryBuilderFactory queryBuilderFactory;
 
@@ -53,8 +47,8 @@ public class ProjectService implements IProjectService, IStartingBean {
 		}
 		{
 			IQueryBuilder<Project> qb = queryBuilderFactory.create(Project.class);
-			queryProjectByName =
-					qb.build(qb.isEqualTo(qb.property(Project.Name), qb.valueName(Project.Name)));
+			queryProjectByName = qb
+					.build(qb.isEqualTo(qb.property(Project.Name), qb.valueName(Project.Name)));
 		}
 	}
 

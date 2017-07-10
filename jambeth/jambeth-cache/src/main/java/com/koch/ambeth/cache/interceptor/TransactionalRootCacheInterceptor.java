@@ -32,8 +32,6 @@ import com.koch.ambeth.cache.service.ICacheRetriever;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.config.Property;
 import com.koch.ambeth.ioc.threadlocal.Forkable;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.cache.HandleContentDelegate;
 import com.koch.ambeth.merge.config.MergeConfigurationConstants;
 import com.koch.ambeth.merge.security.ISecurityActivation;
@@ -44,10 +42,6 @@ import net.sf.cglib.proxy.MethodProxy;
 public class TransactionalRootCacheInterceptor extends AbstractRootCacheAwareInterceptor
 		implements ITransactionalRootCacheManager, ISecondLevelCacheManager {
 	protected static final Method clearMethod = AbstractRootCacheAwareInterceptor.clearMethod;
-
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
 
 	@Autowired
 	protected IRootCache committedRootCache;

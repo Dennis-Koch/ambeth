@@ -23,14 +23,8 @@ limitations under the License.
 import com.koch.ambeth.ioc.IInitializingModule;
 import com.koch.ambeth.ioc.config.Property;
 import com.koch.ambeth.ioc.factory.IBeanContextFactory;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 
 public class IocPerformanceTestModule implements IInitializingModule {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	@Property(name = IocPerformanceTest.count_prop)
 	protected int count;
 

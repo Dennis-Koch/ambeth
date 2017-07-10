@@ -30,8 +30,6 @@ import com.koch.ambeth.ioc.IDisposableBean;
 import com.koch.ambeth.ioc.IInitializingBean;
 import com.koch.ambeth.ioc.IServiceContext;
 import com.koch.ambeth.ioc.factory.BeanContextInitializer;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.util.ParamHolder;
 import com.koch.ambeth.util.ReflectUtil;
 import com.koch.ambeth.util.collections.ArrayList;
@@ -43,10 +41,6 @@ import com.koch.ambeth.util.threading.IBackgroundWorkerParamDelegate;
 
 public class ThreadLocalCleanupController implements IInitializingBean, IDisposableBean,
 		IThreadLocalCleanupBeanExtendable, IThreadLocalCleanupController {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	protected final DefaultExtendableContainer<IThreadLocalCleanupBean> listeners = new DefaultExtendableContainer<>(
 			IThreadLocalCleanupBean.class, "threadLocalCleanupBean");
 
@@ -103,7 +97,7 @@ public class ThreadLocalCleanupController implements IInitializingBean, IDisposa
 		}
 	}
 
-	@SuppressWarnings("rawtypes")
+	@SuppressWarnings("resource")
 	protected ForkStateEntry[] getForkStateEntries() {
 		ForkStateEntry[] cachedForkStateEntries = this.cachedForkStateEntries;
 		if (cachedForkStateEntries != null) {
@@ -159,7 +153,6 @@ public class ThreadLocalCleanupController implements IInitializingBean, IDisposa
 		}
 	}
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Override
 	public IForkState createForkState() {
 		ForkStateEntry[] forkStateEntries = getForkStateEntries();

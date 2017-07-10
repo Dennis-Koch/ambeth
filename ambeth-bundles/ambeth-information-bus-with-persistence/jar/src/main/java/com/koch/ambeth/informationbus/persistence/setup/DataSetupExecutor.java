@@ -53,7 +53,6 @@ public class DataSetupExecutor implements IStartingBean {
 		return oldValue;
 	}
 
-	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 

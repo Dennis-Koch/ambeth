@@ -28,8 +28,6 @@ import com.koch.ambeth.audit.server.config.AuditConfigurationConstants;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.config.Property;
 import com.koch.ambeth.ioc.extendable.MapExtendableContainer;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.IObjRefHelper;
 import com.koch.ambeth.merge.model.CreateOrUpdateContainerBuild;
 import com.koch.ambeth.security.model.ISignature;
@@ -39,10 +37,6 @@ import com.koch.ambeth.util.codec.Base64;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
 public class AuditEntryToSignature implements IAuditEntryToSignature, IAuditEntryWriterExtendable {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	@Autowired
 	protected IConversionHelper conversionHelper;
 
@@ -55,19 +49,17 @@ public class AuditEntryToSignature implements IAuditEntryToSignature, IAuditEntr
 	@Property(name = AuditConfigurationConstants.ProtocolVersion, defaultValue = "1")
 	protected int protocol;
 
-	@Property(name = AuditConfigurationConstants.AuditedInformationHashAlgorithm,
-			defaultValue = "SHA-256")
+	@Property(name = AuditConfigurationConstants.AuditedInformationHashAlgorithm, defaultValue = "SHA-256")
 	protected String hashAlgorithm;
 
-	protected final MapExtendableContainer<Integer, IAuditEntryWriter> auditEntryWriters =
-			new MapExtendableContainer<>("auditEntryWriter",
-					"auditEntryProtocol");
+	protected final MapExtendableContainer<Integer, IAuditEntryWriter> auditEntryWriters = new MapExtendableContainer<>(
+			"auditEntryWriter", "auditEntryProtocol");
 
 	@Override
 	public void signAuditEntry(CreateOrUpdateContainerBuild auditEntry, char[] clearTextPassword,
 			ISignature signature) {
-		java.security.Signature signatureHandle =
-				privateKeyProvider.getSigningHandle(signature, clearTextPassword);
+		java.security.Signature signatureHandle = privateKeyProvider.getSigningHandle(signature,
+				clearTextPassword);
 		if (signatureHandle == null) {
 			auditEntry.ensurePrimitive(IAuditEntry.HashAlgorithm).setNewValue(null);
 			auditEntry.ensurePrimitive(IAuditEntry.Signature).setNewValue(null);
@@ -110,8 +102,8 @@ public class AuditEntryToSignature implements IAuditEntryToSignature, IAuditEntr
 				throw new IllegalArgumentException("No hash algorithm specified");
 			}
 			for (IAuditedEntity auditedEntity : auditEntry.getEntities()) {
-				byte[] auditedEntityDigest =
-						auditEntryWriter.writeAuditedEntity(auditedEntity, hashAlgorithm);
+				byte[] auditedEntityDigest = auditEntryWriter.writeAuditedEntity(auditedEntity,
+						hashAlgorithm);
 				signature.update(auditedEntityDigest);
 				if (!signature.verify(Base64.decode(auditedEntity.getSignature()))) {
 					return null;

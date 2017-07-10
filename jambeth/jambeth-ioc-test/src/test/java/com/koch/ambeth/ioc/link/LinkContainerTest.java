@@ -32,8 +32,6 @@ import com.koch.ambeth.ioc.config.IBeanConfiguration;
 import com.koch.ambeth.ioc.config.Property;
 import com.koch.ambeth.ioc.exception.LinkException;
 import com.koch.ambeth.ioc.factory.IBeanContextFactory;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.testutil.AbstractIocTest;
 import com.koch.ambeth.testutil.TestProperties;
 import com.koch.ambeth.testutil.TestPropertiesList;
@@ -76,7 +74,6 @@ public class LinkContainerTest extends AbstractIocTest {
 	}
 
 	public static class ForeignContainerTestModule implements IInitializingModule {
-		@SuppressWarnings({"unchecked", "rawtypes"})
 		@Override
 		public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
 			beanContextFactory.registerBean(REGISTRY_NAME, TestRegistry.class)
@@ -103,14 +100,14 @@ public class LinkContainerTest extends AbstractIocTest {
 		@Property(name = ContextProp, defaultValue = "NONE")
 		protected ContextVariant toContext;
 
-		@SuppressWarnings({"unchecked", "rawtypes"})
+		@SuppressWarnings({ "unchecked", "rawtypes" })
 		@Override
 		public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
-			IBeanConfiguration registryC =
-					beanContextFactory.registerBean(REGISTRY_NAME, TestRegistry.class)
-							.autowireable(ITestListenerExtendable.class, ITestRegistry.class);
-			IBeanConfiguration listenerC =
-					beanContextFactory.registerBean(LISTENER_NAME, TestListener.class);
+			IBeanConfiguration registryC = beanContextFactory
+					.registerBean(REGISTRY_NAME, TestRegistry.class)
+					.autowireable(ITestListenerExtendable.class, ITestRegistry.class);
+			IBeanConfiguration listenerC = beanContextFactory.registerBean(LISTENER_NAME,
+					TestListener.class);
 
 			if (listenerName == null) {
 				listenerName = LISTENER_NAME;
@@ -209,10 +206,6 @@ public class LinkContainerTest extends AbstractIocTest {
 
 	public static int propertyChangedReceivedCount;
 
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	protected IServiceContext childContext;
 
 	public static IServiceContext foreignContext;
@@ -224,8 +217,8 @@ public class LinkContainerTest extends AbstractIocTest {
 		foreignContext = beanContext.createService(ForeignContainerTestModule.class);
 		foreignTestRegistry = foreignContext.getService(ITestRegistry.class);
 
-		childContext =
-				beanContext.createService(new IBackgroundWorkerParamDelegate<IBeanContextFactory>() {
+		childContext = beanContext
+				.createService(new IBackgroundWorkerParamDelegate<IBeanContextFactory>() {
 					@Override
 					public void invoke(IBeanContextFactory beanContextFactory) throws Exception {
 						beanContextFactory.registerExternalBean(FOREIGN_CONTEXT_NAME, foreignContext);
@@ -265,9 +258,9 @@ public class LinkContainerTest extends AbstractIocTest {
 	}
 
 	@Test(expected = LinkException.class)
-	@TestPropertiesList({@TestProperties(name = ListenerProp, value = "BY_NAME"),
-			@TestProperties(name = RegistryProp, value = "BY_EXTENDABLE"), @TestProperties(
-					name = ExtendableTypeProp, value = "com.koch.ambeth.ioc.link.ITestListenerExtendable2")})
+	@TestPropertiesList({ @TestProperties(name = ListenerProp, value = "BY_NAME"),
+			@TestProperties(name = RegistryProp, value = "BY_EXTENDABLE"),
+			@TestProperties(name = ExtendableTypeProp, value = "com.koch.ambeth.ioc.link.ITestListenerExtendable2") })
 	@Ignore
 	public void test_NoRByType() {
 	}
@@ -281,254 +274,253 @@ public class LinkContainerTest extends AbstractIocTest {
 	}
 
 	@Test
-	@TestPropertiesList({@TestProperties(name = ListenerProp, value = "BY_NAME"),
+	@TestPropertiesList({ @TestProperties(name = ListenerProp, value = "BY_NAME"),
 			@TestProperties(name = RegistryProp, value = "BY_EXTENDABLE"),
-			@TestProperties(name = ExtendableTypeProp,
-					value = "com.koch.ambeth.ioc.link.ITestListenerExtendable2"),
-			@TestProperties(name = OptionalProp, value = "true")})
+			@TestProperties(name = ExtendableTypeProp, value = "com.koch.ambeth.ioc.link.ITestListenerExtendable2"),
+			@TestProperties(name = OptionalProp, value = "true") })
 	public void testOptional_NoRByType() {
 		// If no exception occurs everything is ok
 	}
 
 	@Test
-	@TestPropertiesList({@TestProperties(name = ListenerProp, value = "BY_NAME"),
+	@TestPropertiesList({ @TestProperties(name = ListenerProp, value = "BY_NAME"),
 			@TestProperties(name = RegistryProp, value = "BY_EXTENDABLE"),
 			@TestProperties(name = ListenerNameProp, value = LISTENER_NAME + "_wrong_name"),
-			@TestProperties(name = OptionalProp, value = "true")})
+			@TestProperties(name = OptionalProp, value = "true") })
 	public void testOptional_NoL() {
 		// If no exception occurs everything is ok
 	}
 
 	@Test
-	@TestPropertiesList({@TestProperties(name = ListenerProp, value = "BY_NAME"),
-			@TestProperties(name = RegistryProp, value = "BY_EXTENDABLE")})
+	@TestPropertiesList({ @TestProperties(name = ListenerProp, value = "BY_NAME"),
+			@TestProperties(name = RegistryProp, value = "BY_EXTENDABLE") })
 	public void testLByName_RByExtendable() {
 		testValidContext(1);
 	}
 
 	@Test
-	@TestPropertiesList({@TestProperties(name = ListenerProp, value = "BY_NAME"),
-			@TestProperties(name = RegistryProp, value = "BY_NAME_AND_EXTENDABLE")})
+	@TestPropertiesList({ @TestProperties(name = ListenerProp, value = "BY_NAME"),
+			@TestProperties(name = RegistryProp, value = "BY_NAME_AND_EXTENDABLE") })
 	public void testLByName_RByNameAndExtendable() {
 		testValidContext(1);
 	}
 
 	@Test
-	@TestPropertiesList({@TestProperties(name = ListenerProp, value = "BY_NAME"),
-			@TestProperties(name = RegistryProp, value = "BY_NAME_AND_EVENT")})
+	@TestPropertiesList({ @TestProperties(name = ListenerProp, value = "BY_NAME"),
+			@TestProperties(name = RegistryProp, value = "BY_NAME_AND_EVENT") })
 	public void testLByName_RByNameAndEvent() {
 		testValidContext(1);
 	}
 
 	@Test
-	@TestPropertiesList({@TestProperties(name = ListenerProp, value = "BY_NAME"),
-			@TestProperties(name = RegistryProp, value = "BY_NAME_AND_PROPERTY")})
+	@TestPropertiesList({ @TestProperties(name = ListenerProp, value = "BY_NAME"),
+			@TestProperties(name = RegistryProp, value = "BY_NAME_AND_PROPERTY") })
 	public void testLByName_RByNameAndProperty() {
 		testValidContext(1);
 	}
 
 	@Test
-	@TestPropertiesList({@TestProperties(name = ListenerProp, value = "BY_NAME"),
-			@TestProperties(name = RegistryProp, value = "BY_INSTANCE_AND_EXTENDABLE")})
+	@TestPropertiesList({ @TestProperties(name = ListenerProp, value = "BY_NAME"),
+			@TestProperties(name = RegistryProp, value = "BY_INSTANCE_AND_EXTENDABLE") })
 	public void testLByName_RByInstanceAndExtendable() {
 		testValidContext(1);
 	}
 
 	@Test
-	@TestPropertiesList({@TestProperties(name = ListenerProp, value = "BY_NAME"),
-			@TestProperties(name = RegistryProp, value = "BY_INSTANCE_AND_EVENT")})
+	@TestPropertiesList({ @TestProperties(name = ListenerProp, value = "BY_NAME"),
+			@TestProperties(name = RegistryProp, value = "BY_INSTANCE_AND_EVENT") })
 	public void testLByName_RByInstanceAndEvent() {
 		testValidContext(1);
 	}
 
 	@Test
-	@TestPropertiesList({@TestProperties(name = ListenerProp, value = "BY_NAME"),
-			@TestProperties(name = RegistryProp, value = "BY_INSTANCE_AND_PROPERTY")})
+	@TestPropertiesList({ @TestProperties(name = ListenerProp, value = "BY_NAME"),
+			@TestProperties(name = RegistryProp, value = "BY_INSTANCE_AND_PROPERTY") })
 	public void testLByName_RByInstanceAndProperty() {
 		testValidContext(1);
 	}
 
 	@Test
-	@TestPropertiesList({@TestProperties(name = ListenerProp, value = "BY_NAME"),
-			@TestProperties(name = RegistryProp, value = "BY_AUTOWIRING_AND_EXTENDABLE")})
+	@TestPropertiesList({ @TestProperties(name = ListenerProp, value = "BY_NAME"),
+			@TestProperties(name = RegistryProp, value = "BY_AUTOWIRING_AND_EXTENDABLE") })
 	public void testLByName_RByAutowiringAndExtendable() {
 		testValidContext(1);
 	}
 
 	@Test
-	@TestPropertiesList({@TestProperties(name = ListenerProp, value = "BY_NAME"),
-			@TestProperties(name = RegistryProp, value = "BY_AUTOWIRING_AND_EVENT")})
+	@TestPropertiesList({ @TestProperties(name = ListenerProp, value = "BY_NAME"),
+			@TestProperties(name = RegistryProp, value = "BY_AUTOWIRING_AND_EVENT") })
 	public void testLByName_RByAutowiringAndEvent() {
 		testValidContext(1);
 	}
 
 	@Test
-	@TestPropertiesList({@TestProperties(name = ListenerProp, value = "BY_NAME"),
-			@TestProperties(name = RegistryProp, value = "BY_AUTOWIRING_AND_PROPERTY")})
+	@TestPropertiesList({ @TestProperties(name = ListenerProp, value = "BY_NAME"),
+			@TestProperties(name = RegistryProp, value = "BY_AUTOWIRING_AND_PROPERTY") })
 	public void testLByName_RByAutowiringAndProperty() {
 		testValidContext(1);
 	}
 
 	@Test
-	@TestPropertiesList({@TestProperties(name = ListenerProp, value = "BY_NAME_AND_METHOD"),
-			@TestProperties(name = RegistryProp, value = "BY_EXTENDABLE")})
+	@TestPropertiesList({ @TestProperties(name = ListenerProp, value = "BY_NAME_AND_METHOD"),
+			@TestProperties(name = RegistryProp, value = "BY_EXTENDABLE") })
 	public void testLByNameAndMethod_RByExtendable() {
 		testValidContext(1, 0, 1);
 	}
 
 	@Test
-	@TestPropertiesList({@TestProperties(name = ListenerProp, value = "BY_NAME_AND_METHOD"),
-			@TestProperties(name = RegistryProp, value = "BY_NAME_AND_EXTENDABLE")})
+	@TestPropertiesList({ @TestProperties(name = ListenerProp, value = "BY_NAME_AND_METHOD"),
+			@TestProperties(name = RegistryProp, value = "BY_NAME_AND_EXTENDABLE") })
 	public void testLByNameAndMethod_RByNameAndExtendable() {
 		testValidContext(1, 0, 1);
 	}
 
 	@Test
-	@TestPropertiesList({@TestProperties(name = ListenerProp, value = "BY_NAME_AND_METHOD"),
-			@TestProperties(name = RegistryProp, value = "BY_NAME_AND_EVENT")})
+	@TestPropertiesList({ @TestProperties(name = ListenerProp, value = "BY_NAME_AND_METHOD"),
+			@TestProperties(name = RegistryProp, value = "BY_NAME_AND_EVENT") })
 	public void testLByNameAndMethod_RByNameAndEvent() {
 		testValidContext(1, 0, 1);
 	}
 
 	@Test
-	@TestPropertiesList({@TestProperties(name = ListenerProp, value = "BY_NAME_AND_METHOD"),
-			@TestProperties(name = RegistryProp, value = "BY_NAME_AND_PROPERTY")})
+	@TestPropertiesList({ @TestProperties(name = ListenerProp, value = "BY_NAME_AND_METHOD"),
+			@TestProperties(name = RegistryProp, value = "BY_NAME_AND_PROPERTY") })
 	public void testLByNameAndMethod_RByNameAndProperty() {
 		testValidContext(1, 0, 1);
 	}
 
 	@Test
-	@TestPropertiesList({@TestProperties(name = ListenerProp, value = "BY_NAME_AND_METHOD"),
-			@TestProperties(name = RegistryProp, value = "BY_INSTANCE_AND_EXTENDABLE")})
+	@TestPropertiesList({ @TestProperties(name = ListenerProp, value = "BY_NAME_AND_METHOD"),
+			@TestProperties(name = RegistryProp, value = "BY_INSTANCE_AND_EXTENDABLE") })
 	public void testLByNameAndMethod_RByInstanceAndExtendable() {
 		testValidContext(1, 0, 1);
 	}
 
 	@Test
-	@TestPropertiesList({@TestProperties(name = ListenerProp, value = "BY_NAME_AND_METHOD"),
-			@TestProperties(name = RegistryProp, value = "BY_INSTANCE_AND_EVENT")})
+	@TestPropertiesList({ @TestProperties(name = ListenerProp, value = "BY_NAME_AND_METHOD"),
+			@TestProperties(name = RegistryProp, value = "BY_INSTANCE_AND_EVENT") })
 	public void testLByNameAndMethod_RByInstanceAndEvent() {
 		testValidContext(1, 0, 1);
 	}
 
 	@Test
-	@TestPropertiesList({@TestProperties(name = ListenerProp, value = "BY_NAME_AND_METHOD"),
-			@TestProperties(name = RegistryProp, value = "BY_INSTANCE_AND_PROPERTY")})
+	@TestPropertiesList({ @TestProperties(name = ListenerProp, value = "BY_NAME_AND_METHOD"),
+			@TestProperties(name = RegistryProp, value = "BY_INSTANCE_AND_PROPERTY") })
 	public void testLByNameAndMethod_RByInstanceAndProperty() {
 		testValidContext(1, 0, 1);
 	}
 
 	@Test
-	@TestPropertiesList({@TestProperties(name = ListenerProp, value = "BY_CONF"),
-			@TestProperties(name = RegistryProp, value = "BY_EXTENDABLE")})
+	@TestPropertiesList({ @TestProperties(name = ListenerProp, value = "BY_CONF"),
+			@TestProperties(name = RegistryProp, value = "BY_EXTENDABLE") })
 	public void testLByConf_RByExtendable() {
 		testValidContext(1);
 	}
 
 	@Test
-	@TestPropertiesList({@TestProperties(name = ListenerProp, value = "BY_CONF"),
-			@TestProperties(name = RegistryProp, value = "BY_NAME_AND_EXTENDABLE")})
+	@TestPropertiesList({ @TestProperties(name = ListenerProp, value = "BY_CONF"),
+			@TestProperties(name = RegistryProp, value = "BY_NAME_AND_EXTENDABLE") })
 	public void testLByConf_RByNameAndExtendable() {
 		testValidContext(1);
 	}
 
 	@Test
-	@TestPropertiesList({@TestProperties(name = ListenerProp, value = "BY_CONF"),
-			@TestProperties(name = RegistryProp, value = "BY_NAME_AND_EVENT")})
+	@TestPropertiesList({ @TestProperties(name = ListenerProp, value = "BY_CONF"),
+			@TestProperties(name = RegistryProp, value = "BY_NAME_AND_EVENT") })
 	public void testLByConf_RByNameAndEvent() {
 		testValidContext(1);
 	}
 
 	@Test
-	@TestPropertiesList({@TestProperties(name = ListenerProp, value = "BY_CONF"),
-			@TestProperties(name = RegistryProp, value = "BY_NAME_AND_PROPERTY")})
+	@TestPropertiesList({ @TestProperties(name = ListenerProp, value = "BY_CONF"),
+			@TestProperties(name = RegistryProp, value = "BY_NAME_AND_PROPERTY") })
 	public void testLByConf_RByNameAndProperty() {
 		testValidContext(1);
 	}
 
 	@Test
-	@TestPropertiesList({@TestProperties(name = ListenerProp, value = "BY_CONF"),
-			@TestProperties(name = RegistryProp, value = "BY_INSTANCE_AND_EXTENDABLE")})
+	@TestPropertiesList({ @TestProperties(name = ListenerProp, value = "BY_CONF"),
+			@TestProperties(name = RegistryProp, value = "BY_INSTANCE_AND_EXTENDABLE") })
 	public void testLByConf_RByInstanceAndExtendable() {
 		testValidContext(1);
 	}
 
 	@Test
-	@TestPropertiesList({@TestProperties(name = ListenerProp, value = "BY_CONF"),
-			@TestProperties(name = RegistryProp, value = "BY_INSTANCE_AND_EVENT")})
+	@TestPropertiesList({ @TestProperties(name = ListenerProp, value = "BY_CONF"),
+			@TestProperties(name = RegistryProp, value = "BY_INSTANCE_AND_EVENT") })
 	public void testLByConf_RByInstanceAndEvent() {
 		testValidContext(1);
 	}
 
 	@Test
-	@TestPropertiesList({@TestProperties(name = ListenerProp, value = "BY_CONF"),
-			@TestProperties(name = RegistryProp, value = "BY_INSTANCE_AND_PROPERTY")})
+	@TestPropertiesList({ @TestProperties(name = ListenerProp, value = "BY_CONF"),
+			@TestProperties(name = RegistryProp, value = "BY_INSTANCE_AND_PROPERTY") })
 	public void testLByConf_RByInstanceAndProperty() {
 		testValidContext(1);
 	}
 
 	@Test
-	@TestPropertiesList({@TestProperties(name = ListenerProp, value = "BY_INSTANCE"),
-			@TestProperties(name = RegistryProp, value = "BY_EXTENDABLE")})
+	@TestPropertiesList({ @TestProperties(name = ListenerProp, value = "BY_INSTANCE"),
+			@TestProperties(name = RegistryProp, value = "BY_EXTENDABLE") })
 	public void testLByInstance_RByExtendable() {
 		testValidContext(1);
 	}
 
 	@Test
-	@TestPropertiesList({@TestProperties(name = ListenerProp, value = "BY_INSTANCE"),
-			@TestProperties(name = RegistryProp, value = "BY_NAME_AND_EXTENDABLE")})
+	@TestPropertiesList({ @TestProperties(name = ListenerProp, value = "BY_INSTANCE"),
+			@TestProperties(name = RegistryProp, value = "BY_NAME_AND_EXTENDABLE") })
 	public void testLByInstance_RByNameAndExtendable() {
 		testValidContext(1);
 	}
 
 	@Test
-	@TestPropertiesList({@TestProperties(name = ListenerProp, value = "BY_INSTANCE"),
-			@TestProperties(name = RegistryProp, value = "BY_NAME_AND_EVENT")})
+	@TestPropertiesList({ @TestProperties(name = ListenerProp, value = "BY_INSTANCE"),
+			@TestProperties(name = RegistryProp, value = "BY_NAME_AND_EVENT") })
 	public void testLByInstance_RByNameAndEvent() {
 		testValidContext(1);
 	}
 
 	@Test
-	@TestPropertiesList({@TestProperties(name = ListenerProp, value = "BY_INSTANCE"),
-			@TestProperties(name = RegistryProp, value = "BY_NAME_AND_PROPERTY")})
+	@TestPropertiesList({ @TestProperties(name = ListenerProp, value = "BY_INSTANCE"),
+			@TestProperties(name = RegistryProp, value = "BY_NAME_AND_PROPERTY") })
 	public void testLByInstance_RByNameAndProperty() {
 		testValidContext(1);
 	}
 
 	@Test
-	@TestPropertiesList({@TestProperties(name = ListenerProp, value = "BY_INSTANCE"),
-			@TestProperties(name = RegistryProp, value = "BY_INSTANCE_AND_EXTENDABLE")})
+	@TestPropertiesList({ @TestProperties(name = ListenerProp, value = "BY_INSTANCE"),
+			@TestProperties(name = RegistryProp, value = "BY_INSTANCE_AND_EXTENDABLE") })
 	public void testLByInstance_RByInstance() {
 		testValidContext(1);
 	}
 
 	@Test
-	@TestPropertiesList({@TestProperties(name = ListenerProp, value = "BY_INSTANCE"),
-			@TestProperties(name = RegistryProp, value = "BY_INSTANCE_AND_EVENT")})
+	@TestPropertiesList({ @TestProperties(name = ListenerProp, value = "BY_INSTANCE"),
+			@TestProperties(name = RegistryProp, value = "BY_INSTANCE_AND_EVENT") })
 	public void testLByInstance_RByInstanceAndEvent() {
 		testValidContext(1);
 	}
 
 	@Test
-	@TestPropertiesList({@TestProperties(name = ListenerProp, value = "BY_INSTANCE"),
-			@TestProperties(name = RegistryProp, value = "BY_INSTANCE_AND_PROPERTY")})
+	@TestPropertiesList({ @TestProperties(name = ListenerProp, value = "BY_INSTANCE"),
+			@TestProperties(name = RegistryProp, value = "BY_INSTANCE_AND_PROPERTY") })
 	public void testLByInstance_RByInstanceAndProperty() {
 		testValidContext(1);
 	}
 
 	@Test
-	@TestPropertiesList({@TestProperties(name = ListenerProp, value = "BY_INSTANCE"),
+	@TestPropertiesList({ @TestProperties(name = ListenerProp, value = "BY_INSTANCE"),
 			@TestProperties(name = RegistryProp, value = "BY_AUTOWIRING_AND_EXTENDABLE"),
-			@TestProperties(name = ContextProp, value = "BY_NAME")})
+			@TestProperties(name = ContextProp, value = "BY_NAME") })
 	public void testLByInstance_RByAutowiringAndExtendable_OnContextName() {
 		testValidContext(0);
 		Assert.assertEquals(1, foreignTestRegistry.getTestListeners().length);
 	}
 
 	@Test
-	@TestPropertiesList({@TestProperties(name = ListenerProp, value = "BY_INSTANCE"),
+	@TestPropertiesList({ @TestProperties(name = ListenerProp, value = "BY_INSTANCE"),
 			@TestProperties(name = RegistryProp, value = "BY_NAME_AND_PROPERTY"),
-			@TestProperties(name = ContextProp, value = "BY_REFERENCE")})
+			@TestProperties(name = ContextProp, value = "BY_REFERENCE") })
 	public void testLByInstance_RByNameAndProperty_OnContextReference() {
 		testValidContext(0);
 		Assert.assertEquals(1, foreignTestRegistry.getTestListeners().length);

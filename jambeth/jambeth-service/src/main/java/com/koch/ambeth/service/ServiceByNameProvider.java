@@ -22,16 +22,10 @@ limitations under the License.
 
 import com.koch.ambeth.ioc.IInitializingBean;
 import com.koch.ambeth.ioc.extendable.MapExtendableContainer;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.util.ParamChecker;
 
 public class ServiceByNameProvider
 		implements IServiceByNameProvider, IServiceExtendable, IInitializingBean {
-	@SuppressWarnings("unused")
-	@LogInstance(ServiceByNameProvider.class)
-	private ILogger log;
-
 	protected MapExtendableContainer<String, Object> serviceNameToObjectMap;
 
 	protected IServiceByNameProvider parentServiceByNameProvider;

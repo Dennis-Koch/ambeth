@@ -22,16 +22,10 @@ limitations under the License.
 
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.job.IJobContext;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 
 import it.sauronsoftware.cron4j.TaskExecutionContext;
 
 public class AmbethCron4jJobContext implements IJobContext {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	@Autowired
 	protected TaskExecutionContext taskExecutionContext;
 

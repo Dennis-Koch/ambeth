@@ -35,8 +35,6 @@ import com.koch.ambeth.cache.rootcachevalue.RootCacheValue;
 import com.koch.ambeth.ioc.IServiceContext;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.config.Property;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.ILightweightTransaction;
 import com.koch.ambeth.merge.IObjRefHelper;
 import com.koch.ambeth.merge.cache.CacheDirective;
@@ -80,14 +78,10 @@ import com.koch.ambeth.util.threading.IGuiThreadHelper;
 import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
 
 public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHelper {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	private static final Object[] emptyObjectArray = new Object[0];
 
-	private static final Set<CacheDirective> failEarlyReturnMisses =
-			EnumSet.of(CacheDirective.FailEarly, CacheDirective.ReturnMisses);
+	private static final Set<CacheDirective> failEarlyReturnMisses = EnumSet
+			.of(CacheDirective.FailEarly, CacheDirective.ReturnMisses);
 
 	@Autowired
 	protected IServiceContext beanContext;
@@ -116,8 +110,7 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 	@Autowired
 	protected ValueHolderContainerMixin valueHolderContainerMixin;
 
-	@Property(name = MergeConfigurationConstants.PrefetchInLazyTransactionActive,
-			defaultValue = "true")
+	@Property(name = MergeConfigurationConstants.PrefetchInLazyTransactionActive, defaultValue = "true")
 	protected boolean lazyTransactionActive;
 
 	protected final ThreadLocal<AlreadyHandledSet> alreadyHandledSetTL = new ThreadLocal<>();
@@ -235,13 +228,10 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 				setCreated = true;
 			}
 
-			IdentityLinkedMap<ICacheIntern, ISet<IObjRef>> cacheToOrisLoadedHistory =
-					new IdentityLinkedMap<>();
-			IdentityLinkedMap<ICacheIntern, ISet<IObjRelation>> cacheToOrelsLoadedHistory =
-					new IdentityLinkedMap<>();
+			IdentityLinkedMap<ICacheIntern, ISet<IObjRef>> cacheToOrisLoadedHistory = new IdentityLinkedMap<>();
+			IdentityLinkedMap<ICacheIntern, ISet<IObjRelation>> cacheToOrelsLoadedHistory = new IdentityLinkedMap<>();
 			IdentityLinkedMap<ICacheIntern, ISet<IObjRef>> cacheToOrisToLoad = new IdentityLinkedMap<>();
-			IdentityLinkedMap<ICacheIntern, IMap<IObjRelation, Boolean>> cacheToOrelsToLoad =
-					new IdentityLinkedMap<>();
+			IdentityLinkedMap<ICacheIntern, IMap<IObjRelation, Boolean>> cacheToOrelsToLoad = new IdentityLinkedMap<>();
 
 			ArrayList<PrefetchCommand> loadItems = new ArrayList<>();
 
@@ -329,8 +319,8 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 			final ArrayList<PrefetchCommand> pendingPrefetchCommands, ArrayList<Object> hardRefList) {
 		// all relation members where at least one instance of the owning entity type needs a prefetch
 		// on this member in the immediate next step
-		final MergePrefetchPathsCache mergePrefetchPathsCache =
-				new MergePrefetchPathsCache(entityMetaDataProvider);
+		final MergePrefetchPathsCache mergePrefetchPathsCache = new MergePrefetchPathsCache(
+				entityMetaDataProvider);
 
 		IdentityLinkedSet<Member> prioMembers = prioMembersProvider
 				.getPrioMembers(entityTypeToPrefetchPath, pendingPrefetchCommands, mergePrefetchPathsCache);
@@ -340,8 +330,8 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 		loadAndAddOris(cacheToOrisToLoad, hardRefList, cacheToOrisLoadedHistory);
 
 		while (!pendingPrefetchCommands.isEmpty()) {
-			final PrefetchCommand[] currentPrefetchCommands =
-					pendingPrefetchCommands.toArray(PrefetchCommand.class);
+			final PrefetchCommand[] currentPrefetchCommands = pendingPrefetchCommands
+					.toArray(PrefetchCommand.class);
 			// Clear the items to be ready for cascaded items in new batch recursion step
 			pendingPrefetchCommands.clear();
 			if (!prioMembers.isEmpty()) {
@@ -358,8 +348,7 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 				@Override
 				public void invoke() throws Exception {
 					ICacheModification cacheModification = CacheHelper.this.cacheModification;
-					ValueHolderContainerMixin valueHolderContainerMixin =
-							CacheHelper.this.valueHolderContainerMixin;
+					ValueHolderContainerMixin valueHolderContainerMixin = CacheHelper.this.valueHolderContainerMixin;
 					boolean oldActive = cacheModification.isActive();
 					if (!oldActive) {
 						cacheModification.setActive(true);
@@ -475,8 +464,8 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 			for (Entry<IObjRelation, Boolean> entry : orelsToLoad) {
 				IObjRelation objRel = entry.getKey();
 				IEntityMetaData metaData = entityMetaDataProvider.getMetaData(objRel.getRealType());
-				RelationMember memberByName =
-						(RelationMember) metaData.getMemberByName(objRel.getMemberName());
+				RelationMember memberByName = (RelationMember) metaData
+						.getMemberByName(objRel.getMemberName());
 				if (!prioMembers.contains(memberByName)) {
 					continue;
 				}
@@ -486,8 +475,8 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 		else {
 			objRelList = orelsToLoad.keyList();
 		}
-		IList<IObjRelationResult> objRelResults =
-				cache.getObjRelations(objRelList, cache, CacheDirective.returnMisses());
+		IList<IObjRelationResult> objRelResults = cache.getObjRelations(objRelList, cache,
+				CacheDirective.returnMisses());
 
 		ISet<IObjRef> orisToLoad = null;
 		for (int a = 0, size = objRelResults.size(); a < size; a++) {
@@ -676,8 +665,8 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 			IObjRelation self = vhc.get__Self(relationIndex);
 			ArrayList<IObjRelation> orels = new ArrayList<>();
 			orels.add(self);
-			IList<IObjRelationResult> orelResults =
-					cache.getObjRelations(orels, cache, failEarlyReturnMisses);
+			IList<IObjRelationResult> orelResults = cache.getObjRelations(orels, cache,
+					failEarlyReturnMisses);
 			IObjRelationResult orelResult = orelResults.get(0);
 			if (orelResult == null) {
 				ISet<IObjRelation> orelsLoadedHistory = cacheToOrelsLoadedHistory.get(cache);
@@ -698,8 +687,8 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 			}
 		}
 		if (!vhr.isObjRefsOnly() && objRefs != null && objRefs.length > 0) {
-			List<Object> loadedObjects =
-					cache.getObjects(new ArrayList<IObjRef>(objRefs), cache, failEarlyReturnMisses);
+			List<Object> loadedObjects = cache.getObjects(new ArrayList<IObjRef>(objRefs), cache,
+					failEarlyReturnMisses);
 			try {
 				for (int b = objRefs.length; b-- > 0;) {
 					IObjRef ori = objRefs[b];
@@ -768,7 +757,7 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 		return null;
 	}
 
-	@SuppressWarnings({"unchecked", "rawtypes"})
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Override
 	public Object convertResultListToExpectedType(List<Object> resultList, Class<?> expectedType,
 			Class<?> elementType) {
@@ -859,8 +848,8 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 			String sourceToTargetEntityPropertyPath, Class<S> sourceEntityType) {
 		// Einen Accessor ermitteln, der die gesamte Hierachie aus dem propertyPath ('A.B.C')
 		// selbststaendig traversiert
-		Member member =
-				memberTypeProvider.getMember(sourceEntityType, sourceToTargetEntityPropertyPath);
+		Member member = memberTypeProvider.getMember(sourceEntityType,
+				sourceToTargetEntityPropertyPath);
 
 		// MetaDaten der Ziel-Entity ermitteln, da wir (generisch) den PK brauchen, um damit ein
 		// DISTINCT-Behavior durch
@@ -874,8 +863,8 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 		// passend zum PropertyPath auf allen
 		// uebergebenen Quell-Entities
 		// Dadurch entstehen maximal 2 gebatchte SELECTs, egal wie gross die Liste ist
-		IPrefetchHandle prefetch =
-				createPrefetch().add(sourceEntityType, sourceToTargetEntityPropertyPath).build();
+		IPrefetchHandle prefetch = createPrefetch()
+				.add(sourceEntityType, sourceToTargetEntityPropertyPath).build();
 		@SuppressWarnings("unused")
 		// Speichere das State-Result unbenutzt - wichtig fuer concurrent GC Aktivitaeten, um Verluste
 		// an Entity-Referenzen zu verhindern
@@ -929,8 +918,8 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 				clonedChildren.add(copyCachePathToAppendable(children[a]));
 			}
 		}
-		AppendableCachePath clonedCachePath =
-				new AppendableCachePath(cachePath.memberType, cachePath.memberIndex, cachePath.memberName);
+		AppendableCachePath clonedCachePath = new AppendableCachePath(cachePath.memberType,
+				cachePath.memberIndex, cachePath.memberName);
 		clonedCachePath.children = clonedChildren;
 		return clonedCachePath;
 	}

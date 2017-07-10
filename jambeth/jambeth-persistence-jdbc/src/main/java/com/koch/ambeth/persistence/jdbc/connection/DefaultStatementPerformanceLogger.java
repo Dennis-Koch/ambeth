@@ -34,8 +34,6 @@ import java.util.regex.Matcher;
 import com.koch.ambeth.ioc.IInitializingBean;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.config.Property;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.persistence.IConnectionDialect;
 import com.koch.ambeth.persistence.api.IDatabase;
 import com.koch.ambeth.persistence.api.database.DatabaseCallback;
@@ -77,10 +75,6 @@ public class DefaultStatementPerformanceLogger extends ReentrantIntervalSensor<S
 		}
 	}
 
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	@Autowired
 	protected Connection connection;
 
@@ -95,8 +89,7 @@ public class DefaultStatementPerformanceLogger extends ReentrantIntervalSensor<S
 
 	protected String[] schemaNames;
 
-	protected final LinkedHashMap<String, StatementEntry> sqlToEntryMap =
-			new LinkedHashMap<>();
+	protected final LinkedHashMap<String, StatementEntry> sqlToEntryMap = new LinkedHashMap<>();
 
 	@Override
 	public void afterPropertiesSet() throws Throwable {
@@ -110,8 +103,8 @@ public class DefaultStatementPerformanceLogger extends ReentrantIntervalSensor<S
 
 	@Override
 	protected StatementInfo createIntervalInfo(String sensorName, Object[] additionalData) {
-		StatementInfo statementInfo =
-				new StatementInfo((String) additionalData[0], System.currentTimeMillis());
+		StatementInfo statementInfo = new StatementInfo((String) additionalData[0],
+				System.currentTimeMillis());
 		return statementInfo;
 	}
 
@@ -175,11 +168,10 @@ public class DefaultStatementPerformanceLogger extends ReentrantIntervalSensor<S
 
 	@Override
 	public IStatementPerformanceReportItem[] createReport(boolean reset, boolean joinRemote) {
-		IMap<String, StatementEntry> sqlToRemoteEntryMap =
-				joinRemote ? joinRemoteDatabaseInfo(schemaNames) : null;
+		IMap<String, StatementEntry> sqlToRemoteEntryMap = joinRemote
+				? joinRemoteDatabaseInfo(schemaNames) : null;
 		final long currentTime;
-		final LinkedHashMap<String, StatementEntry> sqlToEntryMap =
-				new LinkedHashMap<>();
+		final LinkedHashMap<String, StatementEntry> sqlToEntryMap = new LinkedHashMap<>();
 		ArrayList<StatementInfo> statementInfos = new ArrayList<>();
 		Lock writeLock = this.writeLock;
 		writeLock.lock();
@@ -206,8 +198,7 @@ public class DefaultStatementPerformanceLogger extends ReentrantIntervalSensor<S
 			writeLock.unlock();
 		}
 		ISet<String> keys = sqlToEntryMap.keySet();
-		final LinkedHashMap<String, IList<StatementInfo>> sqlToStatementInfosMap =
-				new LinkedHashMap<>();
+		final LinkedHashMap<String, IList<StatementInfo>> sqlToStatementInfosMap = new LinkedHashMap<>();
 		for (int a = statementInfos.size(); a-- > 0;) {
 			StatementInfo statementInfo = statementInfos.get(a);
 			String sql = statementInfo.sql;
@@ -249,8 +240,7 @@ public class DefaultStatementPerformanceLogger extends ReentrantIntervalSensor<S
 		final DecimalFormat integerDF = new PaddingDecimalFormat("#######");
 
 		String ignoreSql = getRemoteDatabaseInfoSql(schemaNames);
-		ArrayList<IStatementPerformanceReportItem> items =
-				new ArrayList<>(keysList.size());
+		ArrayList<IStatementPerformanceReportItem> items = new ArrayList<>(keysList.size());
 
 		for (int a = 0, size = keysList.size(); a < size; a++) {
 			final String sql = keysList.get(a);
@@ -348,8 +338,7 @@ public class DefaultStatementPerformanceLogger extends ReentrantIntervalSensor<S
 	}
 
 	protected IMap<String, StatementEntry> joinRemoteDatabaseInfo(final String... schemaNames) {
-		final LinkedHashMap<String, StatementEntry> statementInfoMap =
-				new LinkedHashMap<>();
+		final LinkedHashMap<String, StatementEntry> statementInfoMap = new LinkedHashMap<>();
 
 		final String sql = getRemoteDatabaseInfoSql(schemaNames);
 

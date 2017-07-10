@@ -37,8 +37,6 @@ import com.koch.ambeth.audit.model.IAuditedEntityRelationProperty;
 import com.koch.ambeth.audit.model.IAuditedEntityRelationPropertyItem;
 import com.koch.ambeth.audit.model.IAuditedService;
 import com.koch.ambeth.ioc.annotation.Autowired;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.model.CreateOrUpdateContainerBuild;
 import com.koch.ambeth.merge.model.IDirectObjRef;
 import com.koch.ambeth.merge.model.IPrimitiveUpdateItem;
@@ -90,10 +88,6 @@ public class AuditEntryWriterV1 implements IAuditEntryWriter {
 	private static final String[] auditedPropertiesOfRelationItem = {
 			IAuditedEntityRelationPropertyItem.Order, //
 			IAuditedEntityRelationPropertyItem.ChangeType };
-
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
 
 	@Autowired
 	protected IConversionHelper conversionHelper;

@@ -23,8 +23,6 @@ limitations under the License.
 import java.lang.reflect.Array;
 
 import com.koch.ambeth.ioc.IInitializingBean;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.util.IConversionHelper;
 import com.koch.ambeth.util.IDedicatedConverter;
 import com.koch.ambeth.util.IDedicatedConverterExtendable;
@@ -33,12 +31,8 @@ import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
 public class DelegatingConversionHelper extends IConversionHelper
 		implements IInitializingBean, IDedicatedConverterExtendable {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
-	protected final ClassTupleExtendableContainer<IDedicatedConverter> converters =
-			new ClassTupleExtendableContainer<>("dedicatedConverter", "type", true);
+	protected final ClassTupleExtendableContainer<IDedicatedConverter> converters = new ClassTupleExtendableContainer<>(
+			"dedicatedConverter", "type", true);
 
 	protected IConversionHelper defaultConversionHelper;
 
@@ -112,8 +106,8 @@ public class DelegatingConversionHelper extends IConversionHelper
 				Object targetValue = Array.newInstance(expectedComponentType, size);
 				for (int a = size; a-- > 0;) {
 					Object sourceItem = Array.get(sourceValue, a);
-					Object targetItem =
-							convertValueToType(expectedComponentType, sourceItem, additionalInformation);
+					Object targetItem = convertValueToType(expectedComponentType, sourceItem,
+							additionalInformation);
 					Array.set(targetValue, a, targetItem);
 				}
 				return (T) targetValue;
@@ -121,8 +115,8 @@ public class DelegatingConversionHelper extends IConversionHelper
 			else {
 				// try to create an array of length=1
 				Object array = Array.newInstance(expectedComponentType, 1);
-				Object targetItem =
-						convertValueToType(expectedComponentType, sourceValue, additionalInformation);
+				Object targetItem = convertValueToType(expectedComponentType, sourceValue,
+						additionalInformation);
 				Array.set(array, 0, targetItem);
 				return (T) array;
 			}

@@ -24,8 +24,6 @@ import java.lang.reflect.Method;
 import java.util.Map.Entry;
 
 import com.koch.ambeth.ioc.annotation.Autowired;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.ITransactionState;
 import com.koch.ambeth.merge.proxy.PersistenceContextType;
 import com.koch.ambeth.persistence.api.IDatabase;
@@ -43,10 +41,6 @@ import net.sf.cglib.proxy.MethodProxy;
 
 public class PersistenceContextInterceptor extends CascadedInterceptor {
 	public static final String P_METHOD_LEVEL_BEHAVIOUR = "MethodLevelBehaviour";
-
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
 
 	@Autowired
 	protected IDatabaseProviderRegistry databaseProviderRegistry;

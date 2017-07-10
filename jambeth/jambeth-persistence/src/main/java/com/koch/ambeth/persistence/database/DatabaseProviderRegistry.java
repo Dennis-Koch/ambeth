@@ -22,20 +22,13 @@ limitations under the License.
 
 import com.koch.ambeth.ioc.IInitializingBean;
 import com.koch.ambeth.ioc.extendable.MapExtendableContainer;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.persistence.api.database.IDatabaseProvider;
 import com.koch.ambeth.util.collections.ILinkedMap;
 
 public class DatabaseProviderRegistry
 		implements IInitializingBean, IDatabaseProviderExtendable, IDatabaseProviderRegistry {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
-	protected MapExtendableContainer<Object, IDatabaseProvider> extensions =
-			new MapExtendableContainer<>("databaseProvider",
-					"persistenceUnitId");
+	protected MapExtendableContainer<Object, IDatabaseProvider> extensions = new MapExtendableContainer<>(
+			"databaseProvider", "persistenceUnitId");
 
 	@Override
 	public void afterPropertiesSet() throws Throwable {

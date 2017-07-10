@@ -5,8 +5,6 @@ import com.koch.ambeth.cache.ISecondLevelCacheManager;
 import com.koch.ambeth.event.IEventListener;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.extendable.ClassExtendableContainer;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.cache.HandleContentDelegate;
 import com.koch.ambeth.merge.cache.ICache;
 import com.koch.ambeth.merge.event.RefreshEntitiesOfType;
@@ -17,10 +15,6 @@ import com.koch.ambeth.util.LockState;
 import com.koch.ambeth.util.collections.ArrayList;
 
 public class RefreshEntitiesEventListener implements IEventListener {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	@Autowired
 	protected ISecondLevelCacheManager secondLevelCacheManager;
 

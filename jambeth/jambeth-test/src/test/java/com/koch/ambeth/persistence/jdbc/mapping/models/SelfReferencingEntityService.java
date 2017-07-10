@@ -25,8 +25,6 @@ import java.util.List;
 import java.util.Set;
 
 import com.koch.ambeth.ioc.IInitializingBean;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.proxy.PersistenceContext;
 import com.koch.ambeth.persistence.IServiceUtil;
 import com.koch.ambeth.persistence.api.IDatabase;
@@ -41,10 +39,6 @@ import com.koch.ambeth.util.collections.ArrayList;
 @PersistenceContext
 public class SelfReferencingEntityService
 		implements ISelfReferencingEntityService, IInitializingBean {
-	@SuppressWarnings("unused")
-	@LogInstance(SelfReferencingEntityService.class)
-	private ILogger log;
-
 	protected IDatabase database;
 
 	protected IServiceUtil serviceUtil;

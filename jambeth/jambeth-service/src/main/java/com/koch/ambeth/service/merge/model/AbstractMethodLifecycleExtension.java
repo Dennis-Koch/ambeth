@@ -25,8 +25,6 @@ import java.lang.reflect.Modifier;
 
 import com.koch.ambeth.ioc.IInitializingBean;
 import com.koch.ambeth.ioc.annotation.Autowired;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.repackaged.com.esotericsoftware.reflectasm.MethodAccess;
 import com.koch.ambeth.service.merge.IEntityMetaDataProvider;
 import com.koch.ambeth.util.ParamChecker;
@@ -35,10 +33,6 @@ import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 public abstract class AbstractMethodLifecycleExtension
 		implements IEntityLifecycleExtension, IInitializingBean {
 	protected static final Object[] EMPTY_ARGS = new Object[0];
-
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
 
 	@Autowired
 	protected IEntityMetaDataProvider entityMetaDataProvider;

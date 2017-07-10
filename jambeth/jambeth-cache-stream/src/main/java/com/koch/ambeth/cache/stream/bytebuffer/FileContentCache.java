@@ -324,7 +324,6 @@ public class FileContentCache
 	/**
 	 * {@inheritDoc}
 	 */
-	@SuppressWarnings("restriction")
 	@Override
 	public void releaseByteBuffer(ByteBuffer byteBuffer) {
 		if (!(byteBuffer instanceof DirectBuffer)) {

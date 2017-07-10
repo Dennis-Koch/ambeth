@@ -23,6 +23,8 @@ limitations under the License.
 import com.koch.ambeth.security.privilege.model.IPropertyPrivilege;
 
 public class DefaultPrivilegeImpl extends AbstractPrivilege {
+	private static final long serialVersionUID = 2782157823317216991L;
+
 	protected final boolean read, create, update, delete, execute;
 
 	protected final IPropertyPrivilege[] primitivePropertyPrivileges;

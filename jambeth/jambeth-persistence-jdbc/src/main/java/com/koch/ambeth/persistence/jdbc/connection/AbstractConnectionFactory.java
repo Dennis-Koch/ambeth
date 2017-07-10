@@ -28,8 +28,6 @@ import com.koch.ambeth.ioc.IInitializingBean;
 import com.koch.ambeth.ioc.IServiceContext;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.config.Property;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.persistence.IConnectionDialect;
 import com.koch.ambeth.persistence.connection.IConnectionKeyHandle;
 import com.koch.ambeth.persistence.jdbc.IConnectionFactory;
@@ -45,10 +43,6 @@ import net.sf.cglib.proxy.Factory;
 import net.sf.cglib.proxy.MethodInterceptor;
 
 public abstract class AbstractConnectionFactory implements IConnectionFactory, IInitializingBean {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	@Autowired
 	protected IServiceContext beanContext;
 
@@ -81,8 +75,8 @@ public abstract class AbstractConnectionFactory implements IConnectionFactory, I
 	@Override
 	public final Connection create() {
 		while (preparedConnectionInstances != null && !preparedConnectionInstances.isEmpty()) {
-			Connection preparedConnection =
-					preparedConnectionInstances.remove(preparedConnectionInstances.size() - 1);
+			Connection preparedConnection = preparedConnectionInstances
+					.remove(preparedConnectionInstances.size() - 1);
 			try {
 				if (preparedConnection.isClosed()) {
 					continue;
@@ -102,9 +96,9 @@ public abstract class AbstractConnectionFactory implements IConnectionFactory, I
 			Connection connection = createIntern();
 			connection.setAutoCommit(false);
 
-			MethodInterceptor logConnectionInterceptor =
-					beanContext.registerExternalBean(new LogConnectionInterceptor(connectionKeyHandle))
-							.propertyValue("Connection", connection).finish();
+			MethodInterceptor logConnectionInterceptor = beanContext
+					.registerExternalBean(new LogConnectionInterceptor(connectionKeyHandle))
+					.propertyValue("Connection", connection).finish();
 			Connection conn = proxyFactory.createProxy(Connection.class,
 					connectionDialect.getConnectionInterfaces(connection), logConnectionInterceptor);
 

@@ -24,16 +24,10 @@ import java.sql.Array;
 import java.sql.Connection;
 
 import com.koch.ambeth.ioc.annotation.Autowired;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.persistence.IConnectionDialect;
 import com.koch.ambeth.persistence.jdbc.IConnectionExtension;
 
 public class H2ConnectionExtension implements IConnectionExtension {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	@Autowired
 	protected IConnectionDialect connectionDialect;
 

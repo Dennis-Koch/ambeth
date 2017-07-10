@@ -33,10 +33,8 @@ import com.koch.ambeth.service.merge.model.IEntityMetaData;
 import com.koch.ambeth.util.collections.HashMap;
 
 public class RootCacheValueFactory implements IRootCacheValueFactory {
-	protected static final RootCacheValueFactoryDelegate rcvFactory =
-			new DefaultRootCacheValueFactoryDelegate();
+	protected static final RootCacheValueFactoryDelegate rcvFactory = new DefaultRootCacheValueFactoryDelegate();
 
-	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 
@@ -49,8 +47,7 @@ public class RootCacheValueFactory implements IRootCacheValueFactory {
 	@Autowired(optional = true)
 	protected IBytecodePrinter bytecodePrinter;
 
-	protected final HashMap<IEntityMetaData, RootCacheValueFactoryDelegate> typeToConstructorMap =
-			new HashMap<>();
+	protected final HashMap<IEntityMetaData, RootCacheValueFactoryDelegate> typeToConstructorMap = new HashMap<>();
 
 	protected final Lock writeLock = new ReentrantLock();
 

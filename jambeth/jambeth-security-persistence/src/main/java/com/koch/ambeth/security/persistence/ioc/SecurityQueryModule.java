@@ -27,8 +27,6 @@ import com.koch.ambeth.ioc.annotation.FrameworkModule;
 import com.koch.ambeth.ioc.config.IBeanConfiguration;
 import com.koch.ambeth.ioc.config.Property;
 import com.koch.ambeth.ioc.factory.IBeanContextFactory;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.config.MergeConfigurationConstants;
 import com.koch.ambeth.merge.event.IEntityMetaDataEvent;
 import com.koch.ambeth.query.IQueryBuilderExtensionExtendable;
@@ -41,10 +39,6 @@ import com.koch.ambeth.service.cache.ClearAllCachesEvent;
 
 @FrameworkModule
 public class SecurityQueryModule implements IInitializingModule {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	@Property(name = MergeConfigurationConstants.SecurityActive, defaultValue = "false")
 	protected boolean securityActive;
 
@@ -60,13 +54,13 @@ public class SecurityQueryModule implements IInitializingModule {
 				.to(IEventListenerExtendable.class).with(ClearAllCachesEvent.class);
 
 		if (securityActive) {
-			IBeanConfiguration securityQueryBuilderExtension =
-					beanContextFactory.registerBean(SecurityQueryBuilderExtension.class);
+			IBeanConfiguration securityQueryBuilderExtension = beanContextFactory
+					.registerBean(SecurityQueryBuilderExtension.class);
 			beanContextFactory.link(securityQueryBuilderExtension)
 					.to(IQueryBuilderExtensionExtendable.class);
 
-			IBeanConfiguration updatePermissionGroupEventListener =
-					beanContextFactory.registerBean(UpdatePermissionGroupEventListener.class);
+			IBeanConfiguration updatePermissionGroupEventListener = beanContextFactory
+					.registerBean(UpdatePermissionGroupEventListener.class);
 			beanContextFactory.link(updatePermissionGroupEventListener, "handleDataChangeOfSession")
 					.to(IEventListenerExtendable.class).with(IDataChangeOfSession.class);
 		}

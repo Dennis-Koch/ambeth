@@ -24,19 +24,13 @@ limitations under the License.
 
 import java.util.List;
 
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.service.merge.IEntityMetaDataProvider;
 import com.koch.ambeth.service.merge.IValueObjectConfig;
 import com.koch.ambeth.service.merge.model.IEntityMetaData;
 import com.koch.ambeth.util.collections.IList;
 
 public class OrderedEntityMetaDataServer implements IEntityMetaDataProvider {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
-	private final Class<?>[] entityPersistOrder = {Parent.class, Child.class};
+	private final Class<?>[] entityPersistOrder = { Parent.class, Child.class };
 
 	private final IEntityMetaDataProvider entityMetaDataProvider;
 

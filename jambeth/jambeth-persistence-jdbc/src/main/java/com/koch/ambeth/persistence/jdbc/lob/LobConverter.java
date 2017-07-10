@@ -29,8 +29,6 @@ import java.sql.Clob;
 import java.sql.Connection;
 
 import com.koch.ambeth.ioc.annotation.Autowired;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.log.config.Properties;
 import com.koch.ambeth.persistence.IConnectionDialect;
 import com.koch.ambeth.util.IDedicatedConverter;
@@ -38,10 +36,6 @@ import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.objectcollector.IThreadLocalObjectCollector;
 
 public class LobConverter implements IDedicatedConverter {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	@Autowired
 	protected Connection connection;
 

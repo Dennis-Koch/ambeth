@@ -24,8 +24,6 @@ import java.util.List;
 
 import com.koch.ambeth.ioc.IInitializingBean;
 import com.koch.ambeth.ioc.IStartingBean;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.proxy.MergeContext;
 import com.koch.ambeth.model.ClobObject;
 import com.koch.ambeth.query.IQuery;
@@ -36,10 +34,6 @@ import com.koch.ambeth.util.ParamChecker;
 @MergeContext
 public class ClobObjectService implements IClobObjectService, IInitializingBean, IStartingBean {
 	protected static final String param = "ids";
-
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
 
 	protected IQueryBuilderFactory queryBuilderFactory;
 

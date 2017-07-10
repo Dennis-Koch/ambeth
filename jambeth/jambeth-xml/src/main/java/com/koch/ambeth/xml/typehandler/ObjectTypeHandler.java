@@ -21,8 +21,6 @@ limitations under the License.
  */
 
 import com.koch.ambeth.ioc.annotation.Autowired;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.util.IConversionHelper;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.typeinfo.ITypeInfoItem;
@@ -36,10 +34,6 @@ import com.koch.ambeth.xml.pending.IObjectCommand;
 import com.koch.ambeth.xml.pending.IObjectFuture;
 
 public class ObjectTypeHandler extends AbstractHandler implements ITypeBasedHandler {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	@Autowired
 	protected ICommandBuilder commandBuilder;
 

@@ -29,8 +29,6 @@ import com.koch.ambeth.ioc.IServiceContext;
 import com.koch.ambeth.ioc.ProcessorOrder;
 import com.koch.ambeth.ioc.config.IBeanConfiguration;
 import com.koch.ambeth.ioc.factory.IBeanContextFactory;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.interceptor.MergeInterceptor;
 import com.koch.ambeth.service.proxy.AbstractCascadePostProcessor;
 import com.koch.ambeth.service.proxy.IMethodLevelBehavior;
@@ -43,17 +41,13 @@ import com.koch.ambeth.util.proxy.ICascadedInterceptor;
 
 public class MergePostProcessor extends AbstractCascadePostProcessor
 		implements IOrderedBeanProcessor {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
-	protected final AnnotationCache<MergeContext> mergeContextCache =
-			new AnnotationCache<MergeContext>(MergeContext.class) {
-				@Override
-				protected boolean annotationEquals(MergeContext left, MergeContext right) {
-					return true;
-				}
-			};
+	protected final AnnotationCache<MergeContext> mergeContextCache = new AnnotationCache<MergeContext>(
+			MergeContext.class) {
+		@Override
+		protected boolean annotationEquals(MergeContext left, MergeContext right) {
+			return true;
+		}
+	};
 
 	@Override
 	public ProcessorOrder getOrder() {
@@ -93,8 +87,8 @@ public class MergePostProcessor extends AbstractCascadePostProcessor
 		if (noProxy != null) {
 			return noProxy;
 		}
-		com.koch.ambeth.util.annotation.Process process =
-				member.getAnnotation(com.koch.ambeth.util.annotation.Process.class);
+		com.koch.ambeth.util.annotation.Process process = member
+				.getAnnotation(com.koch.ambeth.util.annotation.Process.class);
 		if (process != null) {
 			return process;
 		}

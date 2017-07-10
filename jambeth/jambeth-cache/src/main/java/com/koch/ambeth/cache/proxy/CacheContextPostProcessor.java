@@ -33,8 +33,6 @@ import com.koch.ambeth.ioc.IServiceContext;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.config.IBeanConfiguration;
 import com.koch.ambeth.ioc.factory.IBeanContextFactory;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.interceptor.MergeInterceptor;
 import com.koch.ambeth.service.proxy.AbstractCascadePostProcessor;
 import com.koch.ambeth.service.proxy.IMethodLevelBehavior;
@@ -43,17 +41,13 @@ import com.koch.ambeth.util.annotation.AnnotationCache;
 import com.koch.ambeth.util.proxy.ICascadedInterceptor;
 
 public class CacheContextPostProcessor extends AbstractCascadePostProcessor {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
-	protected AnnotationCache<CacheContext> annotationCache =
-			new AnnotationCache<CacheContext>(CacheContext.class) {
-				@Override
-				protected boolean annotationEquals(CacheContext left, CacheContext right) {
-					return EqualsUtil.equals(left.value(), right.value());
-				}
-			};
+	protected AnnotationCache<CacheContext> annotationCache = new AnnotationCache<CacheContext>(
+			CacheContext.class) {
+		@Override
+		protected boolean annotationEquals(CacheContext left, CacheContext right) {
+			return EqualsUtil.equals(left.value(), right.value());
+		}
+	};
 
 	@Autowired
 	protected CachePostProcessor cachePostProcessor;
@@ -66,8 +60,8 @@ public class CacheContextPostProcessor extends AbstractCascadePostProcessor {
 		if (cacheContext == null) {
 			return null;
 		}
-		IMethodLevelBehavior<Annotation> cacheBehavior =
-				cachePostProcessor.createInterceptorModeBehavior(type);
+		IMethodLevelBehavior<Annotation> cacheBehavior = cachePostProcessor
+				.createInterceptorModeBehavior(type);
 
 		CacheInterceptor interceptor = new CacheInterceptor();
 		if (beanContext.isRunning()) {

@@ -32,17 +32,11 @@ import com.koch.ambeth.bytecode.visitor.InterfaceAdder;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.bytecode.DelegateEnhancementHint;
 import com.koch.ambeth.ioc.link.LinkContainer;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.bytecode.visitor.DelegateVisitor;
 import com.koch.ambeth.service.merge.IEntityMetaDataProvider;
 import com.koch.ambeth.util.collections.IMap;
 
 public class DelegateBehavior extends AbstractBehavior {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	@Autowired
 	protected IEntityMetaDataProvider entityMetaDataProvider;
 
@@ -58,8 +52,8 @@ public class DelegateBehavior extends AbstractBehavior {
 		String methodName = hint.getMethodName();
 		Class<?> parameterType = hint.getParameterType();
 
-		IMap<Method, Method> delegateMethodMap =
-				LinkContainer.buildDelegateMethodMap(targetType, methodName, parameterType);
+		IMap<Method, Method> delegateMethodMap = LinkContainer.buildDelegateMethodMap(targetType,
+				methodName, parameterType);
 
 		if (parameterType.isInterface()) {
 			visitor = new InterfaceAdder(visitor, parameterType);

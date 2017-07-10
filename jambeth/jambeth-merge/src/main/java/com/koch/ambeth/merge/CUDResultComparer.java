@@ -24,8 +24,6 @@ import java.util.List;
 import java.util.Map.Entry;
 
 import com.koch.ambeth.ioc.annotation.Autowired;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.model.CreateOrUpdateContainerBuild;
 import com.koch.ambeth.merge.model.ICUDResult;
 import com.koch.ambeth.merge.model.IChangeContainer;
@@ -106,12 +104,12 @@ public class CUDResultComparer implements ICUDResultComparer {
 			if (containerBuild != null) {
 				return containerBuild;
 			}
-			IEntityMetaData metaData =
-					entityMetaDataProvider.getMetaData(getLeftContainer().getReference().getRealType());
-			containerBuild =
-					new CreateOrUpdateContainerBuild(metaData, leftContainer instanceof CreateContainer,
-							getOrCreateRelationMemberNameToIndexMap(metaData.getEntityType()),
-							getOrCreatePrimitiveMemberNameToIndexMap(metaData.getEntityType()), cudResultHelper);
+			IEntityMetaData metaData = entityMetaDataProvider
+					.getMetaData(getLeftContainer().getReference().getRealType());
+			containerBuild = new CreateOrUpdateContainerBuild(metaData,
+					leftContainer instanceof CreateContainer,
+					getOrCreateRelationMemberNameToIndexMap(metaData.getEntityType()),
+					getOrCreatePrimitiveMemberNameToIndexMap(metaData.getEntityType()), cudResultHelper);
 			containerBuild.setReference(getLeftContainer().getReference());
 			return containerBuild;
 		}
@@ -148,8 +146,8 @@ public class CUDResultComparer implements ICUDResultComparer {
 			if (typeToPrimitiveMemberNameToIndexMap == null) {
 				typeToPrimitiveMemberNameToIndexMap = new HashMap<>();
 			}
-			HashMap<String, Integer> memberNameToIndexMap =
-					typeToPrimitiveMemberNameToIndexMap.get(entityType);
+			HashMap<String, Integer> memberNameToIndexMap = typeToPrimitiveMemberNameToIndexMap
+					.get(entityType);
 			if (memberNameToIndexMap != null) {
 				return memberNameToIndexMap;
 			}
@@ -176,10 +174,6 @@ public class CUDResultComparer implements ICUDResultComparer {
 
 	}
 
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	@Autowired
 	protected ICUDResultHelper cudResultHelper;
 
@@ -196,8 +190,8 @@ public class CUDResultComparer implements ICUDResultComparer {
 			if (left instanceof CreateContainer) {
 				CreateContainer leftCreate = (CreateContainer) left;
 				CreateContainer rightCreate = (CreateContainer) right;
-				boolean isEqual =
-						equalsPUIs(cudResultDiff, leftCreate.getPrimitives(), rightCreate.getPrimitives());
+				boolean isEqual = equalsPUIs(cudResultDiff, leftCreate.getPrimitives(),
+						rightCreate.getPrimitives());
 				if (!isEqual) {
 					if (!cudResultDiff.doFullDiff) {
 						return false;
@@ -214,8 +208,8 @@ public class CUDResultComparer implements ICUDResultComparer {
 			if (left instanceof UpdateContainer) {
 				UpdateContainer leftUpdate = (UpdateContainer) left;
 				UpdateContainer rightUpdate = (UpdateContainer) right;
-				boolean isEqual =
-						equalsPUIs(cudResultDiff, leftUpdate.getPrimitives(), rightUpdate.getPrimitives());
+				boolean isEqual = equalsPUIs(cudResultDiff, leftUpdate.getPrimitives(),
+						rightUpdate.getPrimitives());
 				if (!isEqual) {
 					if (!cudResultDiff.doFullDiff) {
 						return false;
@@ -240,15 +234,15 @@ public class CUDResultComparer implements ICUDResultComparer {
 
 	@Override
 	public boolean equalsCUDResult(ICUDResult left, ICUDResult right) {
-		CUDResultDiff diff =
-				new CUDResultDiff(left, right, false, cudResultHelper, entityMetaDataProvider);
+		CUDResultDiff diff = new CUDResultDiff(left, right, false, cudResultHelper,
+				entityMetaDataProvider);
 		return equalsCUDResult(diff);
 	}
 
 	@Override
 	public ICUDResult diffCUDResult(ICUDResult left, ICUDResult right) {
-		CUDResultDiff diff =
-				new CUDResultDiff(left, right, true, cudResultHelper, entityMetaDataProvider);
+		CUDResultDiff diff = new CUDResultDiff(left, right, true, cudResultHelper,
+				entityMetaDataProvider);
 		equalsCUDResult(diff);
 
 		if (!diff.hasChanges()) {

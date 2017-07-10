@@ -55,23 +55,20 @@ public class EventListenerRegistry
 	@Autowired
 	protected IGuiThreadHelper guiThreadHelper;
 
-	protected final ClassExtendableListContainer<IEventListenerMarker> typeToListenersDict =
-			new ClassExtendableListContainer<>("eventListener", "eventType");
+	protected final ClassExtendableListContainer<IEventListenerMarker> typeToListenersDict = new ClassExtendableListContainer<>(
+			"eventListener", "eventType");
 
-	protected final ClassExtendableContainer<IEventBatcher> typeToBatchersDict =
-			new ClassExtendableContainer<>("eventBatcher", "eventType");
+	protected final ClassExtendableContainer<IEventBatcher> typeToBatchersDict = new ClassExtendableContainer<>(
+			"eventBatcher", "eventType");
 
-	protected final ClassExtendableContainer<IEventTargetExtractor> typeToEventTargetExtractorsDict =
-			new ClassExtendableContainer<>("eventTargetExtractor", "eventType");
+	protected final ClassExtendableContainer<IEventTargetExtractor> typeToEventTargetExtractorsDict = new ClassExtendableContainer<>(
+			"eventTargetExtractor", "eventType");
 
-	protected final ThreadLocal<IList<IList<IQueuedEvent>>> eventQueueTL =
-			new SensitiveThreadLocal<>();
+	protected final ThreadLocal<IList<IList<IQueuedEvent>>> eventQueueTL = new SensitiveThreadLocal<>();
 
-	protected final IdentityLinkedSet<WaitForResumeItem> waitForResumeSet =
-			new IdentityLinkedSet<>();
+	protected final IdentityLinkedSet<WaitForResumeItem> waitForResumeSet = new IdentityLinkedSet<>();
 
-	protected final IdentityLinkedMap<Object, PausedEventTargetItem> pausedTargets =
-			new IdentityLinkedMap<>();
+	protected final IdentityLinkedMap<Object, PausedEventTargetItem> pausedTargets = new IdentityLinkedMap<>();
 
 	protected final Lock listenersReadLock, listenersWriteLock;
 
@@ -121,8 +118,7 @@ public class EventListenerRegistry
 			return;
 		}
 		IList<IQueuedEvent> batchedEvents = batchEvents(eventQueue);
-		IdentityLinkedSet<IBatchedEventListener> collectedBatchedEventDispatchAwareSet =
-				new IdentityLinkedSet<>();
+		IdentityLinkedSet<IBatchedEventListener> collectedBatchedEventDispatchAwareSet = new IdentityLinkedSet<>();
 
 		List<IList<IQueuedEvent>> tlEventQueueList = eventQueueTL.get();
 
@@ -385,8 +381,8 @@ public class EventListenerRegistry
 			// nothing to do
 			return;
 		}
-		IEventTargetExtractor eventTargetExtractor =
-				typeToEventTargetExtractorsDict.getExtension(eventTarget.getClass());
+		IEventTargetExtractor eventTargetExtractor = typeToEventTargetExtractorsDict
+				.getExtension(eventTarget.getClass());
 		if (eventTargetExtractor != null) {
 			eventTarget = eventTargetExtractor.extractEventTarget(eventTarget);
 			if (eventTarget == null) {
@@ -414,8 +410,8 @@ public class EventListenerRegistry
 			// nothing to do
 			return;
 		}
-		IEventTargetExtractor eventTargetExtractor =
-				typeToEventTargetExtractorsDict.getExtension(eventTarget.getClass());
+		IEventTargetExtractor eventTargetExtractor = typeToEventTargetExtractorsDict
+				.getExtension(eventTarget.getClass());
 		if (eventTargetExtractor != null) {
 			eventTarget = eventTargetExtractor.extractEventTarget(eventTarget);
 			if (eventTarget == null) {
@@ -440,8 +436,8 @@ public class EventListenerRegistry
 				pausedTargets.remove(eventTarget);
 				if (!waitForResumeSet.isEmpty()) {
 					IList<Object> remainingPausedEventTargets = evaluatePausedEventTargets();
-					IdentityLinkedSet<Object> remainingPausedEventTargetsSet =
-							IdentityLinkedSet.<Object>create(remainingPausedEventTargets.size());
+					IdentityLinkedSet<Object> remainingPausedEventTargetsSet = IdentityLinkedSet
+							.<Object>create(remainingPausedEventTargets.size());
 					Iterator<WaitForResumeItem> iter = waitForResumeSet.iterator();
 					while (iter.hasNext()) {
 						WaitForResumeItem pauseItem = iter.next();
@@ -481,7 +477,6 @@ public class EventListenerRegistry
 		}
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public void waitEventToResume(final Object eventTargetToResume, final long maxWaitTime,
 			final IBackgroundWorkerParamDelegate<IProcessResumeItem> resumeDelegate,
@@ -499,8 +494,8 @@ public class EventListenerRegistry
 			listenersWriteLock.lock();
 			try {
 				IList<Object> remainingPausedEventTargets = evaluatePausedEventTargetsOfForeignThreads();
-				IdentityLinkedSet<Object> remainingPausedEventTargetsSet =
-						new IdentityLinkedSet<>(remainingPausedEventTargets);
+				IdentityLinkedSet<Object> remainingPausedEventTargetsSet = new IdentityLinkedSet<>(
+						remainingPausedEventTargets);
 				remainingPausedEventTargetsSet.retainAll(pendingSet);
 
 				if (!remainingPausedEventTargetsSet.isEmpty()) {

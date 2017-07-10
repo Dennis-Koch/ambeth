@@ -24,8 +24,6 @@ import java.lang.reflect.Array;
 import java.util.regex.Pattern;
 
 import com.koch.ambeth.ioc.IInitializingBean;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.util.IConversionHelper;
 import com.koch.ambeth.util.ParamChecker;
 import com.koch.ambeth.util.converter.EncodingInformation;
@@ -41,10 +39,6 @@ import com.koch.ambeth.xml.typehandler.AbstractHandler;
 
 public class ArrayNameHandler extends AbstractHandler
 		implements INameBasedHandler, IInitializingBean {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	public static final String primitiveValueSeparator = ";";
 
 	protected static final Pattern splitPattern = Pattern.compile(primitiveValueSeparator);
@@ -132,9 +126,9 @@ public class ArrayNameHandler extends AbstractHandler
 			if (char.class.equals(componentType) || byte.class.equals(componentType)
 					|| boolean.class.equals(componentType)) {
 				targetArray = Array.newInstance(componentType, 0);
-				targetArray =
-						conversionHelper.convertValueToType(targetArray.getClass(), listOfValuesString,
-								EncodingInformation.SOURCE_BASE64 | EncodingInformation.TARGET_PLAIN);
+				targetArray = conversionHelper.convertValueToType(targetArray.getClass(),
+						listOfValuesString,
+						EncodingInformation.SOURCE_BASE64 | EncodingInformation.TARGET_PLAIN);
 				reader.putObjectWithId(targetArray, id);
 			}
 			else {
@@ -161,8 +155,8 @@ public class ArrayNameHandler extends AbstractHandler
 				Object item = reader.readObject();
 				if (item instanceof IObjectFuture) {
 					IObjectFuture objectFuture = (IObjectFuture) item;
-					IObjectCommand command =
-							commandBuilder.build(commandTypeRegistry, objectFuture, targetArray, index);
+					IObjectCommand command = commandBuilder.build(commandTypeRegistry, objectFuture,
+							targetArray, index);
 					reader.addObjectCommand(command);
 				}
 				else {

@@ -28,18 +28,12 @@ import com.koch.ambeth.bytecode.behavior.AbstractBehavior;
 import com.koch.ambeth.bytecode.behavior.IBytecodeBehavior;
 import com.koch.ambeth.bytecode.behavior.IBytecodeBehaviorState;
 import com.koch.ambeth.ioc.annotation.Autowired;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.security.bytecode.visitor.EntityTypePrivilegeVisitor;
 import com.koch.ambeth.security.privilege.factory.EntityTypePrivilegeEnhancementHint;
 import com.koch.ambeth.service.merge.IEntityMetaDataProvider;
 import com.koch.ambeth.service.merge.model.IEntityMetaData;
 
 public class EntityTypePrivilegeBehavior extends AbstractBehavior {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	@Autowired
 	protected IEntityMetaDataProvider entityMetaDataProvider;
 
@@ -47,8 +41,8 @@ public class EntityTypePrivilegeBehavior extends AbstractBehavior {
 	public ClassVisitor extend(ClassVisitor visitor, IBytecodeBehaviorState state,
 			List<IBytecodeBehavior> remainingPendingBehaviors,
 			List<IBytecodeBehavior> cascadePendingBehaviors) {
-		final EntityTypePrivilegeEnhancementHint hint =
-				state.getContext(EntityTypePrivilegeEnhancementHint.class);
+		final EntityTypePrivilegeEnhancementHint hint = state
+				.getContext(EntityTypePrivilegeEnhancementHint.class);
 		if (hint == null) {
 			return visitor;
 		}

@@ -21,8 +21,6 @@ limitations under the License.
  */
 
 import com.koch.ambeth.ioc.IInitializingBean;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.query.IMultiValueOperand;
 import com.koch.ambeth.query.IOperand;
 import com.koch.ambeth.util.ParamChecker;
@@ -31,10 +29,6 @@ import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.IMap;
 
 public class SqlMultiFunctionOperand implements IOperand, IInitializingBean {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	protected ListToSqlUtil listToSqlUtil;
 
 	protected IMultiValueOperand multiValueOperand;

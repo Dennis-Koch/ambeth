@@ -32,8 +32,6 @@ import org.junit.Test;
 
 import com.koch.ambeth.informationbus.persistence.setup.SQLData;
 import com.koch.ambeth.informationbus.persistence.setup.SQLStructure;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.query.IOperand;
 import com.koch.ambeth.query.IQuery;
 import com.koch.ambeth.query.IQueryBuilder;
@@ -49,15 +47,10 @@ import com.koch.ambeth.util.collections.HashMap;
 import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.LinkedHashSet;
 
-@TestProperties(name = ServiceConfigurationConstants.mappingFile,
-		value = "com/koch/ambeth/query/Query_orm.xml")
+@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "com/koch/ambeth/query/Query_orm.xml")
 @SQLStructure("../Query_structure.sql")
 @SQLData("../Query_data.sql")
 public class SqlQueryTest extends AbstractInformationBusWithPersistenceTest {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	protected IQueryBuilder<?> qb;
 
 	protected HashMap<Object, Object> nameToValueMap = new HashMap<>();
@@ -232,8 +225,8 @@ public class SqlQueryTest extends AbstractInformationBusWithPersistenceTest {
 	public void sqlIsContainedInIS() throws Exception {
 		Object value1 = "testValue";
 
-		IOperand rootOperand =
-				qb.isContainedIn(qb.valueName(paramName1), qb.column(columnName1), Boolean.FALSE);
+		IOperand rootOperand = qb.isContainedIn(qb.valueName(paramName1), qb.column(columnName1),
+				Boolean.FALSE);
 		String queryString = buildSimpleQuery(paramName1, value1, rootOperand, parameters);
 		Assert.assertEquals("%" + value1 + "%", parameters.get(0));
 		Assert.assertEquals("Wrong query string",
@@ -272,8 +265,8 @@ public class SqlQueryTest extends AbstractInformationBusWithPersistenceTest {
 	public void sqlIsGreaterThanOrEqualTo() throws Exception {
 		Object value1 = new Double(55);
 
-		IOperand rootOperand =
-				qb.isGreaterThanOrEqualTo(qb.property(propertyContent), qb.valueName(paramName1));
+		IOperand rootOperand = qb.isGreaterThanOrEqualTo(qb.property(propertyContent),
+				qb.valueName(paramName1));
 		String queryString = buildSimpleQuery(paramName1, value1, rootOperand, parameters);
 		Assert.assertEquals(value1, parameters.get(0));
 		Assert.assertEquals("Wrong query string", "(\"" + columnContent + "\">=?)", queryString);
@@ -319,8 +312,8 @@ public class SqlQueryTest extends AbstractInformationBusWithPersistenceTest {
 	public void sqlIsLessThanOrEqualTo() throws Exception {
 		Object value1 = new Integer(55);
 
-		IOperand rootOperand =
-				qb.isLessThanOrEqualTo(qb.property(propertyId), qb.valueName(paramName1));
+		IOperand rootOperand = qb.isLessThanOrEqualTo(qb.property(propertyId),
+				qb.valueName(paramName1));
 		String queryString = buildSimpleQuery(paramName1, value1, rootOperand, parameters);
 		Assert.assertEquals(value1,
 				conversionHelper.convertValueToType(Integer.class, parameters.get(0)));
@@ -344,8 +337,8 @@ public class SqlQueryTest extends AbstractInformationBusWithPersistenceTest {
 	public void sqlIsNotContainedInIS() throws Exception {
 		Object value1 = "testValue";
 
-		IOperand rootOperand =
-				qb.isNotContainedIn(qb.valueName(paramName1), qb.column(columnName1), Boolean.FALSE);
+		IOperand rootOperand = qb.isNotContainedIn(qb.valueName(paramName1), qb.column(columnName1),
+				Boolean.FALSE);
 		String queryString = buildSimpleQuery(paramName1, value1, rootOperand, parameters);
 		Assert.assertEquals("%" + value1 + "%", parameters.get(0));
 		Assert.assertEquals("Wrong query string",
@@ -379,8 +372,8 @@ public class SqlQueryTest extends AbstractInformationBusWithPersistenceTest {
 	public void sqlIsNotInIS() throws Exception {
 		Object value1 = new Integer(55);
 
-		IOperand rootOperand =
-				qb.isNotIn(qb.property(propertyName1), qb.valueName(paramName1), Boolean.FALSE);
+		IOperand rootOperand = qb.isNotIn(qb.property(propertyName1), qb.valueName(paramName1),
+				Boolean.FALSE);
 		String queryString = buildSimpleQuery(paramName1, value1, rootOperand, parameters);
 		Assert.assertEquals(1, parameters.size());
 		Assert.assertEquals(value1, parameters.get(0));
@@ -391,7 +384,7 @@ public class SqlQueryTest extends AbstractInformationBusWithPersistenceTest {
 	@SuppressWarnings("deprecation")
 	@Test
 	public void sqlIsNotInArray() throws Exception {
-		String[] values = new String[] {"value1", "value2", "value3"};
+		String[] values = new String[] { "value1", "value2", "value3" };
 
 		IOperand rootOperand = qb.isNotIn(qb.column(columnName1), qb.valueName(paramName1));
 		String queryString = buildSimpleQuery(paramName1, values, rootOperand, parameters);
@@ -406,7 +399,7 @@ public class SqlQueryTest extends AbstractInformationBusWithPersistenceTest {
 	@SuppressWarnings("deprecation")
 	@Test
 	public void sqlIsNotInList() throws Exception {
-		List<String> values = new ArrayList<>(new String[] {"value1", "value2", "value3"});
+		List<String> values = new ArrayList<>(new String[] { "value1", "value2", "value3" });
 
 		IOperand rootOperand = qb.isNotIn(qb.column(columnName1), qb.valueName(paramName1));
 		String queryString = buildSimpleQuery(paramName1, values, rootOperand, parameters);
@@ -421,8 +414,7 @@ public class SqlQueryTest extends AbstractInformationBusWithPersistenceTest {
 	@SuppressWarnings("deprecation")
 	@Test
 	public void sqlIsNotInSet() throws Exception {
-		ArrayList<String> listValues =
-				new ArrayList<>(new String[] {"value1", "value2", "value3"});
+		ArrayList<String> listValues = new ArrayList<>(new String[] { "value1", "value2", "value3" });
 		Set<String> values = new LinkedHashSet<>();
 		values.addAll(listValues);
 
@@ -472,10 +464,10 @@ public class SqlQueryTest extends AbstractInformationBusWithPersistenceTest {
 				queryString);
 
 		parameters = new ArrayList<>();
-		rootOperand =
-				qb.regexpLike(qb.property("Name1"), qb.valueName(paramName1), qb.valueName(paramName2));
-		queryString =
-				buildCompositeQuery(paramName1, value1, paramName2, value2, rootOperand, parameters);
+		rootOperand = qb.regexpLike(qb.property("Name1"), qb.valueName(paramName1),
+				qb.valueName(paramName2));
+		queryString = buildCompositeQuery(paramName1, value1, paramName2, value2, rootOperand,
+				parameters);
 		Assert.assertEquals(value1, parameters.get(0));
 		Assert.assertEquals(value2, parameters.get(1));
 		Assert.assertEquals("Wrong query string", "REGEXP_LIKE(\"" + columnName1 + "\",?,?)",
@@ -501,8 +493,8 @@ public class SqlQueryTest extends AbstractInformationBusWithPersistenceTest {
 
 		IOperand rootOperand = qb.or(qb.isEqualTo(qb.property(propertyId), qb.valueName(paramName1)),
 				qb.isEqualTo(qb.property(propertyVersion), qb.valueName(paramName2)));
-		String queryString =
-				buildCompositeQuery(paramName1, value1, paramName2, value2, rootOperand, parameters);
+		String queryString = buildCompositeQuery(paramName1, value1, paramName2, value2, rootOperand,
+				parameters);
 		Assert.assertEquals(value1,
 				conversionHelper.convertValueToType(Integer.class, parameters.get(0)));
 		Assert.assertEquals(value2,
@@ -518,8 +510,8 @@ public class SqlQueryTest extends AbstractInformationBusWithPersistenceTest {
 
 		IOperand rootOperand = qb.and(qb.isEqualTo(qb.property(propertyId), qb.valueName(paramName1)),
 				qb.isEqualTo(qb.property(propertyVersion), qb.valueName(paramName2)));
-		String queryString =
-				buildCompositeQuery(paramName1, value1, paramName2, value2, rootOperand, parameters);
+		String queryString = buildCompositeQuery(paramName1, value1, paramName2, value2, rootOperand,
+				parameters);
 		Assert.assertEquals(value1,
 				conversionHelper.convertValueToType(Integer.class, parameters.get(0)));
 		Assert.assertEquals(value2,

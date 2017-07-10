@@ -21,16 +21,10 @@ limitations under the License.
  */
 
 import com.koch.ambeth.ioc.config.IBeanConfiguration;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.util.ParamChecker;
 
 public class InjectionConfig implements IInjectionConfig, IInjectNeedBean, IInjectNeedTargetBean,
 		IInjectNeedTargetContext, IInjectNeedTargetProperty {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	private IBeanGetter sourceBean;
 
 	private IBeanGetter targetBean;

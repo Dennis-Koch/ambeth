@@ -23,8 +23,6 @@ limitations under the License.
 import com.koch.ambeth.ioc.IInitializingBean;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.config.Property;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.query.IOperand;
 import com.koch.ambeth.query.ISqlJoin;
 import com.koch.ambeth.query.jdbc.sql.SqlQueryBuilder;
@@ -39,10 +37,6 @@ public class StringQuery implements IStringQuery, IInitializingBean {
 	public static final String P_ALL_JOIN_CLAUSES = "AllJoinClauses";
 
 	public static final String P_JOIN_CLAUSES = "JoinClauses";
-
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
 
 	@Autowired
 	protected IThreadLocalObjectCollector objectCollector;

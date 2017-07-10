@@ -25,8 +25,6 @@ import java.util.List;
 
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.config.Property;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.persistence.api.IDatabase;
 import com.koch.ambeth.persistence.api.database.ITransaction;
 import com.koch.ambeth.persistence.api.database.ResultingDatabaseCallback;
@@ -45,10 +43,6 @@ import com.koch.ambeth.util.collections.ILinkedMap;
 import com.koch.ambeth.util.collections.IMap;
 
 public class DefaultQueryResultRetriever implements IQueryResultRetriever {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	@Autowired
 	protected IConversionHelper conversionHelper;
 

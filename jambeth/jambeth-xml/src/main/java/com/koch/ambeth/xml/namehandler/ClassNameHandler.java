@@ -26,8 +26,6 @@ import java.util.Map.Entry;
 import java.util.regex.Pattern;
 
 import com.koch.ambeth.ioc.annotation.Autowired;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.IProxyHelper;
 import com.koch.ambeth.util.IClassCache;
 import com.koch.ambeth.util.collections.ArrayList;
@@ -52,13 +50,9 @@ public class ClassNameHandler extends AbstractHandler implements INameBasedHandl
 
 	private static final SpecifiedMember[] EMPTY_TII = new SpecifiedMember[0];
 
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
+	protected static final Pattern splitPattern = Pattern.compile(" ");
 
 	protected final HashSet<Class<?>> noMemberAttribute = new HashSet<>();
-
-	protected final Pattern splitPattern = Pattern.compile(" ");
 
 	@Autowired
 	protected IClassCache classCache;
@@ -208,8 +202,8 @@ public class ClassNameHandler extends AbstractHandler implements INameBasedHandl
 		if (classMemberValue != null) {
 			ITypeInfo typeInfo = typeInfoProvider.getTypeInfo(typeObj);
 			String[] memberNames = splitPattern.split(classMemberValue);
-			SpecifiedMember[] members =
-					memberNames.length > 0 ? new SpecifiedMember[memberNames.length] : EMPTY_TII;
+			SpecifiedMember[] members = memberNames.length > 0 ? new SpecifiedMember[memberNames.length]
+					: EMPTY_TII;
 
 			StringBuilder sb = new StringBuilder();
 			for (int a = memberNames.length; a-- > 0;) {

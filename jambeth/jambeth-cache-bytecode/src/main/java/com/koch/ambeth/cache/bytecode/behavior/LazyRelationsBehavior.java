@@ -39,8 +39,6 @@ import com.koch.ambeth.cache.bytecode.visitor.SetCacheModificationMethodCreator;
 import com.koch.ambeth.cache.proxy.IValueHolderContainer;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.typeinfo.MethodPropertyInfo;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.bytecode.EmbeddedEnhancementHint;
 import com.koch.ambeth.merge.proxy.IObjRefContainer;
 import com.koch.ambeth.service.merge.IEntityMetaDataProvider;
@@ -51,10 +49,6 @@ import com.koch.ambeth.service.metadata.RelationMember;
 import com.koch.ambeth.util.typeinfo.IPropertyInfoProvider;
 
 public class LazyRelationsBehavior extends AbstractBehavior {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	@Autowired
 	protected IEntityMetaDataProvider entityMetaDataProvider;
 
@@ -66,7 +60,7 @@ public class LazyRelationsBehavior extends AbstractBehavior {
 
 	@Override
 	public Class<?>[] getEnhancements() {
-		return new Class<?>[] {IObjRefContainer.class, IValueHolderContainer.class};
+		return new Class<?>[] { IObjRefContainer.class, IValueHolderContainer.class };
 	}
 
 	@Override

@@ -273,7 +273,6 @@ public class Oracle10gTestDialect extends AbstractConnectionTestDialect {
 		}
 	}
 
-	@SuppressWarnings("resource")
 	@Override
 	public boolean isEmptySchema(Connection connection) throws SQLException {
 		Statement stmt = null;

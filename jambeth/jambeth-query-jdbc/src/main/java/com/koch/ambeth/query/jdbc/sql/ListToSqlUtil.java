@@ -27,8 +27,6 @@ import java.util.List;
 import java.util.Map;
 
 import com.koch.ambeth.ioc.annotation.Autowired;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.persistence.api.sql.ISqlBuilder;
 import com.koch.ambeth.query.IOperand;
 import com.koch.ambeth.query.OperandConstants;
@@ -39,10 +37,6 @@ import com.koch.ambeth.util.appendable.IAppendable;
 import com.koch.ambeth.util.collections.IMap;
 
 public final class ListToSqlUtil {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	@Autowired
 	protected IEntityMetaDataProvider entityMetaDataProvider;
 
@@ -155,8 +149,8 @@ public final class ListToSqlUtil {
 	public void extractValueList(Object value, List<Object> items,
 			Map<Object, Object> nameToValueMap) {
 		String propertyName = null;
-		List<String> propertyNameStack =
-				(List<String>) nameToValueMap.get(OperandConstants.PropertyName);
+		List<String> propertyNameStack = (List<String>) nameToValueMap
+				.get(OperandConstants.PropertyName);
 		if (propertyNameStack != null) {
 			propertyName = propertyNameStack.get(propertyNameStack.size() - 1);
 		}
@@ -169,8 +163,8 @@ public final class ListToSqlUtil {
 			return null;
 		}
 		String propertyName = null;
-		List<String> propertyNameStack =
-				(List<String>) nameToValueMap.get(OperandConstants.PropertyName);
+		List<String> propertyNameStack = (List<String>) nameToValueMap
+				.get(OperandConstants.PropertyName);
 		if (propertyNameStack != null) {
 			propertyName = propertyNameStack.get(propertyNameStack.size() - 1);
 		}

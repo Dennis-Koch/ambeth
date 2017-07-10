@@ -24,16 +24,10 @@ import java.sql.Array;
 import java.sql.Connection;
 
 import com.koch.ambeth.ioc.annotation.Autowired;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.persistence.jdbc.IConnectionExtension;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
 public class PostgresConnectionExtension implements IConnectionExtension {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	@Autowired
 	protected Connection connection;
 

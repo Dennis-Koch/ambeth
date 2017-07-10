@@ -29,8 +29,6 @@ import java.util.List;
 
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.config.Property;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.IMergeProcess;
 import com.koch.ambeth.merge.MergeFinishedCallback;
 import com.koch.ambeth.merge.ProceedWithMergeHook;
@@ -62,10 +60,6 @@ public class MergeInterceptor extends AbstractInterceptor {
 	public static String SERVICE_NAME_PROP = "ServiceName";
 
 	protected static final ThreadLocal<Boolean> processServiceActive = new ThreadLocal<>();
-
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
 
 	@Autowired
 	protected IMethodLevelBehavior<Annotation> behavior;
@@ -151,8 +145,8 @@ public class MergeInterceptor extends AbstractInterceptor {
 			return super.interceptApplication(obj, method, args, proxy, annotation, isAsyncBegin);
 		}
 		ISecurityScope[] securityScopes = securityScopeProvider.getSecurityScopes();
-		IServiceDescription serviceDescription =
-				SyncToAsyncUtil.createServiceDescription(serviceName, method, args, securityScopes);
+		IServiceDescription serviceDescription = SyncToAsyncUtil.createServiceDescription(serviceName,
+				method, args, securityScopes);
 		processServiceActive.set(Boolean.TRUE);
 		try {
 			return processService.invokeService(serviceDescription);

@@ -22,8 +22,6 @@ limitations under the License.
 
 import java.util.List;
 
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.persistence.api.IContextProvider;
 import com.koch.ambeth.persistence.api.IDatabase;
 import com.koch.ambeth.persistence.api.IDatabaseDisposeHook;
@@ -36,10 +34,6 @@ import com.koch.ambeth.util.state.IStateRollback;
 import com.koch.ambeth.util.state.NoOpStateRollback;
 
 public class DatabaseDummy implements IDatabase {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	@Override
 	public void dispose() {
 	}

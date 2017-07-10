@@ -31,8 +31,6 @@ import java.util.List;
 import javax.persistence.PersistenceException;
 
 import com.koch.ambeth.ioc.annotation.Autowired;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.persistence.ArrayQueryItem;
 import com.koch.ambeth.persistence.api.IDatabaseMetaData;
 import com.koch.ambeth.persistence.api.ILinkMetaData;
@@ -46,10 +44,6 @@ import com.koch.ambeth.util.sensor.ISensor;
 import com.koch.ambeth.util.sensor.Sensor;
 
 public class JDBCSqlConnection extends SqlConnection {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	@Autowired
 	protected Connection connection;
 

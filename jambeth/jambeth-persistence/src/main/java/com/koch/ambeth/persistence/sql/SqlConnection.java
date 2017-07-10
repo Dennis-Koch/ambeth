@@ -28,8 +28,6 @@ import javax.persistence.OptimisticLockException;
 
 import com.koch.ambeth.ioc.IInitializingBean;
 import com.koch.ambeth.ioc.annotation.Autowired;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.persistence.IConnectionDialect;
 import com.koch.ambeth.persistence.IPersistenceHelper;
 import com.koch.ambeth.persistence.SelectPosition;
@@ -47,10 +45,6 @@ public abstract class SqlConnection implements ISqlConnection, IInitializingBean
 	private static final Pattern fieldWithAlias = Pattern.compile("(([SJ]_[A-Z]+\\.)\"([^\"]+)\")");
 	private static final String innerFieldPattern = "$1 AS \"$2$3\"";
 	private static final String outerFieldPattern = "\"$2$3\"";
-
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
 
 	@Autowired
 	protected IConversionHelper conversionHelper;
@@ -337,8 +331,8 @@ public abstract class SqlConnection implements ISqlConnection, IInitializingBean
 			return createResultSetIntern(tableName, idFieldName, idFieldType, fieldsSQL,
 					additionalWhereSQL, ids);
 		}
-		IList<IList<Object>> splitValues =
-				persistenceHelper.splitValues(ids, maxInClauseBatchThreshold);
+		IList<IList<Object>> splitValues = persistenceHelper.splitValues(ids,
+				maxInClauseBatchThreshold);
 
 		ArrayList<IResultSetProvider> resultSetProviderStack = new ArrayList<>(splitValues.size());
 		// Stack gets evaluated last->first so back iteration is correct to execute the sql in order

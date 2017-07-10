@@ -43,24 +43,16 @@ import org.apache.mina.transport.socket.nio.NioSocketConnector;
 import com.koch.ambeth.ioc.IInitializingBean;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.config.Property;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
 public class MinaClient implements IInitializingBean, IMinaClient {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	@Autowired
 	protected IdleStatusChecker idleStatusChecker;
 
-	@Property(name = MinaConfigurationConstants.PROPERTY_NAME_CONNECT_TIMEOUT_IN_SECONDS,
-			defaultValue = "5")
+	@Property(name = MinaConfigurationConstants.PROPERTY_NAME_CONNECT_TIMEOUT_IN_SECONDS, defaultValue = "5")
 	protected int connectTimeoutInSeconds;
 
-	@Property(name = MinaConfigurationConstants.PROPERTY_NAME_COMMAND_TIMEOUT_IN_SECONDS,
-			defaultValue = "10")
+	@Property(name = MinaConfigurationConstants.PROPERTY_NAME_COMMAND_TIMEOUT_IN_SECONDS, defaultValue = "10")
 	protected int commandTimeoutInSeconds;
 
 	protected IoSession session;

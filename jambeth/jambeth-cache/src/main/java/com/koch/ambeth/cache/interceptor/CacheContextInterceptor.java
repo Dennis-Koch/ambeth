@@ -23,8 +23,6 @@ limitations under the License.
 import java.lang.reflect.Method;
 
 import com.koch.ambeth.ioc.annotation.Autowired;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.cache.ICacheContext;
 import com.koch.ambeth.merge.cache.ICacheFactory;
 import com.koch.ambeth.merge.cache.ICacheProvider;
@@ -35,10 +33,6 @@ import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
 import net.sf.cglib.proxy.MethodProxy;
 
 public class CacheContextInterceptor extends CascadedInterceptor {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	@Autowired
 	protected ICacheContext cacheContext;
 

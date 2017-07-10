@@ -25,8 +25,6 @@ import java.util.List;
 import java.util.Set;
 
 import com.koch.ambeth.ioc.annotation.Autowired;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.proxy.PersistenceContext;
 import com.koch.ambeth.persistence.IServiceUtil;
 import com.koch.ambeth.persistence.api.IDatabase;
@@ -38,10 +36,6 @@ import com.koch.ambeth.util.collections.ArrayList;
 @Service(IAlternateIdEntityService.class)
 @PersistenceContext
 public class AlternateIdEntityService implements IAlternateIdEntityService {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	@Autowired
 	protected IDatabase database;
 

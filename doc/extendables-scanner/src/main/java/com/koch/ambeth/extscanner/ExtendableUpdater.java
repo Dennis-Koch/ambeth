@@ -31,7 +31,6 @@ public class ExtendableUpdater extends AbstractLatexScanner implements IStarting
 			"(.*" + Pattern.quote(LISTING_START) + ").*(" + Pattern.quote(LISTING_END) + ".*)",
 			Pattern.DOTALL);
 
-	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 

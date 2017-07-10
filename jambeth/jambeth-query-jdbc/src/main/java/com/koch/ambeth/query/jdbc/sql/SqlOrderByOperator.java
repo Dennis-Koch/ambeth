@@ -25,8 +25,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.koch.ambeth.ioc.IInitializingBean;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.persistence.filter.QueryConstants;
 import com.koch.ambeth.query.IOperand;
 import com.koch.ambeth.query.IOperator;
@@ -39,12 +37,8 @@ import com.koch.ambeth.util.collections.IMap;
 import com.koch.ambeth.util.objectcollector.IThreadLocalObjectCollector;
 
 public class SqlOrderByOperator implements IOperator, IInitializingBean {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
-	protected static final Pattern ignoredColumnNamesPattern =
-			Pattern.compile("([A-Z_]+\\.)?\"?(ID|VERSION)\"?");
+	protected static final Pattern ignoredColumnNamesPattern = Pattern
+			.compile("([A-Z_]+\\.)?\"?(ID|VERSION)\"?");
 
 	protected IOperand column;
 
@@ -82,8 +76,8 @@ public class SqlOrderByOperator implements IOperator, IInitializingBean {
 	public void operate(IAppendable querySB, IMap<Object, Object> nameToValueMap, boolean joinQuery,
 			IList<Object> parameters) {
 		Boolean firstOrderByState = (Boolean) nameToValueMap.get(QueryConstants.FIRST_ORDER_BY_STATE);
-		List<String> additionalSelectColumnList =
-				(List<String>) nameToValueMap.get(QueryConstants.ADDITIONAL_SELECT_SQL_SB);
+		List<String> additionalSelectColumnList = (List<String>) nameToValueMap
+				.get(QueryConstants.ADDITIONAL_SELECT_SQL_SB);
 		if (firstOrderByState == null || Boolean.TRUE.equals(firstOrderByState)) {
 			nameToValueMap.put(QueryConstants.FIRST_ORDER_BY_STATE, Boolean.FALSE);
 			querySB.append(" ORDER BY ");

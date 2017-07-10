@@ -27,8 +27,6 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import com.koch.ambeth.ioc.IInitializingBean;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.security.IAuthentication;
 import com.koch.ambeth.security.IAuthenticationResult;
 import com.koch.ambeth.service.cache.ClearAllCachesEvent;
@@ -48,10 +46,6 @@ public class AuthenticationResultCache implements IInitializingBean, IAuthentica
 
 	public static final String DELEGATE_HANDLE_CLEAR_ALL_CACHES_EVENT = "handleClearAllCachesEvent";
 
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	protected final Charset charset = Charset.forName("UTF-8");
 
 	protected MessageDigest digest;
@@ -60,19 +54,18 @@ public class AuthenticationResultCache implements IInitializingBean, IAuthentica
 
 	protected long cacheInterval = 60000;
 
-	protected final WeakHashMap<byte[], CacheValue> cachedAuthenticationResultMap =
-			new WeakHashMap<byte[], CacheValue>() {
+	protected final WeakHashMap<byte[], CacheValue> cachedAuthenticationResultMap = new WeakHashMap<byte[], CacheValue>() {
 
-				@Override
-				protected boolean equalKeys(byte[] key, IMapEntry<byte[], CacheValue> entry) {
-					return Arrays.equals(key, entry.getKey());
-				}
+		@Override
+		protected boolean equalKeys(byte[] key, IMapEntry<byte[], CacheValue> entry) {
+			return Arrays.equals(key, entry.getKey());
+		}
 
-				@Override
-				protected int extractHash(byte[] key) {
-					return Arrays.hashCode(key);
-				}
-			};
+		@Override
+		protected int extractHash(byte[] key) {
+			return Arrays.hashCode(key);
+		}
+	};
 
 	@Override
 	public void afterPropertiesSet() throws Throwable {

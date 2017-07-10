@@ -85,7 +85,6 @@ public class CacheRetrieverRegistry implements ICacheRetriever, ICacheRetrieverE
 
 	public static final String HANDLE_EVENT_SESSION_CHANGED = "handleEventSessionChanged";
 
-	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 

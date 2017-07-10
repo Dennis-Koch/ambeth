@@ -22,8 +22,6 @@ limitations under the License.
 
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.config.Property;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.query.IOperand;
 import com.koch.ambeth.query.IOperator;
 import com.koch.ambeth.query.ISqlJoin;
@@ -37,10 +35,6 @@ public class SqlPermissionOperand implements IOperator {
 	public static final Object USER_ID_UNSPECIFIED = new Object();
 
 	public static final String USER_ID_CRITERIA_NAME = "sec#userId";
-
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
 
 	@Autowired
 	protected ISecurityContextHolder securityContextHolder;

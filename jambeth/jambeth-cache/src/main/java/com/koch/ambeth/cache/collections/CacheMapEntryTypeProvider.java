@@ -33,7 +33,6 @@ import com.koch.ambeth.util.collections.Tuple2KeyHashMap;
 public class CacheMapEntryTypeProvider implements ICacheMapEntryTypeProvider {
 	protected static final ICacheMapEntryFactory ci = new DefaultCacheMapEntryFactory();
 
-	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 
@@ -43,8 +42,7 @@ public class CacheMapEntryTypeProvider implements ICacheMapEntryTypeProvider {
 	@Autowired
 	protected IAccessorTypeProvider accessorTypeProvider;
 
-	protected final Tuple2KeyHashMap<Class<?>, Byte, ICacheMapEntryFactory> typeToConstructorMap =
-			new Tuple2KeyHashMap<>();
+	protected final Tuple2KeyHashMap<Class<?>, Byte, ICacheMapEntryFactory> typeToConstructorMap = new Tuple2KeyHashMap<>();
 
 	protected final Lock writeLock = new ReentrantLock();
 
@@ -76,8 +74,8 @@ public class CacheMapEntryTypeProvider implements ICacheMapEntryTypeProvider {
 					factory = ci;
 				}
 				else {
-					factory =
-							accessorTypeProvider.getConstructorType(ICacheMapEntryFactory.class, enhancedType);
+					factory = accessorTypeProvider.getConstructorType(ICacheMapEntryFactory.class,
+							enhancedType);
 				}
 			}
 			catch (Throwable e) {

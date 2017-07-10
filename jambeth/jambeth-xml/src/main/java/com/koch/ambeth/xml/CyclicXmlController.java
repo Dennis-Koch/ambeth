@@ -22,51 +22,29 @@ limitations under the License.
 
 import java.util.List;
 
+import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.extendable.ClassExtendableContainer;
 import com.koch.ambeth.ioc.extendable.MapExtendableContainer;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.IProxyHelper;
-import com.koch.ambeth.util.ParamChecker;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.IntKeyMap;
 import com.koch.ambeth.xml.typehandler.AbstractHandler;
 
 public class CyclicXmlController extends AbstractHandler
 		implements ICyclicXmlController, ITypeBasedHandlerExtendable, INameBasedHandlerExtendable {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
+	@Autowired
 	protected IProxyHelper proxyHelper;
 
+	@Autowired
 	protected IXmlTypeRegistry xmlTypeRegistry;
 
-	protected final ClassExtendableContainer<ITypeBasedHandler> typeToElementHandlers =
-			new ClassExtendableContainer<>("elementHandler", "type");
+	protected final ClassExtendableContainer<ITypeBasedHandler> typeToElementHandlers = new ClassExtendableContainer<>(
+			"elementHandler", "type");
 
-	protected final MapExtendableContainer<String, INameBasedHandler> nameBasedElementReaders =
-			new MapExtendableContainer<>("nameBasedElementReader",
-					"elementName");
+	protected final MapExtendableContainer<String, INameBasedHandler> nameBasedElementReaders = new MapExtendableContainer<>(
+			"nameBasedElementReader", "elementName");
 
-	protected final List<INameBasedHandler> nameBasedElementWriters =
-			new ArrayList<>();
-
-	@Override
-	public void afterPropertiesSet() throws Throwable {
-		super.afterPropertiesSet();
-
-		ParamChecker.assertNotNull(proxyHelper, "proxyHelper");
-		ParamChecker.assertNotNull(xmlTypeRegistry, "xmlTypeRegistry");
-	}
-
-	public void setProxyHelper(IProxyHelper proxyHelper) {
-		this.proxyHelper = proxyHelper;
-	}
-
-	public void setXmlTypeRegistry(IXmlTypeRegistry xmlTypeRegistry) {
-		this.xmlTypeRegistry = xmlTypeRegistry;
-	}
+	protected final List<INameBasedHandler> nameBasedElementWriters = new ArrayList<>();
 
 	@Override
 	public void registerElementHandler(ITypeBasedHandler elementHandler, Class<?> type) {

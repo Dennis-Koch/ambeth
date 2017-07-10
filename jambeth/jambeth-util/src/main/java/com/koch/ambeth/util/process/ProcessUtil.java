@@ -85,7 +85,8 @@ public class ProcessUtil {
 	 * are returned via the {@link ProcessResult} object. This method blocks until the command has
 	 * been finished.
 	 *
-	 * @param command the command line to run
+	 * @param command
+	 *          the command line to run
 	 * @return the result code, std out and std err streams
 	 */
 	public static ProcessResult runCli(String... command) {
@@ -137,8 +138,9 @@ public class ProcessUtil {
 	 * stream had been provided.
 	 *
 	 * @param process
-	 * @param outAndErr Custom {@link OutputStream} to receive out and err events in real-time and
-	 *        concurrently - so be aware of potential threading issues in your application.
+	 * @param outAndErr
+	 *          Custom {@link OutputStream} to receive out and err events in real-time and
+	 *          concurrently - so be aware of potential threading issues in your application.
 	 * @return
 	 */
 	public static ProcessResult waitForTermination(Process process, OutputStream outAndErr) {
@@ -156,13 +158,14 @@ public class ProcessUtil {
 	 * stream had been provided.
 	 *
 	 * @param process
-	 * @param out Custom {@link OutputStream} to receive out events in real-time and concurrently - so
-	 *        be aware of potential threading issues in your application.
-	 * @param err Custom {@link OutputStream} to receive err events in real-time and concurrently - so
-	 *        be aware of potential threading issues in your application.
+	 * @param out
+	 *          Custom {@link OutputStream} to receive out events in real-time and concurrently - so
+	 *          be aware of potential threading issues in your application.
+	 * @param err
+	 *          Custom {@link OutputStream} to receive err events in real-time and concurrently - so
+	 *          be aware of potential threading issues in your application.
 	 * @return
 	 */
-	@SuppressWarnings("resource")
 	public static ProcessResult waitForTermination(Process process, OutputStream out,
 			OutputStream err) {
 		IDisposable disposeOut = null, disposeErr = null;

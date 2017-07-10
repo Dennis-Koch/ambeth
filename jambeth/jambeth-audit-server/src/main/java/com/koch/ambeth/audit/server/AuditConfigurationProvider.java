@@ -26,8 +26,6 @@ import com.koch.ambeth.audit.server.config.AuditConfigurationConstants;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.config.Property;
 import com.koch.ambeth.ioc.extendable.MapExtendableContainer;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.security.audit.model.Audited;
 import com.koch.ambeth.service.merge.IEntityMetaDataProvider;
 import com.koch.ambeth.service.merge.model.IEntityMetaData;
@@ -39,31 +37,25 @@ import com.koch.ambeth.util.collections.IdentityHashMap;
 
 public class AuditConfigurationProvider
 		implements IAuditConfigurationProvider, IAuditConfigurationExtendable {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	@Autowired
 	protected IEntityMetaDataProvider entityMetaDataProvider;
 
-	@Property(name = AuditConfigurationConstants.AuditedEntityDefaultModeActive,
-			defaultValue = "true")
+	@Property(name = AuditConfigurationConstants.AuditedEntityDefaultModeActive, defaultValue = "true")
 	protected boolean auditedEntityDefaultModeActive;
 
 	@Property(name = AuditConfigurationConstants.AuditReasonRequiredDefault, defaultValue = "false")
 	protected boolean auditReasonRequiredDefault;
 
-	@Property(name = AuditConfigurationConstants.AuditedEntityPropertyDefaultModeActive,
-			defaultValue = "true")
+	@Property(name = AuditConfigurationConstants.AuditedEntityPropertyDefaultModeActive, defaultValue = "true")
 	protected boolean auditedEntityPropertyDefaultModeActive;
 
-	protected final MapExtendableContainer<Class<?>, IAuditConfiguration> entityTypeToAuditConfigurationMap =
-			new MapExtendableContainer<>("auditConfiguration", "entityType");
+	protected final MapExtendableContainer<Class<?>, IAuditConfiguration> entityTypeToAuditConfigurationMap = new MapExtendableContainer<>(
+			"auditConfiguration", "entityType");
 
 	@Override
 	public IAuditConfiguration getAuditConfiguration(Class<?> entityType) {
-		IAuditConfiguration auditConfiguration =
-				entityTypeToAuditConfigurationMap.getExtension(entityType);
+		IAuditConfiguration auditConfiguration = entityTypeToAuditConfigurationMap
+				.getExtension(entityType);
 		if (auditConfiguration != null) {
 			return auditConfiguration;
 		}
@@ -88,16 +80,16 @@ public class AuditConfigurationProvider
 		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(entityType);
 
 		Audited audited = AnnotationUtil.getAnnotation(Audited.class, metaData.getEnhancedType(), true);
-		AuditReasonRequired auditReasonRequired =
-				AnnotationUtil.getAnnotation(AuditReasonRequired.class, metaData.getEnhancedType(), true);
+		AuditReasonRequired auditReasonRequired = AnnotationUtil
+				.getAnnotation(AuditReasonRequired.class, metaData.getEnhancedType(), true);
 
 		boolean auditActive = audited != null ? audited.value() : auditedEntityDefaultModeActive;
 
-		boolean reasonRequired =
-				auditReasonRequired != null ? auditReasonRequired.value() : auditReasonRequiredDefault;
+		boolean reasonRequired = auditReasonRequired != null ? auditReasonRequired.value()
+				: auditReasonRequiredDefault;
 
-		IdentityHashMap<Member, IAuditMemberConfiguration> memberToConfigurationMap =
-				new IdentityHashMap<>(0.5f);
+		IdentityHashMap<Member, IAuditMemberConfiguration> memberToConfigurationMap = new IdentityHashMap<>(
+				0.5f);
 		for (PrimitiveMember member : metaData.getPrimitiveMembers()) {
 			memberToConfigurationMap.put(member, resolveMemberConfiguration(metaData, member));
 		}
@@ -114,8 +106,8 @@ public class AuditConfigurationProvider
 	protected IAuditMemberConfiguration resolveMemberConfiguration(IEntityMetaData metaData,
 			Member member) {
 		Audited audited = member.getAnnotation(Audited.class);
-		boolean auditActive =
-				audited != null ? audited.value() : auditedEntityPropertyDefaultModeActive;
+		boolean auditActive = audited != null ? audited.value()
+				: auditedEntityPropertyDefaultModeActive;
 		return auditActive ? AuditMemberConfiguration.ACTIVE : AuditMemberConfiguration.INACTIVE;
 	}
 

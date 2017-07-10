@@ -22,8 +22,6 @@ limitations under the License.
 
 import java.util.Map;
 
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.query.IMultiValueOperand;
 import com.koch.ambeth.query.IOperand;
 import com.koch.ambeth.query.IValueOperand;
@@ -34,10 +32,6 @@ import com.koch.ambeth.util.collections.IMap;
 
 public class NullValueOperand implements IOperand, IValueOperand, IMultiValueOperand {
 	public static final NullValueOperand INSTANCE = new NullValueOperand();
-
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
 
 	@Override
 	public boolean isNull(Map<Object, Object> nameToValueMap) {

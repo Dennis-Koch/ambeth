@@ -23,8 +23,6 @@ limitations under the License.
 import java.util.List;
 
 import com.koch.ambeth.ioc.IInitializingBean;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.proxy.PersistenceContext;
 import com.koch.ambeth.model.BlobObject;
 import com.koch.ambeth.persistence.IServiceUtil;
@@ -37,10 +35,6 @@ import com.koch.ambeth.util.collections.ArrayList;
 @Service(IBlobObjectService.class)
 @PersistenceContext
 public class BlobObjectService implements IBlobObjectService, IInitializingBean {
-	@SuppressWarnings("unused")
-	@LogInstance(BlobObjectService.class)
-	private ILogger log;
-
 	protected IDatabase database;
 
 	protected IServiceUtil serviceUtil;

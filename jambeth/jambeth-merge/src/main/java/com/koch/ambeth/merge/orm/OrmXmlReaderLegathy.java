@@ -29,8 +29,6 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
 import com.koch.ambeth.ioc.annotation.Autowired;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.IProxyHelper;
 import com.koch.ambeth.util.StringConversionHelper;
 import com.koch.ambeth.util.collections.IList;
@@ -40,10 +38,6 @@ import com.koch.ambeth.util.xml.IXmlConfigUtil;
 import com.koch.ambeth.util.xml.XmlConstants;
 
 public class OrmXmlReaderLegathy implements IOrmXmlReader {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	@Autowired
 	protected IThreadLocalObjectCollector objectCollector;
 
@@ -90,8 +84,8 @@ public class OrmXmlReaderLegathy implements IOrmXmlReader {
 			Class<?> realType = proxyHelper.getRealType(entityType);
 			EntityConfig entityConfig = new EntityConfig(entityType, realType);
 
-			final boolean localEntity =
-					!xmlConfigUtil.getAttribute(entityTag, XmlConstants.TYPE).equals(XmlConstants.EXTERN);
+			final boolean localEntity = !xmlConfigUtil.getAttribute(entityTag, XmlConstants.TYPE)
+					.equals(XmlConstants.EXTERN);
 			entityConfig.setLocal(localEntity);
 
 			IMap<String, IList<Element>> attributeMap = null;
@@ -113,8 +107,8 @@ public class OrmXmlReaderLegathy implements IOrmXmlReader {
 				entityConfig.setSequenceName(sequenceName);
 			}
 			if (entityDefs.containsKey(XmlConstants.ATTR)) {
-				attributeMap =
-						xmlConfigUtil.toElementMap(entityDefs.get(XmlConstants.ATTR).get(0).getChildNodes());
+				attributeMap = xmlConfigUtil
+						.toElementMap(entityDefs.get(XmlConstants.ATTR).get(0).getChildNodes());
 			}
 			boolean versionRequired = true;
 			if (attributeMap != null) {
@@ -154,8 +148,8 @@ public class OrmXmlReaderLegathy implements IOrmXmlReader {
 					IList<Element> toOneAttrs = attributeMap.get(XmlConstants.TO_ONE);
 					for (int j = toOneAttrs.size(); j-- > 0;) {
 						Element toOneElement = toOneAttrs.get(j);
-						RelationConfigLegathy relationConfig =
-								readRelationConfig(toOneElement, localEntity, true);
+						RelationConfigLegathy relationConfig = readRelationConfig(toOneElement, localEntity,
+								true);
 						entityConfig.addRelationConfig(relationConfig);
 					}
 				}
@@ -164,8 +158,8 @@ public class OrmXmlReaderLegathy implements IOrmXmlReader {
 					IList<Element> toManyAttrs = attributeMap.get(XmlConstants.TO_MANY);
 					for (int j = toManyAttrs.size(); j-- > 0;) {
 						Element toManyElement = toManyAttrs.get(j);
-						RelationConfigLegathy relationConfig =
-								readRelationConfig(toManyElement, localEntity, false);
+						RelationConfigLegathy relationConfig = readRelationConfig(toManyElement, localEntity,
+								false);
 						entityConfig.addRelationConfig(relationConfig);
 					}
 				}
@@ -199,8 +193,8 @@ public class OrmXmlReaderLegathy implements IOrmXmlReader {
 		}
 		MemberConfig memberConfig = new MemberConfig(memberName, columnName);
 
-		boolean alternateId =
-				Boolean.parseBoolean(xmlConfigUtil.getAttribute(memberElement, XmlConstants.ALT_ID));
+		boolean alternateId = Boolean
+				.parseBoolean(xmlConfigUtil.getAttribute(memberElement, XmlConstants.ALT_ID));
 		memberConfig.setAlternateId(alternateId);
 
 		return memberConfig;
@@ -208,29 +202,29 @@ public class OrmXmlReaderLegathy implements IOrmXmlReader {
 
 	protected RelationConfigLegathy readRelationConfig(Element relationElement, boolean localEntity,
 			boolean toOne) {
-		String relationName =
-				xmlConfigUtil.getRequiredAttribute(relationElement, XmlConstants.NAME, true);
+		String relationName = xmlConfigUtil.getRequiredAttribute(relationElement, XmlConstants.NAME,
+				true);
 		try {
 			RelationConfigLegathy relationConfig = new RelationConfigLegathy(relationName, toOne);
 
-			String linkedEntityName =
-					xmlConfigUtil.getRequiredAttribute(relationElement, XmlConstants.TARGET_ENTITY);
+			String linkedEntityName = xmlConfigUtil.getRequiredAttribute(relationElement,
+					XmlConstants.TARGET_ENTITY);
 			Class<?> linkedEntityType = xmlConfigUtil.getTypeForName(linkedEntityName);
 			relationConfig.setLinkedEntityType(linkedEntityType);
 
-			boolean doDelete =
-					Boolean.parseBoolean(xmlConfigUtil.getAttribute(relationElement, XmlConstants.DO_DELETE));
+			boolean doDelete = Boolean
+					.parseBoolean(xmlConfigUtil.getAttribute(relationElement, XmlConstants.DO_DELETE));
 			relationConfig.setDoDelete(doDelete);
 			boolean mayDelete = Boolean
 					.parseBoolean(xmlConfigUtil.getAttribute(relationElement, XmlConstants.MAY_DELETE));
 			relationConfig.setMayDelete(mayDelete);
 
 			if (localEntity) {
-				Element joinTableTag =
-						xmlConfigUtil.getChildUnique(relationElement, XmlConstants.JOIN_TABLE);
+				Element joinTableTag = xmlConfigUtil.getChildUnique(relationElement,
+						XmlConstants.JOIN_TABLE);
 				if (joinTableTag == null) {
-					String constraintName =
-							xmlConfigUtil.getAttribute(relationElement, XmlConstants.CONSTRAINT_NAME);
+					String constraintName = xmlConfigUtil.getAttribute(relationElement,
+							XmlConstants.CONSTRAINT_NAME);
 					if (constraintName.isEmpty()) {
 						throw new IllegalArgumentException("Either nested element '" + XmlConstants.JOIN_TABLE
 								+ "' or attribute '" + XmlConstants.CONSTRAINT_NAME + "' required to map link");
@@ -238,13 +232,13 @@ public class OrmXmlReaderLegathy implements IOrmXmlReader {
 					relationConfig.setConstraintName(constraintName);
 				}
 				else {
-					String joinTableName =
-							xmlConfigUtil.getRequiredAttribute(joinTableTag, XmlConstants.NAME);
+					String joinTableName = xmlConfigUtil.getRequiredAttribute(joinTableTag,
+							XmlConstants.NAME);
 					relationConfig.setJoinTableName(joinTableName);
 
-					String fromFieldName =
-							xmlConfigUtil.getChildElementAttribute(joinTableTag, XmlConstants.JOIN_COLUMN,
-									XmlConstants.NAME, "Join column name has to be set exactly once");
+					String fromFieldName = xmlConfigUtil.getChildElementAttribute(joinTableTag,
+							XmlConstants.JOIN_COLUMN, XmlConstants.NAME,
+							"Join column name has to be set exactly once");
 					relationConfig.setFromFieldName(fromFieldName);
 					String toFieldName = xmlConfigUtil.getChildElementAttribute(joinTableTag,
 							XmlConstants.INV_JOIN_COLUMN, XmlConstants.NAME, null);

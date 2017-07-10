@@ -36,15 +36,14 @@ public class ConfigurationUpdater extends AbstractLatexScanner implements IStart
 			"(.*" + Pattern.quote(LISTING_START) + ").*(" + Pattern.quote(LISTING_END) + ".*)",
 			Pattern.DOTALL);
 
-	public static final Pattern configurationConstantsAnnotationMatcher =
-			Pattern.compile(Pattern.quote(ConfigurationConstants.class.getName()) + "|"
+	public static final Pattern configurationConstantsAnnotationMatcher = Pattern
+			.compile(Pattern.quote(ConfigurationConstants.class.getName()) + "|"
 					+ Pattern.quote("De.Osthus.Ambeth.Annotation.ConfigurationConstants"));
 
-	public static final Pattern propertyAnnotationMatcher =
-			Pattern.compile(Pattern.quote(Property.class.getName()) + "|"
+	public static final Pattern propertyAnnotationMatcher = Pattern
+			.compile(Pattern.quote(Property.class.getName()) + "|"
 					+ Pattern.quote("De.Osthus.Ambeth.Config.PropertyAttribute"));
 
-	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 
@@ -112,11 +111,11 @@ public class ConfigurationUpdater extends AbstractLatexScanner implements IStart
 			throw new IllegalStateException(
 					"Path '" + targetExtendableTexDirCP + "' must reside within '" + targetTexFileCP + "'");
 		}
-		String pathToExtendableTexFile =
-				targetExtendableTexDirCP.substring(targetTexFileCP.length() + 1);
+		String pathToExtendableTexFile = targetExtendableTexDirCP
+				.substring(targetTexFileCP.length() + 1);
 
-		OutputStreamWriter fw =
-				new OutputStreamWriter(new FileOutputStream(allPropertiesTexFile), Charsets.UTF_8);
+		OutputStreamWriter fw = new OutputStreamWriter(new FileOutputStream(allPropertiesTexFile),
+				Charsets.UTF_8);
 		try {
 			fw.append("%---------------------------------------------------------------\n");
 			fw.append("% This file is FULLY generated. Please do not edit anything here\n");
@@ -152,8 +151,8 @@ public class ConfigurationUpdater extends AbstractLatexScanner implements IStart
 
 				includes.add(pathToExtendableTexFile + "/" + texName);
 
-				File expectedConfigurationTexFile =
-						new File(targetPropertiesTexDir, expectedConfigurationTexFileName);
+				File expectedConfigurationTexFile = new File(targetPropertiesTexDir,
+						expectedConfigurationTexFileName);
 
 				writeToConfigurationTexFile(configurationEntry, labelName, expectedConfigurationTexFile);
 			}
@@ -225,8 +224,8 @@ public class ConfigurationUpdater extends AbstractLatexScanner implements IStart
 		if (configurationEntry == null) {
 			String texName = buildTexPropertyName(currentValue);
 			String labelName = "configuration:" + texName;
-			configurationEntry =
-					new ConfigurationEntry(log, currentValue, labelName, typeDescr.getModuleName());
+			configurationEntry = new ConfigurationEntry(log, currentValue, labelName,
+					typeDescr.getModuleName());
 			model.addConfiguration(currentValue, configurationEntry);
 		}
 		if (configurationEntry.isMandatory == null) {
@@ -300,8 +299,8 @@ public class ConfigurationUpdater extends AbstractLatexScanner implements IStart
 		if (propertyEntry == null) {
 			String texName = buildTexPropertyName(valueOfConstant);
 			String labelName = "configuration:" + texName;
-			propertyEntry =
-					new ConfigurationEntry(log, valueOfConstant, labelName, typeDescr.getModuleName());
+			propertyEntry = new ConfigurationEntry(log, valueOfConstant, labelName,
+					typeDescr.getModuleName());
 			model.addConfiguration(valueOfConstant, propertyEntry);
 		}
 		propertyEntry.contantDefinitions.add(typeDescr.getFullTypeName() + "." + field.getName());
@@ -312,8 +311,8 @@ public class ConfigurationUpdater extends AbstractLatexScanner implements IStart
 			String labelName, File targetFile) throws Exception {
 		String targetOpening = getAPI(configurationEntry);
 		if (!targetFile.exists()) {
-			OutputStreamWriter fw =
-					new OutputStreamWriter(new FileOutputStream(targetFile), Charsets.UTF_8);
+			OutputStreamWriter fw = new OutputStreamWriter(new FileOutputStream(targetFile),
+					Charsets.UTF_8);
 			try {
 				fw.append(targetOpening);
 				fw.append("\n\\section{");
@@ -344,8 +343,8 @@ public class ConfigurationUpdater extends AbstractLatexScanner implements IStart
 		String newContent = writeSetAPI(sb, configurationEntry);
 		Matcher matcher = replaceUsageReferencePattern.matcher(newContent);
 		if (matcher.matches()) {
-			newContent =
-					matcher.group(1) + "\n" + usageReferenceString(configurationEntry) + matcher.group(2);
+			newContent = matcher.group(1) + "\n" + usageReferenceString(configurationEntry)
+					+ matcher.group(2);
 		}
 		else {
 			log.warn("Could not replace usage reference in '" + targetFile.getPath() + "'");

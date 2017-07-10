@@ -43,13 +43,12 @@ import com.koch.ambeth.util.collections.ILinkedMap;
 
 @SecurityContext(SecurityContextType.AUTHENTICATED)
 public class RandomDataGenerator implements IInitializingBean, IJob {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	public static enum ChangeOperation {
 		NOTHING, INSERT, UPDATE, DELETE;
 	}
+
+	@LogInstance
+	private ILogger log;
 
 	@Autowired
 	protected IEntityFactory entityFactory;

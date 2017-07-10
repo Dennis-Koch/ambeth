@@ -21,25 +21,18 @@ limitations under the License.
  */
 
 import com.koch.ambeth.ioc.threadlocal.IThreadLocalCleanupBean;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.service.cache.IServiceResultHolder;
 import com.koch.ambeth.service.cache.model.IServiceResult;
 import com.koch.ambeth.util.threading.SensitiveThreadLocal;
 
 public class ServiceResultHolder implements IServiceResultHolder, IThreadLocalCleanupBean {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	public static class ServiceResultHolderItem {
 		public boolean expectORIResult;
 
 		public IServiceResult serviceResult;
 	}
 
-	protected final ThreadLocal<ServiceResultHolderItem> valueTL =
-			new SensitiveThreadLocal<>();
+	protected final ThreadLocal<ServiceResultHolderItem> valueTL = new SensitiveThreadLocal<>();
 
 	@Override
 	public void cleanupThreadLocal() {

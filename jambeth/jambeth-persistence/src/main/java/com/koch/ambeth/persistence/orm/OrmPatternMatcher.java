@@ -24,16 +24,10 @@ import java.util.regex.Matcher;
 
 import com.koch.ambeth.ioc.IInitializingBean;
 import com.koch.ambeth.ioc.config.Property;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.persistence.PermissionGroup;
 import com.koch.ambeth.persistence.config.PersistenceConfigurationConstants;
 
 public class OrmPatternMatcher implements IInitializingBean, IOrmPatternMatcher {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	@Property(name = PersistenceConfigurationConstants.DatabaseTablePrefix, defaultValue = "")
 	protected String tablePrefix;
 

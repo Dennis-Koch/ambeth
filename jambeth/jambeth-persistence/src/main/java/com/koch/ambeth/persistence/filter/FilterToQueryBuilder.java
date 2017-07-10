@@ -71,6 +71,7 @@ public class FilterToQueryBuilder implements IFilterToQueryBuilder {
 
 	protected final Lock writeLock = new ReentrantLock();
 
+	@SuppressWarnings("unchecked")
 	@Override
 	@PersistenceContext(PersistenceContextType.REQUIRED)
 	public <T> IPagingQuery<T> buildQuery(IFilterDescriptor<T> filterDescriptor,
@@ -87,8 +88,8 @@ public class FilterToQueryBuilder implements IFilterToQueryBuilder {
 		IQueryBuilder<?> queryBuilder = queryBuilderFactory.create(entityType);
 
 		try {
-			IOperand currentRootOperand =
-					buildOperandFromFilterDescriptor(queryBuilder, filterDescriptor);
+			IOperand currentRootOperand = buildOperandFromFilterDescriptor(queryBuilder,
+					filterDescriptor);
 
 			if (sortDescriptors != null) {
 				for (int a = 0, size = sortDescriptors.length; a < size; a++) {
@@ -120,8 +121,8 @@ public class FilterToQueryBuilder implements IFilterToQueryBuilder {
 
 	protected <T> IOperand buildOperandFromFilterDescriptor(IQueryBuilder<?> queryBuilder,
 			IFilterDescriptor<T> filterDescriptor) {
-		List<IFilterDescriptor<T>> childFilterDescriptors =
-				filterDescriptor.getChildFilterDescriptors();
+		List<IFilterDescriptor<T>> childFilterDescriptors = filterDescriptor
+				.getChildFilterDescriptors();
 
 		if (childFilterDescriptors != null) {
 			return buildOperandFromCompositeDescriptor(queryBuilder, filterDescriptor);
@@ -131,8 +132,8 @@ public class FilterToQueryBuilder implements IFilterToQueryBuilder {
 
 	protected <T> IOperand buildOperandFromCompositeDescriptor(IQueryBuilder<?> queryBuilder,
 			IFilterDescriptor<T> filterDescriptor) {
-		List<IFilterDescriptor<T>> childFilterDescriptors =
-				filterDescriptor.getChildFilterDescriptors();
+		List<IFilterDescriptor<T>> childFilterDescriptors = filterDescriptor
+				.getChildFilterDescriptors();
 
 		LogicalOperator logicalOperator = filterDescriptor.getLogicalOperator();
 
@@ -231,8 +232,8 @@ public class FilterToQueryBuilder implements IFilterToQueryBuilder {
 				break;
 			case IS_CONTAINED_IN:
 				value = convertWithContext(columnType.getValue(), valueString);
-				operand =
-						queryBuilder.isContainedIn(leftOperand, queryBuilder.value(value), isCaseSensitive);
+				operand = queryBuilder.isContainedIn(leftOperand, queryBuilder.value(value),
+						isCaseSensitive);
 				break;
 			case IS_EQUAL_TO:
 				value = convertWithContext(columnType.getValue(), valueString);
@@ -252,8 +253,8 @@ public class FilterToQueryBuilder implements IFilterToQueryBuilder {
 					String item = values.get(i);
 					convertedValues[i] = conversionHelper.convertValueToType(columnType.getValue(), item);
 				}
-				operand =
-						queryBuilder.isIn(leftOperand, queryBuilder.value(convertedValues), isCaseSensitive);
+				operand = queryBuilder.isIn(leftOperand, queryBuilder.value(convertedValues),
+						isCaseSensitive);
 				break;
 			}
 			case IS_LESS_THAN:
@@ -266,13 +267,13 @@ public class FilterToQueryBuilder implements IFilterToQueryBuilder {
 				break;
 			case IS_NOT_CONTAINED_IN:
 				value = convertWithContext(columnType.getValue(), valueString);
-				operand =
-						queryBuilder.isNotContainedIn(leftOperand, queryBuilder.value(value), isCaseSensitive);
+				operand = queryBuilder.isNotContainedIn(leftOperand, queryBuilder.value(value),
+						isCaseSensitive);
 				break;
 			case IS_NOT_EQUAL_TO:
 				value = convertWithContext(columnType.getValue(), valueString);
-				operand =
-						queryBuilder.isNotEqualTo(leftOperand, queryBuilder.value(value), isCaseSensitive);
+				operand = queryBuilder.isNotEqualTo(leftOperand, queryBuilder.value(value),
+						isCaseSensitive);
 				break;
 			case IS_NOT_IN: {
 				Object[] convertedValues = new Object[values.size()];
@@ -280,8 +281,8 @@ public class FilterToQueryBuilder implements IFilterToQueryBuilder {
 					String item = values.get(i);
 					convertedValues[i] = conversionHelper.convertValueToType(columnType.getValue(), item);
 				}
-				operand =
-						queryBuilder.isNotIn(leftOperand, queryBuilder.value(convertedValues), isCaseSensitive);
+				operand = queryBuilder.isNotIn(leftOperand, queryBuilder.value(convertedValues),
+						isCaseSensitive);
 				break;
 			}
 			case LIKE:

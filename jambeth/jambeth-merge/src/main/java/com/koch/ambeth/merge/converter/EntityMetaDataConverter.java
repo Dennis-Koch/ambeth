@@ -25,8 +25,6 @@ import java.util.Map;
 import java.util.regex.Pattern;
 
 import com.koch.ambeth.ioc.annotation.Autowired;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.IEntityFactory;
 import com.koch.ambeth.merge.IProxyHelper;
 import com.koch.ambeth.merge.cache.ICacheModification;
@@ -46,10 +44,6 @@ public class EntityMetaDataConverter implements IDedicatedConverter {
 	private static final String[] EMPTY_STRINGS = new String[0];
 
 	protected static final Pattern memberPathSplitPattern = Pattern.compile("\\.");
-
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
 
 	@Autowired
 	protected ICacheModification cacheModification;
@@ -164,8 +158,8 @@ public class EntityMetaDataConverter implements IDedicatedConverter {
 		if (memberName == null) {
 			return null;
 		}
-		IntermediatePrimitiveMember member =
-				(IntermediatePrimitiveMember) nameToMemberDict.get(memberName);
+		IntermediatePrimitiveMember member = (IntermediatePrimitiveMember) nameToMemberDict
+				.get(memberName);
 		if (member != null) {
 			return member;
 		}

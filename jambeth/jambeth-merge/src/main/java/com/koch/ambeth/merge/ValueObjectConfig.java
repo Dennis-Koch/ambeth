@@ -22,25 +22,18 @@ limitations under the License.
 
 import java.util.HashSet;
 
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.service.merge.IValueObjectConfig;
 import com.koch.ambeth.service.merge.ValueObjectMemberType;
 import com.koch.ambeth.util.collections.HashMap;
 
 public class ValueObjectConfig implements IValueObjectConfig {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	protected Class<?> entityType;
 
 	protected Class<?> valueType;
 
 	protected final HashSet<String> listTypeMembers = new HashSet<>();
 
-	protected final HashMap<String, ValueObjectMemberType> memberTypes =
-			new HashMap<>();
+	protected final HashMap<String, ValueObjectMemberType> memberTypes = new HashMap<>();
 
 	protected final HashMap<String, Class<?>> collectionMemberTypes = new HashMap<>();
 

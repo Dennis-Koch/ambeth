@@ -63,7 +63,6 @@ import com.koch.ambeth.util.threading.IBackgroundWorkerDelegate;
 import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
 
 public class AuditVerifierJob implements IJob, IStartingBean {
-	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 

@@ -81,7 +81,6 @@ public class ChildCache extends AbstractCache<Object>
 
 	public static final String P_PRIVILEGED = "Privileged";
 
-	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 

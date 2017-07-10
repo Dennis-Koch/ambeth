@@ -26,10 +26,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-import com.koch.ambeth.ioc.IInitializingBean;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
-import com.koch.ambeth.util.ParamChecker;
+import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.xml.INameBasedHandler;
 import com.koch.ambeth.xml.IReader;
@@ -41,31 +38,12 @@ import com.koch.ambeth.xml.pending.IObjectCommand;
 import com.koch.ambeth.xml.pending.IObjectFuture;
 import com.koch.ambeth.xml.typehandler.AbstractHandler;
 
-public class CollectionElementHandler extends AbstractHandler
-		implements INameBasedHandler, IInitializingBean {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
+public class CollectionElementHandler extends AbstractHandler implements INameBasedHandler {
+	@Autowired
 	protected ICommandBuilder commandBuilder;
 
+	@Autowired
 	protected IXmlTypeRegistry xmlTypeRegistry;
-
-	@Override
-	public void afterPropertiesSet() throws Throwable {
-		super.afterPropertiesSet();
-
-		ParamChecker.assertNotNull(commandBuilder, "commandBuilder");
-		ParamChecker.assertNotNull(xmlTypeRegistry, "xmlTypeRegistry");
-	}
-
-	public void setCommandBuilder(ICommandBuilder commandBuilder) {
-		this.commandBuilder = commandBuilder;
-	}
-
-	public void setXmlTypeRegistry(IXmlTypeRegistry xmlTypeRegistry) {
-		this.xmlTypeRegistry = xmlTypeRegistry;
-	}
 
 	protected Class<?> getComponentTypeOfCollection(Object obj) {
 		return Object.class;
@@ -112,8 +90,8 @@ public class CollectionElementHandler extends AbstractHandler
 			throw new IllegalStateException("Element '" + elementName + "' not supported");
 		}
 		String lengthValue = reader.getAttributeValue(xmlDictionary.getSizeAttribute());
-		int length =
-				lengthValue != null && lengthValue.length() > 0 ? Integer.parseInt(lengthValue) : 0;
+		int length = lengthValue != null && lengthValue.length() > 0 ? Integer.parseInt(lengthValue)
+				: 0;
 
 		// Read componentType because of typeId registration. This is intended to remain unused in java
 		@SuppressWarnings("unused")
@@ -121,8 +99,7 @@ public class CollectionElementHandler extends AbstractHandler
 
 		Collection<Object> coll;
 		if (xmlDictionary.getSetElement().equals(elementName)) {
-			coll = length > 0 ? new HashSet<>((int) (length / 0.75f + 1), 0.75f)
-					: new HashSet<>();
+			coll = length > 0 ? new HashSet<>((int) (length / 0.75f + 1), 0.75f) : new HashSet<>();
 		}
 		else {
 			coll = length > 0 ? new ArrayList<>(length) : new ArrayList<>();

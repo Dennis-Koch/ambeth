@@ -22,18 +22,12 @@ limitations under the License.
 
 import java.util.Date;
 
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.mapping.CopyDirection;
 import com.koch.ambeth.mapping.IDedicatedMapper;
 import com.koch.ambeth.persistence.jdbc.mapping.models.OneToManyEntity;
 import com.koch.ambeth.persistence.jdbc.mapping.models.OneToManyEntityVO;
 
 public class OneToManyEntityMapper implements IDedicatedMapper {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	@Override
 	public void applySpecialMapping(Object businessObject, Object valueObject,
 			CopyDirection direction) {

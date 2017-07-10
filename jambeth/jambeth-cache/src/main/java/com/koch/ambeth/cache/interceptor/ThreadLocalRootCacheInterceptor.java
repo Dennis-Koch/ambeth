@@ -26,18 +26,12 @@ import com.koch.ambeth.cache.IRootCache;
 import com.koch.ambeth.cache.RootCache;
 import com.koch.ambeth.ioc.config.Property;
 import com.koch.ambeth.ioc.threadlocal.Forkable;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.util.threading.SensitiveThreadLocal;
 
 import net.sf.cglib.proxy.MethodProxy;
 
 public class ThreadLocalRootCacheInterceptor extends AbstractRootCacheAwareInterceptor {
 	protected static final Method clearMethod = AbstractRootCacheAwareInterceptor.clearMethod;
-
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
 
 	@Property(defaultValue = "false")
 	protected boolean privileged;

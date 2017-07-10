@@ -25,8 +25,6 @@ import java.util.Map.Entry;
 
 import com.koch.ambeth.ioc.IInitializingBean;
 import com.koch.ambeth.ioc.extendable.ClassExtendableContainer;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.model.ICUDResult;
 import com.koch.ambeth.merge.model.IChangeContainer;
 import com.koch.ambeth.merge.model.IDirectObjRef;
@@ -51,17 +49,12 @@ import com.koch.ambeth.util.collections.IdentityHashSet;
 import com.koch.ambeth.util.collections.IdentityLinkedMap;
 
 public class CUDResultHelper implements IInitializingBean, ICUDResultHelper, ICUDResultExtendable {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	protected IEntityMetaDataProvider entityMetaDataProvider;
 
 	protected IObjRefHelper oriHelper;
 
-	protected final ClassExtendableContainer<ICUDResultExtension> extensions =
-			new ClassExtendableContainer<>(ICUDResultExtension.class.getSimpleName(),
-					"entityType");
+	protected final ClassExtendableContainer<ICUDResultExtension> extensions = new ClassExtendableContainer<>(
+			ICUDResultExtension.class.getSimpleName(), "entityType");
 
 	@Override
 	public void afterPropertiesSet() {
@@ -87,10 +80,8 @@ public class CUDResultHelper implements IInitializingBean, ICUDResultHelper, ICU
 		IdentityLinkedMap<Object, IList<IUpdateItem>> objToModDict = mergeHandle.objToModDict;
 		IdentityHashSet<Object> objToDeleteSet = mergeHandle.objToDeleteSet;
 
-		HashMap<Class<?>, IPrimitiveUpdateItem[]> entityTypeToFullPuis =
-				new HashMap<>();
-		HashMap<Class<?>, IRelationUpdateItem[]> entityTypeToFullRuis =
-				new HashMap<>();
+		HashMap<Class<?>, IPrimitiveUpdateItem[]> entityTypeToFullPuis = new HashMap<>();
+		HashMap<Class<?>, IRelationUpdateItem[]> entityTypeToFullRuis = new HashMap<>();
 
 		ArrayList<IChangeContainer> allChanges = new ArrayList<>(objToModDict.size());
 		ArrayList<Object> originalRefs = new ArrayList<>(objToModDict.size());

@@ -547,7 +547,7 @@ public class ObservableArrayList<V>
 	}
 
 	@Override
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings({ "rawtypes" })
 	public boolean removeAll(final Collection<?> c) {
 		final ArrayList<Object> result = new ArrayList<>(c.size());
 		if (c instanceof List) {

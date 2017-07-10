@@ -28,8 +28,6 @@ import com.koch.ambeth.ioc.ProcessorOrder;
 import com.koch.ambeth.ioc.config.IBeanConfiguration;
 import com.koch.ambeth.ioc.config.Property;
 import com.koch.ambeth.ioc.factory.IBeanContextFactory;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.service.config.ServiceConfigurationConstants;
 import com.koch.ambeth.service.log.interceptor.LogInterceptor;
 import com.koch.ambeth.service.proxy.AbstractCascadePostProcessor;
@@ -39,10 +37,6 @@ import net.sf.cglib.proxy.Callback;
 
 public class LoggingPostProcessor extends AbstractCascadePostProcessor
 		implements IOrderedBeanProcessor {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	@Property(name = ServiceConfigurationConstants.WrapAllInteractions, defaultValue = "false")
 	protected boolean wrapAllInteractions;
 

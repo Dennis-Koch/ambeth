@@ -21,8 +21,6 @@ limitations under the License.
  */
 
 import com.koch.ambeth.ioc.annotation.Autowired;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.persistence.IPersistenceHelper;
 import com.koch.ambeth.persistence.LinkMetaData;
 import com.koch.ambeth.persistence.api.IFieldMetaData;
@@ -32,10 +30,6 @@ import com.koch.ambeth.util.ParamChecker;
 import com.koch.ambeth.util.objectcollector.IThreadLocalObjectCollector;
 
 public class SqlLinkMetaData extends LinkMetaData {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	protected String constraintName;
 
 	protected IFieldMetaData fromField;

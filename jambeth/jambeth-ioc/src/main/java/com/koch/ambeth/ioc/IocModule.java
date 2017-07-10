@@ -53,8 +53,6 @@ import com.koch.ambeth.ioc.proxy.ICgLibUtil;
 import com.koch.ambeth.ioc.util.DedicatedConverterUtil;
 import com.koch.ambeth.ioc.util.IMultithreadingHelper;
 import com.koch.ambeth.ioc.util.MultithreadingHelper;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.util.JREVersionProvider;
 import com.koch.ambeth.util.appendable.AppendableStringBuilder;
 import com.koch.ambeth.util.converter.BooleanArrayConverter;
@@ -69,10 +67,6 @@ import com.koch.ambeth.util.threading.IGuiThreadHelper;
 @FrameworkModule
 public class IocModule implements IInitializingModule {
 	public static final String THREAD_POOL_NAME = "threadPool";
-
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
 
 	@Property(name = IocConfigurationConstants.JavaUiActive, defaultValue = "true")
 	protected boolean javaUiActive;
@@ -92,15 +86,15 @@ public class IocModule implements IInitializingModule {
 				char[].class);
 
 		if (JREVersionProvider.getVersion() >= 1.7) {
-			IBeanConfiguration fileToPathConverter =
-					beanContextFactory.registerBean(FileToPathConverter.class);
+			IBeanConfiguration fileToPathConverter = beanContextFactory
+					.registerBean(FileToPathConverter.class);
 			DedicatedConverterUtil.biLink(beanContextFactory, fileToPathConverter, File.class,
 					Path.class);
 			DedicatedConverterUtil.biLink(beanContextFactory, fileToPathConverter, File[].class,
 					Path[].class);
 
-			IBeanConfiguration stringToPathConverter =
-					beanContextFactory.registerBean(StringToPathConverter.class);
+			IBeanConfiguration stringToPathConverter = beanContextFactory
+					.registerBean(StringToPathConverter.class);
 			DedicatedConverterUtil.link(beanContextFactory, stringToPathConverter, String.class,
 					Path.class);
 			DedicatedConverterUtil.link(beanContextFactory, stringToPathConverter, String.class,
@@ -110,62 +104,62 @@ public class IocModule implements IInitializingModule {
 		beanContextFactory.registerBean(Cancellation.class).autowireable(ICancellation.class,
 				ICancellationWritable.class);
 
-		IBeanConfiguration stringToBlobConverter =
-				beanContextFactory.registerBean(StringToBlobConverter.class);
+		IBeanConfiguration stringToBlobConverter = beanContextFactory
+				.registerBean(StringToBlobConverter.class);
 		DedicatedConverterUtil.biLink(beanContextFactory, stringToBlobConverter, String.class,
 				Blob.class);
 
-		IBeanConfiguration stringToFileConverter =
-				beanContextFactory.registerBean(StringToFileConverter.class);
+		IBeanConfiguration stringToFileConverter = beanContextFactory
+				.registerBean(StringToFileConverter.class);
 		DedicatedConverterUtil.link(beanContextFactory, stringToFileConverter, String.class,
 				File.class);
 		DedicatedConverterUtil.link(beanContextFactory, stringToFileConverter, String.class,
 				File[].class);
 
-		IBeanConfiguration stringToCharsetConverter =
-				beanContextFactory.registerBean(StringToCharsetConverter.class);
+		IBeanConfiguration stringToCharsetConverter = beanContextFactory
+				.registerBean(StringToCharsetConverter.class);
 		DedicatedConverterUtil.biLink(beanContextFactory, stringToCharsetConverter, String.class,
 				Charset.class);
 
-		IBeanConfiguration stringToClassArrayConverter =
-				beanContextFactory.registerBean(StringToClassArrayConverter.class);
+		IBeanConfiguration stringToClassArrayConverter = beanContextFactory
+				.registerBean(StringToClassArrayConverter.class);
 		DedicatedConverterUtil.biLink(beanContextFactory, stringToClassArrayConverter, String.class,
 				Class[].class);
 
-		IBeanConfiguration stringToDoubleArrayConverter =
-				beanContextFactory.registerBean(StringToDoubleArrayConverter.class);
+		IBeanConfiguration stringToDoubleArrayConverter = beanContextFactory
+				.registerBean(StringToDoubleArrayConverter.class);
 		DedicatedConverterUtil.biLink(beanContextFactory, stringToDoubleArrayConverter, String.class,
 				double[].class);
 
-		IBeanConfiguration stringToFloatArrayConverter =
-				beanContextFactory.registerBean(StringToFloatArrayConverter.class);
+		IBeanConfiguration stringToFloatArrayConverter = beanContextFactory
+				.registerBean(StringToFloatArrayConverter.class);
 		DedicatedConverterUtil.biLink(beanContextFactory, stringToFloatArrayConverter, String.class,
 				float[].class);
 
-		IBeanConfiguration stringToIntArrayConverter =
-				beanContextFactory.registerBean(StringToIntArrayConverter.class);
+		IBeanConfiguration stringToIntArrayConverter = beanContextFactory
+				.registerBean(StringToIntArrayConverter.class);
 		DedicatedConverterUtil.biLink(beanContextFactory, stringToIntArrayConverter, String.class,
 				int[].class);
 
-		IBeanConfiguration stringToLongArrayConverter =
-				beanContextFactory.registerBean(StringToLongArrayConverter.class);
+		IBeanConfiguration stringToLongArrayConverter = beanContextFactory
+				.registerBean(StringToLongArrayConverter.class);
 		DedicatedConverterUtil.biLink(beanContextFactory, stringToLongArrayConverter, String.class,
 				long[].class);
 
-		IBeanConfiguration stringToPatternConverterBC =
-				beanContextFactory.registerBean(StringToPatternConverter.class);
+		IBeanConfiguration stringToPatternConverterBC = beanContextFactory
+				.registerBean(StringToPatternConverter.class);
 		DedicatedConverterUtil.biLink(beanContextFactory, stringToPatternConverterBC, String.class,
 				Pattern.class);
 		DedicatedConverterUtil.biLink(beanContextFactory, stringToPatternConverterBC, String.class,
 				Pattern[].class);
 
-		IBeanConfiguration stringToStringArrayConverter =
-				beanContextFactory.registerBean(StringToStringArrayConverter.class);
+		IBeanConfiguration stringToStringArrayConverter = beanContextFactory
+				.registerBean(StringToStringArrayConverter.class);
 		DedicatedConverterUtil.biLink(beanContextFactory, stringToStringArrayConverter, String.class,
 				String[].class);
 
-		IBeanConfiguration appendableStringBuilderCollectableController =
-				beanContextFactory.registerBean(AppendableStringBuilderCollectableController.class);
+		IBeanConfiguration appendableStringBuilderCollectableController = beanContextFactory
+				.registerBean(AppendableStringBuilderCollectableController.class);
 		beanContextFactory.link(appendableStringBuilderCollectableController)
 				.to(ICollectableControllerExtendable.class).with(AppendableStringBuilder.class);
 
@@ -190,8 +184,8 @@ public class IocModule implements IInitializingModule {
 		fastThreadPool.setName("MTH");
 		fastThreadPool.refreshThreadCount();
 
-		IBeanConfiguration fastThreadPoolBean =
-				beanContextFactory.registerExternalBean(THREAD_POOL_NAME, fastThreadPool);
+		IBeanConfiguration fastThreadPoolBean = beanContextFactory
+				.registerExternalBean(THREAD_POOL_NAME, fastThreadPool);
 
 		beanContextFactory.registerDisposable(fastThreadPool);
 

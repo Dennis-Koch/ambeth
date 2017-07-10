@@ -25,8 +25,6 @@ import java.util.Date;
 import java.util.List;
 
 import com.koch.ambeth.ioc.IInitializingBean;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.cache.ICache;
 import com.koch.ambeth.model.Material;
 import com.koch.ambeth.model.MaterialGroup;
@@ -36,10 +34,6 @@ import com.koch.ambeth.util.ParamChecker;
 
 @Service(ITestService.class)
 public class TestService implements ITestService, IInitializingBean {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	protected ICache cache;
 
 	@Override
@@ -96,7 +90,7 @@ public class TestService implements ITestService, IInitializingBean {
 
 	@Override
 	public int[] noParamPrimitiveArrayReturn() {
-		return new int[] {1, 2, 34};
+		return new int[] { 1, 2, 34 };
 	}
 
 	@Override

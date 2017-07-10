@@ -30,8 +30,6 @@ import com.koch.ambeth.ioc.extendable.ClassExtendableListContainer;
 import com.koch.ambeth.ioc.extendable.MapExtendableContainer;
 import com.koch.ambeth.ioc.util.ClassTupleExtendableContainer;
 import com.koch.ambeth.ioc.util.ImmutableTypeSet;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.IFimExtension.IDotNodeCallback;
 import com.koch.ambeth.merge.bytecode.EntityEnhancementHint;
 import com.koch.ambeth.merge.cache.ICacheModification;
@@ -77,10 +75,6 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 		IEntityLifecycleExtendable, ITechnicalEntityTypeExtendable,
 		IEntityInstantiationExtensionExtendable, IValueObjectConfigExtendable, IInitializingBean,
 		IFimExtensionExtendable {
-
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
 
 	@Autowired
 	protected IAccessorTypeProvider accessorTypeProvider;

@@ -31,8 +31,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import com.koch.ambeth.ioc.DefaultExtendableContainer;
 import com.koch.ambeth.ioc.annotation.Autowired;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.IMergeSecurityManager;
 import com.koch.ambeth.merge.model.ICUDResult;
 import com.koch.ambeth.merge.model.IChangeContainer;
@@ -77,10 +75,6 @@ import com.koch.ambeth.util.objectcollector.IThreadLocalObjectCollector;
 
 public class SecurityManager
 		implements ISecurityManager, IMergeSecurityManager, IServiceFilterExtendable {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	protected final DefaultExtendableContainer<IServiceFilter> serviceFilters = new DefaultExtendableContainer<>(
 			IServiceFilter.class, "serviceFilter");
 

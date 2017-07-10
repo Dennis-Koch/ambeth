@@ -21,17 +21,11 @@ limitations under the License.
  */
 
 import com.koch.ambeth.ioc.annotation.Autowired;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.IRevertChangesHelper;
 import com.koch.ambeth.merge.cache.ICacheModification;
 import com.koch.ambeth.util.model.IDataObject;
 
 public class DataObjectMixin {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	@Autowired
 	protected ICacheModification cacheModification;
 

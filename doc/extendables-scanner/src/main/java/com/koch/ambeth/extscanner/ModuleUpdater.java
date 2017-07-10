@@ -5,7 +5,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -27,8 +26,8 @@ import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.classbrowser.java.TypeDescription;
 
 public class ModuleUpdater extends AbstractLatexScanner implements IStartingBean {
-	public static final Pattern featureLabelPattern =
-			Pattern.compile("\\s*\\\\item\\s*\\\\prettyref\\{([^\\}]+)\\}\\s*");
+	public static final Pattern featureLabelPattern = Pattern
+			.compile("\\s*\\\\item\\s*\\\\prettyref\\{([^\\}]+)\\}\\s*");
 
 	public static final Pattern texFilePattern = Pattern.compile("(.+)\\.tex");
 
@@ -48,27 +47,26 @@ public class ModuleUpdater extends AbstractLatexScanner implements IStartingBean
 
 	public static final String MAVEN_END = "%% MAVEN END";
 
-	public static final Pattern replaceGeneratedFeaturesPattern =
-			Pattern.compile("(.*" + Pattern.quote(FEATURES_GENERATED_START) + ").*("
-					+ Pattern.quote(FEATURES_END) + ".*)", Pattern.DOTALL);
+	public static final Pattern replaceGeneratedFeaturesPattern = Pattern.compile("(.*"
+			+ Pattern.quote(FEATURES_GENERATED_START) + ").*(" + Pattern.quote(FEATURES_END) + ".*)",
+			Pattern.DOTALL);
 
-	public static final Pattern replaceManualFeaturesPattern =
-			Pattern.compile(".*" + Pattern.quote(FEATURES_START) + "(.*)"
-					+ Pattern.quote(FEATURES_GENERATED_START) + ".*", Pattern.DOTALL);
+	public static final Pattern replaceManualFeaturesPattern = Pattern.compile(".*"
+			+ Pattern.quote(FEATURES_START) + "(.*)" + Pattern.quote(FEATURES_GENERATED_START) + ".*",
+			Pattern.DOTALL);
 
-	public static final Pattern replaceGeneratedConfigurationPattern =
-			Pattern.compile("(.*" + Pattern.quote(CONFIGURATION_GENERATED_START) + ").*("
+	public static final Pattern replaceGeneratedConfigurationPattern = Pattern
+			.compile("(.*" + Pattern.quote(CONFIGURATION_GENERATED_START) + ").*("
 					+ Pattern.quote(CONFIGURATION_END) + ".*)", Pattern.DOTALL);
 
-	public static final Pattern replaceManualConfigurationPattern =
-			Pattern.compile(".*" + Pattern.quote(CONFIGURATION_START) + "(.*)"
+	public static final Pattern replaceManualConfigurationPattern = Pattern
+			.compile(".*" + Pattern.quote(CONFIGURATION_START) + "(.*)"
 					+ Pattern.quote(CONFIGURATION_GENERATED_START) + ".*", Pattern.DOTALL);
 
 	public static final Pattern replaceGeneratedMavenPattern = Pattern.compile(
 			"(.*" + Pattern.quote(MAVEN_GENERATED_START) + ").*(" + Pattern.quote(MAVEN_END) + ".*)",
 			Pattern.DOTALL);
 
-	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 
@@ -152,12 +150,7 @@ public class ModuleUpdater extends AbstractLatexScanner implements IStartingBean
 	protected StringBuilder generatedConfigurations(String manualContent, ModuleEntry moduleEntry) {
 		ISet<String> existingLabels = readExistingLabels(manualContent);
 		ArrayList<ConfigurationEntry> configurations = new ArrayList<>(moduleEntry.configurations);
-		Collections.sort(configurations, new Comparator<ConfigurationEntry>() {
-			@Override
-			public int compare(ConfigurationEntry o1, ConfigurationEntry o2) {
-				return o1.propertyName.compareTo(o2.propertyName);
-			}
-		});
+		Collections.sort(configurations, (o1, o2) -> o1.propertyName.compareTo(o2.propertyName));
 		StringBuilder sb = new StringBuilder();
 
 		if (configurations.isEmpty()) {
@@ -210,12 +203,7 @@ public class ModuleUpdater extends AbstractLatexScanner implements IStartingBean
 	protected String generatedFeatures(String manualContent, ModuleEntry moduleEntry) {
 		ISet<String> existingLabels = readExistingLabels(manualContent);
 		ArrayList<FeatureEntry> features = new ArrayList<>(moduleEntry.features);
-		Collections.sort(features, new Comparator<FeatureEntry>() {
-			@Override
-			public int compare(FeatureEntry o1, FeatureEntry o2) {
-				return o1.featureName.compareTo(o2.featureName);
-			}
-		});
+		Collections.sort(features, (o1, o2) -> o1.featureName.compareTo(o2.featureName));
 		StringBuilder sb = new StringBuilder();
 		for (FeatureEntry featureEntry : features) {
 			if (featureEntry.featureLabelName == null) {

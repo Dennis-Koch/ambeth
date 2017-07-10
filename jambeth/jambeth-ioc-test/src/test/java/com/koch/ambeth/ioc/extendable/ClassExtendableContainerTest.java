@@ -34,15 +34,9 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.koch.ambeth.ioc.exception.ExtendableException;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.util.ParamHolder;
 
 public class ClassExtendableContainerTest {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	protected ClassExtendableContainer<Object> fixture;
 
 	@Before

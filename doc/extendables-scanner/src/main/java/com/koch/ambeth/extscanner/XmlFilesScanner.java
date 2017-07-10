@@ -1,22 +1,14 @@
 package com.koch.ambeth.extscanner;
 
 import java.io.File;
-import java.util.Iterator;
-import java.util.Map.Entry;
 import java.util.SortedMap;
 
 import com.koch.ambeth.ioc.IInitializingBean;
 import com.koch.ambeth.ioc.config.Property;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.classbrowser.java.OutputUtil;
 import com.koch.classbrowser.java.TypeDescription;
 
 public class XmlFilesScanner implements IInitializingBean, IXmlFilesScanner {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	@Property(name = "scan-path")
 	protected File scanPath;
 

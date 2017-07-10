@@ -26,8 +26,6 @@ import java.util.concurrent.locks.ReentrantLock;
 import com.koch.ambeth.ioc.accessor.IAccessorTypeProvider;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.bytecode.IBytecodeEnhancer;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.cache.AbstractCacheValue;
 import com.koch.ambeth.merge.transfer.ObjRef;
 import com.koch.ambeth.service.merge.IEntityMetaDataProvider;
@@ -35,10 +33,6 @@ import com.koch.ambeth.service.merge.model.IObjRef;
 import com.koch.ambeth.util.collections.Tuple2KeyHashMap;
 
 public class ObjRefFactory extends IObjRefFactory {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	@Autowired
 	protected IAccessorTypeProvider accessorTypeProvider;
 
@@ -48,23 +42,22 @@ public class ObjRefFactory extends IObjRefFactory {
 	@Autowired
 	protected IEntityMetaDataProvider entityMetaDataProvider;
 
-	protected final Tuple2KeyHashMap<Class<?>, Integer, IPreparedObjRefFactory> constructorDelegateMap =
-			new Tuple2KeyHashMap<>();
+	protected final Tuple2KeyHashMap<Class<?>, Integer, IPreparedObjRefFactory> constructorDelegateMap = new Tuple2KeyHashMap<>();
 
 	protected final Lock writeLock = new ReentrantLock();
 
 	protected IPreparedObjRefFactory buildDelegate(Class<?> realType, int idIndex) {
 		writeLock.lock();
 		try {
-			IPreparedObjRefFactory objRefConstructorDelegate =
-					constructorDelegateMap.get(realType, Integer.valueOf(idIndex));
+			IPreparedObjRefFactory objRefConstructorDelegate = constructorDelegateMap.get(realType,
+					Integer.valueOf(idIndex));
 			if (objRefConstructorDelegate != null) {
 				return objRefConstructorDelegate;
 			}
 			Class<?> enhancedType = bytecodeEnhancer.getEnhancedType(Object.class,
 					new ObjRefEnhancementHint(realType, idIndex));
-			objRefConstructorDelegate =
-					accessorTypeProvider.getConstructorType(IPreparedObjRefFactory.class, enhancedType);
+			objRefConstructorDelegate = accessorTypeProvider
+					.getConstructorType(IPreparedObjRefFactory.class, enhancedType);
 			constructorDelegateMap.put(realType, Integer.valueOf(idIndex), objRefConstructorDelegate);
 			return objRefConstructorDelegate;
 		}
@@ -75,8 +68,8 @@ public class ObjRefFactory extends IObjRefFactory {
 
 	@Override
 	public IObjRef dup(IObjRef objRef) {
-		IPreparedObjRefFactory objRefConstructorDelegate =
-				constructorDelegateMap.get(objRef.getRealType(), Integer.valueOf(objRef.getIdNameIndex()));
+		IPreparedObjRefFactory objRefConstructorDelegate = constructorDelegateMap
+				.get(objRef.getRealType(), Integer.valueOf(objRef.getIdNameIndex()));
 		if (objRefConstructorDelegate == null) {
 			objRefConstructorDelegate = buildDelegate(objRef.getRealType(), objRef.getIdNameIndex());
 		}
@@ -88,16 +81,16 @@ public class ObjRefFactory extends IObjRefFactory {
 		IPreparedObjRefFactory objRefConstructorDelegate = constructorDelegateMap
 				.get(cacheValue.getEntityType(), Integer.valueOf(ObjRef.PRIMARY_KEY_INDEX));
 		if (objRefConstructorDelegate == null) {
-			objRefConstructorDelegate =
-					buildDelegate(cacheValue.getEntityType(), ObjRef.PRIMARY_KEY_INDEX);
+			objRefConstructorDelegate = buildDelegate(cacheValue.getEntityType(),
+					ObjRef.PRIMARY_KEY_INDEX);
 		}
 		return objRefConstructorDelegate.createObjRef(cacheValue.getId(), cacheValue.getVersion());
 	}
 
 	@Override
 	public IObjRef createObjRef(AbstractCacheValue cacheValue, int idIndex) {
-		IPreparedObjRefFactory objRefConstructorDelegate =
-				constructorDelegateMap.get(cacheValue.getEntityType(), Integer.valueOf(idIndex));
+		IPreparedObjRefFactory objRefConstructorDelegate = constructorDelegateMap
+				.get(cacheValue.getEntityType(), Integer.valueOf(idIndex));
 		if (objRefConstructorDelegate == null) {
 			objRefConstructorDelegate = buildDelegate(cacheValue.getEntityType(), idIndex);
 		}
@@ -106,8 +99,8 @@ public class ObjRefFactory extends IObjRefFactory {
 
 	@Override
 	public IObjRef createObjRef(Class<?> entityType, int idIndex, Object id, Object version) {
-		IPreparedObjRefFactory objRefConstructorDelegate =
-				constructorDelegateMap.get(entityType, Integer.valueOf(idIndex));
+		IPreparedObjRefFactory objRefConstructorDelegate = constructorDelegateMap.get(entityType,
+				Integer.valueOf(idIndex));
 		if (objRefConstructorDelegate == null) {
 			objRefConstructorDelegate = buildDelegate(entityType, idIndex);
 		}
@@ -116,8 +109,8 @@ public class ObjRefFactory extends IObjRefFactory {
 
 	@Override
 	public IPreparedObjRefFactory prepareObjRefFactory(Class<?> entityType, int idIndex) {
-		IPreparedObjRefFactory objRefConstructorDelegate =
-				constructorDelegateMap.get(entityType, Integer.valueOf(idIndex));
+		IPreparedObjRefFactory objRefConstructorDelegate = constructorDelegateMap.get(entityType,
+				Integer.valueOf(idIndex));
 		if (objRefConstructorDelegate == null) {
 			objRefConstructorDelegate = buildDelegate(entityType, idIndex);
 		}

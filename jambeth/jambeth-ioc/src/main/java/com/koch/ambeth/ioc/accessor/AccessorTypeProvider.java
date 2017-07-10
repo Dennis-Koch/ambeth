@@ -50,7 +50,6 @@ import com.koch.ambeth.util.proxy.ClassLoaderAwareClassWriter;
 import com.koch.ambeth.util.typeinfo.IPropertyInfo;
 
 public class AccessorTypeProvider implements IAccessorTypeProvider, IInitializingBean {
-	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 

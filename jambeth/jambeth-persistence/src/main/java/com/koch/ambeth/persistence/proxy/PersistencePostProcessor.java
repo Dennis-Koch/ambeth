@@ -27,8 +27,6 @@ import com.koch.ambeth.ioc.IBeanRuntime;
 import com.koch.ambeth.ioc.IServiceContext;
 import com.koch.ambeth.ioc.config.IBeanConfiguration;
 import com.koch.ambeth.ioc.factory.IBeanContextFactory;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.proxy.PersistenceContext;
 import com.koch.ambeth.merge.proxy.PersistenceContextType;
 import com.koch.ambeth.service.proxy.AbstractCascadePostProcessor;
@@ -40,10 +38,6 @@ import com.koch.ambeth.util.annotation.AnnotationCache;
 import com.koch.ambeth.util.proxy.ICascadedInterceptor;
 
 public class PersistencePostProcessor extends AbstractCascadePostProcessor {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	protected final AnnotationCache<PersistenceContext> annotationCache = new AnnotationCache<PersistenceContext>(
 			PersistenceContext.class) {
 		@Override

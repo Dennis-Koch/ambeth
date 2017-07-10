@@ -30,6 +30,5 @@ import java.lang.annotation.Target;
 public @interface Forkable {
 	ForkableType value() default ForkableType.REFERENCE;
 
-	@SuppressWarnings("rawtypes")
 	Class<? extends IForkProcessor> processor() default IForkProcessor.class;
 }

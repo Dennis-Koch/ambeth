@@ -29,8 +29,6 @@ import com.koch.ambeth.ioc.IDisposableBean;
 import com.koch.ambeth.ioc.IServiceContext;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.config.Property;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.transfer.ObjRef;
 import com.koch.ambeth.persistence.api.IPrimaryKeyProvider;
 import com.koch.ambeth.persistence.api.ITableMetaData;
@@ -47,10 +45,6 @@ import com.koch.ambeth.util.collections.SmartCopyMap;
 
 public abstract class AbstractCachingPrimaryKeyProvider
 		implements IPrimaryKeyProvider, IDisposableBean {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	@Autowired
 	protected IServiceContext beanContext;
 
@@ -63,8 +57,8 @@ public abstract class AbstractCachingPrimaryKeyProvider
 	@Property(name = PersistenceConfigurationConstants.SequencePrefetchSize, defaultValue = "200")
 	protected int prefetchIdAmount;
 
-	protected final SmartCopyMap<String, IPrimaryKeyProvider> seqNameToPrimaryKeyProviderMap =
-			new SmartCopyMap<>(0.5f);
+	protected final SmartCopyMap<String, IPrimaryKeyProvider> seqNameToPrimaryKeyProviderMap = new SmartCopyMap<>(
+			0.5f);
 
 	protected final HashMap<String, ArrayList<Object>> seqToCachedIdsMap = new HashMap<>(0.5f);
 
@@ -122,8 +116,8 @@ public abstract class AbstractCachingPrimaryKeyProvider
 				};
 			}
 			else {
-				primaryKeyProvider =
-						(IPrimaryKeyProvider) beanContext.registerBean(customSequenceType).finish();
+				primaryKeyProvider = (IPrimaryKeyProvider) beanContext.registerBean(customSequenceType)
+						.finish();
 			}
 			seqNameToPrimaryKeyProviderMap.put(sequenceName, primaryKeyProvider);
 		}

@@ -26,17 +26,11 @@ import com.koch.ambeth.datachange.persistence.model.DataChangeEventBO;
 import com.koch.ambeth.datachange.persistence.model.EntityType;
 import com.koch.ambeth.event.IEventListener;
 import com.koch.ambeth.ioc.IInitializingBean;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.util.ParamChecker;
 
 public class DataChangePersistenceListener implements IEventListener, IInitializingBean {
-	private static final Class<?>[] uninterestingTypes =
-			{DataChangeEventBO.class, DataChangeEntryBO.class, EntityType.class};
-
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
+	private static final Class<?>[] uninterestingTypes = { DataChangeEventBO.class,
+			DataChangeEntryBO.class, EntityType.class };
 
 	protected IDataChangeEventService dataChangeEventService;
 

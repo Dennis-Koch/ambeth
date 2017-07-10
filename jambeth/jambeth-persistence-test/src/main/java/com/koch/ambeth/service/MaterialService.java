@@ -24,8 +24,6 @@ import java.util.List;
 
 import com.koch.ambeth.ioc.IInitializingBean;
 import com.koch.ambeth.ioc.IStartingBean;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.proxy.PersistenceContext;
 import com.koch.ambeth.model.Material;
 import com.koch.ambeth.query.IQuery;
@@ -38,10 +36,6 @@ import com.koch.ambeth.util.ParamChecker;
 @PersistenceContext
 public class MaterialService implements IInitializingBean, IStartingBean, IMaterialService {
 	private static final String QueryParamKey = "Key";
-
-	@SuppressWarnings("unused")
-	@LogInstance(MaterialService.class)
-	private ILogger log;
 
 	protected IQueryBuilderFactory queryBuilderFactory;
 

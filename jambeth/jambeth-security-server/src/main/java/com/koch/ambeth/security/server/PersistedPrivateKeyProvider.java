@@ -23,8 +23,6 @@ limitations under the License.
 import java.security.Signature;
 
 import com.koch.ambeth.ioc.annotation.Autowired;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.IEntityFactory;
 import com.koch.ambeth.security.model.ISignature;
 import com.koch.ambeth.security.model.IUser;
@@ -32,10 +30,6 @@ import com.koch.ambeth.util.codec.Base64;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
 public class PersistedPrivateKeyProvider implements IPrivateKeyProvider {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	@Autowired
 	protected IEntityFactory entityFactory;
 

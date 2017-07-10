@@ -28,13 +28,7 @@ import javax.transaction.SystemException;
 import javax.transaction.Transaction;
 import javax.transaction.xa.XAResource;
 
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
-
 public class TransactionFake implements Transaction {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
 	private boolean rollbackOnly;
 
 	@Override
