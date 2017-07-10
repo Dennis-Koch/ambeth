@@ -59,13 +59,26 @@ public abstract class AbstractStateRollback implements IStateRollback {
 
 	private final IStateRollback[] rollbacks;
 
+	private final IStateRollback rollback;
+
 	private boolean rollbackCalled;
 
+	public AbstractStateRollback(IStateRollback rollback) {
+		rollbacks = null;
+		this.rollback = rollback;
+	}
+
 	public AbstractStateRollback(IStateRollback... rollbacks) {
+		IStateRollback rollback = null;
 		if (rollbacks == null || rollbacks.length == 0) {
-			rollbacks = EMPTY_ROLLBACKS;
+			rollbacks = null;
+		}
+		else if (rollbacks.length == 1) {
+			rollback = rollbacks[0];
+			rollbacks = null;
 		}
 		this.rollbacks = rollbacks;
+		this.rollback = rollback;
 	}
 
 	@Override
@@ -81,7 +94,12 @@ public abstract class AbstractStateRollback implements IStateRollback {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 		finally {
-			executeRollbacksReverse(rollbacks);
+			if (rollback != null) {
+				rollback.rollback();
+			}
+			else {
+				executeRollbacksReverse(rollbacks);
+			}
 		}
 	}
 

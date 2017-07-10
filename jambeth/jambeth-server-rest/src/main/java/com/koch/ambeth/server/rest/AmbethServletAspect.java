@@ -77,7 +77,8 @@ public class AmbethServletAspect {
 		});
 	}
 
-	public IStateRollback pushServletAspect(ServletRequest request, IStateRollback... rollbacks) {
+	public IStateRollback pushServletAspect(final ServletRequest request,
+			IStateRollback... rollbacks) {
 		HttpServletRequest httpRequest = (HttpServletRequest) request;
 
 		HttpSession session = httpRequest.getSession();
@@ -127,6 +128,7 @@ public class AmbethServletAspect {
 					.getService(ISecurityScopeProvider.class);
 			rollback = securityScopeProvider.pushSecurityScopes(StringSecurityScope.DEFAULT_SCOPE,
 					rollback);
+			rollback = pushThreadLocalHandled(request, rollback);
 			success = true;
 			return rollback;
 		}
@@ -135,6 +137,23 @@ public class AmbethServletAspect {
 				rollback.rollback();
 			}
 		}
+	}
+
+	private IStateRollback pushThreadLocalHandled(final ServletRequest request,
+			IStateRollback rollback) {
+		Boolean threadLocalHandled = (Boolean) request
+				.getAttribute(AbstractServiceREST.THREAD_LOCAL_HANDLED);
+
+		if (Boolean.TRUE.equals(threadLocalHandled)) {
+			return rollback;
+		}
+		request.setAttribute(AbstractServiceREST.THREAD_LOCAL_HANDLED, Boolean.TRUE);
+		return new AbstractStateRollback(rollback) {
+			@Override
+			protected void rollbackIntern() throws Exception {
+				request.removeAttribute(AbstractServiceREST.THREAD_LOCAL_HANDLED);
+			}
+		};
 	}
 
 	protected void reuseValidSessionAuthentication(ISecurityContextHolder securityContextHolder,
