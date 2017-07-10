@@ -59,7 +59,7 @@ public class AmbethServletRequestFilter implements Filter {
 	@Override
 	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
 			throws IOException, ServletException {
-		IStateRollback rollback = aspect.pushServletAspectWithThreadLocals(request, response);
+		IStateRollback rollback = aspect.pushServletAspectWithThreadLocals(request);
 		try {
 			chain.doFilter(request, response);
 		}

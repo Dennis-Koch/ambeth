@@ -67,11 +67,14 @@ import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.io.FastByteArrayOutputStream;
 import com.koch.ambeth.util.state.AbstractStateRollback;
 import com.koch.ambeth.util.state.IStateRollback;
+import com.koch.ambeth.util.state.NoOpStateRollback;
 import com.koch.ambeth.util.threading.IBackgroundWorkerParamDelegate;
 import com.koch.ambeth.xml.ICyclicXMLHandler;
 import com.koch.ambeth.xml.ioc.XmlModule;
 
 public abstract class AbstractServiceREST {
+	public static final String THREAD_LOCAL_HANDLED = "threadLocalHandled";
+
 	/**
 	 * this is needed for MS Silverlight applications because in the C# web sandbox it is not allowed
 	 * to specify the "Accept-Encoding" header directly.
@@ -217,6 +220,9 @@ public abstract class AbstractServiceREST {
 
 	protected IStateRollback preServiceCall(final HttpServletRequest request,
 			HttpServletResponse response) {
+		if (Boolean.TRUE.equals(request.getAttribute(THREAD_LOCAL_HANDLED))) {
+			return NoOpStateRollback.instance;
+		}
 		final ILogger log = getLog();
 		final String path = log.isDebugEnabled() ? request.getMethod() + " " + request.getRequestURI()
 				: null;
@@ -224,7 +230,7 @@ public abstract class AbstractServiceREST {
 			log.debug("Enter: " + path);
 		}
 		boolean success = false;
-		IStateRollback rollback = aspect.pushServletAspectWithThreadLocals(request, response);
+		IStateRollback rollback = aspect.pushServletAspectWithThreadLocals(request);
 		try {
 			if (path != null) {
 				rollback = new AbstractStateRollback(rollback) {
