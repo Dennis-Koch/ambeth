@@ -6,7 +6,6 @@ import java.util.regex.Pattern;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
@@ -66,9 +65,8 @@ public class AmbethServletAspect {
 		this.beanContext = beanContext;
 	}
 
-	public IStateRollback pushServletAspectWithThreadLocals(final ServletRequest request,
-			ServletResponse response) {
-		return pushServletAspect(request, response, new IStateRollback() {
+	public IStateRollback pushServletAspectWithThreadLocals(final ServletRequest request) {
+		return pushServletAspect(request, new IStateRollback() {
 			@Override
 			public void rollback() {
 				IServiceContext beanContext = getServiceContext(request);
@@ -79,8 +77,7 @@ public class AmbethServletAspect {
 		});
 	}
 
-	public IStateRollback pushServletAspect(ServletRequest request, ServletResponse response,
-			IStateRollback... rollbacks) {
+	public IStateRollback pushServletAspect(ServletRequest request, IStateRollback... rollbacks) {
 		HttpServletRequest httpRequest = (HttpServletRequest) request;
 
 		HttpSession session = httpRequest.getSession();

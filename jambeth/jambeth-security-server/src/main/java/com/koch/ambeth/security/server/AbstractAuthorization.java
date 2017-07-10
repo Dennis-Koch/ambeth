@@ -150,11 +150,15 @@ public abstract class AbstractAuthorization implements IAuthorization {
 	}
 
 	protected IServicePermission[] getServicePermissions(ISecurityScope[] securityScopes) {
+		if (securityScopes.length == 0) {
+			return EMPTY_SERVICE_PERMISSIONS;
+		}
 		if (securityScopes.length == 1) {
 			IServicePermission[] servicePermissions = this.servicePermissions.get(securityScopes[0]);
 			if (servicePermissions == null) {
 				return EMPTY_SERVICE_PERMISSIONS;
 			}
+			return servicePermissions;
 		}
 		LinkedHashSet<IServicePermission> servicePermissionSet = new LinkedHashSet<>();
 		for (int a = 0, size = securityScopes.length; a < size; a++) {

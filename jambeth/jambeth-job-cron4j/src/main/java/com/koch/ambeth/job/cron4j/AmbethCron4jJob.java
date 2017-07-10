@@ -32,7 +32,8 @@ import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.security.IAuthentication;
 import com.koch.ambeth.security.ISecurityContextHolder;
-import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
+import com.koch.ambeth.util.state.IStateRollback;
+import com.koch.ambeth.util.state.NoOpStateRollback;
 
 import it.sauronsoftware.cron4j.Task;
 import it.sauronsoftware.cron4j.TaskExecutionContext;
@@ -76,34 +77,26 @@ public class AmbethCron4jJob extends Task {
 		try {
 			Thread thread = Thread.currentThread();
 
-			IThreadLocalCleanupController tlCleanupController =
-					beanContext.getService(IThreadLocalCleanupController.class);
+			IThreadLocalCleanupController tlCleanupController = beanContext
+					.getService(IThreadLocalCleanupController.class);
 			String oldName = thread.getName();
 			try {
 				thread.setName("Job " + jobName);
-				final AmbethCron4jJobContext jobContext =
-						beanContext.registerBean(AmbethCron4jJobContext.class)//
-								.propertyValue("TaskExecutionContext", context)//
-								.finish();
+				final AmbethCron4jJobContext jobContext = beanContext
+						.registerBean(AmbethCron4jJobContext.class)//
+						.propertyValue("TaskExecutionContext", context)//
+						.finish();
 
 				long start = System.currentTimeMillis();
 				if (log.isDebugEnabled()) {
 					log.debug("Executing job '" + jobName + "'");
 				}
+				IStateRollback rollback = NoOpStateRollback.instance;
 				try {
-					if (authentication == null) {
-						job.execute(jobContext);
+					if (authentication != null) {
+						rollback = securityContextHolder.pushAuthentication(authentication);
 					}
-					else {
-						securityContextHolder.setScopedAuthentication(authentication,
-								new IResultingBackgroundWorkerDelegate<Object>() {
-									@Override
-									public Object invoke() throws Exception {
-										job.execute(jobContext);
-										return null;
-									}
-								});
-					}
+					job.execute(jobContext);
 					if (log.isDebugEnabled()) {
 						long end = System.currentTimeMillis();
 						log.debug("Execution of job '" + jobName + "' finished (" + (end - start) + " ms)");
@@ -113,6 +106,9 @@ public class AmbethCron4jJob extends Task {
 					if (log.isErrorEnabled()) {
 						log.error("Error occured while executing job '" + jobName + "'", e);
 					}
+				}
+				finally {
+					rollback.rollback();
 				}
 			}
 			finally {

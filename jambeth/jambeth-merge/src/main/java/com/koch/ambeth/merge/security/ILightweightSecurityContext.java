@@ -1,5 +1,10 @@
 package com.koch.ambeth.merge.security;
 
+import java.lang.reflect.Method;
+
+import com.koch.ambeth.util.threading.IBackgroundWorkerDelegate;
+import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
+
 /*-
  * #%L
  * jambeth-merge
@@ -20,7 +25,14 @@ limitations under the License.
  * #L%
  */
 
-
 public interface ILightweightSecurityContext {
 	boolean isAuthenticated();
+
+	void withAuthenticated(IBackgroundWorkerDelegate delegate);
+
+	<R> R withAuthenticated(IResultingBackgroundWorkerDelegate<R> delegate);
+
+	void withAuthorized(Method method, IBackgroundWorkerDelegate delegate);
+
+	<R> R withAuthorized(Method method, IResultingBackgroundWorkerDelegate<R> delegate);
 }

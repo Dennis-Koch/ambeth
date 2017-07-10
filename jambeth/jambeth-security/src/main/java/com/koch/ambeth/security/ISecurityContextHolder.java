@@ -1,7 +1,4 @@
 package com.koch.ambeth.security;
-
-import com.koch.ambeth.util.state.IStateRollback;
-
 /*-
  * #%L
  * jambeth-security
@@ -22,7 +19,7 @@ limitations under the License.
  * #L%
  */
 
-import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
+import com.koch.ambeth.util.state.IStateRollback;
 
 public interface ISecurityContextHolder {
 	ISecurityContext getContext();
@@ -30,9 +27,6 @@ public interface ISecurityContextHolder {
 	ISecurityContext getCreateContext();
 
 	void clearContext();
-
-	<R> R setScopedAuthentication(IAuthentication authentication,
-			IResultingBackgroundWorkerDelegate<R> runnableScope) throws Exception;
 
 	IStateRollback pushAuthentication(IAuthentication authentication, IStateRollback... rollbacks);
 }

@@ -51,6 +51,7 @@ import com.koch.ambeth.security.ISecurityManager;
 import com.koch.ambeth.security.IServiceFilter;
 import com.koch.ambeth.security.IServiceFilterExtendable;
 import com.koch.ambeth.security.SecurityContextType;
+import com.koch.ambeth.security.StringSecurityScope;
 import com.koch.ambeth.security.privilege.IPrivilegeProviderIntern;
 import com.koch.ambeth.security.privilege.model.IPrivilege;
 import com.koch.ambeth.security.privilege.model.IPrivilegeResult;
@@ -80,8 +81,8 @@ public class SecurityManager
 	@LogInstance
 	private ILogger log;
 
-	protected final DefaultExtendableContainer<IServiceFilter> serviceFilters =
-			new DefaultExtendableContainer<>(IServiceFilter.class, "serviceFilter");
+	protected final DefaultExtendableContainer<IServiceFilter> serviceFilters = new DefaultExtendableContainer<>(
+			IServiceFilter.class, "serviceFilter");
 
 	protected final Lock readLock, writeLock;
 
@@ -112,8 +113,7 @@ public class SecurityManager
 	@SuppressWarnings("unchecked")
 	@Override
 	public <T> T filterValue(T value) {
-		IdentityHashMap<Object, ReadPermission> alreadyProcessedMap =
-				new IdentityHashMap<>();
+		IdentityHashMap<Object, ReadPermission> alreadyProcessedMap = new IdentityHashMap<>();
 
 		return (T) filterValue(value, alreadyProcessedMap,
 				securityContextHolder.getCreateContext().getAuthorization(),
@@ -221,8 +221,8 @@ public class SecurityManager
 			// not an entity. So nothing to filter
 			return value;
 		}
-		ReadPermission readPermission =
-				filterEntity(value, alreadyProcessedMap, authorization, securityScopes);
+		ReadPermission readPermission = filterEntity(value, alreadyProcessedMap, authorization,
+				securityScopes);
 		switch (readPermission) {
 			case PARTLY_ALLOWED:
 				// Fall through intended
@@ -343,8 +343,8 @@ public class SecurityManager
 	@Override
 	public void checkMethodAccess(Method method, Object[] arguments,
 			SecurityContextType securityContextType, IAuthorization authorization) {
-		CallPermission callPermission =
-				filterService(method, arguments, securityContextType, authorization);
+		CallPermission callPermission = filterService(method, arguments, securityContextType,
+				authorization);
 		if (callPermission == CallPermission.FORBIDDEN) {
 			throw new ServiceCallForbiddenException(StringBuilderUtil.concat(objectCollector,
 					"For current user with sid '", authorization != null ? authorization.getSID() : "n/a",
@@ -364,8 +364,8 @@ public class SecurityManager
 		IPrivilegeResult privilegeResult = privilegeProvider.getPrivilegesByObjRef(relatedObjRefsList,
 				securityScopeProvider.getSecurityScopes());
 		IPrivilege[] privilegeItems = privilegeResult.getPrivileges();
-		HashMap<IObjRef, IPrivilege> objRefToPrivilege =
-				HashMap.<IObjRef, IPrivilege>create(relatedObjRefsList.size());
+		HashMap<IObjRef, IPrivilege> objRefToPrivilege = HashMap
+				.<IObjRef, IPrivilege>create(relatedObjRefsList.size());
 
 		for (int a = relatedObjRefsList.size(); a-- > 0;) {
 			IObjRef objRef = relatedObjRefsList.get(a);
@@ -386,8 +386,8 @@ public class SecurityManager
 
 			if (reference instanceof IDirectObjRef
 					&& ((IDirectObjRef) reference).getDirect() instanceof IChangeContainer) {
-				Object directEntity =
-						originalRefs.get(((IDirectObjRef) reference).getCreateContainerIndex());
+				Object directEntity = originalRefs
+						.get(((IDirectObjRef) reference).getCreateContainerIndex());
 				relatedObjRefs.add(new DirectObjRef(reference.getRealType(), directEntity));
 			}
 			else {
@@ -475,8 +475,8 @@ public class SecurityManager
 				else {
 					propertyPrivilege = defaultPropertyPrivilege;
 				}
-				boolean createPrivilege =
-						propertyPrivilege != null ? propertyPrivilege.isCreateAllowed() : true;
+				boolean createPrivilege = propertyPrivilege != null ? propertyPrivilege.isCreateAllowed()
+						: true;
 				if (!createPrivilege) {
 					throw new SecurityException("Current user has no permssion to create property '"
 							+ pui.getMemberName() + "' on entity: " + changeContainer.getReference());
@@ -493,8 +493,8 @@ public class SecurityManager
 				else {
 					propertyPrivilege = defaultPropertyPrivilege;
 				}
-				boolean createPrivilege =
-						propertyPrivilege != null ? propertyPrivilege.isCreateAllowed() : true;
+				boolean createPrivilege = propertyPrivilege != null ? propertyPrivilege.isCreateAllowed()
+						: true;
 				if (!createPrivilege) {
 					throw new SecurityException("Current user has no permssion to create property '"
 							+ rui.getMemberName() + "' on entity: " + changeContainer.getReference());
@@ -520,8 +520,8 @@ public class SecurityManager
 				else {
 					propertyPrivilege = defaultPropertyPrivilege;
 				}
-				boolean updatePrivilege =
-						propertyPrivilege != null ? propertyPrivilege.isUpdateAllowed() : true;
+				boolean updatePrivilege = propertyPrivilege != null ? propertyPrivilege.isUpdateAllowed()
+						: true;
 				if (!updatePrivilege) {
 					throw new SecurityException("Current user has no permssion to update property '"
 							+ pui.getMemberName() + "' on entity: " + changeContainer.getReference());
@@ -538,8 +538,8 @@ public class SecurityManager
 				else {
 					propertyPrivilege = defaultPropertyPrivilege;
 				}
-				boolean updatePrivilege =
-						propertyPrivilege != null ? propertyPrivilege.isUpdateAllowed() : true;
+				boolean updatePrivilege = propertyPrivilege != null ? propertyPrivilege.isUpdateAllowed()
+						: true;
 				if (!updatePrivilege) {
 					throw new SecurityException("Current user has no permssion to update property '"
 							+ rui.getMemberName() + "' on entity: " + changeContainer.getReference());
@@ -584,8 +584,7 @@ public class SecurityManager
 
 	protected IMap<Class<?>, List<IChangeContainer>> buildTypeToChanges(
 			List<IChangeContainer> allChanges) {
-		HashMap<Class<?>, List<IChangeContainer>> typeToChanges =
-				new HashMap<>();
+		HashMap<Class<?>, List<IChangeContainer>> typeToChanges = new HashMap<>();
 
 		for (int a = allChanges.size(); a-- > 0;) {
 			IChangeContainer changeContainer = allChanges.get(a);
@@ -603,6 +602,9 @@ public class SecurityManager
 	protected CallPermission filterService(Method method, Object[] arguments,
 			SecurityContextType securityContextType, IAuthorization authorization) {
 		ISecurityScope[] securityScopes = securityScopeProvider.getSecurityScopes();
+		if (securityScopes.length == 0) {
+			securityScopes = new ISecurityScope[] { StringSecurityScope.DEFAULT_SCOPE };
+		}
 		CallPermission restrictiveCallPermission = CallPermission.ALLOWED;
 		for (IServiceFilter serviceFilter : serviceFilters.getExtensions()) {
 			CallPermission callPermission = serviceFilter.checkCallPermissionOnService(method, arguments,

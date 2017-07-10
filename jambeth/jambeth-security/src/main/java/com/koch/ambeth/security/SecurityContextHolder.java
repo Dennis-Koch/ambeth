@@ -1,5 +1,9 @@
 package com.koch.ambeth.security;
 
+import java.lang.reflect.Method;
+
+import com.koch.ambeth.event.IEventDispatcher;
+
 /*-
  * #%L
  * jambeth-security
@@ -22,12 +26,18 @@ limitations under the License.
 
 import com.koch.ambeth.ioc.DefaultExtendableContainer;
 import com.koch.ambeth.ioc.annotation.Autowired;
+import com.koch.ambeth.ioc.config.Property;
 import com.koch.ambeth.ioc.threadlocal.Forkable;
 import com.koch.ambeth.ioc.threadlocal.IForkProcessor;
 import com.koch.ambeth.ioc.threadlocal.IThreadLocalCleanupBean;
+import com.koch.ambeth.merge.config.MergeConfigurationConstants;
 import com.koch.ambeth.merge.security.ILightweightSecurityContext;
+import com.koch.ambeth.merge.security.ISecurityActivation;
+import com.koch.ambeth.security.events.AuthorizationMissingEvent;
+import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.state.AbstractStateRollback;
 import com.koch.ambeth.util.state.IStateRollback;
+import com.koch.ambeth.util.threading.IBackgroundWorkerDelegate;
 import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
 import com.koch.ambeth.util.threading.SensitiveThreadLocal;
 
@@ -59,6 +69,18 @@ public class SecurityContextHolder implements IAuthorizationChangeListenerExtend
 
 	@Autowired
 	protected IAuthenticatedUserHolder authenticatedUserHolder;
+
+	@Autowired
+	protected IEventDispatcher eventDispatcher;
+
+	@Autowired
+	protected ISecurityActivation securityActivation;
+
+	@Autowired(optional = true)
+	protected ISecurityManager securityManager;
+
+	@Property(name = MergeConfigurationConstants.SecurityActive, defaultValue = "false")
+	protected boolean securityActive;
 
 	protected final DefaultExtendableContainer<IAuthorizationChangeListener> authorizationChangeListeners = new DefaultExtendableContainer<>(
 			IAuthorizationChangeListener.class, "authorizationChangeListener");
@@ -175,43 +197,86 @@ public class SecurityContextHolder implements IAuthorizationChangeListenerExtend
 	}
 
 	@Override
-	public <R> R setScopedAuthentication(IAuthentication authentication,
-			IResultingBackgroundWorkerDelegate<R> runnableScope) throws Exception {
-		ISecurityContext securityContext = getContext();
-		boolean created = false;
-		if (securityContext == null) {
-			securityContext = getCreateContext();
-			created = true;
-		}
-		IAuthorization oldAuthorization = securityContext.getAuthorization();
-		IAuthentication oldAuthentication = securityContext.getAuthentication();
-		try {
-			if (oldAuthentication == authentication) {
-				return runnableScope.invoke();
-			}
-			try {
-				securityContext.setAuthentication(authentication);
-				securityContext.setAuthorization(null);
-				return runnableScope.invoke();
-			}
-			finally {
-				securityContext.setAuthentication(oldAuthentication);
-				securityContext.setAuthorization(oldAuthorization);
-			}
-		}
-		finally {
-			if (created) {
-				clearContext();
-			}
-		}
-	}
-
-	@Override
 	public boolean isAuthenticated() {
 		ISecurityContext securityContext = getContext();
 		if (securityContext == null) {
 			return false;
 		}
 		return securityContext.getAuthorization() != null;
+	}
+
+	@Override
+	public void withAuthenticated(IBackgroundWorkerDelegate delegate) {
+		ensureAuthenticated();
+		try {
+			delegate.invoke();
+		}
+		catch (Exception e) {
+			throw RuntimeExceptionUtil.mask(e);
+		}
+	}
+
+	@Override
+	public <R> R withAuthenticated(IResultingBackgroundWorkerDelegate<R> delegate) {
+		ensureAuthenticated();
+		try {
+			return delegate.invoke();
+		}
+		catch (Exception e) {
+			throw RuntimeExceptionUtil.mask(e);
+		}
+	}
+
+	@Override
+	public void withAuthorized(Method method, IBackgroundWorkerDelegate delegate) {
+		IAuthorization authorization = ensureAuthenticated();
+		if (securityManager != null) {
+			securityManager.checkMethodAccess(method, new Object[0], SecurityContextType.AUTHORIZED,
+					authorization);
+		}
+		try {
+			delegate.invoke();
+		}
+		catch (Exception e) {
+			throw RuntimeExceptionUtil.mask(e);
+		}
+	}
+
+	@Override
+	public <R> R withAuthorized(Method method, IResultingBackgroundWorkerDelegate<R> delegate) {
+		IAuthorization authorization = ensureAuthenticated();
+		if (securityManager != null) {
+			securityManager.checkMethodAccess(method, new Object[0], SecurityContextType.AUTHORIZED,
+					authorization);
+		}
+		try {
+			R result = delegate.invoke();
+			return securityManager.filterValue(result);
+		}
+		catch (Exception e) {
+			throw RuntimeExceptionUtil.mask(e);
+		}
+	}
+
+	protected IAuthorization ensureAuthenticated() {
+		if (!securityActive) {
+			return null;
+		}
+		ISecurityContext securityContext = getContext();
+		IAuthorization authorization = securityContext != null ? securityContext.getAuthorization()
+				: null;
+		if (authorization != null) {
+			if (!authorization.isValid()) {
+				throw new SecurityException("Authorization invalid");
+			}
+			return null;
+		}
+		eventDispatcher.dispatchEvent(AuthorizationMissingEvent.getInstance());
+		securityContext = getContext();
+		authorization = securityContext != null ? securityContext.getAuthorization() : null;
+		if (authorization == null || !authorization.isValid()) {
+			throw new SecurityException("Authorization invalid");
+		}
+		return authorization;
 	}
 }
