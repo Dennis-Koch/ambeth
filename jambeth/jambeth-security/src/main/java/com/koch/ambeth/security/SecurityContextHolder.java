@@ -251,7 +251,10 @@ public class SecurityContextHolder implements IAuthorizationChangeListenerExtend
 		}
 		try {
 			R result = delegate.invoke();
-			return securityManager.filterValue(result);
+			if (securityManager != null) {
+				result = securityManager.filterValue(result);
+			}
+			return result;
 		}
 		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
