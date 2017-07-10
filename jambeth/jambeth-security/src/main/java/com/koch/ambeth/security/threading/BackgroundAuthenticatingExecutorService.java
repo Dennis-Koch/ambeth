@@ -32,6 +32,7 @@ import com.koch.ambeth.security.ISecurityContextHolder;
 import com.koch.ambeth.security.SecurityContext;
 import com.koch.ambeth.security.SecurityContextType;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
+import com.koch.ambeth.util.state.IStateRollback;
 import com.koch.ambeth.util.threading.IBackgroundWorkerDelegate;
 import com.koch.ambeth.util.threading.IFastThreadPool;
 import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
@@ -54,14 +55,15 @@ public class BackgroundAuthenticatingExecutorService
 		@Override
 		public void run() {
 			T result = null;
+			IStateRollback rollback = securityContextHolder.pushAuthentication(authentication);
 			try {
-				result = securityContextHolder.setScopedAuthentication(authentication,
-						new SelfExecuteRunnable<>(runnable));
+				result = runnable.invoke();
 			}
 			catch (Exception e) {
 				throw RuntimeExceptionUtil.mask(e);
 			}
 			finally {
+				rollback.rollback();
 				threadLocalCleanupController.cleanupThreadLocal();
 				try {
 					exchanger.exchange(result);
@@ -70,19 +72,6 @@ public class BackgroundAuthenticatingExecutorService
 					// intended blank
 				}
 			}
-		}
-	}
-
-	private class SelfExecuteRunnable<T> implements IResultingBackgroundWorkerDelegate<T> {
-		private final IResultingBackgroundWorkerDelegate<T> runnable;
-
-		private SelfExecuteRunnable(IResultingBackgroundWorkerDelegate<T> runnable) {
-			this.runnable = runnable;
-		}
-
-		@Override
-		public T invoke() throws Exception {
-			return self.execute(runnable);
 		}
 	}
 
@@ -143,20 +132,15 @@ public class BackgroundAuthenticatingExecutorService
 		Runnable backgroundWorker = new Runnable() {
 			@Override
 			public void run() {
+				IStateRollback rollback = securityContextHolder.pushAuthentication(authentication);
 				try {
-					securityContextHolder.setScopedAuthentication(authentication,
-							new IResultingBackgroundWorkerDelegate<Object>() {
-								@Override
-								public Object invoke() throws Exception {
-									self.execute(runnable);
-									return null;
-								}
-							});
+					self.execute(runnable);
 				}
 				catch (Exception e) {
 					throw RuntimeExceptionUtil.mask(e);
 				}
 				finally {
+					rollback.rollback();
 					threadLocalCleanupController.cleanupThreadLocal();
 				}
 			}
