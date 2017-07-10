@@ -26,8 +26,6 @@ import com.koch.ambeth.ioc.IServiceContext;
 import com.koch.ambeth.ioc.IStartingBean;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.factory.IBeanContextFactory;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.IMergeController;
 import com.koch.ambeth.merge.IObjRefHelper;
 import com.koch.ambeth.merge.MergeHandle;
@@ -61,10 +59,6 @@ import com.koch.ambeth.xml.postprocess.IPostProcessWriter;
 import com.koch.ambeth.xml.postprocess.IXmlPostProcessor;
 
 public class MergeXmlPostProcessor implements IXmlPostProcessor, IStartingBean {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	@Autowired
 	protected IServiceContext beanContext;
 
@@ -100,8 +94,8 @@ public class MergeXmlPostProcessor implements IXmlPostProcessor, IStartingBean {
 			return null;
 		}
 
-		final IDisposableCache childCache =
-				cacheFactory.create(CacheFactoryDirective.NoDCE, "XmlMerge");
+		final IDisposableCache childCache = cacheFactory.create(CacheFactoryDirective.NoDCE,
+				"XmlMerge");
 		IServiceContext mergeContext = beanContext.createService("mergeXml",
 				new IBackgroundWorkerParamDelegate<IBeanContextFactory>() {
 					@Override
@@ -168,11 +162,11 @@ public class MergeXmlPostProcessor implements IXmlPostProcessor, IStartingBean {
 			}
 			else if (ori instanceof IDirectObjRef) {
 				IObjectFuture objectFuture = new ObjRefFuture(ori);
-				IObjectCommand setterCommand =
-						commandBuilder.build(commandTypeRegistry, objectFuture, ori, directObjRefDirectMember);
+				IObjectCommand setterCommand = commandBuilder.build(commandTypeRegistry, objectFuture, ori,
+						directObjRefDirectMember);
 				reader.addObjectCommand(setterCommand);
-				IObjectCommand mergeCommand =
-						commandBuilder.build(commandTypeRegistry, objectFuture, changeContainer);
+				IObjectCommand mergeCommand = commandBuilder.build(commandTypeRegistry, objectFuture,
+						changeContainer);
 				reader.addObjectCommand(mergeCommand);
 			}
 			else {

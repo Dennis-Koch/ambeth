@@ -49,7 +49,6 @@ import com.koch.ambeth.util.config.IProperties;
 
 public class EventFromKafkaConsumer
 		implements IInitializingBean, IStartingBean, IDisposableBean, Runnable {
-	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 
@@ -65,8 +64,7 @@ public class EventFromKafkaConsumer
 	@Property(name = EventKafkaConfigurationConstants.TOPIC_NAME)
 	protected String topicName;
 
-	protected final WeakHashMap<Object, Boolean> receivedFromKafkaMap =
-			new IdentityWeakHashMap<>();
+	protected final WeakHashMap<Object, Boolean> receivedFromKafkaMap = new IdentityWeakHashMap<>();
 
 	protected final Lock receivedFromKafkaMapLock = new ReentrantLock();
 
@@ -127,9 +125,8 @@ public class EventFromKafkaConsumer
 
 	protected void runIntern() throws Throwable {
 		try {
-			consumer =
-					new KafkaConsumer<>(AmbethKafkaConfiguration.extractKafkaProperties(props),
-							new StringDeserializer(), xmlKafkaSerializer);
+			consumer = new KafkaConsumer<>(AmbethKafkaConfiguration.extractKafkaProperties(props),
+					new StringDeserializer(), xmlKafkaSerializer);
 			consumer.subscribe(Arrays.asList(topicName));
 
 			while (!destroyed) {

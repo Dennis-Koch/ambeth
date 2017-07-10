@@ -32,8 +32,6 @@ import java.util.regex.Pattern;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.bytecode.IBytecodeEnhancer;
 import com.koch.ambeth.ioc.typeinfo.FieldPropertyInfo;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.compositeid.ICompositeIdFactory;
 import com.koch.ambeth.service.config.ServiceConfigurationConstants;
 import com.koch.ambeth.service.metadata.EmbeddedMember;
@@ -103,17 +101,11 @@ public class MemberTypeProvider implements IMemberTypeProvider, IIntermediateMem
 
 	protected static final Object[] EMPTY_OBJECTS = new Object[0];
 
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
-	protected final TypeAndStringWeakMap<PrimitiveMember> typeToPrimitiveMemberMap =
-			new TypeAndStringWeakMap<>();
+	protected final TypeAndStringWeakMap<PrimitiveMember> typeToPrimitiveMemberMap = new TypeAndStringWeakMap<>();
 
 	protected final TypeAndStringWeakMap<Member> typeToMemberMap = new TypeAndStringWeakMap<>();
 
-	protected final TypeAndStringWeakMap<RelationMember> typeToRelationMemberMap =
-			new TypeAndStringWeakMap<>();
+	protected final TypeAndStringWeakMap<RelationMember> typeToRelationMemberMap = new TypeAndStringWeakMap<>();
 
 	protected final Lock writeLock = new ReentrantLock();
 
@@ -256,14 +248,14 @@ public class MemberTypeProvider implements IMemberTypeProvider, IIntermediateMem
 		Class<?> currDeclaringType = entityType;
 		Member[] members = new Member[memberNamePath.length];
 		for (int a = 0, size = memberNamePath.length; a < size; a++) {
-			IPropertyInfo property =
-					propertyInfoProvider.getProperty(currDeclaringType, memberNamePath[a]);
+			IPropertyInfo property = propertyInfoProvider.getProperty(currDeclaringType,
+					memberNamePath[a]);
 			if (property == null) {
 				return null;
 			}
-			members[a] =
-					new IntermediatePrimitiveMember(currDeclaringType, entityType, property.getPropertyType(),
-							property.getElementType(), property.getName(), property.getAnnotations());
+			members[a] = new IntermediatePrimitiveMember(currDeclaringType, entityType,
+					property.getPropertyType(), property.getElementType(), property.getName(),
+					property.getAnnotations());
 			currDeclaringType = property.getPropertyType();
 		}
 		if (members.length > 1) {
@@ -283,14 +275,14 @@ public class MemberTypeProvider implements IMemberTypeProvider, IIntermediateMem
 		Class<?> currDeclaringType = entityType;
 		Member[] members = new Member[memberNamePath.length];
 		for (int a = 0, size = memberNamePath.length; a < size; a++) {
-			IPropertyInfo property =
-					propertyInfoProvider.getProperty(currDeclaringType, memberNamePath[a]);
+			IPropertyInfo property = propertyInfoProvider.getProperty(currDeclaringType,
+					memberNamePath[a]);
 			if (property == null) {
 				return null;
 			}
-			members[a] =
-					new IntermediateRelationMember(currDeclaringType, entityType, property.getPropertyType(),
-							property.getElementType(), property.getName(), property.getAnnotations());
+			members[a] = new IntermediateRelationMember(currDeclaringType, entityType,
+					property.getPropertyType(), property.getElementType(), property.getName(),
+					property.getAnnotations());
 			currDeclaringType = property.getPropertyType();
 		}
 		if (members.length > 1) {

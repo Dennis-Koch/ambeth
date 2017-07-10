@@ -26,8 +26,6 @@ import java.sql.Connection;
 
 import com.koch.ambeth.ioc.threadlocal.Forkable;
 import com.koch.ambeth.ioc.threadlocal.IThreadLocalCleanupBean;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.ILightweightTransaction;
 import com.koch.ambeth.persistence.IConnectionHolder;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
@@ -38,11 +36,7 @@ import net.sf.cglib.proxy.MethodProxy;
 
 public class ConnectionHolderInterceptor extends AbstractSimpleInterceptor
 		implements IConnectionHolder, IThreadLocalCleanupBean {
-	public static final String CONNECTION_PROP = "Connection";
-
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
+	public static final String P_CONNECTION = "Connection";
 
 	@Forkable
 	protected final ThreadLocal<Connection> connectionTL = new SensitiveThreadLocal<>();

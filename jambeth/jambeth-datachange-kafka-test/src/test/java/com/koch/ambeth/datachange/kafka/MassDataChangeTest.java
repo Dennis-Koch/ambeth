@@ -76,29 +76,28 @@ import com.koch.ambeth.xml.util.ClasspathScanner;
 @TestPropertiesList({
 		// producer
 		@TestProperties(name = EventKafkaConfigurationConstants.TOPIC_NAME, value = "test"), //
-		@TestProperties(name = AmbethKafkaConfiguration.AMBETH_KAFKA_PROP_PREFIX + "acks",
-				value = "all"), //
-		@TestProperties(name = AmbethKafkaConfiguration.AMBETH_KAFKA_PROP_PREFIX + "retries",
-				value = "0"), //
-		@TestProperties(name = AmbethKafkaConfiguration.AMBETH_KAFKA_PROP_PREFIX + "batch.size",
-				value = "16384"), //
-		@TestProperties(name = AmbethKafkaConfiguration.AMBETH_KAFKA_PROP_PREFIX + "linger.ms",
-				value = "1"), //
-		@TestProperties(name = AmbethKafkaConfiguration.AMBETH_KAFKA_PROP_PREFIX + "buffer.memory",
-				value = "33554432"), //
+		@TestProperties(name = AmbethKafkaConfiguration.AMBETH_KAFKA_PROP_PREFIX
+				+ "acks", value = "all"), //
+		@TestProperties(name = AmbethKafkaConfiguration.AMBETH_KAFKA_PROP_PREFIX
+				+ "retries", value = "0"), //
+		@TestProperties(name = AmbethKafkaConfiguration.AMBETH_KAFKA_PROP_PREFIX
+				+ "batch.size", value = "16384"), //
+		@TestProperties(name = AmbethKafkaConfiguration.AMBETH_KAFKA_PROP_PREFIX
+				+ "linger.ms", value = "1"), //
+		@TestProperties(name = AmbethKafkaConfiguration.AMBETH_KAFKA_PROP_PREFIX
+				+ "buffer.memory", value = "33554432"), //
 
 		// consumer
-		@TestProperties(name = AmbethKafkaConfiguration.AMBETH_KAFKA_PROP_PREFIX + "group.id",
-				value = "groupId"), //
-		@TestProperties(name = AmbethKafkaConfiguration.AMBETH_KAFKA_PROP_PREFIX + "enable.auto.commit",
-				value = "true"), //
-		@TestProperties(
-				name = AmbethKafkaConfiguration.AMBETH_KAFKA_PROP_PREFIX + "auto.commit.interval.ms",
-				value = "1"), //
-		@TestProperties(name = AmbethKafkaConfiguration.AMBETH_KAFKA_PROP_PREFIX + "session.timeout.ms",
-				value = "30000"), //
-		@TestProperties(name = AmbethKafkaConfiguration.AMBETH_KAFKA_PROP_PREFIX + "buffer.memory",
-				value = "33554432"),//
+		@TestProperties(name = AmbethKafkaConfiguration.AMBETH_KAFKA_PROP_PREFIX
+				+ "group.id", value = "groupId"), //
+		@TestProperties(name = AmbethKafkaConfiguration.AMBETH_KAFKA_PROP_PREFIX
+				+ "enable.auto.commit", value = "true"), //
+		@TestProperties(name = AmbethKafkaConfiguration.AMBETH_KAFKA_PROP_PREFIX
+				+ "auto.commit.interval.ms", value = "1"), //
+		@TestProperties(name = AmbethKafkaConfiguration.AMBETH_KAFKA_PROP_PREFIX
+				+ "session.timeout.ms", value = "30000"), //
+		@TestProperties(name = AmbethKafkaConfiguration.AMBETH_KAFKA_PROP_PREFIX
+				+ "buffer.memory", value = "33554432"),//
 		// @TestProperties(name = "ambeth.log.level", value = "DEBUG"),//
 })
 @Category(PerformanceTests.class)
@@ -126,8 +125,8 @@ public class MassDataChangeTest extends AbstractIocTest {
 		@Override
 		public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
 
-			IBeanConfiguration registerExternalBean =
-					beanContextFactory.registerExternalBean(new IEventListener() {
+			IBeanConfiguration registerExternalBean = beanContextFactory
+					.registerExternalBean(new IEventListener() {
 
 						private int globalCounter = 0;
 
@@ -147,7 +146,6 @@ public class MassDataChangeTest extends AbstractIocTest {
 		}
 	}
 
-	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 
@@ -223,8 +221,8 @@ public class MassDataChangeTest extends AbstractIocTest {
 
 				// create cache entry in "left"
 				testEntity = left.getService(IEntityFactory.class).createEntity(TestEntity.class);
-				IEntityMetaData metaData =
-						left.getService(IEntityMetaDataProvider.class).getMetaData(TestEntity.class);
+				IEntityMetaData metaData = left.getService(IEntityMetaDataProvider.class)
+						.getMetaData(TestEntity.class);
 				metaData.getIdMember().setIntValue(testEntity, i);
 				metaData.getVersionMember().setIntValue(testEntity, 1);
 
@@ -239,7 +237,6 @@ public class MassDataChangeTest extends AbstractIocTest {
 
 	private long testDataChangeEventsWithKafka(IServiceContext left, final IServiceContext right,
 			int countEntities) throws Throwable {
-		IRootCache leftRootCache;
 		final IList<TestEntity> testEntityList = new ArrayList<>();
 		right.createService(CounterModule.class);
 		fillCache(left, countEntities, testEntityList);
@@ -251,8 +248,8 @@ public class MassDataChangeTest extends AbstractIocTest {
 				@Override
 				public void invoke() throws Exception {
 					// fire the DCE in "right"
-					for (Iterator iterator = testEntityList.iterator(); iterator.hasNext();) {
-						TestEntity testEntity = (TestEntity) iterator.next();
+					for (Iterator<TestEntity> iterator = testEntityList.iterator(); iterator.hasNext();) {
+						TestEntity testEntity = iterator.next();
 						DataChangeEvent dce = DataChangeEvent.create(0, 1, 0);
 						dce.getUpdates().add(new DataChangeEntry(TestEntity.class, ObjRef.PRIMARY_KEY_INDEX,
 								testEntity.getId(), testEntity.getVersion() + 1));
@@ -292,8 +289,8 @@ public class MassDataChangeTest extends AbstractIocTest {
 			// ensure that entry in "left" is removed
 			leftRootCache = left.getService(CacheModule.COMMITTED_ROOT_CACHE, IRootCache.class);
 
-			for (Iterator iterator = testEntityList.iterator(); iterator.hasNext();) {
-				TestEntity testEntity = (TestEntity) iterator.next();
+			for (Iterator<TestEntity> iterator = testEntityList.iterator(); iterator.hasNext();) {
+				TestEntity testEntity = iterator.next();
 
 				Assert.assertNull(
 						"Expect entitiy: " + testEntity.getId() + " to be removed from the cache.",
@@ -311,8 +308,8 @@ public class MassDataChangeTest extends AbstractIocTest {
 		log.info("start waiting...");
 		{
 			// fire the DCE in "right"
-			for (Iterator iterator = testEntityList.iterator(); iterator.hasNext();) {
-				TestEntity testEntity = (TestEntity) iterator.next();
+			for (Iterator<TestEntity> iterator = testEntityList.iterator(); iterator.hasNext();) {
+				TestEntity testEntity = iterator.next();
 				DataChangeEvent dce = DataChangeEvent.create(0, 1, 0);
 				dce.getUpdates().add(new DataChangeEntry(TestEntity.class, ObjRef.PRIMARY_KEY_INDEX,
 						testEntity.getId(), testEntity.getVersion() + 1));

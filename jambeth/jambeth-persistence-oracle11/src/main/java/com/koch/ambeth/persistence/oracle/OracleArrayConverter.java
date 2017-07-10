@@ -24,18 +24,12 @@ import java.util.Collection;
 import java.util.Set;
 
 import com.koch.ambeth.ioc.IInitializingBean;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.util.IConversionHelper;
 import com.koch.ambeth.util.IDedicatedConverter;
 import com.koch.ambeth.util.ParamChecker;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
 public class OracleArrayConverter implements IDedicatedConverter, IInitializingBean {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	protected IConversionHelper conversionHelper;
 
 	@Override

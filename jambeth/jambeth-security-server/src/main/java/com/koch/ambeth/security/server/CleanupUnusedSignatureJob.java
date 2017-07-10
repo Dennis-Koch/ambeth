@@ -28,8 +28,6 @@ import com.koch.ambeth.ioc.factory.IBeanContextFactory;
 import com.koch.ambeth.job.IJob;
 import com.koch.ambeth.job.IJobContext;
 import com.koch.ambeth.job.JobScheduleConfiguration;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.IMergeProcess;
 import com.koch.ambeth.query.IQuery;
 import com.koch.ambeth.query.IQueryBuilder;
@@ -53,10 +51,6 @@ public class CleanupUnusedSignatureJob implements IJob, IStartingBean {
 				.propertyValue(JobScheduleConfiguration.USER_NAME, userName) //
 				.propertyValue(JobScheduleConfiguration.USER_PASS, userPass);
 	}
-
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
 
 	@Autowired
 	protected IMergeProcess mergeProcess;

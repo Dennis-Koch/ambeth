@@ -28,8 +28,6 @@ import java.util.regex.Pattern;
 
 import com.koch.ambeth.ioc.IInitializingBean;
 import com.koch.ambeth.ioc.annotation.Autowired;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.persistence.IConnectionDialect;
 import com.koch.ambeth.persistence.IPersistenceHelper;
 import com.koch.ambeth.persistence.api.sql.ISqlBuilder;
@@ -40,10 +38,6 @@ import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.objectcollector.IThreadLocalObjectCollector;
 
 public class SqlBuilder implements ISqlBuilder, IInitializingBean, ISqlKeywordRegistry {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	protected static final Pattern sqlEscapePattern = Pattern.compile("'", Pattern.LITERAL);
 
 	protected final Set<Class<?>> unescapedTypes = new HashSet<>();

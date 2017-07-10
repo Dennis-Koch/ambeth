@@ -26,8 +26,6 @@ import java.sql.ResultSet;
 import java.util.List;
 
 import com.koch.ambeth.ioc.annotation.Autowired;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.persistence.api.ITableMetaData;
 import com.koch.ambeth.persistence.jdbc.JdbcUtil;
 import com.koch.ambeth.persistence.orm.XmlDatabaseMapper;
@@ -37,10 +35,6 @@ import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.objectcollector.IObjectCollector;
 
 public class MariaSequencePrimaryKeyProvider extends AbstractCachingPrimaryKeyProvider {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	@Autowired
 	protected Connection connection;
 

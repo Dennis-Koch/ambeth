@@ -23,8 +23,6 @@ limitations under the License.
 import java.sql.Clob;
 
 import com.koch.ambeth.ioc.annotation.Autowired;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.event.EntityMetaDataAddedEvent;
 import com.koch.ambeth.merge.event.EntityMetaDataRemovedEvent;
 import com.koch.ambeth.service.merge.IEntityMetaDataProvider;
@@ -37,12 +35,7 @@ import com.koch.ambeth.util.collections.SmartCopyMap;
 public class ClobToEnumConverter extends ClobToAnythingConverter {
 	public static final String HANDLE_ENTITY_META_DATA_ADDED_EVENT = "handleEntityMetaDataAddedEvent";
 
-	public static final String HANDLE_ENTITY_META_DATA_REMOVED_EVENT =
-			"handleEntityMetaDataRemovedEvent";
-
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
+	public static final String HANDLE_ENTITY_META_DATA_REMOVED_EVENT = "handleEntityMetaDataRemovedEvent";
 
 	@Autowired
 	protected IDedicatedConverterExtendable dedicatedConverterExtendable;
@@ -50,8 +43,8 @@ public class ClobToEnumConverter extends ClobToAnythingConverter {
 	@Autowired
 	protected IEntityMetaDataProvider entityMetaDataProvider;
 
-	protected final SmartCopyMap<Class<?>, Integer> propertyTypeToUsageCountMap =
-			new SmartCopyMap<>(0.5f);
+	protected final SmartCopyMap<Class<?>, Integer> propertyTypeToUsageCountMap = new SmartCopyMap<>(
+			0.5f);
 
 	protected HashMap<Class<?>, Runnable> deregisterRunnables = new HashMap<>();
 

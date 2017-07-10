@@ -22,8 +22,6 @@ limitations under the License.
 
 import java.lang.reflect.Method;
 
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.query.IOperand;
 import com.koch.ambeth.query.IQueryBuilder;
 import com.koch.ambeth.query.ISqlJoin;
@@ -53,10 +51,6 @@ public class QueryBuilderInterceptor extends AbstractSimpleInterceptor {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
-
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
 
 	protected IQueryBuilder<?> queryBuilder;
 

@@ -21,8 +21,6 @@ limitations under the License.
  */
 
 import com.koch.ambeth.ioc.annotation.Autowired;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.security.model.IPassword;
 import com.koch.ambeth.security.model.IUser;
 import com.koch.ambeth.security.server.IPasswordUtil;
@@ -30,10 +28,6 @@ import com.koch.ambeth.security.server.ISignatureUtil;
 import com.koch.ambeth.security.server.IUserResolver;
 
 public class HelloworldUserResolver implements IUserResolver {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	@Autowired
 	protected IPasswordUtil passwordUtil;
 

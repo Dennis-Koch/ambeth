@@ -118,11 +118,11 @@ public class PropertyChangeMixin
 				includeNewValue = null;
 				includeOldValue = null;
 			}
-			doesModifyToBeUpdated =
-					(IDataObject.class.isAssignableFrom(type) || IEmbeddedType.class.isAssignableFrom(type))
-							&& !prop.isAnnotationPresent(IgnoreToBeUpdated.class);
-			isParentChildSetter =
-					IDataObject.class.isAssignableFrom(type) && prop.isAnnotationPresent(ParentChild.class);
+			doesModifyToBeUpdated = (IDataObject.class.isAssignableFrom(type)
+					|| IEmbeddedType.class.isAssignableFrom(type))
+					&& !prop.isAnnotationPresent(IgnoreToBeUpdated.class);
+			isParentChildSetter = IDataObject.class.isAssignableFrom(type)
+					&& prop.isAnnotationPresent(ParentChild.class);
 			isAddedRemovedCheckNecessary = !prop.getPropertyType().isPrimitive()
 					&& WrapperTypeSet.getUnwrappedType(prop.getPropertyType()) == null
 					&& !String.class.equals(prop.getPropertyType());
@@ -175,8 +175,8 @@ public class PropertyChangeMixin
 
 	protected static void evaluateDependentProperties(Class<?> type, IPropertyInfo pi,
 			Collection<String> propertyNames, IPropertyInfoProvider propertyInfoProvider) {
-		FireTargetOnPropertyChange fireTargetOnPropertyChange =
-				pi.getAnnotation(FireTargetOnPropertyChange.class);
+		FireTargetOnPropertyChange fireTargetOnPropertyChange = pi
+				.getAnnotation(FireTargetOnPropertyChange.class);
 		if (fireTargetOnPropertyChange != null) {
 			for (String attrPropName : fireTargetOnPropertyChange.value()) {
 				if (!propertyNames.contains(attrPropName)) {
@@ -186,8 +186,8 @@ public class PropertyChangeMixin
 		}
 		String propertyName = pi.getName();
 		for (IPropertyInfo currProp : propertyInfoProvider.getProperties(type)) {
-			FireThisOnPropertyChange fireThisOnPropertyChange =
-					currProp.getAnnotation(FireThisOnPropertyChange.class);
+			FireThisOnPropertyChange fireThisOnPropertyChange = currProp
+					.getAnnotation(FireThisOnPropertyChange.class);
 			if (fireThisOnPropertyChange == null) {
 				continue;
 			}
@@ -202,16 +202,14 @@ public class PropertyChangeMixin
 		}
 	}
 
-	protected final SmartCopyMap<IPropertyInfo, PropertyEntry> propertyToEntryMap =
-			new SmartCopyMap<>();
+	protected final SmartCopyMap<IPropertyInfo, PropertyEntry> propertyToEntryMap = new SmartCopyMap<>();
 
-	protected final ClassExtendableListContainer<IPropertyChangeExtension> propertyChangeExtensions =
-			new ClassExtendableListContainer<>("propertyChangeExtension", "entityType");
+	protected final ClassExtendableListContainer<IPropertyChangeExtension> propertyChangeExtensions = new ClassExtendableListContainer<>(
+			"propertyChangeExtension", "entityType");
 
-	protected final ClassExtendableListContainer<ICollectionChangeExtension> collectionChangeExtensions =
-			new ClassExtendableListContainer<>("collectionChangeExtension", "entityType");
+	protected final ClassExtendableListContainer<ICollectionChangeExtension> collectionChangeExtensions = new ClassExtendableListContainer<>(
+			"collectionChangeExtension", "entityType");
 
-	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 
@@ -325,8 +323,8 @@ public class PropertyChangeMixin
 				default:
 					throw RuntimeExceptionUtil.createEnumNotSupportedException(evnt.getAction());
 			}
-			IList<ICollectionChangeExtension> extensions =
-					collectionChangeExtensions.getExtensions(obj.getClass());
+			IList<ICollectionChangeExtension> extensions = collectionChangeExtensions
+					.getExtensions(obj.getClass());
 			if (extensions != null) {
 				for (int a = 0, size = extensions.size(); a < size; a++) {
 					extensions.get(a).collectionChanged(obj, evnt);
@@ -456,8 +454,8 @@ public class PropertyChangeMixin
 	public void firePropertyChange(final INotifyPropertyChangedSource obj,
 			final String[] propertyNames, final Object[] oldValues, final Object[] currentValues) {
 		final PropertyChangeSupport propertyChangeSupport = obj.getPropertyChangeSupport();
-		final IList<IPropertyChangeExtension> extensions =
-				propertyChangeExtensions.getExtensions(obj.getClass());
+		final IList<IPropertyChangeExtension> extensions = propertyChangeExtensions
+				.getExtensions(obj.getClass());
 		if (propertyChangeSupport == null && extensions == null
 				&& !(obj instanceof PropertyChangeListener)) {
 			return;
@@ -501,8 +499,8 @@ public class PropertyChangeMixin
 			IList<IPropertyChangeExtension> extensions, Object obj, String[] propertyNames,
 			Object[] oldValues, Object[] currentValues) {
 		boolean debugEnabled = log.isDebugEnabled();
-		PropertyChangeListener pcl =
-				(PropertyChangeListener) (obj instanceof PropertyChangeListener ? obj : null);
+		PropertyChangeListener pcl = (PropertyChangeListener) (obj instanceof PropertyChangeListener
+				? obj : null);
 
 		for (int a = 0, size = propertyNames.length; a < size; a++) {
 			String propertyName = propertyNames[a];

@@ -27,8 +27,6 @@ import java.util.Collection;
 import java.util.Set;
 
 import com.koch.ambeth.ioc.annotation.Autowired;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.persistence.jdbc.IConnectionExtension;
 import com.koch.ambeth.persistence.jdbc.JdbcUtil;
 import com.koch.ambeth.util.IConversionHelper;
@@ -38,10 +36,6 @@ import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
 public class ArrayConverter implements IDedicatedConverter {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	@Autowired
 	protected IConnectionExtension connectionExtension;
 
@@ -83,8 +77,7 @@ public class ArrayConverter implements IDedicatedConverter {
 						return targetArray;
 					}
 					else if (Set.class.isAssignableFrom(expectedType)) {
-						Set<Object> result =
-								new java.util.HashSet<>((int) ((list.size() + 1) / 0.75f), 0.75f);
+						Set<Object> result = new java.util.HashSet<>((int) ((list.size() + 1) / 0.75f), 0.75f);
 						result.addAll(list);
 						return result;
 					}

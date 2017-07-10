@@ -56,6 +56,7 @@ public class AmbethShellStarter implements IDisposableBean {
 		start(args);
 	}
 
+	@SuppressWarnings("unchecked")
 	public static void start(String[] args, Class<? extends IInitializingModule>... modules) {
 		Properties parsedArgs = parseMainArgs(args);
 
@@ -70,6 +71,7 @@ public class AmbethShellStarter implements IDisposableBean {
 		startRunClose(appConfig);
 	}
 
+	@SuppressWarnings("unchecked")
 	public static void start(String[] args, Properties properties,
 			Class<? extends IInitializingModule>... modules) {
 		Properties parsedArgs = parseMainArgs(args);

@@ -32,18 +32,12 @@ import com.koch.ambeth.datachange.transfer.DataChangeEvent;
 import com.koch.ambeth.event.store.IEventStoreHandler;
 import com.koch.ambeth.ioc.IInitializingBean;
 import com.koch.ambeth.ioc.annotation.Autowired;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.objrefstore.IObjRefStoreEntryProvider;
 import com.koch.ambeth.merge.objrefstore.ObjRefStore;
 import com.koch.ambeth.merge.objrefstore.ObjRefStoreSet;
 import com.koch.ambeth.util.collections.ArrayList;
 
 public class DataChangeEventStoreHandler implements IEventStoreHandler, IInitializingBean {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	@Autowired
 	protected IObjRefStoreEntryProvider objRefStoreEntryProvider;
 
@@ -57,8 +51,8 @@ public class DataChangeEventStoreHandler implements IEventStoreHandler, IInitial
 	}
 
 	protected ObjRefStore createObjRef(Class<?> entityType, int idIndex, Object id, Object version) {
-		ObjRefStore objRefStore =
-				objRefStoreEntryProvider.createObjRefStore(entityType, (byte) idIndex, id);
+		ObjRefStore objRefStore = objRefStoreEntryProvider.createObjRefStore(entityType, (byte) idIndex,
+				id);
 		objRefStore.setVersion(version);
 		return objRefStore;
 	}
@@ -102,8 +96,8 @@ public class DataChangeEventStoreHandler implements IEventStoreHandler, IInitial
 		finally {
 			writeLock.unlock();
 		}
-		DataChangeStoreItem dcStoreItem =
-				new DataChangeStoreItem(allArray, insertCount, updateCount, dataChange.getChangeTime());
+		DataChangeStoreItem dcStoreItem = new DataChangeStoreItem(allArray, insertCount, updateCount,
+				dataChange.getChangeTime());
 		return dcStoreItem;
 	}
 

@@ -27,8 +27,6 @@ import java.util.concurrent.locks.Lock;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.extendable.IMapExtendableContainer;
 import com.koch.ambeth.ioc.extendable.MapExtendableContainer;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.service.merge.IEntityMetaDataProvider;
 import com.koch.ambeth.service.merge.IValueObjectConfig;
 import com.koch.ambeth.util.collections.ArrayList;
@@ -39,13 +37,8 @@ import com.koch.ambeth.util.collections.SmartCopyMap;
 
 public class ValueObjectMap extends SmartCopyMap<Class<?>, List<Class<?>>>
 		implements IMapExtendableContainer<Class<?>, IValueObjectConfig> {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
-	protected final MapExtendableContainer<Class<?>, IValueObjectConfig> typeToValueObjectConfig =
-			new MapExtendableContainer<>("configuration",
-					"value object class");
+	protected final MapExtendableContainer<Class<?>, IValueObjectConfig> typeToValueObjectConfig = new MapExtendableContainer<>(
+			"configuration", "value object class");
 
 	@Autowired
 	protected IEntityMetaDataProvider entityMetaDataProvider;

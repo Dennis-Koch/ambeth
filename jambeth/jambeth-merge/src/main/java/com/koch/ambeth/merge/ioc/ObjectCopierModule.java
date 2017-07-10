@@ -24,8 +24,6 @@ import com.koch.ambeth.ioc.IInitializingModule;
 import com.koch.ambeth.ioc.annotation.FrameworkModule;
 import com.koch.ambeth.ioc.config.IBeanConfiguration;
 import com.koch.ambeth.ioc.factory.IBeanContextFactory;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.copy.IObjectCopier;
 import com.koch.ambeth.merge.copy.IObjectCopierExtendable;
 import com.koch.ambeth.merge.copy.ObjectCopier;
@@ -38,13 +36,6 @@ import com.koch.ambeth.merge.copy.StringBuilderOCE;
  */
 @FrameworkModule
 public class ObjectCopierModule implements IInitializingModule {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
-	/**
-	 * {@inheritDoc}
-	 */
 	@Override
 	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
 		// Default ObjectCopier implementation

@@ -24,8 +24,6 @@ import com.koch.ambeth.ioc.IDisposableBean;
 import com.koch.ambeth.ioc.IStartingBean;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.config.Property;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 
 public class JobScheduleConfiguration implements IStartingBean, IDisposableBean {
 	public static final String CRON_PATTERN = "CronPattern";
@@ -37,10 +35,6 @@ public class JobScheduleConfiguration implements IStartingBean, IDisposableBean 
 	public static final String USER_NAME = "UserName";
 
 	public static final String USER_PASS = "UserPass";
-
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
 
 	@Autowired(optional = true)
 	protected IJobScheduler jobScheduler;
@@ -70,8 +64,8 @@ public class JobScheduleConfiguration implements IStartingBean, IDisposableBean 
 		if (jobName == null) {
 			jobName = job.getClass().getSimpleName();
 		}
-		jobDescheduleCommand =
-				jobScheduler.scheduleJob(jobName, job, cronPattern, userName, userPass, null);
+		jobDescheduleCommand = jobScheduler.scheduleJob(jobName, job, cronPattern, userName, userPass,
+				null);
 	}
 
 	@Override

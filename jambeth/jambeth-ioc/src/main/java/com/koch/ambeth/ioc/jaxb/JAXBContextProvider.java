@@ -29,28 +29,21 @@ import java.util.concurrent.locks.ReentrantLock;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.util.collections.WeakHashMap;
 
 public class JAXBContextProvider implements IJAXBContextProvider {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
+	protected final WeakHashMap<Class<?>[], Reference<JAXBContext>> queuedContextsMap = new WeakHashMap<Class<?>[], Reference<JAXBContext>>() {
+		@Override
+		protected boolean equalKeys(java.lang.Class<?>[] key,
+				com.koch.ambeth.util.collections.IMapEntry<java.lang.Class<?>[], Reference<JAXBContext>> entry) {
+			return Arrays.equals(key, entry.getKey());
+		}
 
-	protected final WeakHashMap<Class<?>[], Reference<JAXBContext>> queuedContextsMap =
-			new WeakHashMap<Class<?>[], Reference<JAXBContext>>() {
-				@Override
-				protected boolean equalKeys(java.lang.Class<?>[] key,
-						com.koch.ambeth.util.collections.IMapEntry<java.lang.Class<?>[], Reference<JAXBContext>> entry) {
-					return Arrays.equals(key, entry.getKey());
-				}
-
-				@Override
-				protected int extractHash(java.lang.Class<?>[] key) {
-					return Arrays.hashCode(key);
-				}
-			};
+		@Override
+		protected int extractHash(java.lang.Class<?>[] key) {
+			return Arrays.hashCode(key);
+		}
+	};
 
 	protected final Lock writeLock = new ReentrantLock();
 

@@ -26,8 +26,6 @@ import java.util.Comparator;
 import java.util.List;
 
 import com.koch.ambeth.ioc.annotation.Autowired;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.ICUDResultPrinter;
 import com.koch.ambeth.merge.incremental.IIncrementalMergeState;
 import com.koch.ambeth.merge.incremental.IncrementalMergeState;
@@ -53,10 +51,6 @@ import com.koch.ambeth.xml.DefaultXmlWriter;
 import com.koch.ambeth.xml.IWriter;
 
 public class CUDResultPrinter implements ICUDResultPrinter {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	@Autowired
 	protected IConversionHelper conversionHelper;
 
@@ -66,14 +60,13 @@ public class CUDResultPrinter implements ICUDResultPrinter {
 	@Autowired
 	protected IThreadLocalObjectCollector objectCollector;
 
-	protected final Comparator<IChangeContainer> changeContainerComparator =
-			new Comparator<IChangeContainer>() {
-				@Override
-				public int compare(IChangeContainer o1, IChangeContainer o2) {
-					return o1.getReference().getRealType().getName()
-							.compareTo(o2.getReference().getRealType().getName());
-				}
-			};
+	protected final Comparator<IChangeContainer> changeContainerComparator = new Comparator<IChangeContainer>() {
+		@Override
+		public int compare(IChangeContainer o1, IChangeContainer o2) {
+			return o1.getReference().getRealType().getName()
+					.compareTo(o2.getReference().getRealType().getName());
+		}
+	};
 
 	@Override
 	public CharSequence printCUDResult(ICUDResult cudResult, IIncrementalMergeState state) {

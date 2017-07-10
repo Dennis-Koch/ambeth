@@ -48,8 +48,7 @@ import com.koch.ambeth.util.collections.ArrayList;
 @Category(SlowTests.class)
 @SQLData("FilterDescriptor_data.sql")
 @SQLStructure("FilterDescriptor_structure.sql")
-@TestProperties(name = ServiceConfigurationConstants.mappingFile,
-		value = "com/koch/ambeth/query/FilterDescriptor_orm.xml")
+@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "com/koch/ambeth/query/FilterDescriptor_orm.xml")
 public class FilterToQueryBuilderTest extends AbstractInformationBusWithPersistenceTest {
 	private IFilterToQueryBuilder filterToQueryBuilder;
 
@@ -66,11 +65,10 @@ public class FilterToQueryBuilderTest extends AbstractInformationBusWithPersiste
 
 	@Test
 	public void testBuildQuery_ManyChildFilters() {
-		CompositeFilterDescriptor<QueryEntity> filterDescriptor =
-				new CompositeFilterDescriptor<>(QueryEntity.class);
+		CompositeFilterDescriptor<QueryEntity> filterDescriptor = new CompositeFilterDescriptor<>(
+				QueryEntity.class);
 		filterDescriptor.setLogicalOperator(LogicalOperator.OR);
-		List<IFilterDescriptor<QueryEntity>> childFilterDescriptors =
-				new ArrayList<>();
+		List<IFilterDescriptor<QueryEntity>> childFilterDescriptors = new ArrayList<>();
 
 		for (int i = 0; i < 5000; i++) {
 			FilterDescriptor<QueryEntity> filter1 = new FilterDescriptor<>(QueryEntity.class);
@@ -83,12 +81,11 @@ public class FilterToQueryBuilderTest extends AbstractInformationBusWithPersiste
 			filter2.setOperator(FilterOperator.IS_EQUAL_TO);
 			filter2.setValue(Arrays.asList(Integer.toString(2)));
 
-			CompositeFilterDescriptor<QueryEntity> childFilter =
-					new CompositeFilterDescriptor<>(QueryEntity.class);
+			CompositeFilterDescriptor<QueryEntity> childFilter = new CompositeFilterDescriptor<>(
+					QueryEntity.class);
 			childFilter.setLogicalOperator(LogicalOperator.AND);
-			@SuppressWarnings("unchecked")
-			List<IFilterDescriptor<QueryEntity>> subFilters =
-					Arrays.<IFilterDescriptor<QueryEntity>>asList(filter1, filter2);
+			List<IFilterDescriptor<QueryEntity>> subFilters = Arrays
+					.<IFilterDescriptor<QueryEntity>>asList(filter1, filter2);
 			childFilter.setChildFilterDescriptors(subFilters);
 			childFilterDescriptors.add(childFilter);
 		}

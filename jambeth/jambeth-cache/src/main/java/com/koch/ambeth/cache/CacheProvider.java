@@ -28,8 +28,6 @@ import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.config.Property;
 import com.koch.ambeth.ioc.threadlocal.Forkable;
 import com.koch.ambeth.ioc.threadlocal.IThreadLocalCleanupBean;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.cache.CacheFactoryDirective;
 import com.koch.ambeth.merge.cache.ICache;
 import com.koch.ambeth.merge.cache.ICacheFactory;
@@ -40,10 +38,6 @@ import com.koch.ambeth.merge.security.ISecurityActivation;
 import com.koch.ambeth.util.threading.SensitiveThreadLocal;
 
 public class CacheProvider implements IInitializingBean, IThreadLocalCleanupBean, ICacheProvider {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	@Autowired
 	protected ICacheFactory cacheFactory;
 
@@ -141,9 +135,9 @@ public class CacheProvider implements IInitializingBean, IThreadLocalCleanupBean
 				try {
 					if (!securityActive || !securityActivation.isFilterActivated()) {
 						if (privilegedSingletonCache == null) {
-							privilegedSingletonCache =
-									cacheFactory.createPrivileged(CacheFactoryDirective.SubscribeTransactionalDCE,
-											true, null, "CacheProvider.SINGLETON");
+							privilegedSingletonCache = cacheFactory.createPrivileged(
+									CacheFactoryDirective.SubscribeTransactionalDCE, true, null,
+									"CacheProvider.SINGLETON");
 						}
 						return privilegedSingletonCache;
 					}

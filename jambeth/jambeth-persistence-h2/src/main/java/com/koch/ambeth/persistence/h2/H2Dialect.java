@@ -36,8 +36,6 @@ import org.h2.Driver;
 
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.config.Property;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.persistence.IColumnEntry;
 import com.koch.ambeth.persistence.SelectPosition;
 import com.koch.ambeth.persistence.api.sql.ISqlBuilder;
@@ -58,10 +56,6 @@ public class H2Dialect extends AbstractConnectionDialect {
 	public static int getOptimisticLockErrorCode() {
 		return 10001;
 	}
-
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
 
 	@Autowired
 	protected ISqlBuilder sqlBuilder;
@@ -276,8 +270,8 @@ public class H2Dialect extends AbstractConnectionDialect {
 
 				Class<?> javaType = JdbcUtil.getJavaTypeFromJdbcType(typeIndex, scale, digits);
 
-				ColumnEntry entry =
-						new ColumnEntry(fieldName, columnIndex, javaType, typeName, nullable, radix, true);
+				ColumnEntry entry = new ColumnEntry(fieldName, columnIndex, javaType, typeName, nullable,
+						radix, true);
 				columns.add(entry);
 			}
 			return columns;
@@ -309,16 +303,16 @@ public class H2Dialect extends AbstractConnectionDialect {
 		sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER *\\( *18 *, *0 *\\)", " BIGINT");
 		sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER *\\( *\\* *, *0 *\\)", " BIGINT");
 		sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER", " DOUBLE");
-		sqlCommand =
-				prepareCommandIntern(sqlCommand, "VARCHAR2 *\\( *(\\d+) *BYTE *\\)", "VARCHAR($1)");
-		sqlCommand =
-				prepareCommandIntern(sqlCommand, "VARCHAR2 *\\( *(\\d+) *CHAR *\\)", "VARCHAR($1)");
-		sqlCommand =
-				prepareCommandIntern(sqlCommand, " DEFERRABLE *INITIALLY *(?:DEFERRED|IMMEDIATE)", "");
+		sqlCommand = prepareCommandIntern(sqlCommand, "VARCHAR2 *\\( *(\\d+) *BYTE *\\)",
+				"VARCHAR($1)");
+		sqlCommand = prepareCommandIntern(sqlCommand, "VARCHAR2 *\\( *(\\d+) *CHAR *\\)",
+				"VARCHAR($1)");
+		sqlCommand = prepareCommandIntern(sqlCommand, " DEFERRABLE *INITIALLY *(?:DEFERRED|IMMEDIATE)",
+				"");
 		sqlCommand = prepareCommandIntern(sqlCommand, " NOORDER", "");
 		sqlCommand = prepareCommandIntern(sqlCommand, " USING +INDEX", "");
-		sqlCommand =
-				prepareCommandIntern(sqlCommand, "MAXVALUE *9{19,} ", "MAXVALUE 999999999999999999 ");
+		sqlCommand = prepareCommandIntern(sqlCommand, "MAXVALUE *9{19,} ",
+				"MAXVALUE 999999999999999999 ");
 		sqlCommand = prepareCommandIntern(sqlCommand, "DBMS_RANDOM\\.VALUE", "RAND()");
 		sqlCommand = prepareCommandIntern(sqlCommand, "to_timestamp\\(", "TO_TIMESTAMP(");
 		return sqlCommand;

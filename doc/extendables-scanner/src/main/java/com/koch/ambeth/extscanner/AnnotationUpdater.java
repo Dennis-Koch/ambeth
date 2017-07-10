@@ -31,7 +31,6 @@ public class AnnotationUpdater extends AbstractLatexScanner implements IStarting
 			"(.*" + Pattern.quote(LISTING_START) + ").*(" + Pattern.quote(LISTING_END) + ".*)",
 			Pattern.DOTALL);
 
-	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 
@@ -45,8 +44,8 @@ public class AnnotationUpdater extends AbstractLatexScanner implements IStarting
 			throws Exception {
 		String targetOpening = getAPI(annotationEntry);
 		if (!targetFile.exists()) {
-			OutputStreamWriter fw =
-					new OutputStreamWriter(new FileOutputStream(targetFile), Charsets.UTF_8);
+			OutputStreamWriter fw = new OutputStreamWriter(new FileOutputStream(targetFile),
+					Charsets.UTF_8);
 			try {
 				fw.append(targetOpening);
 				fw.append("\n\\section{").append(annotationEntry.simpleName).append("}");
@@ -131,8 +130,8 @@ public class AnnotationUpdater extends AbstractLatexScanner implements IStarting
 			}
 			String texName = simpleName;
 			String labelName = "annotation:" + texName;
-			annotationEntry =
-					new AnnotationEntry(fqName, simpleName, labelName, typeDescr.getModuleName());
+			annotationEntry = new AnnotationEntry(fqName, simpleName, labelName,
+					typeDescr.getModuleName());
 			model.addAnnotation(annotationName, annotationEntry);
 		}
 		return annotationEntry;
@@ -202,8 +201,8 @@ public class AnnotationUpdater extends AbstractLatexScanner implements IStarting
 		ArrayList<AnnotationEntry> allAnnotations = new ArrayList<>(model.allAnnotations());
 		Collections.sort(allAnnotations);
 
-		OutputStreamWriter fw =
-				new OutputStreamWriter(new FileOutputStream(allAnnotationsTexFile), Charsets.UTF_8);
+		OutputStreamWriter fw = new OutputStreamWriter(new FileOutputStream(allAnnotationsTexFile),
+				Charsets.UTF_8);
 		try {
 			fw.append("%---------------------------------------------------------------\n");
 			fw.append("% This file is FULLY generated. Please do not edit anything here\n");

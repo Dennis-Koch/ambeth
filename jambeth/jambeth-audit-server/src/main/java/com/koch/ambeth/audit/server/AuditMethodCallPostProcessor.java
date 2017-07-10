@@ -31,8 +31,6 @@ import com.koch.ambeth.ioc.IServiceContext;
 import com.koch.ambeth.ioc.ProcessorOrder;
 import com.koch.ambeth.ioc.config.IBeanConfiguration;
 import com.koch.ambeth.ioc.factory.IBeanContextFactory;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.security.audit.model.Audited;
 import com.koch.ambeth.security.audit.model.AuditedArg;
 import com.koch.ambeth.service.proxy.AbstractCascadePostProcessor;
@@ -44,10 +42,6 @@ import com.koch.ambeth.util.proxy.ICascadedInterceptor;
 
 public class AuditMethodCallPostProcessor extends AbstractCascadePostProcessor
 		implements IOrderedBeanProcessor {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	protected final AnnotationCache<Audited> annotationCache = new AnnotationCache<Audited>(
 			Audited.class) {
 		@Override

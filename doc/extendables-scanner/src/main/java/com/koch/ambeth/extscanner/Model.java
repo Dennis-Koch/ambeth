@@ -8,17 +8,11 @@ import com.koch.ambeth.extscanner.model.ExtendableEntry;
 import com.koch.ambeth.extscanner.model.FeatureEntry;
 import com.koch.ambeth.extscanner.model.ModuleEntry;
 import com.koch.ambeth.extscanner.model.TypeEntry;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.HashMap;
 import com.koch.classbrowser.java.TypeDescription;
 
 public class Model implements IModel {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	protected final HashMap<String, ModuleEntry> nameToModuleMap = new HashMap<>();
 
 	protected final HashMap<String, ExtendableEntry> nameToExtendableMap = new HashMap<>();

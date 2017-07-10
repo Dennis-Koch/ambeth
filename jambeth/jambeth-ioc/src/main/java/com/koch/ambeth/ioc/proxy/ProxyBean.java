@@ -22,18 +22,12 @@ limitations under the License.
 
 import com.koch.ambeth.ioc.IFactoryBean;
 import com.koch.ambeth.ioc.IInitializingBean;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.util.ParamChecker;
 import com.koch.ambeth.util.proxy.IProxyFactory;
 
 import net.sf.cglib.proxy.MethodInterceptor;
 
 public class ProxyBean implements IInitializingBean, IFactoryBean {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	protected IProxyFactory proxyFactory;
 
 	protected Class<?> type;

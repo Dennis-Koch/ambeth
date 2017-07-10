@@ -35,7 +35,6 @@ import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import oracle.jdbc.OracleConnection;
 
 public class OracleConnectionExtension implements IConnectionExtension {
-	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 

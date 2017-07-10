@@ -48,8 +48,6 @@ import com.koch.ambeth.ioc.IInitializingBean;
 import com.koch.ambeth.ioc.IServiceContext;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.config.Property;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.ITransactionState;
 import com.koch.ambeth.merge.metadata.MemberTypeProvider;
 import com.koch.ambeth.persistence.ArrayQueryItem;
@@ -99,10 +97,6 @@ public abstract class AbstractConnectionDialect
 	}
 
 	protected Pattern dotPattern = Pattern.compile(".", Pattern.LITERAL);
-
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
 
 	@Autowired
 	protected IConversionHelper conversionHelper;

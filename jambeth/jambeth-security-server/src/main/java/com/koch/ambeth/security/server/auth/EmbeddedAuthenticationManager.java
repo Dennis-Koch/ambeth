@@ -22,9 +22,6 @@ limitations under the License.
 
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.config.Property;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
-import com.koch.ambeth.merge.cache.ICache;
 import com.koch.ambeth.merge.security.ISecurityActivation;
 import com.koch.ambeth.security.AuthenticationException;
 import com.koch.ambeth.security.AuthenticationResult;
@@ -42,13 +39,6 @@ import com.koch.ambeth.util.state.IStateRollback;
 import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
 
 public class EmbeddedAuthenticationManager extends AbstractAuthenticationManager {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
-	@Autowired
-	protected ICache cache;
-
 	@Autowired
 	protected IUserIdentifierProvider userIdentifierProvider;
 

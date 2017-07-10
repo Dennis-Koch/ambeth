@@ -32,8 +32,6 @@ import com.koch.ambeth.event.IEventBatcher;
 import com.koch.ambeth.event.IQueuedEvent;
 import com.koch.ambeth.event.QueuedEvent;
 import com.koch.ambeth.ioc.IInitializingBean;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.transfer.DirectObjRef;
 import com.koch.ambeth.merge.transfer.ObjRef;
 import com.koch.ambeth.service.merge.IEntityMetaDataProvider;
@@ -48,10 +46,6 @@ import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.ISet;
 
 public class DataChangeEventBatcher implements IEventBatcher, IInitializingBean {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	protected IConversionHelper conversionHelper;
 
 	protected IEntityMetaDataProvider entityMetaDataProvider;
@@ -193,8 +187,8 @@ public class DataChangeEventBatcher implements IEventBatcher, IInitializingBean 
 				deletes.add(new DataChangeEntry(objRef.getRealType(), objRef.getIdNameIndex(),
 						objRef.getId(), objRef.getVersion()));
 			}
-			DataChangeEvent compositeDataChange =
-					new DataChangeEvent(inserts, updates, deletes, lastDCETime, isLocalSource.booleanValue());
+			DataChangeEvent compositeDataChange = new DataChangeEvent(inserts, updates, deletes,
+					lastDCETime, isLocalSource.booleanValue());
 			targetBatchedEvents
 					.add(new QueuedEvent(compositeDataChange, lastQueuedEventTime, lastSequenceNumber));
 		}
@@ -203,8 +197,7 @@ public class DataChangeEventBatcher implements IEventBatcher, IInitializingBean 
 	protected void splitDataChangeBatch(List<IQueuedEvent> dataChanges, int indexToSplit,
 			List<IQueuedEvent> targetBatchedEvents) {
 		ArrayList<IQueuedEvent> firstSplit = new ArrayList<>(indexToSplit);
-		ArrayList<IQueuedEvent> secondSplit =
-				new ArrayList<>(dataChanges.size() - indexToSplit);
+		ArrayList<IQueuedEvent> secondSplit = new ArrayList<>(dataChanges.size() - indexToSplit);
 
 		for (int b = 0; b < indexToSplit; b++) {
 			firstSplit.add(dataChanges.get(b));

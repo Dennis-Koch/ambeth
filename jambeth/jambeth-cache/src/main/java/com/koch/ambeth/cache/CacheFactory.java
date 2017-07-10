@@ -24,8 +24,6 @@ import com.koch.ambeth.ioc.IBeanRuntime;
 import com.koch.ambeth.ioc.IServiceContext;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.config.Property;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.cache.CacheFactoryDirective;
 import com.koch.ambeth.merge.cache.ICache;
 import com.koch.ambeth.merge.cache.ICacheFactory;
@@ -35,10 +33,6 @@ import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
 
 public class CacheFactory implements ICacheFactory {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	@Autowired
 	protected IServiceContext beanContext;
 

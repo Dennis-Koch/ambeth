@@ -27,17 +27,11 @@ import javax.naming.NamingException;
 import javax.sql.DataSource;
 
 import com.koch.ambeth.ioc.config.Property;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationConstants;
 import com.koch.ambeth.util.ParamChecker;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
 public class DataSourceConnectionFactory extends AbstractConnectionFactory {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	@Property(name = PersistenceJdbcConfigurationConstants.DataSourceInstance, mandatory = false)
 	protected DataSource dataSource;
 

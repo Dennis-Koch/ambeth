@@ -49,7 +49,6 @@ import com.koch.ambeth.util.threading.IBackgroundWorkerDelegate;
 import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
 
 public class AuditVerifyOnLoadTask implements Runnable, IAuditVerifyOnLoadTask, IDisposableBean {
-	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 

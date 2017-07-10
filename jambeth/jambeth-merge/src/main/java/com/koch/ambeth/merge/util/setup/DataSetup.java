@@ -67,8 +67,8 @@ public class DataSetup implements IDataSetup, IDatasetBuilderExtendable {
 	@Autowired
 	protected ILightweightSecurityContext securityContext;
 
-	protected final IExtendableContainer<IDatasetBuilder> datasetBuilderContainer =
-			new DefaultExtendableContainer<>(IDatasetBuilder.class, "TestBedBuilders");
+	protected final IExtendableContainer<IDatasetBuilder> datasetBuilderContainer = new DefaultExtendableContainer<>(
+			IDatasetBuilder.class, "TestBedBuilders");
 
 	@Override
 	public void registerDatasetBuilder(IDatasetBuilder testBedBuilder) {
@@ -231,8 +231,8 @@ public class DataSetup implements IDataSetup, IDatasetBuilderExtendable {
 			}
 		}
 		while (!runnables.isEmpty()) {
-			IBackgroundWorkerDelegate[] runnablesArray =
-					runnables.toArray(IBackgroundWorkerDelegate.class);
+			IBackgroundWorkerDelegate[] runnablesArray = runnables
+					.toArray(IBackgroundWorkerDelegate.class);
 			runnables.clear();
 			for (IBackgroundWorkerDelegate runnable : runnablesArray) {
 				try {
@@ -333,6 +333,7 @@ public class DataSetup implements IDataSetup, IDatasetBuilderExtendable {
 				objRefs.add(objRef);
 				runnables.add(new IBackgroundWorkerDelegate() {
 
+					@SuppressWarnings("unchecked")
 					@Override
 					public void invoke() throws Exception {
 						Object entity = objRefToEntityMap.get(objRef);

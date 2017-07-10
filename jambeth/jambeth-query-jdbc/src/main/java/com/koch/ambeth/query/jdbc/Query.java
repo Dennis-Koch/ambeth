@@ -25,8 +25,6 @@ import java.util.List;
 import com.koch.ambeth.ioc.IServiceContext;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.config.Property;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.config.MergeConfigurationConstants;
 import com.koch.ambeth.merge.proxy.PersistenceContext;
 import com.koch.ambeth.merge.transfer.ObjRef;
@@ -61,10 +59,6 @@ import com.koch.ambeth.util.objectcollector.IThreadLocalObjectCollector;
 
 @PersistenceContext
 public class Query<T> implements IQuery<T>, IQueryIntern<T>, ISubQuery<T> {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	@Autowired
 	protected IServiceContext beanContext;
 
@@ -207,8 +201,8 @@ public class Query<T> implements IQuery<T>, IQueryIntern<T>, ISubQuery<T> {
 		String orderBySql = sqlParts[2];
 		String limitSql = sqlParts[3];
 
-		String tableAlias =
-				(stringQuery.isJoinQuery() || containsSubQuery) ? tableAliasHolder.getTableAlias() : null;
+		String tableAlias = (stringQuery.isJoinQuery() || containsSubQuery)
+				? tableAliasHolder.getTableAlias() : null;
 
 		Table table = (Table) this.database.getTableByType(this.entityType);
 
@@ -276,7 +270,7 @@ public class Query<T> implements IQuery<T>, IQueryIntern<T>, ISubQuery<T> {
 			tempSB.reset();
 			fillLimitSQL(additionalSelectColumnList, tempSB, nameToValueMap, joinQuery, parameters);
 			String limitSql = tempSB.length() > 0 ? tempSB.toString() : null;
-			String[] sqlParts = {joinSql, whereSql, orderBySql, limitSql};
+			String[] sqlParts = { joinSql, whereSql, orderBySql, limitSql };
 			return sqlParts;
 		}
 		finally {
@@ -440,8 +434,8 @@ public class Query<T> implements IQuery<T>, IQueryIntern<T>, ISubQuery<T> {
 
 	@Override
 	public boolean isEmpty(IMap<Object, Object> paramNameToValueMap) {
-		IVersionCursor versionCursor =
-				(IVersionCursor) buildCursor(paramNameToValueMap, RetrievalType.VERSION, 1, false);
+		IVersionCursor versionCursor = (IVersionCursor) buildCursor(paramNameToValueMap,
+				RetrievalType.VERSION, 1, false);
 		try {
 			return !versionCursor.moveNext();
 		}

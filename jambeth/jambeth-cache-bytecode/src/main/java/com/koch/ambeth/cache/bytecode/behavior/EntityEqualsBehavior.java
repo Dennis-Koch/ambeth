@@ -34,8 +34,6 @@ import com.koch.ambeth.cache.bytecode.visitor.GetBaseTypeMethodCreator;
 import com.koch.ambeth.cache.bytecode.visitor.GetIdMethodCreator;
 import com.koch.ambeth.cache.proxy.IEntityEquals;
 import com.koch.ambeth.ioc.annotation.Autowired;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.bytecode.EntityEnhancementHint;
 import com.koch.ambeth.service.merge.IEntityMetaDataProvider;
 import com.koch.ambeth.service.merge.model.IEntityMetaData;
@@ -43,16 +41,12 @@ import com.koch.ambeth.util.IPrintable;
 import com.koch.ambeth.util.annotation.EntityEqualsAspect;
 
 public class EntityEqualsBehavior extends AbstractBehavior {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	@Autowired
 	protected IEntityMetaDataProvider entityMetaDataProvider;
 
 	@Override
 	public Class<?>[] getEnhancements() {
-		return new Class<?>[] {IEntityEquals.class};
+		return new Class<?>[] { IEntityEquals.class };
 	}
 
 	@Override

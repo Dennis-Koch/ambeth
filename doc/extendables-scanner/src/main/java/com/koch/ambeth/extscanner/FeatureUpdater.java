@@ -17,10 +17,9 @@ import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.classbrowser.java.TypeDescription;
 
 public class FeatureUpdater extends AbstractLatexScanner implements IStartingBean {
-	public static final Pattern featureConditionPattern =
-			Pattern.compile(".*%%\\s*feature-condition\\s*=\\s*(\\S+)\\s+.*", Pattern.DOTALL);
+	public static final Pattern featureConditionPattern = Pattern
+			.compile(".*%%\\s*feature-condition\\s*=\\s*(\\S+)\\s+.*", Pattern.DOTALL);
 
-	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 

@@ -23,14 +23,8 @@ limitations under the License.
 import com.koch.ambeth.datachange.model.IDataChange;
 import com.koch.ambeth.event.IEventListener;
 import com.koch.ambeth.ioc.annotation.Autowired;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 
 public class ForwardLocalDataChangeToKafka implements IEventListener {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	@Autowired
 	protected IEventListener eventListener;
 

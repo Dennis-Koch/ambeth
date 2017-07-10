@@ -22,8 +22,6 @@ limitations under the License.
 
 import com.koch.ambeth.ioc.IDisposableBean;
 import com.koch.ambeth.ioc.IInitializingBean;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.util.ParamChecker;
 import com.koch.ambeth.util.objectcollector.IThreadLocalObjectCollector;
 
@@ -33,10 +31,6 @@ import com.koch.ambeth.util.objectcollector.IThreadLocalObjectCollector;
  * NOT thread-save! Each Query (not SubQuery) needs its own instance.
  */
 public class TableAliasProvider implements ITableAliasProvider, IInitializingBean, IDisposableBean {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	private static final int lettersInTheAlphabet = 26;
 
 	private static final char firstTableAlias = 'A';

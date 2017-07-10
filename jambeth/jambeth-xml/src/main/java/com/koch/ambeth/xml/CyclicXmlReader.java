@@ -21,18 +21,12 @@ limitations under the License.
  */
 
 import com.koch.ambeth.ioc.annotation.Autowired;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.xml.postprocess.IPostProcessReader;
 import com.koch.ambeth.xml.postprocess.IXmlPostProcessor;
 import com.koch.ambeth.xml.postprocess.IXmlPostProcessorRegistry;
 import com.koch.ambeth.xml.simple.SimpleXmlReader;
 
 public class CyclicXmlReader extends SimpleXmlReader {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	@Autowired
 	protected ICyclicXmlDictionary xmlDictionary;
 
@@ -69,8 +63,8 @@ public class CyclicXmlReader extends SimpleXmlReader {
 
 		while (pullParserReader.isStartTag()) {
 			elementName = pullParserReader.getElementName();
-			IXmlPostProcessor xmlPostProcessor =
-					xmlPostProcessorRegistry.getXmlPostProcessor(elementName);
+			IXmlPostProcessor xmlPostProcessor = xmlPostProcessorRegistry
+					.getXmlPostProcessor(elementName);
 			if (xmlPostProcessor == null) {
 				throw new IllegalStateException("Post processing tag <" + elementName + "> not supported.");
 			}

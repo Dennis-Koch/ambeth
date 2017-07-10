@@ -29,8 +29,6 @@ import com.koch.ambeth.bytecode.MethodGenerator;
 import com.koch.ambeth.bytecode.MethodInstance;
 import com.koch.ambeth.bytecode.PropertyInstance;
 import com.koch.ambeth.expr.PropertyExpression;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.proxy.IEntityMetaDataHolder;
 
 public class PropertyExpressionClassVisitor extends ClassGenerator {
@@ -38,23 +36,19 @@ public class PropertyExpressionClassVisitor extends ClassGenerator {
 
 	public static final String templatePropertyName = "__" + templateType.getSimpleName();
 
-	private static final MethodInstance mi_propertyExpression_evaluate =
-			new MethodInstance(null, templateType, Object.class, "evaluate", IEntityMetaDataHolder.class,
-					String.class, Class.class);
+	private static final MethodInstance mi_propertyExpression_evaluate = new MethodInstance(null,
+			templateType, Object.class, "evaluate", IEntityMetaDataHolder.class, String.class,
+			Class.class);
 
 	public static PropertyInstance getPropertyExpressionMixinProperty(ClassGenerator cv) {
 		Object bean = getState().getBeanContext().getService(templateType);
-		PropertyInstance pi =
-				PropertyInstance.findByTemplate(templatePropertyName, bean.getClass(), true);
+		PropertyInstance pi = PropertyInstance.findByTemplate(templatePropertyName, bean.getClass(),
+				true);
 		if (pi != null) {
 			return pi;
 		}
 		return cv.implementAssignedReadonlyProperty(templatePropertyName, bean);
 	}
-
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
 
 	public PropertyExpressionClassVisitor(ClassVisitor cv) {
 		super(cv);

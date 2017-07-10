@@ -24,10 +24,12 @@ import com.koch.ambeth.security.privilege.model.IPrivilege;
 import com.koch.ambeth.security.privilege.model.IPropertyPrivilege;
 
 public final class DenyAllPrivilege extends AbstractPrivilege {
+	private static final long serialVersionUID = -8854111344355491831L;
+
 	public static final IPrivilege INSTANCE = new DenyAllPrivilege();
 
-	private static final IPropertyPrivilege denyAllPropertyPrivilege =
-			PropertyPrivilegeImpl.create(false, false, false, false);
+	private static final IPropertyPrivilege denyAllPropertyPrivilege = PropertyPrivilegeImpl
+			.create(false, false, false, false);
 
 	private DenyAllPrivilege() {
 		super(false, false, false, false, false, null, null);

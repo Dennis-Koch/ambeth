@@ -25,19 +25,12 @@ import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.threadlocal.Forkable;
 import com.koch.ambeth.ioc.threadlocal.IThreadLocalCleanupBean;
 import com.koch.ambeth.ioc.threadlocal.IThreadLocalCleanupBeanExtendable;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.util.threading.SensitiveThreadLocal;
 
 public class ThreadLocalContextHandle extends AbstractChildContextHandle
 		implements IThreadLocalCleanupBean {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	@Forkable
-	protected final ThreadLocal<IServiceContext> childContextTL =
-			new SensitiveThreadLocal<>();
+	protected final ThreadLocal<IServiceContext> childContextTL = new SensitiveThreadLocal<>();
 
 	@Autowired
 	protected IThreadLocalCleanupBeanExtendable threadLocalCleanupBeanExtendable;

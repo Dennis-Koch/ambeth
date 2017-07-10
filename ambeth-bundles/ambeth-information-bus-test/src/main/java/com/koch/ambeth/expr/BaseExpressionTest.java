@@ -30,8 +30,6 @@ import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.config.IBeanConfiguration;
 import com.koch.ambeth.ioc.config.Property;
 import com.koch.ambeth.ioc.factory.IBeanContextFactory;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.IEntityFactory;
 import com.koch.ambeth.service.config.ServiceConfigurationConstants;
 import com.koch.ambeth.testutil.AbstractInformationBusTest;
@@ -42,9 +40,8 @@ import com.koch.ambeth.util.config.IProperties;
 
 @TestModule(ExpressionTestModule.class)
 @TestPropertiesList({
-		@TestProperties(name = ServiceConfigurationConstants.mappingFile,
-				value = "com/koch/ambeth/expr/orm.xml"),
-		@TestProperties(name = BaseExpressionTest.myFunnyProp, value = "123.456")})
+		@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "com/koch/ambeth/expr/orm.xml"),
+		@TestProperties(name = BaseExpressionTest.myFunnyProp, value = "123.456") })
 public abstract class BaseExpressionTest extends AbstractInformationBusTest {
 	public static class ExpressionTestModule implements IInitializingModule {
 		@Autowired
@@ -52,8 +49,8 @@ public abstract class BaseExpressionTest extends AbstractInformationBusTest {
 
 		@Override
 		public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
-			IBeanConfiguration inMemoryCacheRetriever =
-					beanContextFactory.registerBean(InMemoryCacheRetriever.class);
+			IBeanConfiguration inMemoryCacheRetriever = beanContextFactory
+					.registerBean(InMemoryCacheRetriever.class);
 			beanContextFactory.link(inMemoryCacheRetriever).to(ICacheRetrieverExtendable.class)
 					.with(ExpressionEntity.class);
 
@@ -65,10 +62,6 @@ public abstract class BaseExpressionTest extends AbstractInformationBusTest {
 	public static final String myFunnyProp = "myFunnyProp";
 
 	public static final String myFunnyProp2 = "myFunnyProp2";
-
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
 
 	@Autowired
 	protected IEntityFactory entityFactory;

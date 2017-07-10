@@ -32,23 +32,17 @@ import com.koch.ambeth.bytecode.visitor.InterfaceAdder;
 import com.koch.ambeth.cache.IParentCacheValueHardRef;
 import com.koch.ambeth.cache.bytecode.visitor.ParentCacheHardRefVisitor;
 import com.koch.ambeth.ioc.annotation.Autowired;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.bytecode.EntityEnhancementHint;
 import com.koch.ambeth.service.merge.IEntityMetaDataProvider;
 import com.koch.ambeth.service.merge.model.IEntityMetaData;
 
 public class ParentCacheHardRefBehavior extends AbstractBehavior {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	@Autowired
 	protected IEntityMetaDataProvider entityMetaDataProvider;
 
 	@Override
 	public Class<?>[] getEnhancements() {
-		return new Class<?>[] {IParentCacheValueHardRef.class};
+		return new Class<?>[] { IParentCacheValueHardRef.class };
 	}
 
 	@Override

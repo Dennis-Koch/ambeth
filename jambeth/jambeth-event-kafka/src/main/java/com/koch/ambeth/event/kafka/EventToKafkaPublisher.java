@@ -33,16 +33,10 @@ import com.koch.ambeth.ioc.IDisposableBean;
 import com.koch.ambeth.ioc.IInitializingBean;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.config.Property;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.util.config.IProperties;
 
 public class EventToKafkaPublisher
 		implements IEventListener, IBatchedEventListener, IInitializingBean, IDisposableBean {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	@Autowired
 	protected IEventQueue eventQueue;
 
@@ -62,9 +56,8 @@ public class EventToKafkaPublisher
 
 	@Override
 	public void afterPropertiesSet() throws Throwable {
-		producer =
-				new KafkaProducer<>(AmbethKafkaConfiguration.extractKafkaProperties(props),
-						new StringSerializer(), xmlKafkaSerializer);
+		producer = new KafkaProducer<>(AmbethKafkaConfiguration.extractKafkaProperties(props),
+				new StringSerializer(), xmlKafkaSerializer);
 	}
 
 	@Override

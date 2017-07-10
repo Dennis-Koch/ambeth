@@ -36,20 +36,16 @@ import com.koch.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationConst
 import com.koch.ambeth.persistence.jdbc.connection.IDatabaseConnectionUrlProvider;
 
 public class H2Module implements IInitializingModule, IPropertyLoadingBean {
-	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 
-	@Property(name = PersistenceConfigurationConstants.ExternalTransactionManager,
-			defaultValue = "false")
+	@Property(name = PersistenceConfigurationConstants.ExternalTransactionManager, defaultValue = "false")
 	protected boolean externalTransactionManager;
 
-	@Property(name = PersistenceJdbcConfigurationConstants.IntegratedConnectionPool,
-			defaultValue = "true")
+	@Property(name = PersistenceJdbcConfigurationConstants.IntegratedConnectionPool, defaultValue = "true")
 	protected boolean integratedConnectionPool;
 
-	@Property(name = PersistenceJdbcConfigurationConstants.DatabaseBehaviourStrict,
-			defaultValue = "false")
+	@Property(name = PersistenceJdbcConfigurationConstants.DatabaseBehaviourStrict, defaultValue = "false")
 	protected boolean databaseBehaviourStrict;
 
 	@Property(name = PersistenceConfigurationConstants.DatabasePoolPassivate, defaultValue = "false")

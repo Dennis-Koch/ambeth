@@ -25,8 +25,6 @@ limitations under the License.
 import java.util.List;
 
 import com.koch.ambeth.ioc.annotation.Autowired;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.cache.ICache;
 import com.koch.ambeth.merge.metadata.MemberTypeProvider;
 import com.koch.ambeth.merge.service.IMergeService;
@@ -40,10 +38,6 @@ import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
 public class EntityMetaDataClient implements IEntityMetaDataProvider {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	@Autowired
 	protected ICache cache;
 

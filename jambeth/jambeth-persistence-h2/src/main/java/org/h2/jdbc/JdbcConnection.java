@@ -112,6 +112,7 @@ public class JdbcConnection extends TraceObject implements Connection {
 	/**
 	 * INTERNAL
 	 */
+	@SuppressWarnings("resource")
 	public JdbcConnection(ConnectionInfo ci, boolean useBaseDir) throws SQLException {
 		try {
 			if (useBaseDir) {
@@ -197,7 +198,8 @@ public class JdbcConnection extends TraceObject implements Connection {
 	 * Creates a new statement.
 	 *
 	 * @return the new statement
-	 * @throws SQLException if the connection is closed
+	 * @throws SQLException
+	 *           if the connection is closed
 	 */
 	@Override
 	public Statement createStatement() throws SQLException {
@@ -218,11 +220,13 @@ public class JdbcConnection extends TraceObject implements Connection {
 	/**
 	 * Creates a statement with the specified result set type and concurrency.
 	 *
-	 * @param resultSetType the result set type (ResultSet.TYPE_*)
-	 * @param resultSetConcurrency the concurrency (ResultSet.CONCUR_*)
+	 * @param resultSetType
+	 *          the result set type (ResultSet.TYPE_*)
+	 * @param resultSetConcurrency
+	 *          the concurrency (ResultSet.CONCUR_*)
 	 * @return the statement
-	 * @throws SQLException if the connection is closed or the result set type or concurrency are not
-	 *         supported
+	 * @throws SQLException
+	 *           if the connection is closed or the result set type or concurrency are not supported
 	 */
 	@Override
 	public Statement createStatement(int resultSetType, int resultSetConcurrency)
@@ -245,12 +249,16 @@ public class JdbcConnection extends TraceObject implements Connection {
 	/**
 	 * Creates a statement with the specified result set type, concurrency, and holdability.
 	 *
-	 * @param resultSetType the result set type (ResultSet.TYPE_*)
-	 * @param resultSetConcurrency the concurrency (ResultSet.CONCUR_*)
-	 * @param resultSetHoldability the holdability (ResultSet.HOLD* / CLOSE*)
+	 * @param resultSetType
+	 *          the result set type (ResultSet.TYPE_*)
+	 * @param resultSetConcurrency
+	 *          the concurrency (ResultSet.CONCUR_*)
+	 * @param resultSetHoldability
+	 *          the holdability (ResultSet.HOLD* / CLOSE*)
 	 * @return the statement
-	 * @throws SQLException if the connection is closed or the result set type, concurrency, or
-	 *         holdability are not supported
+	 * @throws SQLException
+	 *           if the connection is closed or the result set type, concurrency, or holdability are
+	 *           not supported
 	 */
 	@Override
 	public Statement createStatement(int resultSetType, int resultSetConcurrency,
@@ -274,9 +282,11 @@ public class JdbcConnection extends TraceObject implements Connection {
 	/**
 	 * Creates a new prepared statement.
 	 *
-	 * @param sql the SQL statement
+	 * @param sql
+	 *          the SQL statement
 	 * @return the prepared statement
-	 * @throws SQLException if the connection is closed
+	 * @throws SQLException
+	 *           if the connection is closed
 	 */
 	@Override
 	public PreparedStatement prepareStatement(String sql) throws SQLException {
@@ -300,7 +310,8 @@ public class JdbcConnection extends TraceObject implements Connection {
 	 * Prepare a statement that will automatically close when the result set is closed. This method is
 	 * used to retrieve database meta data.
 	 *
-	 * @param sql the SQL statement
+	 * @param sql
+	 *          the SQL statement
 	 * @return the prepared statement
 	 */
 	PreparedStatement prepareAutoCloseStatement(String sql) throws SQLException {
@@ -324,7 +335,8 @@ public class JdbcConnection extends TraceObject implements Connection {
 	 * Gets the database meta data for this database.
 	 *
 	 * @return the database meta data
-	 * @throws SQLException if the connection is closed
+	 * @throws SQLException
+	 *           if the connection is closed
 	 */
 	@Override
 	public DatabaseMetaData getMetaData() throws SQLException {
@@ -431,8 +443,10 @@ public class JdbcConnection extends TraceObject implements Connection {
 	 * Switches auto commit on or off. Enabling it commits an uncommitted transaction, if there is
 	 * one.
 	 *
-	 * @param autoCommit true for auto commit on, false for off
-	 * @throws SQLException if the connection is closed
+	 * @param autoCommit
+	 *          true for auto commit on, false for off
+	 * @throws SQLException
+	 *           if the connection is closed
 	 */
 	@Override
 	public synchronized void setAutoCommit(boolean autoCommit) throws SQLException {
@@ -455,7 +469,8 @@ public class JdbcConnection extends TraceObject implements Connection {
 	 * Gets the current setting for auto commit.
 	 *
 	 * @return true for on, false for off
-	 * @throws SQLException if the connection is closed
+	 * @throws SQLException
+	 *           if the connection is closed
 	 */
 	@Override
 	public synchronized boolean getAutoCommit() throws SQLException {
@@ -472,7 +487,8 @@ public class JdbcConnection extends TraceObject implements Connection {
 	/**
 	 * Commits the current transaction. This call has only an effect if auto commit is switched off.
 	 *
-	 * @throws SQLException if the connection is closed
+	 * @throws SQLException
+	 *           if the connection is closed
 	 */
 	@Override
 	public synchronized void commit() throws SQLException {
@@ -496,7 +512,8 @@ public class JdbcConnection extends TraceObject implements Connection {
 	 * Rolls back the current transaction. This call has only an effect if auto commit is switched
 	 * off.
 	 *
-	 * @throws SQLException if the connection is closed
+	 * @throws SQLException
+	 *           if the connection is closed
 	 */
 	@Override
 	public synchronized void rollback() throws SQLException {
@@ -534,9 +551,11 @@ public class JdbcConnection extends TraceObject implements Connection {
 	/**
 	 * Translates a SQL statement into the database grammar.
 	 *
-	 * @param sql the SQL statement with or without JDBC escape sequences
+	 * @param sql
+	 *          the SQL statement with or without JDBC escape sequences
 	 * @return the translated statement
-	 * @throws SQLException if the connection is closed
+	 * @throws SQLException
+	 *           if the connection is closed
 	 */
 	@Override
 	public String nativeSQL(String sql) throws SQLException {
@@ -554,8 +573,10 @@ public class JdbcConnection extends TraceObject implements Connection {
 	 * According to the JDBC specs, this setting is only a hint to the database to enable
 	 * optimizations - it does not cause writes to be prohibited.
 	 *
-	 * @param readOnly ignored
-	 * @throws SQLException if the connection is closed
+	 * @param readOnly
+	 *          ignored
+	 * @throws SQLException
+	 *           if the connection is closed
 	 */
 	@Override
 	public void setReadOnly(boolean readOnly) throws SQLException {
@@ -574,7 +595,8 @@ public class JdbcConnection extends TraceObject implements Connection {
 	 * Returns true if the database is read-only.
 	 *
 	 * @return if the database is read-only
-	 * @throws SQLException if the connection is closed
+	 * @throws SQLException
+	 *           if the connection is closed
 	 */
 	@Override
 	public boolean isReadOnly() throws SQLException {
@@ -595,8 +617,10 @@ public class JdbcConnection extends TraceObject implements Connection {
 	/**
 	 * Set the default catalog name. This call is ignored.
 	 *
-	 * @param catalog ignored
-	 * @throws SQLException if the connection is closed
+	 * @param catalog
+	 *          ignored
+	 * @throws SQLException
+	 *           if the connection is closed
 	 */
 	@Override
 	public void setCatalog(String catalog) throws SQLException {
@@ -613,7 +637,8 @@ public class JdbcConnection extends TraceObject implements Connection {
 	 * Gets the current catalog name.
 	 *
 	 * @return the catalog name
-	 * @throws SQLException if the connection is closed
+	 * @throws SQLException
+	 *           if the connection is closed
 	 */
 	@Override
 	public String getCatalog() throws SQLException {
@@ -668,12 +693,15 @@ public class JdbcConnection extends TraceObject implements Connection {
 	/**
 	 * Creates a prepared statement with the specified result set type and concurrency.
 	 *
-	 * @param sql the SQL statement
-	 * @param resultSetType the result set type (ResultSet.TYPE_*)
-	 * @param resultSetConcurrency the concurrency (ResultSet.CONCUR_*)
+	 * @param sql
+	 *          the SQL statement
+	 * @param resultSetType
+	 *          the result set type (ResultSet.TYPE_*)
+	 * @param resultSetConcurrency
+	 *          the concurrency (ResultSet.CONCUR_*)
 	 * @return the prepared statement
-	 * @throws SQLException if the connection is closed or the result set type or concurrency are not
-	 *         supported
+	 * @throws SQLException
+	 *           if the connection is closed or the result set type or concurrency are not supported
 	 */
 	@Override
 	public PreparedStatement prepareStatement(String sql, int resultSetType, int resultSetConcurrency)
@@ -709,9 +737,11 @@ public class JdbcConnection extends TraceObject implements Connection {
 	 * This setting is not persistent. Please note that using TRANSACTION_READ_UNCOMMITTED while at
 	 * the same time using multiple connections may result in inconsistent transactions.
 	 *
-	 * @param level the new transaction isolation level: Connection.TRANSACTION_READ_UNCOMMITTED,
-	 *        Connection.TRANSACTION_READ_COMMITTED, or Connection.TRANSACTION_SERIALIZABLE
-	 * @throws SQLException if the connection is closed or the isolation level is not supported
+	 * @param level
+	 *          the new transaction isolation level: Connection.TRANSACTION_READ_UNCOMMITTED,
+	 *          Connection.TRANSACTION_READ_COMMITTED, or Connection.TRANSACTION_SERIALIZABLE
+	 * @throws SQLException
+	 *           if the connection is closed or the isolation level is not supported
 	 */
 	@Override
 	public void setTransactionIsolation(int level) throws SQLException {
@@ -793,7 +823,8 @@ public class JdbcConnection extends TraceObject implements Connection {
 	 * Returns the current transaction isolation level.
 	 *
 	 * @return the isolation level.
-	 * @throws SQLException if the connection is closed
+	 * @throws SQLException
+	 *           if the connection is closed
 	 */
 	@Override
 	public int getTransactionIsolation() throws SQLException {
@@ -830,8 +861,10 @@ public class JdbcConnection extends TraceObject implements Connection {
 	/**
 	 * Changes the current result set holdability.
 	 *
-	 * @param holdability ResultSet.HOLD_CURSORS_OVER_COMMIT or ResultSet.CLOSE_CURSORS_AT_COMMIT;
-	 * @throws SQLException if the connection is closed or the holdability is not supported
+	 * @param holdability
+	 *          ResultSet.HOLD_CURSORS_OVER_COMMIT or ResultSet.CLOSE_CURSORS_AT_COMMIT;
+	 * @throws SQLException
+	 *           if the connection is closed or the holdability is not supported
 	 */
 	@Override
 	public void setHoldability(int holdability) throws SQLException {
@@ -850,7 +883,8 @@ public class JdbcConnection extends TraceObject implements Connection {
 	 * Returns the current result set holdability.
 	 *
 	 * @return the holdability
-	 * @throws SQLException if the connection is closed
+	 * @throws SQLException
+	 *           if the connection is closed
 	 */
 	@Override
 	public int getHoldability() throws SQLException {
@@ -868,7 +902,8 @@ public class JdbcConnection extends TraceObject implements Connection {
 	 * Gets the type map.
 	 *
 	 * @return null
-	 * @throws SQLException if the connection is closed
+	 * @throws SQLException
+	 *           if the connection is closed
 	 */
 	@Override
 	public Map<String, Class<?>> getTypeMap() throws SQLException {
@@ -899,9 +934,11 @@ public class JdbcConnection extends TraceObject implements Connection {
 	/**
 	 * Creates a new callable statement.
 	 *
-	 * @param sql the SQL statement
+	 * @param sql
+	 *          the SQL statement
 	 * @return the callable statement
-	 * @throws SQLException if the connection is closed or the statement is not valid
+	 * @throws SQLException
+	 *           if the connection is closed or the statement is not valid
 	 */
 	@Override
 	public CallableStatement prepareCall(String sql) throws SQLException {
@@ -924,12 +961,15 @@ public class JdbcConnection extends TraceObject implements Connection {
 	/**
 	 * Creates a callable statement with the specified result set type and concurrency.
 	 *
-	 * @param sql the SQL statement
-	 * @param resultSetType the result set type (ResultSet.TYPE_*)
-	 * @param resultSetConcurrency the concurrency (ResultSet.CONCUR_*)
+	 * @param sql
+	 *          the SQL statement
+	 * @param resultSetType
+	 *          the result set type (ResultSet.TYPE_*)
+	 * @param resultSetConcurrency
+	 *          the concurrency (ResultSet.CONCUR_*)
 	 * @return the callable statement
-	 * @throws SQLException if the connection is closed or the result set type or concurrency are not
-	 *         supported
+	 * @throws SQLException
+	 *           if the connection is closed or the result set type or concurrency are not supported
 	 */
 	@Override
 	public CallableStatement prepareCall(String sql, int resultSetType, int resultSetConcurrency)
@@ -953,13 +993,18 @@ public class JdbcConnection extends TraceObject implements Connection {
 	/**
 	 * Creates a callable statement with the specified result set type, concurrency, and holdability.
 	 *
-	 * @param sql the SQL statement
-	 * @param resultSetType the result set type (ResultSet.TYPE_*)
-	 * @param resultSetConcurrency the concurrency (ResultSet.CONCUR_*)
-	 * @param resultSetHoldability the holdability (ResultSet.HOLD* / CLOSE*)
+	 * @param sql
+	 *          the SQL statement
+	 * @param resultSetType
+	 *          the result set type (ResultSet.TYPE_*)
+	 * @param resultSetConcurrency
+	 *          the concurrency (ResultSet.CONCUR_*)
+	 * @param resultSetHoldability
+	 *          the holdability (ResultSet.HOLD* / CLOSE*)
 	 * @return the callable statement
-	 * @throws SQLException if the connection is closed or the result set type, concurrency, or
-	 *         holdability are not supported
+	 * @throws SQLException
+	 *           if the connection is closed or the result set type, concurrency, or holdability are
+	 *           not supported
 	 */
 	@Override
 	public CallableStatement prepareCall(String sql, int resultSetType, int resultSetConcurrency,
@@ -1010,7 +1055,8 @@ public class JdbcConnection extends TraceObject implements Connection {
 	/**
 	 * Creates a new named savepoint.
 	 *
-	 * @param name the savepoint name
+	 * @param name
+	 *          the savepoint name
 	 * @return the new savepoint
 	 */
 	@Override
@@ -1022,8 +1068,8 @@ public class JdbcConnection extends TraceObject implements Connection {
 						"setSavepoint(" + quote(name) + ")");
 			}
 			checkClosed();
-			CommandInterface set =
-					prepareCommand("SAVEPOINT " + JdbcSavepoint.getName(name, 0), Integer.MAX_VALUE);
+			CommandInterface set = prepareCommand("SAVEPOINT " + JdbcSavepoint.getName(name, 0),
+					Integer.MAX_VALUE);
 			set.executeUpdate();
 			JdbcSavepoint savepoint = new JdbcSavepoint(this, 0, name, trace, id);
 			return savepoint;
@@ -1036,7 +1082,8 @@ public class JdbcConnection extends TraceObject implements Connection {
 	/**
 	 * Rolls back to a savepoint.
 	 *
-	 * @param savepoint the savepoint
+	 * @param savepoint
+	 *          the savepoint
 	 */
 	@Override
 	public void rollback(Savepoint savepoint) throws SQLException {
@@ -1059,7 +1106,8 @@ public class JdbcConnection extends TraceObject implements Connection {
 	/**
 	 * Releases a savepoint.
 	 *
-	 * @param savepoint the savepoint to release
+	 * @param savepoint
+	 *          the savepoint to release
 	 */
 	@Override
 	public void releaseSavepoint(Savepoint savepoint) throws SQLException {
@@ -1083,13 +1131,18 @@ public class JdbcConnection extends TraceObject implements Connection {
 	/**
 	 * Creates a prepared statement with the specified result set type, concurrency, and holdability.
 	 *
-	 * @param sql the SQL statement
-	 * @param resultSetType the result set type (ResultSet.TYPE_*)
-	 * @param resultSetConcurrency the concurrency (ResultSet.CONCUR_*)
-	 * @param resultSetHoldability the holdability (ResultSet.HOLD* / CLOSE*)
+	 * @param sql
+	 *          the SQL statement
+	 * @param resultSetType
+	 *          the result set type (ResultSet.TYPE_*)
+	 * @param resultSetConcurrency
+	 *          the concurrency (ResultSet.CONCUR_*)
+	 * @param resultSetHoldability
+	 *          the holdability (ResultSet.HOLD* / CLOSE*)
 	 * @return the prepared statement
-	 * @throws SQLException if the connection is closed or the result set type, concurrency, or
-	 *         holdability are not supported
+	 * @throws SQLException
+	 *           if the connection is closed or the result set type, concurrency, or holdability are
+	 *           not supported
 	 */
 	@Override
 	public PreparedStatement prepareStatement(String sql, int resultSetType, int resultSetConcurrency,
@@ -1116,10 +1169,13 @@ public class JdbcConnection extends TraceObject implements Connection {
 	 * Creates a new prepared statement. This method just calls prepareStatement(String sql)
 	 * internally. The method getGeneratedKeys only supports one column.
 	 *
-	 * @param sql the SQL statement
-	 * @param autoGeneratedKeys ignored
+	 * @param sql
+	 *          the SQL statement
+	 * @param autoGeneratedKeys
+	 *          ignored
 	 * @return the prepared statement
-	 * @throws SQLException if the connection is closed
+	 * @throws SQLException
+	 *           if the connection is closed
 	 */
 	@Override
 	public PreparedStatement prepareStatement(String sql, int autoGeneratedKeys) throws SQLException {
@@ -1138,10 +1194,13 @@ public class JdbcConnection extends TraceObject implements Connection {
 	 * Creates a new prepared statement. This method just calls prepareStatement(String sql)
 	 * internally. The method getGeneratedKeys only supports one column.
 	 *
-	 * @param sql the SQL statement
-	 * @param columnIndexes ignored
+	 * @param sql
+	 *          the SQL statement
+	 * @param columnIndexes
+	 *          ignored
 	 * @return the prepared statement
-	 * @throws SQLException if the connection is closed
+	 * @throws SQLException
+	 *           if the connection is closed
 	 */
 	@Override
 	public PreparedStatement prepareStatement(String sql, int[] columnIndexes) throws SQLException {
@@ -1160,10 +1219,13 @@ public class JdbcConnection extends TraceObject implements Connection {
 	 * Creates a new prepared statement. This method just calls prepareStatement(String sql)
 	 * internally. The method getGeneratedKeys only supports one column.
 	 *
-	 * @param sql the SQL statement
-	 * @param columnNames ignored
+	 * @param sql
+	 *          the SQL statement
+	 * @param columnNames
+	 *          ignored
 	 * @return the prepared statement
-	 * @throws SQLException if the connection is closed
+	 * @throws SQLException
+	 *           if the connection is closed
 	 */
 	@Override
 	public PreparedStatement prepareStatement(String sql, String[] columnNames) throws SQLException {
@@ -1183,8 +1245,10 @@ public class JdbcConnection extends TraceObject implements Connection {
 	/**
 	 * Prepare an command. This will parse the SQL statement.
 	 *
-	 * @param sql the SQL statement
-	 * @param fetchSize the fetch size (used in remote connections)
+	 * @param sql
+	 *          the SQL statement
+	 * @param fetchSize
+	 *          the fetch size (used in remote connections)
 	 * @return the command
 	 */
 	CommandInterface prepareCommand(String sql, int fetchSize) {
@@ -1261,7 +1325,8 @@ public class JdbcConnection extends TraceObject implements Connection {
 	 * Convert JDBC escape sequences in the SQL statement. This method throws an exception if the SQL
 	 * statement is null.
 	 *
-	 * @param sql the SQL statement with or without JDBC escape sequences
+	 * @param sql
+	 *          the SQL statement with or without JDBC escape sequences
 	 * @return the SQL statement without JDBC escape sequences
 	 */
 	private static String translateSQL(String sql) {
@@ -1272,8 +1337,10 @@ public class JdbcConnection extends TraceObject implements Connection {
 	 * Convert JDBC escape sequences in the SQL statement if required. This method throws an exception
 	 * if the SQL statement is null.
 	 *
-	 * @param sql the SQL statement with or without JDBC escape sequences
-	 * @param escapeProcessing whether escape sequences should be replaced
+	 * @param sql
+	 *          the SQL statement with or without JDBC escape sequences
+	 * @param escapeProcessing
+	 *          whether escape sequences should be replaced
 	 * @return the SQL statement without JDBC escape sequences
 	 */
 	static String translateSQL(String sql, boolean escapeProcessing) {
@@ -1442,7 +1509,8 @@ public class JdbcConnection extends TraceObject implements Connection {
 	/**
 	 * INTERNAL. Check if this connection is closed. The next operation is a read request.
 	 *
-	 * @throws DbException if the connection or session is closed
+	 * @throws DbException
+	 *           if the connection or session is closed
 	 */
 	protected void checkClosed() {
 		checkClosed(false);
@@ -1451,7 +1519,8 @@ public class JdbcConnection extends TraceObject implements Connection {
 	/**
 	 * Check if this connection is closed. The next operation may be a write request.
 	 *
-	 * @throws DbException if the connection or session is closed
+	 * @throws DbException
+	 *           if the connection or session is closed
 	 */
 	private void checkClosedForWrite() {
 		checkClosed(true);
@@ -1460,8 +1529,10 @@ public class JdbcConnection extends TraceObject implements Connection {
 	/**
 	 * INTERNAL. Check if this connection is closed.
 	 *
-	 * @param write if the next operation is possibly writing
-	 * @throws DbException if the connection or session is closed
+	 * @param write
+	 *          if the next operation is possibly writing
+	 * @throws DbException
+	 *           if the connection or session is closed
 	 */
 	protected void checkClosed(boolean write) {
 		if (session == null) {
@@ -1641,7 +1712,8 @@ public class JdbcConnection extends TraceObject implements Connection {
 	/**
 	 * Returns true if this connection is still valid.
 	 *
-	 * @param timeout the number of seconds to wait for the database to respond (ignored)
+	 * @param timeout
+	 *          the number of seconds to wait for the database to respond (ignored)
 	 * @return true if the connection is valid.
 	 */
 	@Override
@@ -1665,8 +1737,10 @@ public class JdbcConnection extends TraceObject implements Connection {
 	/**
 	 * Set a client property. This method always throws a SQLClientInfoException.
 	 *
-	 * @param name the name of the property (ignored)
-	 * @param value the value (ignored)
+	 * @param name
+	 *          the name of the property (ignored)
+	 * @param value
+	 *          the value (ignored)
 	 */
 	@Override
 	public void setClientInfo(String name, String value) throws SQLClientInfoException {
@@ -1694,7 +1768,8 @@ public class JdbcConnection extends TraceObject implements Connection {
 	/**
 	 * Set the client properties. This method always throws a SQLClientInfoException.
 	 *
-	 * @param properties the properties (ignored)
+	 * @param properties
+	 *          the properties (ignored)
 	 */
 	@Override
 	public void setClientInfo(Properties properties) throws SQLClientInfoException {
@@ -1731,7 +1806,8 @@ public class JdbcConnection extends TraceObject implements Connection {
 	/**
 	 * Set a client property. This method always throws a SQLClientInfoException.
 	 *
-	 * @param name the client info name (ignored)
+	 * @param name
+	 *          the client info name (ignored)
 	 * @return this method never returns normally
 	 */
 	@Override
@@ -1750,7 +1826,8 @@ public class JdbcConnection extends TraceObject implements Connection {
 	/**
 	 * [Not supported] Return an object of this class if possible.
 	 *
-	 * @param iface the class
+	 * @param iface
+	 *          the class
 	 */
 	@Override
 	public <T> T unwrap(Class<T> iface) throws SQLException {
@@ -1760,7 +1837,8 @@ public class JdbcConnection extends TraceObject implements Connection {
 	/**
 	 * [Not supported] Checks if unwrap can return an object of this class.
 	 *
-	 * @param iface the class
+	 * @param iface
+	 *          the class
 	 */
 	@Override
 	public boolean isWrapperFor(Class<?> iface) throws SQLException {
@@ -1770,8 +1848,10 @@ public class JdbcConnection extends TraceObject implements Connection {
 	/**
 	 * Create a Clob value from this reader.
 	 *
-	 * @param x the reader
-	 * @param length the length (if smaller or equal than 0, all data until the end of file is read)
+	 * @param x
+	 *          the reader
+	 * @param length
+	 *          the length (if smaller or equal than 0, all data until the end of file is read)
 	 * @return the value
 	 */
 	public Value createClob(Reader x, long length) {
@@ -1789,8 +1869,10 @@ public class JdbcConnection extends TraceObject implements Connection {
 	/**
 	 * Create a Blob value from this input stream.
 	 *
-	 * @param x the input stream
-	 * @param length the length (if smaller or equal than 0, all data until the end of file is read)
+	 * @param x
+	 *          the input stream
+	 * @param length
+	 *          the length (if smaller or equal than 0, all data until the end of file is read)
 	 * @return the value
 	 */
 	public Value createBlob(InputStream x, long length) {
@@ -1808,10 +1890,12 @@ public class JdbcConnection extends TraceObject implements Connection {
 	/**
 	 * [Not supported]
 	 *
-	 * @param schema the schema
+	 * @param schema
+	 *          the schema
 	 */
 	/*
 	 * ## Java 1.7 ##
+	 * 
 	 * @Override public void setSchema(String schema) { // not supported } //
 	 */
 
@@ -1820,27 +1904,33 @@ public class JdbcConnection extends TraceObject implements Connection {
 	 */
 	/*
 	 * ## Java 1.7 ##
+	 * 
 	 * @Override public String getSchema() { return null; } //
 	 */
 
 	/**
 	 * [Not supported]
 	 *
-	 * @param executor the executor used by this method
+	 * @param executor
+	 *          the executor used by this method
 	 */
 	/*
 	 * ## Java 1.7 ##
+	 * 
 	 * @Override public void abort(Executor executor) { // not supported } //
 	 */
 
 	/**
 	 * [Not supported]
 	 *
-	 * @param executor the executor used by this method
-	 * @param milliseconds the TCP connection timeout
+	 * @param executor
+	 *          the executor used by this method
+	 * @param milliseconds
+	 *          the TCP connection timeout
 	 */
 	/*
 	 * ## Java 1.7 ##
+	 * 
 	 * @Override public void setNetworkTimeout(Executor executor, int milliseconds) { // not supported
 	 * } //
 	 */
@@ -1850,14 +1940,17 @@ public class JdbcConnection extends TraceObject implements Connection {
 	 */
 	/*
 	 * ## Java 1.7 ##
+	 * 
 	 * @Override public int getNetworkTimeout() { return 0; } //
 	 */
 
 	/**
 	 * Check that the given type map is either null or empty.
 	 *
-	 * @param map the type map
-	 * @throws DbException if the map is not empty
+	 * @param map
+	 *          the type map
+	 * @throws DbException
+	 *           if the map is not empty
 	 */
 	static void checkMap(Map<String, Class<?>> map) {
 		if (map != null && !map.isEmpty()) {
@@ -1877,7 +1970,8 @@ public class JdbcConnection extends TraceObject implements Connection {
 	 * Convert an object to the default Java object for the given SQL type. For example, LOB objects
 	 * are converted to java.sql.Clob / java.sql.Blob.
 	 *
-	 * @param v the value
+	 * @param v
+	 *          the value
 	 * @return the object
 	 */
 	Object convertToDefaultObject(Value v) {

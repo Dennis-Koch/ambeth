@@ -30,16 +30,10 @@ import com.koch.ambeth.bytecode.behavior.IBytecodeBehaviorState;
 import com.koch.ambeth.cache.bytecode.visitor.CacheMapEntryVisitor;
 import com.koch.ambeth.cache.collections.CacheMapEntryEnhancementHint;
 import com.koch.ambeth.ioc.annotation.Autowired;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.service.merge.IEntityMetaDataProvider;
 import com.koch.ambeth.service.merge.model.IEntityMetaData;
 
 public class CacheMapEntryBehavior extends AbstractBehavior {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	@Autowired
 	protected IEntityMetaDataProvider entityMetaDataProvider;
 

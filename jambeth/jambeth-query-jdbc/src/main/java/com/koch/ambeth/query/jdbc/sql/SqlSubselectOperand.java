@@ -21,8 +21,6 @@ limitations under the License.
  */
 
 import com.koch.ambeth.ioc.IInitializingBean;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.persistence.api.IDatabaseMetaData;
 import com.koch.ambeth.persistence.api.ITableMetaData;
 import com.koch.ambeth.query.IOperand;
@@ -34,10 +32,6 @@ import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.IMap;
 
 public class SqlSubselectOperand implements IOperand, IInitializingBean {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	protected ISubQuery<?> subQuery;
 
 	protected SqlColumnOperand[] selectedColumns;
@@ -76,8 +70,8 @@ public class SqlSubselectOperand implements IOperand, IInitializingBean {
 		String tableName = table.getFullqualifiedEscapedName();
 		String tableAlias = subQuery.getMainTableAlias();
 
-		String[] sqlParts =
-				subQuery.getSqlParts(nameToValueMap, parameters, EmptyList.<String>getInstance());
+		String[] sqlParts = subQuery.getSqlParts(nameToValueMap, parameters,
+				EmptyList.<String>getInstance());
 		String joinSql = sqlParts[0];
 		String whereSql = sqlParts[1];
 		String orderBySql = sqlParts[2];

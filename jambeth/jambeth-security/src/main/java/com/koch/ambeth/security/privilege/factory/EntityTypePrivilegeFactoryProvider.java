@@ -34,7 +34,6 @@ import com.koch.ambeth.util.collections.HashMap;
 public class EntityTypePrivilegeFactoryProvider implements IEntityTypePrivilegeFactoryProvider {
 	protected static final IEntityTypePrivilegeFactory ci = new DefaultEntityTypePrivilegeFactory();
 
-	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 
@@ -44,8 +43,7 @@ public class EntityTypePrivilegeFactoryProvider implements IEntityTypePrivilegeF
 	@Autowired
 	protected IAccessorTypeProvider accessorTypeProvider;
 
-	protected final HashMap<Class<?>, IEntityTypePrivilegeFactory[]> typeToConstructorMap =
-			new HashMap<>();
+	protected final HashMap<Class<?>, IEntityTypePrivilegeFactory[]> typeToConstructorMap = new HashMap<>();
 
 	protected final Lock writeLock = new ReentrantLock();
 

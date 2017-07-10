@@ -25,18 +25,12 @@ import java.util.List;
 import java.util.Set;
 
 import com.koch.ambeth.ioc.IInitializingBean;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.util.ParamChecker;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.typeinfo.IPropertyInfo;
 import com.koch.ambeth.util.typeinfo.IPropertyInfoProvider;
 
 public class ListTypeHelper implements IListTypeHelper, IInitializingBean {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	private IPropertyInfoProvider propertyInfoProvider;
 
 	@Override

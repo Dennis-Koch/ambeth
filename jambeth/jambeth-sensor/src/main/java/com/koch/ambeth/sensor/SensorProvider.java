@@ -25,8 +25,6 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import com.koch.ambeth.ioc.IInitializingBean;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.LinkedHashMap;
 import com.koch.ambeth.util.sensor.ISensor;
@@ -36,15 +34,9 @@ import com.koch.ambeth.util.sensor.ISensorReceiverExtendable;
 
 public class SensorProvider
 		implements ISensorProvider, IInitializingBean, ISensorReceiverExtendable {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
+	protected final LinkedHashMap<String, List<ISensorReceiver>> nameToSensorsMap = new LinkedHashMap<>();
 
-	protected final LinkedHashMap<String, List<ISensorReceiver>> nameToSensorsMap =
-			new LinkedHashMap<>();
-
-	protected final LinkedHashMap<String, SensorBridge> nameToSensorBridgeMap =
-			new LinkedHashMap<>();
+	protected final LinkedHashMap<String, SensorBridge> nameToSensorBridgeMap = new LinkedHashMap<>();
 
 	protected final Lock writeLock = new ReentrantLock();
 

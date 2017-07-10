@@ -29,8 +29,6 @@ import java.util.List;
 import com.koch.ambeth.ioc.IInitializingBean;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.config.Property;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.persistence.IConnectionDialect;
 import com.koch.ambeth.persistence.config.PersistenceConfigurationConstants;
 import com.koch.ambeth.persistence.orm.IOrmPatternMatcher;
@@ -41,10 +39,6 @@ import com.koch.ambeth.util.config.IProperties;
 
 public abstract class AbstractConnectionTestDialect
 		implements IConnectionTestDialect, IInitializingBean {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	@Autowired
 	protected IConnectionDialect connectionDialect;
 

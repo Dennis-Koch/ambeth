@@ -24,14 +24,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.koch.ambeth.event.server.IEventStore;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 
 public class EventStoreDummy implements IEventStore {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	private List<Object> eventObjects = new ArrayList<>();
 
 	@Override

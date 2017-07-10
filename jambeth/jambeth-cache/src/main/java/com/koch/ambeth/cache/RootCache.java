@@ -157,7 +157,6 @@ public class RootCache extends AbstractCache<RootCacheValue>
 		typeToEmptyArray.put(componentType, Array.newInstance(componentType, 0));
 	}
 
-	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 

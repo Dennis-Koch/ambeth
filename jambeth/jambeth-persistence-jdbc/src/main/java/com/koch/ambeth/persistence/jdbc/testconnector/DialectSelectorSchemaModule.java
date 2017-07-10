@@ -23,8 +23,6 @@ limitations under the License.
 import com.koch.ambeth.ioc.IInitializingModule;
 import com.koch.ambeth.ioc.config.Property;
 import com.koch.ambeth.ioc.factory.IBeanContextFactory;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationConstants;
 
 public class DialectSelectorSchemaModule implements IInitializingModule {
@@ -34,16 +32,16 @@ public class DialectSelectorSchemaModule implements IInitializingModule {
 
 		String connectorName = databaseProtocol.toLowerCase().replace(':', '.') + '.'
 				+ databaseProtocol.toUpperCase().replace(':', '_');
-		String fqConnectorName =
-				DialectSelectorSchemaModule.class.getPackage().getName() + "." + connectorName;
+		String fqConnectorName = DialectSelectorSchemaModule.class.getPackage().getName() + "."
+				+ connectorName;
 		try {
 			Class<?> connectorType = classLoader.loadClass(fqConnectorName);
 			return (ITestConnector) connectorType.newInstance();
 		}
 		catch (Throwable e) {
 			try {
-				Class<?> connectorType =
-						DialectSelectorSchemaModule.class.getClassLoader().loadClass(fqConnectorName);
+				Class<?> connectorType = DialectSelectorSchemaModule.class.getClassLoader()
+						.loadClass(fqConnectorName);
 				return (ITestConnector) connectorType.newInstance();
 			}
 			catch (Throwable e2) {
@@ -51,10 +49,6 @@ public class DialectSelectorSchemaModule implements IInitializingModule {
 			}
 		}
 	}
-
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
 
 	@Property(name = PersistenceJdbcConfigurationConstants.DatabaseProtocol)
 	protected String databaseProtocol;

@@ -25,16 +25,10 @@ import java.util.Collection;
 import com.koch.ambeth.ioc.IBeanRuntime;
 import com.koch.ambeth.ioc.IServiceContext;
 import com.koch.ambeth.ioc.annotation.Autowired;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.transfer.CreateContainer;
 import com.koch.ambeth.merge.transfer.UpdateContainer;
 
 public class CommandBuilder implements ICommandBuilder {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	@Autowired
 	protected IServiceContext beanContext;
 
@@ -43,16 +37,16 @@ public class CommandBuilder implements ICommandBuilder {
 			Object parent, Object... optionals) {
 		IObjectCommand command;
 		if (parent == null) {
-			command =
-					buildIntern(commandTypeRegistry, ResolveObjectCommand.class, objectFuture, null).finish();
+			command = buildIntern(commandTypeRegistry, ResolveObjectCommand.class, objectFuture, null)
+					.finish();
 		}
 		else if (parent.getClass().isArray()) {
 			command = buildIntern(commandTypeRegistry, ArraySetterCommand.class, objectFuture, parent)
 					.propertyValue("Index", optionals[0]).finish();
 		}
 		else if (parent instanceof Collection) {
-			IBeanRuntime<? extends CollectionSetterCommand> beanRuntime =
-					buildIntern(commandTypeRegistry, CollectionSetterCommand.class, objectFuture, parent);
+			IBeanRuntime<? extends CollectionSetterCommand> beanRuntime = buildIntern(commandTypeRegistry,
+					CollectionSetterCommand.class, objectFuture, parent);
 			if (optionals.length == 1) {
 				beanRuntime.propertyValue("Object", optionals[0]);
 			}
@@ -72,8 +66,8 @@ public class CommandBuilder implements ICommandBuilder {
 	protected <C extends IObjectCommand> IBeanRuntime<? extends C> buildIntern(
 			ICommandTypeRegistry commandTypeRegistry, Class<? extends C> commandType,
 			IObjectFuture objectFuture, Object parent) {
-		Class<? extends C> overridingCommandType =
-				commandTypeRegistry.getOverridingCommandType(commandType);
+		Class<? extends C> overridingCommandType = commandTypeRegistry
+				.getOverridingCommandType(commandType);
 		if (overridingCommandType != null) {
 			commandType = overridingCommandType;
 		}

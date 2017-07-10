@@ -30,8 +30,6 @@ import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.config.IBeanConfiguration;
 import com.koch.ambeth.ioc.exception.ExtendableException;
 import com.koch.ambeth.ioc.factory.IBeanContextFactory;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.util.ParamChecker;
 import com.koch.ambeth.util.ReflectUtil;
 import com.koch.ambeth.util.collections.HashMap;
@@ -76,10 +74,6 @@ public class ExtendableBean extends AbstractSimpleInterceptor
 				.propertyValue(ExtendableBean.P_EXTENDABLE_TYPE, extendableType)
 				.autowireable(providerType, extendableType);
 	}
-
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
 
 	@Autowired
 	protected IExtendableRegistry extendableRegistry;

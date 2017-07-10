@@ -29,14 +29,7 @@ import javax.transaction.SystemException;
 import javax.transaction.Transaction;
 import javax.transaction.TransactionManager;
 
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
-
 public class TransactionManagerFake implements TransactionManager {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	private Transaction transaction;
 
 	@Override

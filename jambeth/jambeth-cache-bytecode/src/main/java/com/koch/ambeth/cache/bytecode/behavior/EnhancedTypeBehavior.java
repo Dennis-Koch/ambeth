@@ -32,8 +32,6 @@ import com.koch.ambeth.bytecode.visitor.InterfaceAdder;
 import com.koch.ambeth.cache.bytecode.visitor.EntityMetaDataHolderVisitor;
 import com.koch.ambeth.cache.bytecode.visitor.GetBaseTypeMethodCreator;
 import com.koch.ambeth.ioc.annotation.Autowired;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.bytecode.EmbeddedEnhancementHint;
 import com.koch.ambeth.merge.bytecode.EntityEnhancementHint;
 import com.koch.ambeth.merge.propertychange.PropertyChangeEnhancementHint;
@@ -43,16 +41,12 @@ import com.koch.ambeth.service.merge.IEntityMetaDataProvider;
 import com.koch.ambeth.service.merge.model.IEntityMetaData;
 
 public class EnhancedTypeBehavior extends AbstractBehavior {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	@Autowired
 	protected IEntityMetaDataProvider entityMetaDataProvider;
 
 	@Override
 	public Class<?>[] getEnhancements() {
-		return new Class<?>[] {IEnhancedType.class, IEntityMetaDataHolder.class};
+		return new Class<?>[] { IEnhancedType.class, IEntityMetaDataHolder.class };
 	}
 
 	@Override

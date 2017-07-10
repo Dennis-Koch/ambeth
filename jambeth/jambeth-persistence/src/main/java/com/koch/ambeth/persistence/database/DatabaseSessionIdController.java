@@ -26,15 +26,9 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import com.koch.ambeth.ioc.IInitializingBean;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 
 public class DatabaseSessionIdController
 		implements IInitializingBean, IDatabaseSessionIdController {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	protected final Set<Long> sessionIdsInUse = new HashSet<>();
 
 	protected final Lock writeLock = new ReentrantLock();

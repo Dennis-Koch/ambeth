@@ -24,8 +24,6 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 import com.koch.ambeth.ioc.annotation.Autowired;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.persistence.IPersistenceHelper;
 import com.koch.ambeth.persistence.Table;
 import com.koch.ambeth.persistence.api.IContextProvider;
@@ -48,10 +46,6 @@ import com.koch.ambeth.util.objectcollector.IThreadLocalObjectCollector;
 
 public class SqlTable extends Table {
 	public static final Pattern quotesPattern = Pattern.compile("\"", Pattern.LITERAL);
-
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
 
 	@Autowired
 	protected IContextProvider contextProvider;
@@ -200,9 +194,9 @@ public class SqlTable extends Table {
 				throw new IllegalArgumentException("No field mapped to member "
 						+ getMetaData().getEntityType().getName() + "." + alternateIdMemberName);
 			}
-			IResultSet resultSet =
-					sqlConnection.createResultSet(getMetaData().getFullqualifiedEscapedName(), idFieldName,
-							idFieldType, selectSB.toString(), null, alternateIds);
+			IResultSet resultSet = sqlConnection.createResultSet(
+					getMetaData().getFullqualifiedEscapedName(), idFieldName, idFieldType,
+					selectSB.toString(), null, alternateIds);
 			ResultSetCursor cursor = new ResultSetCursor();
 			cursor.setContainsVersion(versionField != null);
 			cursor.setResultSet(resultSet);
@@ -394,8 +388,8 @@ public class SqlTable extends Table {
 			IResultSet selectResult = sqlConnection.selectFields(fqTableName, selectSB, joinSql, whereSql,
 					orderBySql, limitSql, parameters, tableAlias);
 
-			ResultSetPkVersionCursor versionCursor =
-					retrieveAlternateIds ? new ResultSetVersionCursor() : new ResultSetPkVersionCursor();
+			ResultSetPkVersionCursor versionCursor = retrieveAlternateIds ? new ResultSetVersionCursor()
+					: new ResultSetPkVersionCursor();
 			versionCursor.setContainsVersion(versionField != null);
 			versionCursor.setResultSet(selectResult);
 			versionCursor.afterPropertiesSet();
@@ -491,8 +485,8 @@ public class SqlTable extends Table {
 			IResultSet selectResult = sqlConnection.selectFields(fqTableName, selectSB, joinSql, whereSql,
 					additionalSelectColumnList, orderBySql, limitSql, offset, length, parameters, tableAlias);
 
-			ResultSetPkVersionCursor versionCursor =
-					retrieveAlternateIds ? new ResultSetVersionCursor() : new ResultSetPkVersionCursor();
+			ResultSetPkVersionCursor versionCursor = retrieveAlternateIds ? new ResultSetVersionCursor()
+					: new ResultSetPkVersionCursor();
 			versionCursor.setContainsVersion(versionField != null);
 			versionCursor.setResultSet(selectResult);
 			versionCursor.afterPropertiesSet();
@@ -550,8 +544,8 @@ public class SqlTable extends Table {
 			CharSequence whereSql, CharSequence orderBySql, CharSequence limitSql, int offset, int length,
 			List<Object> parameters) {
 		int size = selectColumnList.size();
-		IMap<String, Integer> propertyToColIndexMap =
-				size > 0 ? HashMap.<String, Integer>create(size) : EmptyMap.<String, Integer>emptyMap();
+		IMap<String, Integer> propertyToColIndexMap = size > 0 ? HashMap.<String, Integer>create(size)
+				: EmptyMap.<String, Integer>emptyMap();
 		for (int a = 0; a < size; a++) {
 			propertyToColIndexMap.put(selectColumnList.get(a), Integer.valueOf(a));
 		}

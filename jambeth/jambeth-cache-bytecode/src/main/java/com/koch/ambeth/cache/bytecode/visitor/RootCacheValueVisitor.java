@@ -46,14 +46,13 @@ public class RootCacheValueVisitor extends ClassGenerator {
 
 	private static final Type objRefArrayType = Type.getType(IObjRef[].class);
 
-	@SuppressWarnings("unused")
 	public static final Object[][] OBJ_EMPTY_ARRAY_ARRAY = new Object[0][0];
 
 	private static final FieldInstance sf_objArrayArray = new FieldInstance(
 			ReflectUtil.getDeclaredField(RootCacheValueVisitor.class, "OBJ_EMPTY_ARRAY_ARRAY"));
 
-	private static final FieldInstance sf_objRefArrayArray =
-			new FieldInstance(ReflectUtil.getDeclaredField(ObjRef.class, "EMPTY_ARRAY_ARRAY"));
+	private static final FieldInstance sf_objRefArrayArray = new FieldInstance(
+			ReflectUtil.getDeclaredField(ObjRef.class, "EMPTY_ARRAY_ARRAY"));
 
 	protected final IEntityMetaData metaData;
 
@@ -73,8 +72,8 @@ public class RootCacheValueVisitor extends ClassGenerator {
 	}
 
 	protected void implementGetEntityType() {
-		MethodInstance template_m_getEntityType =
-				new MethodInstance(null, RootCacheValue.class, Class.class, "getEntityType");
+		MethodInstance template_m_getEntityType = new MethodInstance(null, RootCacheValue.class,
+				Class.class, "getEntityType");
 
 		MethodGenerator mv = visitMethod(template_m_getEntityType);
 		mv.push(Type.getType(metaData.getEntityType()));
@@ -83,20 +82,20 @@ public class RootCacheValueVisitor extends ClassGenerator {
 	}
 
 	protected void implementId() {
-		MethodInstance template_m_getId =
-				new MethodInstance(null, RootCacheValue.class, Object.class, "getId");
-		MethodInstance template_m_setId =
-				new MethodInstance(null, RootCacheValue.class, void.class, "setId", Object.class);
+		MethodInstance template_m_getId = new MethodInstance(null, RootCacheValue.class, Object.class,
+				"getId");
+		MethodInstance template_m_setId = new MethodInstance(null, RootCacheValue.class, void.class,
+				"setId", Object.class);
 
 		CacheMapEntryVisitor.implementNativeField(this, metaData.getIdMember(), template_m_getId,
 				template_m_setId);
 	}
 
 	protected void implementVersion() {
-		MethodInstance template_m_getVersion =
-				new MethodInstance(null, RootCacheValue.class, Object.class, "getVersion");
-		MethodInstance template_m_setVersion =
-				new MethodInstance(null, RootCacheValue.class, void.class, "setVersion", Object.class);
+		MethodInstance template_m_getVersion = new MethodInstance(null, RootCacheValue.class,
+				Object.class, "getVersion");
+		MethodInstance template_m_setVersion = new MethodInstance(null, RootCacheValue.class,
+				void.class, "setVersion", Object.class);
 
 		CacheMapEntryVisitor.implementNativeField(this, metaData.getVersionMember(),
 				template_m_getVersion, template_m_setVersion);
@@ -108,8 +107,7 @@ public class RootCacheValueVisitor extends ClassGenerator {
 		FieldInstance[] f_nullFlags = new FieldInstance[primitiveMembers.length];
 		Class<?>[] fieldType = new Class<?>[primitiveMembers.length];
 
-		for (int primitiveIndex = 0, size =
-				primitiveMembers.length; primitiveIndex < size; primitiveIndex++) {
+		for (int primitiveIndex = 0, size = primitiveMembers.length; primitiveIndex < size; primitiveIndex++) {
 			Member member = primitiveMembers[primitiveIndex];
 			Class<?> realType = member.getRealType();
 			Class<?> nativeType = WrapperTypeSet.getUnwrappedType(realType);
@@ -143,8 +141,8 @@ public class RootCacheValueVisitor extends ClassGenerator {
 
 	protected void implementGetPrimitive(Member[] primitiveMember, final FieldInstance[] f_primitives,
 			final FieldInstance[] f_nullFlags) {
-		MethodInstance template_m_getPrimitive =
-				new MethodInstance(null, RootCacheValue.class, Object.class, "getPrimitive", int.class);
+		MethodInstance template_m_getPrimitive = new MethodInstance(null, RootCacheValue.class,
+				Object.class, "getPrimitive", int.class);
 
 		implementSwitchByIndex(template_m_getPrimitive, "Given primitiveIndex not known",
 				f_primitives.length, new ScriptWithIndex() {
@@ -176,8 +174,8 @@ public class RootCacheValueVisitor extends ClassGenerator {
 
 	protected void implementGetPrimitives(Member[] primitiveMembers, FieldInstance[] f_primitives,
 			FieldInstance[] f_nullFlags) {
-		MethodInstance template_m_getPrimitives =
-				new MethodInstance(null, RootCacheValue.class, Object[].class, "getPrimitives");
+		MethodInstance template_m_getPrimitives = new MethodInstance(null, RootCacheValue.class,
+				Object[].class, "getPrimitives");
 
 		MethodGenerator mv = visitMethod(template_m_getPrimitives);
 
@@ -188,8 +186,7 @@ public class RootCacheValueVisitor extends ClassGenerator {
 		mv.push(f_primitives.length);
 		mv.newArray(objType);
 
-		for (int primitiveIndex = 0, size =
-				f_primitives.length; primitiveIndex < size; primitiveIndex++) {
+		for (int primitiveIndex = 0, size = f_primitives.length; primitiveIndex < size; primitiveIndex++) {
 			FieldInstance f_primitive = f_primitives[primitiveIndex];
 			FieldInstance f_nullFlag = f_nullFlags[primitiveIndex];
 
@@ -220,14 +217,13 @@ public class RootCacheValueVisitor extends ClassGenerator {
 
 	protected void implementSetPrimitives(Member[] primitiveMembers, FieldInstance[] f_primitives,
 			FieldInstance[] f_nullFlags) {
-		MethodInstance template_m_setPrimitives =
-				new MethodInstance(null, RootCacheValue.class, void.class, "setPrimitives", Object[].class);
+		MethodInstance template_m_setPrimitives = new MethodInstance(null, RootCacheValue.class,
+				void.class, "setPrimitives", Object[].class);
 
 		MethodGenerator mv = visitMethod(template_m_setPrimitives);
 		final int loc_item = mv.newLocal(objType);
 
-		for (int primitiveIndex = 0, size =
-				f_primitives.length; primitiveIndex < size; primitiveIndex++) {
+		for (int primitiveIndex = 0, size = f_primitives.length; primitiveIndex < size; primitiveIndex++) {
 			final FieldInstance f_primitive = f_primitives[primitiveIndex];
 			FieldInstance f_nullFlag = f_nullFlags[primitiveIndex];
 			Member member = primitiveMembers[primitiveIndex];
@@ -337,8 +333,7 @@ public class RootCacheValueVisitor extends ClassGenerator {
 		RelationMember[] relationMembers = metaData.getRelationMembers();
 		FieldInstance[] f_relations = new FieldInstance[relationMembers.length];
 
-		for (int relationIndex = 0, size =
-				relationMembers.length; relationIndex < size; relationIndex++) {
+		for (int relationIndex = 0, size = relationMembers.length; relationIndex < size; relationIndex++) {
 			RelationMember member = relationMembers[relationIndex];
 			FieldInstance f_relation = implementField(new FieldInstance(Opcodes.ACC_PRIVATE,
 					CacheMapEntryVisitor.getFieldName(member), null, IObjRef[].class));
@@ -352,8 +347,8 @@ public class RootCacheValueVisitor extends ClassGenerator {
 
 	protected void implementGetRelation(RelationMember[] relationMembers,
 			final FieldInstance[] f_relations) {
-		MethodInstance template_m_getRelation =
-				new MethodInstance(null, RootCacheValue.class, IObjRef[].class, "getRelation", int.class);
+		MethodInstance template_m_getRelation = new MethodInstance(null, RootCacheValue.class,
+				IObjRef[].class, "getRelation", int.class);
 
 		implementSwitchByIndex(template_m_getRelation, "Given relationIndex not known",
 				f_relations.length, new ScriptWithIndex() {
@@ -426,8 +421,8 @@ public class RootCacheValueVisitor extends ClassGenerator {
 
 	protected void implementGetRelations(RelationMember[] relationMembers,
 			FieldInstance[] f_relations) {
-		MethodInstance template_m_getRelations =
-				new MethodInstance(null, RootCacheValue.class, IObjRef[][].class, "getRelations");
+		MethodInstance template_m_getRelations = new MethodInstance(null, RootCacheValue.class,
+				IObjRef[][].class, "getRelations");
 
 		MethodGenerator mv = visitMethod(template_m_getRelations);
 

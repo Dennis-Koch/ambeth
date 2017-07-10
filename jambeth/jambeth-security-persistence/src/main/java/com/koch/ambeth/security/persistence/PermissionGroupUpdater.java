@@ -113,7 +113,6 @@ import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
 
 @PersistenceContext(PersistenceContextType.NOT_REQUIRED)
 public class PermissionGroupUpdater implements IInitializingBean, IPermissionGroupUpdater {
-	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 
@@ -694,7 +693,6 @@ public class PermissionGroupUpdater implements IInitializingBean, IPermissionGro
 		}
 	}
 
-	@SuppressWarnings("unchecked")
 	protected IPrivilege[][] evaluateAllPrivileges(List<IObjRef> allObjRefs,
 			IAuthentication[] authentications, IAuthorization[] authorizations) {
 		IPrivilegeProvider privilegeProvider = this.privilegeProvider;

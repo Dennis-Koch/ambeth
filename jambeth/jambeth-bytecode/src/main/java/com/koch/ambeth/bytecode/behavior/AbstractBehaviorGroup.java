@@ -27,16 +27,10 @@ import org.objectweb.asm.ClassVisitor;
 import com.koch.ambeth.ioc.IInitializingBean;
 import com.koch.ambeth.ioc.IServiceContext;
 import com.koch.ambeth.ioc.annotation.Autowired;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.LinkedHashSet;
 
 public abstract class AbstractBehaviorGroup implements IBytecodeBehavior, IInitializingBean {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	@Autowired
 	protected IServiceContext beanContext;
 
@@ -61,8 +55,8 @@ public abstract class AbstractBehaviorGroup implements IBytecodeBehavior, IIniti
 			List<IBytecodeBehavior> cascadePendingBehaviors) {
 		for (int a = 0, size = childBehaviors.size(); a < size; a++) {
 			IBytecodeBehavior childBehavior = childBehaviors.get(a);
-			visitor =
-					childBehavior.extend(visitor, state, remainingPendingBehaviors, cascadePendingBehaviors);
+			visitor = childBehavior.extend(visitor, state, remainingPendingBehaviors,
+					cascadePendingBehaviors);
 		}
 		return visitor;
 	}

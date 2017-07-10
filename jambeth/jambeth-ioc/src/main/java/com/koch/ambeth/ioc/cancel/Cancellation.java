@@ -22,8 +22,6 @@ limitations under the License.
 
 import com.koch.ambeth.ioc.threadlocal.Forkable;
 import com.koch.ambeth.ioc.threadlocal.IThreadLocalCleanupBean;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.util.ParamChecker;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.state.IStateRollback;
@@ -32,13 +30,8 @@ import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
 import com.koch.ambeth.util.threading.IResultingBackgroundWorkerParamDelegate;
 
 public class Cancellation implements ICancellation, ICancellationWritable, IThreadLocalCleanupBean {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	@Forkable
-	protected final ThreadLocal<ICancellationHandle> cancelledTL =
-			new ThreadLocal<>();
+	protected final ThreadLocal<ICancellationHandle> cancelledTL = new ThreadLocal<>();
 
 	@Override
 	public void cleanupThreadLocal() {

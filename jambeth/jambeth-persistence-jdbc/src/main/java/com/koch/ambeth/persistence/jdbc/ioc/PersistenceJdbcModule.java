@@ -168,7 +168,7 @@ public class PersistenceJdbcModule implements IInitializingModule, IPropertyLoad
 
 		MethodInterceptor chInterceptor = (MethodInterceptor) beanContextFactory
 				.registerBean(ConnectionHolderInterceptor.class).autowireable(IConnectionHolder.class)
-				.ignoreProperties(ConnectionHolderInterceptor.CONNECTION_PROP).getInstance();
+				.ignoreProperties(ConnectionHolderInterceptor.P_CONNECTION).getInstance();
 		beanContextFactory.link(chInterceptor).to(IConnectionHolderExtendable.class).with(Object.class);
 
 		Object connectionHolderProxy = proxyFactory.createProxy(Connection.class, chInterceptor);

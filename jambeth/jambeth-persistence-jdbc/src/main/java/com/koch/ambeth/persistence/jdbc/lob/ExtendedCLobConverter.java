@@ -23,16 +23,10 @@ limitations under the License.
 import java.sql.Clob;
 
 import com.koch.ambeth.ioc.annotation.Autowired;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.util.IConversionHelper;
 import com.koch.ambeth.util.IDedicatedConverter;
 
 public class ExtendedCLobConverter implements IDedicatedConverter {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	@Autowired
 	protected IConversionHelper conversionHelper;
 

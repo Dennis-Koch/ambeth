@@ -26,8 +26,6 @@ import java.util.Set;
 import com.koch.ambeth.ioc.IInitializingBean;
 import com.koch.ambeth.ioc.IStartingBean;
 import com.koch.ambeth.ioc.annotation.Autowired;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.proxy.PersistenceContext;
 import com.koch.ambeth.query.IOperand;
 import com.koch.ambeth.query.IQuery;
@@ -39,10 +37,6 @@ import com.koch.ambeth.service.proxy.Service;
 @Service(IEmployeeService.class)
 @PersistenceContext
 public class EmployeeService implements IInitializingBean, IEmployeeService, IStartingBean {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	@Autowired
 	protected IQueryBuilderFactory queryBuilderFactory;
 
@@ -63,8 +57,8 @@ public class EmployeeService implements IInitializingBean, IEmployeeService, ISt
 	public void afterStarted() throws Throwable {
 		{
 			IQueryBuilder<Employee> qb = queryBuilderFactory.create(Employee.class);
-			queryEmployeeByName =
-					qb.build(qb.isEqualTo(qb.property(Employee.Name), qb.valueName(Employee.Name)));
+			queryEmployeeByName = qb
+					.build(qb.isEqualTo(qb.property(Employee.Name), qb.valueName(Employee.Name)));
 		}
 		{
 			queryEmployeeAll = queryBuilderFactory.create(Employee.class).build();

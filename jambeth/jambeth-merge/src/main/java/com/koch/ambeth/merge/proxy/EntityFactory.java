@@ -28,8 +28,6 @@ import com.koch.ambeth.ioc.accessor.IAccessorTypeProvider;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.bytecode.IBytecodeEnhancer;
 import com.koch.ambeth.ioc.proxy.Self;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.IEntityFactory;
 import com.koch.ambeth.merge.bytecode.IBytecodePrinter;
 import com.koch.ambeth.service.merge.IEntityMetaDataRefresher;
@@ -40,10 +38,6 @@ import com.koch.ambeth.util.collections.SmartCopyMap;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
 public class EntityFactory extends AbstractEntityFactory {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	@Autowired
 	protected IAccessorTypeProvider accessorTypeProvider;
 
@@ -62,8 +56,8 @@ public class EntityFactory extends AbstractEntityFactory {
 	@Self
 	protected IEntityFactory self;
 
-	protected final SmartCopyMap<Class<?>, EntityFactoryConstructor> typeToConstructorMap =
-			new SmartCopyMap<>(0.5f);
+	protected final SmartCopyMap<Class<?>, EntityFactoryConstructor> typeToConstructorMap = new SmartCopyMap<>(
+			0.5f);
 
 	@Override
 	public boolean supportsEnhancement(Class<?> enhancementType) {
@@ -84,8 +78,8 @@ public class EntityFactory extends AbstractEntityFactory {
 				};
 			}
 			catch (Throwable e) {
-				constructor =
-						accessorTypeProvider.getConstructorType(EntityFactoryConstructor.class, entityType);
+				constructor = accessorTypeProvider.getConstructorType(EntityFactoryConstructor.class,
+						entityType);
 			}
 			typeToConstructorMap.put(entityType, constructor);
 		}

@@ -195,7 +195,6 @@ public class SQLiteTestDialect extends AbstractConnectionTestDialect {
 				"SELECT tbl_name AS FULL_NAME FROM sqlite_master where type='trigger'");
 	}
 
-	@SuppressWarnings("resource")
 	@Override
 	protected IList<String> queryForAllPermissionGroupNeedingTables(Connection connection)
 			throws SQLException {

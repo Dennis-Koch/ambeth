@@ -29,8 +29,6 @@ import com.koch.ambeth.ioc.IocModule;
 import com.koch.ambeth.ioc.exception.BeanContextInitException;
 import com.koch.ambeth.ioc.factory.BeanContextFactory;
 import com.koch.ambeth.ioc.factory.IBeanContextFactory;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.testutil.AbstractIocTest;
 import com.koch.ambeth.testutil.TestModule;
 import com.koch.ambeth.testutil.TestRebuildContext;
@@ -112,10 +110,6 @@ public class AutowiredTest extends AbstractIocTest {
 			beanContextFactory.registerBean(bean4Name, Bean4.class);
 		}
 	}
-
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
 
 	@Test
 	@TestModule(AutowiredTestModule.class)

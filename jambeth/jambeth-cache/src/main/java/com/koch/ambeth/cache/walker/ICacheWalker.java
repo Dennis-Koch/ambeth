@@ -48,7 +48,8 @@ public interface ICacheWalker {
 	 * cache (ChildCache) to all active instances of 2nd level caches (RootCache) including
 	 * thread-bound or transaction-bound instances.
 	 *
-	 * @param objRefs References to the entities to look for while walking
+	 * @param objRefs
+	 *          References to the entities to look for while walking
 	 * @return Tree-like structure starting always from the committed root cache instance (top-down)
 	 */
 	ICacheWalkerResult walk(IObjRef... objRefs);
@@ -67,9 +68,10 @@ public interface ICacheWalker {
 	 * cache (ChildCache) to all active instances of 2nd level caches (RootCache) including
 	 * thread-bound or transaction-bound instances.
 	 *
-	 * @param entities Explicit entity instances from which ObjRefs will be built to look for while
-	 *        walking.
+	 * @param entities
+	 *          Explicit entity instances from which ObjRefs will be built to look for while walking.
 	 * @return Tree-like structure starting always from the committed root cache instance (top-down)
 	 */
+	@SuppressWarnings("unchecked")
 	<T> ICacheWalkerResult walkEntities(T... entities);
 }

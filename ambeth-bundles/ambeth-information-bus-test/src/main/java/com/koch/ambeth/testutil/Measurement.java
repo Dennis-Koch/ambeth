@@ -28,8 +28,6 @@ import java.io.OutputStreamWriter;
 import com.koch.ambeth.ioc.IDisposableBean;
 import com.koch.ambeth.ioc.IInitializingBean;
 import com.koch.ambeth.ioc.config.Property;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.log.config.Properties;
 import com.koch.ambeth.util.ParamChecker;
 import com.koch.ambeth.util.appendable.AppendableStringBuilder;
@@ -37,10 +35,6 @@ import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.xml.DefaultXmlWriter;
 
 public class Measurement implements IMeasurement, IInitializingBean, IDisposableBean {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	protected final StringBuilder measurementXML = new StringBuilder();
 
 	protected final DefaultXmlWriter xmlWriter = new DefaultXmlWriter(

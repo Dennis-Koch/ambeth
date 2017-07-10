@@ -24,18 +24,12 @@ import java.util.Calendar;
 import java.util.Date;
 
 import com.koch.ambeth.ioc.threadlocal.IThreadLocalCleanupBean;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.util.IDedicatedConverter;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
 import oracle.sql.TIMESTAMP;
 
 public class OracleTimestampConverter implements IDedicatedConverter, IThreadLocalCleanupBean {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	protected final ThreadLocal<Calendar> vmCalendarTL = new ThreadLocal<>();
 
 	@Override

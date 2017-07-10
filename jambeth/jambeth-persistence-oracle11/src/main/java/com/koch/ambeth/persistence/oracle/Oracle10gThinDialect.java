@@ -27,8 +27,6 @@ import java.sql.SQLRecoverableException;
 import java.sql.Statement;
 
 import com.koch.ambeth.ioc.config.Property;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.persistence.SQLState;
 import com.koch.ambeth.persistence.jdbc.JdbcUtil;
 import com.koch.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationConstants;
@@ -36,13 +34,7 @@ import com.koch.ambeth.util.exception.MaskingRuntimeException;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
 public class Oracle10gThinDialect extends Oracle10gDialect {
-
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
-	@Property(name = PersistenceJdbcConfigurationConstants.DatabaseAutoCleanupRecycleBin,
-			defaultValue = "false")
+	@Property(name = PersistenceJdbcConfigurationConstants.DatabaseAutoCleanupRecycleBin, defaultValue = "false")
 	protected boolean autoCleanupRecycleBin;
 
 	@Override

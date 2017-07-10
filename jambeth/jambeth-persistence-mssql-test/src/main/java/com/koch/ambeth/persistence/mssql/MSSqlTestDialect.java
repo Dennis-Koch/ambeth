@@ -34,8 +34,6 @@ import com.koch.ambeth.ioc.IocModule;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.config.Property;
 import com.koch.ambeth.ioc.factory.BeanContextFactory;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.log.config.Properties;
 import com.koch.ambeth.persistence.PermissionGroup;
 import com.koch.ambeth.persistence.api.sql.ISqlBuilder;
@@ -56,10 +54,6 @@ public class MSSqlTestDialect extends AbstractConnectionTestDialect implements I
 	public static final String ROOT_DATABASE_USER = "ambeth.root.database.user";
 
 	public static final String ROOT_DATABASE_PASS = "ambeth.root.database.pass";
-
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
 
 	@Autowired
 	protected IOrmPatternMatcher ormPatternMatcher;
@@ -205,7 +199,7 @@ public class MSSqlTestDialect extends AbstractConnectionTestDialect implements I
 				.append(", 'Optimistic Lock Exception');");
 		sb.append(" end if;");
 		sb.append(" END;");
-		return new String[] {sb.toString()};
+		return new String[] { sb.toString() };
 	}
 
 	@Override
@@ -324,8 +318,8 @@ public class MSSqlTestDialect extends AbstractConnectionTestDialect implements I
 	public String[] createPermissionGroup(Connection connection, String tableName)
 			throws SQLException {
 		int maxProcedureNameLength = connection.getMetaData().getMaxProcedureNameLength();
-		String permissionGroupName =
-				ormPatternMatcher.buildPermissionGroupFromTableName(tableName, maxProcedureNameLength);
+		String permissionGroupName = ormPatternMatcher.buildPermissionGroupFromTableName(tableName,
+				maxProcedureNameLength);
 		String pkName;
 		Matcher matcher = Pattern.compile("(?:.*\\.)?([^\\.]+)").matcher(permissionGroupName);
 		if (matcher.matches()) {

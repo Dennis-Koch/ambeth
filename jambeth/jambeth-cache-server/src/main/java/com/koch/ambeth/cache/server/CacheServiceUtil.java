@@ -23,8 +23,6 @@ limitations under the License.
 import java.util.List;
 
 import com.koch.ambeth.ioc.annotation.Autowired;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.metadata.IPreparedObjRefFactory;
 import com.koch.ambeth.merge.transfer.ObjRef;
 import com.koch.ambeth.persistence.ServiceUtil;
@@ -39,10 +37,6 @@ import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.IList;
 
 public class CacheServiceUtil extends ServiceUtil {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	@Autowired
 	protected IServiceResultHolder oriResultHolder;
 
@@ -87,8 +81,8 @@ public class CacheServiceUtil extends ServiceUtil {
 		ArrayList<IObjRef> objRefs = new ArrayList<>();
 		if (cursor != null) {
 			try {
-				IPreparedObjRefFactory preparedObjRefFactory =
-						objRefFactory.prepareObjRefFactory(entityType, cursor.getToIdIndex());
+				IPreparedObjRefFactory preparedObjRefFactory = objRefFactory
+						.prepareObjRefFactory(entityType, cursor.getToIdIndex());
 				while (cursor.moveNext()) {
 					ILinkCursorItem item = cursor.getCurrent();
 					objRefs.add(preparedObjRefFactory.createObjRef(item.getToId(), null));

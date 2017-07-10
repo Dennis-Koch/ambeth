@@ -27,8 +27,6 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import com.koch.ambeth.ioc.annotation.Autowired;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.service.merge.IEntityMetaDataProvider;
 import com.koch.ambeth.service.merge.model.IEntityMetaData;
 import com.koch.ambeth.service.metadata.Member;
@@ -37,15 +35,10 @@ import com.koch.ambeth.util.collections.AbstractTuple2KeyHashMap;
 import com.koch.ambeth.util.collections.Tuple2KeyHashMap;
 
 public class PropertyExpansionProvider implements IPropertyExpansionProvider {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	@Autowired
 	protected IEntityMetaDataProvider entityMetaDataProvider;
 
-	protected Tuple2KeyHashMap<Class<?>, String, PropertyExpansion> propertyExpansionCache =
-			new Tuple2KeyHashMap<>();
+	protected Tuple2KeyHashMap<Class<?>, String, PropertyExpansion> propertyExpansionCache = new Tuple2KeyHashMap<>();
 
 	protected final Lock writeLock = new ReentrantLock();
 
@@ -68,10 +61,9 @@ public class PropertyExpansionProvider implements IPropertyExpansionProvider {
 		// not be a cache miss any more with further runtime
 		writeLock.lock();
 		try {
-			Tuple2KeyHashMap<Class<?>, String, PropertyExpansion> propertyExpansionCache =
-					new Tuple2KeyHashMap<>(
-							(int) (this.propertyExpansionCache.size()
-									/ AbstractTuple2KeyHashMap.DEFAULT_LOAD_FACTOR) + 2);
+			Tuple2KeyHashMap<Class<?>, String, PropertyExpansion> propertyExpansionCache = new Tuple2KeyHashMap<>(
+					(int) (this.propertyExpansionCache.size() / AbstractTuple2KeyHashMap.DEFAULT_LOAD_FACTOR)
+							+ 2);
 			propertyExpansionCache.putAll(this.propertyExpansionCache);
 			if (!propertyExpansionCache.putIfNotExists(entityType, propertyPath, propertyExpansion)) {
 				return propertyExpansionCache.get(entityType, propertyPath);

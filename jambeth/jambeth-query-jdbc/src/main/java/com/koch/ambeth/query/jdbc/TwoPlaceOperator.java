@@ -22,8 +22,6 @@ limitations under the License.
 
 import java.util.Map;
 
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.persistence.filter.QueryConstants;
 import com.koch.ambeth.query.IMultiValueOperand;
 import com.koch.ambeth.query.IOperand;
@@ -36,10 +34,6 @@ import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.IMap;
 
 public abstract class TwoPlaceOperator extends BasicTwoPlaceOperator {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	protected IOperand leftOperand;
 
 	protected IOperand rightOperand;
@@ -69,8 +63,8 @@ public abstract class TwoPlaceOperator extends BasicTwoPlaceOperator {
 	@Override
 	protected void processRightOperand(IAppendable querySB, IMap<Object, Object> nameToValueMap,
 			boolean joinQuery, Class<?> leftValueOperandType, IList<Object> parameters) {
-		Object existingHint =
-				nameToValueMap.put(QueryConstants.EXPECTED_TYPE_HINT, leftValueOperandType);
+		Object existingHint = nameToValueMap.put(QueryConstants.EXPECTED_TYPE_HINT,
+				leftValueOperandType);
 		try {
 			rightOperand.expandQuery(querySB, nameToValueMap, joinQuery, parameters);
 		}

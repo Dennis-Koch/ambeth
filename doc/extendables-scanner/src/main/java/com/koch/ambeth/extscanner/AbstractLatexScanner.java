@@ -34,10 +34,10 @@ import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.classbrowser.java.TypeDescription;
 
 public abstract class AbstractLatexScanner implements IInitializingBean, IStartingBean {
-	public static final Pattern labelNamePattern =
-			Pattern.compile(".*\\\\section\\{[^\\}]*\\}\\s*\\\\label\\{([^\\}]*)\\}.*", Pattern.DOTALL);
+	public static final Pattern labelNamePattern = Pattern
+			.compile(".*\\\\section\\{[^\\}]*\\}\\s*\\\\label\\{([^\\}]*)\\}.*", Pattern.DOTALL);
 
-	public static final String[] setAPIs = {"\\SetAPI{nothing}", //
+	public static final String[] setAPIs = { "\\SetAPI{nothing}", //
 			"\\SetAPI{J}", //
 			"\\SetAPI{C}", //
 			"\\SetAPI{J-C}", //
@@ -51,7 +51,6 @@ public abstract class AbstractLatexScanner implements IInitializingBean, IStarti
 
 	public static final Pattern texFilePattern = Pattern.compile("(.+)\\.tex");
 
-	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 
@@ -158,8 +157,8 @@ public abstract class AbstractLatexScanner implements IInitializingBean, IStarti
 			}
 			return;
 		}
-		String relativeFilePath =
-				currFile.getPath().substring(baseDir.getPath().length() + 1).replace('\\', '/');
+		String relativeFilePath = currFile.getPath().substring(baseDir.getPath().length() + 1)
+				.replace('\\', '/');
 
 		for (IFileFoundDelegate allMatchDelegate : allMatchDelegates) {
 			allMatchDelegate.fileFound(currFile, relativeFilePath);
@@ -184,8 +183,8 @@ public abstract class AbstractLatexScanner implements IInitializingBean, IStarti
 	protected StringBuilder readFileFully(File file) {
 		try {
 			StringBuilder sb = new StringBuilder((int) file.length());
-			BufferedReader rd =
-					new BufferedReader(new InputStreamReader(new FileInputStream(file), Charsets.UTF_8));
+			BufferedReader rd = new BufferedReader(
+					new InputStreamReader(new FileInputStream(file), Charsets.UTF_8));
 			try {
 				int oneByte;
 				while ((oneByte = rd.read()) != -1) {
@@ -275,20 +274,14 @@ public abstract class AbstractLatexScanner implements IInitializingBean, IStarti
 			final ISourceFileAware fAnnotationEntry = sourceFileAware;
 
 			queueFileSearch(sourceFileAware.getJavaSrc(), ".java", nameToFileFoundDelegates,
-					new IFileFoundDelegate() {
-						@Override
-						public void fileFound(File file, String relativeFilePath) {
-							file = filterFileContent(file, relativeFilePath);
-							fAnnotationEntry.setJavaFile(file, relativeFilePath);
-						}
+					(file, relativeFilePath) -> {
+						file = filterFileContent(file, relativeFilePath);
+						fAnnotationEntry.setJavaFile(file, relativeFilePath);
 					});
 			queueFileSearch(sourceFileAware.getCsharpSrc(), ".cs", nameToFileFoundDelegates,
-					new IFileFoundDelegate() {
-						@Override
-						public void fileFound(File file, String relativeFilePath) {
-							file = filterFileContent(file, relativeFilePath);
-							fAnnotationEntry.setCsharpFile(getAllDir(), relativeFilePath);
-						}
+					(file, relativeFilePath) -> {
+						file = filterFileContent(file, relativeFilePath);
+						fAnnotationEntry.setCsharpFile(getAllDir(), relativeFilePath);
 					});
 		}
 		searchForFiles(sourcePath, nameToFileFoundDelegates, new IFileFoundDelegate[0]);

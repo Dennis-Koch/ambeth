@@ -36,8 +36,6 @@ import com.koch.ambeth.ioc.IInitializingBean;
 import com.koch.ambeth.ioc.accessor.AccessorClassLoader;
 import com.koch.ambeth.ioc.accessor.IAccessorTypeProvider;
 import com.koch.ambeth.ioc.annotation.Autowired;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.util.IDisposable;
 import com.koch.ambeth.util.ParamChecker;
 import com.koch.ambeth.util.ReflectUtil;
@@ -51,10 +49,6 @@ import com.koch.ambeth.util.proxy.AbstractSimpleInterceptor;
 import com.koch.ambeth.util.proxy.ClassLoaderAwareClassWriter;
 
 public class GarbageProxyFactory implements IGarbageProxyFactory, IInitializingBean {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	@Autowired
 	protected IAccessorTypeProvider accessorTypeProvider;
 

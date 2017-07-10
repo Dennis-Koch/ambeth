@@ -37,7 +37,6 @@ import com.koch.ambeth.util.config.IProperties;
 import com.koch.ambeth.util.typeinfo.IPropertyInfo;
 
 public class AutoLinkPreProcessor implements IInitializingBean, IBeanPreProcessor {
-	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 

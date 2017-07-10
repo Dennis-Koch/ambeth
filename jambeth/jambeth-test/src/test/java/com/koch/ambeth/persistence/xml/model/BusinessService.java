@@ -23,15 +23,9 @@ limitations under the License.
 import java.util.List;
 
 import com.koch.ambeth.ioc.IInitializingBean;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.util.ParamChecker;
 
 public class BusinessService implements IBusinessService, IInitializingBean {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	protected IEmployeeService employeeService;
 
 	@Override

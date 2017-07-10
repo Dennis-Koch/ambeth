@@ -24,8 +24,6 @@ import java.util.List;
 
 import com.koch.ambeth.ioc.IServiceContext;
 import com.koch.ambeth.ioc.annotation.Autowired;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.persistence.api.IDatabase;
 import com.koch.ambeth.persistence.api.database.ITransaction;
 import com.koch.ambeth.persistence.api.database.ResultingDatabaseCallback;
@@ -41,10 +39,6 @@ import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.IMap;
 
 public class QueryDelegate<T> implements IQuery<T>, IQueryIntern<T> {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	@Autowired
 	protected IServiceContext beanContext;
 

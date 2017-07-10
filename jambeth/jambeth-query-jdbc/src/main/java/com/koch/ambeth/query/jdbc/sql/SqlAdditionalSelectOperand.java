@@ -23,8 +23,6 @@ limitations under the License.
 import java.util.List;
 
 import com.koch.ambeth.ioc.IInitializingBean;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.persistence.filter.QueryConstants;
 import com.koch.ambeth.query.IOperand;
 import com.koch.ambeth.query.IOperator;
@@ -36,10 +34,6 @@ import com.koch.ambeth.util.collections.IMap;
 import com.koch.ambeth.util.objectcollector.IThreadLocalObjectCollector;
 
 public class SqlAdditionalSelectOperand implements IOperator, IInitializingBean {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	protected IOperand column;
 
 	protected IThreadLocalObjectCollector objectCollector;
@@ -68,8 +62,8 @@ public class SqlAdditionalSelectOperand implements IOperator, IInitializingBean 
 	@SuppressWarnings("unchecked")
 	public void operate(IAppendable querySB, IMap<Object, Object> nameToValueMap, boolean joinQuery,
 			IList<Object> parameters) {
-		List<String> additionalSelectColumnList =
-				(List<String>) nameToValueMap.get(QueryConstants.ADDITIONAL_SELECT_SQL_SB);
+		List<String> additionalSelectColumnList = (List<String>) nameToValueMap
+				.get(QueryConstants.ADDITIONAL_SELECT_SQL_SB);
 		if (additionalSelectColumnList == null) {
 			return;
 		}

@@ -28,8 +28,6 @@ import java.util.List;
 import com.koch.ambeth.datachange.persistence.model.DataChangeEventBO;
 import com.koch.ambeth.ioc.IStartingBean;
 import com.koch.ambeth.ioc.annotation.Autowired;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.proxy.MergeContext;
 import com.koch.ambeth.merge.proxy.PersistenceContext;
 import com.koch.ambeth.persistence.jdbc.JdbcUtil;
@@ -41,10 +39,6 @@ import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 @PersistenceContext
 @MergeContext
 public class DataChangeEventDAO implements IDataChangeEventDAO, IStartingBean {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	@Autowired
 	protected Connection connection;
 

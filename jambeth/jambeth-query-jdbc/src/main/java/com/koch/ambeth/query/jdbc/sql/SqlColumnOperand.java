@@ -24,8 +24,6 @@ import java.util.Map;
 
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.config.Property;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.persistence.IConnectionDialect;
 import com.koch.ambeth.persistence.filter.QueryConstants;
 import com.koch.ambeth.query.IOperand;
@@ -37,10 +35,6 @@ import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.IMap;
 
 public class SqlColumnOperand implements IOperand, IOperatorAwareOperand {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	@Property
 	protected String columnName;
 
@@ -96,16 +90,16 @@ public class SqlColumnOperand implements IOperand, IOperatorAwareOperand {
 	@SuppressWarnings("unchecked")
 	@Override
 	public void operatorStart(Map<Object, Object> nameToValueMap) {
-		IList<Class<?>> entityTypeStack =
-				(IList<Class<?>>) nameToValueMap.get(OperandConstants.EntityType);
+		IList<Class<?>> entityTypeStack = (IList<Class<?>>) nameToValueMap
+				.get(OperandConstants.EntityType);
 		if (entityTypeStack == null) {
 			entityTypeStack = new ArrayList<>();
 			nameToValueMap.put(OperandConstants.EntityType, entityTypeStack);
 		}
 		entityTypeStack.add(entityType);
 
-		IList<String> propertyNameStack =
-				(IList<String>) nameToValueMap.get(OperandConstants.PropertyName);
+		IList<String> propertyNameStack = (IList<String>) nameToValueMap
+				.get(OperandConstants.PropertyName);
 		if (propertyNameStack == null) {
 			propertyNameStack = new ArrayList<>();
 			nameToValueMap.put(OperandConstants.PropertyName, propertyNameStack);
@@ -116,14 +110,14 @@ public class SqlColumnOperand implements IOperand, IOperatorAwareOperand {
 	@SuppressWarnings("unchecked")
 	@Override
 	public void operatorEnd(Map<Object, Object> nameToValueMap) {
-		IList<Class<?>> entityTypeStack =
-				(IList<Class<?>>) nameToValueMap.get(OperandConstants.EntityType);
+		IList<Class<?>> entityTypeStack = (IList<Class<?>>) nameToValueMap
+				.get(OperandConstants.EntityType);
 		entityTypeStack.remove(entityTypeStack.size() - 1);
 		if (entityTypeStack.isEmpty()) {
 			nameToValueMap.remove(OperandConstants.EntityType);
 		}
-		IList<String> propertyNameStack =
-				(IList<String>) nameToValueMap.get(OperandConstants.PropertyName);
+		IList<String> propertyNameStack = (IList<String>) nameToValueMap
+				.get(OperandConstants.PropertyName);
 		propertyNameStack.remove(propertyNameStack.size() - 1);
 		if (propertyNameStack.isEmpty()) {
 			nameToValueMap.remove(OperandConstants.PropertyName);

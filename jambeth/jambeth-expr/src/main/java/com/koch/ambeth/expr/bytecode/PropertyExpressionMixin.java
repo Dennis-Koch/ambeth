@@ -29,7 +29,6 @@ import com.koch.ambeth.merge.proxy.IEntityMetaDataHolder;
 import com.koch.ambeth.util.IConversionHelper;
 
 public class PropertyExpressionMixin {
-	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 
@@ -51,8 +50,8 @@ public class PropertyExpressionMixin {
 			}
 			return conversionHelper.convertValueToType(expectedType, Integer.valueOf(0));
 		}
-		Object expressionResult =
-				entityPropertyExpressionResolver.resolveExpressionOnEntity(entity, expression);
+		Object expressionResult = entityPropertyExpressionResolver.resolveExpressionOnEntity(entity,
+				expression);
 		return conversionHelper.convertValueToType(expectedType, expressionResult);
 	}
 }

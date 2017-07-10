@@ -28,8 +28,6 @@ import com.koch.ambeth.audit.model.IAuditedEntity;
 import com.koch.ambeth.audit.model.IAuditedEntityRef;
 import com.koch.ambeth.ioc.IStartingBean;
 import com.koch.ambeth.ioc.annotation.Autowired;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.query.IOperand;
 import com.koch.ambeth.query.IQuery;
 import com.koch.ambeth.query.IQueryBuilder;
@@ -46,10 +44,6 @@ import com.koch.ambeth.util.collections.IList;
 public class AuditEntryReader implements IAuditEntryReader, IStartingBean {
 	private static final String VALUE_NAME_START = "auditEntryStart";
 	private static final String VALUE_NAME_END = "auditEntryEnd";
-
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
 
 	@Autowired
 	protected IEntityMetaDataProvider entityMetaDataProvider;
@@ -74,8 +68,8 @@ public class AuditEntryReader implements IAuditEntryReader, IStartingBean {
 
 			IOperand entityType = qb.property(IAuditedEntity.Ref + "." + IAuditedEntityRef.EntityType);
 			IOperand entityId = qb.property(IAuditedEntity.Ref + "." + IAuditedEntityRef.EntityId);
-			IOperand entityVersion =
-					qb.property(IAuditedEntity.Ref + "." + IAuditedEntityRef.EntityVersion);
+			IOperand entityVersion = qb
+					.property(IAuditedEntity.Ref + "." + IAuditedEntityRef.EntityVersion);
 
 			qb.orderBy(qb.property(IAuditedEntity.Entry + "." + IAuditEntry.Timestamp), OrderByType.ASC);
 

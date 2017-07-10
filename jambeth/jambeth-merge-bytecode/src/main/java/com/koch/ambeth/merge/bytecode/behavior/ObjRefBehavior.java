@@ -28,8 +28,6 @@ import com.koch.ambeth.bytecode.behavior.AbstractBehavior;
 import com.koch.ambeth.bytecode.behavior.IBytecodeBehavior;
 import com.koch.ambeth.bytecode.behavior.IBytecodeBehaviorState;
 import com.koch.ambeth.ioc.annotation.Autowired;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.bytecode.visitor.ObjRefVisitor;
 import com.koch.ambeth.merge.metadata.ObjRefEnhancementHint;
 import com.koch.ambeth.service.merge.IEntityMetaDataProvider;
@@ -37,16 +35,12 @@ import com.koch.ambeth.service.merge.model.IEntityMetaData;
 import com.koch.ambeth.service.merge.model.IObjRef;
 
 public class ObjRefBehavior extends AbstractBehavior {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	@Autowired
 	protected IEntityMetaDataProvider entityMetaDataProvider;
 
 	@Override
 	public Class<?>[] getEnhancements() {
-		return new Class<?>[] {IObjRef.class};
+		return new Class<?>[] { IObjRef.class };
 	}
 
 	@Override

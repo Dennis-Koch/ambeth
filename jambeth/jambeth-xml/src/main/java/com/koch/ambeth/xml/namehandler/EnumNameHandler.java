@@ -22,8 +22,6 @@ limitations under the License.
 
 import java.lang.reflect.Method;
 
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.xml.INameBasedHandler;
 import com.koch.ambeth.xml.IReader;
@@ -31,13 +29,9 @@ import com.koch.ambeth.xml.IWriter;
 import com.koch.ambeth.xml.typehandler.AbstractHandler;
 
 public class EnumNameHandler extends AbstractHandler implements INameBasedHandler {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
+	protected static final Method enumValueOf;
 
-	protected final Method enumValueOf;
-
-	public EnumNameHandler() {
+	static {
 		try {
 			enumValueOf = Enum.class.getMethod("valueOf", Class.class, String.class);
 		}

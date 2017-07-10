@@ -31,8 +31,6 @@ import java.util.Set;
 
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.config.Property;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.cache.CacheDirective;
 import com.koch.ambeth.merge.cache.CacheFactoryDirective;
 import com.koch.ambeth.merge.cache.ICache;
@@ -77,12 +75,8 @@ import com.koch.ambeth.util.threading.IBackgroundWorkerDelegate;
 import com.koch.ambeth.util.threading.IGuiThreadHelper;
 
 public class MergeController implements IMergeController, IMergeExtendable {
-	protected static final Set<CacheDirective> failEarlyAndReturnMissesSet =
-			EnumSet.of(CacheDirective.FailEarly, CacheDirective.ReturnMisses);
-
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
+	protected static final Set<CacheDirective> failEarlyAndReturnMissesSet = EnumSet
+			.of(CacheDirective.FailEarly, CacheDirective.ReturnMisses);
 
 	@Autowired
 	protected ICacheFactory cacheFactory;
@@ -155,28 +149,29 @@ public class MergeController implements IMergeController, IMergeExtendable {
 	}
 
 	@SuppressWarnings("rawtypes")
-	protected void addOriModification(Object obj, String memberName, Object value,
-			Object cloneValue, MergeHandle handle) {
+	protected void addOriModification(Object obj, String memberName, Object value, Object cloneValue,
+			MergeHandle handle) {
 		if (value instanceof List) {
 			List list = (List) value;
 			for (int a = 0, size = list.size(); a < size; a++) {
 				Object objItem = list.get(a);
 				mergeOrPersist(objItem, handle);
 			}
-		} else if (value instanceof Collection) {
+		}
+		else if (value instanceof Collection) {
 			Iterator<?> iter = ((Collection<?>) value).iterator();
 			while (iter.hasNext()) {
 				Object objItem = iter.next();
 				mergeOrPersist(objItem, handle);
 			}
-		} else {
+		}
+		else {
 			mergeOrPersist(value, handle);
 		}
 		try {
-			IList<IObjRef> oldOriList =
-					oriHelper.extractObjRefList(cloneValue, handle, handle.getOldOrList());
-			IList<IObjRef> newOriList =
-					oriHelper.extractObjRefList(value, handle, handle.getNewOrList());
+			IList<IObjRef> oldOriList = oriHelper.extractObjRefList(cloneValue, handle,
+					handle.getOldOrList());
+			IList<IObjRef> newOriList = oriHelper.extractObjRefList(value, handle, handle.getNewOrList());
 
 			IRelationUpdateItem oriModItem = createRUI(memberName, oldOriList, newOriList);
 			if (oriModItem == null) {
@@ -186,7 +181,8 @@ public class MergeController implements IMergeController, IMergeExtendable {
 			IList<IUpdateItem> modItemList = addModification(obj, handle);
 
 			modItemList.add(oriModItem);
-		} finally {
+		}
+		finally {
 			handle.getOldOrList().clear();
 			handle.getNewOrList().clear();
 		}
@@ -239,8 +235,7 @@ public class MergeController implements IMergeController, IMergeExtendable {
 				}
 				Long changedOn = allChangedOn != null ? allChangedOn[a] : singleChangedOn;
 				String changedBy = allChangedBy != null ? allChangedBy[a] : singleChangedBy;
-				IEntityMetaData metaData =
-						entityMetaDataProvider.getMetaData(originalRef.getClass());
+				IEntityMetaData metaData = entityMetaDataProvider.getMetaData(originalRef.getClass());
 
 				Member keyMember = metaData.getIdMember();
 				Member versionMember = metaData.getVersionMember();
@@ -249,18 +244,19 @@ public class MergeController implements IMergeController, IMergeExtendable {
 				if (keyMember.getValue(originalRef, false) == null) {
 					onMember = metaData.getCreatedOnMember();
 					byMember = metaData.getCreatedByMember();
-				} else {
+				}
+				else {
 					onMember = metaData.getUpdatedOnMember();
 					byMember = metaData.getUpdatedByMember();
 				}
 				if (onMember != null && changedOn != null) {
-					Object createdOn = conversionHelper
-							.convertValueToType(onMember.getElementType(), changedOn);
+					Object createdOn = conversionHelper.convertValueToType(onMember.getElementType(),
+							changedOn);
 					onMember.setValue(originalRef, createdOn);
 				}
 				if (byMember != null && changedBy != null) {
-					Object createdBy = conversionHelper
-							.convertValueToType(byMember.getElementType(), changedBy);
+					Object createdBy = conversionHelper.convertValueToType(byMember.getElementType(),
+							changedBy);
 					byMember.setValue(originalRef, createdBy);
 				}
 				if (ori == null) {
@@ -278,9 +274,10 @@ public class MergeController implements IMergeController, IMergeExtendable {
 						conversionHelper.convertValueToType(keyMember.getRealType(), ori.getId()));
 				if (versionMember != null) {
 					if (alwaysUpdateVersionInChangedEntities) {
-						versionMember.setValue(originalRef, conversionHelper
-								.convertValueToType(versionMember.getRealType(), ori.getVersion()));
-					} else {
+						versionMember.setValue(originalRef,
+								conversionHelper.convertValueToType(versionMember.getRealType(), ori.getVersion()));
+					}
+					else {
 						// We INTENTIONALLY do NOT set the version and let it on its old value, to
 						// force the
 						// following
@@ -302,7 +299,8 @@ public class MergeController implements IMergeController, IMergeExtendable {
 				validObjects.add(originalRef);
 			}
 			putInstancesToCurrentCache(validObjects, cache);
-		} finally {
+		}
+		finally {
 			cacheModification.setActive(oldCacheModificationValue);
 		}
 	}
@@ -324,7 +322,8 @@ public class MergeController implements IMergeController, IMergeExtendable {
 					}
 				}
 				return true;
-			} else if (objValue instanceof List && cloneValue instanceof List) {
+			}
+			else if (objValue instanceof List && cloneValue instanceof List) {
 				List<?> objList = (List<?>) objValue;
 				List<?> cloneList = (List<?>) cloneValue;
 				if (objList.size() != cloneList.size()) {
@@ -338,14 +337,16 @@ public class MergeController implements IMergeController, IMergeExtendable {
 					}
 				}
 				return true;
-			} else if (objValue instanceof Set && cloneValue instanceof Set) {
+			}
+			else if (objValue instanceof Set && cloneValue instanceof Set) {
 				Set<?> objColl = (Set<?>) objValue;
 				Set<?> cloneColl = (Set<?>) cloneValue;
 				if (objColl.size() != cloneColl.size()) {
 					return false;
 				}
 				return cloneColl.containsAll(objColl);
-			} else if (objValue instanceof Iterable && cloneValue instanceof Iterable) {
+			}
+			else if (objValue instanceof Iterable && cloneValue instanceof Iterable) {
 				Iterator<?> objIter = ((Iterable<?>) objValue).iterator();
 				Iterator<?> cloneIter = ((Iterable<?>) cloneValue).iterator();
 				while (objIter.hasNext()) {
@@ -373,12 +374,13 @@ public class MergeController implements IMergeController, IMergeExtendable {
 		if (privilegedMode) {
 			cache = handle.getPrivilegedCache();
 			if (cache == null) {
-				cache = cacheFactory.createPrivileged(CacheFactoryDirective.NoDCE, false,
-						Boolean.FALSE, "MergeController.ORIGINAL.PRIVILEGED");
+				cache = cacheFactory.createPrivileged(CacheFactoryDirective.NoDCE, false, Boolean.FALSE,
+						"MergeController.ORIGINAL.PRIVILEGED");
 				handle.setPrivilegedCache(cache);
 				handle.setPrivilegedCacheToDispose(true);
 			}
-		} else {
+		}
+		else {
 			cache = handle.getCache();
 			if (cache == null) {
 				cache = cacheFactory.create(CacheFactoryDirective.NoDCE, false, Boolean.FALSE,
@@ -387,8 +389,7 @@ public class MergeController implements IMergeController, IMergeExtendable {
 				handle.setCacheToDispose(true);
 			}
 		}
-		IList<Object> eagerlyLoadedOriginals =
-				cache.getObjects(objRefs, CacheDirective.returnMisses());
+		IList<Object> eagerlyLoadedOriginals = cache.getObjects(objRefs, CacheDirective.returnMisses());
 		for (int a = eagerlyLoadedOriginals.size(); a-- > 0;) {
 			IObjRef existingOri = objRefs.get(a);
 			if (eagerlyLoadedOriginals.get(a) == null && existingOri != null
@@ -408,12 +409,11 @@ public class MergeController implements IMergeController, IMergeExtendable {
 				continue;
 			}
 			ValueHolderRef valueHolderRef = valueHolderKeys.get(a);
-			if (ValueHolderState.INIT == objectOfVhk
-					.get__State(valueHolderRef.getRelationIndex())) {
+			if (ValueHolderState.INIT == objectOfVhk.get__State(valueHolderRef.getRelationIndex())) {
 				continue;
 			}
-			DirectValueHolderRef vhcKey =
-					new DirectValueHolderRef(objectOfVhk, valueHolderRef.getMember());
+			DirectValueHolderRef vhcKey = new DirectValueHolderRef(objectOfVhk,
+					valueHolderRef.getMember());
 			handle.getPendingValueHolders().add(vhcKey);
 		}
 		return eagerlyLoadedOriginals;
@@ -425,10 +425,10 @@ public class MergeController implements IMergeController, IMergeExtendable {
 		if (oldOriList.isEmpty() && newOriList.isEmpty()) {
 			return null;
 		}
-		ISet<IObjRef> oldSet =
-				!oldOriList.isEmpty() ? new HashSet<>(oldOriList) : EmptySet.<IObjRef>emptySet();
-		ISet<IObjRef> newSet =
-				!newOriList.isEmpty() ? new HashSet<>(newOriList) : EmptySet.<IObjRef>emptySet();
+		ISet<IObjRef> oldSet = !oldOriList.isEmpty() ? new HashSet<>(oldOriList)
+				: EmptySet.<IObjRef>emptySet();
+		ISet<IObjRef> newSet = !newOriList.isEmpty() ? new HashSet<>(newOriList)
+				: EmptySet.<IObjRef>emptySet();
 
 		ISet<IObjRef> smallerSet = oldSet.size() > newSet.size() ? newSet : oldSet;
 		ISet<IObjRef> greaterSet = oldSet.size() > newSet.size() ? oldSet : newSet;
@@ -463,10 +463,10 @@ public class MergeController implements IMergeController, IMergeExtendable {
 		if (oldOriList.isEmpty() && newOriList.isEmpty()) {
 			return null;
 		}
-		ISet<IObjRef> oldSet =
-				!oldOriList.isEmpty() ? new HashSet<>(oldOriList) : EmptySet.<IObjRef>emptySet();
-		ISet<IObjRef> newSet =
-				!newOriList.isEmpty() ? new HashSet<>(newOriList) : EmptySet.<IObjRef>emptySet();
+		ISet<IObjRef> oldSet = !oldOriList.isEmpty() ? new HashSet<>(oldOriList)
+				: EmptySet.<IObjRef>emptySet();
+		ISet<IObjRef> newSet = !newOriList.isEmpty() ? new HashSet<>(newOriList)
+				: EmptySet.<IObjRef>emptySet();
 
 		ISet<IObjRef> smallerSet = oldSet.size() > newSet.size() ? newSet : oldSet;
 		ISet<IObjRef> greaterSet = oldSet.size() > newSet.size() ? oldSet : newSet;
@@ -522,8 +522,7 @@ public class MergeController implements IMergeController, IMergeExtendable {
 			return false;
 		}
 		Member keyMember = metaData.getIdMember();
-		return EqualsUtil.equals(keyMember.getValue(clone, false),
-				keyMember.getValue(original, false));
+		return EqualsUtil.equals(keyMember.getValue(clone, false), keyMember.getValue(original, false));
 	}
 
 	@SuppressWarnings("rawtypes")
@@ -567,7 +566,8 @@ public class MergeController implements IMergeController, IMergeExtendable {
 				Object objItem = objEnumerator.next();
 				if (!cloneEnumerator.hasNext()) {
 					memberModified = true;
-				} else {
+				}
+				else {
 					Object cloneItem = cloneEnumerator.next();
 					if (!equalsReferenceOrId(objItem, cloneItem, handle, metaData)) {
 						memberModified = true;
@@ -584,7 +584,7 @@ public class MergeController implements IMergeController, IMergeExtendable {
 		return !equalsReferenceOrId(objValue, cloneValue, handle, metaData);
 	}
 
-	@SuppressWarnings({"unchecked", "rawtypes"})
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	protected void merge(final Object obj, final Object clone, final MergeHandle handle) {
 		IEntityMetaDataProvider entityMetaDataProvider = this.entityMetaDataProvider;
 		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(obj.getClass());
@@ -607,22 +607,20 @@ public class MergeController implements IMergeController, IMergeExtendable {
 					}
 					Object objMember = relationMember.getValue(obj, false);
 					Object cloneMember = relationMember.getValue(clone, false);
-					if (objMember instanceof IDataObject
-							&& !((IDataObject) objMember).hasPendingChanges()) {
-						IEntityMetaData relationMetaData =
-								entityMetaDataProvider.getMetaData(relationMember.getRealType());
+					if (objMember instanceof IDataObject && !((IDataObject) objMember).hasPendingChanges()) {
+						IEntityMetaData relationMetaData = entityMetaDataProvider
+								.getMetaData(relationMember.getRealType());
 						if (equalsReferenceOrId(objMember, cloneMember, handle, relationMetaData)) {
 							continue;
 						}
 					}
 
-					IEntityMetaData childMetaData =
-							entityMetaDataProvider.getMetaData(relationMember.getElementType());
+					IEntityMetaData childMetaData = entityMetaDataProvider
+							.getMetaData(relationMember.getElementType());
 
 					if (isMemberModified(objMember, cloneMember, handle, childMetaData)) {
 						oneChangeOccured = true;
-						addOriModification(obj, relationMember.getName(), objMember, cloneMember,
-								handle);
+						addOriModification(obj, relationMember.getName(), objMember, cloneMember, handle);
 					}
 				}
 			}
@@ -639,19 +637,20 @@ public class MergeController implements IMergeController, IMergeExtendable {
 					}
 					Object objValue = primitiveMember.getValue(obj, true);
 					if (oneChangeOccured) {
-						addModification(obj, primitiveMember.getName(),
-								primitiveMember.getElementType(), objValue, null, handle);
+						addModification(obj, primitiveMember.getName(), primitiveMember.getElementType(),
+								objValue, null, handle);
 						continue;
 					}
 					Object cloneValue = primitiveMember.getValue(clone, true);
-					if (!arePrimitivesEqual(metaData, primitiveMember, objValue, cloneValue,
-							handle)) {
+					if (!arePrimitivesEqual(metaData, primitiveMember, objValue, cloneValue, handle)) {
 						oneChangeOccured = true;
 						break;
 					}
 				}
-			} while (additionalRound && oneChangeOccured);
-		} finally {
+			}
+			while (additionalRound && oneChangeOccured);
+		}
+		finally {
 			Member versionMember = metaData.getVersionMember();
 			if (oneChangeOccured && versionMember != null) {
 				// Check for early optimistic locking (Another, later level is directly on
@@ -661,11 +660,9 @@ public class MergeController implements IMergeController, IMergeExtendable {
 				Object currentVersion = versionMember.getValue(clone, true);
 
 				int compareResult = ((Comparable) versionToMerge).compareTo(currentVersion);
-				if (exactVersionForOptimisticLockingRequired
-						? compareResult != 0
-						: compareResult < 0) {
-					throw OptimisticLockUtil.throwModified(oriHelper.entityToObjRef(clone),
-							versionToMerge, obj);
+				if (exactVersionForOptimisticLockingRequired ? compareResult != 0 : compareResult < 0) {
+					throw OptimisticLockUtil.throwModified(oriHelper.entityToObjRef(clone), versionToMerge,
+							obj);
 				}
 			}
 		}
@@ -687,16 +684,15 @@ public class MergeController implements IMergeController, IMergeExtendable {
 		// Load all requested object originals in one roundtrip
 		try {
 			if (!privilegedObjRefs.isEmpty()) {
-				hardRef.add(
-						batchLoadOriginalState(handle, true, privilegedObjRefs, valueHolderKeys));
+				hardRef.add(batchLoadOriginalState(handle, true, privilegedObjRefs, valueHolderKeys));
 			}
 			if (!objRefs.isEmpty()) {
 				hardRef.add(batchLoadOriginalState(handle, false, objRefs, valueHolderKeys));
 			}
 			if (typeToObjectsToMerge != null) {
 				for (Class<?> orderedEntityType : entityPersistOrder) {
-					IList<Object> objectsToMergeOfOrderedType =
-							typeToObjectsToMerge.remove(orderedEntityType);
+					IList<Object> objectsToMergeOfOrderedType = typeToObjectsToMerge
+							.remove(orderedEntityType);
 					if (objectsToMergeOfOrderedType == null) {
 						continue;
 					}
@@ -706,11 +702,13 @@ public class MergeController implements IMergeController, IMergeExtendable {
 					IList<Object> objectsToMergeOfUnorderedType = entry.getValue();
 					mergeDeepStart(objectsToMergeOfUnorderedType, handle);
 				}
-			} else if (!objectsToMerge.isEmpty()) {
+			}
+			else if (!objectsToMerge.isEmpty()) {
 				mergeDeepStart(objectsToMerge, handle);
 			}
 			return cudResultHelper.createCUDResult(handle);
-		} finally {
+		}
+		finally {
 			if (handle.isPrivilegedCacheToDispose()) {
 				((IDisposableCache) handle.getPrivilegedCache()).dispose();
 				handle.setPrivilegedCache(null);
@@ -735,7 +733,8 @@ public class MergeController implements IMergeController, IMergeExtendable {
 			for (int a = 0, size = objList.size(); a < size; a++) {
 				mergeOrPersist(objList.get(a), handle);
 			}
-		} else if (obj instanceof Iterable) {
+		}
+		else if (obj instanceof Iterable) {
 			if (!handle.alreadyProcessedSet.add(obj)) {
 				return;
 			}
@@ -743,12 +742,14 @@ public class MergeController implements IMergeController, IMergeExtendable {
 			while (iter.hasNext()) {
 				mergeOrPersist(iter.next(), handle);
 			}
-		} else if (obj.getClass().isArray()) {
+		}
+		else if (obj.getClass().isArray()) {
 			Object[] array = (Object[]) obj;
 			for (int a = array.length; a-- > 0;) {
 				mergeOrPersist(array[a], handle);
 			}
-		} else {
+		}
+		else {
 			mergeOrPersist(obj, handle);
 		}
 	}
@@ -803,8 +804,7 @@ public class MergeController implements IMergeController, IMergeExtendable {
 			return;
 		}
 		boolean isEntityFromPrivilegedCache = ((IObjRefContainer) obj).get__Cache().isPrivileged();
-		ICache cache =
-				isEntityFromPrivilegedCache ? handle.getPrivilegedCache() : handle.getCache();
+		ICache cache = isEntityFromPrivilegedCache ? handle.getPrivilegedCache() : handle.getCache();
 		if (cache == null) {
 			throw new IllegalStateException("Object has been cloned somewhere");
 		}
@@ -824,8 +824,8 @@ public class MergeController implements IMergeController, IMergeExtendable {
 			Object objValue = primitiveMember.getValue(obj, true);
 			Object cloneValue = primitiveMember.getValue(clone, true);
 			if (!arePrimitivesEqual(metaData, primitiveMember, objValue, cloneValue, handle)) {
-				addModification(obj, primitiveMember.getName(), primitiveMember.getElementType(),
-						objValue, cloneValue, handle);
+				addModification(obj, primitiveMember.getName(), primitiveMember.getElementType(), objValue,
+						cloneValue, handle);
 				continue;
 			}
 		}
@@ -861,8 +861,8 @@ public class MergeController implements IMergeController, IMergeExtendable {
 			Object objMember = primitiveMember.getValue(obj, true);
 
 			if (objMember != null) {
-				addModification(obj, primitiveMember.getName(), primitiveMember.getElementType(),
-						objMember, null, handle);
+				addModification(obj, primitiveMember.getName(), primitiveMember.getElementType(), objMember,
+						null, handle);
 			}
 		}
 	}
@@ -871,8 +871,7 @@ public class MergeController implements IMergeController, IMergeExtendable {
 		if (!MergeProcess.isAddNewlyPersistedEntities()) {
 			return;
 		}
-		IWritableCache currentCache = cache != null
-				? (IWritableCache) cache
+		IWritableCache currentCache = cache != null ? (IWritableCache) cache
 				: (IWritableCache) cacheProvider.getCurrentCache();
 		currentCache.put(validObjects);
 	}
@@ -901,26 +900,27 @@ public class MergeController implements IMergeController, IMergeExtendable {
 
 	protected void scanForInitializedObjectsIntern(Object obj, boolean isDeepMerge,
 			List<Object> objects, Map<Class<?>, IList<Object>> typeToObjectsToMerge,
-			ISet<Object> alreadyHandledObjectsSet, List<IObjRef> objRefs,
-			List<IObjRef> privilegedObjRefs, List<ValueHolderRef> valueHolderKeys) {
+			ISet<Object> alreadyHandledObjectsSet, List<IObjRef> objRefs, List<IObjRef> privilegedObjRefs,
+			List<ValueHolderRef> valueHolderKeys) {
 		if (obj == null || !alreadyHandledObjectsSet.add(obj)) {
 			return;
 		}
 		if (obj instanceof List) {
 			List<?> list = (List<?>) obj;
 			for (int a = 0, size = list.size(); a < size; a++) {
-				scanForInitializedObjectsIntern(list.get(a), isDeepMerge, objects,
-						typeToObjectsToMerge, alreadyHandledObjectsSet, objRefs, privilegedObjRefs,
-						valueHolderKeys);
+				scanForInitializedObjectsIntern(list.get(a), isDeepMerge, objects, typeToObjectsToMerge,
+						alreadyHandledObjectsSet, objRefs, privilegedObjRefs, valueHolderKeys);
 			}
 			return;
-		} else if (obj instanceof Iterable) {
+		}
+		else if (obj instanceof Iterable) {
 			for (Object item : (Iterable<?>) obj) {
 				scanForInitializedObjectsIntern(item, isDeepMerge, objects, typeToObjectsToMerge,
 						alreadyHandledObjectsSet, objRefs, privilegedObjRefs, valueHolderKeys);
 			}
 			return;
-		} else if (obj.getClass().isArray()) {
+		}
+		else if (obj.getClass().isArray()) {
 			if (obj.getClass().getComponentType().isPrimitive()) {
 				// primitive arrays can not be casted to Object[]
 				return;
@@ -943,14 +943,13 @@ public class MergeController implements IMergeController, IMergeExtendable {
 			Object id = metaData.getIdMember().getValue(obj, false);
 			boolean isEntityFromPrivilegedCache = false;
 			if (id != null) {
-				objRef = objRefFactory.createObjRef(metaData.getEntityType(),
-						ObjRef.PRIMARY_KEY_INDEX, id, null);
+				objRef = objRefFactory.createObjRef(metaData.getEntityType(), ObjRef.PRIMARY_KEY_INDEX, id,
+						null);
 				isEntityFromPrivilegedCache = ((IObjRefContainer) obj).get__Cache().isPrivileged();
 			}
 			if (!(obj instanceof IDataObject) || ((IDataObject) obj).hasPendingChanges()) {
 				if (typeToObjectsToMerge != null) {
-					IList<Object> objectsToMerge =
-							typeToObjectsToMerge.get(metaData.getEntityType());
+					IList<Object> objectsToMerge = typeToObjectsToMerge.get(metaData.getEntityType());
 					if (objectsToMerge == null) {
 						objectsToMerge = new ArrayList<>();
 						typeToObjectsToMerge.put(metaData.getEntityType(), objectsToMerge);
@@ -962,7 +961,8 @@ public class MergeController implements IMergeController, IMergeExtendable {
 					if (privilegedObjRefs != null) {
 						privilegedObjRefs.add(objRef);
 					}
-				} else {
+				}
+				else {
 					if (objRefs != null) {
 						objRefs.add(objRef);
 					}

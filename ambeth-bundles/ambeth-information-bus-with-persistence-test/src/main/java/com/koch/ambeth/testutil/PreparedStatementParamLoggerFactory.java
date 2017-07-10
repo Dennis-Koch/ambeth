@@ -30,17 +30,11 @@ import java.util.regex.Pattern;
 import com.koch.ambeth.ioc.IFactoryBean;
 import com.koch.ambeth.ioc.IInitializingBean;
 import com.koch.ambeth.ioc.IServiceContext;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.util.ParamChecker;
 import com.koch.ambeth.util.ReflectUtil;
 
 public class PreparedStatementParamLoggerFactory implements IFactoryBean, IInitializingBean {
 	private static final Pattern SETTER = Pattern.compile("^set[A-Z].*");
-
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
 
 	protected final Set<Method> paramSetters;
 

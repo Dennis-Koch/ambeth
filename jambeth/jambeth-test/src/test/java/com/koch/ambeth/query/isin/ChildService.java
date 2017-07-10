@@ -21,8 +21,6 @@ limitations under the License.
  */
 
 import com.koch.ambeth.ioc.annotation.Autowired;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.proxy.PersistenceContext;
 import com.koch.ambeth.query.IQuery;
 import com.koch.ambeth.query.IQueryBuilder;
@@ -32,10 +30,6 @@ import com.koch.ambeth.service.proxy.Service;
 @Service(IChildService.class)
 @PersistenceContext
 public class ChildService implements IChildService {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	@Autowired
 	protected IQueryBuilderFactory queryBuilderFactory;
 

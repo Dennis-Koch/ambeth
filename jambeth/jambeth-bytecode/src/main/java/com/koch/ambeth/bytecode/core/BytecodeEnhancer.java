@@ -86,7 +86,6 @@ public class BytecodeEnhancer
 		}
 	}
 
-	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 

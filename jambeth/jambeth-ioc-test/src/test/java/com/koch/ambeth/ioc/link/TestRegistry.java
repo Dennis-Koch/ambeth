@@ -27,21 +27,14 @@ import com.koch.ambeth.ioc.DefaultExtendableContainer;
 import com.koch.ambeth.ioc.IInitializingBean;
 import com.koch.ambeth.ioc.IStartingBean;
 import com.koch.ambeth.ioc.extendable.IExtendableContainer;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 
 public class TestRegistry
 		implements ITestListenerExtendable, IInitializingBean, ITestRegistry, IStartingBean {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
+	protected final IExtendableContainer<PropertyChangeListener> propertyChangedList = new DefaultExtendableContainer<>(
+			PropertyChangeListener.class, "pceListener");
 
-	protected final IExtendableContainer<PropertyChangeListener> propertyChangedList =
-			new DefaultExtendableContainer<>(PropertyChangeListener.class,
-					"pceListener");
-
-	protected final IExtendableContainer<ITestListener> testListeners =
-			new DefaultExtendableContainer<>(ITestListener.class, "testListener");
+	protected final IExtendableContainer<ITestListener> testListeners = new DefaultExtendableContainer<>(
+			ITestListener.class, "testListener");
 
 	@Override
 	public void afterPropertiesSet() throws Throwable {

@@ -24,8 +24,6 @@ import java.util.List;
 import java.util.Map;
 
 import com.koch.ambeth.ioc.IInitializingBean;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.persistence.filter.QueryConstants;
 import com.koch.ambeth.query.IOperator;
 import com.koch.ambeth.util.appendable.IAppendable;
@@ -33,10 +31,6 @@ import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.IMap;
 
 public abstract class BasicTwoPlaceOperator implements IOperator, IInitializingBean {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	@Override
 	public void afterPropertiesSet() throws Throwable {
 		// Intended blank
@@ -73,12 +67,12 @@ public abstract class BasicTwoPlaceOperator implements IOperator, IInitializingB
 
 		Class<?> leftOperandFieldType = getLeftOperandFieldType();
 
-		Object outerRemainingLeftOperandHandle =
-				nameToValueMap.remove(QueryConstants.REMAINING_LEFT_OPERAND_HANDLE);
-		Object outerRemainingRightOperandHandle =
-				nameToValueMap.remove(QueryConstants.REMAINING_RIGHT_OPERAND_HANDLE);
-		Object outerConsumeRightOperandHandle =
-				nameToValueMap.remove(QueryConstants.CONSUME_RIGHT_OPERAND_HANDLE);
+		Object outerRemainingLeftOperandHandle = nameToValueMap
+				.remove(QueryConstants.REMAINING_LEFT_OPERAND_HANDLE);
+		Object outerRemainingRightOperandHandle = nameToValueMap
+				.remove(QueryConstants.REMAINING_RIGHT_OPERAND_HANDLE);
+		Object outerConsumeRightOperandHandle = nameToValueMap
+				.remove(QueryConstants.CONSUME_RIGHT_OPERAND_HANDLE);
 
 		preProcessOperate(querySB, nameToValueMap, joinQuery, parameters);
 		boolean loopRight = true;

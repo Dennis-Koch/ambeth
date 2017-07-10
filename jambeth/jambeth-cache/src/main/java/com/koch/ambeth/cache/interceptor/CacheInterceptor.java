@@ -32,8 +32,6 @@ import com.koch.ambeth.cache.service.ICacheService;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.typeinfo.TypeInfoItemUtil;
 import com.koch.ambeth.ioc.util.ImmutableTypeSet;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.cache.CacheDirective;
 import com.koch.ambeth.merge.cache.ICache;
 import com.koch.ambeth.merge.interceptor.MergeInterceptor;
@@ -59,10 +57,6 @@ import com.koch.ambeth.util.threading.SensitiveThreadLocal;
 import net.sf.cglib.proxy.MethodProxy;
 
 public class CacheInterceptor extends MergeInterceptor {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	public static final ThreadLocal<Boolean> pauseCache = new SensitiveThreadLocal<>();
 
 	@Autowired
@@ -97,8 +91,8 @@ public class CacheInterceptor extends MergeInterceptor {
 		}
 		if (cached == null) {
 			ISecurityScope[] securityScopes = securityScopeProvider.getSecurityScopes();
-			serviceDescription =
-					SyncToAsyncUtil.createServiceDescription(serviceName, method, args, securityScopes);
+			serviceDescription = SyncToAsyncUtil.createServiceDescription(serviceName, method, args,
+					securityScopes);
 			serviceResult = cacheService.getORIsForServiceRequest(serviceDescription);
 			return createResultObject(serviceResult, returnType, args, annotation);
 		}
@@ -110,8 +104,8 @@ public class CacheInterceptor extends MergeInterceptor {
 		}
 		Class<?> entityType = cached.type();
 		if (entityType == null || void.class.equals(entityType)) {
-			entityType =
-					TypeInfoItemUtil.getElementTypeUsingReflection(returnType, method.getGenericReturnType());
+			entityType = TypeInfoItemUtil.getElementTypeUsingReflection(returnType,
+					method.getGenericReturnType());
 		}
 		if (entityType == null || void.class.equals(entityType)) {
 			throw new IllegalArgumentException("Please specify a valid returnType for the "
@@ -213,7 +207,7 @@ public class CacheInterceptor extends MergeInterceptor {
 		return postProcessCacheResult(objRefs, syncObjects, expectedType, null, null, annotation);
 	}
 
-	@SuppressWarnings({"rawtypes", "unchecked"})
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	protected Object postProcessCacheResult(List<IObjRef> objRefs, IList<Object> cacheResult,
 			Class<?> expectedType, IServiceResult serviceResult, Object[] originalArgs,
 			Annotation annotation) {
@@ -234,8 +228,8 @@ public class CacheInterceptor extends MergeInterceptor {
 			return targetCollection;
 		}
 		else if (expectedType.isArray()) {
-			Object[] array =
-					(Object[]) Array.newInstance(expectedType.getComponentType(), cacheResultSize);
+			Object[] array = (Object[]) Array.newInstance(expectedType.getComponentType(),
+					cacheResultSize);
 
 			if (cacheResult != null) {
 				for (int a = 0; a < cacheResultSize; a++) {
@@ -259,14 +253,14 @@ public class CacheInterceptor extends MergeInterceptor {
 				return cacheResult != null ? cacheResult.get(0) : objRefs.get(0);
 			}
 		}
-		Object additionalInformation =
-				serviceResult != null ? serviceResult.getAdditionalInformation() : null;
+		Object additionalInformation = serviceResult != null ? serviceResult.getAdditionalInformation()
+				: null;
 		if (additionalInformation == null) {
 			throw new IllegalStateException("Can not convert list of " + cacheResultSize
 					+ " results from cache to type " + expectedType.getName());
 		}
-		IServiceResultProcessor serviceResultProcessor =
-				serviceResultProcessorRegistry.getServiceResultProcessor(expectedType);
+		IServiceResultProcessor serviceResultProcessor = serviceResultProcessorRegistry
+				.getServiceResultProcessor(expectedType);
 		return serviceResultProcessor.processServiceResult(additionalInformation, objRefs, cacheResult,
 				expectedType, originalArgs, annotation);
 	}

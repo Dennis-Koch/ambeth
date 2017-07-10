@@ -34,8 +34,6 @@ import com.koch.ambeth.event.server.IEventStore;
 import com.koch.ambeth.ioc.IStartingBean;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.config.Property;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.IEntityFactory;
 import com.koch.ambeth.merge.cache.CacheDirective;
 import com.koch.ambeth.merge.cache.ICache;
@@ -56,10 +54,6 @@ import com.koch.ambeth.util.collections.ISet;
 
 public class DataChangeEventService implements IDataChangeEventService, IStartingBean {
 	private static final long KEEP_EVENTS_FOREVER = -1;
-
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
 
 	@Autowired
 	protected ICache cache;
@@ -82,8 +76,8 @@ public class DataChangeEventService implements IDataChangeEventService, IStartin
 	@Autowired
 	protected IPrefetchHelper prefetchHelper;
 
-	@Property(name = DataChangePersistenceConfigurationConstants.KeepEventsForMillis,
-			defaultValue = KEEP_EVENTS_FOREVER + "")
+	@Property(name = DataChangePersistenceConfigurationConstants.KeepEventsForMillis, defaultValue = KEEP_EVENTS_FOREVER
+			+ "")
 	protected long keepEventsForMillis = KEEP_EVENTS_FOREVER;
 
 	@Override
@@ -117,10 +111,10 @@ public class DataChangeEventService implements IDataChangeEventService, IStartin
 		List<DataChangeEventBO> bos = dataChangeEventDAO.retrieveAll();
 		ArrayList<IDataChange> retrieved = new ArrayList<>();
 
-		IPrefetchHandle prefetchHandle =
-				prefetchHelper.createPrefetch().add(DataChangeEventBO.class, "Inserts.EntityType")
-						.add(DataChangeEventBO.class, "Updates.EntityType")
-						.add(DataChangeEventBO.class, "Deletes.EntityType").build();
+		IPrefetchHandle prefetchHandle = prefetchHelper.createPrefetch()
+				.add(DataChangeEventBO.class, "Inserts.EntityType")
+				.add(DataChangeEventBO.class, "Updates.EntityType")
+				.add(DataChangeEventBO.class, "Deletes.EntityType").build();
 		prefetchHandle.prefetch(bos);
 		for (int i = 0, size = bos.size(); i < size; i++) {
 			DataChangeEventBO bo = bos.get(i);
@@ -176,8 +170,7 @@ public class DataChangeEventService implements IDataChangeEventService, IStartin
 			return null;
 		}
 		IEntityFactory entityFactory = this.entityFactory;
-		List<DataChangeEntryBO> dataChangeEntryList =
-				new ArrayList<>(dataChangeEntries.size());
+		List<DataChangeEntryBO> dataChangeEntryList = new ArrayList<>(dataChangeEntries.size());
 		for (int i = 0, size = dataChangeEntries.size(); i < size; i++) {
 			IDataChangeEntry dataChangeEntry = dataChangeEntries.get(i);
 

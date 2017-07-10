@@ -32,8 +32,6 @@ import com.koch.ambeth.ioc.IPropertyLoadingBean;
 import com.koch.ambeth.ioc.annotation.FrameworkModule;
 import com.koch.ambeth.ioc.config.Property;
 import com.koch.ambeth.ioc.factory.IBeanContextFactory;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.log.config.Properties;
 import com.koch.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationConstants;
 import com.koch.ambeth.util.ParamChecker;
@@ -42,8 +40,8 @@ import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 @FrameworkModule
 public class DialectSelectorModule implements IInitializingModule, IPropertyLoadingBean {
 	public static void fillProperties(Properties props) {
-		String databaseProtocol =
-				props.getString(PersistenceJdbcConfigurationConstants.DatabaseProtocol);
+		String databaseProtocol = props
+				.getString(PersistenceJdbcConfigurationConstants.DatabaseProtocol);
 		if (databaseProtocol == null) {
 			return;
 		}
@@ -55,16 +53,16 @@ public class DialectSelectorModule implements IInitializingModule, IPropertyLoad
 		String connectorName = databaseProtocol.toLowerCase().replace(':', '.') + '.'
 				+ databaseProtocol.toUpperCase().replace(':', '_');
 		ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-		String fqConnectorName =
-				DialectSelectorModule.class.getPackage().getName() + "." + connectorName;
+		String fqConnectorName = DialectSelectorModule.class.getPackage().getName() + "."
+				+ connectorName;
 		try {
 			Class<?> connectorType = classLoader.loadClass(fqConnectorName);
 			return (IConnector) connectorType.newInstance();
 		}
 		catch (Throwable e) {
 			try {
-				Class<?> connectorType =
-						DialectSelectorModule.class.getClassLoader().loadClass(fqConnectorName);
+				Class<?> connectorType = DialectSelectorModule.class.getClassLoader()
+						.loadClass(fqConnectorName);
 				return (IConnector) connectorType.newInstance();
 			}
 			catch (Throwable e2) {
@@ -72,10 +70,6 @@ public class DialectSelectorModule implements IInitializingModule, IPropertyLoad
 			}
 		}
 	}
-
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
 
 	@Property(name = PersistenceJdbcConfigurationConstants.DatabaseProtocol, mandatory = false)
 	protected String databaseProtocol;
@@ -121,8 +115,8 @@ public class DialectSelectorModule implements IInitializingModule, IPropertyLoad
 				if (connectionUrl.contains(":@")) {
 					// Oracle
 					// jdbc:oracle:driver:username/password@host:port:database
-					urlMatcher =
-							Pattern.compile("^(jdbc:[^:]+:[^:]+)(?::[^:/]+/[^:]+)?:@.*").matcher(connectionUrl);
+					urlMatcher = Pattern.compile("^(jdbc:[^:]+:[^:]+)(?::[^:/]+/[^:]+)?:@.*")
+							.matcher(connectionUrl);
 					// Ignore ([^:]+)(?::(\\d++))?(?::([^:]+))?$ => host:post/database?params
 				}
 				else {

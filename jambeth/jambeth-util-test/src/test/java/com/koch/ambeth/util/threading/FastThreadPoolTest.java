@@ -102,6 +102,8 @@ public class FastThreadPoolTest {
 	}
 
 	class QueueRunnable extends ReentrantLock implements Runnable {
+		private static final long serialVersionUID = -888468358035664191L;
+
 		private final CountDownLatch latch;
 
 		private final long amount;

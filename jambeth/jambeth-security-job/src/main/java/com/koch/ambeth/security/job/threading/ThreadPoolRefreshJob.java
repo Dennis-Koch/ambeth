@@ -23,15 +23,9 @@ limitations under the License.
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.job.IJob;
 import com.koch.ambeth.job.IJobContext;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.util.threading.FastThreadPool;
 
 public class ThreadPoolRefreshJob implements IJob {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	@Autowired
 	protected FastThreadPool threadPool;
 

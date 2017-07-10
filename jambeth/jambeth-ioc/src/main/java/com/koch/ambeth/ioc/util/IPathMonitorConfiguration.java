@@ -26,9 +26,11 @@ import java.nio.file.WatchEvent;
 public interface IPathMonitorConfiguration {
 	void registerForExists(Path path);
 
+	@SuppressWarnings("unchecked")
 	void registerForFileSystemEvents(Path path, IFileSystemEventListener callback,
 			WatchEvent.Kind<Path>... kinds);
 
+	@SuppressWarnings("unchecked")
 	void unregisterForFileSystemEvents(Path path, IFileSystemEventListener callback,
 			WatchEvent.Kind<Path>... kinds);
 }

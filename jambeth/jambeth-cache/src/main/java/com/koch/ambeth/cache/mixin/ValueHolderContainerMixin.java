@@ -27,8 +27,6 @@ import com.koch.ambeth.cache.ICacheIntern;
 import com.koch.ambeth.cache.proxy.IValueHolderContainer;
 import com.koch.ambeth.cache.transfer.ObjRelation;
 import com.koch.ambeth.ioc.annotation.Autowired;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.ILightweightTransaction;
 import com.koch.ambeth.merge.IObjRefHelper;
 import com.koch.ambeth.merge.cache.CacheDirective;
@@ -47,10 +45,6 @@ import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
 
 public class ValueHolderContainerMixin {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	@Autowired
 	protected ICacheHelper cacheHelper;
 
@@ -99,8 +93,8 @@ public class ValueHolderContainerMixin {
 							.runInLazyTransaction(new IResultingBackgroundWorkerDelegate<IList<Object>>() {
 								@Override
 								public IList<Object> invoke() throws Exception {
-									IList<IObjRelationResult> objRelResults =
-											targetCache.getObjRelations(Arrays.asList(self), targetCache, cacheDirective);
+									IList<IObjRelationResult> objRelResults = targetCache
+											.getObjRelations(Arrays.asList(self), targetCache, cacheDirective);
 									if (objRelResults.isEmpty()) {
 										return EmptyList.getInstance();
 									}
@@ -114,8 +108,8 @@ public class ValueHolderContainerMixin {
 							});
 				}
 				else {
-					IList<IObjRelationResult> objRelResults =
-							targetCache.getObjRelations(Arrays.asList(self), targetCache, cacheDirective);
+					IList<IObjRelationResult> objRelResults = targetCache.getObjRelations(Arrays.asList(self),
+							targetCache, cacheDirective);
 					if (objRelResults.isEmpty()) {
 						results = EmptyList.getInstance();
 					}
@@ -127,8 +121,8 @@ public class ValueHolderContainerMixin {
 				}
 			}
 			else {
-				results =
-						targetCache.getObjects(new ArrayList<IObjRef>(objRefs), targetCache, cacheDirective);
+				results = targetCache.getObjects(new ArrayList<IObjRef>(objRefs), targetCache,
+						cacheDirective);
 			}
 			value = cacheHelper.convertResultListToExpectedType(results, relationMember.getRealType(),
 					relationMember.getElementType());

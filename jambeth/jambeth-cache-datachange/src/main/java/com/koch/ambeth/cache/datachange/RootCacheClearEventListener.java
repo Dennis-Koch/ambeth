@@ -25,17 +25,11 @@ import com.koch.ambeth.cache.IRootCache;
 import com.koch.ambeth.cache.ISecondLevelCacheManager;
 import com.koch.ambeth.event.IEventListener;
 import com.koch.ambeth.ioc.annotation.Autowired;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.cache.IWritableCache;
 import com.koch.ambeth.service.cache.ClearAllCachesEvent;
 import com.koch.ambeth.util.collections.IList;
 
 public class RootCacheClearEventListener implements IEventListener {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	@Autowired
 	protected IFirstLevelCacheManager firstLevelCacheManager;
 

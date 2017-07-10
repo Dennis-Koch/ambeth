@@ -21,8 +21,6 @@ limitations under the License.
  */
 
 import com.koch.ambeth.ioc.IInitializingBean;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.proxy.PersistenceContext;
 import com.koch.ambeth.service.proxy.Service;
 import com.koch.ambeth.util.ParamChecker;
@@ -30,10 +28,6 @@ import com.koch.ambeth.util.ParamChecker;
 @Service(IEntityAService.class)
 @PersistenceContext
 public class EntityAService implements IEntityAService, IInitializingBean {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	// 'this' but with proxies
 	private IEntityAService entityAService;
 

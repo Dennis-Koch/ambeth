@@ -22,8 +22,6 @@ limitations under the License.
 
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.config.Property;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.persistence.IConnectionDialect;
 import com.koch.ambeth.persistence.IPersistenceHelper;
 import com.koch.ambeth.persistence.filter.QueryConstants;
@@ -35,10 +33,6 @@ import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.IMap;
 
 abstract public class CaseSensitiveTwoPlaceOperator extends TwoPlaceOperator {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	@Property(defaultValue = "true")
 	protected boolean caseSensitive;
 
@@ -118,8 +112,8 @@ abstract public class CaseSensitiveTwoPlaceOperator extends TwoPlaceOperator {
 			IMap<Object, Object> nameToValueMap, boolean joinQuery, Class<?> leftOperandFieldType,
 			IList<Object> parameters) {
 		@SuppressWarnings("unchecked")
-		IList<IList<Object>> splitValues =
-				(IList<IList<Object>>) nameToValueMap.get(QueryConstants.REMAINING_RIGHT_OPERAND_HANDLE);
+		IList<IList<Object>> splitValues = (IList<IList<Object>>) nameToValueMap
+				.get(QueryConstants.REMAINING_RIGHT_OPERAND_HANDLE);
 		if (parameters == null) {
 			if (splitValues != null) {
 				throw new IllegalStateException("Must never happen");

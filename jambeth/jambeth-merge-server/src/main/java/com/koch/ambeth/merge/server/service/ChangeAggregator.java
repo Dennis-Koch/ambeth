@@ -30,8 +30,6 @@ import com.koch.ambeth.datachange.transfer.DataChangeEvent;
 import com.koch.ambeth.event.IEventDispatcher;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.config.Property;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.event.DataChangeOfSession;
 import com.koch.ambeth.merge.server.config.MergeServerConfigurationConstants;
 import com.koch.ambeth.merge.transfer.ObjRef;
@@ -41,18 +39,13 @@ import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.IList;
 
 public class ChangeAggregator implements IChangeAggregator {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	@Autowired
 	protected IDatabase database;
 
 	@Autowired
 	protected IEventDispatcher eventDispatcher;
 
-	@Property(name = MergeServerConfigurationConstants.DeleteDataChangesByAlternateIds,
-			defaultValue = "false")
+	@Property(name = MergeServerConfigurationConstants.DeleteDataChangesByAlternateIds, defaultValue = "false")
 	protected boolean deleteDataChangesByAlternateIds;
 
 	protected IList<IDataChangeEntry> inserts;
@@ -114,10 +107,10 @@ public class ChangeAggregator implements IChangeAggregator {
 		clear();
 
 		Long currentTime = database.getContextProvider().getCurrentTime();
-		DataChangeEvent dataChange =
-				new DataChangeEvent(inserts, updates, deletes, currentTime.longValue(), false);
-		IDataChangeOfSession localDataChange =
-				new DataChangeOfSession(database.getSessionId(), dataChange);
+		DataChangeEvent dataChange = new DataChangeEvent(inserts, updates, deletes,
+				currentTime.longValue(), false);
+		IDataChangeOfSession localDataChange = new DataChangeOfSession(database.getSessionId(),
+				dataChange);
 		eventDispatcher.dispatchEvent(localDataChange);
 	}
 
@@ -132,8 +125,8 @@ public class ChangeAggregator implements IChangeAggregator {
 		if (ori.getIdNameIndex() != ObjRef.PRIMARY_KEY_INDEX && !deleteDataChangesByAlternateIds) {
 			throw new RuntimeException("Implementation error: Only PK references are allowed in events");
 		}
-		DataChangeEntry dataChange =
-				new DataChangeEntry(ori.getRealType(), ori.getIdNameIndex(), ori.getId(), ori.getVersion());
+		DataChangeEntry dataChange = new DataChangeEntry(ori.getRealType(), ori.getIdNameIndex(),
+				ori.getId(), ori.getVersion());
 		dataChangeEntries.add(dataChange);
 	}
 }

@@ -21,14 +21,8 @@ limitations under the License.
  */
 
 import com.koch.ambeth.ioc.IServiceContext;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 
 public class SingletonContextHandle extends AbstractChildContextHandle {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	protected IServiceContext childContext;
 
 	@Override

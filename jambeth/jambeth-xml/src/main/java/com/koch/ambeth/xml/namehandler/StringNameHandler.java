@@ -22,18 +22,12 @@ limitations under the License.
 
 import java.util.regex.Pattern;
 
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.xml.INameBasedHandler;
 import com.koch.ambeth.xml.IReader;
 import com.koch.ambeth.xml.IWriter;
 import com.koch.ambeth.xml.typehandler.AbstractHandler;
 
 public class StringNameHandler extends AbstractHandler implements INameBasedHandler {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	private static final String emptyString = "";
 
 	private static final String cdataStartSeq = "<![CDATA[";

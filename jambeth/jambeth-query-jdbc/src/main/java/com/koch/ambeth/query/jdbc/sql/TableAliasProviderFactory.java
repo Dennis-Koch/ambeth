@@ -21,27 +21,12 @@ limitations under the License.
  */
 
 import com.koch.ambeth.ioc.IFactoryBean;
-import com.koch.ambeth.ioc.IInitializingBean;
 import com.koch.ambeth.ioc.IServiceContext;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
-import com.koch.ambeth.util.ParamChecker;
+import com.koch.ambeth.ioc.annotation.Autowired;
 
-public class TableAliasProviderFactory implements IFactoryBean, IInitializingBean {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
-	private IServiceContext beanContext;
-
-	@Override
-	public void afterPropertiesSet() throws Throwable {
-		ParamChecker.assertNotNull(beanContext, "beanContext");
-	}
-
-	public void setBeanContext(IServiceContext beanContext) {
-		this.beanContext = beanContext;
-	}
+public class TableAliasProviderFactory implements IFactoryBean {
+	@Autowired
+	protected IServiceContext beanContext;
 
 	@Override
 	public Object getObject() throws Exception {

@@ -32,8 +32,6 @@ import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.config.IBeanConfiguration;
 import com.koch.ambeth.ioc.config.Property;
 import com.koch.ambeth.ioc.factory.IBeanContextFactory;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.persistence.ContextProvider;
 import com.koch.ambeth.persistence.IConnectionHolder;
 import com.koch.ambeth.persistence.api.IContextProvider;
@@ -58,10 +56,6 @@ import com.koch.ambeth.util.threading.IBackgroundWorkerParamDelegate;
 public class JdbcDatabaseFactory implements IDatabaseFactory, IDatabaseMapperExtendable {
 	public static final String ADDITIONAL_MODULES_PROP = "AdditionalModules";
 
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	@Autowired
 	protected IConnectionFactory connectionFactory;
 
@@ -80,11 +74,10 @@ public class JdbcDatabaseFactory implements IDatabaseFactory, IDatabaseMapperExt
 	@Autowired
 	protected IServiceContext serviceContext;
 
-	protected final DefaultExtendableContainer<IDatabaseMapper> databaseMappers =
-			new DefaultExtendableContainer<>(IDatabaseMapper.class, "databaseMapper");
+	protected final DefaultExtendableContainer<IDatabaseMapper> databaseMappers = new DefaultExtendableContainer<>(
+			IDatabaseMapper.class, "databaseMapper");
 
-	@Property(name = PersistenceJdbcConfigurationConstants.DatabaseSchemaCacheActive,
-			defaultValue = "false")
+	@Property(name = PersistenceJdbcConfigurationConstants.DatabaseSchemaCacheActive, defaultValue = "false")
 	protected boolean schemaCacheActive;
 
 	protected Class<?>[] additionalModules;
@@ -174,8 +167,8 @@ public class JdbcDatabaseFactory implements IDatabaseFactory, IDatabaseMapperExt
 								confSP.registerAutowireableBean(IAlreadyLinkedCache.class,
 										AlreadyLinkedCache.class);
 
-								IBeanConfiguration contextProviderBC =
-										confSP.registerAutowireableBean(IContextProvider.class, ContextProvider.class);
+								IBeanConfiguration contextProviderBC = confSP
+										.registerAutowireableBean(IContextProvider.class, ContextProvider.class);
 								confSP.link(contextProviderBC).to(IAuthorizationChangeListenerExtendable.class);
 
 								if (!fConn.isWrapperFor(IPreparedConnectionHolder.class)

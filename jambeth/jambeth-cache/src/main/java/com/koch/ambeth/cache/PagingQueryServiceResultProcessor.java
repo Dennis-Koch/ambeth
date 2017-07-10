@@ -24,8 +24,6 @@ import java.lang.annotation.Annotation;
 import java.util.List;
 
 import com.koch.ambeth.filter.IPagingResponse;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.service.cache.IServiceResultProcessor;
 import com.koch.ambeth.service.merge.model.IObjRef;
 import com.koch.ambeth.util.annotation.Find;
@@ -33,11 +31,6 @@ import com.koch.ambeth.util.annotation.QueryResultType;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
 public class PagingQueryServiceResultProcessor implements IServiceResultProcessor {
-
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	@Override
 	public Object processServiceResult(Object result, List<IObjRef> objRefs, List<Object> entities,
 			Class<?> expectedType, Object[] serviceRequestArgs, Annotation annotation) {

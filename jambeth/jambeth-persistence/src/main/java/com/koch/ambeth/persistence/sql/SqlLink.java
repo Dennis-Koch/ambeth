@@ -23,8 +23,6 @@ limitations under the License.
 import java.util.List;
 
 import com.koch.ambeth.ioc.annotation.Autowired;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.persistence.IPersistenceHelper;
 import com.koch.ambeth.persistence.Link;
 import com.koch.ambeth.persistence.api.IDirectedLink;
@@ -41,10 +39,6 @@ import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.objectcollector.IThreadLocalObjectCollector;
 
 public class SqlLink extends Link {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	@Autowired
 	protected IPersistenceHelper persistenceHelper;
 
@@ -121,9 +115,9 @@ public class SqlLink extends Link {
 			fieldNamesSB.append(" IS NOT NULL");
 			String whereSQL = fieldNamesSB.toString();
 
-			IResultSet resultSet =
-					sqlConnection.createResultSet(getMetaData().getFullqualifiedEscapedTableName(),
-							whereField.getName(), whereField.getFieldType(), fieldNames, whereSQL, fromOrToIds);
+			IResultSet resultSet = sqlConnection.createResultSet(
+					getMetaData().getFullqualifiedEscapedTableName(), whereField.getName(),
+					whereField.getFieldType(), fieldNames, whereSQL, fromOrToIds);
 
 			ResultSetLinkCursor linkCursor = new ResultSetLinkCursor();
 			linkCursor.setFromIdIndex(fromField.getIdIndex());
@@ -346,7 +340,8 @@ public class SqlLink extends Link {
 	 *
 	 * @param fromTable
 	 * @param fromId
-	 * @param toIds For 1:n version
+	 * @param toIds
+	 *          For 1:n version
 	 */
 	private void unlinkByUpdate(IDirectedLink fromLink, Object fromId, List<?> toIds) {
 		IThreadLocalObjectCollector current = objectCollector.getCurrent();

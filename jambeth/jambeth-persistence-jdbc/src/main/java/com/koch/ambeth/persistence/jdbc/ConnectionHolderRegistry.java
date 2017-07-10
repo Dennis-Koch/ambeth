@@ -22,20 +22,13 @@ limitations under the License.
 
 import com.koch.ambeth.ioc.IInitializingBean;
 import com.koch.ambeth.ioc.extendable.MapExtendableContainer;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.persistence.IConnectionHolder;
 import com.koch.ambeth.util.collections.ILinkedMap;
 
 public class ConnectionHolderRegistry
 		implements IInitializingBean, IConnectionHolderExtendable, IConnectionHolderRegistry {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
-	protected MapExtendableContainer<Object, IConnectionHolder> extensions =
-			new MapExtendableContainer<>("connectionHolder",
-					"persistenceUnitId");
+	protected MapExtendableContainer<Object, IConnectionHolder> extensions = new MapExtendableContainer<>(
+			"connectionHolder", "persistenceUnitId");
 
 	@Override
 	public void afterPropertiesSet() throws Throwable {

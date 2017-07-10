@@ -40,20 +40,16 @@ public class MSSqlModule implements IInitializingModule, IPropertyLoadingBean {
 		return databaseProtocol.toLowerCase().startsWith("jdbc:sqlserver");
 	}
 
-	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 
-	@Property(name = PersistenceConfigurationConstants.ExternalTransactionManager,
-			defaultValue = "false")
+	@Property(name = PersistenceConfigurationConstants.ExternalTransactionManager, defaultValue = "false")
 	protected boolean externalTransactionManager;
 
-	@Property(name = PersistenceJdbcConfigurationConstants.IntegratedConnectionPool,
-			defaultValue = "true")
+	@Property(name = PersistenceJdbcConfigurationConstants.IntegratedConnectionPool, defaultValue = "true")
 	protected boolean integratedConnectionPool;
 
-	@Property(name = PersistenceJdbcConfigurationConstants.DatabaseBehaviourStrict,
-			defaultValue = "false")
+	@Property(name = PersistenceJdbcConfigurationConstants.DatabaseBehaviourStrict, defaultValue = "false")
 	protected boolean databaseBehaviourStrict;
 
 	@Property(name = PersistenceConfigurationConstants.DatabasePoolPassivate, defaultValue = "false")

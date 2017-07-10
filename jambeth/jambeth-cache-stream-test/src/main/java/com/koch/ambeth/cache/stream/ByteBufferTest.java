@@ -37,8 +37,6 @@ import com.koch.ambeth.cache.stream.bytebuffer.IFileHandleCache;
 import com.koch.ambeth.ioc.IInitializingModule;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.factory.IBeanContextFactory;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.testutil.AbstractIocTest;
 import com.koch.ambeth.testutil.TestModule;
 import com.koch.ambeth.util.ReflectUtil;
@@ -52,10 +50,6 @@ public class ByteBufferTest extends AbstractIocTest {
 			beanContextFactory.registerBean(FileHandleCache.class).autowireable(IFileHandleCache.class);
 		}
 	}
-
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
 
 	@Autowired
 	protected IFileContentCache fileContentCache;

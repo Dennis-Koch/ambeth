@@ -26,8 +26,6 @@ import java.util.Map;
 
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.config.Property;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.persistence.filter.QueryConstants;
 import com.koch.ambeth.persistence.sql.ParamsUtil;
 import com.koch.ambeth.query.IMultiValueOperand;
@@ -42,10 +40,6 @@ import com.koch.ambeth.util.collections.IMap;
 import com.koch.ambeth.util.objectcollector.IThreadLocalObjectCollector;
 
 public class SimpleValueOperand implements IOperand, IValueOperand, IMultiValueOperand {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	@Autowired
 	protected IConversionHelper conversionHelper;
 

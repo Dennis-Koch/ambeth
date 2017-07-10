@@ -23,8 +23,6 @@ limitations under the License.
 import javax.persistence.criteria.JoinType;
 
 import com.koch.ambeth.ioc.IInitializingBean;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.query.IOperand;
 import com.koch.ambeth.query.ISqlJoin;
 import com.koch.ambeth.util.ParamChecker;
@@ -34,10 +32,6 @@ import com.koch.ambeth.util.collections.IMap;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
 public class SqlJoinOperator implements ISqlJoin, IInitializingBean {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	protected JoinType joinType = JoinType.LEFT;
 
 	protected IOperand clause;

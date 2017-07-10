@@ -23,8 +23,6 @@ limitations under the License.
 import java.util.concurrent.locks.Lock;
 
 import com.koch.ambeth.ioc.annotation.Autowired;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.event.IEntityMetaDataEvent;
 import com.koch.ambeth.merge.util.DirectValueHolderRef;
 import com.koch.ambeth.service.merge.IEntityMetaDataProvider;
@@ -40,15 +38,10 @@ import com.koch.ambeth.util.collections.Tuple2KeyHashMap;
 public class PrioMembersProvider implements IPrioMembersProvider {
 	public static final String handleMetaDataAddedEvent = "handleMetaDataAddedEvent";
 
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	@Autowired
 	protected IEntityMetaDataProvider entityMetaDataProvider;
 
-	protected final PrioMembersSmartCopyMap activeMembersToPrioMembersMap =
-			new PrioMembersSmartCopyMap();
+	protected final PrioMembersSmartCopyMap activeMembersToPrioMembersMap = new PrioMembersSmartCopyMap();
 
 	public void handleMetaDataAddedEvent(IEntityMetaDataEvent evnt) {
 		activeMembersToPrioMembersMap.clear();

@@ -26,8 +26,6 @@ import java.util.concurrent.locks.Lock;
 import com.koch.ambeth.ioc.IInitializingBean;
 import com.koch.ambeth.ioc.exception.ExtendableException;
 import com.koch.ambeth.ioc.extendable.ExtendableRegistry.KeyItem;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.util.EqualsUtil;
 import com.koch.ambeth.util.IParamHolder;
 import com.koch.ambeth.util.ParamChecker;
@@ -79,10 +77,6 @@ public class ExtendableRegistry extends SmartCopyMap<KeyItem, Method[]>
 					&& EqualsUtil.equals(propertyName, other.propertyName);
 		}
 	}
-
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
 
 	protected IThreadLocalObjectCollector objectCollector;
 
@@ -167,14 +161,14 @@ public class ExtendableRegistry extends SmartCopyMap<KeyItem, Method[]>
 			String registerMethodName1 = null, registerMethodName2 = null;
 			String unregisterMethodName1 = null, unregisterMethodName2 = null;
 			if (propertyName != null) {
-				registerMethodName1 =
-						StringBuilderUtil.concat(tlObjectCollector, "register", propertyName).toLowerCase();
-				registerMethodName2 =
-						StringBuilderUtil.concat(tlObjectCollector, "add", propertyName).toLowerCase();
-				unregisterMethodName1 =
-						StringBuilderUtil.concat(tlObjectCollector, "unregister", propertyName).toLowerCase();
-				unregisterMethodName2 =
-						StringBuilderUtil.concat(tlObjectCollector, "remove", propertyName).toLowerCase();
+				registerMethodName1 = StringBuilderUtil.concat(tlObjectCollector, "register", propertyName)
+						.toLowerCase();
+				registerMethodName2 = StringBuilderUtil.concat(tlObjectCollector, "add", propertyName)
+						.toLowerCase();
+				unregisterMethodName1 = StringBuilderUtil
+						.concat(tlObjectCollector, "unregister", propertyName).toLowerCase();
+				unregisterMethodName2 = StringBuilderUtil.concat(tlObjectCollector, "remove", propertyName)
+						.toLowerCase();
 			}
 			Method[] methods = ReflectUtil.getMethods(extendableInterface);
 			Method addMethod = null, removeMethod = null;
@@ -227,7 +221,7 @@ public class ExtendableRegistry extends SmartCopyMap<KeyItem, Method[]>
 								+ extendableInterface.getName() + " to add extension signature with exactly "
 								+ expectedParamCount + " argument(s)");
 			}
-			addRemoveMethods = new Method[] {addMethod, removeMethod};
+			addRemoveMethods = new Method[] { addMethod, removeMethod };
 
 			put(keyItem, addRemoveMethods);
 			return addRemoveMethods;
@@ -291,9 +285,9 @@ public class ExtendableRegistry extends SmartCopyMap<KeyItem, Method[]>
 						"No unique extendable methods pair like 'add/remove' or 'register/unregister' found on interface '"
 								+ extendableInterface.getName() + "' to add extension signature");
 			}
-			KeyItem keyItem =
-					new KeyItem(extendableInterface, null, addMethod.getParameterTypes().length);
-			Method[] addRemoveMethods = new Method[] {addMethod, removeMethod};
+			KeyItem keyItem = new KeyItem(extendableInterface, null,
+					addMethod.getParameterTypes().length);
+			Method[] addRemoveMethods = new Method[] { addMethod, removeMethod };
 
 			put(keyItem, addRemoveMethods);
 

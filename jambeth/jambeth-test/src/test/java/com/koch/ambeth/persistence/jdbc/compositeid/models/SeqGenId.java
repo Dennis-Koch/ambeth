@@ -21,8 +21,6 @@ limitations under the License.
  */
 
 import com.koch.ambeth.ioc.annotation.Autowired;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.compositeid.ICompositeIdFactory;
 import com.koch.ambeth.merge.model.IDirectObjRef;
 import com.koch.ambeth.merge.proxy.IEntityMetaDataHolder;
@@ -34,10 +32,6 @@ import com.koch.ambeth.service.merge.model.IObjRef;
 import com.koch.ambeth.util.collections.IList;
 
 public class SeqGenId implements IPrimaryKeyProvider {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	@Autowired
 	protected ICompositeIdFactory compositeIdFactory;
 

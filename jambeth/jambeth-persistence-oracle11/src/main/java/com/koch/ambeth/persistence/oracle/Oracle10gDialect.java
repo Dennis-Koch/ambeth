@@ -65,17 +65,17 @@ import oracle.jdbc.driver.OracleDriver;
 
 public class Oracle10gDialect extends AbstractConnectionDialect {
 
-	public static final Pattern BIN_TABLE_NAME =
-			Pattern.compile("BIN\\$.{22}==\\$0", Pattern.CASE_INSENSITIVE);
+	public static final Pattern BIN_TABLE_NAME = Pattern.compile("BIN\\$.{22}==\\$0",
+			Pattern.CASE_INSENSITIVE);
 
-	public static final Pattern IDX_TABLE_NAME =
-			Pattern.compile("DR\\$.*?\\$.", Pattern.CASE_INSENSITIVE);
+	public static final Pattern IDX_TABLE_NAME = Pattern.compile("DR\\$.*?\\$.",
+			Pattern.CASE_INSENSITIVE);
 
-	protected static final LinkedHashMap<Class<?>, String[]> typeToArrayTypeNameMap =
-			new LinkedHashMap<>(128, 0.5f);
+	protected static final LinkedHashMap<Class<?>, String[]> typeToArrayTypeNameMap = new LinkedHashMap<>(
+			128, 0.5f);
 
-	protected static final LinkedHashMap<String, Class<?>> arrayTypeNameToTypeMap =
-			new LinkedHashMap<>(128, 0.5f);
+	protected static final LinkedHashMap<String, Class<?>> arrayTypeNameToTypeMap = new LinkedHashMap<>(
+			128, 0.5f);
 
 	// 54 = RESOURCE BUSY acquiring with NOWAIT (pessimistic lock)
 	public static final int PESSIMISTIC_LOCK_ERROR_CODE = 54;
@@ -85,31 +85,32 @@ public class Oracle10gDialect extends AbstractConnectionDialect {
 
 	protected static final String[] exportedKeysSql = {
 			"SELECT USR.NAME AS OWNER, CONST.NAME AS CONSTRAINT_NAME, RCONST.NAME AS REF_CONSTRAINT_NAME, OBJ.NAME AS TABLE_NAME, COALESCE(ACOL.NAME, COL.NAME) AS COLUMN_NAME, CCOL.POS# AS POSITION, ROBJ.NAME AS REF_TABLE_NAME, COALESCE(RACOL.NAME, RCOL.NAME) AS REF_COLUMN_NAME, RCCOL.POS# AS REF_POSITION FROM SYS.CON$ CONST INNER JOIN SYS.USER$ USR ON CONST.OWNER# = USR.USER# INNER JOIN SYS.CDEF$ CDEF ON CDEF.CON# = CONST.CON# INNER JOIN SYS.CCOL$ CCOL ON CCOL.CON# = CONST.CON# INNER JOIN SYS.COL$ COL  ON (CCOL.OBJ# = COL.OBJ#) AND (CCOL.INTCOL# = COL.INTCOL#) INNER JOIN SYS.\"_CURRENT_EDITION_OBJ\" OBJ ON CCOL.OBJ# = OBJ.OBJ# LEFT JOIN SYS.ATTRCOL$ ACOL ON (CCOL.OBJ# = ACOL.OBJ#) AND (CCOL.INTCOL# = ACOL.INTCOL#) INNER JOIN SYS.CON$ RCONST ON RCONST.CON# = CDEF.RCON# INNER JOIN SYS.CCOL$ RCCOL ON RCCOL.CON# = RCONST.CON# INNER JOIN SYS.COL$ RCOL  ON (RCCOL.OBJ# = RCOL.OBJ#) AND (RCCOL.INTCOL# = RCOL.INTCOL#) INNER JOIN SYS.\"_CURRENT_EDITION_OBJ\" ROBJ ON RCCOL.OBJ# = ROBJ.OBJ# LEFT JOIN SYS.ATTRCOL$ RACOL  ON (RCCOL.OBJ# = RACOL.OBJ#) AND (RCCOL.INTCOL# = RACOL.INTCOL#) WHERE CDEF.TYPE# = 4 AND USR.NAME ",
-			"SELECT C1.OWNER AS OWNER, C1.CONSTRAINT_NAME, C1.TABLE_NAME AS TABLE_NAME, A1.COLUMN_NAME AS COLUMN_NAME, C2.TABLE_NAME AS REF_TABLE_NAME, A2.COLUMN_NAME AS REF_COLUMN_NAME FROM ALL_CONSTRAINTS C1 JOIN ALL_CONSTRAINTS C2 ON C1.R_CONSTRAINT_NAME = C2.CONSTRAINT_NAME JOIN ALL_CONS_COLUMNS A1 ON C1.CONSTRAINT_NAME = A1.CONSTRAINT_NAME JOIN ALL_CONS_COLUMNS A2 ON C2.CONSTRAINT_NAME = A2.CONSTRAINT_NAME WHERE C1.CONSTRAINT_TYPE = 'R' AND C2.OWNER = C1.OWNER AND C1.OWNER "};
+			"SELECT C1.OWNER AS OWNER, C1.CONSTRAINT_NAME, C1.TABLE_NAME AS TABLE_NAME, A1.COLUMN_NAME AS COLUMN_NAME, C2.TABLE_NAME AS REF_TABLE_NAME, A2.COLUMN_NAME AS REF_COLUMN_NAME FROM ALL_CONSTRAINTS C1 JOIN ALL_CONSTRAINTS C2 ON C1.R_CONSTRAINT_NAME = C2.CONSTRAINT_NAME JOIN ALL_CONS_COLUMNS A1 ON C1.CONSTRAINT_NAME = A1.CONSTRAINT_NAME JOIN ALL_CONS_COLUMNS A2 ON C2.CONSTRAINT_NAME = A2.CONSTRAINT_NAME WHERE C1.CONSTRAINT_TYPE = 'R' AND C2.OWNER = C1.OWNER AND C1.OWNER " };
 
 	static {
-		typeToArrayTypeNameMap.put(Long.TYPE, new String[] {"LONG_ARRAY", "NUMBER(19,0)"});
-		typeToArrayTypeNameMap.put(Long.class, new String[] {"LONG_ARRAY", "NUMBER(19,0)"});
-		typeToArrayTypeNameMap.put(Integer.TYPE, new String[] {"INT_ARRAY", "NUMBER(10,0)"});
-		typeToArrayTypeNameMap.put(Integer.class, new String[] {"INT_ARRAY", "NUMBER(10,0)"});
-		typeToArrayTypeNameMap.put(Short.TYPE, new String[] {"SHORT_ARRAY", "NUMBER(5,0)"});
-		typeToArrayTypeNameMap.put(Short.class, new String[] {"SHORT_ARRAY", "NUMBER(5,0)"});
-		typeToArrayTypeNameMap.put(Byte.TYPE, new String[] {"BYTE_ARRAY", "NUMBER(3,0)"});
-		typeToArrayTypeNameMap.put(Byte.class, new String[] {"BYTE_ARRAY", "NUMBER(3,0)"});
-		typeToArrayTypeNameMap.put(Character.TYPE, new String[] {"CHAR_ARRAY", "CHAR"});
-		typeToArrayTypeNameMap.put(Character.class, new String[] {"CHAR_ARRAY", "CHAR"});
-		typeToArrayTypeNameMap.put(Boolean.TYPE, new String[] {"BOOL_ARRAY", "NUMBER(1,0)"});
-		typeToArrayTypeNameMap.put(Boolean.class, new String[] {"BOOL_ARRAY", "NUMBER(1,0)"});
-		typeToArrayTypeNameMap.put(Double.TYPE, new String[] {"DOUBLE_ARRAY", "NUMBER(9,9)"});
-		typeToArrayTypeNameMap.put(Double.class, new String[] {"DOUBLE_ARRAY", "NUMBER(9,9)"});
-		typeToArrayTypeNameMap.put(Float.TYPE, new String[] {"FLOAT_ARRAY", "NUMBER(4,4)"});
-		typeToArrayTypeNameMap.put(Float.class, new String[] {"FLOAT_ARRAY", "NUMBER(4,4)"});
-		typeToArrayTypeNameMap.put(String.class, new String[] {"STRING_ARRAY", "VARCHAR2(4000 CHAR)"});
-		typeToArrayTypeNameMap.put(BigDecimal.class, new String[] {"BIG_DEC_ARRAY", "NUMBER"});
-		typeToArrayTypeNameMap.put(BigInteger.class, new String[] {"BIG_INT_ARRAY", "NUMBER(38,0)"});
+		typeToArrayTypeNameMap.put(Long.TYPE, new String[] { "LONG_ARRAY", "NUMBER(19,0)" });
+		typeToArrayTypeNameMap.put(Long.class, new String[] { "LONG_ARRAY", "NUMBER(19,0)" });
+		typeToArrayTypeNameMap.put(Integer.TYPE, new String[] { "INT_ARRAY", "NUMBER(10,0)" });
+		typeToArrayTypeNameMap.put(Integer.class, new String[] { "INT_ARRAY", "NUMBER(10,0)" });
+		typeToArrayTypeNameMap.put(Short.TYPE, new String[] { "SHORT_ARRAY", "NUMBER(5,0)" });
+		typeToArrayTypeNameMap.put(Short.class, new String[] { "SHORT_ARRAY", "NUMBER(5,0)" });
+		typeToArrayTypeNameMap.put(Byte.TYPE, new String[] { "BYTE_ARRAY", "NUMBER(3,0)" });
+		typeToArrayTypeNameMap.put(Byte.class, new String[] { "BYTE_ARRAY", "NUMBER(3,0)" });
+		typeToArrayTypeNameMap.put(Character.TYPE, new String[] { "CHAR_ARRAY", "CHAR" });
+		typeToArrayTypeNameMap.put(Character.class, new String[] { "CHAR_ARRAY", "CHAR" });
+		typeToArrayTypeNameMap.put(Boolean.TYPE, new String[] { "BOOL_ARRAY", "NUMBER(1,0)" });
+		typeToArrayTypeNameMap.put(Boolean.class, new String[] { "BOOL_ARRAY", "NUMBER(1,0)" });
+		typeToArrayTypeNameMap.put(Double.TYPE, new String[] { "DOUBLE_ARRAY", "NUMBER(9,9)" });
+		typeToArrayTypeNameMap.put(Double.class, new String[] { "DOUBLE_ARRAY", "NUMBER(9,9)" });
+		typeToArrayTypeNameMap.put(Float.TYPE, new String[] { "FLOAT_ARRAY", "NUMBER(4,4)" });
+		typeToArrayTypeNameMap.put(Float.class, new String[] { "FLOAT_ARRAY", "NUMBER(4,4)" });
+		typeToArrayTypeNameMap.put(String.class,
+				new String[] { "STRING_ARRAY", "VARCHAR2(4000 CHAR)" });
+		typeToArrayTypeNameMap.put(BigDecimal.class, new String[] { "BIG_DEC_ARRAY", "NUMBER" });
+		typeToArrayTypeNameMap.put(BigInteger.class, new String[] { "BIG_INT_ARRAY", "NUMBER(38,0)" });
 
 		// Default behavior. This is an intended "hack" for backwards compatibility.
-		typeToArrayTypeNameMap.put(Object.class, new String[] {"BIG_DEC_ARRAY", "NUMBER"});
+		typeToArrayTypeNameMap.put(Object.class, new String[] { "BIG_DEC_ARRAY", "NUMBER" });
 
 		for (Entry<Class<?>, String[]> entry : typeToArrayTypeNameMap) {
 			arrayTypeNameToTypeMap.putIfNotExists(entry.getValue()[0], entry.getKey());
@@ -156,6 +157,7 @@ public class Oracle10gDialect extends AbstractConnectionDialect {
 		enableConstraintsSQL.add("SET CONSTRAINT " + fullName + " IMMEDIATE");
 	}
 
+	@SuppressWarnings("resource")
 	@Override
 	public IList<IMap<String, String>> getExportedKeys(Connection connection, String[] schemaNames)
 			throws SQLException {
@@ -386,7 +388,7 @@ public class Oracle10gDialect extends AbstractConnectionDialect {
 		ResultSet rs = null;
 		try {
 			for (String schemaName : schemaNames) {
-				rs = connection.getMetaData().getTables(null, schemaName, null, new String[] {"VIEW"});
+				rs = connection.getMetaData().getTables(null, schemaName, null, new String[] { "VIEW" });
 
 				while (rs.next()) {
 					// String schemaName = rs.getString("TABLE_SCHEM");
@@ -430,8 +432,8 @@ public class Oracle10gDialect extends AbstractConnectionDialect {
 
 				Class<?> javaType = JdbcUtil.getJavaTypeFromJdbcType(typeIndex, scale, digits);
 
-				ColumnEntry entry =
-						new ColumnEntry(fieldName, columnIndex, javaType, typeName, nullable, radix, true);
+				ColumnEntry entry = new ColumnEntry(fieldName, columnIndex, javaType, typeName, nullable,
+						radix, true);
 				columns.add(entry);
 			}
 			return columns;
@@ -499,7 +501,7 @@ public class Oracle10gDialect extends AbstractConnectionDialect {
 	@Override
 	public Class<?>[] getConnectionInterfaces(Connection connection) {
 		if (connection instanceof OracleConnection) {
-			return new Class<?>[] {OracleConnection.class};
+			return new Class<?>[] { OracleConnection.class };
 		}
 		return super.getConnectionInterfaces(connection);
 	}
