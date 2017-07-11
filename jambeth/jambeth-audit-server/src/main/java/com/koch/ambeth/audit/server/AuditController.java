@@ -40,7 +40,6 @@ import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.config.Property;
 import com.koch.ambeth.ioc.threadlocal.Forkable;
 import com.koch.ambeth.ioc.threadlocal.IThreadLocalCleanupBean;
-import com.koch.ambeth.ioc.util.IRevertDelegate;
 import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.ICUDResultApplier;
@@ -96,6 +95,9 @@ import com.koch.ambeth.util.collections.IMap;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.format.XmlHint;
 import com.koch.ambeth.util.objectcollector.IThreadLocalObjectCollector;
+import com.koch.ambeth.util.state.AbstractStateRollback;
+import com.koch.ambeth.util.state.IStateRollback;
+import com.koch.ambeth.util.state.NoOpStateRollback;
 import com.koch.ambeth.util.threading.IBackgroundWorkerDelegate;
 
 public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogger, IMergeListener,
@@ -620,15 +622,16 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 	}
 
 	@Override
-	public IRevertDelegate pushClearTextPassword(final char[] clearTextPassword) {
+	public IStateRollback pushClearTextPassword(final char[] clearTextPassword,
+			IStateRollback... rollbacks) {
 		final AdditionalAuditInfo additionalAuditInfo = getAdditionalAuditInfo();
 		final char[] oldClearTextPassword = additionalAuditInfo.clearTextPassword;
 		final boolean oldDoClearPassword = additionalAuditInfo.doClearPassword;
 		additionalAuditInfo.clearTextPassword = clearTextPassword;
 		additionalAuditInfo.doClearPassword = false;
-		return new IRevertDelegate() {
+		return new AbstractStateRollback(rollbacks) {
 			@Override
-			public void revert() {
+			protected void rollbackIntern() throws Exception {
 				if (additionalAuditInfo.clearTextPassword != clearTextPassword) {
 					throw new IllegalStateException("Illegal state: clearTextPassword does not match");
 				}
@@ -639,19 +642,14 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 	}
 
 	@Override
-	public IRevertDelegate setAuthorizedUser(final IUser user, final char[] clearTextPassword,
-			boolean forceGivenAuthorization) {
+	public IStateRollback pushAuthorizedUser(final IUser user, final char[] clearTextPassword,
+			boolean forceGivenAuthorization, IStateRollback... rollbacks) {
 		final AdditionalAuditInfo additionalAuditInfo = getAdditionalAuditInfo();
 		final IUser oldAuthorizedUser = additionalAuditInfo.authorizedUser;
 		if (!forceGivenAuthorization && (oldAuthorizedUser != null
 				|| (currentUserProvider != null && currentUserProvider.getCurrentUser() != null))) {
 			// do nothing
-			return new IRevertDelegate() {
-				@Override
-				public void revert() {
-					// intended blank
-				}
-			};
+			return NoOpStateRollback.createNoOpRollback(rollbacks);
 		}
 		final String oldAuthorizedUserSID = authenticatedUserHolder.getAuthenticatedSID();
 		final char[] oldClearTextPassword = additionalAuditInfo.clearTextPassword;
@@ -661,9 +659,9 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 		additionalAuditInfo.clearTextPassword = clearTextPassword;
 		additionalAuditInfo.doClearPassword = false;
 		authenticatedUserHolder.setAuthenticatedSID(sid);
-		return new IRevertDelegate() {
+		return new AbstractStateRollback(rollbacks) {
 			@Override
-			public void revert() {
+			protected void rollbackIntern() throws Exception {
 				if (authenticatedUserHolder.getAuthenticatedSID() != sid) {
 					throw new IllegalStateException("Illegal state: authorizedUserSID does not match");
 				}

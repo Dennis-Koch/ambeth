@@ -23,6 +23,7 @@ limitations under the License.
 import org.junit.Assert;
 import org.junit.runner.RunWith;
 
+import com.koch.ambeth.audit.server.ioc.AuditModule;
 import com.koch.ambeth.cache.proxy.IEntityEquals;
 import com.koch.ambeth.cache.server.ioc.CacheServerModule;
 import com.koch.ambeth.event.datachange.ioc.EventDataChangeModule;
@@ -53,11 +54,11 @@ import com.koch.ambeth.service.merge.model.IEntityMetaData;
 import com.koch.ambeth.testutil.AbstractInformationBusWithPersistenceTest.PersistencePropertiesProvider;
 import com.koch.ambeth.util.IConversionHelper;
 
-@TestFrameworkModule({MergeServerModule.class, CacheServerModule.class, EventServerModule.class,
-		EventDataChangeModule.class, ExprModule.class, PersistenceModule.class,
+@TestFrameworkModule({ AuditModule.class, CacheServerModule.class, EventServerModule.class,
+		EventDataChangeModule.class, ExprModule.class, MergeServerModule.class, PersistenceModule.class,
 		PersistenceJdbcModule.class, PrivilegeModule.class, PrivilegeServerModule.class,
 		SecurityServerModule.class, SecurityQueryModule.class, QueryModule.class, QueryJdbcModule.class,
-		FilterPersistenceModule.class, PreparedStatementParamLoggerModule.class})
+		FilterPersistenceModule.class, PreparedStatementParamLoggerModule.class })
 @TestProperties(type = PersistencePropertiesProvider.class)
 @RunWith(AmbethInformationBusWithPersistenceRunner.class)
 public abstract class AbstractInformationBusWithPersistenceTest extends AbstractInformationBusTest {

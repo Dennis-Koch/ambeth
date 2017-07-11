@@ -25,7 +25,6 @@ import java.util.Collection;
 import com.koch.ambeth.audit.server.IAuditInfoController;
 import com.koch.ambeth.ioc.IStartingBean;
 import com.koch.ambeth.ioc.annotation.Autowired;
-import com.koch.ambeth.ioc.util.IRevertDelegate;
 import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.ILightweightTransaction;
@@ -36,6 +35,7 @@ import com.koch.ambeth.merge.util.setup.IDataSetupWithAuthorization;
 import com.koch.ambeth.security.persistence.IPermissionGroupUpdater;
 import com.koch.ambeth.security.server.IPasswordUtil;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
+import com.koch.ambeth.util.state.IStateRollback;
 import com.koch.ambeth.util.threading.IBackgroundWorkerDelegate;
 import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
 
@@ -92,7 +92,7 @@ public class DataSetupExecutor implements IStartingBean {
 			securityActivation.executeWithoutSecurity(new IResultingBackgroundWorkerDelegate<Object>() {
 				@Override
 				public Object invoke() throws Exception {
-					IRevertDelegate suppressPasswordValidationRevert = passwordUtil
+					IStateRollback suppressPasswordValidationRevert = passwordUtil
 							.suppressPasswordValidation();
 					try {
 						log.info("Processing test data setup...");
@@ -137,7 +137,7 @@ public class DataSetupExecutor implements IStartingBean {
 						return null;
 					}
 					finally {
-						suppressPasswordValidationRevert.revert();
+						suppressPasswordValidationRevert.rollback();
 					}
 				}
 			});

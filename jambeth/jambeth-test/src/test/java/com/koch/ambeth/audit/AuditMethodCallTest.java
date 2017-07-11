@@ -53,7 +53,6 @@ import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.config.IBeanConfiguration;
 import com.koch.ambeth.ioc.factory.IBeanContextFactory;
 import com.koch.ambeth.ioc.threadlocal.IThreadLocalCleanupBean;
-import com.koch.ambeth.ioc.util.IRevertDelegate;
 import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.IMergeProcess;
@@ -92,20 +91,19 @@ import com.koch.ambeth.testutil.TestModule;
 import com.koch.ambeth.testutil.TestProperties;
 import com.koch.ambeth.testutil.TestPropertiesList;
 import com.koch.ambeth.util.collections.Tuple2KeyHashMap;
+import com.koch.ambeth.util.state.IStateRollback;
 import com.koch.ambeth.util.threading.IBackgroundWorkerDelegate;
 
-@TestFrameworkModule({AuditModule.class, AuditMethodCallTestFrameworkModule.class})
+@TestFrameworkModule({ AuditModule.class, AuditMethodCallTestFrameworkModule.class })
 @TestModule(AuditMethodCallTestModule.class)
 @TestPropertiesList({
-		@TestProperties(name = ServiceConfigurationConstants.mappingFile,
-				value = "AuditMethodCall_orm.xml;security-orm.xml"),
+		@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "AuditMethodCall_orm.xml;security-orm.xml"),
 		@TestProperties(name = AuditConfigurationConstants.AuditActive, value = "true"),
 		@TestProperties(name = "ambeth.log.level", value = "DEBUG"),
 		@TestProperties(name = SecurityServerConfigurationConstants.SignatureActive, value = "true"),
-		@TestProperties(name = AuditConfigurationConstants.VerifyEntitiesOnLoad,
-				value = "VERIFY_SYNC")})
-@SQLStructureList({@SQLStructure("security-structure.sql"), //
-		@SQLStructure("audit-structure.sql")})
+		@TestProperties(name = AuditConfigurationConstants.VerifyEntitiesOnLoad, value = "VERIFY_SYNC") })
+@SQLStructureList({ @SQLStructure("security-structure.sql"), //
+		@SQLStructure("audit-structure.sql") })
 public class AuditMethodCallTest extends AbstractInformationBusWithPersistenceTest {
 	public static class ABC implements IEntityPermissionRule<User> {
 		@Autowired
@@ -214,16 +212,16 @@ public class AuditMethodCallTest extends AbstractInformationBusWithPersistenceTe
 
 				passwordUtil.assignNewPassword(passwordOfUser, user, null);
 
-				IRevertDelegate revert = auditController.setAuthorizedUser(user, passwordOfUser, true);
+				IStateRollback revert = auditController.pushAuthorizedUser(user, passwordOfUser, true);
 				try {
 					mergeProcess.process(user, null, null, null);
 				}
 				finally {
-					revert.revert();
+					revert.rollback();
 				}
 				users[a] = user;
 			}
-			IRevertDelegate revert = auditController.setAuthorizedUser(users[0], passwordOfUser, true);
+			IStateRollback revert = auditController.pushAuthorizedUser(users[0], passwordOfUser, true);
 			try {
 				for (int a = users.length; a-- > 0;) {
 					users[a].setName(users[a].getName() + "x");
@@ -231,9 +229,9 @@ public class AuditMethodCallTest extends AbstractInformationBusWithPersistenceTe
 				mergeProcess.process(users, null, null, null);
 			}
 			finally {
-				revert.revert();
+				revert.rollback();
 			}
-			revert = auditController.setAuthorizedUser(users[1], passwordOfUser, true);
+			revert = auditController.pushAuthorizedUser(users[1], passwordOfUser, true);
 			try {
 				for (int a = users.length; a-- > 0;) {
 					users[a].setName(users[a].getName() + "x");
@@ -241,7 +239,7 @@ public class AuditMethodCallTest extends AbstractInformationBusWithPersistenceTe
 				mergeProcess.process(users, null, null, null);
 			}
 			finally {
-				revert.revert();
+				revert.rollback();
 			}
 		}
 		finally {
@@ -251,21 +249,21 @@ public class AuditMethodCallTest extends AbstractInformationBusWithPersistenceTe
 		final int fieldValueIndex, entityTypeIndex, entityIdIndex;
 		final IQuery<IAuditedEntityPrimitiveProperty> query;
 		{
-			IQueryBuilder<IAuditedEntityPrimitiveProperty> qb =
-					queryBuilderFactory.create(IAuditedEntityPrimitiveProperty.class);
+			IQueryBuilder<IAuditedEntityPrimitiveProperty> qb = queryBuilderFactory
+					.create(IAuditedEntityPrimitiveProperty.class);
 			IOperand name = qb.property(IAuditedEntityPrimitiveProperty.Name);
 
 			IOperand entityType = qb.property(IAuditedEntityPrimitiveProperty.Entity + "."
 					+ IAuditedEntity.Ref + "." + IAuditedEntityRef.EntityType);
 			IOperand entityId = qb.property(IAuditedEntityPrimitiveProperty.Entity + "."
 					+ IAuditedEntity.Ref + "." + IAuditedEntityRef.EntityId);
-			IOperand changeType =
-					qb.property(IAuditedEntityPrimitiveProperty.Entity + "." + IAuditedEntity.ChangeType);
+			IOperand changeType = qb
+					.property(IAuditedEntityPrimitiveProperty.Entity + "." + IAuditedEntity.ChangeType);
 			IOperand timestamp = qb.property(IAuditedEntityPrimitiveProperty.Entity + "."
 					+ IAuditedEntity.Entry + "." + IAuditEntry.Timestamp);
 
-			fieldValueIndex =
-					qb.select(qb.function("to_char", qb.property(IAuditedEntityPrimitiveProperty.NewValue)));
+			fieldValueIndex = qb
+					.select(qb.function("to_char", qb.property(IAuditedEntityPrimitiveProperty.NewValue)));
 			entityTypeIndex = qb.select(entityType);
 			entityIdIndex = qb.select(entityId);
 
@@ -294,12 +292,12 @@ public class AuditMethodCallTest extends AbstractInformationBusWithPersistenceTe
 				try {
 					while (cursor.moveNext()) {
 						IDataItem item = cursor.getCurrent();
-						String lastValue =
-								conversionHelper.convertValueToType(String.class, item.getValue(fieldValueIndex));
-						String entityTypeName =
-								conversionHelper.convertValueToType(String.class, item.getValue(entityTypeIndex));
-						String entityId =
-								conversionHelper.convertValueToType(String.class, item.getValue(entityIdIndex));
+						String lastValue = conversionHelper.convertValueToType(String.class,
+								item.getValue(fieldValueIndex));
+						String entityTypeName = conversionHelper.convertValueToType(String.class,
+								item.getValue(entityTypeIndex));
+						String entityId = conversionHelper.convertValueToType(String.class,
+								item.getValue(entityIdIndex));
 
 						map.putIfNotExists(entityTypeName, entityId, lastValue);
 					}
@@ -322,12 +320,12 @@ public class AuditMethodCallTest extends AbstractInformationBusWithPersistenceTe
 
 		passwordUtil.assignNewPassword(passwordOfUser, user, null);
 
-		IRevertDelegate revert = auditController.setAuthorizedUser(user, passwordOfUser, true);
+		IStateRollback revert = auditController.pushAuthorizedUser(user, passwordOfUser, true);
 		try {
 			mergeProcess.process(user, null, null, null);
 		}
 		finally {
-			revert.revert();
+			revert.rollback();
 		}
 		auditController.popAuditReason();
 		((IThreadLocalCleanupBean) auditController).cleanupThreadLocal();
@@ -354,12 +352,12 @@ public class AuditMethodCallTest extends AbstractInformationBusWithPersistenceTe
 
 			passwordUtil.assignNewPassword(passwordOfUser, user, null);
 
-			IRevertDelegate revert = auditController.setAuthorizedUser(user, passwordOfUser, true);
+			IStateRollback revert = auditController.pushAuthorizedUser(user, passwordOfUser, true);
 			try {
 				mergeProcess.process(user, null, null, null);
 			}
 			finally {
-				revert.revert();
+				revert.rollback();
 			}
 			auditController.popAuditReason();
 			((IThreadLocalCleanupBean) auditController).cleanupThreadLocal();
@@ -401,7 +399,7 @@ public class AuditMethodCallTest extends AbstractInformationBusWithPersistenceTe
 
 		auditController.pushAuditReason("junit test");
 		try {
-			IRevertDelegate revert = auditController.setAuthorizedUser(user, passwordOfUser, true);
+			IStateRollback revert = auditController.pushAuthorizedUser(user, passwordOfUser, true);
 			try {
 				transaction.runInTransaction(new IBackgroundWorkerDelegate() {
 					@Override
@@ -411,31 +409,31 @@ public class AuditMethodCallTest extends AbstractInformationBusWithPersistenceTe
 				});
 			}
 			finally {
-				revert.revert();
+				revert.rollback();
 			}
 		}
 		finally {
 			auditController.popAuditReason();
 		}
 		{
-			List<IAuditedEntity> auditedEntitiesOfUser =
-					auditEntryReader.getAllAuditedEntitiesOfEntity(user);
+			List<IAuditedEntity> auditedEntitiesOfUser = auditEntryReader
+					.getAllAuditedEntitiesOfEntity(user);
 
 			Assert.assertEquals(1, auditedEntitiesOfUser.size());
-			boolean[] verifiedAuditedEntities =
-					auditEntryVerifier.verifyAuditedEntities(auditedEntitiesOfUser);
+			boolean[] verifiedAuditedEntities = auditEntryVerifier
+					.verifyAuditedEntities(auditedEntitiesOfUser);
 			Assert.assertEquals(auditedEntitiesOfUser.size(), verifiedAuditedEntities.length);
 			for (boolean verifySuccessful : verifiedAuditedEntities) {
 				Assert.assertTrue(verifySuccessful);
 			}
 		}
 		{
-			List<IAuditedEntity> auditedEntitiesOfPassword =
-					auditEntryReader.getAllAuditedEntitiesOfEntity(password);
+			List<IAuditedEntity> auditedEntitiesOfPassword = auditEntryReader
+					.getAllAuditedEntitiesOfEntity(password);
 
 			Assert.assertEquals(1, auditedEntitiesOfPassword.size());
-			boolean[] verifiedAuditedEntities =
-					auditEntryVerifier.verifyAuditedEntities(auditedEntitiesOfPassword);
+			boolean[] verifiedAuditedEntities = auditEntryVerifier
+					.verifyAuditedEntities(auditedEntitiesOfPassword);
 			Assert.assertEquals(auditedEntitiesOfPassword.size(), verifiedAuditedEntities.length);
 			for (boolean verifySuccessful : verifiedAuditedEntities) {
 				Assert.assertTrue(verifySuccessful);
@@ -458,10 +456,9 @@ public class AuditMethodCallTest extends AbstractInformationBusWithPersistenceTe
 
 	@Test
 	@TestPropertiesList({
-			@TestProperties(name = AuditConfigurationConstants.VerifyEntitiesOnLoad,
-					value = "VERIFY_ASYNC"),
+			@TestProperties(name = AuditConfigurationConstants.VerifyEntitiesOnLoad, value = "VERIFY_ASYNC"),
 			@TestProperties(name = PersistenceConfigurationConstants.DatabasePoolMaxUsed, value = "2"),
-			@TestProperties(name = PersistenceConfigurationConstants.DatabasePoolMaxUnused, value = "2")})
+			@TestProperties(name = PersistenceConfigurationConstants.DatabasePoolMaxUnused, value = "2") })
 	public void verifyWithConcurrentUpdate() {
 		final char[] passwordOfUser = "abc".toCharArray();
 		final User user = entityFactory.createEntity(User.class);
@@ -474,7 +471,7 @@ public class AuditMethodCallTest extends AbstractInformationBusWithPersistenceTe
 
 		auditController.pushAuditReason("junit test");
 		try {
-			IRevertDelegate revert = auditController.setAuthorizedUser(user, passwordOfUser, true);
+			IStateRollback revert = auditController.pushAuthorizedUser(user, passwordOfUser, true);
 			try {
 				transaction.runInTransaction(new IBackgroundWorkerDelegate() {
 					@Override
@@ -491,31 +488,31 @@ public class AuditMethodCallTest extends AbstractInformationBusWithPersistenceTe
 				});
 			}
 			finally {
-				revert.revert();
+				revert.rollback();
 			}
 		}
 		finally {
 			auditController.popAuditReason();
 		}
 		{
-			List<IAuditedEntity> auditedEntitiesOfUser =
-					auditEntryReader.getAllAuditedEntitiesOfEntity(user);
+			List<IAuditedEntity> auditedEntitiesOfUser = auditEntryReader
+					.getAllAuditedEntitiesOfEntity(user);
 
 			Assert.assertEquals(2, auditedEntitiesOfUser.size());
-			boolean[] verifiedAuditedEntities =
-					auditEntryVerifier.verifyAuditedEntities(auditedEntitiesOfUser);
+			boolean[] verifiedAuditedEntities = auditEntryVerifier
+					.verifyAuditedEntities(auditedEntitiesOfUser);
 			Assert.assertEquals(auditedEntitiesOfUser.size(), verifiedAuditedEntities.length);
 			for (boolean verifySuccessful : verifiedAuditedEntities) {
 				Assert.assertTrue(verifySuccessful);
 			}
 		}
 		{
-			List<IAuditedEntity> auditedEntitiesOfPassword =
-					auditEntryReader.getAllAuditedEntitiesOfEntity(password);
+			List<IAuditedEntity> auditedEntitiesOfPassword = auditEntryReader
+					.getAllAuditedEntitiesOfEntity(password);
 
 			Assert.assertEquals(1, auditedEntitiesOfPassword.size());
-			boolean[] verifiedAuditedEntities =
-					auditEntryVerifier.verifyAuditedEntities(auditedEntitiesOfPassword);
+			boolean[] verifiedAuditedEntities = auditEntryVerifier
+					.verifyAuditedEntities(auditedEntitiesOfPassword);
 			Assert.assertEquals(auditedEntitiesOfPassword.size(), verifiedAuditedEntities.length);
 			for (boolean verifySuccessful : verifiedAuditedEntities) {
 				Assert.assertTrue(verifySuccessful);

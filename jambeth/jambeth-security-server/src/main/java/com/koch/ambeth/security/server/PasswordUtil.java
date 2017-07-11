@@ -40,7 +40,6 @@ import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.config.IocConfigurationConstants;
 import com.koch.ambeth.ioc.config.Property;
 import com.koch.ambeth.ioc.threadlocal.IThreadLocalCleanupBean;
-import com.koch.ambeth.ioc.util.IRevertDelegate;
 import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.IEntityFactory;
@@ -74,6 +73,7 @@ import com.koch.ambeth.util.collections.EmptyList;
 import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.SmartCopyMap;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
+import com.koch.ambeth.util.state.IStateRollback;
 
 public class PasswordUtil implements IInitializingBean, IPasswordUtil,
 		IPasswordValidationExtendable, IThreadLocalCleanupBean {
@@ -203,12 +203,12 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil,
 	}
 
 	@Override
-	public IRevertDelegate suppressPasswordValidation() {
+	public IStateRollback suppressPasswordValidation() {
 		final Boolean oldValue = suppressPasswordValidationTL.get();
 		suppressPasswordValidationTL.set(Boolean.TRUE);
-		return new IRevertDelegate() {
+		return new IStateRollback() {
 			@Override
-			public void revert() {
+			public void rollback() {
 				suppressPasswordValidationTL.set(oldValue);
 			}
 		};

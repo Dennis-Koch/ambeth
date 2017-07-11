@@ -223,7 +223,7 @@ public class AmbethIocRunner extends BlockJUnit4ClassRunner {
 			if (testPropertiesItem instanceof TestPropertiesList) {
 				TestPropertiesList mtp = (TestPropertiesList) testPropertiesItem;
 				for (TestProperties testProperties : mtp.value()) {
-					if (testProperties.name() == null) {
+					if (testProperties.name().isEmpty()) {
 						additionalProperties.add(testProperties);
 						continue;
 					}
@@ -232,7 +232,7 @@ public class AmbethIocRunner extends BlockJUnit4ClassRunner {
 			}
 			else {
 				TestProperties testProperties = (TestProperties) testPropertiesItem;
-				if (testProperties.name() == null) {
+				if (testProperties.name().isEmpty()) {
 					additionalProperties.add(testProperties);
 					continue;
 				}

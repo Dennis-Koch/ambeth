@@ -547,13 +547,16 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 			final FrameworkMethod frameworkMethod) {
 		List<ISchemaRunnable> schemaRunnables = new ArrayList<>();
 
-		List<IAnnotationInfo<?>> annotations = findAnnotations(type,
-				frameworkMethod != null ? frameworkMethod.getMethod() : null, SQLDataList.class,
+		List<IAnnotationInfo<?>> annotations = findAnnotations(type, frameworkMethod != null ? frameworkMethod.getMethod() : null, SQLDataList.class,
 				SQLData.class);
 
 		IServiceContext schemaContext = getOrCreateSchemaContext();
-		IConnectionDialect connectionDialect = schemaContext.getService(IConnectionDialect.class);
+		final IConnectionDialect connectionDialect = schemaContext.getService(IConnectionDialect.class);
 		IProperties properties = schemaContext.getService(IProperties.class);
+
+		final IList<String> sqlCommands = new ArrayList<>();
+		final IMap<String, String> sqlToSourceMap = new HashMap<>();
+
 		for (IAnnotationInfo<?> schemaItem : annotations) {
 			Annotation annotation = schemaItem.getAnnotation();
 			if (annotation instanceof SQLDataList) {
@@ -562,17 +565,26 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 				SQLData[] value = sqlDataList.value();
 				for (SQLData sqlData : value) {
 					getSchemaRunnable(schemaContext, sqlData.type(), sqlData.valueProvider(), sqlData.value(),
-							schemaRunnables, schemaItem.getAnnotatedElement(), true, null, connectionDialect,
-							properties, getLog(), doExecuteStrict);
+							schemaRunnables, schemaItem.getAnnotatedElement(), true, sqlCommands, sqlToSourceMap,
+							connectionDialect, properties, getLog(), doExecuteStrict);
 				}
 			}
 			else {
 				SQLData sqlData = (SQLData) annotation;
 
 				getSchemaRunnable(schemaContext, sqlData.type(), sqlData.valueProvider(), sqlData.value(),
-						schemaRunnables, schemaItem.getAnnotatedElement(), true, null, connectionDialect,
-						properties, getLog(), doExecuteStrict);
+						schemaRunnables, schemaItem.getAnnotatedElement(), true, sqlCommands, sqlToSourceMap,
+						connectionDialect, properties, getLog(), doExecuteStrict);
 			}
+		}
+		if (sqlCommands.size() != 0) {
+			schemaRunnables.add(new ISchemaRunnable() {
+				@Override
+				public void executeSchemaSql(Connection connection) throws Exception {
+					executeScript(sqlCommands, connection, false, sqlToSourceMap, null, connectionDialect,
+							getLog(), doExecuteStrict);
+				}
+			});
 		}
 		return schemaRunnables.toArray(new ISchemaRunnable[schemaRunnables.size()]);
 	}
@@ -609,63 +621,50 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 			Class<? extends ISchemaRunnable> schemaRunnableType,
 			Class<? extends ISchemaFileProvider> valueProviderType, String[] schemaFiles,
 			List<ISchemaRunnable> schemaRunnables, final AnnotatedElement callingClass,
-			final boolean doCommitBehavior, final IList<String> sqlExecutionOrder,
+			final boolean doCommitBehavior, IList<String> allSQL, IMap<String, String> sqlToSourceMap,
 			final IConnectionDialect connectionDialect, final IProperties properties, final ILogger log,
 			final boolean doExecuteStrict) {
-		if (schemaRunnableType != null && !ISchemaRunnable.class.equals(schemaRunnableType)) {
-			try {
-				ISchemaRunnable schemaRunnable = schemaRunnableType.newInstance();
+		try {
+			if (schemaRunnableType != null && !ISchemaRunnable.class.equals(schemaRunnableType)) {
+				ISchemaRunnable schemaRunnable = schemaContext.registerBean(schemaRunnableType).finish();
 				schemaRunnables.add(schemaRunnable);
 			}
-			catch (Exception e) {
-				throw RuntimeExceptionUtil.mask(e);
-			}
-		}
-		if (valueProviderType != null && !ISchemaFileProvider.class.equals(valueProviderType)) {
-			try {
+			if (valueProviderType != null && !ISchemaFileProvider.class.equals(valueProviderType)) {
 				ISchemaFileProvider valueProvider = schemaContext.registerBean(valueProviderType).finish();
 				String[] additionalSchemaFiles = valueProvider.getSchemaFiles();
 				LinkedHashSet<String> set = new LinkedHashSet<>(schemaFiles);
 				set.addAll(additionalSchemaFiles);
 				schemaFiles = set.toArray(String.class);
 			}
-			catch (Exception e) {
-				throw RuntimeExceptionUtil.mask(e);
+			for (String schemaFile : schemaFiles) {
+				if (schemaFile == null || schemaFile.length() == 0) {
+					continue;
+				}
+				List<String> sql = readSqlFile(schemaFile, callingClass, properties, log);
+				allSQL.addAll(sql);
+				for (String oneSql : sql) {
+					sqlToSourceMap.put(oneSql, schemaFile);
+				}
 			}
 		}
-		final String[] fSchemaFiles = schemaFiles;
-		ISchemaRunnable schemaRunnable = new ISchemaRunnable() {
-			@Override
-			public void executeSchemaSql(final Connection connection) throws Exception {
-				ArrayList<String> allSQL = new ArrayList<>();
-				HashMap<String, String> sqlToSourceMap = new HashMap<>();
-				for (String schemaFile : fSchemaFiles) {
-					if (schemaFile == null || schemaFile.length() == 0) {
-						continue;
-					}
-					List<String> sql = readSqlFile(schemaFile, callingClass, properties, log);
-					allSQL.addAll(sql);
-					for (String oneSql : sql) {
-						sqlToSourceMap.put(oneSql, schemaFile);
-					}
-				}
-				executeScript(allSQL, connection, false, sqlToSourceMap, sqlExecutionOrder,
-						connectionDialect, log, doExecuteStrict);
-			}
-		};
-		schemaRunnables.add(schemaRunnable);
+		catch (Exception e) {
+			throw RuntimeExceptionUtil.mask(e);
+		}
 	}
 
 	protected ISchemaRunnable[] getStructureRunnables(final Class<?> callingClass,
-			final Class<?> type, IList<String> sqlExecutionOrder) {
+			final Class<?> type, final IList<String> sqlExecutionOrder) {
 		List<ISchemaRunnable> schemaRunnables = new ArrayList<>();
 
 		List<IAnnotationInfo<?>> annotations = findAnnotations(type, SQLStructureList.class,
 				SQLStructure.class);
 
 		IServiceContext schemaContext = getOrCreateSchemaContext();
-		IConnectionDialect connectionDialect = schemaContext.getService(IConnectionDialect.class);
+		final IConnectionDialect connectionDialect = schemaContext.getService(IConnectionDialect.class);
 		IProperties properties = schemaContext.getService(IProperties.class);
+		final IList<String> sqlCommands = new ArrayList<>();
+
+		final IMap<String, String> sqlToSourceMap = new HashMap<>();
 		for (IAnnotationInfo<?> schemaItem : annotations) {
 			Annotation annotation = schemaItem.getAnnotation();
 			if (annotation instanceof SQLStructureList) {
@@ -675,15 +674,25 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 				for (SQLStructure sqlStructure : value) {
 					getSchemaRunnable(schemaContext, sqlStructure.type(), sqlStructure.schemaFileProvider(),
 							sqlStructure.value(), schemaRunnables, schemaItem.getAnnotatedElement(), true,
-							sqlExecutionOrder, connectionDialect, properties, getLog(), doExecuteStrict);
+							sqlCommands, sqlToSourceMap, connectionDialect, properties, getLog(),
+							doExecuteStrict);
 				}
 			}
 			else {
 				SQLStructure sqlStructure = (SQLStructure) annotation;
 				getSchemaRunnable(schemaContext, sqlStructure.type(), sqlStructure.schemaFileProvider(),
 						sqlStructure.value(), schemaRunnables, schemaItem.getAnnotatedElement(), true,
-						sqlExecutionOrder, connectionDialect, properties, getLog(), doExecuteStrict);
+						sqlCommands, sqlToSourceMap, connectionDialect, properties, getLog(), doExecuteStrict);
 			}
+		}
+		if (sqlCommands.size() != 0) {
+			schemaRunnables.add(new ISchemaRunnable() {
+				@Override
+				public void executeSchemaSql(Connection connection) throws Exception {
+					executeScript(sqlCommands, connection, false, sqlToSourceMap, sqlExecutionOrder,
+							connectionDialect, getLog(), doExecuteStrict);
+				}
+			});
 		}
 		return schemaRunnables.toArray(new ISchemaRunnable[schemaRunnables.size()]);
 	}
