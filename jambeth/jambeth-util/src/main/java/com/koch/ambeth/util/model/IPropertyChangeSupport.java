@@ -25,8 +25,12 @@ import java.beans.PropertyChangeListener;
 
 public interface IPropertyChangeSupport extends INotifyPropertyChanged {
 	/**
-	 * Fires a property change event to listeners that have been registered to track updates of
-	 * collection.
+	 * Fires a property change event to listeners that have been registered with
+	 * {@link #addPropertyChangeListener(PropertyChangeListener)}. Convenience method to the similar
+	 * call
+	 * <code>firePropertyChange( new PropertyChangeEvent(obj, propertyName, oldValue, currentValue) )</code>.
+	 * It is also more efficient than {@link #firePropertyChange(PropertyChangeEvent)} because here
+	 * the event object is only created if there is at least one registered listener.
 	 *
 	 * @param obj
 	 * @param propertyName
@@ -36,19 +40,20 @@ public interface IPropertyChangeSupport extends INotifyPropertyChanged {
 	void firePropertyChange(Object obj, String propertyName, Object oldValue, Object currentValue);
 
 	/**
-	 * Fires a property change event to listeners that have been registered to track updates of
-	 * collection.
+	 * Fires a property change event to listeners that have been registered with
+	 * {@link #addPropertyChangeListener(PropertyChangeListener)}
 	 *
-	 * @param evnt the {@code NotifyCollectionChangedEvent} to be fired
+	 * @param evnt
+	 *          the {@code PropertyChangeEvent} to be fired
 	 */
 	void firePropertyChange(PropertyChangeEvent evnt);
 
 	/**
-	 * Returns an array of all the listeners that were added to the NotifyCollectionChangedSupport
-	 * object with addNotifyCollectionChangedListener().
+	 * Returns an array of all the listeners that have been registered with
+	 * {@link #addPropertyChangeListener(PropertyChangeListener)}
 	 *
-	 * @return all of the <code>NotifyCollectionChangedListeners</code> added or an empty array if no
-	 *         listeners have been added
+	 * @return all of the <code>PropertyChangeListeners</code> added or an empty array if no listeners
+	 *         have been added
 	 */
 	PropertyChangeListener[] getPropertyChangeListeners();
 }
