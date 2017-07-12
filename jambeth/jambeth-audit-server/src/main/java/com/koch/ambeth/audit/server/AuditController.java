@@ -662,7 +662,8 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 		return new AbstractStateRollback(rollbacks) {
 			@Override
 			protected void rollbackIntern() throws Exception {
-				if (authenticatedUserHolder.getAuthenticatedSID() != sid) {
+				String authenticatedSID = authenticatedUserHolder.getAuthenticatedSID();
+				if (authenticatedSID != sid && authenticatedSID != null) {
 					throw new IllegalStateException("Illegal state: authorizedUserSID does not match");
 				}
 				authenticatedUserHolder.setAuthenticatedSID(oldAuthorizedUserSID);
