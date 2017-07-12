@@ -57,9 +57,8 @@ import com.koch.ambeth.util.collections.LinkedHashSet;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
 public class QueryResultCache implements IQueryResultCache {
-	public static class QueryResultCacheSession {
-		protected final HashMap<IQueryKey, Reference<IQueryResultCacheItem>> queryKeyToObjRefMap =
-				new HashMap<>();
+	public class QueryResultCacheSession {
+		protected final HashMap<IQueryKey, Reference<IQueryResultCacheItem>> queryKeyToObjRefMap = new HashMap<>();
 
 		protected final long sessionId;
 
@@ -68,7 +67,13 @@ public class QueryResultCache implements IQueryResultCache {
 		}
 
 		public void clear() {
+			if (queryKeyToObjRefMap.isEmpty()) {
+				return;
+			}
 			queryKeyToObjRefMap.clear();
+			if (log.isDebugEnabled()) {
+				log.debug("cleared query cache of transaction '" + sessionId + "'");
+			}
 		}
 	}
 
@@ -81,14 +86,11 @@ public class QueryResultCache implements IQueryResultCache {
 	@Property(name = PersistenceConfigurationConstants.QueryCacheActive, defaultValue = "true")
 	protected boolean queryCacheActive = true;
 
-	protected final HashMap<IQueryKey, Reference<IQueryResultCacheItem>> queryKeyToObjRefMap =
-			new HashMap<>();
+	protected final HashMap<IQueryKey, Reference<IQueryResultCacheItem>> queryKeyToObjRefMap = new HashMap<>();
 
-	protected final HashMap<IQueryKey, Reference<IQueryResultCacheItem>> queryKeyWithPageToObjRefMap =
-			new HashMap<>();
+	protected final HashMap<IQueryKey, Reference<IQueryResultCacheItem>> queryKeyWithPageToObjRefMap = new HashMap<>();
 
-	protected final HashMap<Class<?>, ILinkedSet<IQueryKey>> entityTypeToQueryKeyMap =
-			new HashMap<>();
+	protected final HashMap<Class<?>, ILinkedSet<IQueryKey>> entityTypeToQueryKeyMap = new HashMap<>();
 
 	protected final HashMap<Long, QueryResultCacheSession> sessionIdToHandleMap = new HashMap<>();
 
@@ -122,8 +124,8 @@ public class QueryResultCache implements IQueryResultCache {
 				// }
 			}
 			else {
-				QueryResultCacheSession session =
-						sessionIdToHandleMap.get(Long.valueOf(transactionInfo.getSessionId()));
+				QueryResultCacheSession session = sessionIdToHandleMap
+						.get(Long.valueOf(transactionInfo.getSessionId()));
 				if (session != null) {
 					sr = session.queryKeyToObjRefMap.get(queryKey);
 				}
@@ -148,8 +150,8 @@ public class QueryResultCache implements IQueryResultCache {
 			return createResult(queryResultCacheItem, idIndex, offset, length, containsPageOnly,
 					totalSize);
 		}
-		IQueryResultCacheItem queryResultCacheItem =
-				getCacheItem(queryKey, offset, length, containsPageOnly);
+		IQueryResultCacheItem queryResultCacheItem = getCacheItem(queryKey, offset, length,
+				containsPageOnly);
 		if (queryResultCacheItem != null) {
 			return createResult(queryResultCacheItem, idIndex, offset, length, containsPageOnly,
 					totalSize);
@@ -226,8 +228,8 @@ public class QueryResultCache implements IQueryResultCache {
 		Lock writeLock = this.writeLock;
 		writeLock.lock();
 		try {
-			IQueryResultCacheItem queryResultCacheItem =
-					getCacheItem(queryKey, offset, length, containsPageOnly);
+			IQueryResultCacheItem queryResultCacheItem = getCacheItem(queryKey, offset, length,
+					containsPageOnly);
 			if (queryResultCacheItem != null) {
 				return queryResultCacheItem;
 			}
@@ -364,19 +366,18 @@ public class QueryResultCache implements IQueryResultCache {
 		writeLock.lock();
 		try {
 			if (transactionInfo != null) {
-				QueryResultCacheSession session =
-						sessionIdToHandleMap.get(Long.valueOf(transactionInfo.getSessionId()));
+				QueryResultCacheSession session = sessionIdToHandleMap
+						.get(Long.valueOf(transactionInfo.getSessionId()));
 				if (session != null) {
 					session.clear();
 				}
-				if (log.isDebugEnabled()) {
-					log.debug("cleared query cache of transaction '" + transactionInfo.getSessionId() + "'");
-				}
 			}
-			entityTypeToQueryKeyMap.clear();
-			queryKeyToObjRefMap.clear();
-			if (log.isDebugEnabled()) {
-				log.debug("cleared query cache of committed state");
+			if (!entityTypeToQueryKeyMap.isEmpty() || !queryKeyToObjRefMap.isEmpty()) {
+				entityTypeToQueryKeyMap.clear();
+				queryKeyToObjRefMap.clear();
+				if (log.isDebugEnabled()) {
+					log.debug("cleared query cache of committed state");
+				}
 			}
 		}
 		finally {
@@ -388,10 +389,14 @@ public class QueryResultCache implements IQueryResultCache {
 		Lock writeLock = this.writeLock;
 		writeLock.lock();
 		try {
-			QueryResultCacheSession session =
-					sessionIdToHandleMap.get(Long.valueOf(dataChangeOfSession.getSessionId()));
+			QueryResultCacheSession session = sessionIdToHandleMap
+					.get(Long.valueOf(dataChangeOfSession.getSessionId()));
 			if (session == null) {
 				// nothing to do
+				return;
+			}
+			IDataChange dataChange = dataChangeOfSession.getDataChange();
+			if (dataChange.isEmpty()) {
 				return;
 			}
 			if (log.isDebugEnabled()) {
@@ -399,7 +404,7 @@ public class QueryResultCache implements IQueryResultCache {
 						"processing data change to invalidate corresponding query cache entries of transaction '"
 								+ dataChangeOfSession.getSessionId() + "'");
 			}
-			handleDataChangeIntern(dataChangeOfSession.getDataChange(), session.queryKeyToObjRefMap);
+			handleDataChangeIntern(dataChange, session.queryKeyToObjRefMap);
 			if (log.isDebugEnabled()) {
 				log.debug(
 						"processed data change to invalidate corresponding query cache entries of transaction '"

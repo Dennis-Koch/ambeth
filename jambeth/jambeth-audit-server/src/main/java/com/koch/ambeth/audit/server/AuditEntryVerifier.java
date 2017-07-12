@@ -52,6 +52,7 @@ import com.koch.ambeth.merge.cache.ICacheFactory;
 import com.koch.ambeth.merge.metadata.IObjRefFactory;
 import com.koch.ambeth.merge.proxy.IEntityMetaDataHolder;
 import com.koch.ambeth.merge.proxy.IObjRefContainer;
+import com.koch.ambeth.merge.security.ISecurityActivation;
 import com.koch.ambeth.merge.transfer.ObjRef;
 import com.koch.ambeth.merge.util.DirectValueHolderRef;
 import com.koch.ambeth.merge.util.IPrefetchHandle;
@@ -94,6 +95,7 @@ import com.koch.ambeth.util.collections.Tuple2KeyHashMap;
 import com.koch.ambeth.util.collections.Tuple3KeyHashMap;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.objectcollector.IThreadLocalObjectCollector;
+import com.koch.ambeth.util.state.IStateRollback;
 import com.koch.ambeth.util.threading.IBackgroundWorkerDelegate;
 import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
 
@@ -158,9 +160,6 @@ public class AuditEntryVerifier
 	protected IEntityMetaDataProvider entityMetaDataProvider;
 
 	@Autowired
-	protected ILightweightTransaction transaction;
-
-	@Autowired
 	protected IThreadLocalObjectCollector objectCollector;
 
 	@Autowired
@@ -176,7 +175,13 @@ public class AuditEntryVerifier
 	protected IQueryBuilderFactory queryBuilderFactory;
 
 	@Autowired
+	protected ISecurityActivation securityActivation;
+
+	@Autowired
 	protected ISignatureUtil signatureUtil;
+
+	@Autowired
+	protected ILightweightTransaction transaction;
 
 	@Property(name = SecurityServerConfigurationConstants.SignatureActive, defaultValue = "false")
 	protected boolean signatureActive;
@@ -717,96 +722,102 @@ public class AuditEntryVerifier
 		if (bucketSortObjRefs.isEmpty()) {
 			return true;
 		}
-		LinkedHashMap<String, Object> nameToValueMap = new LinkedHashMap<>();
-		IMap<IObjRef, ISet<String>> remainingPropertyMap = fillNameToValueMap(nameToValueMap,
-				bucketSortObjRefs);
+		IStateRollback rollback = securityActivation.pushWithoutSecurity();
+		try {
+			LinkedHashMap<String, Object> nameToValueMap = new LinkedHashMap<>();
+			IMap<IObjRef, ISet<String>> remainingPropertyMap = fillNameToValueMap(nameToValueMap,
+					bucketSortObjRefs);
 
-		int count = 0;
-		for (Entry<IEntityMetaData, IList<IObjRef>> entry : bucketSortObjRefs) {
-			count += entry.getValue().size();
-		}
-
-		if (log.isDebugEnabled()) {
-			IThreadLocalObjectCollector objectCollector = this.objectCollector.getCurrent();
-			StringBuilder sb = objectCollector.create(StringBuilder.class);
-			sb.append("Verifying audit entries covering the following " + count + " entities: ");
-
-			ArrayList<IObjRef> allObjRefs = new ArrayList<>(count);
+			int count = 0;
 			for (Entry<IEntityMetaData, IList<IObjRef>> entry : bucketSortObjRefs) {
-				allObjRefs.addAll(entry.getValue());
+				count += entry.getValue().size();
 			}
-			for (Entry<IEntityMetaData, IList<IObjRef>> entry : bucketSortObjRefs) {
-				sb.append("\n\t").append(entry.getValue().size()).append("x ")
-						.append(entry.getKey().getEntityType().getName());
-			}
+
 			if (log.isDebugEnabled()) {
-				sb.append("\n\t");
-				debugToLoad(allObjRefs, sb);
-				log.debug(sb);
-			}
-			else if (log.isInfoEnabled()) {
-				log.info(sb);
-			}
-			objectCollector.dispose(sb);
-		}
-		IList<IObjRef> objRefsToAudit = remainingPropertyMap.keyList();
-		boolean[] entitiesDataInvalid = new boolean[objRefsToAudit.size()];
+				IThreadLocalObjectCollector objectCollector = this.objectCollector.getCurrent();
+				StringBuilder sb = objectCollector.create(StringBuilder.class);
+				sb.append("Verifying audit entries covering the following " + count + " entities: ");
 
-		HashMap<IObjRef, Integer> entitiesWhichNeedReverify = new HashMap<>();
-		IdentityHashSet<IAuditedEntity> auditedEntitiesToVerify = new IdentityHashSet<>();
-		{
-			IQuery<IAuditedEntity> query = resolveQuery(bucketSortObjRefs);
-			for (Entry<String, Object> entry : nameToValueMap) {
-				query = query.param(entry.getKey(), entry.getValue());
+				ArrayList<IObjRef> allObjRefs = new ArrayList<>(count);
+				for (Entry<IEntityMetaData, IList<IObjRef>> entry : bucketSortObjRefs) {
+					allObjRefs.addAll(entry.getValue());
+				}
+				for (Entry<IEntityMetaData, IList<IObjRef>> entry : bucketSortObjRefs) {
+					sb.append("\n\t").append(entry.getValue().size()).append("x ")
+							.append(entry.getKey().getEntityType().getName());
+				}
+				if (log.isDebugEnabled()) {
+					sb.append("\n\t");
+					debugToLoad(allObjRefs, sb);
+					log.debug(sb);
+				}
+				else if (log.isInfoEnabled()) {
+					log.info(sb);
+				}
+				objectCollector.dispose(sb);
 			}
-			IList<IAuditedEntity> auditedEntities = query.retrieve();
+			IList<IObjRef> objRefsToAudit = remainingPropertyMap.keyList();
+			boolean[] entitiesDataInvalid = new boolean[objRefsToAudit.size()];
 
-			filterAuditedEntities(auditedEntities, remainingPropertyMap, objRefsToAudit,
-					entitiesDataInvalid, entitiesWhichNeedReverify, auditedEntitiesToVerify);
-		}
+			HashMap<IObjRef, Integer> entitiesWhichNeedReverify = new HashMap<>();
+			IdentityHashSet<IAuditedEntity> auditedEntitiesToVerify = new IdentityHashSet<>();
+			{
+				IQuery<IAuditedEntity> query = resolveQuery(bucketSortObjRefs);
+				for (Entry<String, Object> entry : nameToValueMap) {
+					query = query.param(entry.getKey(), entry.getValue());
+				}
+				IList<IAuditedEntity> auditedEntities = query.retrieve();
 
-		handleEntitiesWhichNeedReverify(entitiesDataInvalid, entitiesWhichNeedReverify,
-				auditedEntitiesToVerify);
+				filterAuditedEntities(auditedEntities, remainingPropertyMap, objRefsToAudit,
+						entitiesDataInvalid, entitiesWhichNeedReverify, auditedEntitiesToVerify);
+			}
 
-		IList<IAuditedEntity> auditedEntitiesToVerifyList = auditedEntitiesToVerify.toList();
-		boolean[] auditedEntitiesValid = verifyAuditedEntities(auditedEntitiesToVerifyList);
-		ArrayList<IObjRef> invalidEntities = new ArrayList<>();
-		ArrayList<IAuditedEntity> invalidAuditedEntities = new ArrayList<>();
-		for (int a = auditedEntitiesValid.length; a-- > 0;) {
-			if (auditedEntitiesValid[a]) {
-				continue;
+			handleEntitiesWhichNeedReverify(entitiesDataInvalid, entitiesWhichNeedReverify,
+					auditedEntitiesToVerify);
+
+			IList<IAuditedEntity> auditedEntitiesToVerifyList = auditedEntitiesToVerify.toList();
+			boolean[] auditedEntitiesValid = verifyAuditedEntities(auditedEntitiesToVerifyList);
+			ArrayList<IObjRef> invalidEntities = new ArrayList<>();
+			ArrayList<IAuditedEntity> invalidAuditedEntities = new ArrayList<>();
+			for (int a = auditedEntitiesValid.length; a-- > 0;) {
+				if (auditedEntitiesValid[a]) {
+					continue;
+				}
+				invalidAuditedEntities.add(auditedEntitiesToVerifyList.get(a));
 			}
-			invalidAuditedEntities.add(auditedEntitiesToVerifyList.get(a));
-		}
-		for (int a = entitiesDataInvalid.length; a-- > 0;) {
-			if (!entitiesDataInvalid[a]) {
-				continue;
+			for (int a = entitiesDataInvalid.length; a-- > 0;) {
+				if (!entitiesDataInvalid[a]) {
+					continue;
+				}
+				invalidEntities.add(objRefsToAudit.get(a));
 			}
-			invalidEntities.add(objRefsToAudit.get(a));
-		}
-		long end = System.currentTimeMillis();
-		if (!invalidEntities.isEmpty() || !invalidAuditedEntities.isEmpty()) {
-			StringBuilder sb = new StringBuilder();
-			sb.append("Verification failed: ").append(invalidEntities.size()).append(" OF ").append(count)
-					.append(" ENTITIES INVALID (").append(end - start).append(" ms):");
-			for (IObjRef objRef : invalidEntities) {
-				sb.append("\n\t\t").append(objRef.toString());
+			long end = System.currentTimeMillis();
+			if (!invalidEntities.isEmpty() || !invalidAuditedEntities.isEmpty()) {
+				StringBuilder sb = new StringBuilder();
+				sb.append("Verification failed: ").append(invalidEntities.size()).append(" OF ")
+						.append(count).append(" ENTITIES INVALID (").append(end - start).append(" ms):");
+				for (IObjRef objRef : invalidEntities) {
+					sb.append("\n\t\t").append(objRef.toString());
+				}
+				sb.append("\n\t").append(invalidAuditedEntities.size()).append(" OF ")
+						.append(auditedEntitiesToVerify.size()).append(" AUDIT ENTIRES INVALID:");
+				for (IAuditedEntity auditedEntity : invalidAuditedEntities) {
+					IAuditedEntityRef ref = auditedEntity.getRef();
+					sb.append("\n\t\t").append(new ObjRef(ref.getEntityType(), ObjRef.PRIMARY_KEY_INDEX,
+							ref.getEntityId(), ref.getEntityVersion()));
+				}
+				log.error(sb);
+				return false;
 			}
-			sb.append("\n\t").append(invalidAuditedEntities.size()).append(" OF ")
-					.append(auditedEntitiesToVerify.size()).append(" AUDIT ENTIRES INVALID:");
-			for (IAuditedEntity auditedEntity : invalidAuditedEntities) {
-				IAuditedEntityRef ref = auditedEntity.getRef();
-				sb.append("\n\t\t").append(new ObjRef(ref.getEntityType(), ObjRef.PRIMARY_KEY_INDEX,
-						ref.getEntityId(), ref.getEntityVersion()));
+			else if (log.isDebugEnabled()) {
+				log.debug(
+						"Verification successful: ALL " + count + " ENTITIES VALID (" + (end - start) + " ms)");
 			}
-			log.error(sb);
-			return false;
+			return true;
 		}
-		else if (log.isDebugEnabled()) {
-			log.debug(
-					"Verification successful: ALL " + count + " ENTITIES VALID (" + (end - start) + " ms)");
+		finally {
+			rollback.rollback();
 		}
-		return true;
 	}
 
 	private void handleEntitiesWhichNeedReverify(boolean[] entitiesDataInvalid,
