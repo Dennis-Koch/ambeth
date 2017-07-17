@@ -70,6 +70,9 @@ public class SecurityContextHolder implements IAuthorizationChangeListenerExtend
 	@Autowired
 	protected IAuthenticatedUserHolder authenticatedUserHolder;
 
+	@Autowired(optional = true)
+	protected ISecurityContextProvider securityContextProvider;
+
 	@Autowired
 	protected IEventDispatcher eventDispatcher;
 
@@ -116,12 +119,29 @@ public class SecurityContextHolder implements IAuthorizationChangeListenerExtend
 
 	@Override
 	public ISecurityContext getContext() {
+		ISecurityContext context = getContextIntern();
+		if (context == null && securityContextProvider != null) {
+			context = securityContextProvider.getSecurityContext();
+		}
+		return context;
+	}
+
+	protected ISecurityContext getContextIntern() {
 		return contextTL.get();
 	}
 
 	@Override
 	public ISecurityContext getCreateContext() {
 		ISecurityContext securityContext = getContext();
+		if (securityContext == null) {
+			securityContext = new SecurityContextImpl(this);
+			contextTL.set(securityContext);
+		}
+		return securityContext;
+	}
+
+	protected ISecurityContext getCreateContextIntern() {
+		ISecurityContext securityContext = getContextIntern();
 		if (securityContext == null) {
 			securityContext = new SecurityContextImpl(this);
 			contextTL.set(securityContext);
@@ -142,10 +162,10 @@ public class SecurityContextHolder implements IAuthorizationChangeListenerExtend
 	@Override
 	public IStateRollback pushAuthentication(IAuthentication authentication,
 			IStateRollback... rollbacks) {
-		ISecurityContext securityContext = getContext();
+		ISecurityContext securityContext = getContextIntern();
 		boolean created = false;
 		if (securityContext == null) {
-			securityContext = getCreateContext();
+			securityContext = getCreateContextIntern();
 			created = true;
 		}
 		boolean success = false;
