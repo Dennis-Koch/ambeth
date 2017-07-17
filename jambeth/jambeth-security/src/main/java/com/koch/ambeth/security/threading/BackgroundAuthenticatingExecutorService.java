@@ -21,6 +21,7 @@ limitations under the License.
  */
 
 import java.util.concurrent.Exchanger;
+import java.util.concurrent.Executor;
 
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.proxy.Self;
@@ -34,12 +35,13 @@ import com.koch.ambeth.security.SecurityContextType;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.state.IStateRollback;
 import com.koch.ambeth.util.threading.IBackgroundWorkerDelegate;
-import com.koch.ambeth.util.threading.IFastThreadPool;
 import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
 
 @SecurityContext(SecurityContextType.NOT_REQUIRED)
 public class BackgroundAuthenticatingExecutorService
 		implements IBackgroundAuthenticatingExecutorService, IBackgroundAuthenticatingExecution {
+	public static final String P_THREAD_POOL = "ThreadPool";
+
 	private class ExchangeResultRunnable<T> implements Runnable {
 		private final Exchanger<T> exchanger;
 		private final IAuthentication authentication;
@@ -79,7 +81,7 @@ public class BackgroundAuthenticatingExecutorService
 	private ILogger log;
 
 	@Autowired
-	protected IFastThreadPool threadPool;
+	protected Executor threadPool;
 
 	@Autowired
 	protected ISecurityContextHolder securityContextHolder;

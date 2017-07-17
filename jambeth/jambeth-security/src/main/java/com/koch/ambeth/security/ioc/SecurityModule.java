@@ -32,9 +32,6 @@ import com.koch.ambeth.security.ISecurityContextHolder;
 import com.koch.ambeth.security.SecurityContextHolder;
 import com.koch.ambeth.security.config.SecurityConfigurationConstants;
 import com.koch.ambeth.security.service.ISecurityService;
-import com.koch.ambeth.security.threading.BackgroundAuthenticatingExecutorService;
-import com.koch.ambeth.security.threading.IBackgroundAuthenticatingExecution;
-import com.koch.ambeth.security.threading.IBackgroundAuthenticatingExecutorService;
 import com.koch.ambeth.service.config.ServiceConfigurationConstants;
 import com.koch.ambeth.service.remote.ClientServiceBean;
 
@@ -54,9 +51,6 @@ public class SecurityModule implements IInitializingModule {
 		beanContextFactory.registerBean(SecurityContextHolder.class).autowireable(
 				ISecurityContextHolder.class, IAuthorizationChangeListenerExtendable.class,
 				ILightweightSecurityContext.class);
-
-		beanContextFactory.registerBean(BackgroundAuthenticatingExecutorService.class).autowireable(
-				IBackgroundAuthenticatingExecutorService.class, IBackgroundAuthenticatingExecution.class);
 
 		if (isNetworkClientMode && isSecurityBeanActive) {
 			beanContextFactory.registerBean("securityService.external", ClientServiceBean.class)
