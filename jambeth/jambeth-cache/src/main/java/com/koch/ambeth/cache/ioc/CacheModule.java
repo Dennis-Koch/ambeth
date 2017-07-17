@@ -121,9 +121,6 @@ public class CacheModule implements IInitializingModule {
 	@Property(name = CacheConfigurationConstants.CacheServiceBeanActive, defaultValue = "true")
 	protected boolean isCacheServiceBeanActive;
 
-	@Property(name = ServiceConfigurationConstants.GenericTransferMapping, defaultValue = "false")
-	protected boolean genericTransferMapping;
-
 	@Autowired
 	protected IProxyFactory proxyFactory;
 

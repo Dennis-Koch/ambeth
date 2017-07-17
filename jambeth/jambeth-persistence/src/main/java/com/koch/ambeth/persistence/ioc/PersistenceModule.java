@@ -26,6 +26,7 @@ import com.koch.ambeth.ioc.annotation.FrameworkModule;
 import com.koch.ambeth.ioc.config.PrecedenceType;
 import com.koch.ambeth.ioc.extendable.ExtendableBean;
 import com.koch.ambeth.ioc.factory.IBeanContextFactory;
+import com.koch.ambeth.merge.orm.IOrmConfigGroupExtendable;
 import com.koch.ambeth.merge.orm.blueprint.IOrmDatabaseMapper;
 import com.koch.ambeth.persistence.EntityLoader;
 import com.koch.ambeth.persistence.IEntityLoader;
@@ -85,18 +86,18 @@ public class PersistenceModule implements IInitializingModule {
 				.autowireable(IDatabaseSessionIdController.class);
 
 		beanContextFactory.registerBean(XmlDatabaseMapper.class).precedence(PrecedenceType.HIGH)
-				.autowireable(IOrmDatabaseMapper.class);
+				.autowireable(IOrmDatabaseMapper.class, IOrmConfigGroupExtendable.class);
 
 		beanContextFactory.registerBean(OrmPatternMatcher.class).autowireable(IOrmPatternMatcher.class);
 
 		beanContextFactory.registerBean(SqlBuilder.class).autowireable(ISqlBuilder.class,
 				ISqlKeywordRegistry.class);
 
-		TargetingInterceptor databaseInterceptor =
-				(TargetingInterceptor) beanContextFactory.registerBean(TargetingInterceptor.class)
-						.propertyRef(TargetingInterceptor.TARGET_PROVIDER_PROP,
-								IDatabaseProvider.DEFAULT_DATABASE_PROVIDER_NAME)
-						.getInstance();
+		TargetingInterceptor databaseInterceptor = (TargetingInterceptor) beanContextFactory
+				.registerBean(TargetingInterceptor.class)
+				.propertyRef(TargetingInterceptor.TARGET_PROVIDER_PROP,
+						IDatabaseProvider.DEFAULT_DATABASE_PROVIDER_NAME)
+				.getInstance();
 
 		IDatabase databaseTlProxy = proxyFactory.createProxy(IDatabase.class, databaseInterceptor);
 

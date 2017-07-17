@@ -1,5 +1,7 @@
 package com.koch.ambeth.merge.config;
 
+import java.util.List;
+
 /*-
  * #%L
  * jambeth-merge
@@ -29,9 +31,11 @@ import com.koch.ambeth.merge.IEntityMetaDataExtendable;
 import com.koch.ambeth.merge.model.EntityMetaData;
 import com.koch.ambeth.merge.orm.IEntityConfig;
 import com.koch.ambeth.merge.orm.IOrmConfigGroup;
+import com.koch.ambeth.merge.orm.IOrmConfigGroupExtendable;
 import com.koch.ambeth.merge.orm.IOrmConfigGroupProvider;
 import com.koch.ambeth.service.merge.IEntityMetaDataProvider;
 import com.koch.ambeth.service.merge.model.IEntityMetaData;
+import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.LinkedHashSet;
 
 public abstract class AbstractEntityMetaDataReader implements IDisposableBean {
@@ -53,10 +57,18 @@ public abstract class AbstractEntityMetaDataReader implements IDisposableBean {
 	@Autowired
 	protected IOrmConfigGroupProvider ormConfigGroupProvider;
 
+	@Autowired(optional = true)
+	protected IOrmConfigGroupExtendable ormConfigGroupExtendable;
+
 	protected final LinkedHashSet<IEntityMetaData> managedEntityMetaData = new LinkedHashSet<>();
+
+	protected final List<IOrmConfigGroup> ormConfigGroups = new ArrayList<>();
 
 	@Override
 	public void destroy() {
+		for (IOrmConfigGroup ormConfigGroup : ormConfigGroups) {
+			ormConfigGroupExtendable.unregisterOrmConfigGroup(ormConfigGroup);
+		}
 		for (IEntityMetaData entityMetaData : managedEntityMetaData) {
 			entityMetaDataExtendable.unregisterEntityMetaData(entityMetaData);
 		}
@@ -86,6 +98,9 @@ public abstract class AbstractEntityMetaDataReader implements IDisposableBean {
 				entityMetaDataExtendable.registerEntityMetaData(metaData);
 			}
 		}
+		if (ormConfigGroupExtendable != null) {
+			ormConfigGroupExtendable.registerOrmConfigGroup(ormConfigGroup);
+			ormConfigGroups.add(ormConfigGroup);
+		}
 	}
-
 }

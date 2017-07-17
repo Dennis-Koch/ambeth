@@ -33,9 +33,9 @@ import java.util.regex.Pattern;
 
 import com.koch.ambeth.ioc.IDisposableBean;
 import com.koch.ambeth.ioc.IServiceContext;
-import com.koch.ambeth.ioc.IStartingBean;
 import com.koch.ambeth.ioc.annotation.Autowired;
-import com.koch.ambeth.ioc.config.Property;
+import com.koch.ambeth.ioc.extendable.ExtendableContainer;
+import com.koch.ambeth.ioc.extendable.IExtendableContainer;
 import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.IEntityMetaDataExtendable;
@@ -50,10 +50,10 @@ import com.koch.ambeth.merge.orm.IEntityConfig;
 import com.koch.ambeth.merge.orm.ILinkConfig;
 import com.koch.ambeth.merge.orm.IMemberConfig;
 import com.koch.ambeth.merge.orm.IOrmConfigGroup;
+import com.koch.ambeth.merge.orm.IOrmConfigGroupExtendable;
 import com.koch.ambeth.merge.orm.IOrmConfigGroupProvider;
 import com.koch.ambeth.merge.orm.IRelationConfig;
 import com.koch.ambeth.merge.orm.MemberConfig;
-import com.koch.ambeth.merge.orm.OrmConfigGroup;
 import com.koch.ambeth.merge.orm.RelationConfig20;
 import com.koch.ambeth.merge.orm.RelationConfigLegathy;
 import com.koch.ambeth.merge.orm.blueprint.IOrmDatabaseMapper;
@@ -71,13 +71,11 @@ import com.koch.ambeth.persistence.api.ITableMetaData;
 import com.koch.ambeth.persistence.api.sql.ISqlBuilder;
 import com.koch.ambeth.persistence.database.IDatabaseMappedListener;
 import com.koch.ambeth.persistence.sql.SqlLinkMetaData;
-import com.koch.ambeth.service.config.ServiceConfigurationConstants;
 import com.koch.ambeth.service.merge.IEntityMetaDataProvider;
 import com.koch.ambeth.service.merge.model.IEntityMetaData;
 import com.koch.ambeth.service.metadata.Member;
 import com.koch.ambeth.util.StringConversionHelper;
 import com.koch.ambeth.util.collections.ArrayList;
-import com.koch.ambeth.util.collections.EmptySet;
 import com.koch.ambeth.util.collections.HashMap;
 import com.koch.ambeth.util.collections.HashSet;
 import com.koch.ambeth.util.collections.IList;
@@ -90,9 +88,10 @@ import com.koch.ambeth.util.typeinfo.IPropertyInfo;
 import com.koch.ambeth.util.typeinfo.IPropertyInfoProvider;
 
 public class XmlDatabaseMapper extends DefaultDatabaseMapper
-		implements IStartingBean, IDisposableBean, IOrmDatabaseMapper {
-	public static final Pattern fqToSoftTableNamePattern =
-			Pattern.compile("[\"`]?(.+?)[\"`]?\\.[\"`]?(.+?)[\"`]?");
+		implements IDisposableBean, IOrmDatabaseMapper, IOrmConfigGroupExtendable {
+
+	public static final Pattern fqToSoftTableNamePattern = Pattern
+			.compile("[\"`]?(.+?)[\"`]?\\.[\"`]?(.+?)[\"`]?");
 
 	public static final Pattern softTableNamePattern = Pattern.compile("[\"`]?(.+?)[\"`]?");
 
@@ -113,7 +112,7 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper
 				throw new IllegalArgumentException("Illegal full qualified name '" + fqName + "'");
 			}
 		}
-		return new String[] {schemaName, softName};
+		return new String[] { schemaName, softName };
 	}
 
 	@LogInstance
@@ -149,12 +148,10 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper
 	@Autowired
 	protected IServiceContext serviceContext;
 
-	protected String xmlFileName = null;
-
 	protected final List<EntityMetaData> registeredMetaDatas = new ArrayList<>();
 
-	protected IOrmConfigGroup ormConfigGroup =
-			new OrmConfigGroup(EmptySet.<IEntityConfig>emptySet(), EmptySet.<IEntityConfig>emptySet());
+	protected IExtendableContainer<IOrmConfigGroup> ormConfigGroups = new ExtendableContainer<>(
+			IOrmConfigGroup.class, "ormConfigGroup");
 
 	protected HashSet<String> allFullqualifiedSequences;
 
@@ -162,28 +159,10 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper
 	protected IDatabaseMetaData databaseMetaData;
 
 	@Override
-	public void afterStarted() throws Throwable {
-		if (xmlFileName != null) {
-			ormConfigGroup = ormConfigGroupProvider.getOrmConfigGroup(xmlFileName);
-		}
-	}
-
-	@Override
 	public void destroy() throws Throwable {
 		for (int a = registeredMetaDatas.size(); a-- > 0;) {
 			entityMetaDataExtendable.unregisterEntityMetaData(registeredMetaDatas.get(a));
 		}
-	}
-
-	@Property(name = ServiceConfigurationConstants.mappingFile, mandatory = false)
-	public void setFileName(String fileName) {
-		if (xmlFileName != null) {
-			throw new IllegalArgumentException(XmlDatabaseMapper.class.getSimpleName()
-					+ " already configured! Tried to set the config file '" + fileName
-					+ "'. File name is already set to '" + xmlFileName + "'");
-		}
-
-		xmlFileName = fileName;
 	}
 
 	@Override
@@ -205,137 +184,135 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper
 		catch (SQLException e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
-		if (xmlFileName == null) {
-			// No config source was set
-			return;
-		}
-
 		handleExternalEntities();
-		mapFieldsIntern(ormConfigGroup, database);
+		mapFieldsIntern(database, ormConfigGroups.getExtensions());
 		super.mapFields(connection, schemaNames, database);
 	}
 
-	protected List<ITableMetaData> mapFieldsIntern(IOrmConfigGroup ormConfigGroup,
-			IDatabaseMetaData database) {
+	protected List<ITableMetaData> mapFieldsIntern(IDatabaseMetaData database,
+			IOrmConfigGroup... ormConfigGroups) {
 		ArrayList<ITableMetaData> tables = new ArrayList<>();
 		int maxNameLength = database.getMaxNameLength();
-		for (IEntityConfig entityConfig : ormConfigGroup.getLocalEntityConfigs()) {
-			Class<?> entityType = entityConfig.getEntityType();
-			Class<?> realType = entityConfig.getRealType();
-			String idName = this.idName;
-			String versionName = this.versionName;
+		for (IOrmConfigGroup ormConfigGroup : ormConfigGroups) {
+			for (IEntityConfig entityConfig : ormConfigGroup.getLocalEntityConfigs()) {
+				Class<?> entityType = entityConfig.getEntityType();
+				Class<?> realType = entityConfig.getRealType();
+				String idName = this.idName;
+				String versionName = this.versionName;
 
-			ITableMetaData table =
-					tryResolveTable(database, entityConfig.getTableName(), realType.getSimpleName());
-			table = database.mapTable(table.getName(), entityType);
+				ITableMetaData table = tryResolveTable(database, entityConfig.getTableName(),
+						realType.getSimpleName());
+				table = database.mapTable(table.getName(), entityType);
 
-			ITableMetaData archiveTable = database.getTableByName(
-					ormPatternMatcher.buildArchiveFromTableName(table.getName(), maxNameLength));
-			if (archiveTable != null) {
-				database.mapArchiveTable(archiveTable.getName(), entityType);
-			}
-
-			configureTableSequence(table, entityConfig.getSequenceName(), maxNameLength,
-					allFullqualifiedSequences);
-
-			ITableMetaData pgTable = database.getTableByName(
-					ormPatternMatcher.buildPermissionGroupFromTableName(table.getName(), maxNameLength));
-			if (pgTable != null) {
-				configureTableSequence(pgTable, null, maxNameLength, allFullqualifiedSequences);
-			}
-
-			if (entityConfig.getIdMemberConfig() != null) {
-				IMemberConfig idMemberConfig = entityConfig.getIdMemberConfig();
-				idName = idMemberConfig.getName();
-				if (idMemberConfig instanceof MemberConfig) {
-					handleIdField(new MemberConfig[] {(MemberConfig) idMemberConfig}, table);
+				ITableMetaData archiveTable = database.getTableByName(
+						ormPatternMatcher.buildArchiveFromTableName(table.getName(), maxNameLength));
+				if (archiveTable != null) {
+					database.mapArchiveTable(archiveTable.getName(), entityType);
 				}
-				else {
-					handleIdField(((CompositeMemberConfig) idMemberConfig).getMembers(), table);
-				}
-			}
 
-			if (entityConfig.isVersionRequired() && entityConfig.getVersionMemberConfig() != null) {
-				IMemberConfig versionMemberConfig = entityConfig.getVersionMemberConfig();
-				versionName = versionMemberConfig.getName();
-				handleVersionField(versionMemberConfig, table);
-			}
-			if (entityConfig.getDescriminatorName() != null) {
-				handleDescriminatorField(entityConfig.getDescriminatorName(), table);
-			}
+				configureTableSequence(table, entityConfig.getSequenceName(), maxNameLength,
+						allFullqualifiedSequences);
 
-			HashSet<String> ignoredMembers = new HashSet<>();
-			Iterable<IMemberConfig> memberIter = entityConfig.getMemberConfigIterable();
-			for (IMemberConfig memberConfig : memberIter) {
-				if (memberConfig.isTransient()) {
-					continue;
+				ITableMetaData pgTable = database.getTableByName(
+						ormPatternMatcher.buildPermissionGroupFromTableName(table.getName(), maxNameLength));
+				if (pgTable != null) {
+					configureTableSequence(pgTable, null, maxNameLength, allFullqualifiedSequences);
 				}
-				if (memberConfig instanceof CompositeMemberConfig) {
-					MemberConfig[] members = ((CompositeMemberConfig) memberConfig).getMembers();
-					for (MemberConfig member : members) {
-						mapBasic(table, member);
+
+				if (entityConfig.getIdMemberConfig() != null) {
+					IMemberConfig idMemberConfig = entityConfig.getIdMemberConfig();
+					idName = idMemberConfig.getName();
+					if (idMemberConfig instanceof MemberConfig) {
+						handleIdField(new MemberConfig[] { (MemberConfig) idMemberConfig }, table);
+					}
+					else {
+						handleIdField(((CompositeMemberConfig) idMemberConfig).getMembers(), table);
 					}
 				}
-				else {
-					mapBasic(table, (MemberConfig) memberConfig);
-				}
-				if (memberConfig.isIgnore()) {
-					ignoredMembers.add(memberConfig.getName());
-					continue;
-				}
-			}
 
-			if (entityConfig.isVersionRequired() && table.getVersionField() == null) {
-				throw new IllegalStateException(
-						"No version field found in table '" + table.getName() + "'");
-			}
+				if (entityConfig.isVersionRequired() && entityConfig.getVersionMemberConfig() != null) {
+					IMemberConfig versionMemberConfig = entityConfig.getVersionMemberConfig();
+					versionName = versionMemberConfig.getName();
+					handleVersionField(versionMemberConfig, table);
+				}
+				if (entityConfig.getDescriminatorName() != null) {
+					handleDescriminatorField(entityConfig.getDescriminatorName(), table);
+				}
 
-			IMap<String, IPropertyInfo> propertyMap = propertyInfoProvider.getPropertyMap(entityType);
-			HashMap<String, IPropertyInfo> ucPropertyMap = new HashMap<>();
-			for (Entry<String, IPropertyInfo> entry : propertyMap) {
-				String memberName = entry.getKey();
-				if (ignoredMembers.contains(memberName) || table.getFieldByMemberName(memberName) != null) {
-					continue;
+				HashSet<String> ignoredMembers = new HashSet<>();
+				Iterable<IMemberConfig> memberIter = entityConfig.getMemberConfigIterable();
+				for (IMemberConfig memberConfig : memberIter) {
+					if (memberConfig.isTransient()) {
+						continue;
+					}
+					if (memberConfig instanceof CompositeMemberConfig) {
+						MemberConfig[] members = ((CompositeMemberConfig) memberConfig).getMembers();
+						for (MemberConfig member : members) {
+							mapBasic(table, member);
+						}
+					}
+					else {
+						mapBasic(table, (MemberConfig) memberConfig);
+					}
+					if (memberConfig.isIgnore()) {
+						ignoredMembers.add(memberConfig.getName());
+						continue;
+					}
 				}
-				IPropertyInfo propertyInfo = entry.getValue();
-				int modifiers = propertyInfo.getModifiers();
-				if (Modifier.isFinal(modifiers) || Modifier.isTransient(modifiers)) {
-					continue;
-				}
-				addToUcPropertyMap(memberName, propertyInfo, ucPropertyMap, maxNameLength);
-			}
-			List<IFieldMetaData> fields = table.getAllFields();
-			ArrayList<IFieldMetaData> fieldsCopy = new ArrayList<>(fields);
-			Collections.sort(fieldsCopy, new Comparator<IFieldMetaData>() {
-				@Override
-				public int compare(IFieldMetaData o1, IFieldMetaData o2) {
-					return o2.getName().compareTo(o1.getName()); // Reverse order
-				}
-			});
 
-			for (int a = fieldsCopy.size(); a-- > 0;) {
-				IFieldMetaData field = fieldsCopy.get(a);
-				if (field.getMember() != null) {
-					// Field already mapped
-					continue;
+				if (entityConfig.isVersionRequired() && table.getVersionField() == null) {
+					throw new IllegalStateException(
+							"No version field found in table '" + table.getName() + "'");
 				}
-				String fieldName = field.getName();
-				IPropertyInfo propertyInfo = ucPropertyMap.get(fieldName);
-				if (propertyInfo == null) {
-					if (field.expectsMapping() && log.isDebugEnabled()) {
-						log.debug("No member specified or autoresolved on entity '" + entityType.getName()
+
+				IMap<String, IPropertyInfo> propertyMap = propertyInfoProvider.getPropertyMap(entityType);
+				HashMap<String, IPropertyInfo> ucPropertyMap = new HashMap<>();
+				for (Entry<String, IPropertyInfo> entry : propertyMap) {
+					String memberName = entry.getKey();
+					if (ignoredMembers.contains(memberName)
+							|| table.getFieldByMemberName(memberName) != null) {
+						continue;
+					}
+					IPropertyInfo propertyInfo = entry.getValue();
+					int modifiers = propertyInfo.getModifiers();
+					if (Modifier.isFinal(modifiers) || Modifier.isTransient(modifiers)) {
+						continue;
+					}
+					addToUcPropertyMap(memberName, propertyInfo, ucPropertyMap, maxNameLength);
+				}
+				List<IFieldMetaData> fields = table.getAllFields();
+				ArrayList<IFieldMetaData> fieldsCopy = new ArrayList<>(fields);
+				Collections.sort(fieldsCopy, new Comparator<IFieldMetaData>() {
+					@Override
+					public int compare(IFieldMetaData o1, IFieldMetaData o2) {
+						return o2.getName().compareTo(o1.getName()); // Reverse order
+					}
+				});
+
+				for (int a = fieldsCopy.size(); a-- > 0;) {
+					IFieldMetaData field = fieldsCopy.get(a);
+					if (field.getMember() != null) {
+						// Field already mapped
+						continue;
+					}
+					String fieldName = field.getName();
+					IPropertyInfo propertyInfo = ucPropertyMap.get(fieldName);
+					if (propertyInfo == null) {
+						if (field.expectsMapping() && log.isDebugEnabled()) {
+							log.debug("No member specified or autoresolved on entity '" + entityType.getName()
+									+ "' for database field '" + table.getName() + "." + field.getName() + "'");
+						}
+						continue;
+					}
+					if (log.isDebugEnabled()) {
+						log.debug("Autoresolving member '" + entityType.getName() + "." + propertyInfo.getName()
 								+ "' for database field '" + table.getName() + "." + field.getName() + "'");
 					}
-					continue;
+					table.mapField(field.getName(), propertyInfo.getName());
 				}
-				if (log.isDebugEnabled()) {
-					log.debug("Autoresolving member '" + entityType.getName() + "." + propertyInfo.getName()
-							+ "' for database field '" + table.getName() + "." + field.getName() + "'");
-				}
-				table.mapField(field.getName(), propertyInfo.getName());
+				mapIdAndVersion(table, idName, versionName);
+				tables.add(table);
 			}
-			mapIdAndVersion(table, idName, versionName);
-			tables.add(table);
 		}
 		return tables;
 	}
@@ -357,18 +334,14 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper
 
 	@Override
 	public void mapLinks(Connection connection, String[] schemaNames, IDatabaseMetaData database) {
-		if (xmlFileName == null) {
-			// No config source was set
-			return;
-		}
 		int maxNameLength = database.getMaxNameLength();
 		IConfigurableDatabaseMetaData confDatabase = (IConfigurableDatabaseMetaData) database;
 		List<ILinkMetaData> allLinks = database.getLinks();
 		for (int i = allLinks.size(); i-- > 0;) {
 			ILinkMetaData link = allLinks.get(i);
 			if (link.getName().equalsIgnoreCase(link.getTableName())) {
-				String archiveTableName =
-						ormPatternMatcher.buildArchiveFromTableName(link.getName(), maxNameLength);
+				String archiveTableName = ormPatternMatcher.buildArchiveFromTableName(link.getName(),
+						maxNameLength);
 				if (confDatabase.isLinkArchiveTable(archiveTableName)) {
 					((LinkMetaData) link).setArchiveTableName(archiveTableName);
 				}
@@ -376,33 +349,34 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper
 		}
 
 		DatabaseMetaData databaseImpl = (DatabaseMetaData) database;
-		for (IEntityConfig entityConfig : ormConfigGroup.getLocalEntityConfigs()) {
-			Class<?> entityType = entityConfig.getEntityType();
+		for (IOrmConfigGroup ormConfigGroup : ormConfigGroups.getExtensions()) {
+			for (IEntityConfig entityConfig : ormConfigGroup.getLocalEntityConfigs()) {
+				Class<?> entityType = entityConfig.getEntityType();
 
-			ITableMetaData table = getTableByType(database, entityType);
+				ITableMetaData table = getTableByType(database, entityType);
 
-			Iterable<IRelationConfig> relationIter = entityConfig.getRelationConfigIterable();
-			for (IRelationConfig relationConfig : relationIter) {
-				if (relationConfig instanceof RelationConfigLegathy) {
-					RelationConfigLegathy relationConfigLegathy = (RelationConfigLegathy) relationConfig;
-					if (relationConfigLegathy.isToOne()) {
-						mapToOne(connection, databaseImpl, table, relationConfigLegathy);
+				Iterable<IRelationConfig> relationIter = entityConfig.getRelationConfigIterable();
+				for (IRelationConfig relationConfig : relationIter) {
+					if (relationConfig instanceof RelationConfigLegathy) {
+						RelationConfigLegathy relationConfigLegathy = (RelationConfigLegathy) relationConfig;
+						if (relationConfigLegathy.isToOne()) {
+							mapToOne(connection, databaseImpl, table, relationConfigLegathy);
+						}
+						else {
+							mapToMany(connection, databaseImpl, table, relationConfigLegathy);
+						}
+					}
+					else if (relationConfig instanceof RelationConfig20) {
+						RelationConfig20 relationConfig20 = (RelationConfig20) relationConfig;
+						mapRelation(relationConfig20, table, databaseImpl, connection);
 					}
 					else {
-						mapToMany(connection, databaseImpl, table, relationConfigLegathy);
+						throw new RuntimeException("RelationConfig of type '"
+								+ relationConfig.getClass().getSimpleName() + "' not yet supported");
 					}
-				}
-				else if (relationConfig instanceof RelationConfig20) {
-					RelationConfig20 relationConfig20 = (RelationConfig20) relationConfig;
-					mapRelation(relationConfig20, table, databaseImpl, connection);
-				}
-				else {
-					throw new RuntimeException("RelationConfig of type '"
-							+ relationConfig.getClass().getSimpleName() + "' not yet supported");
 				}
 			}
 		}
-
 		super.mapLinks(connection, schemaNames, database);
 	}
 
@@ -419,8 +393,8 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper
 			throw new IllegalArgumentException("No table name specified");
 		}
 		int maxProcedureNameLength = database.getMaxNameLength();
-		String assumedName =
-				ormPatternMatcher.buildTableNameFromSoftName(softName, maxProcedureNameLength);
+		String assumedName = ormPatternMatcher.buildTableNameFromSoftName(softName,
+				maxProcedureNameLength);
 
 		ITableMetaData table = null;
 		{
@@ -457,14 +431,14 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper
 		set.add(assumedName.toUpperCase());
 		set.add(assumedName.toLowerCase());
 
-		assumedName =
-				StringConversionHelper.insertUnderscoreBeforeUppercaseLetter(objectCollector, assumedName);
+		assumedName = StringConversionHelper.insertUnderscoreBeforeUppercaseLetter(objectCollector,
+				assumedName);
 		set.add(assumedName);
 		set.add(assumedName.toUpperCase());
 		set.add(assumedName.toLowerCase());
 
-		assumedName =
-				StringConversionHelper.insertUnderscoreBeforeNumbers(objectCollector, assumedName);
+		assumedName = StringConversionHelper.insertUnderscoreBeforeNumbers(objectCollector,
+				assumedName);
 		set.add(assumedName);
 		set.add(assumedName.toUpperCase());
 		set.add(assumedName.toLowerCase());
@@ -615,15 +589,15 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper
 		String joinTableName = getFqJoinTableName(table, relationConfig);
 		String linkName;
 
-		IEntityMetaData linkedEntityMetaData =
-				entityMetaDataProvider.getMetaData(linkedEntityType, true);
-		boolean linkedEntityLocal =
-				linkedEntityMetaData == null || linkedEntityMetaData.isLocalEntity();
+		IEntityMetaData linkedEntityMetaData = entityMetaDataProvider.getMetaData(linkedEntityType,
+				true);
+		boolean linkedEntityLocal = linkedEntityMetaData == null
+				|| linkedEntityMetaData.isLocalEntity();
 		if (linkedEntityLocal) {
 			// Local entity
 			ITableMetaData table2 = getTableByType(database, linkedEntityType);
-			linkName =
-					findLinkNameLocal(table, memberName, joinTableName, relationConfig, table2, database);
+			linkName = findLinkNameLocal(table, memberName, joinTableName, relationConfig, table2,
+					database);
 		}
 		else {
 			// External entity
@@ -663,14 +637,14 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper
 		String joinTableName = getFqJoinTableName(table, relationConfig);
 		String linkName;
 
-		IEntityMetaData linkedEntityMetaData =
-				entityMetaDataProvider.getMetaData(linkedEntityType, true);
+		IEntityMetaData linkedEntityMetaData = entityMetaDataProvider.getMetaData(linkedEntityType,
+				true);
 		if (linkedEntityMetaData == null || linkedEntityMetaData.isLocalEntity()) {
 			// Local entity
 			ITableMetaData table2 = getTableByType(database, linkedEntityType);
 
-			linkName =
-					findLinkNameLocal(table, memberName, joinTableName, relationConfig, table2, database);
+			linkName = findLinkNameLocal(table, memberName, joinTableName, relationConfig, table2,
+					database);
 		}
 		else {
 			// External entity
@@ -746,8 +720,8 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper
 
 		EntityIdentifier entityIdentifier = relationConfig20.getEntityIdentifier();
 		if (entityIdentifier == null) {
-			entityIdentifier =
-					link.getFromTable().equals(table) ? EntityIdentifier.LEFT : EntityIdentifier.RIGHT;
+			entityIdentifier = link.getFromTable().equals(table) ? EntityIdentifier.LEFT
+					: EntityIdentifier.RIGHT;
 		}
 
 		boolean[] cascadeDeletes = resolveCascadeDeletes(linkConfig, entityIdentifier);
@@ -782,10 +756,10 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper
 		boolean[] cascadeDeletes;
 		CascadeDeleteDirection cascadeDeleteDirection = linkConfig.getCascadeDeleteDirection();
 		if (CascadeDeleteDirection.BOTH == cascadeDeleteDirection) {
-			cascadeDeletes = new boolean[] {true, true};
+			cascadeDeletes = new boolean[] { true, true };
 		}
 		else if (CascadeDeleteDirection.NONE == cascadeDeleteDirection) {
-			cascadeDeletes = new boolean[] {false, false};
+			cascadeDeletes = new boolean[] { false, false };
 		}
 		else {
 			cascadeDeletes = new boolean[2];
@@ -829,8 +803,8 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper
 			if (!useLinkTable) {
 				linkName = mapDataTableWithLink(database, table, table2, relationConfig, false);
 				if (database.getLinkByName(linkName) == null) {
-					String linkNameRetry =
-							mapDataTableWithLink(database, table, table2, relationConfig, true);
+					String linkNameRetry = mapDataTableWithLink(database, table, table2, relationConfig,
+							true);
 					if (database.getLinkByName(linkNameRetry) != null) {
 						linkName = linkNameRetry;
 					}
@@ -936,8 +910,8 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper
 			toFieldName = tempFieldName;
 		}
 		mapFieldToMember(table, joinTableName, fromFieldName, relationConfig.getName());
-		String linkName =
-				database.createForeignKeyLinkName(fromTableName, fromFieldName, toTableName, toFieldName);
+		String linkName = database.createForeignKeyLinkName(fromTableName, fromFieldName, toTableName,
+				toFieldName);
 		return linkName;
 	}
 
@@ -980,8 +954,8 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper
 		directed.setToMember(toMember);
 		directed.afterPropertiesSet();
 
-		DirectedExternalLinkMetaData reverse =
-				(DirectedExternalLinkMetaData) link.getReverseDirectedLink();
+		DirectedExternalLinkMetaData reverse = (DirectedExternalLinkMetaData) link
+				.getReverseDirectedLink();
 		reverse.setEntityMetaDataProvider(entityMetaDataProvider);
 		reverse.setFromMember(toMember);
 		reverse.afterPropertiesSet();
@@ -993,51 +967,53 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper
 		IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
 		StringBuilder debugSb = tlObjectCollector.create(StringBuilder.class);
 		try {
-			for (IEntityConfig entityConfig : ormConfigGroup.getExternalEntityConfigs()) {
-				Class<?> entityType = entityConfig.getEntityType();
-				Class<?> realType = entityConfig.getRealType();
+			for (IOrmConfigGroup ormConfigGroup : ormConfigGroups.getExtensions()) {
+				for (IEntityConfig entityConfig : ormConfigGroup.getExternalEntityConfigs()) {
+					Class<?> entityType = entityConfig.getEntityType();
+					Class<?> realType = entityConfig.getRealType();
 
-				EntityMetaData metaData = new EntityMetaData();
-				metaData.setEntityType(entityType);
-				metaData.setRealType(realType);
-				metaData.setLocalEntity(false);
+					EntityMetaData metaData = new EntityMetaData();
+					metaData.setEntityType(entityType);
+					metaData.setRealType(realType);
+					metaData.setLocalEntity(false);
 
-				entityMetaDataReader.addMembers(metaData, entityConfig);
+					entityMetaDataReader.addMembers(metaData, entityConfig);
 
-				if (metaData.getIdMember() == null) {
-					throw new IllegalArgumentException(
-							"ID attribute missing in configuration for external entity '" + entityType.getName()
-									+ "'");
-				}
-				if (entityConfig.isVersionRequired() && metaData.getVersionMember() == null) {
-					throw new IllegalArgumentException(
-							"Version attribute missing in configuration for external entity '"
-									+ entityType.getName() + "'");
-				}
-
-				synchronized (entityMetaDataExtendable) {
-					if (entityMetaDataProvider.getMetaData(metaData.getEntityType(), true) == null) {
-						entityMetaDataExtendable.registerEntityMetaData(metaData);
-						registeredMetaDatas.add(metaData);
+					if (metaData.getIdMember() == null) {
+						throw new IllegalArgumentException(
+								"ID attribute missing in configuration for external entity '" + entityType.getName()
+										+ "'");
 					}
-				}
-				if (log.isDebugEnabled()) {
-					debugSb.setLength(0);
-
-					debugSb.append("Mapped external entity '").append(metaData.getEntityType().getName())
-							.append("' with members ID ('").append(metaData.getIdMember().getName());
-					if (entityConfig.isVersionRequired()) {
-						debugSb.append("'), version ('").append(metaData.getVersionMember().getName())
-								.append("')");
+					if (entityConfig.isVersionRequired() && metaData.getVersionMember() == null) {
+						throw new IllegalArgumentException(
+								"Version attribute missing in configuration for external entity '"
+										+ entityType.getName() + "'");
 					}
-					else {
-						debugSb.append("'), no version");
-					}
-					debugPrintMembers(debugSb, metaData.getAlternateIdMembers(), "alternate IDs");
-					debugPrintMembers(debugSb, metaData.getPrimitiveMembers(), "primitives");
-					debugPrintMembers(debugSb, metaData.getRelationMembers(), "relations");
 
-					log.debug(debugSb.toString());
+					synchronized (entityMetaDataExtendable) {
+						if (entityMetaDataProvider.getMetaData(metaData.getEntityType(), true) == null) {
+							entityMetaDataExtendable.registerEntityMetaData(metaData);
+							registeredMetaDatas.add(metaData);
+						}
+					}
+					if (log.isDebugEnabled()) {
+						debugSb.setLength(0);
+
+						debugSb.append("Mapped external entity '").append(metaData.getEntityType().getName())
+								.append("' with members ID ('").append(metaData.getIdMember().getName());
+						if (entityConfig.isVersionRequired()) {
+							debugSb.append("'), version ('").append(metaData.getVersionMember().getName())
+									.append("')");
+						}
+						else {
+							debugSb.append("'), no version");
+						}
+						debugPrintMembers(debugSb, metaData.getAlternateIdMembers(), "alternate IDs");
+						debugPrintMembers(debugSb, metaData.getPrimitiveMembers(), "primitives");
+						debugPrintMembers(debugSb, metaData.getRelationMembers(), "relations");
+
+						log.debug(debugSb.toString());
+					}
 				}
 			}
 		}
@@ -1129,9 +1105,9 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper
 
 	@Override
 	public void mapFields(IOrmConfigGroup ormConfigGroup) {
-		List<ITableMetaData> tables = mapFieldsIntern(ormConfigGroup, databaseMetaData);
-		IList<IDatabaseMappedListener> databaseMappedListeners =
-				serviceContext.getObjects(IDatabaseMappedListener.class);
+		List<ITableMetaData> tables = mapFieldsIntern(databaseMetaData, ormConfigGroup);
+		IList<IDatabaseMappedListener> databaseMappedListeners = serviceContext
+				.getObjects(IDatabaseMappedListener.class);
 
 		for (ITableMetaData table : tables) {
 			databaseMetaData.handleTable(table);
@@ -1139,7 +1115,15 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper
 				listener.newTableMetaData(table);
 			}
 		}
-
 	}
 
+	@Override
+	public void registerOrmConfigGroup(IOrmConfigGroup ormConfigGroup) {
+		ormConfigGroups.register(ormConfigGroup);
+	}
+
+	@Override
+	public void unregisterOrmConfigGroup(IOrmConfigGroup ormConfigGroup) {
+		ormConfigGroups.unregister(ormConfigGroup);
+	}
 }

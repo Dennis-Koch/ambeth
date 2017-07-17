@@ -34,7 +34,8 @@ public class IndependentEntityMetaDataReader extends AbstractEntityMetaDataReade
 	@LogInstance
 	private ILogger log;
 
-	protected String fileName = null;
+	@Property(name = ServiceConfigurationConstants.mappingFile, mandatory = false)
+	protected String fileName;
 
 	@Override
 	public void afterStarted() throws Throwable {
@@ -42,15 +43,5 @@ public class IndependentEntityMetaDataReader extends AbstractEntityMetaDataReade
 			IOrmConfigGroup ormConfigGroup = ormConfigGroupProvider.getOrmConfigGroup(fileName);
 			readConfig(ormConfigGroup);
 		}
-	}
-
-	@Property(name = ServiceConfigurationConstants.mappingFile, mandatory = false)
-	public void setFileName(String fileName) {
-		if (this.fileName != null) {
-			throw new IllegalArgumentException(IndependentEntityMetaDataReader.class.getSimpleName()
-					+ " already configured! Tried to set the config file '" + fileName
-					+ "'. File name is already set to '" + this.fileName + "'");
-		}
-		this.fileName = fileName;
 	}
 }
