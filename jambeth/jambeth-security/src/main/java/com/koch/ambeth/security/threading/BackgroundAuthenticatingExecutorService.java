@@ -110,6 +110,7 @@ public class BackgroundAuthenticatingExecutorService
 			return exchanger.exchange(null);
 		}
 		catch (InterruptedException e) {
+			Thread.interrupted(); // clear flag
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
