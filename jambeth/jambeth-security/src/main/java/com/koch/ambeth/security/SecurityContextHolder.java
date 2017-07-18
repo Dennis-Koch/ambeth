@@ -42,7 +42,7 @@ import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
 import com.koch.ambeth.util.threading.SensitiveThreadLocal;
 
 public class SecurityContextHolder implements IAuthorizationChangeListenerExtendable,
-		ISecurityContextHolder, IThreadLocalCleanupBean, ILightweightSecurityContext {
+		ISecurityContextHolder, IThreadLocalCleanupBean, ILightweightSecurityContext, ISecurityContextFactory {
 	public static class SecurityContextForkProcessor implements IForkProcessor {
 		@Override
 		public Object resolveOriginalValue(Object bean, String fieldName, ThreadLocal<?> fieldValueTL) {
@@ -130,11 +130,19 @@ public class SecurityContextHolder implements IAuthorizationChangeListenerExtend
 		return contextTL.get();
 	}
 
+	/* (non-Javadoc)
+	 * @see com.koch.ambeth.security.ISecurityContextFactory#createSecurityContext()
+	 */
+	@Override
+	public ISecurityContext createSecurityContext() {
+		return new SecurityContextImpl(this);
+	}
+
 	@Override
 	public ISecurityContext getCreateContext() {
 		ISecurityContext securityContext = getContext();
 		if (securityContext == null) {
-			securityContext = new SecurityContextImpl(this);
+			securityContext = createSecurityContext();
 			contextTL.set(securityContext);
 		}
 		return securityContext;

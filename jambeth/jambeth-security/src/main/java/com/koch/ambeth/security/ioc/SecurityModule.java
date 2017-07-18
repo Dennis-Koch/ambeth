@@ -28,6 +28,7 @@ import com.koch.ambeth.merge.security.ILightweightSecurityContext;
 import com.koch.ambeth.security.AuthenticatedUserHolder;
 import com.koch.ambeth.security.IAuthenticatedUserHolder;
 import com.koch.ambeth.security.IAuthorizationChangeListenerExtendable;
+import com.koch.ambeth.security.ISecurityContextFactory;
 import com.koch.ambeth.security.ISecurityContextHolder;
 import com.koch.ambeth.security.SecurityContextHolder;
 import com.koch.ambeth.security.config.SecurityConfigurationConstants;
@@ -50,7 +51,7 @@ public class SecurityModule implements IInitializingModule {
 
 		beanContextFactory.registerBean(SecurityContextHolder.class).autowireable(
 				ISecurityContextHolder.class, IAuthorizationChangeListenerExtendable.class,
-				ILightweightSecurityContext.class);
+				ILightweightSecurityContext.class, ISecurityContextFactory.class);
 
 		if (isNetworkClientMode && isSecurityBeanActive) {
 			beanContextFactory.registerBean("securityService.external", ClientServiceBean.class)
