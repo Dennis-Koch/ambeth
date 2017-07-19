@@ -32,7 +32,7 @@ public interface IAuditedEntityRef {
 
 	String getEntityId();
 
-	Class<?> getEntityType();
+	String getEntityType();
 
 	String getEntityVersion();
 }

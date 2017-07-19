@@ -176,7 +176,9 @@ public class AuditEntryWriterV1 implements IAuditEntryWriter {
 		DigestOutputStream digestOS = new DigestOutputStream(NullOutputStream.INSTANCE, md);
 		DataOutputStream dos = new DataOutputStream(digestOS);
 
-		writeAuditEntryIntern((IEntityMetaDataHolder) auditEntry, dos);
+		if (!writeAuditEntryIntern((IEntityMetaDataHolder) auditEntry, dos)) {
+			return null;
+		}
 		return md.digest();
 	}
 
@@ -187,12 +189,14 @@ public class AuditEntryWriterV1 implements IAuditEntryWriter {
 		DigestOutputStream digestOS = new DigestOutputStream(NullOutputStream.INSTANCE, md);
 		DataOutputStream dos = new DataOutputStream(digestOS);
 
-		writeAuditedEntityIntern((IEntityMetaDataHolder) auditedEntity, dos);
+		if (!writeAuditedEntityIntern((IEntityMetaDataHolder) auditedEntity, dos)) {
+			return null;
+		}
 		return md.digest();
 	}
 
 	@Override
-	public void writeAuditEntry(CreateOrUpdateContainerBuild auditEntry, String hashAlgorithm,
+	public byte[] writeAuditEntry(CreateOrUpdateContainerBuild auditEntry, String hashAlgorithm,
 			Signature signature) throws Exception {
 		MessageDigest md = MessageDigest.getInstance(hashAlgorithm);
 		DigestOutputStream digestOS = new DigestOutputStream(NullOutputStream.INSTANCE, md);
@@ -203,23 +207,26 @@ public class AuditEntryWriterV1 implements IAuditEntryWriter {
 			for (IObjRef addedORI : rui.getAddedORIs()) {
 				CreateOrUpdateContainerBuild auditedEntity = (CreateOrUpdateContainerBuild) ((IDirectObjRef) addedORI)
 						.getDirect();
-				writeAuditedEntityIntern(auditedEntity, dos);
-				signature.update(md.digest());
+				if (!writeAuditedEntityIntern(auditedEntity, dos)) {
+					return null;
+				}
+				byte[] digest = md.digest();
+				signature.update(digest);
 				byte[] sign = signature.sign();
 				auditedEntity.ensurePrimitive(IAuditedEntity.Signature)
 						.setNewValue(Base64.encodeBytes(sign).toCharArray());
 			}
 		}
-		writeAuditEntryIntern(auditEntry, dos);
+		if (!writeAuditEntryIntern(auditEntry, dos)) {
+			return null;
+		}
 
-		signature.update(md.digest());
-		byte[] sign = signature.sign();
-
-		auditEntry.ensurePrimitive(IAuditEntry.Signature)
-				.setNewValue(Base64.encodeBytes(sign).toCharArray());
+		byte[] digest = md.digest();
+		signature.update(digest);
+		return signature.sign();
 	}
 
-	protected void writeAuditEntryIntern(IEntityMetaDataHolder auditEntry, DataOutputStream os)
+	protected boolean writeAuditEntryIntern(IEntityMetaDataHolder auditEntry, DataOutputStream os)
 			throws Exception {
 		writeProperties(getAuditedPropertiesOfEntry(), auditEntry, os);
 		for (IEntityMetaDataHolder auditedService : sortOrderedMember(IAuditEntry.Services,
@@ -228,8 +235,12 @@ public class AuditEntryWriterV1 implements IAuditEntryWriter {
 		}
 		List<? extends IEntityMetaDataHolder> auditedEntities = sortOrderedMember(IAuditEntry.Entities,
 				IAuditedEntity.Order, auditEntry);
+		if (auditedEntities == null) {
+			return false;
+		}
 		os.writeInt(auditedEntities.size());
-		for (IEntityMetaDataHolder auditedEntity : auditedEntities) {
+		for (int a = 0, size = auditedEntities.size(); a < size; a++) {
+			IEntityMetaDataHolder auditedEntity = auditedEntities.get(a);
 			char[] signatureOfAuditedEntity = (char[]) getPrimitiveValue(IAuditedEntity.Signature,
 					auditedEntity);
 			if (signatureOfAuditedEntity == null) {
@@ -240,31 +251,49 @@ public class AuditEntryWriterV1 implements IAuditEntryWriter {
 				os.writeChar(item);
 			}
 		}
+		return true;
 	}
 
-	protected void writeAuditedEntityIntern(IEntityMetaDataHolder auditedEntity,
+	protected boolean writeAuditedEntityIntern(IEntityMetaDataHolder auditedEntity,
 			DataOutputStream os) {
 		IEntityMetaDataHolder ref = getRelationValue(IAuditedEntity.Ref, auditedEntity);
 		writeProperties(getAuditedPropertiesOfRef(), ref, os);
 		writeProperties(getAuditedPropertiesOfEntity(), auditedEntity, os);
-
-		for (IEntityMetaDataHolder property : sortOrderedMember(IAuditedEntity.Primitives,
-				IAuditedEntityPrimitiveProperty.Order, auditedEntity)) {
-			writeProperties(getAuditedPropertiesOfPrimitive(), property, os);
+		{
+			List<? extends IEntityMetaDataHolder> primitives = sortOrderedMember(
+					IAuditedEntity.Primitives, IAuditedEntityPrimitiveProperty.Order, auditedEntity);
+			if (primitives == null) {
+				return false;
+			}
+			for (int a = 0, size = primitives.size(); a < size; a++) {
+				IEntityMetaDataHolder property = primitives.get(a);
+				writeProperties(getAuditedPropertiesOfPrimitive(), property, os);
+			}
 		}
-		for (IEntityMetaDataHolder property : sortOrderedMember(IAuditedEntity.Relations,
-				IAuditedEntityRelationProperty.Order, auditedEntity)) {
+		List<? extends IEntityMetaDataHolder> relations = sortOrderedMember(IAuditedEntity.Relations,
+				IAuditedEntityRelationProperty.Order, auditedEntity);
+		if (relations == null) {
+			return false;
+		}
+		for (int a = 0, size = relations.size(); a < size; a++) {
+			IEntityMetaDataHolder property = relations.get(a);
 			writeProperties(getAuditedPropertiesOfRelation(), property, os);
 
-			for (IEntityMetaDataHolder item : sortOrderedMember(IAuditedEntityRelationProperty.Items,
-					IAuditedEntityRelationPropertyItem.Order, property)) {
+			List<? extends IEntityMetaDataHolder> items = sortOrderedMember(
+					IAuditedEntityRelationProperty.Items, IAuditedEntityRelationPropertyItem.Order, property);
+			if (items == null) {
+				return false;
+			}
+			for (int b = 0, sizeB = items.size(); b < sizeB; b++) {
+				IEntityMetaDataHolder item = items.get(b);
 				IEntityMetaDataHolder itemRef = getRelationValue(IAuditedEntityRelationPropertyItem.Ref,
-						auditedEntity);
+						item);
 
 				writeProperties(getAuditedPropertiesOfRef(), itemRef, os);
 				writeProperties(getAuditedPropertiesOfRelationItem(), item, os);
 			}
 		}
+		return true;
 	}
 
 	protected void writeProperty(String name, String value, DataOutputStream os) {
@@ -294,15 +323,27 @@ public class AuditEntryWriterV1 implements IAuditEntryWriter {
 		Member member = metaData.getMemberByName(memberName);
 
 		if (obj instanceof IDataObject) {
-			Collection<? extends IEntityMetaDataHolder> coll = (Collection<? extends IEntityMetaDataHolder>) member
-					.getValue(obj);
-			if (coll.isEmpty()) {
+			Object value = member.getValue(obj);
+			ArrayList<IEntityMetaDataHolder> items;
+			if (value instanceof Collection) {
+				Collection<? extends IEntityMetaDataHolder> coll = (Collection<? extends IEntityMetaDataHolder>) member
+						.getValue(obj);
+				if (coll.isEmpty()) {
+					return EmptyList.<IEntityMetaDataHolder>getInstance();
+				}
+				items = new ArrayList<>(coll);
+			}
+			else if (value != null) {
+				items = new ArrayList<>(new IEntityMetaDataHolder[] { (IEntityMetaDataHolder) value });
+			}
+			else {
 				return EmptyList.<IEntityMetaDataHolder>getInstance();
+			}
+			if (orderName == null) {
+				return items;
 			}
 			IEntityMetaData itemMetaData = entityMetaDataProvider.getMetaData(member.getElementType());
 			final Member orderMember = itemMetaData.getMemberByName(orderName);
-
-			ArrayList<IEntityMetaDataHolder> items = new ArrayList<>(coll);
 
 			Collections.sort(items, new Comparator<IEntityMetaDataHolder>() {
 				@Override
@@ -315,6 +356,13 @@ public class AuditEntryWriterV1 implements IAuditEntryWriter {
 					return order1 < order2 ? -1 : 1;
 				}
 			});
+			for (int a = items.size(); a-- > 0;) {
+				IEntityMetaDataHolder item = items.get(a);
+				int order = orderMember.getIntValue(item);
+				if (order != a + 1) {
+					return null;
+				}
+			}
 			return items;
 		}
 		IRelationUpdateItem rui = ((CreateOrUpdateContainerBuild) obj).findRelation(memberName);
@@ -325,6 +373,9 @@ public class AuditEntryWriterV1 implements IAuditEntryWriter {
 		ArrayList<CreateOrUpdateContainerBuild> items = new ArrayList<>(addedORIs.length);
 		for (IObjRef addedORI : addedORIs) {
 			items.add((CreateOrUpdateContainerBuild) ((IDirectObjRef) addedORI).getDirect());
+		}
+		if (orderName == null) {
+			return items;
 		}
 		IEntityMetaData itemMetaData = entityMetaDataProvider.getMetaData(member.getElementType());
 		final int orderIndex = itemMetaData.getIndexByPrimitiveName(orderName);
@@ -340,6 +391,13 @@ public class AuditEntryWriterV1 implements IAuditEntryWriter {
 				return order1 < order2 ? -1 : 1;
 			}
 		});
+		for (int a = items.size(); a-- > 0;) {
+			CreateOrUpdateContainerBuild item = items.get(a);
+			int order = ((Number) item.getFullPUIs()[orderIndex].getNewValue()).intValue();
+			if (order != a + 1) {
+				return null;
+			}
+		}
 		return items;
 	}
 }

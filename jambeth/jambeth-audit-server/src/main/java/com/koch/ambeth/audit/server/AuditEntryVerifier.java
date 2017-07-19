@@ -877,6 +877,28 @@ public class AuditEntryVerifier
 		if (auditEntries.isEmpty()) {
 			return EMPTY_VALIDATION_RESULT;
 		}
+		IStateRollback rollback = securityActivation.pushWithoutSecurity();
+		try {
+			auditEntries = getFromCache(auditEntries);
+			return verifyAuditEntriesIntern(auditEntries);
+		}
+		finally {
+			rollback.rollback();
+		}
+	}
+
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	private <V> List<? extends V> getFromCache(List<? extends V> auditEntries) {
+		IList<IObjRef> objRefs = objRefHelper.extractObjRefList(auditEntries, null);
+		IList<Object> objects = cache.getObjects(objRefs, CacheDirective.none());
+		if (objects.size() != auditEntries.size()) {
+			throw new IllegalStateException(
+					"At least one " + IAuditEntry.class.getSimpleName() + " could not be resolved");
+		}
+		return (List) objects;
+	}
+
+	private boolean[] verifyAuditEntriesIntern(List<? extends IAuditEntry> auditEntries) {
 		@SuppressWarnings("unused")
 		IPrefetchState prefetch2 = getPref_SignaturesOfUser().prefetch(auditEntries);
 
@@ -922,6 +944,17 @@ public class AuditEntryVerifier
 		if (auditedEntities.isEmpty()) {
 			return EMPTY_VALIDATION_RESULT;
 		}
+		IStateRollback rollback = securityActivation.pushWithoutSecurity();
+		try {
+			auditedEntities = getFromCache(auditedEntities);
+			return verifyAuditedEntitiesIntern(auditedEntities);
+		}
+		finally {
+			rollback.rollback();
+		}
+	}
+
+	private boolean[] verifyAuditedEntitiesIntern(List<? extends IAuditedEntity> auditedEntities) {
 		@SuppressWarnings("unused")
 		IPrefetchState prefetch2 = getPref_SignaturesOfUserFromAuditedEntity()
 				.prefetch(auditedEntities);

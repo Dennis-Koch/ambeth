@@ -29,6 +29,6 @@ public interface IAuditEntryWriter {
 
 	byte[] writeAuditedEntity(IAuditedEntity auditedEntity, String hashAlgorithm) throws Exception;
 
-	void writeAuditEntry(CreateOrUpdateContainerBuild auditEntry, String hashAlgorithm,
+	byte[] writeAuditEntry(CreateOrUpdateContainerBuild auditEntry, String hashAlgorithm,
 			java.security.Signature signature) throws Exception;
 }

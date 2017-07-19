@@ -80,7 +80,14 @@ public class AuditEntryToSignature implements IAuditEntryToSignature, IAuditEntr
 						"No instance of " + IAuditEntryWriter.class.getSimpleName() + " found for protocol '"
 								+ protocol + "' of " + auditEntry);
 			}
-			auditEntryWriter.writeAuditEntry(auditEntry, hashAlgorithm, signatureHandle);
+			byte[] sign = auditEntryWriter.writeAuditEntry(auditEntry, hashAlgorithm, signatureHandle);
+			if (sign == null) {
+				auditEntry.ensurePrimitive(IAuditEntry.Signature).setNewValue(null);
+				throw new IllegalStateException(
+						"Could not sign due to an inconsistent model: " + auditEntry);
+			}
+			auditEntry.ensurePrimitive(IAuditEntry.Signature)
+					.setNewValue(Base64.encodeBytes(sign).toCharArray());
 		}
 		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
@@ -104,6 +111,9 @@ public class AuditEntryToSignature implements IAuditEntryToSignature, IAuditEntr
 			for (IAuditedEntity auditedEntity : auditEntry.getEntities()) {
 				byte[] auditedEntityDigest = auditEntryWriter.writeAuditedEntity(auditedEntity,
 						hashAlgorithm);
+				if (auditedEntityDigest == null) {
+					return null;
+				}
 				signature.update(auditedEntityDigest);
 				if (!signature.verify(Base64.decode(auditedEntity.getSignature()))) {
 					return null;
