@@ -24,16 +24,15 @@ import java.util.List;
 
 import com.koch.ambeth.audit.model.IAuditEntry;
 import com.koch.ambeth.audit.model.IAuditedEntity;
-import com.koch.ambeth.service.merge.model.IObjRef;
 
 public interface IAuditEntryVerifier {
 	/**
 	 * Cryptographically verifies all <code>IAuditEntry</code> instances related to a given set of
-	 * <code>IObjRef</code> instances. The verification fails if the <code>Signature</code> property
-	 * does not correlate with the user <code>ISignature</code> handle associated with any
-	 * <code>IAuditEntry</code>. Essentially the complete history of each entity is verified starting
-	 * with its first creation. If this verification fails an entry has been tampered either
-	 * accidentally or intentionally after its creation.<br>
+	 * entities. The verification fails if the <code>Signature</code> property does not correlate with
+	 * the user <code>ISignature</code> handle associated with any <code>IAuditEntry</code>.
+	 * Essentially the complete history of each entity is verified starting with its first creation.
+	 * If this verification fails an entry has been tampered either accidentally or intentionally
+	 * after its creation.<br>
 	 * <br>
 	 *
 	 * - The signature of the entry may have been changed after the initial creation<br>
@@ -48,7 +47,7 @@ public interface IAuditEntryVerifier {
 	 * @return Result of the verification. FALSE if at least one verification failure occurred on any
 	 *         resolved <code>IAuditEntry</code>.
 	 */
-	boolean verifyEntities(List<? extends IObjRef> objRefs);
+	boolean verifyEntities(List<?> entities);
 
 	/**
 	 * Cryptographically verifies a given set of <code>IAuditEntry</code> instances. The verification

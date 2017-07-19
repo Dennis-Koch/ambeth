@@ -72,6 +72,7 @@
 				<artifactId>kar2tycho-maven-plugin</artifactId>
 				<configuration>
 					<sources>
+						<source>com.koch.ambeth:jambeth-audit:jar:${project.version}</source>
 						<source>com.koch.ambeth:jambeth-bytecode:jar:${project.version}</source>
 						<source>com.koch.ambeth:jambeth-cache:jar:${project.version}</source>
 						<source>com.koch.ambeth:jambeth-cache-bytecode:jar:${project.version}</source>

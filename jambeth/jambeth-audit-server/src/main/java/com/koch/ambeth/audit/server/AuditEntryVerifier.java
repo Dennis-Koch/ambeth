@@ -712,26 +712,26 @@ public class AuditEntryVerifier
 	}
 
 	@Override
-	public boolean verifyEntities(List<? extends IObjRef> objRefs) {
+	public boolean verifyEntities(List<?> entities) {
 		Boolean verifyOnStack = verifyOnStackTL.get();
 		if (verifyOnStack != null) {
-			return verifyEntitiesIntern(objRefs);
+			return verifyEntitiesIntern(entities);
 		}
 		verifyOnStackTL.set(Boolean.TRUE);
 		try {
-			return verifyEntitiesIntern(objRefs);
+			return verifyEntitiesIntern(entities);
 		}
 		finally {
 			verifyOnStackTL.set(null);
 		}
 	}
 
-	protected boolean verifyEntitiesIntern(List<? extends IObjRef> objRefs) {
+	protected boolean verifyEntitiesIntern(List<?> entities) {
 		long start = System.currentTimeMillis();
-		if (objRefs.isEmpty()) {
+		if (entities.isEmpty()) {
 			return true;
 		}
-		ILinkedMap<IEntityMetaData, IList<IObjRef>> bucketSortObjRefs = bucketSortObjRefs(objRefs,
+		ILinkedMap<IEntityMetaData, IList<IObjRef>> bucketSortObjRefs = bucketSortObjRefs(entities,
 				true);
 		if (bucketSortObjRefs.isEmpty()) {
 			return true;
@@ -1042,13 +1042,22 @@ public class AuditEntryVerifier
 		entriesToVerify.add(value);
 	}
 
-	protected ILinkedMap<IEntityMetaData, IList<IObjRef>> bucketSortObjRefs(
-			List<? extends IObjRef> orisToLoad, boolean checkConfiguration) {
+	protected ILinkedMap<IEntityMetaData, IList<IObjRef>> bucketSortObjRefs(List<?> entities,
+			boolean checkConfiguration) {
 		IdentityLinkedMap<IEntityMetaData, IList<IObjRef>> serviceToAssignedObjRefsDict = new IdentityLinkedMap<>();
 
-		for (int i = orisToLoad.size(); i-- > 0;) {
-			IObjRef objRef = orisToLoad.get(i);
-			IEntityMetaData metaData = entityMetaDataProvider.getMetaData(objRef.getRealType());
+		for (int i = entities.size(); i-- > 0;) {
+			Object entity = entities.get(i);
+			IObjRef objRef;
+			IEntityMetaData metaData;
+			if (entity instanceof IObjRef) {
+				objRef = (IObjRef) entity;
+				metaData = entityMetaDataProvider.getMetaData(objRef.getRealType());
+			}
+			else {
+				objRef = objRefHelper.entityToObjRef(entity);
+				metaData = ((IEntityMetaDataHolder) entity).get__EntityMetaData();
+			}
 
 			if (checkConfiguration) {
 				IAuditConfiguration auditConfiguration = auditConfigurationProvider

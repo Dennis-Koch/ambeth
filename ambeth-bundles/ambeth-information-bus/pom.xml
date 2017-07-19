@@ -18,6 +18,10 @@
 	<dependencies>
 		<dependency>
 			<groupId>com.koch.ambeth</groupId>
+			<artifactId>jambeth-audit</artifactId>
+		</dependency>		
+		<dependency>
+			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-core</artifactId>
 		</dependency>		
 		<dependency>
