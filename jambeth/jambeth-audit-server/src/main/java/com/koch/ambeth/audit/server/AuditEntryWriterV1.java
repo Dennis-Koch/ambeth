@@ -70,7 +70,8 @@ public class AuditEntryWriterV1 implements IAuditEntryWriter {
 			IAuditedService.Arguments };
 
 	private static final String[] auditedPropertiesOfEntity = { IAuditedEntity.Order, //
-			IAuditedEntity.ChangeType };
+			IAuditedEntity.ChangeType, //
+			IAuditedEntity.RefPreviousVersion };
 
 	private static final String[] auditedPropertiesOfRef = { IAuditedEntityRef.EntityType, //
 			IAuditedEntityRef.EntityId, //

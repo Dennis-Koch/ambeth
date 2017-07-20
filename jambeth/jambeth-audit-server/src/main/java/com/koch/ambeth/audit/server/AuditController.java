@@ -82,6 +82,7 @@ import com.koch.ambeth.security.server.config.SecurityServerConfigurationConstan
 import com.koch.ambeth.service.merge.IEntityMetaDataProvider;
 import com.koch.ambeth.service.merge.model.IEntityMetaData;
 import com.koch.ambeth.service.merge.model.IObjRef;
+import com.koch.ambeth.service.metadata.PrimitiveMember;
 import com.koch.ambeth.stream.IInputSource;
 import com.koch.ambeth.stream.binary.IBinaryInputSource;
 import com.koch.ambeth.stream.binary.IBinaryInputStream;
@@ -98,7 +99,6 @@ import com.koch.ambeth.util.objectcollector.IThreadLocalObjectCollector;
 import com.koch.ambeth.util.state.AbstractStateRollback;
 import com.koch.ambeth.util.state.IStateRollback;
 import com.koch.ambeth.util.state.NoOpStateRollback;
-import com.koch.ambeth.util.threading.IBackgroundWorkerDelegate;
 
 public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogger, IMergeListener,
 		ITransactionListener, IAuditInfoController {
@@ -278,8 +278,7 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 
 		// test if audit reason is required and throw exception if its not set
 		if (auditConfiguration.isReasonRequired() && peekAuditReason() == null) {
-			throw new AuditReasonMissingException(
-					"Audit reason is missing for " + originalRef.getClass() + "!");
+			throw new AuditReasonMissingException("Audit reason is missing for " + originalRef + "!");
 		}
 		CreateOrUpdateContainerBuild auditedEntity = auditControllerState
 				.createEntity(IAuditedEntity.class);
@@ -289,7 +288,11 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 
 		auditedEntity.ensureRelation(IAuditedEntity.Entry).addObjRef(auditEntry.getReference());
 		auditedEntity.ensurePrimitive(IAuditedEntity.Order).setNewValue(entities.getAddedCount());
-
+		PrimitiveMember versionMember = metaData.getVersionMember();
+		if (versionMember != null) {
+			auditedEntity.ensurePrimitive(IAuditedEntity.RefPreviousVersion)
+					.setNewValue(versionMember.getValue(originalRef, false));
+		}
 		if (changeContainer instanceof CreateContainer) {
 			auditedEntity.ensurePrimitive(IAuditedEntity.ChangeType)
 					.setNewValue(AuditedEntityChangeType.INSERT);
@@ -523,47 +526,45 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 		AdditionalAuditInfo additionalAuditInfo = getAdditionalAuditInfo();
 		additionalAuditInfo.ownAuditMergeActive = Boolean.TRUE;
 		try {
-			securityActivation.executeWithoutSecurity(new IBackgroundWorkerDelegate() {
-				@Override
-				public void invoke() throws Exception {
-					ArrayList<CreateOrUpdateContainerBuild> auditedChanges = auditEntryState.auditedChanges;
-					CreateOrUpdateContainerBuild auditEntry = auditedChanges.get(0);
+			IStateRollback rollback = securityActivation.pushWithoutSecurity();
+			try {
+				ArrayList<CreateOrUpdateContainerBuild> auditedChanges = auditEntryState.auditedChanges;
+				CreateOrUpdateContainerBuild auditEntry = auditedChanges.get(0);
 
-					RelationUpdateItemBuild entities = auditEntry.findRelation(IAuditEntry.Entities);
-					RelationUpdateItemBuild services = auditEntry.findRelation(IAuditEntry.Services);
-					if ((entities == null || entities.getAddedCount() == 0)
-							&& (services == null || services.getAddedCount() == 0)) {
-						// No entity changed, no service called
-						return;
-					}
-
-					auditEntry.ensurePrimitive(IAuditEntry.Context).setNewValue(peekAuditContext());
-					auditEntry.ensurePrimitive(IAuditEntry.Reason).setNewValue(peekAuditReason());
-					AdditionalAuditInfo additionalAuditInfo = additionalAuditInfoTL.get();
-					IUser authorizedUser = getAuthorizedUser(additionalAuditInfo);
-					ISignature signatureOfUser = null;
-					if (authorizedUser != null) {
-						auditEntry.ensureRelation(IAuditEntry.User)
-								.addObjRef(objRefHelper.entityToObjRef(authorizedUser));
-						auditEntry.ensurePrimitive(IAuditEntry.UserIdentifier)
-								.setNewValue(userIdentifierProvider.getSID(authorizedUser));
-						signatureOfUser = authorizedUser.getSignature();
-					}
-					signAuditEntry(auditEntry, additionalAuditInfo, signatureOfUser);
-					ICUDResult auditMerge = buildAuditCUDResult(auditedChanges);
-
-					Boolean oldAddNewlyPersistedEntities = MergeProcess.getAddNewlyPersistedEntities();
-					MergeProcess.setAddNewlyPersistedEntities(Boolean.FALSE);
-					try {
-						mergeService.merge(auditMerge, null);
-					}
-					finally {
-						MergeProcess.setAddNewlyPersistedEntities(oldAddNewlyPersistedEntities);
-					}
-
+				RelationUpdateItemBuild entities = auditEntry.findRelation(IAuditEntry.Entities);
+				RelationUpdateItemBuild services = auditEntry.findRelation(IAuditEntry.Services);
+				if ((entities == null || entities.getAddedCount() == 0)
+						&& (services == null || services.getAddedCount() == 0)) {
+					// No entity changed, no service called
 					return;
 				}
-			});
+
+				auditEntry.ensurePrimitive(IAuditEntry.Context).setNewValue(peekAuditContext());
+				auditEntry.ensurePrimitive(IAuditEntry.Reason).setNewValue(peekAuditReason());
+				IUser authorizedUser = getAuthorizedUser(additionalAuditInfo);
+				ISignature signatureOfUser = null;
+				if (authorizedUser != null) {
+					auditEntry.ensureRelation(IAuditEntry.User)
+							.addObjRef(objRefHelper.entityToObjRef(authorizedUser));
+					auditEntry.ensurePrimitive(IAuditEntry.UserIdentifier)
+							.setNewValue(userIdentifierProvider.getSID(authorizedUser));
+					signatureOfUser = authorizedUser.getSignature();
+				}
+				signAuditEntry(auditEntry, additionalAuditInfo, signatureOfUser);
+				ICUDResult auditMerge = buildAuditCUDResult(auditedChanges);
+
+				Boolean oldAddNewlyPersistedEntities = MergeProcess.getAddNewlyPersistedEntities();
+				MergeProcess.setAddNewlyPersistedEntities(Boolean.FALSE);
+				try {
+					mergeService.merge(auditMerge, null);
+				}
+				finally {
+					MergeProcess.setAddNewlyPersistedEntities(oldAddNewlyPersistedEntities);
+				}
+			}
+			finally {
+				rollback.rollback();
+			}
 		}
 		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);

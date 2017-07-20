@@ -25,6 +25,7 @@ import java.util.List;
 import com.koch.ambeth.security.audit.model.Audited;
 import com.koch.ambeth.security.model.ISignature;
 import com.koch.ambeth.security.model.IUser;
+import com.koch.ambeth.util.annotation.Interning;
 
 @Audited(false)
 public interface IAuditEntry {
@@ -56,6 +57,7 @@ public interface IAuditEntry {
 
 	IUser getUser();
 
+	@Interning
 	String getUserIdentifier();
 
 	String getReason();

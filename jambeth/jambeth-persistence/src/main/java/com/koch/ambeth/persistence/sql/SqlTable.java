@@ -248,6 +248,7 @@ public class SqlTable extends Table {
 			IFieldMetaData idField = metaData.getIdField();
 			String primaryIdFieldName = idField.getName();
 			String idFieldName = null;
+			Class<?> idFieldType = null;
 
 			sqlBuilder.appendName(primaryIdFieldName, selectSB);
 
@@ -267,12 +268,14 @@ public class SqlTable extends Table {
 				}
 				if (member.getName().equals(alternateIdMemberName)) {
 					idFieldName = field.getName();
+					idFieldType = field.getFieldType();
 				}
 				selectSB.append(',');
 				sqlBuilder.appendName(field.getName(), selectSB);
 			}
 			if (idFieldName == null && idField.getMember().getName().equals(alternateIdMemberName)) {
 				idFieldName = idField.getName();
+				idFieldType = idField.getFieldType();
 			}
 			if (idFieldName == null) {
 				throw new IllegalArgumentException("No alternate id field mapped to member "
@@ -282,7 +285,7 @@ public class SqlTable extends Table {
 			versionCursor.setContainsVersion(versionField != null);
 			versionCursor
 					.setResultSet(sqlConnection.createResultSet(getMetaData().getFullqualifiedEscapedName(),
-							idFieldName, idField.getFieldType(), selectSB.toString(), null, alternateIds));
+							idFieldName, idFieldType, selectSB.toString(), null, alternateIds));
 			versionCursor.afterPropertiesSet();
 			return versionCursor;
 		}

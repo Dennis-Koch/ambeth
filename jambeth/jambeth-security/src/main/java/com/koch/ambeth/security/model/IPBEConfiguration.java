@@ -1,5 +1,7 @@
 package com.koch.ambeth.security.model;
 
+import com.koch.ambeth.util.annotation.Interning;
+
 /*-
  * #%L
  * jambeth-security
@@ -21,10 +23,12 @@ limitations under the License.
  */
 
 public interface IPBEConfiguration {
+	@Interning
 	String getEncryptionAlgorithm();
 
 	void setEncryptionAlgorithm(String encryptionAlgorithm);
 
+	@Interning
 	String getEncryptionKeySpec();
 
 	void setEncryptionKeySpec(String encryptionKeySpec);
@@ -33,6 +37,7 @@ public interface IPBEConfiguration {
 
 	void setEncryptionKeyIV(char[] encryptionKeyIV);
 
+	@Interning
 	String getPaddedKeyAlgorithm();
 
 	void setPaddedKeyAlgorithm(String paddedKeyAlgorithm);

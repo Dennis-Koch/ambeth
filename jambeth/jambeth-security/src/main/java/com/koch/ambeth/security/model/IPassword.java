@@ -22,6 +22,8 @@ limitations under the License.
 
 import java.util.Calendar;
 
+import com.koch.ambeth.util.annotation.Interning;
+
 public interface IPassword {
 	public static final String Algorithm = "Algorithm";
 
@@ -51,6 +53,7 @@ public interface IPassword {
 
 	void setChangeAfter(Calendar changeAfter);
 
+	@Interning
 	String getAlgorithm();
 
 	void setAlgorithm(String algorithm);

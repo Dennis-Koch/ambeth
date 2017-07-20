@@ -30,6 +30,7 @@ import com.koch.ambeth.ioc.config.Property;
 import com.koch.ambeth.persistence.api.sql.ISqlBuilder;
 import com.koch.ambeth.persistence.config.PersistenceConfigurationConstants;
 import com.koch.ambeth.persistence.sql.ParamsUtil;
+import com.koch.ambeth.service.merge.model.IObjRef;
 import com.koch.ambeth.util.appendable.AppendableStringBuilder;
 import com.koch.ambeth.util.appendable.IAppendable;
 import com.koch.ambeth.util.collections.ArrayList;
@@ -76,6 +77,9 @@ public class PersistenceHelper implements IPersistenceHelper, IInitializingBean 
 		IList<Object> splitList = null;
 
 		for (Object value : ids) {
+			if (value instanceof IObjRef) {
+				value = ((IObjRef) value).getId();
+			}
 			if (splitList == null || currentBatchSize >= batchSize) {
 				splitList = new ArrayList<>(batchSize);
 				splittedLists.add(splitList);
@@ -94,8 +98,7 @@ public class PersistenceHelper implements IPersistenceHelper, IInitializingBean 
 
 	@Override
 	public IList<IList<Object>> splitValues(List<?> values, int batchSize) {
-		IList<IList<Object>> splittedLists =
-				new ArrayList<>(values.size() / batchSize + 1);
+		IList<IList<Object>> splittedLists = new ArrayList<>(values.size() / batchSize + 1);
 
 		int currentBatchSize = 0;
 
@@ -103,6 +106,9 @@ public class PersistenceHelper implements IPersistenceHelper, IInitializingBean 
 
 		for (int a = 0, size = values.size(); a < size; a++) {
 			Object value = values.get(a);
+			if (value instanceof IObjRef) {
+				value = ((IObjRef) value).getId();
+			}
 			if (splitList == null || currentBatchSize >= batchSize) {
 				splitList = new ArrayList<>(Math.min(size - a, batchSize));
 				splittedLists.add(splitList);
@@ -127,6 +133,9 @@ public class PersistenceHelper implements IPersistenceHelper, IInitializingBean 
 				iter = values.iterator();
 				while (iter.hasNext()) {
 					Object value = iter.next();
+					if (value instanceof IObjRef) {
+						value = ((IObjRef) value).getId();
+					}
 					if (!first) {
 						sb.append(',');
 					}

@@ -21,6 +21,7 @@ limitations under the License.
  */
 
 import com.koch.ambeth.security.audit.model.Audited;
+import com.koch.ambeth.util.annotation.Interning;
 
 @Audited(false)
 public interface IAuditedEntityPrimitiveProperty {
@@ -36,6 +37,7 @@ public interface IAuditedEntityPrimitiveProperty {
 
 	int getOrder();
 
+	@Interning
 	String getName();
 
 	String getNewValue();

@@ -15,6 +15,7 @@ import com.koch.ambeth.audit.AuditTamperTest.AuditTamperTestModule;
 import com.koch.ambeth.audit.model.AuditedEntityChangeType;
 import com.koch.ambeth.audit.model.AuditedEntityPropertyItemChangeType;
 import com.koch.ambeth.audit.model.IAuditEntry;
+import com.koch.ambeth.audit.model.IAuditedEntity;
 import com.koch.ambeth.audit.model.IAuditedEntityPrimitiveProperty;
 import com.koch.ambeth.audit.model.IAuditedEntityRef;
 import com.koch.ambeth.audit.model.IAuditedEntityRelationProperty;
@@ -37,6 +38,7 @@ import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.IMergeProcess;
 import com.koch.ambeth.merge.security.ISecurityScopeProvider;
+import com.koch.ambeth.merge.transfer.ObjRef;
 import com.koch.ambeth.merge.util.setup.AbstractDatasetBuilder;
 import com.koch.ambeth.merge.util.setup.IDataSetupWithAuthorization;
 import com.koch.ambeth.merge.util.setup.IDatasetBuilder;
@@ -67,6 +69,7 @@ import com.koch.ambeth.util.collections.LinkedHashSet;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.model.IDataObject;
 import com.koch.ambeth.util.state.IStateRollback;
+import com.koch.ambeth.util.threading.IBackgroundWorkerDelegate;
 import com.koch.ambeth.util.threading.IBackgroundWorkerParamDelegate;
 import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
 
@@ -78,7 +81,7 @@ import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
 		@TestProperties(name = SecurityServerConfigurationConstants.EncryptionPaddedKeyIterationCount, value = "1"),
 		@TestProperties(name = SecurityServerConfigurationConstants.LoginPasswordAlgorithmIterationCount, value = "1"),
 		@TestProperties(name = SecurityServerConfigurationConstants.SignaturePaddedKeyIterationCount, value = "1"),
-		/* @TestProperties(name = "ambeth.log.level.com.koch.ambeth.persistence", value = "DEBUG"), */
+		@TestProperties(name = "ambeth.log.level.com.koch.ambeth.persistence", value = "DEBUG"),
 		@TestProperties(name = SecurityServerConfigurationConstants.SignatureActive, value = "true") })
 @SQLStructureList({ @SQLStructure("security-structure.sql"), //
 		@SQLStructure("audit-structure.sql") })
@@ -241,10 +244,115 @@ public class AuditTamperTest extends AbstractInformationBusWithPersistenceTest {
 	}
 
 	@Test
-	public void tamperAuditEntry_Reason() throws Exception {
-		before();
-		simpleManipulation("AUDIT_ENTRY", "\"REASON\"='other-reason'", auditEntry);
-		verify(auditEntry, false);
+	public void tamperAuditEntryChain_deleteAuditEntry() throws Exception {
+		User otherUser = auditTamperDataBuilder.otherUser;
+		prepareAuditEntries(otherUser);
+		Assert.assertTrue(auditEntryVerifier.verifyEntities(Arrays.asList(otherUser)));
+		List<IAuditEntry> auditEntries = auditEntryReader.getAllAuditEntriesOfEntity(otherUser);
+		// 1 initial insert and 3 updates from 3 transactions above => 4 audit entries
+		Assert.assertEquals(4, auditEntries.size());
+		IAuditEntry secondAuditEntry = auditEntries.get(1);
+		markDelete(secondAuditEntry);
+		mergeProcess.process(secondAuditEntry);
+
+		// ensure that the verifier always reads data directly from the persistence again
+		eventDispatcher.dispatchEvent(ClearAllCachesEvent.getInstance());
+		Assert.assertFalse(auditEntryVerifier.verifyEntities(Arrays.asList(otherUser)));
+	}
+
+	@Test
+	public void tamperAuditEntryChain_deleteAuditedEntity0() throws Exception {
+		tamperAuditEntryChain_deleteAuditedEntity_intern(auditTamperDataBuilder.otherUser, 0);
+	}
+
+	@Test
+	public void tamperAuditEntryChain_deleteAuditedEntity1() throws Exception {
+		tamperAuditEntryChain_deleteAuditedEntity_intern(auditTamperDataBuilder.otherUser, 1);
+	}
+
+	@Test
+	public void tamperAuditEntryChain_deleteAuditedEntity2() throws Exception {
+		tamperAuditEntryChain_deleteAuditedEntity_intern(auditTamperDataBuilder.otherUser, 2);
+	}
+
+	@Test
+	public void tamperAuditEntryChain_deleteAuditedEntity3() throws Exception {
+		tamperAuditEntryChain_deleteAuditedEntity_intern(auditTamperDataBuilder.otherUser, 3);
+	}
+
+	@Test
+	public void tamperAuditEntryChain_deleteAuditedEntity4() throws Exception {
+		tamperAuditEntryChain_deleteAuditedEntity_intern(auditTamperDataBuilder.otherUser, 4);
+	}
+
+	protected void tamperAuditEntryChain_deleteAuditedEntity_intern(User otherUser, int indexToDrop)
+			throws Exception {
+		ObjRef sidObjRef = new ObjRef(User.class, (byte) 0, otherUser.getSID(), otherUser.getVersion());
+		prepareAuditEntries(otherUser);
+		Assert.assertTrue(auditEntryVerifier.verifyEntities(Arrays.asList(otherUser)));
+		Assert.assertTrue(auditEntryVerifier.verifyEntities(Arrays.asList(sidObjRef)));
+		List<IAuditedEntity> auditedEntities = auditEntryReader
+				.getAllAuditedEntitiesOfEntity(otherUser);
+		// 1 initial insert from the DATA SETUP and 4 updates from 3 transactions within
+		// prepareAuditEntries() called above => 5 audited entities
+		Assert.assertEquals(5, auditedEntities.size());
+		markDelete(auditedEntities.get(indexToDrop));
+		mergeProcess.process(auditedEntities);
+
+		// ensure that the verifier always reads data directly from the persistence again
+		eventDispatcher.dispatchEvent(ClearAllCachesEvent.getInstance());
+		Assert.assertFalse(auditEntryVerifier.verifyEntities(Arrays.asList(sidObjRef)));
+	}
+
+	private void prepareAuditEntries(final User userToModify) {
+		IStateRollback revert = auditController.pushAuthorizedUser(auditTamperDataBuilder.defaultUser,
+				AuditTamperDataBuilder.DEFAULT_PASSWORD.toCharArray(), true);
+		try {
+			auditController.pushAuditReason("modify user '" + userToModify.getSID() + "' first");
+			try {
+				transaction.runInTransaction(new IBackgroundWorkerDelegate() {
+					@Override
+					public void invoke() throws Exception {
+						userToModify.setActive(!userToModify.isActive());
+						mergeProcess.process(userToModify);
+						userToModify.setActive(!userToModify.isActive());
+						mergeProcess.process(userToModify);
+					}
+				});
+			}
+			finally {
+				auditController.popAuditReason();
+			}
+			auditController.pushAuditReason("modify user '" + userToModify.getSID() + "' second");
+			try {
+				transaction.runInTransaction(new IBackgroundWorkerDelegate() {
+					@Override
+					public void invoke() throws Exception {
+						userToModify.setActive(!userToModify.isActive());
+						mergeProcess.process(userToModify);
+					}
+				});
+			}
+			finally {
+				auditController.popAuditReason();
+			}
+			auditController.pushAuditReason("modify user '" + userToModify.getSID() + "' third");
+			try {
+				transaction.runInTransaction(new IBackgroundWorkerDelegate() {
+					@Override
+					public void invoke() throws Exception {
+						userToModify.setActive(!userToModify.isActive());
+						mergeProcess.process(userToModify);
+					}
+				});
+			}
+			finally {
+				auditController.popAuditReason();
+			}
+		}
+		finally {
+			revert.rollback();
+		}
 	}
 
 	@Test
@@ -259,6 +367,13 @@ public class AuditTamperTest extends AbstractInformationBusWithPersistenceTest {
 		before();
 		simpleManipulation("AUDIT_ENTRY",
 				"\"PROTOCOL\"=" + AuditTamperTestModule.TAMPERED_WRITER_VERSION, auditEntry);
+		verify(auditEntry, false);
+	}
+
+	@Test
+	public void tamperAuditEntry_Reason() throws Exception {
+		before();
+		simpleManipulation("AUDIT_ENTRY", "\"REASON\"='other-reason'", auditEntry);
 		verify(auditEntry, false);
 	}
 
@@ -447,6 +562,13 @@ public class AuditTamperTest extends AbstractInformationBusWithPersistenceTest {
 	}
 
 	@Test
+	public void tamperAuditedEntityPrimitive_Name() throws Exception {
+		before();
+		simpleManipulation("AE_PRIMITIVE", "\"NAME\"='abc'", auditedEntityPrimitive);
+		verify(auditEntry, false);
+	}
+
+	@Test
 	public void tamperAuditedEntityPrimitive_NewValue() throws Exception {
 		before();
 		simpleManipulation("AE_PRIMITIVE", "\"NEW_VALUE\"='abc'", auditedEntityPrimitive);
@@ -456,9 +578,6 @@ public class AuditTamperTest extends AbstractInformationBusWithPersistenceTest {
 	@Test
 	public void tamperAuditedEntityPrimitive_Order() throws Exception {
 		before();
-		// public static final String Primitives = "Primitives";
-		// public static final String Ref = "Ref";
-		// public static final String Relations = "Relations";
 		simpleManipulation("AE_PRIMITIVE", "\"ORDER\"=500", auditedEntityPrimitive);
 		verify(auditEntry, false);
 	}
@@ -499,7 +618,7 @@ public class AuditTamperTest extends AbstractInformationBusWithPersistenceTest {
 		};
 	}
 
-	protected void verify(AuditEntry auditEntry, boolean assertedValue) {
+	protected void verify(IAuditEntry auditEntry, boolean assertedValue) {
 		// ensure that the verifier always reads data directly from the persistence again
 		eventDispatcher.dispatchEvent(ClearAllCachesEvent.getInstance());
 
@@ -543,6 +662,29 @@ public class AuditTamperTest extends AbstractInformationBusWithPersistenceTest {
 		catch (Throwable e) {
 			database.release(true);
 			throw RuntimeExceptionUtil.mask(e);
+		}
+	}
+
+	protected void markDelete(IAuditEntry auditEntry) {
+		((IDataObject) auditEntry).setToBeDeleted(true);
+		for (IAuditedEntity auditedEntity : auditEntry.getEntities()) {
+			markDelete(auditedEntity);
+		}
+		for (IAuditedService auditedService : auditEntry.getServices()) {
+			((IDataObject) auditedService).setToBeDeleted(true);
+		}
+	}
+
+	protected void markDelete(IAuditedEntity auditedEntity) {
+		((IDataObject) auditedEntity).setToBeDeleted(true);
+		for (IAuditedEntityPrimitiveProperty primitive : auditedEntity.getPrimitives()) {
+			((IDataObject) primitive).setToBeDeleted(true);
+		}
+		for (IAuditedEntityRelationProperty relation : auditedEntity.getRelations()) {
+			((IDataObject) relation).setToBeDeleted(true);
+			for (IAuditedEntityRelationPropertyItem item : relation.getItems()) {
+				((IDataObject) item).setToBeDeleted(true);
+			}
 		}
 	}
 }

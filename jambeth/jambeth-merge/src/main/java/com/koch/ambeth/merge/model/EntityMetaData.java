@@ -35,6 +35,7 @@ import com.koch.ambeth.service.metadata.Member;
 import com.koch.ambeth.service.metadata.PrimitiveMember;
 import com.koch.ambeth.service.metadata.RelationMember;
 import com.koch.ambeth.util.ListUtil;
+import com.koch.ambeth.util.annotation.Interning;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.HashMap;
 import com.koch.ambeth.util.collections.HashSet;
@@ -62,8 +63,7 @@ public class EntityMetaData implements IEntityMetaData {
 
 	public static final RelationMember[] emptyRelationMembers = new RelationMember[0];
 
-	public static final IEntityLifecycleExtension[] emptyEntityLifecycleExtensions =
-			new IEntityLifecycleExtension[0];
+	public static final IEntityLifecycleExtension[] emptyEntityLifecycleExtensions = new IEntityLifecycleExtension[0];
 
 	protected Class<?> entityType;
 
@@ -121,11 +121,11 @@ public class EntityMetaData implements IEntityMetaData {
 
 	protected final HashMap<String, Integer> primMemberNameToIndexDict = new HashMap<>(0.5f);
 
-	protected final IdentityHashMap<RelationMember, Integer> relMemberToIndexDict =
-			new IdentityHashMap<>(0.5f);
+	protected final IdentityHashMap<RelationMember, Integer> relMemberToIndexDict = new IdentityHashMap<>(
+			0.5f);
 
-	protected final IdentityHashMap<Member, Integer> primMemberToIndexDict =
-			new IdentityHashMap<>(0.5f);
+	protected final IdentityHashMap<Member, Integer> primMemberToIndexDict = new IdentityHashMap<>(
+			0.5f);
 
 	protected ICacheModification cacheModification;
 
@@ -549,7 +549,7 @@ public class EntityMetaData implements IEntityMetaData {
 				memberItems = ((CompositeIdMember) alternateIdMember).getMembers();
 			}
 			else {
-				memberItems = new Member[] {alternateIdMember};
+				memberItems = new Member[] { alternateIdMember };
 			}
 			compositeIndex = new int[memberItems.length];
 
@@ -577,6 +577,13 @@ public class EntityMetaData implements IEntityMetaData {
 		}
 		if (getUpdatedByMember() != null) {
 			changeInterningBehavior(getUpdatedByMember(), true);
+		}
+		for (PrimitiveMember primitiveMember : getPrimitiveMembers()) {
+			Interning interning = primitiveMember.getAnnotation(Interning.class);
+			if (interning == null) {
+				continue;
+			}
+			changeInterningBehavior(primitiveMember, interning.value());
 		}
 		setTechnicalMember(getIdMember());
 		setTechnicalMember(getVersionMember());

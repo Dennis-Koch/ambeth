@@ -23,6 +23,7 @@ limitations under the License.
 import java.util.List;
 
 import com.koch.ambeth.security.audit.model.Audited;
+import com.koch.ambeth.util.annotation.Interning;
 
 @Audited(false)
 public interface IAuditedEntity {
@@ -35,6 +36,8 @@ public interface IAuditedEntity {
 	public static final String Primitives = "Primitives";
 
 	public static final String Ref = "Ref";
+
+	public static final String RefPreviousVersion = "RefPreviousVersion";
 
 	public static final String Relations = "Relations";
 
@@ -49,6 +52,9 @@ public interface IAuditedEntity {
 	List<? extends IAuditedEntityPrimitiveProperty> getPrimitives();
 
 	IAuditedEntityRef getRef();
+
+	@Interning
+	String getRefPreviousVersion();
 
 	List<? extends IAuditedEntityRelationProperty> getRelations();
 

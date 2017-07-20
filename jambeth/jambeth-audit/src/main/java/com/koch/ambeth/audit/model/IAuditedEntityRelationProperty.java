@@ -23,6 +23,7 @@ limitations under the License.
 import java.util.List;
 
 import com.koch.ambeth.security.audit.model.Audited;
+import com.koch.ambeth.util.annotation.Interning;
 
 @Audited(false)
 public interface IAuditedEntityRelationProperty {
@@ -38,6 +39,7 @@ public interface IAuditedEntityRelationProperty {
 
 	int getOrder();
 
+	@Interning
 	String getName();
 
 	List<? extends IAuditedEntityRelationPropertyItem> getItems();

@@ -43,8 +43,7 @@ public abstract class AbstractDatasetBuilder implements IDatasetBuilder {
 	@Autowired
 	protected IMergeProcess mergeProcess;
 
-	protected final ThreadLocal<Collection<Object>> initialTestDatasetTL =
-			new ThreadLocal<>();
+	protected final ThreadLocal<Collection<Object>> initialTestDatasetTL = new ThreadLocal<>();
 
 	@Override
 	public Collection<Object> buildDataset() {
@@ -71,7 +70,13 @@ public abstract class AbstractDatasetBuilder implements IDatasetBuilder {
 
 	protected <V> V createEntity(Class<V> entityType) {
 		V entity = entityFactory.createEntity(entityType);
-		initialTestDatasetTL.get().add(entity);
+		Collection<Object> initialTestDataset = initialTestDatasetTL.get();
+		// if the set is null it is not considered an error. it is assumed that someone called a
+		// convenience method from a concrete class to create an entity. this is e.g. the case in JUnit
+		// tests
+		if (initialTestDataset != null) {
+			initialTestDataset.add(entity);
+		}
 		return entity;
 	}
 }

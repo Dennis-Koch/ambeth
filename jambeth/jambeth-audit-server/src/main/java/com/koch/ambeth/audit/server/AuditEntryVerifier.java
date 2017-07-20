@@ -23,11 +23,13 @@ limitations under the License.
 import java.security.Signature;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.concurrent.locks.Lock;
 
 import com.koch.ambeth.audit.IAuditEntryVerifier;
+import com.koch.ambeth.audit.model.AuditedEntityChangeType;
 import com.koch.ambeth.audit.model.IAuditEntry;
 import com.koch.ambeth.audit.model.IAuditedEntity;
 import com.koch.ambeth.audit.model.IAuditedEntityPrimitiveProperty;
@@ -50,6 +52,7 @@ import com.koch.ambeth.merge.cache.ICache;
 import com.koch.ambeth.merge.cache.ICacheContext;
 import com.koch.ambeth.merge.cache.ICacheFactory;
 import com.koch.ambeth.merge.metadata.IObjRefFactory;
+import com.koch.ambeth.merge.metadata.IPreparedObjRefFactory;
 import com.koch.ambeth.merge.proxy.IEntityMetaDataHolder;
 import com.koch.ambeth.merge.proxy.IObjRefContainer;
 import com.koch.ambeth.merge.security.ISecurityActivation;
@@ -58,12 +61,16 @@ import com.koch.ambeth.merge.util.DirectValueHolderRef;
 import com.koch.ambeth.merge.util.IPrefetchHandle;
 import com.koch.ambeth.merge.util.IPrefetchHelper;
 import com.koch.ambeth.merge.util.IPrefetchState;
+import com.koch.ambeth.persistence.api.IDatabase;
+import com.koch.ambeth.persistence.api.ITable;
 import com.koch.ambeth.query.IOperand;
 import com.koch.ambeth.query.IOperator;
 import com.koch.ambeth.query.IQuery;
 import com.koch.ambeth.query.IQueryBuilder;
 import com.koch.ambeth.query.IQueryBuilderFactory;
 import com.koch.ambeth.query.OrderByType;
+import com.koch.ambeth.query.persistence.IVersionCursor;
+import com.koch.ambeth.query.persistence.IVersionItem;
 import com.koch.ambeth.security.model.ISignature;
 import com.koch.ambeth.security.server.ISignatureUtil;
 import com.koch.ambeth.security.server.config.SecurityServerConfigurationConstants;
@@ -93,7 +100,6 @@ import com.koch.ambeth.util.collections.IdentityLinkedMap;
 import com.koch.ambeth.util.collections.LinkedHashMap;
 import com.koch.ambeth.util.collections.SmartCopyMap;
 import com.koch.ambeth.util.collections.Tuple2KeyHashMap;
-import com.koch.ambeth.util.collections.Tuple3KeyHashMap;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.objectcollector.IThreadLocalObjectCollector;
 import com.koch.ambeth.util.state.IStateRollback;
@@ -159,6 +165,9 @@ public class AuditEntryVerifier
 
 	@Autowired
 	protected IConversionHelper conversionHelper;
+
+	@Autowired
+	protected IDatabase database;
 
 	@Autowired
 	protected IEntityMetaDataProvider entityMetaDataProvider;
@@ -354,8 +363,7 @@ public class AuditEntryVerifier
 
 	protected void filterAuditedEntities(IList<IAuditedEntity> auditedEntities,
 			IMap<IObjRef, ISet<String>> objRefToPrimitiveMap, IList<IObjRef> objRefs,
-			boolean[] entitiesDataInvalid, IMap<IObjRef, Integer> entitiesWhichNeedReverify,
-			ISet<IAuditedEntity> auditedEntitiesToVerify) {
+			boolean[] entitiesDataInvalid, ISet<IAuditedEntity> auditedEntitiesToVerify) {
 		if (!filterAuditedEntities || auditedEntities.isEmpty()) {
 			auditedEntitiesToVerify.addAll(auditedEntities);
 			return;
@@ -385,8 +393,8 @@ public class AuditEntryVerifier
 		}
 		prefetchHelper.prefetch(valueHoldersToPrefetch);
 
-		Tuple3KeyHashMap<Class<?>, Byte, String, IMap<String, Tuple3KeyHashMap<Class<?>, Byte, String, Boolean>>> objRefToRelationMap = Tuple3KeyHashMap
-				.<Class<?>, Byte, String, IMap<String, Tuple3KeyHashMap<Class<?>, Byte, String, Boolean>>>create(
+		Tuple2KeyHashMap<Class<?>, String, IMap<String, Tuple2KeyHashMap<Class<?>, String, Boolean>>> objRefToRelationMap = Tuple2KeyHashMap
+				.<Class<?>, String, IMap<String, Tuple2KeyHashMap<Class<?>, String, Boolean>>>create(
 						objRefs.size());
 
 		ObjRef tempObjRef = new ObjRef();
@@ -413,14 +421,12 @@ public class AuditEntryVerifier
 				RelationMember[] relationMembers = metaData.getRelationMembers();
 
 				if (relationMembers.length > 0) {
-					IMap<String, Tuple3KeyHashMap<Class<?>, Byte, String, Boolean>> relationsMap = objRefToRelationMap
-							.get(refEntityType, Byte.valueOf(ObjRef.PRIMARY_KEY_INDEX), ref.getEntityId());
+					IMap<String, Tuple2KeyHashMap<Class<?>, String, Boolean>> relationsMap = objRefToRelationMap
+							.get(refEntityType, ref.getEntityId());
 					if (relationsMap == null) {
-						relationsMap = HashMap
-								.<String, Tuple3KeyHashMap<Class<?>, Byte, String, Boolean>>create(
-										relationMembers.length);
-						objRefToRelationMap.put(refEntityType, Byte.valueOf(ObjRef.PRIMARY_KEY_INDEX),
-								ref.getEntityId(), relationsMap);
+						relationsMap = HashMap.<String, Tuple2KeyHashMap<Class<?>, String, Boolean>>create(
+								relationMembers.length);
+						objRefToRelationMap.put(refEntityType, ref.getEntityId(), relationsMap);
 					}
 					List<? extends IAuditedEntityRelationProperty> relations = auditedEntity.getRelations();
 					if (!relations.isEmpty()) {
@@ -428,11 +434,11 @@ public class AuditEntryVerifier
 								.getRelations();
 						for (int b = auditedEntityRelations.size(); b-- > 0;) {
 							IAuditedEntityRelationProperty relation = auditedEntityRelations.get(b);
-							Tuple3KeyHashMap<Class<?>, Byte, String, Boolean> relationMap = relationsMap
+							Tuple2KeyHashMap<Class<?>, String, Boolean> relationMap = relationsMap
 									.get(relation.getName());
 							if (relationMap == null) {
-								relationMap = Tuple3KeyHashMap
-										.<Class<?>, Byte, String, Boolean>create(relationMembers.length);
+								relationMap = Tuple2KeyHashMap
+										.<Class<?>, String, Boolean>create(relationMembers.length);
 								relationsMap.put(relation.getName(), relationMap);
 							}
 							List<? extends IAuditedEntityRelationPropertyItem> items = relation.getItems();
@@ -442,12 +448,10 @@ public class AuditEntryVerifier
 								Class<?> itemEntityType = classCache.loadClass(itemRef.getEntityType());
 								switch (item.getChangeType()) {
 									case ADD:
-										relationMap.putIfNotExists(itemEntityType, ObjRef.PRIMARY_KEY_INDEX,
-												itemRef.getEntityId(), Boolean.TRUE);
+										relationMap.putIfNotExists(itemEntityType, itemRef.getEntityId(), Boolean.TRUE);
 										break;
 									case REMOVE:
-										relationMap.removeIfValue(itemEntityType, ObjRef.PRIMARY_KEY_INDEX,
-												itemRef.getEntityId(), Boolean.TRUE);
+										relationMap.removeIfValue(itemEntityType, itemRef.getEntityId(), Boolean.TRUE);
 										break;
 									default:
 										throw RuntimeExceptionUtil
@@ -459,6 +463,8 @@ public class AuditEntryVerifier
 					}
 				}
 			}
+			Tuple2KeyHashMap<Class<?>, Object, IMap<String, IAuditedEntity>> objRefToPreviousRefVersionMap = Tuple2KeyHashMap
+					.create(objRefs.size());
 			Tuple2KeyHashMap<Class<?>, Object, Object> objRefToMaxVersionOfAuditTrailMap = new Tuple2KeyHashMap<>();
 
 			// audit entries are ordered by timestamp DESC. So the newest auditEntries are last
@@ -473,6 +479,33 @@ public class AuditEntryVerifier
 				tempObjRef.setRealType(metaData.getEntityType());
 				tempObjRef.setId(conversionHelper.convertValueToType(metaData.getIdMember().getRealType(),
 						ref.getEntityId()));
+
+				IMap<String, IAuditedEntity> previousRefVersionToEntityMap = objRefToPreviousRefVersionMap
+						.get(tempObjRef.getRealType(), tempObjRef.getId());
+				if (previousRefVersionToEntityMap == null) {
+					previousRefVersionToEntityMap = new HashMap<>();
+					objRefToPreviousRefVersionMap.put(tempObjRef.getRealType(), tempObjRef.getId(),
+							previousRefVersionToEntityMap);
+				}
+				String refPreviousVersion = auditedEntity.getRefPreviousVersion();
+				if (refPreviousVersion == null) {
+					if (auditedEntity.getChangeType() != AuditedEntityChangeType.INSERT) {
+						throw new IllegalStateException("Illegal null string for '"
+								+ IAuditedEntity.RefPreviousVersion + "' of a non-INSERT " + auditedEntity);
+					}
+					refPreviousVersion = "";
+				}
+				else if (refPreviousVersion.isEmpty()) {
+					throw new IllegalStateException("Illegal empty string for '"
+							+ IAuditedEntity.RefPreviousVersion + "' of " + auditedEntity);
+				}
+				else if (auditedEntity.getChangeType() == AuditedEntityChangeType.INSERT) {
+					throw new IllegalStateException("Illegal non-null string for '"
+							+ IAuditedEntity.RefPreviousVersion + "' of a INSERT " + auditedEntity);
+				}
+				if (!previousRefVersionToEntityMap.putIfNotExists(refPreviousVersion, auditedEntity)) {
+					throw new IllegalStateException("Must never happen");
+				}
 
 				// this method stores the "first hit" of an AuditedEntity for any given entity which
 				// corresponds to the max (newest) version of the entity
@@ -521,12 +554,15 @@ public class AuditEntryVerifier
 
 				IEntityMetaData metaData = entity.get__EntityMetaData();
 				if (isTrailedVersionTooOld(metaData, objRef, entity, objRefToMaxVersionOfAuditTrailMap)) {
-					entitiesWhichNeedReverify.put(objRef, Integer.valueOf(a));
+					entitiesDataInvalid[a] = true;
 					continue;
 				}
+				tempObjRef.setRealType(metaData.getEntityType());
+				tempObjRef.setId(conversionHelper.convertValueToType(metaData.getIdMember().getRealType(),
+						objRef.getId()));
 
-				IMap<String, Tuple3KeyHashMap<Class<?>, Byte, String, Boolean>> relationsMap = objRefToRelationMap
-						.get(metaData.getEntityType(), Byte.valueOf(ObjRef.PRIMARY_KEY_INDEX),
+				IMap<String, Tuple2KeyHashMap<Class<?>, String, Boolean>> relationsMap = objRefToRelationMap
+						.get(metaData.getEntityType(),
 								conversionHelper.convertValueToType(String.class, objRef.getId()));
 
 				HashMap<String, Boolean> validPropertyMap = objRefToValidPropertyMap.get(objRef);
@@ -538,7 +574,7 @@ public class AuditEntryVerifier
 					RelationMember relationMember = relationMembers[relationIndex];
 					IList<IObjRef> relationsOfMember = objRefHelper
 							.extractObjRefList(relationMember.getValue(entity), null);
-					Tuple3KeyHashMap<Class<?>, Byte, String, Boolean> relationMap = relationsMap != null
+					Tuple2KeyHashMap<Class<?>, String, Boolean> relationMap = relationsMap != null
 							? relationsMap.get(relationMember.getName()) : null;
 					boolean valid;
 					if (relationMap == null) {
@@ -552,7 +588,12 @@ public class AuditEntryVerifier
 					else {
 						for (int b = relationsOfMember.size(); b-- > 0;) {
 							IObjRef relationOfMember = relationsOfMember.get(b);
-							relationMap.remove(relationOfMember.getRealType(), relationOfMember.getIdNameIndex(),
+							if (relationOfMember.getIdNameIndex() != ObjRef.PRIMARY_KEY_INDEX) {
+								throw new IllegalStateException(
+										"ObjRef of member '" + relationMember.getName() + "' of entity instance '"
+												+ entity + "' must hold a primary identifier: " + relationMember);
+							}
+							relationMap.remove(relationOfMember.getRealType(),
 									conversionHelper.convertValueToType(String.class, relationOfMember.getId()));
 						}
 						valid = relationMap.isEmpty();
@@ -566,6 +607,36 @@ public class AuditEntryVerifier
 						continue;
 					}
 					atleastOnePropertyInvalid |= !valid.booleanValue();
+				}
+				if (!atleastOnePropertyInvalid) {
+					// this is the major logic now to be safe against removal, addition or replacement of
+					// AuditedEntities for a given ObjRef where the AuditedEntities by itself might all be
+					// correctly verified but the overall CHAIN has been compromised (e.g. a specific
+					// AuditedEntity
+					IMap<String, IAuditedEntity> previousRefVersionToEntityMap = objRefToPreviousRefVersionMap
+							.get(tempObjRef.getRealType(), tempObjRef.getId());
+					if (previousRefVersionToEntityMap == null) {
+						atleastOnePropertyInvalid = true;
+					}
+					else {
+						for (Entry<String, IAuditedEntity> entry : previousRefVersionToEntityMap) {
+							IAuditedEntityRef ref = entry.getValue().getRef();
+							String refVersion = ref.getEntityVersion();
+							IAuditedEntity followingAuditEntry = previousRefVersionToEntityMap.get(refVersion);
+							if (followingAuditEntry == null) {
+								// this is only allowed for the LAST audited entity in the chain so we check whether
+								// this is the case here
+								Object maxVersion = objRefToMaxVersionOfAuditTrailMap.get(tempObjRef.getRealType(),
+										tempObjRef.getId());
+								Object convertedRefVersion = conversionHelper
+										.convertValueToType(metaData.getVersionMember().getRealType(), refVersion);
+								if (!convertedRefVersion.equals(maxVersion)) {
+									atleastOnePropertyInvalid = true;
+									break;
+								}
+							}
+						}
+					}
 				}
 				entitiesDataInvalid[a] = atleastOnePropertyInvalid;
 			}
@@ -747,7 +818,7 @@ public class AuditEntryVerifier
 				count += entry.getValue().size();
 			}
 
-			if (log.isDebugEnabled()) {
+			if (log.isInfoEnabled()) {
 				IThreadLocalObjectCollector objectCollector = this.objectCollector.getCurrent();
 				StringBuilder sb = objectCollector.create(StringBuilder.class);
 				sb.append("Verifying audit entries covering the following " + count + " entities: ");
@@ -773,7 +844,6 @@ public class AuditEntryVerifier
 			IList<IObjRef> objRefsToAudit = remainingPropertyMap.keyList();
 			boolean[] entitiesDataInvalid = new boolean[objRefsToAudit.size()];
 
-			HashMap<IObjRef, Integer> entitiesWhichNeedReverify = new HashMap<>();
 			IdentityHashSet<IAuditedEntity> auditedEntitiesToVerify = new IdentityHashSet<>();
 			{
 				IQuery<IAuditedEntity> query = resolveQuery(bucketSortObjRefs);
@@ -783,11 +853,8 @@ public class AuditEntryVerifier
 				IList<IAuditedEntity> auditedEntities = query.retrieve();
 
 				filterAuditedEntities(auditedEntities, remainingPropertyMap, objRefsToAudit,
-						entitiesDataInvalid, entitiesWhichNeedReverify, auditedEntitiesToVerify);
+						entitiesDataInvalid, auditedEntitiesToVerify);
 			}
-
-			handleEntitiesWhichNeedReverify(entitiesDataInvalid, entitiesWhichNeedReverify,
-					auditedEntitiesToVerify);
 
 			IList<IAuditedEntity> auditedEntitiesToVerifyList = auditedEntitiesToVerify.toList();
 			boolean[] auditedEntitiesValid = verifyAuditedEntities(auditedEntitiesToVerifyList);
@@ -807,70 +874,40 @@ public class AuditEntryVerifier
 			}
 			long end = System.currentTimeMillis();
 			if (!invalidEntities.isEmpty() || !invalidAuditedEntities.isEmpty()) {
-				StringBuilder sb = new StringBuilder();
-				sb.append("Verification failed: ").append(invalidEntities.size()).append(" OF ")
-						.append(count).append(" ENTITIES INVALID (").append(end - start).append(" ms):");
-				for (IObjRef objRef : invalidEntities) {
-					sb.append("\n\t\t").append(objRef.toString());
+				if (log.isDebugEnabled()) {
+					IThreadLocalObjectCollector objectCollector = this.objectCollector.getCurrent();
+					StringBuilder sb = objectCollector.create(StringBuilder.class);
+					sb.append("Verification failed: ").append(invalidEntities.size()).append(" OF ")
+							.append(count).append(" ENTITIES INVALID (").append(end - start).append(" ms):");
+					for (IObjRef objRef : invalidEntities) {
+						sb.append("\n\t\t").append(objRef.toString());
+					}
+					sb.append("\n\t").append(invalidAuditedEntities.size()).append(" OF ")
+							.append(auditedEntitiesToVerify.size()).append(" AUDIT ENTRIES INVALID:");
+					for (IAuditedEntity auditedEntity : invalidAuditedEntities) {
+						IAuditedEntityRef ref = auditedEntity.getRef();
+						Class<?> refEntityType = classCache.loadClass(ref.getEntityType());
+						sb.append("\n\t\t").append(new ObjRef(refEntityType, ObjRef.PRIMARY_KEY_INDEX,
+								ref.getEntityId(), ref.getEntityVersion()));
+					}
+					log.debug(sb);
+					objectCollector.dispose(sb);
 				}
-				sb.append("\n\t").append(invalidAuditedEntities.size()).append(" OF ")
-						.append(auditedEntitiesToVerify.size()).append(" AUDIT ENTIRES INVALID:");
-				for (IAuditedEntity auditedEntity : invalidAuditedEntities) {
-					IAuditedEntityRef ref = auditedEntity.getRef();
-					Class<?> refEntityType = classCache.loadClass(ref.getEntityType());
-					sb.append("\n\t\t").append(new ObjRef(refEntityType, ObjRef.PRIMARY_KEY_INDEX,
-							ref.getEntityId(), ref.getEntityVersion()));
-				}
-				log.error(sb);
 				return false;
 			}
-			else if (log.isDebugEnabled()) {
+			if (log.isDebugEnabled()) {
 				log.debug(
 						"Verification successful: ALL " + count + " ENTITIES VALID (" + (end - start) + " ms)");
 			}
 			return true;
 		}
-		catch (ClassNotFoundException e) {
+		catch (
+
+		ClassNotFoundException e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 		finally {
 			rollback.rollback();
-		}
-	}
-
-	private void handleEntitiesWhichNeedReverify(boolean[] entitiesDataInvalid,
-			HashMap<IObjRef, Integer> entitiesWhichNeedReverify,
-			IdentityHashSet<IAuditedEntity> auditedEntitiesToVerify) {
-		while (!entitiesWhichNeedReverify.isEmpty()) {
-			// this happens if the retrieved audit trail is outdated for the corresponding entity due to a
-			// concurrent update
-			// during asynchronuous verification here
-			IList<IObjRef> objRefsToAudit = entitiesWhichNeedReverify.keyList();
-			boolean[] entitiesDataInvalid2 = new boolean[entitiesWhichNeedReverify.size()];
-			ILinkedMap<IEntityMetaData, IList<IObjRef>> bucketSortObjRefs = bucketSortObjRefs(
-					objRefsToAudit, false);
-			IQuery<IAuditedEntity> query = resolveQuery(bucketSortObjRefs);
-
-			LinkedHashMap<String, Object> nameToValueMap = new LinkedHashMap<>();
-			IMap<IObjRef, ISet<String>> remainingPropertyMap = fillNameToValueMap(nameToValueMap,
-					bucketSortObjRefs);
-
-			for (Entry<String, Object> entry : nameToValueMap) {
-				query = query.param(entry.getKey(), entry.getValue());
-			}
-			IList<IAuditedEntity> auditedEntities = query.retrieve();
-
-			HashMap<IObjRef, Integer> entitiesWhichNeedReverify2 = new HashMap<>();
-			filterAuditedEntities(auditedEntities, remainingPropertyMap, objRefsToAudit,
-					entitiesDataInvalid2, entitiesWhichNeedReverify2, auditedEntitiesToVerify);
-
-			for (int a = objRefsToAudit.size(); a-- > 0;) {
-				IObjRef objRef = objRefsToAudit.get(a);
-				if (!entitiesWhichNeedReverify2.containsKey(objRef)) {
-					Integer originalIndex = entitiesWhichNeedReverify.remove(objRef);
-					entitiesDataInvalid[originalIndex.intValue()] = entitiesDataInvalid2[a];
-				}
-			}
 		}
 	}
 
@@ -1044,19 +1081,22 @@ public class AuditEntryVerifier
 
 	protected ILinkedMap<IEntityMetaData, IList<IObjRef>> bucketSortObjRefs(List<?> entities,
 			boolean checkConfiguration) {
-		IdentityLinkedMap<IEntityMetaData, IList<IObjRef>> serviceToAssignedObjRefsDict = new IdentityLinkedMap<>();
-
+		final IdentityLinkedMap<IEntityMetaData, ISet<IObjRef>> metaDataToObjRefsDict = new IdentityLinkedMap<>();
+		boolean hasAtLeastOneNonPrimaryObjRef = false;
 		for (int i = entities.size(); i-- > 0;) {
 			Object entity = entities.get(i);
-			IObjRef objRef;
+			IObjRef objRef = null;
 			IEntityMetaData metaData;
 			if (entity instanceof IObjRef) {
 				objRef = (IObjRef) entity;
 				metaData = entityMetaDataProvider.getMetaData(objRef.getRealType());
 			}
-			else {
-				objRef = objRefHelper.entityToObjRef(entity);
+			else if (entity instanceof IEntityMetaDataHolder) {
 				metaData = ((IEntityMetaDataHolder) entity).get__EntityMetaData();
+			}
+			else {
+				throw new IllegalArgumentException("All objects must be either a valid entity or an "
+						+ IObjRef.class.getSimpleName() + " instance");
 			}
 
 			if (checkConfiguration) {
@@ -1066,14 +1106,102 @@ public class AuditEntryVerifier
 					continue;
 				}
 			}
-			IList<IObjRef> assignedObjRefs = serviceToAssignedObjRefsDict.get(metaData);
-			if (assignedObjRefs == null) {
-				assignedObjRefs = new ArrayList<>();
-				serviceToAssignedObjRefsDict.put(metaData, assignedObjRefs);
+			if (objRef == null) {
+				// this is the case above because we create the objRef only if the auditConfiguration tells
+				// us to really audit the given entity type
+				objRef = objRefHelper.entityToObjRef(entity);
 			}
-			assignedObjRefs.add(objRef);
+			if (objRef.getIdNameIndex() != ObjRef.PRIMARY_KEY_INDEX) {
+				hasAtLeastOneNonPrimaryObjRef = true;
+			}
+			ISet<IObjRef> objRefs = metaDataToObjRefsDict.get(metaData);
+			if (objRefs == null) {
+				objRefs = new HashSet<>();
+				metaDataToObjRefsDict.put(metaData, objRefs);
+			}
+			objRefs.add(objRef);
 		}
-		return serviceToAssignedObjRefsDict;
+		if (!hasAtLeastOneNonPrimaryObjRef) {
+			return convertSetToList(metaDataToObjRefsDict);
+		}
+		transaction.runInTransaction(new IBackgroundWorkerDelegate() {
+			@Override
+			public void invoke() throws Exception {
+				IDatabase database = AuditEntryVerifier.this.database.getCurrent();
+
+				for (Entry<IEntityMetaData, ISet<IObjRef>> entry : metaDataToObjRefsDict) {
+					ISet<IObjRef> objRefs = entry.getValue();
+					HashMap<Byte, IList<IObjRef>> indexToObjRefsMap = null;
+					Iterator<IObjRef> iter = objRefs.iterator();
+					while (iter.hasNext()) {
+						IObjRef objRef = iter.next();
+						if (objRef.getIdNameIndex() == ObjRef.PRIMARY_KEY_INDEX) {
+							continue;
+						}
+						if (indexToObjRefsMap == null) {
+							indexToObjRefsMap = new HashMap<>();
+						}
+						IList<IObjRef> assignedObjRefs = indexToObjRefsMap.get(objRef.getIdNameIndex());
+						if (assignedObjRefs == null) {
+							assignedObjRefs = new ArrayList<>();
+							indexToObjRefsMap.put(objRef.getIdNameIndex(), assignedObjRefs);
+						}
+						iter.remove();
+						assignedObjRefs.add(objRef);
+					}
+					if (indexToObjRefsMap == null) {
+						// nothing to do
+						continue;
+					}
+					IEntityMetaData metaData = entry.getKey();
+					Class<?> idRealType = metaData.getIdMember().getRealType();
+					PrimitiveMember[] alternateIdMembers = metaData.getAlternateIdMembers();
+					ITable table = database.getTableByType(metaData.getEntityType());
+					for (Entry<Byte, IList<IObjRef>> indexEntry : indexToObjRefsMap) {
+						int idIndex = indexEntry.getKey().intValue();
+						PrimitiveMember alternateIdMember = alternateIdMembers[idIndex];
+						Class<?> alternateIdRealType = alternateIdMember.getRealType();
+						IList<IObjRef> alternateIdObjRefs = indexEntry.getValue();
+						HashMap<Object, Object> alternateIdToVersionMap = HashMap
+								.create(alternateIdObjRefs.size());
+						for (int a = alternateIdObjRefs.size(); a-- > 0;) {
+							IObjRef alternateIdObjRef = alternateIdObjRefs.get(a);
+							alternateIdToVersionMap.put(alternateIdObjRef.getId(),
+									alternateIdObjRef.getVersion());
+						}
+						IPreparedObjRefFactory preparedObjRefFactory = objRefFactory
+								.prepareObjRefFactory(metaData.getEntityType(), ObjRef.PRIMARY_KEY_INDEX);
+						IVersionCursor cursor = table.selectVersion(alternateIdMember.getName(),
+								alternateIdObjRefs);
+						try {
+							while (cursor.moveNext()) {
+								IVersionItem item = cursor.getCurrent();
+								Object id = conversionHelper.convertValueToType(idRealType, item.getId());
+								Object alternateId = conversionHelper.convertValueToType(alternateIdRealType,
+										item.getId(idIndex));
+								Object version = alternateIdToVersionMap.get(alternateId);
+
+								IObjRef objRef = preparedObjRefFactory.createObjRef(id, version);
+								objRefs.add(objRef);
+							}
+						}
+						finally {
+							cursor.dispose();
+						}
+					}
+				}
+			}
+		});
+		return convertSetToList(metaDataToObjRefsDict);
+	}
+
+	private ILinkedMap<IEntityMetaData, IList<IObjRef>> convertSetToList(
+			IdentityLinkedMap<IEntityMetaData, ISet<IObjRef>> metaDataToObjRefsMap) {
+		final IdentityLinkedMap<IEntityMetaData, IList<IObjRef>> targetMap = new IdentityLinkedMap<>();
+		for (Entry<IEntityMetaData, ISet<IObjRef>> entry : metaDataToObjRefsMap) {
+			targetMap.put(entry.getKey(), entry.getValue().toList());
+		}
+		return targetMap;
 	}
 
 	protected void debugToLoad(List<IObjRef> orisToLoad, StringBuilder sb) {

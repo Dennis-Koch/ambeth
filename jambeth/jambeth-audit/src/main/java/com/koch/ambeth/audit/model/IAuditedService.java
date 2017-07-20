@@ -21,6 +21,7 @@ limitations under the License.
  */
 
 import com.koch.ambeth.security.audit.model.Audited;
+import com.koch.ambeth.util.annotation.Interning;
 
 @Audited(false)
 public interface IAuditedService {
@@ -40,10 +41,12 @@ public interface IAuditedService {
 
 	IAuditEntry getEntry();
 
+	@Interning
 	String getMethodName();
 
 	int getOrder();
 
+	@Interning
 	String getServiceType();
 
 	long getSpentTime();

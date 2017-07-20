@@ -1,5 +1,7 @@
 package com.koch.ambeth.security.model;
 
+import com.koch.ambeth.util.annotation.Interning;
+
 /*-
  * #%L
  * jambeth-security
@@ -21,10 +23,12 @@ limitations under the License.
  */
 
 public interface ISignAndVerify {
+	@Interning
 	String getSignatureAlgorithm();
 
 	void setSignatureAlgorithm(String signatureAlgorithm);
 
+	@Interning
 	String getKeyFactoryAlgorithm();
 
 	void setKeyFactoryAlgorithm(String keyFactoryAlgorithm);

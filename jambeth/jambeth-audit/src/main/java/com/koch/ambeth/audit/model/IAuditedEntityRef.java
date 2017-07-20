@@ -21,6 +21,7 @@ limitations under the License.
  */
 
 import com.koch.ambeth.security.audit.model.Audited;
+import com.koch.ambeth.util.annotation.Interning;
 
 @Audited(false)
 public interface IAuditedEntityRef {
@@ -32,7 +33,9 @@ public interface IAuditedEntityRef {
 
 	String getEntityId();
 
+	@Interning
 	String getEntityType();
 
+	@Interning
 	String getEntityVersion();
 }
