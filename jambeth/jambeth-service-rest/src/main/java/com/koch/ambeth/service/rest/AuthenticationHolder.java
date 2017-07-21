@@ -25,12 +25,10 @@ import com.koch.ambeth.ioc.config.Property;
 import com.koch.ambeth.service.config.ServiceConfigurationConstants;
 
 public class AuthenticationHolder implements IAuthenticationHolder, IInitializingBean {
-	@Property(name = ServiceConfigurationConstants.UserName, mandatory = false,
-			defaultValue = "dummyUser")
+	@Property(name = ServiceConfigurationConstants.UserName, mandatory = false, defaultValue = "dummyUser")
 	protected String UserName;
 
-	@Property(name = ServiceConfigurationConstants.Password, mandatory = false,
-			defaultValue = "dummyPass")
+	@Property(name = ServiceConfigurationConstants.Password, mandatory = false, defaultValue = "dummyPass")
 	protected String Password;
 
 	protected String[] auth;
@@ -47,6 +45,6 @@ public class AuthenticationHolder implements IAuthenticationHolder, IInitializin
 
 	@Override
 	public void setAuthentication(String userName, String password) {
-		auth = new String[] {userName, password};
+		auth = new String[] { userName, password };
 	}
 }

@@ -290,8 +290,8 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 		auditedEntity.ensurePrimitive(IAuditedEntity.Order).setNewValue(entities.getAddedCount());
 		PrimitiveMember versionMember = metaData.getVersionMember();
 		if (versionMember != null) {
-			auditedEntity.ensurePrimitive(IAuditedEntity.RefPreviousVersion)
-					.setNewValue(versionMember.getValue(originalRef, false));
+			auditedEntity.ensurePrimitive(IAuditedEntity.RefPreviousVersion).setNewValue(conversionHelper
+					.convertValueToType(String.class, versionMember.getValue(originalRef, false)));
 		}
 		if (changeContainer instanceof CreateContainer) {
 			auditedEntity.ensurePrimitive(IAuditedEntity.ChangeType)
@@ -344,7 +344,7 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 		auditedEntityRef.ensurePrimitive(IAuditedEntityRef.EntityId)
 				.setNewValue(conversionHelper.convertValueToType(String.class, objRef.getId()));
 		auditedEntityRef.ensurePrimitive(IAuditedEntityRef.EntityType)
-				.setNewValue(objRef.getRealType());
+				.setNewValue(objRef.getRealType().getName());
 		auditedEntityRef.ensurePrimitive(IAuditedEntityRef.EntityVersion)
 				.setNewValue(conversionHelper.convertValueToType(String.class, objRef.getVersion()));
 

@@ -30,6 +30,8 @@ public final class RESTConfigurationConstants {
 
 	public static final String HttpContentEncodingZipped = "rest.http.content-encoding.zipped";
 
+	public static final String AuthenticationHolderType = "rest.http.authholdertype";
+
 	private RESTConfigurationConstants() {
 		// Intended blank
 	}

@@ -72,16 +72,18 @@ import com.koch.ambeth.util.state.IStateRollback;
 import com.koch.ambeth.util.threading.IBackgroundWorkerDelegate;
 import com.koch.ambeth.util.threading.IBackgroundWorkerParamDelegate;
 import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
+import com.koch.ambeth.xml.ioc.XmlModule;
 
 @TestFrameworkModule({ AuditModule.class, AuditMethodCallTestFrameworkModule.class,
-		AuditTamperTestModule.class })
+		AuditTamperTestModule.class, XmlModule.class })
 @TestPropertiesList({
 		@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "AuditMethodCall_orm.xml;security-orm.xml"),
 		@TestProperties(name = AuditConfigurationConstants.AuditActive, value = "true"),
 		@TestProperties(name = SecurityServerConfigurationConstants.EncryptionPaddedKeyIterationCount, value = "1"),
 		@TestProperties(name = SecurityServerConfigurationConstants.LoginPasswordAlgorithmIterationCount, value = "1"),
 		@TestProperties(name = SecurityServerConfigurationConstants.SignaturePaddedKeyIterationCount, value = "1"),
-		@TestProperties(name = "ambeth.log.level.com.koch.ambeth.persistence", value = "DEBUG"),
+		// @TestProperties(name = "ambeth.log.level.com.koch.ambeth.persistence", value = "DEBUG"),
+		// @TestProperties(name = "ambeth.log.level.com.koch.ambeth.merge", value = "DEBUG"),
 		@TestProperties(name = SecurityServerConfigurationConstants.SignatureActive, value = "true") })
 @SQLStructureList({ @SQLStructure("security-structure.sql"), //
 		@SQLStructure("audit-structure.sql") })

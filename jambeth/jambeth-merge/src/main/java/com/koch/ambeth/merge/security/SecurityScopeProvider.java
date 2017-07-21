@@ -21,6 +21,7 @@ limitations under the License.
  */
 
 import com.koch.ambeth.ioc.DefaultExtendableContainer;
+import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.threadlocal.Forkable;
 import com.koch.ambeth.ioc.threadlocal.IThreadLocalCleanupBean;
 import com.koch.ambeth.service.model.ISecurityScope;
@@ -31,6 +32,9 @@ import com.koch.ambeth.util.threading.SensitiveThreadLocal;
 public class SecurityScopeProvider implements IThreadLocalCleanupBean, ISecurityScopeProvider,
 		ISecurityScopeChangeListenerExtendable {
 	public static final ISecurityScope[] defaultSecurityScopes = new ISecurityScope[0];
+
+	@Autowired(optional = true)
+	protected IDefaultSecurityScopeProvider defaultSecurityScopeProvider;
 
 	@Forkable
 	protected final ThreadLocal<SecurityScopeHandle> securityScopeTL = new SensitiveThreadLocal<>();
@@ -47,9 +51,15 @@ public class SecurityScopeProvider implements IThreadLocalCleanupBean, ISecurity
 	public ISecurityScope[] getSecurityScopes() {
 		SecurityScopeHandle securityScopeHandle = securityScopeTL.get();
 		if (securityScopeHandle == null) {
+			if (defaultSecurityScopeProvider != null) {
+				return defaultSecurityScopeProvider.getDefaultSecurityScopes();
+			}
 			return defaultSecurityScopes;
 		}
 		if (securityScopeHandle.securityScopes == null) {
+			if (defaultSecurityScopeProvider != null) {
+				return defaultSecurityScopeProvider.getDefaultSecurityScopes();
+			}
 			return defaultSecurityScopes;
 		}
 		return securityScopeHandle.securityScopes;
