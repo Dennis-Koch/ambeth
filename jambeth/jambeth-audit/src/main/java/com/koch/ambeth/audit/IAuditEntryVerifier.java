@@ -24,10 +24,21 @@ import java.util.List;
 
 import com.koch.ambeth.audit.model.IAuditEntry;
 import com.koch.ambeth.audit.model.IAuditedEntity;
+import com.koch.ambeth.service.merge.model.IObjRef;
 
+/**
+ * This is the public interface to verify the audit trail of entities. There are different overloads
+ * optimized for convenience for the following 4 different usecases:<br>
+ * <ul>
+ * <li>verify audit entries ({@link IAuditEntry})</li>
+ * <li>verify audited entities ({@link IAuditedEntity})</li>
+ * <li>verify references of entities ({@link IObjRef})</li>
+ * <li>verify entities</li>
+ * </ul>
+ */
 public interface IAuditEntryVerifier {
 	/**
-	 * Cryptographically verifies all <code>IAuditEntry</code> instances related to a given set of
+	 * /** Cryptographically verifies all <code>IAuditEntry</code> instances related to a given set of
 	 * entities. The verification fails if the <code>Signature</code> property does not correlate with
 	 * the user <code>ISignature</code> handle associated with any <code>IAuditEntry</code>.
 	 * Essentially the complete history of each entity is verified starting with its first creation.
@@ -44,6 +55,11 @@ public interface IAuditEntryVerifier {
 	 * flags where the array size and indices correlate to the given list of <code>IAuditEntry</code>
 	 * instances.
 	 *
+	 * @param entities
+	 *          A list of entities or entity references ({@link IObjRef}). Note that the verification
+	 *          process will not exactly verify the passed entity object instances (=identities) but
+	 *          will load them safely from the persistent state (=equalities). So pending/uncommitted
+	 *          changes on the passed entities will not be considered in any way.
 	 * @return Result of the verification. FALSE if at least one verification failure occurred on any
 	 *         resolved <code>IAuditEntry</code>.
 	 */

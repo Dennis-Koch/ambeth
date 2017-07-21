@@ -1,5 +1,7 @@
 package com.koch.ambeth.audit.server;
 
+import java.io.IOException;
+
 /*-
  * #%L
  * jambeth-audit-server
@@ -21,12 +23,14 @@ limitations under the License.
  */
 
 import java.security.Signature;
+import java.security.SignatureException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.concurrent.locks.Lock;
+import java.util.function.BiFunction;
 
 import com.koch.ambeth.audit.IAuditEntryVerifier;
 import com.koch.ambeth.audit.model.AuditedEntityChangeType;
@@ -977,9 +981,22 @@ public class AuditEntryVerifier
 			ISignature signatureOfUser = auditEntry.getSignatureOfUser();
 			char[] signature = auditEntry.getSignature();
 			try {
-				Signature signatureHandle = getOrCreateVerifyHandle(signatureOfUser,
+				final Signature signatureHandle = getOrCreateVerifyHandle(signatureOfUser,
 						signatureToSignatureHandleMap);
-				byte[] digest = auditEntryToSignature.createVerifyDigest(auditEntry, signatureHandle);
+				byte[] digest = auditEntryToSignature.createVerifyDigest(auditEntry,
+						new BiFunction<IAuditedEntity, byte[], Boolean>() {
+							@Override
+							public Boolean apply(IAuditedEntity auditedEntity, byte[] digest) {
+								try {
+									signatureHandle.update(digest);
+									return Boolean
+											.valueOf(signatureHandle.verify(Base64.decode(auditedEntity.getSignature())));
+								}
+								catch (SignatureException | IOException e) {
+									throw RuntimeExceptionUtil.mask(e);
+								}
+							}
+						});
 				if (digest == null) {
 					result[a] = false;
 					continue;

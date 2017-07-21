@@ -1,5 +1,7 @@
 package com.koch.ambeth.audit.server;
 
+import java.util.function.BiFunction;
+
 /*-
  * #%L
  * jambeth-audit-server
@@ -25,11 +27,54 @@ import com.koch.ambeth.audit.model.IAuditedEntity;
 import com.koch.ambeth.merge.model.CreateOrUpdateContainerBuild;
 import com.koch.ambeth.security.model.ISignature;
 
+/**
+ * Encapsulates the complete signing and verification process using the audit information model. It
+ * also internally selects the currently relevant prococol (see {@link IAuditEntryWriter} during
+ * signing.
+ */
 public interface IAuditEntryToSignature {
+	/**
+	 * Signs a generated audit trail. Is internally called by the {@link AuditController} based on a
+	 * pre-commit hook. The clear-text password of the user matching to the given signature handle is
+	 * required to decrypt the private key of the signature necessary for the signing operation and
+	 * therefore impersonate the user during this phase.
+	 *
+	 * @param auditEntry
+	 *          The audit entry to sign
+	 * @param clearTextPassword
+	 *          The clear-text password of the user related by the given signature
+	 * @param signature
+	 *          The current live signature entity of the user used for sign operations
+	 */
 	void signAuditEntry(CreateOrUpdateContainerBuild auditEntry, char[] clearTextPassword,
 			ISignature signature);
 
-	byte[] createVerifyDigest(IAuditEntry auditEntry, java.security.Signature signature);
+	/**
+	 * Creates a hash value of a given audit entry based on its configuration (specifically: stored
+	 * hash algorithm and serialization protocol version). Is internally called by the
+	 * {@link AuditEntryVerifier} during verification tasks.
+	 *
+	 * @param auditEntry
+	 *          The audit entry to verify
+	 * @param auditedEntityVerifyFunction
+	 *          The verification function used to verify the digest of each audited entity during the
+	 *          audit entry digest creation. Must return true if a verification is successful and
+	 *          false if not
+	 * @return The digest of the audit entry. May be null if the audit model was in an invalid state
+	 *         or any internal audited entity verification - represented by the given verifyFunction -
+	 *         failed.
+	 */
+	byte[] createVerifyDigest(IAuditEntry auditEntry,
+			BiFunction<IAuditedEntity, byte[], Boolean> auditedEntityVerifyFunction);
 
+	/**
+	 * Creates a hash value of a given audited entity based on its configuration (specifically: stored
+	 * hash algorithm & serialization protocol version of its parent audit entry). Is internally
+	 * called by the {@link AuditEntryVerifier} during verification tasks.
+	 *
+	 * @param auditedEntity
+	 * @return The digest of the audited entity. May be null if the audit model was in an invalid
+	 *         state
+	 */
 	byte[] createVerifyDigest(IAuditedEntity auditedEntity);
 }

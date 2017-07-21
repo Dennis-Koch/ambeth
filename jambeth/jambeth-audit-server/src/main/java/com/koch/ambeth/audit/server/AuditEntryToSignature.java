@@ -1,26 +1,10 @@
 package com.koch.ambeth.audit.server;
 
-/*-
- * #%L
- * jambeth-audit-server
- * %%
- * Copyright (C) 2017 Koch Softwaredevelopment
- * %%
- * Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-     http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
- * #L%
- */
-
-import java.security.Signature;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.security.SignatureException;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 
 import com.koch.ambeth.audit.model.IAuditEntry;
 import com.koch.ambeth.audit.model.IAuditedEntity;
@@ -58,7 +42,7 @@ public class AuditEntryToSignature implements IAuditEntryToSignature, IAuditEntr
 	@Override
 	public void signAuditEntry(CreateOrUpdateContainerBuild auditEntry, char[] clearTextPassword,
 			ISignature signature) {
-		java.security.Signature signatureHandle = privateKeyProvider.getSigningHandle(signature,
+		final java.security.Signature signatureHandle = privateKeyProvider.getSigningHandle(signature,
 				clearTextPassword);
 		if (signatureHandle == null) {
 			auditEntry.ensurePrimitive(IAuditEntry.HashAlgorithm).setNewValue(null);
@@ -66,36 +50,52 @@ public class AuditEntryToSignature implements IAuditEntryToSignature, IAuditEntr
 			auditEntry.ensurePrimitive(IAuditEntry.Protocol).setNewValue(null);
 			return;
 		}
-		try {
-			auditEntry.ensurePrimitive(IAuditEntry.HashAlgorithm).setNewValue(hashAlgorithm);
-			auditEntry.ensurePrimitive(IAuditEntry.Protocol).setNewValue(protocol);
+		auditEntry.ensurePrimitive(IAuditEntry.HashAlgorithm).setNewValue(hashAlgorithm);
+		auditEntry.ensurePrimitive(IAuditEntry.Protocol).setNewValue(protocol);
 
-			if (signature != null) {
-				auditEntry.ensureRelation(IAuditEntry.SignatureOfUser)
-						.addObjRef(objRefHelper.entityToObjRef(signature));
-			}
-			IAuditEntryWriter auditEntryWriter = auditEntryWriters.getExtension(protocol);
-			if (auditEntryWriter == null) {
-				throw new IllegalArgumentException(
-						"No instance of " + IAuditEntryWriter.class.getSimpleName() + " found for protocol '"
-								+ protocol + "' of " + auditEntry);
-			}
-			byte[] sign = auditEntryWriter.writeAuditEntry(auditEntry, hashAlgorithm, signatureHandle);
-			if (sign == null) {
+		if (signature != null) {
+			auditEntry.ensureRelation(IAuditEntry.SignatureOfUser)
+					.addObjRef(objRefHelper.entityToObjRef(signature));
+		}
+		IAuditEntryWriter auditEntryWriter = auditEntryWriters.getExtension(protocol);
+		if (auditEntryWriter == null) {
+			throw new IllegalArgumentException("No instance of " + IAuditEntryWriter.class.getSimpleName()
+					+ " found for protocol '" + protocol + "' of " + auditEntry);
+		}
+		try {
+			MessageDigest md = MessageDigest.getInstance(hashAlgorithm);
+
+			byte[] auditEntryDigest = auditEntryWriter.writeAuditEntry(auditEntry, md,
+					new Function<byte[], byte[]>() {
+						@Override
+						public byte[] apply(byte[] auditedEntityDigest) {
+							try {
+								signatureHandle.update(auditedEntityDigest);
+								return signatureHandle.sign();
+							}
+							catch (SignatureException e) {
+								throw RuntimeExceptionUtil.mask(e);
+							}
+						}
+					});
+			if (auditEntryDigest == null) {
 				auditEntry.ensurePrimitive(IAuditEntry.Signature).setNewValue(null);
 				throw new IllegalStateException(
 						"Could not sign due to an inconsistent model: " + auditEntry);
 			}
+			signatureHandle.update(auditEntryDigest);
+			byte[] sign = signatureHandle.sign();
 			auditEntry.ensurePrimitive(IAuditEntry.Signature)
 					.setNewValue(Base64.encodeBytes(sign).toCharArray());
 		}
-		catch (Exception e) {
+		catch (SignatureException | NoSuchAlgorithmException e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
 
 	@Override
-	public byte[] createVerifyDigest(IAuditEntry auditEntry, Signature signature) {
+	public byte[] createVerifyDigest(IAuditEntry auditEntry,
+			BiFunction<IAuditedEntity, byte[], Boolean> auditedEntityVerifyFunction) {
 		try {
 			int protocol = auditEntry.getProtocol();
 			IAuditEntryWriter auditEntryWriter = auditEntryWriters.getExtension(protocol);
@@ -108,14 +108,13 @@ public class AuditEntryToSignature implements IAuditEntryToSignature, IAuditEntr
 			if (hashAlgorithm == null || hashAlgorithm.length() == 0) {
 				throw new IllegalArgumentException("No hash algorithm specified");
 			}
+			MessageDigest md = MessageDigest.getInstance(hashAlgorithm);
 			for (IAuditedEntity auditedEntity : auditEntry.getEntities()) {
-				byte[] auditedEntityDigest = auditEntryWriter.writeAuditedEntity(auditedEntity,
-						hashAlgorithm);
+				byte[] auditedEntityDigest = auditEntryWriter.writeAuditedEntity(auditedEntity, md);
 				if (auditedEntityDigest == null) {
 					return null;
 				}
-				signature.update(auditedEntityDigest);
-				if (!signature.verify(Base64.decode(auditedEntity.getSignature()))) {
+				if (!auditedEntityVerifyFunction.apply(auditedEntity, auditedEntityDigest)) {
 					return null;
 				}
 			}
@@ -124,7 +123,7 @@ public class AuditEntryToSignature implements IAuditEntryToSignature, IAuditEntr
 			// the clue is to choose a good hash algorithm which is fast enough to make sense but much
 			// stronger than e.g. MD5 as well...
 
-			return auditEntryWriter.writeAuditEntry(auditEntry, hashAlgorithm);
+			return auditEntryWriter.writeAuditEntry(auditEntry, md);
 		}
 		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
@@ -150,8 +149,8 @@ public class AuditEntryToSignature implements IAuditEntryToSignature, IAuditEntr
 			// audited information itself
 			// the clue is to choose a good hash algorithm which is fast enough to make sense but much
 			// stronger than e.g. MD5 as well...
-
-			return auditEntryWriter.writeAuditedEntity(auditedEntity, hashAlgorithm);
+			MessageDigest md = MessageDigest.getInstance(hashAlgorithm);
+			return auditEntryWriter.writeAuditedEntity(auditedEntity, md);
 		}
 		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
