@@ -25,20 +25,23 @@ import java.util.Collection;
 /**
  * Interface for listener or extension container for unique instances.
  *
- * @param <V> Type of the content
+ * @param <V>
+ *          Type of the content
  */
 public interface IExtendableContainer<V> {
 	/**
 	 * Registers an instance of an extension.
 	 *
-	 * @param extension Instance to be registered
+	 * @param extension
+	 *          Instance to be registered
 	 */
 	void register(V extension);
 
 	/**
 	 * Unregisters an instance of an extension.
 	 *
-	 * @param extension Instance to be unregistered
+	 * @param extension
+	 *          Instance to be unregistered
 	 */
 	void unregister(V extension);
 
@@ -50,9 +53,18 @@ public interface IExtendableContainer<V> {
 	V[] getExtensions();
 
 	/**
+	 * Returns an typed array of all registered extensions. Note that you may get a shared array so
+	 * you must not modify the resulting array by any means.
+	 *
+	 * @return Array of extension instances
+	 */
+	V[] getExtensionsShared();
+
+	/**
 	 * Fills the collection with all registered extensions.
 	 *
-	 * @param targetExtensionList Collection to be filled
+	 * @param targetExtensionList
+	 *          Collection to be filled
 	 */
 	void getExtensions(Collection<V> targetExtensionList);
 }

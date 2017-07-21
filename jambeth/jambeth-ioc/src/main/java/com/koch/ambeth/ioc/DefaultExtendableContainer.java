@@ -36,6 +36,8 @@ public class DefaultExtendableContainer<V> extends IdentitySmartCopySet<V>
 
 	protected final V[] emptyArray;
 
+	protected V[] array;
+
 	@SuppressWarnings("unchecked")
 	public DefaultExtendableContainer(Class<V> type, String message) {
 		this.type = type;
@@ -51,6 +53,7 @@ public class DefaultExtendableContainer<V> extends IdentitySmartCopySet<V>
 		try {
 			boolean add = add(listener);
 			ParamChecker.assertTrue(add, message);
+			array = null;
 		}
 		finally {
 			lock.unlock();
@@ -64,6 +67,7 @@ public class DefaultExtendableContainer<V> extends IdentitySmartCopySet<V>
 		lock.lock();
 		try {
 			ParamChecker.assertTrue(remove(listener), message);
+			array = null;
 		}
 		finally {
 			lock.unlock();
@@ -79,6 +83,17 @@ public class DefaultExtendableContainer<V> extends IdentitySmartCopySet<V>
 		}
 		V[] array = (V[]) Array.newInstance(type, size);
 		toArray(array);
+		return array;
+	}
+
+	@Override
+	public V[] getExtensionsShared() {
+		V[] array = this.array;
+		if (array != null) {
+			return array;
+		}
+		array = getExtensions();
+		this.array = array;
 		return array;
 	}
 

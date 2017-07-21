@@ -39,6 +39,8 @@ public class ExtendableContainer<V> implements IExtendableContainer<V> {
 
 	protected final Lock lock = new ReentrantLock();
 
+	protected V[] array;
+
 	@SuppressWarnings("unchecked")
 	public ExtendableContainer(Class<V> type, String message) {
 		ParamChecker.assertParamNotNull(type, "type");
@@ -57,6 +59,7 @@ public class ExtendableContainer<V> implements IExtendableContainer<V> {
 		lock.lock();
 		try {
 			ParamChecker.assertTrue(set.add(listener), message);
+			array = null;
 		}
 		finally {
 			lock.unlock();
@@ -70,6 +73,7 @@ public class ExtendableContainer<V> implements IExtendableContainer<V> {
 		lock.lock();
 		try {
 			ParamChecker.assertTrue(set.remove(listener), message);
+			array = null;
 		}
 		finally {
 			lock.unlock();
@@ -88,6 +92,28 @@ public class ExtendableContainer<V> implements IExtendableContainer<V> {
 			}
 			V[] array = (V[]) Array.newInstance(type, size);
 			set.toArray(array);
+			return array;
+		}
+		finally {
+			lock.unlock();
+		}
+	}
+
+	@Override
+	public V[] getExtensionsShared() {
+		V[] array = this.array;
+		if (array != null) {
+			return array;
+		}
+		Lock lock = this.lock;
+		lock.lock();
+		try {
+			array = this.array;
+			if (array != null) {
+				return array;
+			}
+			array = getExtensions();
+			this.array = array;
 			return array;
 		}
 		finally {
