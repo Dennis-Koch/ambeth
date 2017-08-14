@@ -36,7 +36,6 @@ import com.koch.ambeth.security.server.IUserResolver;
 import com.koch.ambeth.security.server.config.SecurityServerConfigurationConstants;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.state.IStateRollback;
-import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
 
 public class EmbeddedAuthenticationManager extends AbstractAuthenticationManager {
 	@Autowired
@@ -59,7 +58,8 @@ public class EmbeddedAuthenticationManager extends AbstractAuthenticationManager
 			throws AuthenticationException {
 		IUser user;
 		try {
-			IStateRollback rollback = securityActivation.pushWithoutSecurity();
+			IStateRollback rollback = securityActivation
+					.pushWithoutSecurity(IStateRollback.EMPTY_ROLLBACKS);
 			try {
 				user = userResolver.resolveUserBySID(authentication.getUserName());
 				if (user != null) {
@@ -86,13 +86,14 @@ public class EmbeddedAuthenticationManager extends AbstractAuthenticationManager
 			}
 			boolean rehashRecommended = checkPasswordResult.isRehashPasswordRecommended();
 			if (rehashRecommended && autoRehashPasswords) {
-				securityActivation.executeWithoutSecurity(new IResultingBackgroundWorkerDelegate<Object>() {
-					@Override
-					public Object invoke() throws Exception {
-						passwordUtil.rehashPassword(authentication.getPassword(), password);
-						return null;
-					}
-				});
+				IStateRollback rollback = securityActivation
+						.pushWithoutSecurity(IStateRollback.EMPTY_ROLLBACKS);
+				try {
+					passwordUtil.rehashPassword(authentication.getPassword(), password);
+				}
+				finally {
+					rollback.rollback();
+				}
 				rehashRecommended = false;
 			}
 			String sid = userIdentifierProvider.getSID(user);

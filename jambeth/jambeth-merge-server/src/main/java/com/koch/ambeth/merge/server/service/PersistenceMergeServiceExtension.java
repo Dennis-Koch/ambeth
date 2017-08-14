@@ -411,8 +411,7 @@ public class PersistenceMergeServiceExtension implements IMergeServiceExtension 
 				IChangeContainer changeContainer = entry.getValue();
 				changeContainersSet.add(changeContainer);
 			}
-			ArrayList<IChangeContainer> changeContainers = new ArrayList<>(
-					changeContainersSet.size());
+			ArrayList<IChangeContainer> changeContainers = new ArrayList<>(changeContainersSet.size());
 			for (int a = 0, size = buildableAllChanges.size(); a < size; a++) {
 				IChangeContainer changeContainer = buildableAllChanges.get(a);
 				changeContainersSet.remove(changeContainer);
@@ -652,47 +651,46 @@ public class PersistenceMergeServiceExtension implements IMergeServiceExtension 
 		}
 	}
 
-	protected void executeWithoutSecurity(final List<IChangeContainer> allChanges,
-			final HashMap<String, ITableChange> tableChangeMap, final List<IObjRef> oriList,
-			final IMap<Long, IObjRef> mockIdToObjRefMap,
-			final IMap<IObjRef, IChangeContainer> objRefToChangeContainerMap,
-			final IIncrementalMergeState incrementalState) {
+	protected void executeWithoutSecurity(List<IChangeContainer> allChanges,
+			HashMap<String, ITableChange> tableChangeMap, List<IObjRef> oriList,
+			IMap<Long, IObjRef> mockIdToObjRefMap,
+			IMap<IObjRef, IChangeContainer> objRefToChangeContainerMap,
+			IIncrementalMergeState incrementalState) {
+		IStateRollback rollback = securityActivation
+				.pushWithoutSecurity(IStateRollback.EMPTY_ROLLBACKS);
 		try {
-			securityActivation.executeWithoutSecurity(new IBackgroundWorkerDelegate() {
-				@Override
-				public void invoke() throws Exception {
-					IDatabase database = PersistenceMergeServiceExtension.this.database.getCurrent();
-					IRootCache rootCache = PersistenceMergeServiceExtension.this.rootCache
-							.getCurrentRootCache();
+			IDatabase database = this.database.getCurrent();
+			IRootCache rootCache = this.rootCache.getCurrentRootCache();
 
-					HashMap<IObjRef, RootCacheValue> toDeleteMap = new HashMap<>();
-					LinkedHashMap<ITableChange, IList<ILinkChangeCommand>> linkChangeCommands = new LinkedHashMap<>();
-					LinkedHashMap<Class<?>, IList<IObjRef>> typeToIdlessReferenceMap = new LinkedHashMap<>();
-					ArrayList<IObjRef> toLoadForDeletion = new ArrayList<>();
-					fillOriList(oriList, allChanges, toLoadForDeletion);
+			HashMap<IObjRef, RootCacheValue> toDeleteMap = new HashMap<>();
+			LinkedHashMap<ITableChange, IList<ILinkChangeCommand>> linkChangeCommands = new LinkedHashMap<>();
+			LinkedHashMap<Class<?>, IList<IObjRef>> typeToIdlessReferenceMap = new LinkedHashMap<>();
+			ArrayList<IObjRef> toLoadForDeletion = new ArrayList<>();
+			fillOriList(oriList, allChanges, toLoadForDeletion);
 
-					loadEntitiesForDeletion(toLoadForDeletion, toDeleteMap, rootCache);
+			loadEntitiesForDeletion(toLoadForDeletion, toDeleteMap, rootCache);
 
-					convertChangeContainersToCommands(database, allChanges, tableChangeMap,
-							typeToIdlessReferenceMap, linkChangeCommands, toDeleteMap, objRefToChangeContainerMap,
-							rootCache, incrementalState);
+			convertChangeContainersToCommands(database, allChanges, tableChangeMap,
+					typeToIdlessReferenceMap, linkChangeCommands, toDeleteMap, objRefToChangeContainerMap,
+					rootCache, incrementalState);
 
-					if (mockIdToObjRefMap == null) {
-						aquireAndAssignIds(typeToIdlessReferenceMap);
-					}
-					else {
-						mockAquireAndAssignIds(typeToIdlessReferenceMap, mockIdToObjRefMap);
-					}
-					processLinkChangeCommands(linkChangeCommands, tableChangeMap, rootCache);
+			if (mockIdToObjRefMap == null) {
+				aquireAndAssignIds(typeToIdlessReferenceMap);
+			}
+			else {
+				mockAquireAndAssignIds(typeToIdlessReferenceMap, mockIdToObjRefMap);
+			}
+			processLinkChangeCommands(linkChangeCommands, tableChangeMap, rootCache);
 
-					if (mockIdToObjRefMap != null) {
-						undoMockIds(mockIdToObjRefMap);
-					}
-				}
-			});
+			if (mockIdToObjRefMap != null) {
+				undoMockIds(mockIdToObjRefMap);
+			}
 		}
 		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
+		}
+		finally {
+			rollback.rollback();
 		}
 	}
 

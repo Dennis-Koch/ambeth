@@ -65,7 +65,7 @@ import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.model.IMethodDescription;
 import com.koch.ambeth.util.proxy.CascadedInterceptor;
 import com.koch.ambeth.util.state.IStateRollback;
-import com.koch.ambeth.util.threading.IBackgroundWorkerDelegate;
+import com.koch.ambeth.util.state.NoOpStateRollback;
 import com.koch.ambeth.util.threading.IGuiThreadHelper;
 import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
 
@@ -127,7 +127,7 @@ public class MergeServiceRegistry implements IMergeService, IMergeServiceExtensi
 	protected IMergeSecurityManager mergeSecurityManager;
 
 	@Autowired(optional = true)
-	protected ISecurityActivation securityActive;
+	protected ISecurityActivation securityActivation;
 
 	@Autowired(optional = true)
 	protected ILightweightTransaction transaction;
@@ -230,13 +230,14 @@ public class MergeServiceRegistry implements IMergeService, IMergeServiceExtensi
 								+ System.identityHashCode(state != null ? state : cudResultOfCache) + "]");
 					}
 					if (mergeSecurityManager != null) {
-						securityActive.executeWithSecurityDirective(SecurityDirective.enableEntity(),
-								new IBackgroundWorkerDelegate() {
-									@Override
-									public void invoke() throws Exception {
-										mergeSecurityManager.checkMergeAccess(extendedCudResult, methodDescription);
-									}
-								});
+						IStateRollback rollback = securityActivation.pushWithSecurityDirective(
+								SecurityDirective.enableEntity(), IStateRollback.EMPTY_ROLLBACKS);
+						try {
+							mergeSecurityManager.checkMergeAccess(extendedCudResult, methodDescription);
+						}
+						finally {
+							rollback.rollback();
+						}
 					}
 					ArrayList<Object> originalRefsOfCache = new ArrayList<>(
 							cudResultOfCache.getOriginalRefs());
@@ -287,16 +288,17 @@ public class MergeServiceRegistry implements IMergeService, IMergeServiceExtensi
 				}
 			}
 		};
+		IStateRollback rollback = securityActivation != null
+				? securityActivation.pushWithoutFiltering(IStateRollback.EMPTY_ROLLBACKS)
+				: NoOpStateRollback.instance;
 		try {
-			if (securityActive == null || !securityActive.isFilterActivated()) {
-				return runnable.invoke();
-			}
-			else {
-				return securityActive.executeWithoutFiltering(runnable);
-			}
+			return runnable.invoke();
 		}
 		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
+		}
+		finally {
+			rollback.rollback();
 		}
 	}
 

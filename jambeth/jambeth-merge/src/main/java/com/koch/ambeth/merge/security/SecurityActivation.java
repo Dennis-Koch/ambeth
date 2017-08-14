@@ -28,7 +28,6 @@ import com.koch.ambeth.ioc.threadlocal.IThreadLocalCleanupBean;
 import com.koch.ambeth.merge.config.MergeConfigurationConstants;
 import com.koch.ambeth.util.state.AbstractStateRollback;
 import com.koch.ambeth.util.state.IStateRollback;
-import com.koch.ambeth.util.threading.IBackgroundWorkerDelegate;
 import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
 
 public class SecurityActivation implements ISecurityActivation, IThreadLocalCleanupBean {
@@ -102,19 +101,6 @@ public class SecurityActivation implements ISecurityActivation, IThreadLocalClea
 	}
 
 	@Override
-	public void executeWithoutSecurity(IBackgroundWorkerDelegate pausedSecurityRunnable)
-			throws Exception {
-		Boolean oldSecurityActive = securityActiveTL.get();
-		securityActiveTL.set(Boolean.FALSE);
-		try {
-			pausedSecurityRunnable.invoke();
-		}
-		finally {
-			securityActiveTL.set(oldSecurityActive);
-		}
-	}
-
-	@Override
 	public <R> R executeWithoutSecurity(IResultingBackgroundWorkerDelegate<R> pausedSecurityRunnable)
 			throws Exception {
 		Boolean oldSecurityActive = securityActiveTL.get();
@@ -124,130 +110,6 @@ public class SecurityActivation implements ISecurityActivation, IThreadLocalClea
 		}
 		finally {
 			securityActiveTL.set(oldSecurityActive);
-		}
-	}
-
-	@Override
-	public void executeWithoutFiltering(IBackgroundWorkerDelegate noFilterRunnable) throws Exception {
-		Boolean oldFilterActive = entityActiveTL.get();
-		entityActiveTL.set(Boolean.FALSE);
-		try {
-			noFilterRunnable.invoke();
-		}
-		finally {
-			entityActiveTL.set(oldFilterActive);
-		}
-	}
-
-	@Override
-	public <R> R executeWithoutFiltering(IResultingBackgroundWorkerDelegate<R> noFilterRunnable)
-			throws Exception {
-		Boolean oldFilterActive = entityActiveTL.get();
-		entityActiveTL.set(Boolean.FALSE);
-		try {
-			return noFilterRunnable.invoke();
-		}
-		finally {
-			entityActiveTL.set(oldFilterActive);
-		}
-	}
-
-	@Override
-	public void executeWithSecurityDirective(Set<SecurityDirective> securityDirective,
-			IBackgroundWorkerDelegate runnable) throws Exception {
-		Boolean securityActive = securityDirective.contains(SecurityDirective.DISABLE_SECURITY)
-				? Boolean.FALSE
-				: securityDirective.contains(SecurityDirective.ENABLE_SECURITY) ? Boolean.TRUE : null;
-		Boolean entityActive = securityDirective.contains(SecurityDirective.DISABLE_ENTITY_CHECK)
-				? Boolean.FALSE
-				: securityDirective.contains(SecurityDirective.ENABLE_ENTITY_CHECK) ? Boolean.TRUE : null;
-		Boolean serviceActive = securityDirective.contains(SecurityDirective.DISABLE_SERVICE_CHECK)
-				? Boolean.FALSE
-				: securityDirective.contains(SecurityDirective.ENABLE_SERVICE_CHECK) ? Boolean.TRUE : null;
-		Boolean oldSecurityActive = null, oldEntityActive = null, oldServiceActive = null;
-		if (securityActive != null) {
-			oldSecurityActive = securityActiveTL.get();
-			securityActiveTL.set(securityActive);
-		}
-		try {
-			if (entityActive != null) {
-				oldEntityActive = entityActiveTL.get();
-				entityActiveTL.set(entityActive);
-			}
-			try {
-				if (serviceActive != null) {
-					oldServiceActive = serviceActiveTL.get();
-					serviceActiveTL.set(serviceActive);
-				}
-				try {
-					runnable.invoke();
-					return;
-				}
-				finally {
-					if (serviceActive != null) {
-						serviceActiveTL.set(oldServiceActive);
-					}
-				}
-			}
-			finally {
-				if (entityActive != null) {
-					entityActiveTL.set(oldEntityActive);
-				}
-			}
-		}
-		finally {
-			if (securityActive != null) {
-				securityActiveTL.set(oldSecurityActive);
-			}
-		}
-	}
-
-	@Override
-	public <R> R executeWithSecurityDirective(Set<SecurityDirective> securityDirective,
-			IResultingBackgroundWorkerDelegate<R> runnable) throws Exception {
-		Boolean securityActive = securityDirective.contains(SecurityDirective.DISABLE_SECURITY)
-				? Boolean.FALSE
-				: securityDirective.contains(SecurityDirective.ENABLE_SECURITY) ? Boolean.TRUE : null;
-		Boolean entityActive = securityDirective.contains(SecurityDirective.DISABLE_ENTITY_CHECK)
-				? Boolean.FALSE
-				: securityDirective.contains(SecurityDirective.ENABLE_ENTITY_CHECK) ? Boolean.TRUE : null;
-		Boolean serviceActive = securityDirective.contains(SecurityDirective.DISABLE_SERVICE_CHECK)
-				? Boolean.FALSE
-				: securityDirective.contains(SecurityDirective.ENABLE_SERVICE_CHECK) ? Boolean.TRUE : null;
-		Boolean oldSecurityActive = null, oldEntityActive = null, oldServiceActive = null;
-		if (securityActive != null) {
-			oldSecurityActive = securityActiveTL.get();
-			securityActiveTL.set(securityActive);
-		}
-		try {
-			if (entityActive != null) {
-				oldEntityActive = entityActiveTL.get();
-				entityActiveTL.set(entityActive);
-			}
-			try {
-				if (serviceActive != null) {
-					oldServiceActive = serviceActiveTL.get();
-					serviceActiveTL.set(serviceActive);
-				}
-				try {
-					return runnable.invoke();
-				}
-				finally {
-					if (serviceActive != null) {
-						serviceActiveTL.set(oldServiceActive);
-					}
-				}
-			}
-			finally {
-				if (entityActive != null) {
-					entityActiveTL.set(oldEntityActive);
-				}
-			}
-		}
-		finally {
-			if (securityActive != null) {
-				securityActiveTL.set(oldSecurityActive);
-			}
 		}
 	}
 

@@ -41,7 +41,8 @@ import com.koch.ambeth.service.model.IServiceDescription;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.objectcollector.IThreadLocalObjectCollector;
-import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
+import com.koch.ambeth.util.state.IStateRollback;
+import com.koch.ambeth.util.state.NoOpStateRollback;
 
 public class ServiceResultCache implements IServiceResultCache {
 	@Autowired
@@ -59,11 +60,9 @@ public class ServiceResultCache implements IServiceResultCache {
 	@Property(name = CacheConfigurationConstants.ServiceResultCacheActive, defaultValue = "false")
 	protected boolean useResultCache;
 
-	protected final HashMap<ServiceResultCacheKey, IServiceResult> serviceCallToResult =
-			new HashMap<>();
+	protected final HashMap<ServiceResultCacheKey, IServiceResult> serviceCallToResult = new HashMap<>();
 
-	protected final HashSet<ServiceResultCacheKey> serviceCallToPendingResult =
-			new HashSet<>();
+	protected final HashSet<ServiceResultCacheKey> serviceCallToPendingResult = new HashSet<>();
 
 	protected final Lock writeLock = new ReentrantLock();
 
@@ -112,19 +111,16 @@ public class ServiceResultCache implements IServiceResultCache {
 		}
 		boolean success = false;
 		try {
-			if (securityActivation != null) {
-				serviceResult = securityActivation
-						.executeWithoutFiltering(new IResultingBackgroundWorkerDelegate<IServiceResult>() {
-							@Override
-							public IServiceResult invoke() throws Exception {
-								return executeServiceDelegate.invoke(serviceDescription);
-							}
-						});
-			}
-			else {
+			IStateRollback rollback = securityActivation != null
+					? securityActivation.pushWithoutFiltering(IStateRollback.EMPTY_ROLLBACKS)
+					: NoOpStateRollback.instance;
+			try {
 				serviceResult = executeServiceDelegate.invoke(serviceDescription);
+				success = true;
 			}
-			success = true;
+			finally {
+				rollback.rollback();
+			}
 		}
 		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);

@@ -88,57 +88,38 @@ public class DataSetupExecutor implements IStartingBean {
 		if (auditInfoController != null) {
 			auditInfoController.pushAuditReason("Data Rebuild!");
 		}
+		IStateRollback rollback = securityActivation
+				.pushWithoutSecurity(IStateRollback.EMPTY_ROLLBACKS);
 		try {
-			securityActivation.executeWithoutSecurity(new IResultingBackgroundWorkerDelegate<Object>() {
-				@Override
-				public Object invoke() throws Exception {
-					IStateRollback suppressPasswordValidationRevert = passwordUtil
-							.suppressPasswordValidation();
-					try {
-						log.info("Processing test data setup...");
-						final Collection<Object> dataSet = dataSetup.executeDatasetBuilders();
-						log.info("Test data setup defined");
+			rollback = passwordUtil.pushSuppressPasswordValidation(rollback);
 
-						final IBackgroundWorkerDelegate transactionDelegate = new IBackgroundWorkerDelegate() {
-							@Override
-							public void invoke() throws Exception {
-								permissionGroupUpdater.executeWithoutPermissionGroupUpdate(
-										new IResultingBackgroundWorkerDelegate<Object>() {
-											@Override
-											public Object invoke() throws Exception {
-												if (!dataSet.isEmpty()) {
-													log.info("Merging created test data");
-													mergeProcess.process(dataSet, null, null, null);
-													log.info("Merging of created test data finished");
-												}
-												return null;
-											}
-										});
-								log.info("Filling potential permission group tables based in created test data");
-								permissionGroupUpdater.fillEmptyPermissionGroups();
-								log.info("Filling of potential permission group tables finished");
-							}
-						};
-						IDataSetupWithAuthorization dataSetupWithAuthorization = dataSetup
-								.resolveDataSetupWithAuthorization();
-						if (dataSetupWithAuthorization != null) {
-							dataSetupWithAuthorization
-									.executeWithAuthorization(new IResultingBackgroundWorkerDelegate<Object>() {
-										@Override
-										public Object invoke() throws Exception {
-											transaction.runInTransaction(transactionDelegate);
-											return null;
-										}
-									});
-						}
-						else {
-							transaction.runInTransaction(transactionDelegate);
-						}
-						return null;
-					}
-					finally {
-						suppressPasswordValidationRevert.rollback();
-					}
+			log.info("Processing test data setup...");
+			final Collection<Object> dataSet = dataSetup.executeDatasetBuilders();
+			log.info("Test data setup defined");
+
+			IDataSetupWithAuthorization dataSetupWithAuthorization = dataSetup
+					.resolveDataSetupWithAuthorization();
+			if (dataSetupWithAuthorization != null) {
+				rollback = dataSetupWithAuthorization.pushAuthorization(rollback);
+			}
+			transaction.runInTransaction(new IBackgroundWorkerDelegate() {
+				@Override
+				public void invoke() throws Exception {
+					permissionGroupUpdater.executeWithoutPermissionGroupUpdate(
+							new IResultingBackgroundWorkerDelegate<Object>() {
+								@Override
+								public Object invoke() throws Exception {
+									if (!dataSet.isEmpty()) {
+										log.info("Merging created test data");
+										mergeProcess.process(dataSet, null, null, null);
+										log.info("Merging of created test data finished");
+									}
+									return null;
+								}
+							});
+					log.info("Filling potential permission group tables based in created test data");
+					permissionGroupUpdater.fillEmptyPermissionGroups();
+					log.info("Filling of potential permission group tables finished");
 				}
 			});
 		}
@@ -146,6 +127,7 @@ public class DataSetupExecutor implements IStartingBean {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 		finally {
+			rollback.rollback();
 			if (auditInfoController != null) {
 				auditInfoController.popAuditReason();
 			}

@@ -104,6 +104,8 @@ import com.koch.ambeth.util.collections.LinkedHashSet;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.io.FastByteArrayOutputStream;
 import com.koch.ambeth.util.model.IDataObject;
+import com.koch.ambeth.util.state.IStateRollback;
+import com.koch.ambeth.util.state.NoOpStateRollback;
 import com.koch.ambeth.util.threading.IBackgroundWorkerParamDelegate;
 import com.koch.ambeth.util.threading.IGuiThreadHelper;
 import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
@@ -521,22 +523,15 @@ public class RootCache extends AbstractCache<RootCacheValue>
 			boolean loadSuccess = false;
 			try {
 				List<ILoadContainer> loadedEntities;
+				IStateRollback rollback = NoOpStateRollback.instance;
 				if (privileged && securityActivation != null && securityActivation.isFilterActivated()) {
-					try {
-						loadedEntities = securityActivation.executeWithoutFiltering(
-								new IResultingBackgroundWorkerDelegate<List<ILoadContainer>>() {
-									@Override
-									public List<ILoadContainer> invoke() throws Exception {
-										return cacheRetriever.getEntities(orisToLoad);
-									}
-								});
-					}
-					catch (Exception e) {
-						throw RuntimeExceptionUtil.mask(e);
-					}
+					rollback = securityActivation.pushWithoutFiltering(IStateRollback.EMPTY_ROLLBACKS);
 				}
-				else {
+				try {
 					loadedEntities = cacheRetriever.getEntities(orisToLoad);
+				}
+				finally {
+					rollback.rollback();
 				}
 
 				// Acquire write lock and mark this state. In the finally-Block the writeLock
@@ -677,22 +672,15 @@ public class RootCache extends AbstractCache<RootCacheValue>
 				}
 				if (!objRelMisses.isEmpty()) {
 					List<IObjRelationResult> loadedObjectRelations;
+					IStateRollback rollback = NoOpStateRollback.instance;
 					if (privileged && securityActivation != null && securityActivation.isFilterActivated()) {
-						try {
-							loadedObjectRelations = securityActivation.executeWithoutFiltering(
-									new IResultingBackgroundWorkerDelegate<List<IObjRelationResult>>() {
-										@Override
-										public List<IObjRelationResult> invoke() throws Exception {
-											return cacheRetriever.getRelations(objRelMisses);
-										}
-									});
-						}
-						catch (Exception e) {
-							throw RuntimeExceptionUtil.mask(e);
-						}
+						rollback = securityActivation.pushWithoutFiltering(IStateRollback.EMPTY_ROLLBACKS);
 					}
-					else {
+					try {
 						loadedObjectRelations = cacheRetriever.getRelations(objRelMisses);
+					}
+					finally {
+						rollback.rollback();
 					}
 					loadObjects(loadedObjectRelations, objRelToResultMap);
 					readLock.lock();

@@ -20,8 +20,8 @@ limitations under the License.
  * #L%
  */
 
-import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
+import com.koch.ambeth.util.state.IStateRollback;
 
 public interface IDataSetupWithAuthorization {
-	<T> T executeWithAuthorization(IResultingBackgroundWorkerDelegate<T> runnable) throws Exception;
+	IStateRollback pushAuthorization(IStateRollback... rollbacks);
 }

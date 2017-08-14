@@ -71,7 +71,6 @@ import com.koch.ambeth.util.model.IDataObject;
 import com.koch.ambeth.util.state.IStateRollback;
 import com.koch.ambeth.util.threading.IBackgroundWorkerDelegate;
 import com.koch.ambeth.util.threading.IBackgroundWorkerParamDelegate;
-import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
 import com.koch.ambeth.xml.ioc.XmlModule;
 
 @TestFrameworkModule({ AuditModule.class, AuditMethodCallTestFrameworkModule.class,
@@ -159,20 +158,13 @@ public class AuditTamperTest extends AbstractInformationBusWithPersistenceTest {
 		}
 
 		@Override
-		public <T> T executeWithAuthorization(IResultingBackgroundWorkerDelegate<T> runnable)
-				throws Exception {
+		public IStateRollback pushAuthorization(IStateRollback... rollbacks) {
 			IStateRollback rollback = securityContextHolder.pushAuthentication(new DefaultAuthentication(
 					DEFAULT_USER, DEFAULT_PASSWORD.toCharArray(), PasswordType.PLAIN));
-			try {
-				rollback = securityScopeProvider.pushSecurityScopes(StringSecurityScope.DEFAULT_SCOPE,
-						rollback);
-				rollback = auditInfoController.pushAuthorizedUser(defaultUser,
-						DEFAULT_PASSWORD.toCharArray(), true, rollback);
-				return runnable.invoke();
-			}
-			finally {
-				rollback.rollback();
-			}
+			rollback = securityScopeProvider.pushSecurityScopes(StringSecurityScope.DEFAULT_SCOPE,
+					rollback);
+			return auditInfoController.pushAuthorizedUser(defaultUser, DEFAULT_PASSWORD.toCharArray(),
+					true, rollback);
 		}
 	}
 

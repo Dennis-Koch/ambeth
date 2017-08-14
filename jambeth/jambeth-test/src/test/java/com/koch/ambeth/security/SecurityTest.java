@@ -51,7 +51,7 @@ import com.koch.ambeth.merge.cache.ICache;
 import com.koch.ambeth.merge.config.MergeConfigurationConstants;
 import com.koch.ambeth.merge.security.ISecurityActivation;
 import com.koch.ambeth.persistence.api.IDatabase;
-import com.koch.ambeth.persistence.api.database.ResultingDatabaseCallback;
+import com.koch.ambeth.persistence.api.database.DatabaseCallback;
 import com.koch.ambeth.persistence.xml.TestServicesModule;
 import com.koch.ambeth.persistence.xml.model.Employee;
 import com.koch.ambeth.persistence.xml.model.IBusinessService;
@@ -72,8 +72,8 @@ import com.koch.ambeth.testutil.TestProperties;
 import com.koch.ambeth.testutil.TestPropertiesList;
 import com.koch.ambeth.util.codec.Base64;
 import com.koch.ambeth.util.collections.ILinkedMap;
+import com.koch.ambeth.util.state.IStateRollback;
 import com.koch.ambeth.util.threading.IBackgroundWorkerDelegate;
-import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
 
 @SQLData("/com/koch/ambeth/security/Relations_data.sql")
 @SQLStructure("/com/koch/ambeth/security/Relations_structure.sql")
@@ -176,27 +176,26 @@ public class SecurityTest extends AbstractInformationBusWithPersistenceTest {
 				});
 			}
 		};
-		transaction.processAndCommit(new ResultingDatabaseCallback<Object>() {
+		transaction.processAndCommit(new DatabaseCallback() {
 			@Override
-			public Object callback(ILinkedMap<Object, IDatabase> persistenceUnitToDatabaseMap)
+			public void callback(ILinkedMap<Object, IDatabase> persistenceUnitToDatabaseMap)
 					throws Exception {
-				Object result = securityActivation
-						.executeWithoutSecurity(new IResultingBackgroundWorkerDelegate<Object>() {
-							@Override
-							public Object invoke() throws Exception {
-								List<Employee> employees = cache.getObjects(Employee.class, 1, 2, 3);
-								assertFalse(employees.isEmpty());
+				IStateRollback rollback = securityActivation
+						.pushWithoutSecurity(IStateRollback.EMPTY_ROLLBACKS);
+				try {
+					List<Employee> employees = cache.getObjects(Employee.class, 1, 2, 3);
+					assertFalse(employees.isEmpty());
 
-								employeeService.delete(employees);
+					employeeService.delete(employees);
 
-								// test privileged transactional root cache
-								checkRootCache.invoke();
-								return null;
-							}
-						});
+					// test privileged transactional root cache
+					checkRootCache.invoke();
+				}
+				finally {
+					rollback.rollback();
+				}
 				// test non-privileged transactional root cache
 				checkRootCache.invoke();
-				return result;
 			}
 		});
 		// test committed root cache

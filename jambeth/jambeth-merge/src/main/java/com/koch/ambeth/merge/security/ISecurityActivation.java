@@ -23,7 +23,6 @@ limitations under the License.
 import java.util.Set;
 
 import com.koch.ambeth.util.state.IStateRollback;
-import com.koch.ambeth.util.threading.IBackgroundWorkerDelegate;
 import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
 
 public interface ISecurityActivation {
@@ -33,20 +32,15 @@ public interface ISecurityActivation {
 
 	boolean isFilterActivated();
 
-	void executeWithSecurityDirective(Set<SecurityDirective> securityDirective,
-			IBackgroundWorkerDelegate runnable) throws Exception;
-
-	<R> R executeWithSecurityDirective(Set<SecurityDirective> securityDirective,
-			IResultingBackgroundWorkerDelegate<R> runnable) throws Exception;
-
-	void executeWithoutSecurity(IBackgroundWorkerDelegate pausedSecurityRunnable) throws Exception;
-
+	/**
+	 * Please use {@link #pushWithoutSecurity(IStateRollback...)} instead
+	 * 
+	 * @param pausedSecurityRunnable
+	 * @return
+	 * @throws Exception
+	 */
+	@Deprecated
 	<R> R executeWithoutSecurity(IResultingBackgroundWorkerDelegate<R> pausedSecurityRunnable)
-			throws Exception;
-
-	void executeWithoutFiltering(IBackgroundWorkerDelegate noFilterRunnable) throws Exception;
-
-	<R> R executeWithoutFiltering(IResultingBackgroundWorkerDelegate<R> noFilterRunnable)
 			throws Exception;
 
 	IStateRollback pushWithSecurityDirective(Set<SecurityDirective> securityDirective,

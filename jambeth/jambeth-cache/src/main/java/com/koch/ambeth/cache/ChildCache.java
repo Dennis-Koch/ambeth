@@ -69,7 +69,8 @@ import com.koch.ambeth.util.collections.HashSet;
 import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.model.IDataObject;
-import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
+import com.koch.ambeth.util.state.IStateRollback;
+import com.koch.ambeth.util.state.NoOpStateRollback;
 
 public class ChildCache extends AbstractCache<Object>
 		implements ICacheIntern, IWritableCache, IDisposableCache {
@@ -461,8 +462,8 @@ public class ChildCache extends AbstractCache<Object>
 	}
 
 	@Override
-	public IList<IObjRelationResult> getObjRelations(final List<IObjRelation> objRels,
-			final ICacheIntern targetCache, final Set<CacheDirective> cacheDirective) {
+	public IList<IObjRelationResult> getObjRelations(List<IObjRelation> objRels,
+			ICacheIntern targetCache, Set<CacheDirective> cacheDirective) {
 		checkNotDisposed();
 		IEventQueue eventQueue = this.eventQueue;
 		if (eventQueue != null) {
@@ -474,19 +475,17 @@ public class ChildCache extends AbstractCache<Object>
 			boolean acquireSuccess = acquireHardRefTLIfNotAlready(objRels.size());
 			cacheModification.setActive(true);
 			try {
+				IStateRollback rollback = NoOpStateRollback.instance;
 				if (securityActive && ((targetCache == null && isPrivileged())
 						|| (targetCache != null && targetCache.isPrivileged())//
 								&& securityActivation != null && securityActivation.isFilterActivated())) {
-					return securityActivation.executeWithoutFiltering(
-							new IResultingBackgroundWorkerDelegate<IList<IObjRelationResult>>() {
-								@Override
-								public IList<IObjRelationResult> invoke() throws Exception {
-									return parent.getObjRelations(objRels, targetCache, cacheDirective);
-								}
-							});
+					rollback = securityActivation.pushWithoutFiltering(IStateRollback.EMPTY_ROLLBACKS);
 				}
-				else {
+				try {
 					return parent.getObjRelations(objRels, targetCache, cacheDirective);
+				}
+				finally {
+					rollback.rollback();
 				}
 			}
 			catch (Exception e) {

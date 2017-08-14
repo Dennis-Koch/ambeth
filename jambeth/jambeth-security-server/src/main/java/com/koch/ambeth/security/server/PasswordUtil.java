@@ -73,6 +73,7 @@ import com.koch.ambeth.util.collections.EmptyList;
 import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.SmartCopyMap;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
+import com.koch.ambeth.util.state.AbstractStateRollback;
 import com.koch.ambeth.util.state.IStateRollback;
 
 public class PasswordUtil implements IInitializingBean, IPasswordUtil,
@@ -203,12 +204,12 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil,
 	}
 
 	@Override
-	public IStateRollback suppressPasswordValidation() {
+	public IStateRollback pushSuppressPasswordValidation(IStateRollback... rollbacks) {
 		final Boolean oldValue = suppressPasswordValidationTL.get();
 		suppressPasswordValidationTL.set(Boolean.TRUE);
-		return new IStateRollback() {
+		return new AbstractStateRollback(rollbacks) {
 			@Override
-			public void rollback() {
+			protected void rollbackIntern() throws Exception {
 				suppressPasswordValidationTL.set(oldValue);
 			}
 		};

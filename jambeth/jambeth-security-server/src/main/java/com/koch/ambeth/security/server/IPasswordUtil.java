@@ -17,5 +17,5 @@ public interface IPasswordUtil {
 
 	void reencryptAllSalts(char[] newLoginSaltPassword);
 
-	IStateRollback suppressPasswordValidation();
+	IStateRollback pushSuppressPasswordValidation(IStateRollback... rollbacks);
 }
