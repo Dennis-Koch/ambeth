@@ -63,8 +63,8 @@ import com.koch.ambeth.util.collections.IdentityHashMap;
 import com.koch.ambeth.util.collections.LinkedHashSet;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.model.IDataObject;
+import com.koch.ambeth.util.state.IStateRollback;
 import com.koch.ambeth.util.threading.IBackgroundWorkerDelegate;
-import com.koch.ambeth.util.threading.IResultingBackgroundWorkerParamDelegate;
 
 public class CUDResultApplier implements ICUDResultApplier {
 	private static class CloneState {
@@ -114,17 +114,15 @@ public class CUDResultApplier implements ICUDResultApplier {
 			// given cache is already the current cache
 			return applyIntern(cudResult, checkBaseState, (IncrementalMergeState) incrementalState);
 		}
+		IStateRollback rollback = cacheContext.pushCache(cache);
 		try {
-			return cacheContext.executeWithCache(cache,
-					new IResultingBackgroundWorkerParamDelegate<ICUDResult, ICUDResult>() {
-						@Override
-						public ICUDResult invoke(ICUDResult state) throws Exception {
-							return applyIntern(state, checkBaseState, (IncrementalMergeState) incrementalState);
-						}
-					}, cudResult);
+			return applyIntern(cudResult, checkBaseState, (IncrementalMergeState) incrementalState);
 		}
 		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
+		}
+		finally {
+			rollback.rollback();
 		}
 	}
 

@@ -40,6 +40,7 @@ import com.koch.ambeth.merge.cache.ICache;
 import com.koch.ambeth.merge.cache.ICacheContext;
 import com.koch.ambeth.merge.cache.ICacheFactory;
 import com.koch.ambeth.merge.cache.ICacheProvider;
+import com.koch.ambeth.merge.cache.IDisposableCache;
 import com.koch.ambeth.merge.proxy.IObjRefContainer;
 import com.koch.ambeth.persistence.jdbc.alternateid.AlternateIdTest.AlternateIdModule;
 import com.koch.ambeth.query.IQuery;
@@ -51,13 +52,12 @@ import com.koch.ambeth.testutil.AbstractInformationBusWithPersistenceTest;
 import com.koch.ambeth.testutil.TestModule;
 import com.koch.ambeth.testutil.TestProperties;
 import com.koch.ambeth.util.collections.IList;
-import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
+import com.koch.ambeth.util.state.IStateRollback;
 
 @SQLData("alternateid_data.sql")
 @SQLStructure("alternateid_structure.sql")
 @TestModule(AlternateIdModule.class)
-@TestProperties(name = ServiceConfigurationConstants.mappingFile,
-		value = "com/koch/ambeth/persistence/jdbc/alternateid/alternateid_orm.xml")
+@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "com/koch/ambeth/persistence/jdbc/alternateid/alternateid_orm.xml")
 public class AlternateIdTest extends AbstractInformationBusWithPersistenceTest {
 	public static class AlternateIdModule implements IInitializingModule {
 		@Override
@@ -115,10 +115,10 @@ public class AlternateIdTest extends AbstractInformationBusWithPersistenceTest {
 		ICache cache = cacheProvider.getCurrentCache();
 
 		AlternateIdEntity entityFromCacheById = cache.getObject(entity.getClass(), entity.getId());
-		AlternateIdEntity entityFromCacheById2 =
-				cache.getObject(entity.getClass(), "Id", entity.getId());
-		AlternateIdEntity entityFromCacheByName =
-				cache.getObject(entity.getClass(), "Name", entity.getName());
+		AlternateIdEntity entityFromCacheById2 = cache.getObject(entity.getClass(), "Id",
+				entity.getId());
+		AlternateIdEntity entityFromCacheByName = cache.getObject(entity.getClass(), "Name",
+				entity.getName());
 
 		Assert.assertSame(entityFromCacheById, entityFromCacheById2);
 		Assert.assertSame(entityFromCacheById, entityFromCacheByName);
@@ -136,8 +136,8 @@ public class AlternateIdTest extends AbstractInformationBusWithPersistenceTest {
 
 		service.updateAlternateIdEntity(entity);
 
-		AlternateIdEntity entityFromCacheByIdAfterChange =
-				cache.getObject(entity.getClass(), entity.getId());
+		AlternateIdEntity entityFromCacheByIdAfterChange = cache.getObject(entity.getClass(),
+				entity.getId());
 
 		Assert.assertSame(entityFromCacheById, entityFromCacheByIdAfterChange);
 	}
@@ -200,8 +200,8 @@ public class AlternateIdTest extends AbstractInformationBusWithPersistenceTest {
 	 */
 	@Test
 	public void testBaseEntity2() {
-		IEntityMetaData metaData =
-				beanContext.getService(IEntityMetaDataProvider.class).getMetaData(BaseEntity2.class);
+		IEntityMetaData metaData = beanContext.getService(IEntityMetaDataProvider.class)
+				.getMetaData(BaseEntity2.class);
 
 		Assert.assertEquals(1, metaData.getAlternateIdMembers().length);
 	}
@@ -217,35 +217,35 @@ public class AlternateIdTest extends AbstractInformationBusWithPersistenceTest {
 
 		aeEntity.setName("AE_1");
 		be2.setName("BE_2");
-		cacheContext.executeWithCache(cacheFactory.create(CacheFactoryDirective.NoDCE, "test"),
-				new IResultingBackgroundWorkerDelegate<Object>() {
-					@Override
-					public Object invoke() throws Exception {
-						IMergeProcess mergeProcess = beanContext.getService(IMergeProcess.class);
-
-						mergeProcess.process(aeEntity, null, null, null);
-						return null;
-					}
-				});
-		cacheContext.executeWithCache(cacheFactory.create(CacheFactoryDirective.NoDCE, "test"),
-				new IResultingBackgroundWorkerDelegate<Object>() {
-					@Override
-					public Object invoke() throws Exception {
-						IQueryBuilder<AlternateIdEntity> qb =
-								queryBuilderFactory.create(AlternateIdEntity.class);
-						IQuery<AlternateIdEntity> query =
-								qb.build(qb.isEqualTo(qb.property("Id"), qb.value(aeEntity.getId())));
-						IList<AlternateIdEntity> result = query.retrieve();
-						Assert.assertEquals(1, result.size());
-						AlternateIdEntity item = result.get(0);
-						IEntityMetaData metaData = entityMetaDataProvider.getMetaData(AlternateIdEntity.class);
-						int relationIndex = metaData.getIndexByRelationName("BaseEntities2");
-						Assert.assertTrue(!((IObjRefContainer) item).is__Initialized(relationIndex));
-						List<BaseEntity2> baseEntities2 = item.getBaseEntities2();
-						BaseEntity2 baseEntity2 = baseEntities2.get(0);
-						Assert.assertNotNull(baseEntity2);
-						return null;
-					}
-				});
+		IDisposableCache cache = cacheFactory.create(CacheFactoryDirective.NoDCE, "test");
+		IStateRollback rollback = cacheContext.pushCache(cache);
+		try {
+			IMergeProcess mergeProcess = beanContext.getService(IMergeProcess.class);
+			mergeProcess.process(aeEntity, null, null, null);
+		}
+		finally {
+			rollback.rollback();
+			cache.dispose();
+		}
+		cache = cacheFactory.create(CacheFactoryDirective.NoDCE, "test");
+		rollback = cacheContext.pushCache(cache);
+		try {
+			IQueryBuilder<AlternateIdEntity> qb = queryBuilderFactory.create(AlternateIdEntity.class);
+			IQuery<AlternateIdEntity> query = qb
+					.build(qb.isEqualTo(qb.property("Id"), qb.value(aeEntity.getId())));
+			IList<AlternateIdEntity> result = query.retrieve();
+			Assert.assertEquals(1, result.size());
+			AlternateIdEntity item = result.get(0);
+			IEntityMetaData metaData = entityMetaDataProvider.getMetaData(AlternateIdEntity.class);
+			int relationIndex = metaData.getIndexByRelationName("BaseEntities2");
+			Assert.assertTrue(!((IObjRefContainer) item).is__Initialized(relationIndex));
+			List<BaseEntity2> baseEntities2 = item.getBaseEntities2();
+			BaseEntity2 baseEntity2 = baseEntities2.get(0);
+			Assert.assertNotNull(baseEntity2);
+		}
+		finally {
+			rollback.rollback();
+			cache.dispose();
+		}
 	}
 }

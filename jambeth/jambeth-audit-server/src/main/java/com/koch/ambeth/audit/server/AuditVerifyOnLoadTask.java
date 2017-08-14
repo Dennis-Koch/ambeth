@@ -45,7 +45,7 @@ import com.koch.ambeth.service.merge.model.IObjRef;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
-import com.koch.ambeth.util.threading.IBackgroundWorkerDelegate;
+import com.koch.ambeth.util.state.IStateRollback;
 import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
 
 public class AuditVerifyOnLoadTask implements Runnable, IAuditVerifyOnLoadTask, IDisposableBean {
@@ -198,28 +198,20 @@ public class AuditVerifyOnLoadTask implements Runnable, IAuditVerifyOnLoadTask, 
 		IDisposableCache cache = cacheFactory.createPrivileged(CacheFactoryDirective.NoDCE, false,
 				Boolean.FALSE, "AuditEntryVerifier");
 		try {
-			cacheContext.executeWithCache(cache, new IResultingBackgroundWorkerDelegate<Object>() {
-				@Override
-				public Object invoke() throws Exception {
-					executeWithCache(objRefsToVerify);
-					return null;
-				}
-			});
-		}
-		finally {
-			cache.dispose();
-		}
-	}
-
-	protected void executeWithCache(final IList<IObjRef> objRefsToVerify) throws Exception {
-		securityActivation.executeWithoutSecurity(new IBackgroundWorkerDelegate() {
-			@Override
-			public void invoke() throws Exception {
+			IStateRollback rollback = cacheContext.pushCache(cache);
+			try {
+				rollback = securityActivation.pushWithoutSecurity(rollback);
 				if (!auditEntryVerifier.verifyEntities(objRefsToVerify)) {
 					log.error(
 							"Audit entry verification failed: " + Arrays.toString(objRefsToVerify.toArray()));
 				}
 			}
-		});
+			finally {
+				rollback.rollback();
+			}
+		}
+		finally {
+			cache.dispose();
+		}
 	}
 }

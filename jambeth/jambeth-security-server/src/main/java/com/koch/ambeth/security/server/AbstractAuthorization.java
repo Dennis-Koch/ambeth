@@ -192,28 +192,30 @@ public abstract class AbstractAuthorization implements IAuthorization {
 
 	protected Boolean hasActionPermissionIntern(String actionPermissionName,
 			ISecurityScope securityScope) {
-		Boolean value = actionPrivileges.get(securityScope, actionPermissionName);
-		if (value != null) {
-			return value;
-		}
-		Pattern[] actionPatterns = scopeToActionPatternsMap.get(securityScope);
-		if (actionPatterns != null) {
-			for (Pattern actionPattern : actionPatterns) {
-				if (!actionPattern.matcher(actionPermissionName).matches()) {
-					continue;
-				}
-				Boolean valueOfPattern = patternToValueMap.get(actionPattern);
-				if (Boolean.TRUE.equals(valueOfPattern)) {
-					value = Boolean.TRUE;
-					break;
+		synchronized (actionPrivileges) {
+			Boolean value = actionPrivileges.get(securityScope, actionPermissionName);
+			if (value != null) {
+				return value;
+			}
+			Pattern[] actionPatterns = scopeToActionPatternsMap.get(securityScope);
+			if (actionPatterns != null) {
+				for (Pattern actionPattern : actionPatterns) {
+					if (!actionPattern.matcher(actionPermissionName).matches()) {
+						continue;
+					}
+					Boolean valueOfPattern = patternToValueMap.get(actionPattern);
+					if (Boolean.TRUE.equals(valueOfPattern)) {
+						value = Boolean.TRUE;
+						break;
+					}
 				}
 			}
+			if (value == null) {
+				value = Boolean.FALSE;
+			}
+			actionPrivileges.put(securityScope, actionPermissionName, value);
+			return value;
 		}
-		if (value == null) {
-			value = Boolean.FALSE;
-		}
-		actionPrivileges.put(securityScope, actionPermissionName, value);
-		return value;
 	}
 
 	@Override
@@ -222,82 +224,84 @@ public abstract class AbstractAuthorization implements IAuthorization {
 		if (entityTypePrivileges == null) {
 			return defaultEntityTypePrivilege;
 		}
-		if (securityScopes.length == 1) {
-			ITypePrivilege typePrivilege = entityTypePrivileges.get(securityScopes[0], entityType);
-			return typePrivilege != null ? typePrivilege : defaultEntityTypePrivilege;
-		}
-		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(entityType);
-		int primitiveCount = metaData.getPrimitiveMembers().length;
-		int relationCount = metaData.getRelationMembers().length;
-		ITypePropertyPrivilege defaultPropertyPrivilege = null;
-		ITypePropertyPrivilege[] primitivePropertyPrivileges = null;
-		ITypePropertyPrivilege[] relationPropertyPrivileges = null;
-		boolean fastPropertyHandling = true;
-		Boolean read = false, create = false, update = false, delete = false, execute = false;
-		for (int a = 0, size = securityScopes.length; a < size; a++) {
-			ITypePrivilege typePrivilege = entityTypePrivileges.get(securityScopes[a], entityType);
-			if (typePrivilege == null) {
-				continue;
+		synchronized (entityTypePrivileges) {
+			if (securityScopes.length == 1) {
+				ITypePrivilege typePrivilege = entityTypePrivileges.get(securityScopes[0], entityType);
+				return typePrivilege != null ? typePrivilege : defaultEntityTypePrivilege;
 			}
-			read = unionFlags(read, typePrivilege.isReadAllowed());
-			create = unionFlags(create, typePrivilege.isCreateAllowed());
-			update = unionFlags(update, typePrivilege.isUpdateAllowed());
-			delete = unionFlags(delete, typePrivilege.isDeleteAllowed());
-			execute = unionFlags(execute, typePrivilege.isExecuteAllowed());
-
-			ITypePropertyPrivilege defaultPropertyPrivilegeIfValid = typePrivilege
-					.getDefaultPropertyPrivilegeIfValid();
-			if (defaultPropertyPrivilegeIfValid != null) {
-				if (fastPropertyHandling) {
-					defaultPropertyPrivilege = unionPropertyPrivileges(defaultPropertyPrivilege,
-							defaultPropertyPrivilegeIfValid);
+			IEntityMetaData metaData = entityMetaDataProvider.getMetaData(entityType);
+			int primitiveCount = metaData.getPrimitiveMembers().length;
+			int relationCount = metaData.getRelationMembers().length;
+			ITypePropertyPrivilege defaultPropertyPrivilege = null;
+			ITypePropertyPrivilege[] primitivePropertyPrivileges = null;
+			ITypePropertyPrivilege[] relationPropertyPrivileges = null;
+			boolean fastPropertyHandling = true;
+			Boolean read = false, create = false, update = false, delete = false, execute = false;
+			for (int a = 0, size = securityScopes.length; a < size; a++) {
+				ITypePrivilege typePrivilege = entityTypePrivileges.get(securityScopes[a], entityType);
+				if (typePrivilege == null) {
 					continue;
 				}
-				// fastPropertyHandling not possible any more because of preceeding custom privileges
-				// so we union this default privilege with each existing specific property privilege
-				unionPropertyPrivileges(primitivePropertyPrivileges, defaultPropertyPrivilegeIfValid);
-				unionPropertyPrivileges(relationPropertyPrivileges, defaultPropertyPrivilegeIfValid);
-				continue;
+				read = unionFlags(read, typePrivilege.isReadAllowed());
+				create = unionFlags(create, typePrivilege.isCreateAllowed());
+				update = unionFlags(update, typePrivilege.isUpdateAllowed());
+				delete = unionFlags(delete, typePrivilege.isDeleteAllowed());
+				execute = unionFlags(execute, typePrivilege.isExecuteAllowed());
+
+				ITypePropertyPrivilege defaultPropertyPrivilegeIfValid = typePrivilege
+						.getDefaultPropertyPrivilegeIfValid();
+				if (defaultPropertyPrivilegeIfValid != null) {
+					if (fastPropertyHandling) {
+						defaultPropertyPrivilege = unionPropertyPrivileges(defaultPropertyPrivilege,
+								defaultPropertyPrivilegeIfValid);
+						continue;
+					}
+					// fastPropertyHandling not possible any more because of preceeding custom privileges
+					// so we union this default privilege with each existing specific property privilege
+					unionPropertyPrivileges(primitivePropertyPrivileges, defaultPropertyPrivilegeIfValid);
+					unionPropertyPrivileges(relationPropertyPrivileges, defaultPropertyPrivilegeIfValid);
+					continue;
+				}
+				if (fastPropertyHandling) {
+					// fastPropertyHandling no longer possible: we have to define specific property privileges
+					fastPropertyHandling = false;
+					if (defaultPropertyPrivilege != null) {
+						primitivePropertyPrivileges = new ITypePropertyPrivilege[primitiveCount];
+						relationPropertyPrivileges = new ITypePropertyPrivilege[relationCount];
+						Arrays.fill(primitivePropertyPrivileges, defaultPropertyPrivilege);
+						Arrays.fill(relationPropertyPrivileges, defaultPropertyPrivilege);
+						defaultPropertyPrivilege = null;
+					}
+					// no we are ready to union all specific property privileges
+				}
+				for (int b = primitivePropertyPrivileges.length; b-- > 0;) {
+					primitivePropertyPrivileges[b] = unionPropertyPrivileges(primitivePropertyPrivileges[b],
+							typePrivilege.getPrimitivePropertyPrivilege(b));
+				}
+				for (int b = relationPropertyPrivileges.length; b-- > 0;) {
+					relationPropertyPrivileges[b] = unionPropertyPrivileges(relationPropertyPrivileges[b],
+							typePrivilege.getRelationPropertyPrivilege(b));
+				}
 			}
 			if (fastPropertyHandling) {
-				// fastPropertyHandling no longer possible: we have to define specific property privileges
-				fastPropertyHandling = false;
-				if (defaultPropertyPrivilege != null) {
-					primitivePropertyPrivileges = new ITypePropertyPrivilege[primitiveCount];
-					relationPropertyPrivileges = new ITypePropertyPrivilege[relationCount];
-					Arrays.fill(primitivePropertyPrivileges, defaultPropertyPrivilege);
-					Arrays.fill(relationPropertyPrivileges, defaultPropertyPrivilege);
-					defaultPropertyPrivilege = null;
+				return new SimpleTypePrivilegeImpl(create, read, update, delete, execute,
+						defaultPropertyPrivilege);
+			}
+			// the default propertyPrivilege is aligned with the entityType privilege
+			defaultPropertyPrivilege = TypePropertyPrivilegeImpl.create(create, read, update, delete);
+			for (int a = primitivePropertyPrivileges.length; a-- > 0;) {
+				if (primitivePropertyPrivileges[a] == null) {
+					primitivePropertyPrivileges[a] = defaultPropertyPrivilege;
 				}
-				// no we are ready to union all specific property privileges
 			}
-			for (int b = primitivePropertyPrivileges.length; b-- > 0;) {
-				primitivePropertyPrivileges[b] = unionPropertyPrivileges(primitivePropertyPrivileges[b],
-						typePrivilege.getPrimitivePropertyPrivilege(b));
+			for (int a = relationPropertyPrivileges.length; a-- > 0;) {
+				if (relationPropertyPrivileges[a] == null) {
+					relationPropertyPrivileges[a] = defaultPropertyPrivilege;
+				}
 			}
-			for (int b = relationPropertyPrivileges.length; b-- > 0;) {
-				relationPropertyPrivileges[b] = unionPropertyPrivileges(relationPropertyPrivileges[b],
-						typePrivilege.getRelationPropertyPrivilege(b));
-			}
+			return new DefaultTypePrivilegeImpl(create, read, update, delete, execute,
+					primitivePropertyPrivileges, relationPropertyPrivileges);
 		}
-		if (fastPropertyHandling) {
-			return new SimpleTypePrivilegeImpl(create, read, update, delete, execute,
-					defaultPropertyPrivilege);
-		}
-		// the default propertyPrivilege is aligned with the entityType privilege
-		defaultPropertyPrivilege = TypePropertyPrivilegeImpl.create(create, read, update, delete);
-		for (int a = primitivePropertyPrivileges.length; a-- > 0;) {
-			if (primitivePropertyPrivileges[a] == null) {
-				primitivePropertyPrivileges[a] = defaultPropertyPrivilege;
-			}
-		}
-		for (int a = relationPropertyPrivileges.length; a-- > 0;) {
-			if (relationPropertyPrivileges[a] == null) {
-				relationPropertyPrivileges[a] = defaultPropertyPrivilege;
-			}
-		}
-		return new DefaultTypePrivilegeImpl(create, read, update, delete, execute,
-				primitivePropertyPrivileges, relationPropertyPrivileges);
 	}
 
 	public static ITypePropertyPrivilege unionPropertyPrivileges(ITypePropertyPrivilege left,

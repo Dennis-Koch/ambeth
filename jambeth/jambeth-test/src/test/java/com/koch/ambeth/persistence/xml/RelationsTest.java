@@ -76,8 +76,8 @@ import com.koch.ambeth.testutil.TestPropertiesList;
 import com.koch.ambeth.util.IParamHolder;
 import com.koch.ambeth.util.ParamHolder;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
+import com.koch.ambeth.util.state.IStateRollback;
 import com.koch.ambeth.util.threading.IBackgroundWorkerDelegate;
-import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
 import com.koch.ambeth.xml.ioc.XmlModule;
 
 @SQLData("/com/koch/ambeth/persistence/xml/Relations_data.sql")
@@ -541,36 +541,30 @@ public class RelationsTest extends AbstractInformationBusWithPersistenceTest {
 			@Override
 			public void run() {
 				final boolean configureSecurityContext = authentication != null || authorization != null;
+				IStateRollback rollback = cacheContext.pushCache(cacheProvider);
 				try {
-					cacheContext.executeWithCache(cacheProvider,
-							new IResultingBackgroundWorkerDelegate<Object>() {
-								@Override
-								public Object invoke() throws Exception {
-									if (configureSecurityContext) {
-										ISecurityContext context = securityContextHolder.getCreateContext();
-										context.setAuthentication(authentication);
-										context.setAuthorization(authorization);
-									}
-									securityScopeProvider.setSecurityScopes(securityScopes);
+					if (configureSecurityContext) {
+						ISecurityContext context = securityContextHolder.getCreateContext();
+						context.setAuthentication(authentication);
+						context.setAuthorization(authorization);
+					}
+					securityScopeProvider.setSecurityScopes(securityScopes);
 
-									List<Employee> employees = employeeService.getAll();
+					List<Employee> employees = employeeService.getAll();
 
-									barrier1.await();
+					barrier1.await();
 
-									if (Boolean.FALSE.equals(saveFirst)) {
-										firstLatch.await();
-									}
-									Employee firstEmployee = employees.get(0);
-									firstEmployee.setName(firstEmployee.getName() + " jun.");
-									employeeService.save(firstEmployee);
-									for (Employee employee : employees) {
-										assertTrue(0 < employee.getId());
-										assertTrue(0 < employee.getVersion());
-										assertTrue(0 < employee.getPrimaryAddress().getId());
-									}
-									return null;
-								}
-							});
+					if (Boolean.FALSE.equals(saveFirst)) {
+						firstLatch.await();
+					}
+					Employee firstEmployee = employees.get(0);
+					firstEmployee.setName(firstEmployee.getName() + " jun.");
+					employeeService.save(firstEmployee);
+					for (Employee employee : employees) {
+						assertTrue(0 < employee.getId());
+						assertTrue(0 < employee.getVersion());
+						assertTrue(0 < employee.getPrimaryAddress().getId());
+					}
 				}
 				catch (Throwable e) {
 					if (exceptionHolder.getValue() == null) {
@@ -580,6 +574,7 @@ public class RelationsTest extends AbstractInformationBusWithPersistenceTest {
 					barrier1.reset();
 				}
 				finally {
+					rollback.rollback();
 					if (Boolean.TRUE.equals(saveFirst)) {
 						firstLatch.countDown();
 					}
@@ -605,38 +600,32 @@ public class RelationsTest extends AbstractInformationBusWithPersistenceTest {
 			@Override
 			public void run() {
 				final boolean configureSecurityContext = authentication != null || authorization != null;
+				IStateRollback rollback = cacheContext.pushCache(cacheProvider);
 				try {
-					cacheContext.executeWithCache(cacheProvider,
-							new IResultingBackgroundWorkerDelegate<Object>() {
-								@Override
-								public Object invoke() throws Exception {
-									if (configureSecurityContext) {
-										ISecurityContext context = securityContextHolder.getCreateContext();
-										context.setAuthentication(authentication);
-										context.setAuthorization(authorization);
-									}
-									securityScopeProvider.setSecurityScopes(securityScopes);
+					if (configureSecurityContext) {
+						ISecurityContext context = securityContextHolder.getCreateContext();
+						context.setAuthentication(authentication);
+						context.setAuthorization(authorization);
+					}
+					securityScopeProvider.setSecurityScopes(securityScopes);
 
-									List<Employee> employees = employeeService.getAll();
+					List<Employee> employees = employeeService.getAll();
 
-									barrier1.await();
+					barrier1.await();
 
-									if (Boolean.TRUE.equals(saveFirst)) {
-										firstLatch.await();
-									}
-									employeeService.delete(employees);
+					if (Boolean.TRUE.equals(saveFirst)) {
+						firstLatch.await();
+					}
+					employeeService.delete(employees);
 
-									for (Employee employee : employees) {
-										assertTrue(0 == employee.getId());
-										assertTrue(0 == employee.getVersion());
-										Address primaryAddress = employee.getPrimaryAddress();
-										if (primaryAddress != null) {
-											assertTrue(0 == primaryAddress.getId());
-										}
-									}
-									return null;
-								}
-							});
+					for (Employee employee : employees) {
+						assertTrue(0 == employee.getId());
+						assertTrue(0 == employee.getVersion());
+						Address primaryAddress = employee.getPrimaryAddress();
+						if (primaryAddress != null) {
+							assertTrue(0 == primaryAddress.getId());
+						}
+					}
 				}
 				catch (Throwable e) {
 					if (exceptionHolder.getValue() == null) {
@@ -646,6 +635,7 @@ public class RelationsTest extends AbstractInformationBusWithPersistenceTest {
 					barrier1.reset();
 				}
 				finally {
+					rollback.rollback();
 					if (Boolean.FALSE.equals(saveFirst)) {
 						firstLatch.countDown();
 					}

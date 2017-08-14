@@ -82,12 +82,12 @@ import com.koch.ambeth.util.collections.ILinkedMap;
 import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.config.IProperties;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
-import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
+import com.koch.ambeth.util.state.IStateRollback;
 import com.koch.ambeth.util.threading.ProcessIdHelper;
 
 @Category(PerformanceTests.class)
-@TestFrameworkModule({QueryMassDataModule.class})
-@TestModule({TestServicesModule.class})
+@TestFrameworkModule({ QueryMassDataModule.class })
+@TestModule({ TestServicesModule.class })
 @SQLStructure("QueryMassdata_structure.sql")
 @TestPropertiesList({
 		@TestProperties(name = IocConfigurationConstants.TrackDeclarationTrace, value = "false"),
@@ -95,47 +95,30 @@ import com.koch.ambeth.util.threading.ProcessIdHelper;
 		@TestProperties(name = QueryMassdataTest.DURATION_PER_TEST, value = "300"),
 		@TestProperties(name = QueryMassdataTest.QUERY_PAGE_SIZE, value = "500"),
 		@TestProperties(name = QueryMassdataTest.THREAD_COUNT, value = "10"),
-		@TestProperties(name = PersistenceConfigurationConstants.DatabasePoolMaxUnused,
-				value = "${" + QueryMassdataTest.THREAD_COUNT + "}"),
-		@TestProperties(name = PersistenceConfigurationConstants.DatabasePoolMaxUsed,
-				value = "${" + QueryMassdataTest.THREAD_COUNT + "}"),
+		@TestProperties(name = PersistenceConfigurationConstants.DatabasePoolMaxUnused, value = "${"
+				+ QueryMassdataTest.THREAD_COUNT + "}"),
+		@TestProperties(name = PersistenceConfigurationConstants.DatabasePoolMaxUsed, value = "${"
+				+ QueryMassdataTest.THREAD_COUNT + "}"),
 		@TestProperties(name = QueryMassDataModule.ROW_COUNT, value = "2000000"),
-		@TestProperties(name = CacheConfigurationConstants.CacheLruThreshold,
-				value = "${" + QueryMassDataModule.ROW_COUNT + "}"),
-		@TestProperties(name = ServiceConfigurationConstants.mappingFile,
-				value = "com/koch/ambeth/query/QueryMassdata_orm.xml"),
+		@TestProperties(name = CacheConfigurationConstants.CacheLruThreshold, value = "${"
+				+ QueryMassDataModule.ROW_COUNT + "}"),
+		@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "com/koch/ambeth/query/QueryMassdata_orm.xml"),
 		@TestProperties(name = CacheConfigurationConstants.SecondLevelCacheActive, value = "false"),
 		@TestProperties(name = CacheConfigurationConstants.ServiceResultCacheActive, value = "false"),
 		@TestProperties(name = PersistenceConfigurationConstants.QueryCacheActive, value = "false"),
 		@TestProperties(name = QueryConfigurationConstants.PagingPrefetchBehavior, value = "true"),
-		@TestProperties(
-				name = "ambeth.log.level.com.koch.ambeth.cache.DefaultPersistenceCacheRetriever",
-				value = "INFO"),
-		@TestProperties(name = "ambeth.log.level.com.koch.ambeth.cache.FirstLevelCacheManager",
-				value = "INFO"),
+		@TestProperties(name = "ambeth.log.level.com.koch.ambeth.cache.DefaultPersistenceCacheRetriever", value = "INFO"),
+		@TestProperties(name = "ambeth.log.level.com.koch.ambeth.cache.FirstLevelCacheManager", value = "INFO"),
 		@TestProperties(name = "ambeth.log.level.com.koch.ambeth.filter.PagingQuery", value = "INFO"),
-		@TestProperties(name = "ambeth.log.level.com.koch.ambeth.orm.XmlDatabaseMapper",
-				value = "INFO"),
-		@TestProperties(name = "ambeth.log.level.com.koch.ambeth.persistence.EntityLoader",
-				value = "INFO"),
-		@TestProperties(name = "ambeth.log.level.com.koch.ambeth.persistence.jdbc.JdbcTable",
-				value = "INFO"),
-		@TestProperties(name = "ambeth.log.level.com.koch.ambeth.persistence.jdbc.JDBCDatabaseWrapper",
-				value = "INFO"),
-		@TestProperties(
-				name = "ambeth.log.level.com.koch.ambeth.persistence.jdbc.connection.LogPreparedStatementInterceptor",
-				value = "INFO"),
-		@TestProperties(
-				name = "ambeth.log.level.com.koch.ambeth.persistence.jdbc.connection.LogStatementInterceptor",
-				value = "INFO"),
-		@TestProperties(
-				name = "ambeth.log.level.com.koch.ambeth.persistence.jdbc.database.JdbcTransaction",
-				value = "INFO"),
-		@TestProperties(name = "ambeth.log.level.com.koch.ambeth.proxy.AbstractCascadePostProcessor",
-				value = "INFO"),
-		@TestProperties(
-				name = "ambeth.log.level.com.koch.ambeth.service.PersistenceMergeServiceExtension",
-				value = "INFO")})
+		@TestProperties(name = "ambeth.log.level.com.koch.ambeth.orm.XmlDatabaseMapper", value = "INFO"),
+		@TestProperties(name = "ambeth.log.level.com.koch.ambeth.persistence.EntityLoader", value = "INFO"),
+		@TestProperties(name = "ambeth.log.level.com.koch.ambeth.persistence.jdbc.JdbcTable", value = "INFO"),
+		@TestProperties(name = "ambeth.log.level.com.koch.ambeth.persistence.jdbc.JDBCDatabaseWrapper", value = "INFO"),
+		@TestProperties(name = "ambeth.log.level.com.koch.ambeth.persistence.jdbc.connection.LogPreparedStatementInterceptor", value = "INFO"),
+		@TestProperties(name = "ambeth.log.level.com.koch.ambeth.persistence.jdbc.connection.LogStatementInterceptor", value = "INFO"),
+		@TestProperties(name = "ambeth.log.level.com.koch.ambeth.persistence.jdbc.database.JdbcTransaction", value = "INFO"),
+		@TestProperties(name = "ambeth.log.level.com.koch.ambeth.proxy.AbstractCascadePostProcessor", value = "INFO"),
+		@TestProperties(name = "ambeth.log.level.com.koch.ambeth.service.PersistenceMergeServiceExtension", value = "INFO") })
 public class QueryMassdataTest extends AbstractInformationBusWithPersistenceTest {
 	public static final String THREAD_COUNT = "QueryMassdataTest.threads";
 
@@ -195,7 +178,7 @@ public class QueryMassdataTest extends AbstractInformationBusWithPersistenceTest
 	@Test
 	@TestPropertiesList({
 			@TestProperties(name = CacheConfigurationConstants.ServiceResultCacheActive, value = "true"),
-			@TestProperties(name = PersistenceConfigurationConstants.QueryCacheActive, value = "true")})
+			@TestProperties(name = PersistenceConfigurationConstants.QueryCacheActive, value = "true") })
 	public void massDataReadFalseTrueTrue() throws Exception {
 		massDataReadIntern();
 	}
@@ -209,7 +192,7 @@ public class QueryMassdataTest extends AbstractInformationBusWithPersistenceTest
 	@Test
 	@TestPropertiesList({
 			@TestProperties(name = CacheConfigurationConstants.SecondLevelCacheActive, value = "true"),
-			@TestProperties(name = PersistenceConfigurationConstants.QueryCacheActive, value = "true")})
+			@TestProperties(name = PersistenceConfigurationConstants.QueryCacheActive, value = "true") })
 	public void massDataReadTrueFalseTrue() throws Exception {
 		massDataReadIntern();
 	}
@@ -217,7 +200,7 @@ public class QueryMassdataTest extends AbstractInformationBusWithPersistenceTest
 	@Test
 	@TestPropertiesList({
 			@TestProperties(name = CacheConfigurationConstants.SecondLevelCacheActive, value = "true"),
-			@TestProperties(name = CacheConfigurationConstants.ServiceResultCacheActive, value = "true")})
+			@TestProperties(name = CacheConfigurationConstants.ServiceResultCacheActive, value = "true") })
 	public void massDataReadTrueTrueFalse() throws Exception {
 		massDataReadIntern();
 	}
@@ -226,7 +209,7 @@ public class QueryMassdataTest extends AbstractInformationBusWithPersistenceTest
 	@TestPropertiesList({
 			@TestProperties(name = CacheConfigurationConstants.SecondLevelCacheActive, value = "true"),
 			@TestProperties(name = CacheConfigurationConstants.ServiceResultCacheActive, value = "true"),
-			@TestProperties(name = PersistenceConfigurationConstants.QueryCacheActive, value = "true")})
+			@TestProperties(name = PersistenceConfigurationConstants.QueryCacheActive, value = "true") })
 	public void massDataReadTrueTrueTrue() throws Exception {
 		massDataReadIntern();
 	}
@@ -266,16 +249,16 @@ public class QueryMassdataTest extends AbstractInformationBusWithPersistenceTest
 	protected void massDataReadIntern() throws Exception {
 		flushSharedPool();
 
-		final boolean useSecondLevelCache =
-				Boolean.parseBoolean(beanContext.getService(IProperties.class)
+		final boolean useSecondLevelCache = Boolean
+				.parseBoolean(beanContext.getService(IProperties.class)
 						.getString(CacheConfigurationConstants.SecondLevelCacheActive));
 
 		final IFilterToQueryBuilder ftqb = beanContext.getService(IFilterToQueryBuilder.class);
 
 		final ICacheContext cacheContext = beanContext.getService(ICacheContext.class);
 
-		final ICacheProvider cacheProvider =
-				beanContext.getService(CacheNamedBeans.CacheProviderThreadLocal, ICacheProvider.class);
+		final ICacheProvider cacheProvider = beanContext
+				.getService(CacheNamedBeans.CacheProviderThreadLocal, ICacheProvider.class);
 
 		final FilterDescriptor<QueryEntity> fd = new FilterDescriptor<>(QueryEntity.class);
 
@@ -310,59 +293,52 @@ public class QueryMassdataTest extends AbstractInformationBusWithPersistenceTest
 			public void run() {
 				try {
 					IRootCache rootCache = beanContext.getService("rootCache", IRootCache.class);
-					IThreadLocalCleanupController threadLocalCleanupController =
-							beanContext.getService(IThreadLocalCleanupController.class);
+					IThreadLocalCleanupController threadLocalCleanupController = beanContext
+							.getService(IThreadLocalCleanupController.class);
 
-					final IPagingQuery<QueryEntity> randomPagingQuery =
-							ftqb.buildQuery(fd, new ISortDescriptor[] {sd1, sd2});
+					final IPagingQuery<QueryEntity> randomPagingQuery = ftqb.buildQuery(fd,
+							new ISortDescriptor[] { sd1, sd2 });
 
 					while (System.currentTimeMillis() <= finishTime && throwableHolder.getValue() == null) {
+						IStateRollback rollback = cacheContext.pushCache(cacheProvider);
 						try {
 							final PagingRequest randomPReq = new PagingRequest();
 							randomPReq.setNumber((int) (Math.random() * dataCount / size));
 							randomPReq.setSize(size);
 
-							cacheContext.executeWithCache(cacheProvider,
-									new IResultingBackgroundWorkerDelegate<Object>() {
-										@Override
-										public Object invoke() throws Exception {
-											IPagingResponse<QueryEntity> response =
-													randomPagingQuery.retrieve(randomPReq);
-											List<QueryEntity> result = response.getResult();
+							IPagingResponse<QueryEntity> response = randomPagingQuery.retrieve(randomPReq);
+							List<QueryEntity> result = response.getResult();
 
-											Assert.assertEquals(randomPReq.getNumber(), response.getNumber());
-											if (response.getNumber() == lastPageNumber) {
-												Assert.assertEquals(lastPageNumberSize, result.size());
-											}
-											else {
-												Assert.assertEquals(size, result.size());
-											}
-											QueryEntity objectBefore = result.get(0);
-											for (int a = 1, resultSize = result.size(); a < resultSize; a++) {
-												QueryEntity objectCurrent = result.get(a);
-												// IDs descending
-												// Version ascending
-												Assert.assertFalse(objectBefore.equals(objectCurrent));
-												Assert.assertTrue(objectBefore.getId() >= objectCurrent.getId());
-												if (objectBefore.getId() == objectCurrent.getId()) {
-													Assert
-															.assertTrue(objectBefore.getVersion() <= objectCurrent.getVersion());
-												}
-												objectBefore = objectCurrent;
-											}
-											oqciLock.lock();
-											try {
-												overallQueryCountIndex.setValue(
-														new Integer(overallQueryCountIndex.getValue().intValue() + 1));
-											}
-											finally {
-												oqciLock.unlock();
-											}
-											return null;
-										}
-									});
+							Assert.assertEquals(randomPReq.getNumber(), response.getNumber());
+							if (response.getNumber() == lastPageNumber) {
+								Assert.assertEquals(lastPageNumberSize, result.size());
+							}
+							else {
+								Assert.assertEquals(size, result.size());
+							}
+							QueryEntity objectBefore = result.get(0);
+							for (int a = 1, resultSize = result.size(); a < resultSize; a++) {
+								QueryEntity objectCurrent = result.get(a);
+								// IDs descending
+								// Version ascending
+								Assert.assertFalse(objectBefore.equals(objectCurrent));
+								Assert.assertTrue(objectBefore.getId() >= objectCurrent.getId());
+								if (objectBefore.getId() == objectCurrent.getId()) {
+									Assert.assertTrue(objectBefore.getVersion() <= objectCurrent.getVersion());
+								}
+								objectBefore = objectCurrent;
+							}
+							oqciLock.lock();
+							try {
+								overallQueryCountIndex
+										.setValue(new Integer(overallQueryCountIndex.getValue().intValue() + 1));
+							}
+							finally {
+								oqciLock.unlock();
+							}
 						}
 						finally {
+							rollback.rollback();
 							if (!useSecondLevelCache) {
 								rootCache.clear();
 							}
@@ -404,12 +380,12 @@ public class QueryMassdataTest extends AbstractInformationBusWithPersistenceTest
 				double intervalCount = overallCount - lastOverallCount;
 
 				ValueWithTimeUnit timeSpent = new ValueWithTimeUnit(lastPrint - start);
-				ValueWithTimeUnit timeSpentLastInterval =
-						new ValueWithTimeUnit(lastPrint - beforeLastPrint);
-				ValueWithTimeUnit timeSpentPerExecution =
-						new ValueWithTimeUnit(timeSpentLastInterval.getValue() / intervalCount);
-				ValueWithTimeUnit timeSpentPerLoadedEntity =
-						new ValueWithTimeUnit(timeSpentLastInterval.getValue() / (intervalCount * size));
+				ValueWithTimeUnit timeSpentLastInterval = new ValueWithTimeUnit(
+						lastPrint - beforeLastPrint);
+				ValueWithTimeUnit timeSpentPerExecution = new ValueWithTimeUnit(
+						timeSpentLastInterval.getValue() / intervalCount);
+				ValueWithTimeUnit timeSpentPerLoadedEntity = new ValueWithTimeUnit(
+						timeSpentLastInterval.getValue() / (intervalCount * size));
 
 				log.info(lastPrint - start + " ms for " + overallCount + " queries ("
 						+ new ValueWithTimeUnit(
@@ -423,25 +399,23 @@ public class QueryMassdataTest extends AbstractInformationBusWithPersistenceTest
 		long end = System.currentTimeMillis();
 		ValueWithTimeUnit timeSpent = new ValueWithTimeUnit(end - start);
 		int overallCount = overallQueryCountIndex.getValue().intValue();
-		ValueWithTimeUnit timeSpentPerExecution =
-				new ValueWithTimeUnit(timeSpent.getValue() / overallCount);
-		ValueWithTimeUnit timeSpentPerLoadedEntity =
-				new ValueWithTimeUnit(timeSpent.getValue() / (overallCount * size));
+		ValueWithTimeUnit timeSpentPerExecution = new ValueWithTimeUnit(
+				timeSpent.getValue() / overallCount);
+		ValueWithTimeUnit timeSpentPerLoadedEntity = new ValueWithTimeUnit(
+				timeSpent.getValue() / (overallCount * size));
 
 		log.info(timeSpent.toNonZeroValue() + " for " + overallCount + " queries distributed among "
 				+ threads + " threads in parallel (" + timeSpentPerExecution.toNonZeroValue()
 				+ " per query, " + timeSpentPerLoadedEntity.toNonZeroValue() + " per entity)");
-		ValueWithTimeUnit cpuUsage =
-				new ValueWithTimeUnit(ProcessIdHelper.getCumulatedCpuUsage() - startCpuUsage);
+		ValueWithTimeUnit cpuUsage = new ValueWithTimeUnit(
+				ProcessIdHelper.getCumulatedCpuUsage() - startCpuUsage);
 		toMeasurementString("Read Data", timeSpent, overallCount, timeSpentPerExecution, cpuUsage);
 	}
 
 	private static class ValueWithTimeUnit {
-		private static final HashMap<TimeUnit, String> timeUnitToStringMap =
-				new HashMap<>();
+		private static final HashMap<TimeUnit, String> timeUnitToStringMap = new HashMap<>();
 
-		private static final HashMap<TimeUnit, Double> timeUnitToNanoFactorMap =
-				new HashMap<>();
+		private static final HashMap<TimeUnit, Double> timeUnitToNanoFactorMap = new HashMap<>();
 
 		static {
 			timeUnitToStringMap.put(TimeUnit.SECONDS, "s");
@@ -608,7 +582,7 @@ public class QueryMassdataTest extends AbstractInformationBusWithPersistenceTest
 	@Test
 	@TestPropertiesList({
 			@TestProperties(name = CacheConfigurationConstants.ServiceResultCacheActive, value = "true"),
-			@TestProperties(name = PersistenceConfigurationConstants.QueryCacheActive, value = "true")})
+			@TestProperties(name = PersistenceConfigurationConstants.QueryCacheActive, value = "true") })
 	public void massDataWriteFalseTrueTrue() throws Exception {
 		massDataWriteIntern();
 	}
@@ -622,7 +596,7 @@ public class QueryMassdataTest extends AbstractInformationBusWithPersistenceTest
 	@Test
 	@TestPropertiesList({
 			@TestProperties(name = CacheConfigurationConstants.SecondLevelCacheActive, value = "true"),
-			@TestProperties(name = PersistenceConfigurationConstants.QueryCacheActive, value = "true")})
+			@TestProperties(name = PersistenceConfigurationConstants.QueryCacheActive, value = "true") })
 	public void massDataWriteTrueFalseTrue() throws Exception {
 		massDataWriteIntern();
 	}
@@ -630,7 +604,7 @@ public class QueryMassdataTest extends AbstractInformationBusWithPersistenceTest
 	@Test
 	@TestPropertiesList({
 			@TestProperties(name = CacheConfigurationConstants.SecondLevelCacheActive, value = "true"),
-			@TestProperties(name = CacheConfigurationConstants.ServiceResultCacheActive, value = "true")})
+			@TestProperties(name = CacheConfigurationConstants.ServiceResultCacheActive, value = "true") })
 	public void massDataWriteTrueTrueFalse() throws Exception {
 		massDataWriteIntern();
 	}
@@ -639,7 +613,7 @@ public class QueryMassdataTest extends AbstractInformationBusWithPersistenceTest
 	@TestPropertiesList({
 			@TestProperties(name = CacheConfigurationConstants.SecondLevelCacheActive, value = "true"),
 			@TestProperties(name = CacheConfigurationConstants.ServiceResultCacheActive, value = "true"),
-			@TestProperties(name = PersistenceConfigurationConstants.QueryCacheActive, value = "true")})
+			@TestProperties(name = PersistenceConfigurationConstants.QueryCacheActive, value = "true") })
 	public void massDataWriteTrueTrueTrue() throws Exception {
 		massDataWriteIntern();
 	}
@@ -654,8 +628,8 @@ public class QueryMassdataTest extends AbstractInformationBusWithPersistenceTest
 	protected void massDataWriteIntern() throws Exception {
 		flushSharedPool();
 
-		final boolean useSecondLevelCache =
-				Boolean.parseBoolean(beanContext.getService(IProperties.class)
+		final boolean useSecondLevelCache = Boolean
+				.parseBoolean(beanContext.getService(IProperties.class)
 						.getString(CacheConfigurationConstants.SecondLevelCacheActive));
 
 		final IFilterToQueryBuilder ftqb = beanContext.getService(IFilterToQueryBuilder.class);
@@ -664,8 +638,8 @@ public class QueryMassdataTest extends AbstractInformationBusWithPersistenceTest
 
 		final ICacheContext cacheContext = beanContext.getService(ICacheContext.class);
 
-		final ICacheProvider cacheProvider =
-				beanContext.getService(CacheNamedBeans.CacheProviderThreadLocal, ICacheProvider.class);
+		final ICacheProvider cacheProvider = beanContext
+				.getService(CacheNamedBeans.CacheProviderThreadLocal, ICacheProvider.class);
 
 		final FilterDescriptor<QueryEntity> fd = new FilterDescriptor<>(QueryEntity.class);
 
@@ -700,8 +674,8 @@ public class QueryMassdataTest extends AbstractInformationBusWithPersistenceTest
 			public void run() {
 				try {
 					IRootCache rootCache = beanContext.getService("rootCache", IRootCache.class);
-					IThreadLocalCleanupController threadLocalCleanupController =
-							beanContext.getService(IThreadLocalCleanupController.class);
+					IThreadLocalCleanupController threadLocalCleanupController = beanContext
+							.getService(IThreadLocalCleanupController.class);
 					while (System.currentTimeMillis() <= finishTime && throwableHolder.getValue() == null) {
 						try {
 							int usedPage;
@@ -722,16 +696,17 @@ public class QueryMassdataTest extends AbstractInformationBusWithPersistenceTest
 								final PagingRequest randomPReq = new PagingRequest();
 								randomPReq.setNumber(usedPage);
 								randomPReq.setSize(size);
-								final IPagingQuery<QueryEntity> randomPagingQuery =
-										ftqb.buildQuery(fd, new ISortDescriptor[] {sd1, sd2});
+								final IPagingQuery<QueryEntity> randomPagingQuery = ftqb.buildQuery(fd,
+										new ISortDescriptor[] { sd1, sd2 });
 
-								IPagingResponse<QueryEntity> response = cacheContext.executeWithCache(cacheProvider,
-										new IResultingBackgroundWorkerDelegate<IPagingResponse<QueryEntity>>() {
-											@Override
-											public IPagingResponse<QueryEntity> invoke() throws Exception {
-												return randomPagingQuery.retrieve(randomPReq);
-											}
-										});
+								IPagingResponse<QueryEntity> response;
+								IStateRollback rollback = cacheContext.pushCache(cacheProvider);
+								try {
+									response = randomPagingQuery.retrieve(randomPReq);
+								}
+								finally {
+									rollback.rollback();
+								}
 								randomPagingQuery.dispose();
 
 								List<QueryEntity> result = response.getResult();
@@ -834,12 +809,12 @@ public class QueryMassdataTest extends AbstractInformationBusWithPersistenceTest
 				double intervalCount = overallCount - lastOverallCount;
 
 				ValueWithTimeUnit timeSpent = new ValueWithTimeUnit(lastPrint - start);
-				ValueWithTimeUnit timeSpentLastInterval =
-						new ValueWithTimeUnit(lastPrint - beforeLastPrint);
-				ValueWithTimeUnit timeSpentPerExecution =
-						new ValueWithTimeUnit(timeSpentLastInterval.getValue() / intervalCount);
-				ValueWithTimeUnit timeSpentPerLoadedEntity =
-						new ValueWithTimeUnit(timeSpentLastInterval.getValue() / (intervalCount * size));
+				ValueWithTimeUnit timeSpentLastInterval = new ValueWithTimeUnit(
+						lastPrint - beforeLastPrint);
+				ValueWithTimeUnit timeSpentPerExecution = new ValueWithTimeUnit(
+						timeSpentLastInterval.getValue() / intervalCount);
+				ValueWithTimeUnit timeSpentPerLoadedEntity = new ValueWithTimeUnit(
+						timeSpentLastInterval.getValue() / (intervalCount * size));
 
 				log.info(lastPrint - start + " ms for " + overallCount + " queries ("
 						+ new ValueWithTimeUnit(
@@ -860,16 +835,16 @@ public class QueryMassdataTest extends AbstractInformationBusWithPersistenceTest
 		long end = System.currentTimeMillis();
 		ValueWithTimeUnit timeSpent = new ValueWithTimeUnit(end - start);
 		int overallCount = overallQueryCountIndex.getValue().intValue();
-		ValueWithTimeUnit timeSpentPerExecution =
-				new ValueWithTimeUnit(timeSpent.getValue() / overallCount);
-		ValueWithTimeUnit timeSpentPerLoadedEntity =
-				new ValueWithTimeUnit(timeSpent.getValue() / (overallCount * size));
+		ValueWithTimeUnit timeSpentPerExecution = new ValueWithTimeUnit(
+				timeSpent.getValue() / overallCount);
+		ValueWithTimeUnit timeSpentPerLoadedEntity = new ValueWithTimeUnit(
+				timeSpent.getValue() / (overallCount * size));
 
 		log.info(timeSpent.toNonZeroValue() + " for " + overallCount + " queries distributed among "
 				+ threads + " threads in parallel (" + timeSpentPerExecution.toNonZeroValue()
 				+ " per query, " + timeSpentPerLoadedEntity.toNonZeroValue() + " per entity)");
-		ValueWithTimeUnit cpuUsage =
-				new ValueWithTimeUnit(ProcessIdHelper.getCumulatedCpuUsage() - startCpuUsage);
+		ValueWithTimeUnit cpuUsage = new ValueWithTimeUnit(
+				ProcessIdHelper.getCumulatedCpuUsage() - startCpuUsage);
 		toMeasurementString("Write Data", timeSpent, overallCount, timeSpentPerExecution, cpuUsage);
 	}
 }

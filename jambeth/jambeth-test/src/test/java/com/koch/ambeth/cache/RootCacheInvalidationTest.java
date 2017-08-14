@@ -51,15 +51,15 @@ import com.koch.ambeth.testutil.TestPropertiesList;
 import com.koch.ambeth.util.ParamChecker;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.IList;
-import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
+import com.koch.ambeth.util.state.IStateRollback;
 
-@TestModule({TestServicesModule.class})
+@TestModule({ TestServicesModule.class })
 @SQLStructure("../persistence/jdbc/JDBCDatabase_structure.sql")
 @SQLData("../persistence/jdbc/Example_data.sql")
 @TestPropertiesList({
 		@TestProperties(name = PersistenceConfigurationConstants.DatabaseTablePrefix, value = "D_"),
 		@TestProperties(name = PersistenceConfigurationConstants.DatabaseFieldPrefix, value = "F_"),
-		@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "orm.xml")})
+		@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "orm.xml") })
 public class RootCacheInvalidationTest extends AbstractInformationBusWithPersistenceTest {
 	protected ICacheContext cacheContext;
 
@@ -97,30 +97,30 @@ public class RootCacheInvalidationTest extends AbstractInformationBusWithPersist
 
 	@Test
 	public void testRootCacheDataChangePerformance() throws Throwable {
-		final IDisposableCache cache =
-				cacheFactory.create(CacheFactoryDirective.SubscribeGlobalDCE, "test");
-		cacheContext.executeWithCache(cache, new IResultingBackgroundWorkerDelegate<Object>() {
-			@Override
-			public Object invoke() throws Exception {
-				MaterialGroup mg = cache.getObject(MaterialGroup.class, "pl");
-				Unit unit = cache.getObject(Unit.class, (long) 1);
-				IList<Material> materials = new ArrayList<>();
-				for (int a = 100; a-- > 0;) {
-					Material material = entityFactory.createEntity(Material.class);
-					material.setName("new material");
-					material.setMaterialGroup(mg);
-					material.setUnit(unit);
-					materials.add(material);
-				}
-				materialService.updateMaterials(materials.toArray(Material.class));
-				for (int a = materials.size(); a-- > 0;) {
-					Material material = materials.get(a);
-					material.setName(material.getName() + "2");
-				}
-				materialService.updateMaterials(materials.toArray(Material.class));
-				return null;
+		IDisposableCache cache = cacheFactory.create(CacheFactoryDirective.SubscribeGlobalDCE, "test");
+		IStateRollback rollback = cacheContext.pushCache(cache);
+		try {
+			MaterialGroup mg = cache.getObject(MaterialGroup.class, "pl");
+			Unit unit = cache.getObject(Unit.class, (long) 1);
+			IList<Material> materials = new ArrayList<>();
+			for (int a = 100; a-- > 0;) {
+				Material material = entityFactory.createEntity(Material.class);
+				material.setName("new material");
+				material.setMaterialGroup(mg);
+				material.setUnit(unit);
+				materials.add(material);
 			}
-		});
+			materialService.updateMaterials(materials.toArray(Material.class));
+			for (int a = materials.size(); a-- > 0;) {
+				Material material = materials.get(a);
+				material.setName(material.getName() + "2");
+			}
+			materialService.updateMaterials(materials.toArray(Material.class));
+		}
+		finally {
+			rollback.rollback();
+			cache.dispose();
+		}
 	}
 
 	@Test
@@ -132,17 +132,18 @@ public class RootCacheInvalidationTest extends AbstractInformationBusWithPersist
 
 	@Test
 	public void testRootCacheInvalidation2() throws Throwable {
-		final IDisposableCache cache =
-				cacheFactory.create(CacheFactoryDirective.SubscribeTransactionalDCE, "test");
-		cacheContext.executeWithCache(cache, new IResultingBackgroundWorkerDelegate<Object>() {
-			@Override
-			public Object invoke() throws Exception {
-				MaterialGroup mg = cache.getObject(MaterialGroup.class, "pl");
-				Unit unit = cache.getObject(Unit.class, (long) 1);
-				rootCacheInvalidation(mg, unit, false);
-				return null;
-			}
-		});
+		IDisposableCache cache = cacheFactory.create(CacheFactoryDirective.SubscribeTransactionalDCE,
+				"test");
+		IStateRollback rollback = cacheContext.pushCache(cache);
+		try {
+			MaterialGroup mg = cache.getObject(MaterialGroup.class, "pl");
+			Unit unit = cache.getObject(Unit.class, (long) 1);
+			rootCacheInvalidation(mg, unit, false);
+		}
+		finally {
+			rollback.rollback();
+			cache.dispose();
+		}
 	}
 
 	protected void rootCacheInvalidation(MaterialGroup mg, Unit unit, boolean mustBeNull) {

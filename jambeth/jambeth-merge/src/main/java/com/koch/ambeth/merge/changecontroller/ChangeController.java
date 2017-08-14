@@ -53,7 +53,6 @@ import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.model.IDataObject;
 import com.koch.ambeth.util.state.AbstractStateRollback;
 import com.koch.ambeth.util.state.IStateRollback;
-import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
 
 /**
  * A ChangeController listens on all changes that should be persisted by implementing a
@@ -81,11 +80,10 @@ public class ChangeController
 	@Property(name = MergeConfigurationConstants.edblActive, defaultValue = "true")
 	protected boolean edblActive;
 
-	protected final ClassExtendableListContainer<IChangeControllerExtension<?>> extensions =
-			new ClassExtendableListContainer<>("change controller extension", "entity");
+	protected final ClassExtendableListContainer<IChangeControllerExtension<?>> extensions = new ClassExtendableListContainer<>(
+			"change controller extension", "entity");
 
-	protected final SmartCopyMap<Class<?>, IChangeControllerExtension<?>[]> typeToSortedExtensions =
-			new SmartCopyMap<>();
+	protected final SmartCopyMap<Class<?>, IChangeControllerExtension<?>[]> typeToSortedExtensions = new SmartCopyMap<>();
 
 	@Override
 	public ICUDResult preMerge(ICUDResult cudResult, ICache cache) {
@@ -99,18 +97,17 @@ public class ChangeController
 					Boolean.FALSE, "ChangeController.PreMerge");
 			try {
 				IObjRef[] references = extractReferences(changes);
-				final List<Object> newObjects = cudResult.getOriginalRefs();
-				final List<Object> oldObjects =
-						oldCache.getObjects(references, CacheDirective.returnMisses());
+				List<Object> newObjects = cudResult.getOriginalRefs();
+				List<Object> oldObjects = oldCache.getObjects(references, CacheDirective.returnMisses());
 
-				boolean extensionCalled =
-						cacheContext.executeWithCache(cache, new IResultingBackgroundWorkerDelegate<Boolean>() {
-							@Override
-							public Boolean invoke() throws Exception {
-								return Boolean.valueOf(processChanges(newObjects, oldObjects));
-							}
-						}).booleanValue();
-
+				boolean extensionCalled;
+				IStateRollback rollback = cacheContext.pushCache(cache);
+				try {
+					extensionCalled = processChanges(newObjects, oldObjects);
+				}
+				finally {
+					rollback.rollback();
+				}
 				// If no extension has been called, we have no changes and do not need to change the
 				// CudResult
 				if (extensionCalled) {
@@ -160,8 +157,7 @@ public class ChangeController
 		ParamChecker.assertTrue(size == oldEntities.size(),
 				"number of old and new objects should be equal");
 		CacheView views = new CacheView(newEntities, oldEntities);
-		IdentityLinkedSet<IChangeControllerExtension<?>> calledExtensionsSet =
-				new IdentityLinkedSet<>();
+		IdentityLinkedSet<IChangeControllerExtension<?>> calledExtensionsSet = new IdentityLinkedSet<>();
 
 		try {
 			for (int index = 0; index < size; index++) {
@@ -197,14 +193,18 @@ public class ChangeController
 	 * there are any extensions registered for the given objects. If yes, the extensions are called
 	 * with the change.
 	 *
-	 * @param newEntity the new version of the entity
-	 * @param oldEntity the old version of the entity
-	 * @param toBeDeleted true, if the new entity is to be deleted
-	 * @param toBeCreated true, if the new entity is to be created
+	 * @param newEntity
+	 *          the new version of the entity
+	 * @param oldEntity
+	 *          the old version of the entity
+	 * @param toBeDeleted
+	 *          true, if the new entity is to be deleted
+	 * @param toBeCreated
+	 *          true, if the new entity is to be created
 	 * @param views
 	 * @param calledExtensionsSet
 	 */
-	@SuppressWarnings({"rawtypes", "unchecked"})
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	protected void processChange(Object newEntity, Object oldEntity, boolean toBeDeleted,
 			boolean toBeCreated, ICacheView views,
 			ISet<IChangeControllerExtension<?>> calledExtensionsSet) {
@@ -214,8 +214,8 @@ public class ChangeController
 		// Search for registered extensions for the implemented classes
 		IChangeControllerExtension<?>[] sortedExtensions = typeToSortedExtensions.get(entityType);
 		if (sortedExtensions == null) {
-			sortedExtensions =
-					extensions.getExtensions(entityType).toArray(IChangeControllerExtension.class);
+			sortedExtensions = extensions.getExtensions(entityType)
+					.toArray(IChangeControllerExtension.class);
 			Arrays.sort(sortedExtensions);
 			typeToSortedExtensions.put(entityType, sortedExtensions);
 		}

@@ -28,7 +28,7 @@ import com.koch.ambeth.merge.cache.ICacheFactory;
 import com.koch.ambeth.merge.cache.ICacheProvider;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.proxy.CascadedInterceptor;
-import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
+import com.koch.ambeth.util.state.IStateRollback;
 
 import net.sf.cglib.proxy.MethodProxy;
 
@@ -48,25 +48,18 @@ public class CacheContextInterceptor extends CascadedInterceptor {
 		if (method.getDeclaringClass().equals(Object.class)) {
 			return invokeTarget(obj, method, args, proxy);
 		}
+		IStateRollback rollback = cacheContext.pushCache(cacheProvider);
 		try {
-			return cacheContext.executeWithCache(cacheProvider,
-					new IResultingBackgroundWorkerDelegate<Object>() {
-						@Override
-						public Object invoke() throws Exception {
-							try {
-								return invokeTarget(obj, method, args, proxy);
-							}
-							catch (Error e) {
-								throw e;
-							}
-							catch (Throwable e) {
-								throw RuntimeExceptionUtil.mask(e);
-							}
-						}
-					});
+			return invokeTarget(obj, method, args, proxy);
+		}
+		catch (Error e) {
+			throw e;
 		}
 		catch (Throwable e) {
 			throw RuntimeExceptionUtil.mask(e, method.getExceptionTypes());
+		}
+		finally {
+			rollback.rollback();
 		}
 	}
 }

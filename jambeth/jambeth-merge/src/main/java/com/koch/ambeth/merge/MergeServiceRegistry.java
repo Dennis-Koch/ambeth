@@ -64,10 +64,10 @@ import com.koch.ambeth.util.collections.IdentityHashMap;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.model.IMethodDescription;
 import com.koch.ambeth.util.proxy.CascadedInterceptor;
+import com.koch.ambeth.util.state.IStateRollback;
 import com.koch.ambeth.util.threading.IBackgroundWorkerDelegate;
 import com.koch.ambeth.util.threading.IGuiThreadHelper;
 import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
-import com.koch.ambeth.util.threading.IResultingBackgroundWorkerParamDelegate;
 
 import net.sf.cglib.proxy.Factory;
 import net.sf.cglib.proxy.MethodInterceptor;
@@ -310,28 +310,24 @@ public class MergeServiceRegistry implements IMergeService, IMergeServiceExtensi
 			lastMergeOperationSequence = createMergeOperationSequence(sortedChanges);
 
 			final ParamHolder<Boolean> hasAtLeastOneImplicitChange = new ParamHolder<>(Boolean.FALSE);
+			IStateRollback rollback = cacheContext.pushCache(incrementalState.getStateCache());
 			try {
 				final IList<MergeOperation> fLastMergeOperationSequence = lastMergeOperationSequence;
-				cudResult = cacheContext.executeWithCache(incrementalState.getStateCache(),
-						new IResultingBackgroundWorkerParamDelegate<ICUDResult, ICUDResult>() {
-							@Override
-							public ICUDResult invoke(ICUDResult cudResult) throws Exception {
-								for (int a = 0, size = fLastMergeOperationSequence.size(); a < size; a++) {
-									MergeOperation mergeOperation = fLastMergeOperationSequence.get(a);
-									IMergeServiceExtension mergeServiceExtension = mergeOperation
-											.getMergeServiceExtension();
+				for (int a = 0, size = fLastMergeOperationSequence.size(); a < size; a++) {
+					MergeOperation mergeOperation = fLastMergeOperationSequence.get(a);
+					IMergeServiceExtension mergeServiceExtension = mergeOperation.getMergeServiceExtension();
 
-									ICUDResult explAndImplCudResult = mergeServiceExtension
-											.evaluateImplictChanges(cudResult, incrementalState);
-									cudResult = mergeCudResult(cudResult, explAndImplCudResult, mergeServiceExtension,
-											hasAtLeastOneImplicitChange, incrementalState);
-								}
-								return cudResult;
-							}
-						}, cudResult);
+					ICUDResult explAndImplCudResult = mergeServiceExtension.evaluateImplictChanges(cudResult,
+							incrementalState);
+					cudResult = mergeCudResult(cudResult, explAndImplCudResult, mergeServiceExtension,
+							hasAtLeastOneImplicitChange, incrementalState);
+				}
 			}
 			catch (Exception e) {
 				throw RuntimeExceptionUtil.mask(e);
+			}
+			finally {
+				rollback.rollback();
 			}
 			for (IMergeListener mergeListener : mergeListeners.getExtensions()) {
 				ICUDResult explAndImplCudResult = mergeListener.preMerge(cudResult,

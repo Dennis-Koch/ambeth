@@ -76,18 +76,17 @@ import com.koch.ambeth.testutil.TestPropertiesList;
 import com.koch.ambeth.transfer.MaterialSmallVO;
 import com.koch.ambeth.transfer.MaterialVO;
 import com.koch.ambeth.util.collections.HashSet;
-import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
+import com.koch.ambeth.util.state.IStateRollback;
 
 @SQLData("Mapper_data.sql")
 @SQLStructure("Mapper_structure.sql")
 @TestModule(MapperTestModule.class)
 @TestPropertiesList({
 		@TestProperties(name = ServiceConfigurationConstants.GenericTransferMapping, value = "true"),
-		@TestProperties(name = ServiceConfigurationConstants.mappingFile,
-				value = MapperTest.basePath + "orm.xml;" + MapperTest.basePath + "orm2.xml"),
-		@TestProperties(name = ServiceConfigurationConstants.valueObjectFile,
-				value = MapperTest.basePath + "value-object.xml;" + MapperTest.basePath
-						+ "value-object2.xml")})
+		@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = MapperTest.basePath
+				+ "orm.xml;" + MapperTest.basePath + "orm2.xml"),
+		@TestProperties(name = ServiceConfigurationConstants.valueObjectFile, value = MapperTest.basePath
+				+ "value-object.xml;" + MapperTest.basePath + "value-object2.xml") })
 public class MapperTest extends AbstractInformationBusWithPersistenceTest {
 	public static final String basePath = "com/koch/ambeth/persistence/jdbc/mapping/";
 
@@ -239,62 +238,61 @@ public class MapperTest extends AbstractInformationBusWithPersistenceTest {
 		ICacheProvider cacheProvider = beanContext.getService(ICacheProvider.class);
 
 		final ICache cache = cacheProvider.getCurrentCache();
-		cacheContext.executeWithCache(cache, new IResultingBackgroundWorkerDelegate<Object>() {
-			@Override
-			public Object invoke() throws Exception {
-				OneToManyEntity expected = entityFactory.createEntity(OneToManyEntity.class);
-				expected.setName("testNewEntity");
-				expected.setBuid("buid");
-				IOneToManyEntityService service = beanContext.getService(IOneToManyEntityService.class);
-				service.updateOneToManyEntity(expected);
+		IStateRollback rollback = cacheContext.pushCache(cache);
+		try {
+			OneToManyEntity expected = entityFactory.createEntity(OneToManyEntity.class);
+			expected.setName("testNewEntity");
+			expected.setBuid("buid");
+			IOneToManyEntityService service = beanContext.getService(IOneToManyEntityService.class);
+			service.updateOneToManyEntity(expected);
 
-				OneToManyEntityVO actualVO = new OneToManyEntityVO();
-				// actualVO.setId(expected.getId());
-				actualVO.setVersion(expected.getVersion());
-				actualVO.setName(expected.getName());
-				// actualVO.setName(expected.getName() + "_VO");
+			OneToManyEntityVO actualVO = new OneToManyEntityVO();
+			// actualVO.setId(expected.getId());
+			actualVO.setVersion(expected.getVersion());
+			actualVO.setName(expected.getName());
+			// actualVO.setName(expected.getName() + "_VO");
 
-				OneToManyEntity actual;
+			OneToManyEntity actual;
 
-				IMapperService mapperService = mapperServiceFactory.create();
-				try {
-					actual = mapperService.mapToBusinessObject(actualVO);
-				}
-				finally {
-					mapperService.dispose();
-				}
-				Assert.assertSame(expected, actual);
-
-				OneToManyEntityListType listTypeVO = new OneToManyEntityListType();
-				listTypeVO.getOneToManyEntities().add(actualVO);
-
-				List<Object> listBO;
-				mapperService = mapperServiceFactory.create();
-				try {
-					listBO = fixture.mapToBusinessObjectListFromListType(listTypeVO);
-				}
-				finally {
-					mapperService.dispose();
-				}
-				Assert.assertEquals(1, listBO.size());
-				Assert.assertSame(expected, listBO.get(0));
-
-				List<Object> listVO = new ArrayList<>();
-				listVO.add(actualVO);
-
-				mapperService = mapperServiceFactory.create();
-				try {
-					listBO = fixture.mapToBusinessObjectList(listVO);
-				}
-				finally {
-					mapperService.dispose();
-				}
-				Assert.assertEquals(1, listBO.size());
-				Assert.assertSame(expected, listBO.get(0));
-
-				return null;
+			IMapperService mapperService = mapperServiceFactory.create();
+			try {
+				actual = mapperService.mapToBusinessObject(actualVO);
 			}
-		});
+			finally {
+				mapperService.dispose();
+			}
+			Assert.assertSame(expected, actual);
+
+			OneToManyEntityListType listTypeVO = new OneToManyEntityListType();
+			listTypeVO.getOneToManyEntities().add(actualVO);
+
+			List<Object> listBO;
+			mapperService = mapperServiceFactory.create();
+			try {
+				listBO = fixture.mapToBusinessObjectListFromListType(listTypeVO);
+			}
+			finally {
+				mapperService.dispose();
+			}
+			Assert.assertEquals(1, listBO.size());
+			Assert.assertSame(expected, listBO.get(0));
+
+			List<Object> listVO = new ArrayList<>();
+			listVO.add(actualVO);
+
+			mapperService = mapperServiceFactory.create();
+			try {
+				listBO = fixture.mapToBusinessObjectList(listVO);
+			}
+			finally {
+				mapperService.dispose();
+			}
+			Assert.assertEquals(1, listBO.size());
+			Assert.assertSame(expected, listBO.get(0));
+		}
+		finally {
+			rollback.rollback();
+		}
 	}
 
 	@Test
@@ -319,11 +317,11 @@ public class MapperTest extends AbstractInformationBusWithPersistenceTest {
 		expected1.setName("testTwoNewEntities 1");
 		OneToManyEntity expected2 = entityFactory.createEntity(OneToManyEntity.class);
 		expected2.setName("testTwoNewEntities 2");
-		List<OneToManyEntity> expectedList =
-				Arrays.asList(new OneToManyEntity[] {expected1, expected2});
+		List<OneToManyEntity> expectedList = Arrays
+				.asList(new OneToManyEntity[] { expected1, expected2 });
 
-		List<OneToManyEntityVO> actualVOs =
-				fixture.mapToValueObjectList(expectedList, OneToManyEntityVO.class);
+		List<OneToManyEntityVO> actualVOs = fixture.mapToValueObjectList(expectedList,
+				OneToManyEntityVO.class);
 		assertEquals(expectedList.size(), actualVOs.size());
 		for (int i = 0; i < expectedList.size(); i++) {
 			OneToManyEntity expected = expectedList.get(i);
@@ -352,7 +350,8 @@ public class MapperTest extends AbstractInformationBusWithPersistenceTest {
 		child1.setName("child1");
 		OneToManyEntity child2 = entityFactory.createEntity(OneToManyEntity.class);
 		child2.setName("child2");
-		List<OneToManyEntity> expectedChildren = Arrays.asList(new OneToManyEntity[] {child1, child2});
+		List<OneToManyEntity> expectedChildren = Arrays
+				.asList(new OneToManyEntity[] { child1, child2 });
 		parent.getOneToManyEntities().add(child1);
 		parent.getOneToManyEntities().add(child2);
 		SelfReferencingEntity selfRefEntity = entityFactory.createEntity(SelfReferencingEntity.class);
@@ -363,8 +362,8 @@ public class MapperTest extends AbstractInformationBusWithPersistenceTest {
 		int parentIndex = expected.size();
 		expected.add(parent);
 
-		List<OneToManyEntityVO> actualVOs =
-				fixture.mapToValueObjectList(expected, OneToManyEntityVO.class);
+		List<OneToManyEntityVO> actualVOs = fixture.mapToValueObjectList(expected,
+				OneToManyEntityVO.class);
 		OneToManyEntityVO actualVO = actualVOs.get(parentIndex);
 
 		assertNotNull(actualVO);
@@ -519,8 +518,8 @@ public class MapperTest extends AbstractInformationBusWithPersistenceTest {
 
 	@Test
 	public void cyclicReferences() throws Exception {
-		ISelfReferencingEntityService entityService =
-				beanContext.getService(ISelfReferencingEntityService.class);
+		ISelfReferencingEntityService entityService = beanContext
+				.getService(ISelfReferencingEntityService.class);
 
 		SelfReferencingEntity ent1 = entityFactory.createEntity(SelfReferencingEntity.class);
 		ent1.setName("ent1");
@@ -566,8 +565,8 @@ public class MapperTest extends AbstractInformationBusWithPersistenceTest {
 
 	@Test
 	public void oneToMany() {
-		IOneToManyEntityService oneToManyService =
-				beanContext.getService(IOneToManyEntityService.class);
+		IOneToManyEntityService oneToManyService = beanContext
+				.getService(IOneToManyEntityService.class);
 
 		OneToManyEntity[] originals = new OneToManyEntity[5];
 		for (int i = originals.length; i-- > 0;) {
@@ -670,13 +669,13 @@ public class MapperTest extends AbstractInformationBusWithPersistenceTest {
 		List<OneToManyEntity> originals = Arrays.asList(generateTestEnitiesWithListTypes("OneList"));
 		List<OneToManyEntity> originalsObj = new ArrayList<>(originals);
 
-		List<OneToManyEntityVO> vos =
-				fixture.mapToValueObjectList(originalsObj, OneToManyEntityVO.class);
+		List<OneToManyEntityVO> vos = fixture.mapToValueObjectList(originalsObj,
+				OneToManyEntityVO.class);
 
 		testVOsWithListTypes(originals, vos);
 
-		OneToManyEntityRefListType refList =
-				fixture.mapToValueObjectRefListType(originalsObj, OneToManyEntityRefListType.class);
+		OneToManyEntityRefListType refList = fixture.mapToValueObjectRefListType(originalsObj,
+				OneToManyEntityRefListType.class);
 		Assert.assertNotNull("RefList is null", refList);
 		Assert.assertNotNull("RefList.BUID is null", refList.getBUID());
 		Assert.assertEquals("RefList size is wrong", originalsObj.size(), refList.getBUID().size());
@@ -692,8 +691,8 @@ public class MapperTest extends AbstractInformationBusWithPersistenceTest {
 
 	@Test
 	public void testRoundTripWithListType() {
-		List<OneToManyEntity> originals =
-				Arrays.asList(generateTestEnitiesWithListTypes("OneListType"));
+		List<OneToManyEntity> originals = Arrays
+				.asList(generateTestEnitiesWithListTypes("OneListType"));
 		List<Object> originalsObj = new ArrayList<Object>(originals);
 
 		OneToManyEntityListType vos = fixture.mapToValueObjectListType(originalsObj,
@@ -731,7 +730,7 @@ public class MapperTest extends AbstractInformationBusWithPersistenceTest {
 	public void testPrimitiveCollections() {
 		SelfReferencingEntity sre = entityFactory.createEntity(SelfReferencingEntity.class);
 		sre.setName("testPrimitiveCollections");
-		sre.setValues(new String[] {"value1", "value2", "value3"});
+		sre.setValues(new String[] { "value1", "value2", "value3" });
 		Set<String> values2 = new HashSet<>();
 		values2.addAll(Arrays.asList("value2.1", "value2.2", "value2.3"));
 		sre.setValues2(values2);
@@ -796,8 +795,8 @@ public class MapperTest extends AbstractInformationBusWithPersistenceTest {
 	}
 
 	private OneToManyEntity[] generateTestEnitiesWithListTypes(String namePart) {
-		IOneToManyEntityService oneToManyService =
-				beanContext.getService(IOneToManyEntityService.class);
+		IOneToManyEntityService oneToManyService = beanContext
+				.getService(IOneToManyEntityService.class);
 
 		OneToManyEntity[] originals = new OneToManyEntity[5];
 

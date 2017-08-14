@@ -30,7 +30,6 @@ import com.koch.ambeth.ioc.IServiceContext;
 import com.koch.ambeth.ioc.IStartingBean;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.config.Property;
-import com.koch.ambeth.ioc.util.IMultithreadingHelper;
 import com.koch.ambeth.job.IJob;
 import com.koch.ambeth.job.IJobContext;
 import com.koch.ambeth.log.ILogger;
@@ -59,8 +58,7 @@ import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.ILinkedMap;
 import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.proxy.IProxyFactory;
-import com.koch.ambeth.util.threading.IBackgroundWorkerDelegate;
-import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
+import com.koch.ambeth.util.state.IStateRollback;
 
 public class AuditVerifierJob implements IJob, IStartingBean {
 	@LogInstance
@@ -83,9 +81,6 @@ public class AuditVerifierJob implements IJob, IStartingBean {
 
 	@Autowired
 	protected ITransaction transaction;
-
-	@Autowired
-	protected IMultithreadingHelper multithreadingHelper;
 
 	@Autowired
 	protected IObjRefFactory objRefFactory;
@@ -135,24 +130,20 @@ public class AuditVerifierJob implements IJob, IStartingBean {
 		IDisposableCache cache = cacheFactory.createPrivileged(CacheFactoryDirective.NoDCE, false,
 				Boolean.TRUE, AuditVerifierJob.class.getName());
 		try {
-			cacheContext.executeWithCache(cache, new IResultingBackgroundWorkerDelegate<Object>() {
-				@Override
-				public Object invoke() throws Exception {
-					securityActivation.executeWithoutSecurity(new IBackgroundWorkerDelegate() {
-						@Override
-						public void invoke() throws Exception {
-							transaction.processAndCommit(new DatabaseCallback() {
-								@Override
-								public void callback(ILinkedMap<Object, IDatabase> persistenceUnitToDatabaseMap)
-										throws Exception {
-									verifyAllAuditEntries(context);
-								}
-							}, false, true);
-						}
-					});
-					return null;
-				}
-			});
+			IStateRollback rollback = cacheContext.pushCache(cache);
+			try {
+				rollback = securityActivation.pushWithoutSecurity(rollback);
+				transaction.processAndCommit(new DatabaseCallback() {
+					@Override
+					public void callback(ILinkedMap<Object, IDatabase> persistenceUnitToDatabaseMap)
+							throws Exception {
+						verifyAllAuditEntries(context);
+					}
+				}, false, true);
+			}
+			finally {
+				rollback.rollback();
+			}
 		}
 		finally {
 			cache.dispose();
