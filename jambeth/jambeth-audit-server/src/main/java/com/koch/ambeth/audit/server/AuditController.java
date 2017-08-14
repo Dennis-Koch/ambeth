@@ -526,7 +526,8 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 		AdditionalAuditInfo additionalAuditInfo = getAdditionalAuditInfo();
 		additionalAuditInfo.ownAuditMergeActive = Boolean.TRUE;
 		try {
-			IStateRollback rollback = securityActivation.pushWithoutSecurity();
+			IStateRollback rollback = securityActivation
+					.pushWithoutSecurity(IStateRollback.EMPTY_ROLLBACKS);
 			try {
 				ArrayList<CreateOrUpdateContainerBuild> auditedChanges = auditEntryState.auditedChanges;
 				CreateOrUpdateContainerBuild auditEntry = auditedChanges.get(0);

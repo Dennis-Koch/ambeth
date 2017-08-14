@@ -811,7 +811,8 @@ public class AuditEntryVerifier
 		if (bucketSortObjRefs.isEmpty()) {
 			return true;
 		}
-		IStateRollback rollback = securityActivation.pushWithoutSecurity();
+		IStateRollback rollback = securityActivation
+				.pushWithoutSecurity(IStateRollback.EMPTY_ROLLBACKS);
 		try {
 			LinkedHashMap<String, Object> nameToValueMap = new LinkedHashMap<>();
 			IMap<IObjRef, ISet<String>> remainingPropertyMap = fillNameToValueMap(nameToValueMap,
@@ -936,7 +937,8 @@ public class AuditEntryVerifier
 		if (auditEntries.isEmpty()) {
 			return EMPTY_VALIDATION_RESULT;
 		}
-		IStateRollback rollback = securityActivation.pushWithoutSecurity();
+		IStateRollback rollback = securityActivation
+				.pushWithoutSecurity(IStateRollback.EMPTY_ROLLBACKS);
 		try {
 			auditEntries = getFromCache(auditEntries);
 			return verifyAuditEntriesIntern(auditEntries);
@@ -1016,7 +1018,8 @@ public class AuditEntryVerifier
 		if (auditedEntities.isEmpty()) {
 			return EMPTY_VALIDATION_RESULT;
 		}
-		IStateRollback rollback = securityActivation.pushWithoutSecurity();
+		IStateRollback rollback = securityActivation
+				.pushWithoutSecurity(IStateRollback.EMPTY_ROLLBACKS);
 		try {
 			auditedEntities = getFromCache(auditedEntities);
 			return verifyAuditedEntitiesIntern(auditedEntities);

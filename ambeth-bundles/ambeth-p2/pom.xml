@@ -12,6 +12,8 @@
 	</parent>
 
 	<properties>
+		<p2.local.repo>${project.build.directory}/shared-p2</p2.local.repo>
+		<local.p2.dir>${p2.local.repo}/ambeth-all-snapshots</local.p2.dir>
 		<target.repo.dir>${project.build.directory}/repository</target.repo.dir>
 		<assembly.dir>${target.repo.dir}</assembly.dir>
 	</properties>
@@ -125,6 +127,73 @@
 					</execution>
 				</executions>
 			</plugin>
+			<plugin>
+				<artifactId>maven-antrun-plugin</artifactId>
+				<version>1.8</version>
+				<executions>
+					<execution>
+						<id>copy and unpack assembly</id>
+						<phase>install</phase>
+						<configuration>
+							<exportAntProperties>true</exportAntProperties>
+							<target>
+								<!-- extract feature jars -->
+								<delete dir="${local.p2.dir}" />
+								<copy todir="${local.p2.dir}" verbose="true">
+									<fileset dir="${target.repo.dir}"/>
+								</copy>
+								<ac:for param="filename" xmlns:ac="antlib:net.sf.antcontrib">
+									<path>
+										<fileset dir="${local.p2.dir}">
+											<include name="**/content.jar" />
+											<include name="**/artifacts.jar" />
+										</fileset>
+									</path>
+									<sequential>
+										<dirname property="@{filename}" file="@{filename}" />
+										<unzip src="@{filename}" dest="${@{filename}}" />
+									</sequential>
+								</ac:for>
+							</target>
+						</configuration>
+						<goals>
+							<goal>run</goal>
+						</goals>
+					</execution>
+				</executions>
+				<dependencies>
+					<dependency>
+						<groupId>ant-contrib</groupId>
+						<artifactId>ant-contrib</artifactId>
+						<version>1.0b3</version>
+						<exclusions>
+							<exclusion>
+								<groupId>ant</groupId>
+								<artifactId>ant</artifactId>
+							</exclusion>
+						</exclusions>
+					</dependency>
+					<dependency>
+						<groupId>org.apache.ant</groupId>
+						<artifactId>ant-nodeps</artifactId>
+						<version>1.8.1</version>
+					</dependency>
+				</dependencies>
+			</plugin>
 		</plugins>
 	</build>
+	
+	<profiles>
+		<profile>
+			<id>use_p2_repo</id>
+			<activation>
+				<property>
+					<name>env.P2_LOCAL_REPO</name>
+				</property>
+			</activation>
+			<properties>
+				<p2.local.repo>${env.P2_LOCAL_REPO}</p2.local.repo>
+			</properties>
+		</profile>
+	</profiles>
 </project>

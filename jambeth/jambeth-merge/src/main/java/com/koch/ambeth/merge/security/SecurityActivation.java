@@ -121,7 +121,7 @@ public class SecurityActivation implements ISecurityActivation, IThreadLocalClea
 			return new AbstractStateRollback(rollbacks) {
 				@Override
 				protected void rollbackIntern() throws Exception {
-					securityActiveTL.set(oldFilterActive);
+					entityActiveTL.set(oldFilterActive);
 				}
 			};
 		}
