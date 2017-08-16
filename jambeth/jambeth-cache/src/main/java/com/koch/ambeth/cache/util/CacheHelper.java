@@ -59,6 +59,7 @@ import com.koch.ambeth.service.merge.model.IObjRef;
 import com.koch.ambeth.service.metadata.Member;
 import com.koch.ambeth.service.metadata.PrimitiveMember;
 import com.koch.ambeth.service.metadata.RelationMember;
+import com.koch.ambeth.util.TypeUtil;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.HashMap;
 import com.koch.ambeth.util.collections.HashSet;
@@ -943,7 +944,7 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 		PrefetchPath[] clonedChildren = copyAppendableToCachePath(cachePath.children);
 		if (clonedChildren == null) {
 			return new PrefetchPath(cachePath.memberType, cachePath.memberIndex, cachePath.memberName,
-					clonedChildren, new Class[0]);
+					clonedChildren, TypeUtil.EMPTY_TYPES);
 		}
 		HashSet<Class<?>> memberTypesOnDescendants = new HashSet<>();
 		for (PrefetchPath clonedChild : clonedChildren) {

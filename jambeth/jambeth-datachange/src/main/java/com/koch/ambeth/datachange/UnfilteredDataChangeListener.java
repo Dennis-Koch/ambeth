@@ -23,11 +23,11 @@ limitations under the License.
 import com.koch.ambeth.datachange.model.IDataChange;
 import com.koch.ambeth.event.IEventListener;
 import com.koch.ambeth.ioc.IDisposableBean;
-import com.koch.ambeth.ioc.IInitializingBean;
-import com.koch.ambeth.util.ParamChecker;
 
 public class UnfilteredDataChangeListener
-		implements IEventListener, IDataChangeListener, IInitializingBean, IDisposableBean {
+		implements IEventListener, IDataChangeListener, IDisposableBean {
+	public static final String P_DATA_CHANGE_LISTENER = "DataChangeListener";
+
 	public static IDataChangeListener create(IDataChangeListener dataChangeListener) {
 		UnfilteredDataChangeListener dcListener = new UnfilteredDataChangeListener();
 		dcListener.dataChangeListener = dataChangeListener;
@@ -43,17 +43,12 @@ public class UnfilteredDataChangeListener
 	protected IDataChangeListener dataChangeListener;
 
 	@Override
-	public void afterPropertiesSet() {
-		ParamChecker.assertNotNull(dataChangeListener, "DataChangeListener");
+	public void destroy() throws Throwable {
+		dataChangeListener = null;
 	}
 
 	public void setDataChangeListener(IDataChangeListener dataChangeListener) {
 		this.dataChangeListener = dataChangeListener;
-	}
-
-	@Override
-	public void destroy() throws Throwable {
-		dataChangeListener = null;
 	}
 
 	@Override

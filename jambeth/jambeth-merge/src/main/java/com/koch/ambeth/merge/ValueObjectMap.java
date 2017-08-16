@@ -37,8 +37,9 @@ import com.koch.ambeth.util.collections.SmartCopyMap;
 
 public class ValueObjectMap extends SmartCopyMap<Class<?>, List<Class<?>>>
 		implements IMapExtendableContainer<Class<?>, IValueObjectConfig> {
-	protected final MapExtendableContainer<Class<?>, IValueObjectConfig> typeToValueObjectConfig = new MapExtendableContainer<>(
-			"configuration", "value object class");
+	protected final MapExtendableContainer<Class<?>, IValueObjectConfig> typeToValueObjectConfig =
+			new MapExtendableContainer<>(
+					"configuration", "value object class");
 
 	@Autowired
 	protected IEntityMetaDataProvider entityMetaDataProvider;
@@ -78,6 +79,16 @@ public class ValueObjectMap extends SmartCopyMap<Class<?>, List<Class<?>>>
 	@Override
 	public void getExtensions(Map<Class<?>, IValueObjectConfig> targetExtensionMap) {
 		typeToValueObjectConfig.getExtensions(targetExtensionMap);
+	}
+
+	@Override
+	public ILinkedMap<Class<?>, IList<IValueObjectConfig>> getAllExtensions() {
+		return typeToValueObjectConfig.getAllExtensions();
+	}
+
+	@Override
+	public void getAllExtensions(Map<Class<?>, IList<IValueObjectConfig>> targetExtensionMap) {
+		typeToValueObjectConfig.getAllExtensions(targetExtensionMap);
 	}
 
 	@Override

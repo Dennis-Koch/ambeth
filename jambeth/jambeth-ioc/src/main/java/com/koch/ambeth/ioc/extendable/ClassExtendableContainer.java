@@ -93,6 +93,19 @@ public class ClassExtendableContainer<V> extends MapExtendableContainer<Class<?>
 		super(message, keyMessage, multiValue);
 	}
 
+	@Override
+	public void clear() {
+		Lock writeLock = getWriteLock();
+		writeLock.lock();
+		try {
+			super.clear();
+			clearWeakCache();
+		}
+		finally {
+			writeLock.unlock();
+		}
+	}
+
 	@SuppressWarnings("unchecked")
 	public void clearWeakCache() {
 		Lock writeLock = getWriteLock();

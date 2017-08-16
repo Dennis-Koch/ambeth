@@ -74,6 +74,8 @@ import com.koch.ambeth.util.state.NoOpStateRollback;
 
 public class ChildCache extends AbstractCache<Object>
 		implements ICacheIntern, IWritableCache, IDisposableCache {
+	private static final Class<?>[] ADDITIONAL_GC_PROXY_TYPES = new Class[] { IWritableCache.class };
+
 	public static final String P_EVENT_QUEUE = "EventQueue";
 
 	public static final String P_NAME = "Name";
@@ -137,7 +139,7 @@ public class ChildCache extends AbstractCache<Object>
 		keyToAlternateIdsMap = new CacheHashMap(cacheMapEntryTypeProvider);
 
 		gcProxy = garbageProxyFactory.createGarbageProxy(this, (IDisposable) null, ICacheIntern.class,
-				IWritableCache.class);
+				ADDITIONAL_GC_PROXY_TYPES);
 	}
 
 	@Property(name = CacheConfigurationConstants.FirstLevelCacheWeakActive, defaultValue = "true")

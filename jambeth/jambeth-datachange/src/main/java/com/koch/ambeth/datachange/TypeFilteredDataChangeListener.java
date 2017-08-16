@@ -24,6 +24,8 @@ import com.koch.ambeth.datachange.model.IDataChange;
 import com.koch.ambeth.event.IEventListener;
 
 public class TypeFilteredDataChangeListener extends UnfilteredDataChangeListener {
+	public static final String P_INTERESTED_TYPES = "InterestedTypes";
+
 	public static IDataChangeListener create(IDataChangeListener dataChangeListener,
 			Class<?>[] interestedTypes) {
 		TypeFilteredDataChangeListener dcListener = new TypeFilteredDataChangeListener();

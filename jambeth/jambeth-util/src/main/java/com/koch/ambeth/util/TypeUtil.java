@@ -23,6 +23,8 @@ limitations under the License.
 import org.objectweb.asm.Type;
 
 public final class TypeUtil {
+	public static final Class<?>[] EMPTY_TYPES = new Class[0];
+
 	public static final Type[] getClassesToTypes(Class<?>[] classes) {
 		Type[] types = new Type[classes.length];
 		for (int a = classes.length; a-- > 0;) {

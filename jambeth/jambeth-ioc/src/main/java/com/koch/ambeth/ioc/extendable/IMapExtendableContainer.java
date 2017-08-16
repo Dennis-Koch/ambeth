@@ -36,5 +36,9 @@ public interface IMapExtendableContainer<K, V> {
 
 	ILinkedMap<K, V> getExtensions();
 
+	ILinkedMap<K, IList<V>> getAllExtensions();
+
 	void getExtensions(Map<K, V> targetExtensionMap);
+
+	void getAllExtensions(Map<K, IList<V>> targetExtensionMap);
 }

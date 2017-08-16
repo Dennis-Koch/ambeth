@@ -22,8 +22,8 @@ limitations under the License.
 
 import com.koch.ambeth.util.IDisposable;
 
-public interface IGarbageProxyConstructor<T> {
-	T createInstance(IDisposable target);
+public abstract class IGarbageProxyConstructor<T> {
+	public abstract T createInstance(IDisposable target);
 
-	T createInstance(Object target, IDisposable disposable);
+	public abstract T createInstance(Object target, IDisposable disposable);
 }

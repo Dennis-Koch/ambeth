@@ -25,6 +25,7 @@ limitations under the License.
  */
 
 import com.koch.ambeth.util.IClassLoaderProvider;
+import com.koch.ambeth.util.TypeUtil;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.LinkedHashSet;
 import com.koch.ambeth.util.collections.SmartCopyMap;
@@ -38,8 +39,6 @@ import net.sf.cglib.proxy.NoOp;
 
 public class ProxyFactory extends SmartCopyMap<ProxyTypeKey, Class<? extends Factory>>
 		implements IProxyFactory {
-	protected static final Class<?>[] emptyInterfaces = new Class[0];
-
 	protected static final Callback[] emptyCallbacks = new Callback[] { NoOp.INSTANCE };
 
 	protected IClassLoaderProvider classLoaderProvider;
@@ -65,7 +64,7 @@ public class ProxyFactory extends SmartCopyMap<ProxyTypeKey, Class<? extends Fac
 	@SuppressWarnings("unchecked")
 	@Override
 	public <T> T createProxy(Class<T> type, MethodInterceptor... interceptors) {
-		ProxyTypeKey key = new ProxyTypeKey(type, emptyInterfaces);
+		ProxyTypeKey key = new ProxyTypeKey(type, TypeUtil.EMPTY_TYPES);
 		Class<? extends Factory> proxyType = get(key);
 		if (proxyType != null) {
 			return (T) createProxyIntern(proxyType, interceptors);

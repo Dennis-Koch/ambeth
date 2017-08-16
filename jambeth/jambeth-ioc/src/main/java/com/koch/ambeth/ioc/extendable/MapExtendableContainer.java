@@ -20,7 +20,6 @@ limitations under the License.
  * #L%
  */
 
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.Lock;
 
@@ -35,7 +34,7 @@ import com.koch.ambeth.util.collections.SmartCopyMap;
 
 public class MapExtendableContainer<K, V> extends SmartCopyMap<K, Object>
 		implements
-			IMapExtendableContainer<K, V> {
+		IMapExtendableContainer<K, V> {
 	protected final boolean multiValue;
 
 	protected final String message, keyMessage;
@@ -75,6 +74,13 @@ public class MapExtendableContainer<K, V> extends SmartCopyMap<K, Object>
 		return targetMap;
 	}
 
+	@Override
+	public ILinkedMap<K, IList<V>> getAllExtensions() {
+		LinkedHashMap<K, IList<V>> targetMap = LinkedHashMap.create(size());
+		getAllExtensions(targetMap);
+		return targetMap;
+	}
+
 	@SuppressWarnings("unchecked")
 	@Override
 	public IList<V> getExtensions(K key) {
@@ -96,10 +102,27 @@ public class MapExtendableContainer<K, V> extends SmartCopyMap<K, Object>
 			for (Entry<K, Object> entry : this) {
 				targetMap.put(entry.getKey(), (V) entry.getValue());
 			}
-		} else {
+		}
+		else {
 			for (Entry<K, Object> entry : this) {
 				// unregister removes empty value lists -> at least one entry
-				targetMap.put(entry.getKey(), ((List<V>) entry.getValue()).get(0));
+				targetMap.put(entry.getKey(), ((IList<V>) entry.getValue()).get(0));
+			}
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public void getAllExtensions(Map<K, IList<V>> targetMap) {
+		if (!multiValue) {
+			for (Entry<K, Object> entry : this) {
+				targetMap.put(entry.getKey(), new ArrayList<V>(new Object[] {entry.getValue()}));
+			}
+		}
+		else {
+			for (Entry<K, Object> entry : this) {
+				// unregister removes empty value lists -> at least one entry
+				targetMap.put(entry.getKey(), (IList<V>) entry.getValue());
 			}
 		}
 	}
@@ -114,12 +137,14 @@ public class MapExtendableContainer<K, V> extends SmartCopyMap<K, Object>
 			boolean putted = false;
 			if (!multiValue) {
 				putted = putIfNotExists(key, extension);
-			} else {
+			}
+			else {
 				@SuppressWarnings("unchecked")
 				ArrayList<V> values = (ArrayList<V>) get(key);
 				if (values == null) {
 					values = new ArrayList<>(1);
-				} else {
+				}
+				else {
 					values = new ArrayList<>(values);
 				}
 				if (!values.contains(extension)) {
@@ -131,7 +156,8 @@ public class MapExtendableContainer<K, V> extends SmartCopyMap<K, Object>
 			if (!putted) {
 				throw new ExtendableException("Key '" + keyMessage + "' already added: " + key);
 			}
-		} finally {
+		}
+		finally {
 			writeLock.unlock();
 		}
 	}
@@ -147,7 +173,8 @@ public class MapExtendableContainer<K, V> extends SmartCopyMap<K, Object>
 			try {
 				if (!multiValue) {
 					ParamChecker.assertTrue(removeIfValue(key, extension), message);
-				} else {
+				}
+				else {
 					@SuppressWarnings("unchecked")
 					ArrayList<V> values = (ArrayList<V>) get(key);
 					values = new ArrayList<>(values);
@@ -155,14 +182,17 @@ public class MapExtendableContainer<K, V> extends SmartCopyMap<K, Object>
 					ParamChecker.assertTrue(values.remove(extension), message);
 					if (values.isEmpty()) {
 						remove(key);
-					} else {
+					}
+					else {
 						put(key, values);
 					}
 				}
-			} finally {
+			}
+			finally {
 				writeLock.unlock();
 			}
-		} catch (RuntimeException e) {
+		}
+		catch (RuntimeException e) {
 			throw new ExtendableException("Provided extension is not registered at key '" + key
 					+ "'. Extension: " + extension);
 		}
