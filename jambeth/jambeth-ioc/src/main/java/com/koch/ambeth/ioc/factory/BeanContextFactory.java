@@ -79,6 +79,7 @@ import com.koch.ambeth.util.collections.HashMap;
 import com.koch.ambeth.util.collections.ILinkedMap;
 import com.koch.ambeth.util.collections.IMap;
 import com.koch.ambeth.util.collections.LinkedHashMap;
+import com.koch.ambeth.util.collections.WeakHashSet;
 import com.koch.ambeth.util.config.IProperties;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.objectcollector.ICollectableControllerExtendable;
@@ -100,13 +101,15 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
 
 	public static final Class<?>[] emptyServiceModules = new Class<?>[0];
 
-	public static final ThreadLocal<ILinkedMap<Object, IBeanConfiguration>> pendingConfigurationMapTL = new SensitiveThreadLocal<>();
+	public static final ThreadLocal<ILinkedMap<Object, IBeanConfiguration>> pendingConfigurationMapTL =
+			new SensitiveThreadLocal<>();
+
+	private static final WeakHashSet<Integer> usedIocIdentifiersSet = new WeakHashSet<>(0.5f);
 
 	/**
 	 * Creates an IoC context. The content is defined by the bootstrap modules.
 	 *
-	 * @param bootstrapModules
-	 *          Initializing modules defining the content of the new context.
+	 * @param bootstrapModules Initializing modules defining the content of the new context.
 	 * @return New IoC context.
 	 */
 	public static IServiceContext createBootstrap(Class<?>... bootstrapModules) {
@@ -116,10 +119,8 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
 	/**
 	 * Creates an IoC context. The content is defined by the properties and bootstrap modules.
 	 *
-	 * @param properties
-	 *          Properties for the new context.
-	 * @param bootstrapModules
-	 *          Initializing modules defining the content of the new context.
+	 * @param properties Properties for the new context.
+	 * @param bootstrapModules Initializing modules defining the content of the new context.
 	 * @return New IoC context.
 	 */
 	public static IServiceContext createBootstrap(IProperties properties,
@@ -130,13 +131,10 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
 	/**
 	 * Creates an IoC context. The content is defined by the properties and bootstrap modules.
 	 *
-	 * @param properties
-	 *          Properties for the new context.
-	 * @param bootstrapModules
-	 *          Initializing modules defining the content of the new context.
-	 * @param bootstrapModuleInstances
-	 *          Instantiated modules. E.g. containing resource instances from Servlet containers or
-	 *          application servers.
+	 * @param properties Properties for the new context.
+	 * @param bootstrapModules Initializing modules defining the content of the new context.
+	 * @param bootstrapModuleInstances Instantiated modules. E.g. containing resource instances from
+	 *        Servlet containers or application servers.
 	 * @return New IoC context.
 	 */
 	public static IServiceContext createBootstrap(IProperties properties, Class<?>[] bootstrapModules,
@@ -351,6 +349,18 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
 				EmptySet.<String>emptySet(), props);
 	}
 
+	private static Integer generateUniqueIdentifier() {
+		synchronized (usedIocIdentifiersSet) {
+			while (true) {
+				// yes it is important to create a NEW instance here, not a shared one!
+				Integer value = new Integer((int) Math.abs(Math.random() * Integer.MAX_VALUE));
+				if (usedIocIdentifiersSet.add(value)) {
+					return value;
+				}
+			}
+		}
+	}
+
 	protected List<IBeanConfiguration> beanConfigurations;
 
 	protected IMap<String, IBeanConfiguration> nameToBeanConfMap;
@@ -479,15 +489,15 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
 		}
 	}
 
-	protected String generateUniqueContextName(String contextName, ServiceContext parent) {
+	protected String generateUniqueContextName(String contextName, ServiceContext parent,
+			Integer uniqueIdentifier) {
 		if (contextName == null) {
 			contextName = "c";
 		}
-		int value = (int) Math.abs(Math.random() * Integer.MAX_VALUE);
 		if (parent != null) {
-			return parent.getName() + "/" + contextName + " " + value;
+			return parent.getName() + "/" + contextName + " " + uniqueIdentifier;
 		}
-		return contextName + " " + value;
+		return contextName + " " + uniqueIdentifier;
 	}
 
 	public IServiceContext create(String contextName,
@@ -504,7 +514,10 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
 			List<IBeanInstantiationProcessor> instantiationProcessors,
 			List<IBeanPreProcessor> preProcessors, List<IBeanPostProcessor> postProcessors,
 			IExternalServiceContext externalServiceContext, Class<?>... serviceModuleTypes) {
-		ServiceContext context = new ServiceContext(generateUniqueContextName(contextName, null),
+
+		Integer uniqueIdentifier = generateUniqueIdentifier();
+		ServiceContext context = new ServiceContext(
+				generateUniqueContextName(contextName, null, uniqueIdentifier), uniqueIdentifier,
 				objectCollector, externalServiceContext);
 
 		if (registerPhaseDelegate != null) {
@@ -545,8 +558,9 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
 	public IServiceContext create(String contextName, ServiceContext parent,
 			IBackgroundWorkerParamDelegate<IBeanContextFactory> registerPhaseDelegate,
 			Class<?>... serviceModuleTypes) {
-		ServiceContext context = new ServiceContext(generateUniqueContextName(contextName, parent),
-				parent);
+		Integer uniqueIdentifier = generateUniqueIdentifier();
+		ServiceContext context = new ServiceContext(
+				generateUniqueContextName(contextName, parent, uniqueIdentifier), uniqueIdentifier, parent);
 
 		if (registerPhaseDelegate != null) {
 			try {
@@ -963,12 +977,9 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
 	 * Adds an autowired bean from an existing context as an external bean (without life cycle) to the
 	 * new context and autowires it to the same interface.
 	 *
-	 * @param sourceContext
-	 *          Existing context containing the autowired bean.
-	 * @param targetContextFactory
-	 *          Starting context soon containing the bean.
-	 * @param autowireableType
-	 *          Interface the bean is and will be autowired to.
+	 * @param sourceContext Existing context containing the autowired bean.
+	 * @param targetContextFactory Starting context soon containing the bean.
+	 * @param autowireableType Interface the bean is and will be autowired to.
 	 */
 	public static void transfer(IServiceContext sourceContext,
 			IBeanContextFactory targetContextFactory, Class<?> autowireableType) {
@@ -987,12 +998,9 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
 	 * Adds multiple autowired beans from an existing context as external beans (without life cycle)
 	 * to the new context and autowires them to the same interface.
 	 *
-	 * @param sourceContext
-	 *          Existing context containing the autowired beans.
-	 * @param targetContextFactory
-	 *          Starting context soon containing the beans.
-	 * @param autowireableTypes
-	 *          Interfaces the beans are and will be autowired to.
+	 * @param sourceContext Existing context containing the autowired beans.
+	 * @param targetContextFactory Starting context soon containing the beans.
+	 * @param autowireableTypes Interfaces the beans are and will be autowired to.
 	 */
 	public static void transfer(IServiceContext sourceContext,
 			IBeanContextFactory targetContextFactory, Class<?>... autowireableTypes) {
@@ -1008,12 +1016,9 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
 	 * Adds a named bean from an existing context as an external bean with the same name (without life
 	 * cycle) to the new context.
 	 *
-	 * @param sourceContext
-	 *          Existing context containing the named bean.
-	 * @param targetContextFactory
-	 *          Starting context soon containing the bean.
-	 * @param beanName
-	 *          Now and future name of the bean.
+	 * @param sourceContext Existing context containing the named bean.
+	 * @param targetContextFactory Starting context soon containing the bean.
+	 * @param beanName Now and future name of the bean.
 	 */
 	public static void transfer(IServiceContext sourceContext,
 			IBeanContextFactory targetContextFactory, String beanName) {
@@ -1031,12 +1036,9 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
 	 * Adds multiple named beans from an existing context as external beans with the same names
 	 * (without life cycle) to the new context.
 	 *
-	 * @param sourceContext
-	 *          Existing context containing the named beans.
-	 * @param targetContextFactory
-	 *          Starting context soon containing the beans.
-	 * @param beanNames
-	 *          Now and future names of the beans.
+	 * @param sourceContext Existing context containing the named beans.
+	 * @param targetContextFactory Starting context soon containing the beans.
+	 * @param beanNames Now and future names of the beans.
 	 */
 	public static void transfer(IServiceContext sourceContext,
 			IBeanContextFactory targetContextFactory, String... beanNames) {

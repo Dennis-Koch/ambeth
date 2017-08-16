@@ -92,6 +92,8 @@ public class ServiceContext
 				+ ".\nBean 1: " + bean1 + "\nBean 2: " + bean2);
 	}
 
+	protected final Integer usedIocIdentifier;
+
 	protected LinkedHashMap<String, Object> nameToServiceDict;
 
 	protected LinkedHashMap<Class<?>, Object> typeToServiceDict;
@@ -128,9 +130,10 @@ public class ServiceContext
 
 	protected String name;
 
-	public ServiceContext(String name, IObjectCollector objectCollector,
+	public ServiceContext(String name, Integer usedIocIdentifier, IObjectCollector objectCollector,
 			IExternalServiceContext externalServiceContext) {
 		this.name = name;
+		this.usedIocIdentifier = usedIocIdentifier;
 		this.externalServiceContext = externalServiceContext;
 		ParamChecker.assertNotNull(objectCollector, "objectCollector");
 
@@ -145,8 +148,9 @@ public class ServiceContext
 		typeToServiceDict.put(IServiceContextIntern.class, this);
 	}
 
-	public ServiceContext(String name, IServiceContextIntern parent) {
+	public ServiceContext(String name, Integer usedIocIdentifier, IServiceContextIntern parent) {
 		this.name = name;
+		this.usedIocIdentifier = usedIocIdentifier;
 		ParamChecker.assertNotNull(parent, "parent");
 		this.parent = parent;
 

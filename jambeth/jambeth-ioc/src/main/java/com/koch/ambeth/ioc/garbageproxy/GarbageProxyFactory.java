@@ -211,21 +211,35 @@ public class GarbageProxyFactory implements IGarbageProxyFactory, IInitializingB
 				}
 				GeneratorAdapter mv = createGA(visitor, Opcodes.ACC_PUBLIC, asmMethod.getName(),
 						asmMethod.getDescriptor());
-				int l_result = -1, l_target = -1;
+				int l_result = -1, l_target = mv.newLocal(targetMethod.getReturnType());
 				boolean resultCheckNeeded = isAssignableFrom(method.getReturnType(), interfaceClasses);
 				if (resultCheckNeeded) {
 					l_result = mv.newLocal(asmMethod.getReturnType());
-					l_target = mv.newLocal(targetMethod.getReturnType());
 				}
 				mv.loadThis();
 				mv.invokeVirtual(abstractType, targetMethod);
-				if (resultCheckNeeded) {
-					mv.storeLocal(l_target);
-					mv.loadLocal(l_target);
-				}
+				mv.storeLocal(l_target);
+
+				mv.loadLocal(l_target);
 				mv.checkCast(interfaceType);
 				mv.loadArgs();
 				mv.invokeInterface(interfaceType, asmMethod);
+
+				// this is a dummy condition to prevent the JIT optimizer at runtime to remove the
+				// GCProxy "this" pointer from the stack. YES IT IS TRUE that happens and leads to the
+				// case where the GCProxy is finalized asynchronously by the finalizer thread even though an
+				// application thread holds a hard reference
+				// to this GCed GCProxy handle based on any look to the source code!
+				// this is also the reason why this issue can not be discovered during debugging within
+				// Eclipse and only after several hundred invocations of the corresponding method (in
+				// hundreds of tests in the last days this issue did never raise up with less than 500
+				// method calls or with any debugger connected like Eclipse IDE or VisualVM)
+
+				Label label_returnNullOrZero = mv.newLabel();
+				mv.loadLocal(l_target);
+				mv.loadThis();
+				mv.ifCmp(objType, GeneratorAdapter.EQ, label_returnNullOrZero);
+
 				if (resultCheckNeeded) {
 					// ensure that the GCProxy will be returned whenever we our target as a return value (e.g.
 					// happens on fluent-APIs)
@@ -247,6 +261,40 @@ public class GarbageProxyFactory implements IGarbageProxyFactory, IInitializingB
 					// return this;
 					mv.mark(label_returnThis);
 					mv.loadThis();
+				}
+				mv.returnValue();
+
+				// this label will never be reached at runtime due to the condition some lines above which
+				// never matches. Again: This is needed to win against the JIT optimizer
+				mv.mark(label_returnNullOrZero);
+				switch (asmMethod.getReturnType().getSort()) {
+					case Type.LONG:
+						mv.push((long) 0);
+						break;
+					case Type.DOUBLE:
+						mv.push((double) 0);
+						break;
+					case Type.FLOAT:
+						mv.push((float) 0);
+						break;
+					case Type.BOOLEAN:
+						mv.push(false);
+						break;
+					case Type.BYTE:
+					case Type.CHAR:
+					case Type.SHORT:
+					case Type.INT:
+						mv.push(0);
+						break;
+					case Type.ARRAY:
+					case Type.OBJECT:
+						mv.push((Type) null);
+						break;
+					case Type.VOID:
+						break;
+					default:
+						throw new IllegalArgumentException(
+								"Sort not supported: " + asmMethod.getReturnType().getSort());
 				}
 				mv.returnValue();
 				mv.endMethod();
