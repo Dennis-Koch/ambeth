@@ -42,7 +42,7 @@ import javax.xml.bind.annotation.XmlType;
 public class FilterDescriptor<T> implements IFilterDescriptor<T> {
 
 	@XmlElement
-	protected Class<T> entityType;
+	protected Class<? extends T> entityType;
 
 	@XmlElement
 	protected String member;
@@ -60,7 +60,7 @@ public class FilterDescriptor<T> implements IFilterDescriptor<T> {
 		// Intended blank. For XML serialization usage only
 	}
 
-	public FilterDescriptor(Class<T> entityType) {
+	public FilterDescriptor(Class<? extends T> entityType) {
 		setEntityType(entityType);
 	}
 
@@ -79,11 +79,11 @@ public class FilterDescriptor<T> implements IFilterDescriptor<T> {
 	}
 
 	@Override
-	public Class<T> getEntityType() {
+	public Class<? extends T> getEntityType() {
 		return entityType;
 	}
 
-	public void setEntityType(Class<T> entityType) {
+	public void setEntityType(Class<? extends T> entityType) {
 		this.entityType = entityType;
 	}
 

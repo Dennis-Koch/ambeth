@@ -27,7 +27,7 @@ import com.koch.ambeth.util.annotation.XmlType;
 
 @XmlType
 public interface IFilterDescriptor<T> extends IDTOType {
-	Class<T> getEntityType();
+	Class<? extends T> getEntityType();
 
 	String getMember();
 
