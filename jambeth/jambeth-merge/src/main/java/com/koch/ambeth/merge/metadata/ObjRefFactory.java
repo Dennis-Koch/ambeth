@@ -42,7 +42,10 @@ public class ObjRefFactory extends IObjRefFactory {
 	@Autowired
 	protected IEntityMetaDataProvider entityMetaDataProvider;
 
-	protected final Tuple2KeyHashMap<Class<?>, Integer, IPreparedObjRefFactory> constructorDelegateMap = new Tuple2KeyHashMap<>();
+	protected Tuple2KeyHashMap<Class<?>, Integer, IPreparedObjRefFactory> readonlyConstructorDelegateMap;
+
+	protected final Tuple2KeyHashMap<Class<?>, Integer, IPreparedObjRefFactory> constructorDelegateMap =
+			new Tuple2KeyHashMap<>();
 
 	protected final Lock writeLock = new ReentrantLock();
 
@@ -59,7 +62,31 @@ public class ObjRefFactory extends IObjRefFactory {
 			objRefConstructorDelegate = accessorTypeProvider
 					.getConstructorType(IPreparedObjRefFactory.class, enhancedType);
 			constructorDelegateMap.put(realType, Integer.valueOf(idIndex), objRefConstructorDelegate);
+			readonlyConstructorDelegateMap = null;
 			return objRefConstructorDelegate;
+		}
+		finally {
+			writeLock.unlock();
+		}
+	}
+
+	protected Tuple2KeyHashMap<Class<?>, Integer, IPreparedObjRefFactory> resolveReadOnlyConstructorMap() {
+		Tuple2KeyHashMap<Class<?>, Integer, IPreparedObjRefFactory> readonlyConstructorDelegateMap =
+				this.readonlyConstructorDelegateMap;
+		if (readonlyConstructorDelegateMap != null) {
+			return readonlyConstructorDelegateMap;
+		}
+		writeLock.lock();
+		try {
+			readonlyConstructorDelegateMap =
+					this.readonlyConstructorDelegateMap;
+			if (readonlyConstructorDelegateMap != null) {
+				// concurrent thread was faster
+				return readonlyConstructorDelegateMap;
+			}
+			readonlyConstructorDelegateMap = new Tuple2KeyHashMap<>(constructorDelegateMap);
+			this.readonlyConstructorDelegateMap = readonlyConstructorDelegateMap;
+			return readonlyConstructorDelegateMap;
 		}
 		finally {
 			writeLock.unlock();
@@ -68,7 +95,7 @@ public class ObjRefFactory extends IObjRefFactory {
 
 	@Override
 	public IObjRef dup(IObjRef objRef) {
-		IPreparedObjRefFactory objRefConstructorDelegate = constructorDelegateMap
+		IPreparedObjRefFactory objRefConstructorDelegate = resolveReadOnlyConstructorMap()
 				.get(objRef.getRealType(), Integer.valueOf(objRef.getIdNameIndex()));
 		if (objRefConstructorDelegate == null) {
 			objRefConstructorDelegate = buildDelegate(objRef.getRealType(), objRef.getIdNameIndex());
@@ -78,7 +105,7 @@ public class ObjRefFactory extends IObjRefFactory {
 
 	@Override
 	public IObjRef createObjRef(AbstractCacheValue cacheValue) {
-		IPreparedObjRefFactory objRefConstructorDelegate = constructorDelegateMap
+		IPreparedObjRefFactory objRefConstructorDelegate = resolveReadOnlyConstructorMap()
 				.get(cacheValue.getEntityType(), Integer.valueOf(ObjRef.PRIMARY_KEY_INDEX));
 		if (objRefConstructorDelegate == null) {
 			objRefConstructorDelegate = buildDelegate(cacheValue.getEntityType(),
@@ -89,7 +116,7 @@ public class ObjRefFactory extends IObjRefFactory {
 
 	@Override
 	public IObjRef createObjRef(AbstractCacheValue cacheValue, int idIndex) {
-		IPreparedObjRefFactory objRefConstructorDelegate = constructorDelegateMap
+		IPreparedObjRefFactory objRefConstructorDelegate = resolveReadOnlyConstructorMap()
 				.get(cacheValue.getEntityType(), Integer.valueOf(idIndex));
 		if (objRefConstructorDelegate == null) {
 			objRefConstructorDelegate = buildDelegate(cacheValue.getEntityType(), idIndex);
@@ -99,8 +126,9 @@ public class ObjRefFactory extends IObjRefFactory {
 
 	@Override
 	public IObjRef createObjRef(Class<?> entityType, int idIndex, Object id, Object version) {
-		IPreparedObjRefFactory objRefConstructorDelegate = constructorDelegateMap.get(entityType,
-				Integer.valueOf(idIndex));
+		IPreparedObjRefFactory objRefConstructorDelegate =
+				resolveReadOnlyConstructorMap().get(entityType,
+						Integer.valueOf(idIndex));
 		if (objRefConstructorDelegate == null) {
 			objRefConstructorDelegate = buildDelegate(entityType, idIndex);
 		}
@@ -109,8 +137,9 @@ public class ObjRefFactory extends IObjRefFactory {
 
 	@Override
 	public IPreparedObjRefFactory prepareObjRefFactory(Class<?> entityType, int idIndex) {
-		IPreparedObjRefFactory objRefConstructorDelegate = constructorDelegateMap.get(entityType,
-				Integer.valueOf(idIndex));
+		IPreparedObjRefFactory objRefConstructorDelegate =
+				resolveReadOnlyConstructorMap().get(entityType,
+						Integer.valueOf(idIndex));
 		if (objRefConstructorDelegate == null) {
 			objRefConstructorDelegate = buildDelegate(entityType, idIndex);
 		}

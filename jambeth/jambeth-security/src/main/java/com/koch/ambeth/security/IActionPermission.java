@@ -21,7 +21,9 @@ limitations under the License.
  */
 
 public interface IActionPermission {
-	public static final String ApplyType = "ApplyType";
+	String ApplyType = "ApplyType";
+
+	String Name = "Name";
 
 	String getName();
 
