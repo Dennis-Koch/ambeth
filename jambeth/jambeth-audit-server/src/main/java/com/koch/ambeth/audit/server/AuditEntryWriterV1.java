@@ -44,39 +44,39 @@ import com.koch.ambeth.util.codec.Base64;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
 public class AuditEntryWriterV1 extends AbstractAuditEntryWriter implements IAuditEntryWriter {
-	private static final String[] auditedPropertiesOfEntry = { IAuditEntry.Context, //
+	private static final String[] auditedPropertiesOfEntry = {IAuditEntry.Context, //
 			IAuditEntry.HashAlgorithm, //
 			IAuditEntry.Protocol, //
 			IAuditEntry.Reason, //
 			IAuditEntry.Timestamp, //
-			IAuditEntry.UserIdentifier };
+			IAuditEntry.UserIdentifier};
 
-	private static final String[] auditedPropertiesOfService = { IAuditedService.Order, //
+	private static final String[] auditedPropertiesOfService = {IAuditedService.Order, //
 			IAuditedService.MethodName, //
 			IAuditedService.ServiceType, //
 			IAuditedService.SpentTime, //
-			IAuditedService.Arguments };
+			IAuditedService.Arguments};
 
-	private static final String[] auditedPropertiesOfEntity = { IAuditedEntity.Order, //
+	private static final String[] auditedPropertiesOfEntity = {IAuditedEntity.Order, //
 			IAuditedEntity.ChangeType, //
-			IAuditedEntity.RefPreviousVersion };
+			IAuditedEntity.RefPreviousVersion};
 
-	private static final String[] auditedPropertiesOfRef = { IAuditedEntityRef.EntityType, //
+	private static final String[] auditedPropertiesOfRef = {IAuditedEntityRef.EntityType, //
 			IAuditedEntityRef.EntityId, //
-			IAuditedEntityRef.EntityVersion };
+			IAuditedEntityRef.EntityVersion};
 
 	private static final String[] auditedPropertiesOfPrimitive = {
 			IAuditedEntityPrimitiveProperty.Order, //
 			IAuditedEntityPrimitiveProperty.Name, //
-			IAuditedEntityPrimitiveProperty.NewValue };
+			IAuditedEntityPrimitiveProperty.NewValue};
 
 	private static final String[] auditedPropertiesOfRelation = {
 			IAuditedEntityRelationProperty.Order, //
-			IAuditedEntityRelationProperty.Name };
+			IAuditedEntityRelationProperty.Name};
 
 	private static final String[] auditedPropertiesOfRelationItem = {
 			IAuditedEntityRelationPropertyItem.Order, //
-			IAuditedEntityRelationPropertyItem.ChangeType };
+			IAuditedEntityRelationPropertyItem.ChangeType};
 
 	protected String[] getAuditedPropertiesOfEntry() {
 		return auditedPropertiesOfEntry;
@@ -140,14 +140,15 @@ public class AuditEntryWriterV1 extends AbstractAuditEntryWriter implements IAud
 		IRelationUpdateItem rui = auditEntry.findRelation(IAuditEntry.Entities);
 		if (rui != null) {
 			for (IObjRef addedORI : rui.getAddedORIs()) {
-				CreateOrUpdateContainerBuild auditedEntity = (CreateOrUpdateContainerBuild) ((IDirectObjRef) addedORI)
-						.getDirect();
+				CreateOrUpdateContainerBuild auditedEntity =
+						(CreateOrUpdateContainerBuild) ((IDirectObjRef) addedORI)
+								.getDirect();
 				if (!writeAuditedEntityIntern(auditedEntity, dos)) {
 					return null;
 				}
 				byte[] digest = md.digest();
 				byte[] sign = signFunction.apply(digest);
-				auditedEntity.ensurePrimitive(IAuditedEntity.Signature)
+				auditedEntity.ensurePrimitive(IAuditedEntity.SignedValue)
 						.setNewValue(Base64.encodeBytes(sign).toCharArray());
 			}
 		}
@@ -178,7 +179,7 @@ public class AuditEntryWriterV1 extends AbstractAuditEntryWriter implements IAud
 			os.writeInt(auditedEntities.size());
 			for (int a = 0, size = auditedEntities.size(); a < size; a++) {
 				IEntityMetaDataHolder auditedEntity = auditedEntities.get(a);
-				char[] signatureOfAuditedEntity = (char[]) getPrimitiveValue(IAuditedEntity.Signature,
+				char[] signatureOfAuditedEntity = (char[]) getPrimitiveValue(IAuditedEntity.SignedValue,
 						auditedEntity);
 				if (signatureOfAuditedEntity == null) {
 					throw new IllegalStateException(

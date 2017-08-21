@@ -206,7 +206,8 @@ public class AuditEntryVerifier
 	@Property(name = AuditConfigurationConstants.VerifyEntitiesOnLoad, defaultValue = "NONE")
 	protected VerifyOnLoadMode verifyOnLoadMode;
 
-	protected final SmartCopyMap<Integer, IQuery<IAuditedEntity>> entityTypeCountToQuery = new SmartCopyMap<>();
+	protected final SmartCopyMap<Integer, IQuery<IAuditedEntity>> entityTypeCountToQuery =
+			new SmartCopyMap<>();
 
 	// this feature is still alpha status: optimize audit entry verification scope (do only set it to
 	// TRUE if you know what you do)
@@ -337,7 +338,7 @@ public class AuditEntryVerifier
 		return query;
 	}
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings({"rawtypes", "unchecked"})
 	protected boolean isTrailedVersionTooNew(IEntityMetaData metaData, IObjRef tempObjRef,
 			IAuditedEntityRef ref, IMap<IObjRef, IObjRefContainer> objRefToEntityMap) {
 		IObjRefContainer entity = objRefToEntityMap.get(tempObjRef);
@@ -352,7 +353,7 @@ public class AuditEntryVerifier
 		return (versionOfEntity.compareTo(versionOfAuditedEntityRef) < 0);
 	}
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings({"rawtypes", "unchecked"})
 	protected boolean isTrailedVersionTooOld(IEntityMetaData metaData, IObjRef tempObjRef,
 			Object entity, Tuple2KeyHashMap<Class<?>, Object, Object> objRefToMaxVersionOfAuditTrailMap) {
 		Comparable versionOfEntity = (Comparable) metaData.getVersionMember().getValue(entity);
@@ -397,9 +398,10 @@ public class AuditEntryVerifier
 		}
 		prefetchHelper.prefetch(valueHoldersToPrefetch);
 
-		Tuple2KeyHashMap<Class<?>, String, IMap<String, Tuple2KeyHashMap<Class<?>, String, Boolean>>> objRefToRelationMap = Tuple2KeyHashMap
-				.<Class<?>, String, IMap<String, Tuple2KeyHashMap<Class<?>, String, Boolean>>>create(
-						objRefs.size());
+		Tuple2KeyHashMap<Class<?>, String, IMap<String, Tuple2KeyHashMap<Class<?>, String, Boolean>>> objRefToRelationMap =
+				Tuple2KeyHashMap
+						.<Class<?>, String, IMap<String, Tuple2KeyHashMap<Class<?>, String, Boolean>>>create(
+								objRefs.size());
 
 		ObjRef tempObjRef = new ObjRef();
 		tempObjRef.setIdNameIndex(ObjRef.PRIMARY_KEY_INDEX);
@@ -425,8 +427,9 @@ public class AuditEntryVerifier
 				RelationMember[] relationMembers = metaData.getRelationMembers();
 
 				if (relationMembers.length > 0) {
-					IMap<String, Tuple2KeyHashMap<Class<?>, String, Boolean>> relationsMap = objRefToRelationMap
-							.get(refEntityType, ref.getEntityId());
+					IMap<String, Tuple2KeyHashMap<Class<?>, String, Boolean>> relationsMap =
+							objRefToRelationMap
+									.get(refEntityType, ref.getEntityId());
 					if (relationsMap == null) {
 						relationsMap = HashMap.<String, Tuple2KeyHashMap<Class<?>, String, Boolean>>create(
 								relationMembers.length);
@@ -467,9 +470,11 @@ public class AuditEntryVerifier
 					}
 				}
 			}
-			Tuple2KeyHashMap<Class<?>, Object, IMap<String, IAuditedEntity>> objRefToPreviousRefVersionMap = Tuple2KeyHashMap
-					.create(objRefs.size());
-			Tuple2KeyHashMap<Class<?>, Object, Object> objRefToMaxVersionOfAuditTrailMap = new Tuple2KeyHashMap<>();
+			Tuple2KeyHashMap<Class<?>, Object, IMap<String, IAuditedEntity>> objRefToPreviousRefVersionMap =
+					Tuple2KeyHashMap
+							.create(objRefs.size());
+			Tuple2KeyHashMap<Class<?>, Object, Object> objRefToMaxVersionOfAuditTrailMap =
+					new Tuple2KeyHashMap<>();
 
 			// audit entries are ordered by timestamp DESC. So the newest auditEntries are last
 			// so we do a reverse iteration because we are interested in the LAST/RECENT assigned value to
@@ -579,7 +584,8 @@ public class AuditEntryVerifier
 					IList<IObjRef> relationsOfMember = objRefHelper
 							.extractObjRefList(relationMember.getValue(entity), null);
 					Tuple2KeyHashMap<Class<?>, String, Boolean> relationMap = relationsMap != null
-							? relationsMap.get(relationMember.getName()) : null;
+							? relationsMap.get(relationMember.getName())
+							: null;
 					boolean valid;
 					if (relationMap == null) {
 						// no audit entry did note a change to this member. So it has to be still empty for the
@@ -668,7 +674,8 @@ public class AuditEntryVerifier
 	protected IMap<IObjRef, ISet<String>> fillNameToValueMap(IMap<String, Object> nameToValueMap,
 			ILinkedMap<IEntityMetaData, IList<IObjRef>> bucketSortObjRefs) {
 		HashMap<IObjRef, ISet<String>> remainingPropertyMap = filterAuditedEntities
-				? new HashMap<IObjRef, ISet<String>>() : null;
+				? new HashMap<IObjRef, ISet<String>>()
+				: null;
 
 		for (Entry<IEntityMetaData, IList<IObjRef>> entry : bucketSortObjRefs) {
 			IEntityMetaData metaData = entry.getKey();
@@ -687,7 +694,8 @@ public class AuditEntryVerifier
 			}
 			PrimitiveMember[] primitiveMembers = metaData.getPrimitiveMembers();
 			ISet<String> primitiveMembersSet = primitiveMembers.length > 0
-					? HashSet.<String>create(primitiveMembers.length) : EmptySet.<String>emptySet();
+					? HashSet.<String>create(primitiveMembers.length)
+					: EmptySet.<String>emptySet();
 			for (PrimitiveMember primitiveMember : primitiveMembers) {
 				if (metaData.getUpdatedByMember() == primitiveMember
 						|| metaData.getUpdatedOnMember() == primitiveMember
@@ -948,7 +956,7 @@ public class AuditEntryVerifier
 		}
 	}
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@SuppressWarnings({"unchecked", "rawtypes"})
 	private <V> List<? extends V> getFromCache(List<? extends V> auditEntries) {
 		IList<IObjRef> objRefs = objRefHelper.extractObjRefList(auditEntries, null);
 		IList<Object> objects = cache.getObjects(objRefs, CacheDirective.none());
@@ -969,7 +977,7 @@ public class AuditEntryVerifier
 		HashMap<ISignature, java.security.Signature> signatureToSignatureHandleMap = new HashMap<>();
 
 		for (IAuditEntry auditEntry : auditEntries) {
-			fillEntriesToVerify(auditEntry, auditEntry.getSignatureOfUser(), auditEntry.getSignature(),
+			fillEntriesToVerify(auditEntry, auditEntry.getSignatureOfUser(), auditEntry.getSignedValue(),
 					auditEntriesToVerify);
 		}
 		@SuppressWarnings("unused")
@@ -981,7 +989,7 @@ public class AuditEntryVerifier
 				continue;
 			}
 			ISignature signatureOfUser = auditEntry.getSignatureOfUser();
-			char[] signature = auditEntry.getSignature();
+			char[] signature = auditEntry.getSignedValue();
 			try {
 				final Signature signatureHandle = getOrCreateVerifyHandle(signatureOfUser,
 						signatureToSignatureHandleMap);
@@ -992,7 +1000,8 @@ public class AuditEntryVerifier
 								try {
 									signatureHandle.update(digest);
 									return Boolean
-											.valueOf(signatureHandle.verify(Base64.decode(auditedEntity.getSignature())));
+											.valueOf(
+													signatureHandle.verify(Base64.decode(auditedEntity.getSignedValue())));
 								}
 								catch (SignatureException | IOException e) {
 									throw RuntimeExceptionUtil.mask(e);
@@ -1041,7 +1050,7 @@ public class AuditEntryVerifier
 
 		for (IAuditedEntity auditedEntity : auditedEntities) {
 			fillEntriesToVerify(auditedEntity, auditedEntity.getEntry().getSignatureOfUser(),
-					auditedEntity.getSignature(), auditedEntitiesToVerify);
+					auditedEntity.getSignedValue(), auditedEntitiesToVerify);
 		}
 		@SuppressWarnings("unused")
 		IPrefetchState prefetch = getPref_verifyAuditEntriesFromAuditedEntity()
@@ -1053,7 +1062,7 @@ public class AuditEntryVerifier
 				continue;
 			}
 			ISignature signatureOfUser = auditedEntity.getEntry().getSignatureOfUser();
-			char[] signature = auditedEntity.getSignature();
+			char[] signature = auditedEntity.getSignedValue();
 			try {
 				Signature signatureHandle = getOrCreateVerifyHandle(signatureOfUser,
 						signatureToSignatureHandleMap);
@@ -1101,7 +1110,8 @@ public class AuditEntryVerifier
 
 	protected ILinkedMap<IEntityMetaData, IList<IObjRef>> bucketSortObjRefs(List<?> entities,
 			boolean checkConfiguration) {
-		final IdentityLinkedMap<IEntityMetaData, ISet<IObjRef>> metaDataToObjRefsDict = new IdentityLinkedMap<>();
+		final IdentityLinkedMap<IEntityMetaData, ISet<IObjRef>> metaDataToObjRefsDict =
+				new IdentityLinkedMap<>();
 		boolean hasAtLeastOneNonPrimaryObjRef = false;
 		for (int i = entities.size(); i-- > 0;) {
 			Object entity = entities.get(i);

@@ -23,21 +23,28 @@ limitations under the License.
 import com.koch.ambeth.security.audit.model.Audited;
 import com.koch.ambeth.util.annotation.Interning;
 
+/**
+ * For each change of an entity property (during create or update of an entity) in the lifecycle of
+ * each entity tracked with the audit trail a new instance of this will be created. So if you have a
+ * specific entity instance with version '5' in your hand a valid audit trail presumably has at
+ * least 5 {@link IAuditedEntity} instances. Within each of those audited entities there is enclosed
+ * at least 1 instance of this or at least 1 instance of {@link IAuditedEntityRelationProperty}.
+ */
 @Audited(false)
 public interface IAuditedEntityPrimitiveProperty {
-	public static final String Entity = "Entity";
+	String Entity = "Entity";
 
-	public static final String Order = "Order";
+	String Order = "Order";
 
-	public static final String Name = "Name";
+	String Name = "Name";
 
-	public static final String NewValue = "NewValue";
+	String NewValue = "NewValue";
 
 	IAuditedEntity getEntity();
 
 	int getOrder();
 
-	@Interning
+	@Interning // it can be assumed that the variance of distinct entity property names is limited
 	String getName();
 
 	String getNewValue();

@@ -22,13 +22,17 @@ limitations under the License.
 
 import com.koch.ambeth.security.audit.model.Audited;
 
+/**
+ * Describes the addition or removal of a relationship between two entity instances. It is used by
+ * {@link IAuditedEntityRelationProperty} to handle to-one as well as to-many relationships.
+ */
 @Audited(false)
 public interface IAuditedEntityRelationPropertyItem {
-	public static final String ChangeType = "ChangeType";
+	String ChangeType = "ChangeType";
 
-	public static final String Order = "Order";
+	String Order = "Order";
 
-	public static final String Ref = "Ref";
+	String Ref = "Ref";
 
 	int getOrder();
 

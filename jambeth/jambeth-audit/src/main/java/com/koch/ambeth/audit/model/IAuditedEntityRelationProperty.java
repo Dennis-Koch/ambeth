@@ -25,21 +25,28 @@ import java.util.List;
 import com.koch.ambeth.security.audit.model.Audited;
 import com.koch.ambeth.util.annotation.Interning;
 
+/**
+ * Describes the addition or removal of a relationship between two entity instances. If a
+ * relationship is bidirectional there will also be two instances of this to describe the addition
+ * or removal from "both sides". Note that as a user you do not have to explicitly change the
+ * relationship from both sides in any case: Bidirectional implications will be resolved and trailed
+ * automatically.
+ */
 @Audited(false)
 public interface IAuditedEntityRelationProperty {
-	public static final String Entity = "Entity";
+	String Entity = "Entity";
 
-	public static final String Items = "Items";
+	String Items = "Items";
 
-	public static final String Name = "Name";
+	String Name = "Name";
 
-	public static final String Order = "Order";
+	String Order = "Order";
 
 	IAuditedEntity getEntity();
 
 	int getOrder();
 
-	@Interning
+	@Interning // it can be assumed that the variance of distinct entity property names is limited
 	String getName();
 
 	List<? extends IAuditedEntityRelationPropertyItem> getItems();

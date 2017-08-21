@@ -23,30 +23,35 @@ limitations under the License.
 import com.koch.ambeth.security.audit.model.Audited;
 import com.koch.ambeth.util.annotation.Interning;
 
+/**
+ * For each invocation of a service component tracked with the audit trail a new instance of this
+ * will be created. So if you have a service called by each user during login you will also have the
+ * same amount ditedEntityRelationProperty}.
+ */
 @Audited(false)
 public interface IAuditedService {
-	public static final String Arguments = "Arguments";
+	String Arguments = "Arguments";
 
-	public static final String Entry = "Entry";
+	String Entry = "Entry";
 
-	public static final String MethodName = "MethodName";
+	String MethodName = "MethodName";
 
-	public static final String Order = "Order";
+	String Order = "Order";
 
-	public static final String ServiceType = "ServiceType";
+	String ServiceType = "ServiceType";
 
-	public static final String SpentTime = "SpentTime";
+	String SpentTime = "SpentTime";
 
 	String[] getArguments();
 
 	IAuditEntry getEntry();
 
-	@Interning
+	@Interning // it can be assumed that the variance of distinct method names is limited
 	String getMethodName();
 
 	int getOrder();
 
-	@Interning
+	@Interning // it can be assumed that the variance of distinct service names is limited
 	String getServiceType();
 
 	long getSpentTime();

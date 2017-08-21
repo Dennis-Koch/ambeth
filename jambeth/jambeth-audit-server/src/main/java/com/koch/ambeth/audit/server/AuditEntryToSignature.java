@@ -33,11 +33,13 @@ public class AuditEntryToSignature implements IAuditEntryToSignature, IAuditEntr
 	@Property(name = AuditConfigurationConstants.ProtocolVersion, defaultValue = "1")
 	protected int protocol;
 
-	@Property(name = AuditConfigurationConstants.AuditedInformationHashAlgorithm, defaultValue = "SHA-256")
+	@Property(name = AuditConfigurationConstants.AuditedInformationHashAlgorithm,
+			defaultValue = "SHA-256")
 	protected String hashAlgorithm;
 
-	protected final MapExtendableContainer<Integer, IAuditEntryWriter> auditEntryWriters = new MapExtendableContainer<>(
-			"auditEntryWriter", "auditEntryProtocol");
+	protected final MapExtendableContainer<Integer, IAuditEntryWriter> auditEntryWriters =
+			new MapExtendableContainer<>(
+					"auditEntryWriter", "auditEntryProtocol");
 
 	@Override
 	public void signAuditEntry(CreateOrUpdateContainerBuild auditEntry, char[] clearTextPassword,
@@ -46,7 +48,7 @@ public class AuditEntryToSignature implements IAuditEntryToSignature, IAuditEntr
 				clearTextPassword);
 		if (signatureHandle == null) {
 			auditEntry.ensurePrimitive(IAuditEntry.HashAlgorithm).setNewValue(null);
-			auditEntry.ensurePrimitive(IAuditEntry.Signature).setNewValue(null);
+			auditEntry.ensurePrimitive(IAuditEntry.SignedValue).setNewValue(null);
 			auditEntry.ensurePrimitive(IAuditEntry.Protocol).setNewValue(null);
 			return;
 		}
@@ -79,13 +81,13 @@ public class AuditEntryToSignature implements IAuditEntryToSignature, IAuditEntr
 						}
 					});
 			if (auditEntryDigest == null) {
-				auditEntry.ensurePrimitive(IAuditEntry.Signature).setNewValue(null);
+				auditEntry.ensurePrimitive(IAuditEntry.SignedValue).setNewValue(null);
 				throw new IllegalStateException(
 						"Could not sign due to an inconsistent model: " + auditEntry);
 			}
 			signatureHandle.update(auditEntryDigest);
 			byte[] sign = signatureHandle.sign();
-			auditEntry.ensurePrimitive(IAuditEntry.Signature)
+			auditEntry.ensurePrimitive(IAuditEntry.SignedValue)
 					.setNewValue(Base64.encodeBytes(sign).toCharArray());
 		}
 		catch (SignatureException | NoSuchAlgorithmException e) {

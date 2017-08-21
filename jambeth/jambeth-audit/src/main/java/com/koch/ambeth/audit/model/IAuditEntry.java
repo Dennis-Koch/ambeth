@@ -27,29 +27,40 @@ import com.koch.ambeth.security.model.ISignature;
 import com.koch.ambeth.security.model.IUser;
 import com.koch.ambeth.util.annotation.Interning;
 
+/**
+ * Encapsulates audit information (audited entities or audited service invocations) made within a
+ * single transaction. So whenever at least one audited entity is changed during a transaction - and
+ * therefore an instance of {@link IAuditedEntity} is created - exactly one instance of this is
+ * transparently created and all changes of the audited entity and any additional audited entities
+ * are collected by this instance.<br>
+ * <br>
+ * For verification it is possible to verify this instance or a specific enclosed
+ * {@link IAuditedEntity}. The latter is helpful to verify a complete lifecycle-chain of a specific
+ * entity.
+ */
 @Audited(false)
 public interface IAuditEntry {
-	public static final String Protocol = "Protocol";
+	String Protocol = "Protocol";
 
-	public static final String Timestamp = "Timestamp";
+	String Timestamp = "Timestamp";
 
-	public static final String User = "User";
+	String User = "User";
 
-	public static final String UserIdentifier = "UserIdentifier";
+	String UserIdentifier = "UserIdentifier";
 
-	public static final String Services = "Services";
+	String Services = "Services";
 
-	public static final String SignatureOfUser = "SignatureOfUser";
+	String SignatureOfUser = "SignatureOfUser";
 
-	public static final String Entities = "Entities";
+	String Entities = "Entities";
 
-	public static final String Reason = "Reason";
+	String Reason = "Reason";
 
-	public static final String Context = "Context";
+	String Context = "Context";
 
-	public static final String HashAlgorithm = "HashAlgorithm";
+	String HashAlgorithm = "HashAlgorithm";
 
-	public static final String Signature = "Signature";
+	String SignedValue = "SignedValue";
 
 	int getProtocol();
 
@@ -57,17 +68,26 @@ public interface IAuditEntry {
 
 	IUser getUser();
 
-	@Interning
+	@Interning // it can be assumed that the variance of distinct user identifiers is limited
 	String getUserIdentifier();
 
 	String getReason();
 
 	String getContext();
 
+	/**
+	 * Is is referred explicitly to the signature of a user because the relationship from the referred
+	 * user to its signature may change over time. But the association to any historic
+	 * {@link IAuditEntry} must be immutable to allow a consistent verification.
+	 *
+	 * @return The signature of the user which was valid at the time this audit entry has been created
+	 *         and has been used to sign this audit entry
+	 */
 	ISignature getSignatureOfUser();
 
-	char[] getSignature();
+	char[] getSignedValue();
 
+	@Interning // it can be assumed that the variance of distinct hash algorithms is limited
 	String getHashAlgorithm();
 
 	List<? extends IAuditedService> getServices();

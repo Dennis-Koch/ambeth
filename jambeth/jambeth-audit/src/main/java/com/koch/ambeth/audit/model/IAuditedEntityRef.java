@@ -23,19 +23,28 @@ limitations under the License.
 import com.koch.ambeth.security.audit.model.Audited;
 import com.koch.ambeth.util.annotation.Interning;
 
+/**
+ * Describes a reference to a specific version of an entity which is audit trailed. It is used by
+ * {@link IAuditedEntity} to describe the specific audited entity and used by
+ * {@link IAuditedEntityRelationPropertyItem} to describe an added or removed entity relationship.
+ * During the creation of a specific single {@link IAuditEntry} - so during a single transaction -
+ * each participating entity instance is referred by a unique instance of this (means: this instance
+ * is shared within a single potentially large transaction). But an instance of
+ * {@link IAuditedEntityRef} is never shared amongst different audit entries.
+ */
 @Audited(false)
 public interface IAuditedEntityRef {
-	public static final String EntityId = "EntityId";
+	String EntityId = "EntityId";
 
-	public static final String EntityType = "EntityType";
+	String EntityType = "EntityType";
 
-	public static final String EntityVersion = "EntityVersion";
+	String EntityVersion = "EntityVersion";
 
 	String getEntityId();
 
-	@Interning
+	@Interning // it can be assumed that the variance of distinct entity type names is limited
 	String getEntityType();
 
-	@Interning
+	@Interning // it can be assumed that the variance of distinct versions is comparatively limited
 	String getEntityVersion();
 }
