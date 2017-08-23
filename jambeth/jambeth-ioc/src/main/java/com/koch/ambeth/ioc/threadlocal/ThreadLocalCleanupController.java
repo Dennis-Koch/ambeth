@@ -164,6 +164,9 @@ public class ThreadLocalCleanupController implements IInitializingBean, IDisposa
 			IThreadLocalCleanupBean extension = extensions[a];
 			Field[] fields = ReflectUtil.getDeclaredFieldsInHierarchy(extension.getClass());
 			for (Field field : fields) {
+				if (!ThreadLocal.class.isAssignableFrom(field.getType())) {
+					continue;
+				}
 				ThreadLocal<?> valueTL = (ThreadLocal<?>) field.get(extension);
 				if (valueTL == null) {
 					continue;
