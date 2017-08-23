@@ -15,6 +15,13 @@ public final class CloseUtil {
 		}
 	}
 
+	public static void close(IDisposable disposable) {
+		if (disposable == null) {
+			return;
+		}
+		disposable.dispose();
+	}
+
 	private CloseUtil() {
 		// Intended blank
 	}
