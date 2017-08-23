@@ -33,7 +33,6 @@ import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.security.IAuthentication;
 import com.koch.ambeth.security.ISecurityContextHolder;
 import com.koch.ambeth.util.state.IStateRollback;
-import com.koch.ambeth.util.state.NoOpStateRollback;
 
 import it.sauronsoftware.cron4j.Task;
 import it.sauronsoftware.cron4j.TaskExecutionContext;
@@ -79,6 +78,8 @@ public class AmbethCron4jJob extends Task {
 
 			IThreadLocalCleanupController tlCleanupController = beanContext
 					.getService(IThreadLocalCleanupController.class);
+			IStateRollback rollback =
+					tlCleanupController.pushThreadLocalState(IStateRollback.EMPTY_ROLLBACKS);
 			String oldName = thread.getName();
 			try {
 				thread.setName("Job " + jobName);
@@ -91,10 +92,9 @@ public class AmbethCron4jJob extends Task {
 				if (log.isDebugEnabled()) {
 					log.debug("Executing job '" + jobName + "'");
 				}
-				IStateRollback rollback = NoOpStateRollback.instance;
 				try {
 					if (authentication != null) {
-						rollback = securityContextHolder.pushAuthentication(authentication);
+						rollback = securityContextHolder.pushAuthentication(authentication, rollback);
 					}
 					job.execute(jobContext);
 					if (log.isDebugEnabled()) {
@@ -107,13 +107,10 @@ public class AmbethCron4jJob extends Task {
 						log.error("Error occured while executing job '" + jobName + "'", e);
 					}
 				}
-				finally {
-					rollback.rollback();
-				}
 			}
 			finally {
 				thread.setName(oldName);
-				tlCleanupController.cleanupThreadLocal();
+				rollback.rollback();
 			}
 		}
 		finally {

@@ -37,36 +37,46 @@ import com.koch.ambeth.util.collections.IdentityHashMap;
 import com.koch.ambeth.util.collections.IdentityWeakHashMap;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.objectcollector.ThreadLocalObjectCollector;
+import com.koch.ambeth.util.state.AbstractStateRollback;
+import com.koch.ambeth.util.state.IStateRollback;
+import com.koch.ambeth.util.state.NoOpStateRollback;
 import com.koch.ambeth.util.threading.IBackgroundWorkerParamDelegate;
 
 public class ThreadLocalCleanupController implements IInitializingBean, IDisposableBean,
 		IThreadLocalCleanupBeanExtendable, IThreadLocalCleanupController {
-	protected final DefaultExtendableContainer<IThreadLocalCleanupBean> listeners = new DefaultExtendableContainer<>(
-			IThreadLocalCleanupBean.class, "threadLocalCleanupBean");
+	protected final DefaultExtendableContainer<IThreadLocalCleanupBean> listeners =
+			new DefaultExtendableContainer<>(
+					IThreadLocalCleanupBean.class, "threadLocalCleanupBean");
+
+	protected ForkStateEntry[] cachedThreadLocalStateEntries;
 
 	protected ForkStateEntry[] cachedForkStateEntries;
 
-	protected final IdentityHashMap<IThreadLocalCleanupBean, Reference<IServiceContext>> extensionToContextMap = new IdentityHashMap<>();
+	protected final IdentityHashMap<IThreadLocalCleanupBean, Reference<IServiceContext>> extensionToContextMap =
+			new IdentityHashMap<>();
 
-	protected final IdentityWeakHashMap<IServiceContext, ParamHolder<Boolean>> alreadyHookedContextSet = new IdentityWeakHashMap<>();
+	protected final IdentityWeakHashMap<IServiceContext, ParamHolder<Boolean>> alreadyHookedContextSet =
+			new IdentityWeakHashMap<>();
 
 	protected IServiceContext beanContext;
 
 	protected ThreadLocalObjectCollector objectCollector;
 
-	protected final IBackgroundWorkerParamDelegate<IServiceContext> foreignContextHook = new IBackgroundWorkerParamDelegate<IServiceContext>() {
-		@Override
-		public void invoke(IServiceContext state) throws Exception {
-			Lock writeLock = listeners.getWriteLock();
-			writeLock.lock();
-			try {
-				cachedForkStateEntries = null;
-			}
-			finally {
-				writeLock.unlock();
-			}
-		}
-	};
+	protected final IBackgroundWorkerParamDelegate<IServiceContext> foreignContextHook =
+			new IBackgroundWorkerParamDelegate<IServiceContext>() {
+				@Override
+				public void invoke(IServiceContext state) throws Exception {
+					Lock writeLock = listeners.getWriteLock();
+					writeLock.lock();
+					try {
+						cachedForkStateEntries = null;
+						cachedThreadLocalStateEntries = null;
+					}
+					finally {
+						writeLock.unlock();
+					}
+				}
+			};
 
 	@Override
 	public void afterPropertiesSet() throws Throwable {
@@ -97,7 +107,6 @@ public class ThreadLocalCleanupController implements IInitializingBean, IDisposa
 		}
 	}
 
-	@SuppressWarnings("resource")
 	protected ForkStateEntry[] getForkStateEntries() {
 		ForkStateEntry[] cachedForkStateEntries = this.cachedForkStateEntries;
 		if (cachedForkStateEntries != null) {
@@ -111,39 +120,8 @@ public class ThreadLocalCleanupController implements IInitializingBean, IDisposa
 			if (cachedForkStateEntries != null) {
 				return cachedForkStateEntries;
 			}
-			IThreadLocalCleanupBean[] extensions = listeners.getExtensions();
-			ArrayList<ForkStateEntry> forkStateEntries = new ArrayList<>(extensions.length);
-			for (int a = 0, size = extensions.length; a < size; a++) {
-				IThreadLocalCleanupBean extension = extensions[a];
-				Field[] fields = ReflectUtil.getDeclaredFieldsInHierarchy(extension.getClass());
-				for (Field field : fields) {
-					Forkable forkable = field.getAnnotation(Forkable.class);
-					if (forkable == null) {
-						continue;
-					}
-					ThreadLocal<?> valueTL = (ThreadLocal<?>) field.get(extension);
-					if (valueTL == null) {
-						continue;
-					}
-					Class<? extends IForkProcessor> forkProcessorType = forkable.processor();
-					IForkProcessor forkProcessor = null;
-					if (forkProcessorType != null && !IForkProcessor.class.equals(forkProcessorType)) {
-						Reference<IServiceContext> beanContextOfExtensionR = extensionToContextMap
-								.get(extension);
-						IServiceContext beanContextOfExtension = beanContextOfExtensionR != null
-								? beanContextOfExtensionR.get() : null;
-						if (beanContextOfExtension == null) {
-							beanContextOfExtension = beanContext;
-						}
-						forkProcessor = beanContextOfExtension.registerBean(forkProcessorType).finish();
-					}
-					forkStateEntries.add(new ForkStateEntry(extension, field.getName(), valueTL,
-							forkable.value(), forkProcessor));
-				}
-			}
-			cachedForkStateEntries = forkStateEntries.toArray(ForkStateEntry.class);
-			this.cachedForkStateEntries = cachedForkStateEntries;
-			return cachedForkStateEntries;
+			acquireStateEntries();
+			return this.cachedForkStateEntries;
 		}
 		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
@@ -151,6 +129,78 @@ public class ThreadLocalCleanupController implements IInitializingBean, IDisposa
 		finally {
 			writeLock.unlock();
 		}
+	}
+
+	protected ForkStateEntry[] getThreadLocalStateEntries() {
+		ForkStateEntry[] cachedThreadLocalStateEntries = this.cachedThreadLocalStateEntries;
+		if (cachedThreadLocalStateEntries != null) {
+			return cachedThreadLocalStateEntries;
+		}
+		Lock writeLock = listeners.getWriteLock();
+		writeLock.lock();
+		try {
+			// check again: concurrent thread might have been faster
+			cachedThreadLocalStateEntries = this.cachedThreadLocalStateEntries;
+			if (cachedThreadLocalStateEntries != null) {
+				return cachedThreadLocalStateEntries;
+			}
+			acquireStateEntries();
+			return this.cachedThreadLocalStateEntries;
+		}
+		catch (Exception e) {
+			throw RuntimeExceptionUtil.mask(e);
+		}
+		finally {
+			writeLock.unlock();
+		}
+	}
+
+	@SuppressWarnings("resource")
+	private void acquireStateEntries() throws IllegalArgumentException, IllegalAccessException {
+		IThreadLocalCleanupBean[] extensions = listeners.getExtensions();
+		ArrayList<ForkStateEntry> forkedStateEntries = new ArrayList<>(extensions.length);
+		ArrayList<ForkStateEntry> threadLocalStateEntries = new ArrayList<>(extensions.length);
+		for (int a = 0, size = extensions.length; a < size; a++) {
+			IThreadLocalCleanupBean extension = extensions[a];
+			Field[] fields = ReflectUtil.getDeclaredFieldsInHierarchy(extension.getClass());
+			for (Field field : fields) {
+				ThreadLocal<?> valueTL = (ThreadLocal<?>) field.get(extension);
+				if (valueTL == null) {
+					continue;
+				}
+				IForkProcessor forkProcessor = null;
+				ForkableType forkableType = ForkableType.REFERENCE;
+				Forkable forkable = field.getAnnotation(Forkable.class);
+				if (forkable == null) {
+					threadLocalStateEntries.add(new ForkStateEntry(extension, field.getName(), valueTL,
+							forkableType, forkProcessor));
+					continue;
+				}
+				forkableType = forkable.value();
+				Class<? extends IForkProcessor> forkProcessorType = forkable.processor();
+				if (forkProcessorType != null && !IForkProcessor.class.equals(forkProcessorType)) {
+					Reference<IServiceContext> beanContextOfExtensionR = extensionToContextMap
+							.get(extension);
+					IServiceContext beanContextOfExtension = beanContextOfExtensionR != null
+							? beanContextOfExtensionR.get()
+							: null;
+					if (beanContextOfExtension == null) {
+						beanContextOfExtension = beanContext;
+					}
+					forkProcessor = beanContextOfExtension.registerBean(forkProcessorType).finish();
+				}
+				ForkStateEntry forkStateEntry = new ForkStateEntry(extension, field.getName(), valueTL,
+						forkableType, forkProcessor);
+				forkedStateEntries.add(forkStateEntry);
+				threadLocalStateEntries.add(forkStateEntry);
+			}
+		}
+		cachedForkStateEntries =
+				forkedStateEntries.size() > 0 ? forkedStateEntries.toArray(ForkStateEntry.class)
+						: ForkStateEntry.EMPTY_ENTRIES;
+		cachedThreadLocalStateEntries =
+				threadLocalStateEntries.size() > 0 ? threadLocalStateEntries.toArray(ForkStateEntry.class)
+						: ForkStateEntry.EMPTY_ENTRIES;
 	}
 
 	@Override
@@ -190,6 +240,7 @@ public class ThreadLocalCleanupController implements IInitializingBean, IDisposa
 		try {
 			listeners.register(threadLocalCleanupBean);
 			cachedForkStateEntries = null;
+			cachedThreadLocalStateEntries = null;
 			IServiceContext currentBeanContext = BeanContextInitializer.getCurrentBeanContext();
 			if (currentBeanContext != null) {
 				extensionToContextMap.put(threadLocalCleanupBean, new WeakReference<>(currentBeanContext));
@@ -222,6 +273,7 @@ public class ThreadLocalCleanupController implements IInitializingBean, IDisposa
 		try {
 			listeners.unregister(threadLocalCleanupBean);
 			cachedForkStateEntries = null;
+			cachedThreadLocalStateEntries = null;
 			extensionToContextMap.remove(threadLocalCleanupBean);
 		}
 		finally {
@@ -229,5 +281,26 @@ public class ThreadLocalCleanupController implements IInitializingBean, IDisposa
 		}
 		// clear this threadlocal a last time before letting the bean alone...
 		threadLocalCleanupBean.cleanupThreadLocal();
+	}
+
+	@Override
+	public IStateRollback pushThreadLocalState(IStateRollback... rollbacks) {
+		final ForkStateEntry[] threadLocalStateEntries = getThreadLocalStateEntries();
+		if (threadLocalStateEntries.length == 0) {
+			return NoOpStateRollback.createNoOpRollback(rollbacks);
+		}
+		final Object[] oldValues = new Object[threadLocalStateEntries.length];
+		for (int a = threadLocalStateEntries.length; a-- > 0;) {
+			oldValues[a] = threadLocalStateEntries[a].valueTL.get();
+		}
+		return new AbstractStateRollback(rollbacks) {
+			@SuppressWarnings("unchecked")
+			@Override
+			protected void rollbackIntern() throws Exception {
+				for (int a = threadLocalStateEntries.length; a-- > 0;) {
+					((ThreadLocal<Object>) threadLocalStateEntries[a].valueTL).set(oldValues[a]);
+				}
+			}
+		};
 	}
 }

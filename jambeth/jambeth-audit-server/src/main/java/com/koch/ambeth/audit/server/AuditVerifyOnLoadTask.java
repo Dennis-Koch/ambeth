@@ -76,7 +76,8 @@ public class AuditVerifyOnLoadTask implements Runnable, IAuditVerifyOnLoadTask, 
 	@Autowired(value = IocModule.THREAD_POOL_NAME)
 	protected Executor executor;
 
-	@Property(name = AuditConfigurationConstants.VerifyEntitiesMaxTransactionTime, defaultValue = "30000")
+	@Property(name = AuditConfigurationConstants.VerifyEntitiesMaxTransactionTime,
+			defaultValue = "30000")
 	protected long verifyEntitiesMaxTransactionTime;
 
 	protected final ArrayList<IObjRef> queuedObjRefs = new ArrayList<>();
@@ -118,34 +119,37 @@ public class AuditVerifyOnLoadTask implements Runnable, IAuditVerifyOnLoadTask, 
 		String oldName = currentThread.getName();
 		currentThread.setName(getClass().getSimpleName());
 		try {
-			reQueue = transaction.runInLazyTransaction(new IResultingBackgroundWorkerDelegate<Boolean>() {
-				@Override
-				public Boolean invoke() throws Exception {
-					ArrayList<IObjRef> currObjRefsToVerify = objRefsToVerify;
-					while (true) {
-						try {
-							verifyEntitiesSync(currObjRefsToVerify);
-							if (System.currentTimeMillis() > openTransactionUntil) {
-								return Boolean.TRUE;
-							}
-						}
-						finally {
-							currObjRefsToVerify = pullObjRefsToVerify();
-							if (currObjRefsToVerify == null) {
-								return Boolean.FALSE;
-							}
-						}
-					}
-				}
-			});
-		}
-		finally {
+			IStateRollback rollback =
+					threadLocalCleanupController.pushThreadLocalState(IStateRollback.EMPTY_ROLLBACKS);
 			try {
-				threadLocalCleanupController.cleanupThreadLocal();
+				reQueue =
+						transaction.runInLazyTransaction(new IResultingBackgroundWorkerDelegate<Boolean>() {
+							@Override
+							public Boolean invoke() throws Exception {
+								ArrayList<IObjRef> currObjRefsToVerify = objRefsToVerify;
+								while (true) {
+									try {
+										verifyEntitiesSync(currObjRefsToVerify);
+										if (System.currentTimeMillis() > openTransactionUntil) {
+											return Boolean.TRUE;
+										}
+									}
+									finally {
+										currObjRefsToVerify = pullObjRefsToVerify();
+										if (currObjRefsToVerify == null) {
+											return Boolean.FALSE;
+										}
+									}
+								}
+							}
+						});
 			}
 			finally {
-				currentThread.setName(oldName);
+				rollback.rollback();
 			}
+		}
+		finally {
+			currentThread.setName(oldName);
 		}
 		if (Boolean.TRUE.equals(reQueue)) {
 			writeLock.lock();

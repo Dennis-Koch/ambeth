@@ -35,6 +35,7 @@ import com.koch.ambeth.ioc.IServiceContext;
 import com.koch.ambeth.ioc.threadlocal.IThreadLocalCleanupController;
 import com.koch.ambeth.util.IConversionHelper;
 import com.koch.ambeth.util.config.IProperties;
+import com.koch.ambeth.util.state.IStateRollback;
 
 /**
  * A simple servlet request filter. Just ensures thread local variables are cleared after requests
@@ -62,12 +63,15 @@ public class AmbethSimpleServletRequestFilter implements Filter {
 	@Override
 	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
 			throws IOException, ServletException {
+		IThreadLocalCleanupController threadLocalCleanupController =
+				getService(request.getServletContext(), IThreadLocalCleanupController.class);
+		IStateRollback rollback =
+				threadLocalCleanupController.pushThreadLocalState(IStateRollback.EMPTY_ROLLBACKS);
 		try {
 			doFilterIntern(request, response, chain);
 		}
 		finally {
-			getService(request.getServletContext(), IThreadLocalCleanupController.class)
-					.cleanupThreadLocal();
+			rollback.rollback();
 		}
 	}
 

@@ -21,6 +21,8 @@ limitations under the License.
  */
 
 public class ForkStateEntry {
+	public static final ForkStateEntry[] EMPTY_ENTRIES = new ForkStateEntry[0];
+
 	public final IThreadLocalCleanupBean tlBean;
 
 	public final String fieldName;

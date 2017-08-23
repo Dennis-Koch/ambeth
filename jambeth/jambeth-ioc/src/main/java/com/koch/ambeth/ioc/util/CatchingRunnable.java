@@ -30,6 +30,7 @@ import com.koch.ambeth.ioc.cancel.ICancellation;
 import com.koch.ambeth.ioc.threadlocal.IForkState;
 import com.koch.ambeth.ioc.threadlocal.IThreadLocalCleanupController;
 import com.koch.ambeth.util.IParamHolder;
+import com.koch.ambeth.util.state.IStateRollback;
 
 public class CatchingRunnable implements RunnableFuture<Throwable> {
 	protected final IForkState forkState;
@@ -112,25 +113,31 @@ public class CatchingRunnable implements RunnableFuture<Throwable> {
 		}
 		try {
 			try {
-				if (forkState != null) {
-					forkState.use(new Runnable() {
-						@Override
-						public void run() {
-							cancellation.ensureNotCancelled();
-							runnable.run();
-						}
-					});
+				IStateRollback rollback =
+						threadLocalCleanupController.pushThreadLocalState(IStateRollback.EMPTY_ROLLBACKS);
+				try {
+					if (forkState != null) {
+						forkState.use(new Runnable() {
+							@Override
+							public void run() {
+								cancellation.ensureNotCancelled();
+								runnable.run();
+							}
+						});
+					}
+					else {
+						cancellation.ensureNotCancelled();
+						runnable.run();
+					}
 				}
-				else {
-					cancellation.ensureNotCancelled();
-					runnable.run();
+				catch (Throwable e) {
+					throwableHolder.setValue(e);
 				}
-			}
-			catch (Throwable e) {
-				throwableHolder.setValue(e);
+				finally {
+					rollback.rollback();
+				}
 			}
 			finally {
-				threadLocalCleanupController.cleanupThreadLocal();
 				latch.countDown();
 			}
 		}

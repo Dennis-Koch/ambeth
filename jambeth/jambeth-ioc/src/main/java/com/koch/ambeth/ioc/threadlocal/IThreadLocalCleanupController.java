@@ -1,5 +1,7 @@
 package com.koch.ambeth.ioc.threadlocal;
 
+import com.koch.ambeth.util.state.IStateRollback;
+
 /*-
  * #%L
  * jambeth-ioc
@@ -24,4 +26,6 @@ public interface IThreadLocalCleanupController {
 	void cleanupThreadLocal();
 
 	IForkState createForkState();
+
+	IStateRollback pushThreadLocalState(IStateRollback... rollbacks);
 }

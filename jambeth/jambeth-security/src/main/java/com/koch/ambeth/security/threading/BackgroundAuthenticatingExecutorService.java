@@ -57,8 +57,10 @@ public class BackgroundAuthenticatingExecutorService
 		@Override
 		public void run() {
 			T result = null;
-			IStateRollback rollback = securityContextHolder.pushAuthentication(authentication);
+			IStateRollback rollback =
+					threadLocalCleanupController.pushThreadLocalState(IStateRollback.EMPTY_ROLLBACKS);
 			try {
+				rollback = securityContextHolder.pushAuthentication(authentication, rollback);
 				result = runnable.invoke();
 			}
 			catch (Exception e) {
@@ -66,7 +68,6 @@ public class BackgroundAuthenticatingExecutorService
 			}
 			finally {
 				rollback.rollback();
-				threadLocalCleanupController.cleanupThreadLocal();
 				try {
 					exchanger.exchange(result);
 				}
@@ -135,8 +136,10 @@ public class BackgroundAuthenticatingExecutorService
 		Runnable backgroundWorker = new Runnable() {
 			@Override
 			public void run() {
-				IStateRollback rollback = securityContextHolder.pushAuthentication(authentication);
+				IStateRollback rollback =
+						threadLocalCleanupController.pushThreadLocalState(IStateRollback.EMPTY_ROLLBACKS);
 				try {
+					rollback = securityContextHolder.pushAuthentication(authentication, rollback);
 					self.execute(runnable);
 				}
 				catch (Exception e) {
@@ -144,7 +147,6 @@ public class BackgroundAuthenticatingExecutorService
 				}
 				finally {
 					rollback.rollback();
-					threadLocalCleanupController.cleanupThreadLocal();
 				}
 			}
 		};

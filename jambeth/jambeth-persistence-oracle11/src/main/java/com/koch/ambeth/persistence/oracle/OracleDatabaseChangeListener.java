@@ -50,6 +50,7 @@ import com.koch.ambeth.util.appendable.AppendableStringBuilder;
 import com.koch.ambeth.util.collections.HashMap;
 import com.koch.ambeth.util.collections.ILinkedMap;
 import com.koch.ambeth.util.objectcollector.IThreadLocalObjectCollector;
+import com.koch.ambeth.util.state.IStateRollback;
 
 import oracle.jdbc.dcn.DatabaseChangeEvent;
 import oracle.jdbc.dcn.DatabaseChangeListener;
@@ -94,6 +95,8 @@ public class OracleDatabaseChangeListener implements DatabaseChangeListener {
 
 	@Override
 	public void onDatabaseChangeNotification(final DatabaseChangeEvent databaseChangeEvent) {
+		IStateRollback rollback =
+				threadLocalCleanupController.pushThreadLocalState(IStateRollback.EMPTY_ROLLBACKS);
 		try {
 			DataChangeEvent dataChangeEvent =
 					transaction.processAndCommit(new ResultingDatabaseCallback<DataChangeEvent>() {
@@ -111,7 +114,7 @@ public class OracleDatabaseChangeListener implements DatabaseChangeListener {
 			log.error(e);
 		}
 		finally {
-			threadLocalCleanupController.cleanupThreadLocal();
+			rollback.rollback();
 		}
 	}
 

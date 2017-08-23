@@ -26,6 +26,8 @@ import java.util.concurrent.locks.Lock;
 import com.koch.ambeth.ioc.threadlocal.IForkState;
 import com.koch.ambeth.util.ParamHolder;
 import com.koch.ambeth.util.collections.IList;
+import com.koch.ambeth.util.state.IStateRollback;
+import com.koch.ambeth.util.state.NoOpStateRollback;
 import com.koch.ambeth.util.threading.IBackgroundWorkerParamDelegate;
 
 public class ParallelRunnable<V> implements Runnable {
@@ -40,6 +42,11 @@ public class ParallelRunnable<V> implements Runnable {
 
 	@Override
 	public void run() {
+		IStateRollback rollback = NoOpStateRollback.instance;
+		if (buildThreadLocals) {
+			rollback = runnableHandle.threadLocalCleanupController
+					.pushThreadLocalState(IStateRollback.EMPTY_ROLLBACKS);
+		}
 		try {
 			final Lock parallelLock = runnableHandle.parallelLock;
 			IList<V> items = runnableHandle.items;
@@ -98,9 +105,7 @@ public class ParallelRunnable<V> implements Runnable {
 			}
 		}
 		finally {
-			if (buildThreadLocals) {
-				runnableHandle.threadLocalCleanupController.cleanupThreadLocal();
-			}
+			rollback.rollback();
 		}
 	}
 
