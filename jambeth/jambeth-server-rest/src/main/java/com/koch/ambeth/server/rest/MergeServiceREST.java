@@ -52,8 +52,8 @@ import com.koch.ambeth.util.model.IMethodDescription;
 import com.koch.ambeth.util.state.IStateRollback;
 
 @Path("/MergeService")
-@Consumes({ Constants.AMBETH_MEDIA_TYPE })
-@Produces({ Constants.AMBETH_MEDIA_TYPE })
+@Consumes({Constants.AMBETH_MEDIA_TYPE})
+@Produces({Constants.AMBETH_MEDIA_TYPE})
 public class MergeServiceREST extends AbstractServiceREST {
 	protected IMergeService getMergeService() {
 		return getService(IMergeService.class);
@@ -109,8 +109,8 @@ public class MergeServiceREST extends AbstractServiceREST {
 		IStateRollback rollback = preServiceCall(request, response);
 		try {
 			Object[] args = getArguments(is, request);
-			IOriCollection result = getMergeService().merge((ICUDResult) args[0],
-					(IMethodDescription) args[1]);
+			IOriCollection result = getMergeService().merge((ICUDResult) args[0], (String[]) args[1],
+					(IMethodDescription) args[2]);
 			return createResult(result, response);
 		}
 		catch (Throwable e) {

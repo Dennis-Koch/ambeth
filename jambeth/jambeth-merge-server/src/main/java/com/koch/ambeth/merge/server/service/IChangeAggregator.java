@@ -29,7 +29,7 @@ public interface IChangeAggregator {
 
 	void dataChangeDelete(IObjRef reference);
 
-	void createDataChange();
-
 	void clear();
+
+	void createDataChange(String... causingUuids);
 }

@@ -45,7 +45,8 @@ public class ChangeAggregator implements IChangeAggregator {
 	@Autowired
 	protected IEventDispatcher eventDispatcher;
 
-	@Property(name = MergeServerConfigurationConstants.DeleteDataChangesByAlternateIds, defaultValue = "false")
+	@Property(name = MergeServerConfigurationConstants.DeleteDataChangesByAlternateIds,
+			defaultValue = "false")
 	protected boolean deleteDataChangesByAlternateIds;
 
 	protected IList<IDataChangeEntry> inserts;
@@ -77,7 +78,7 @@ public class ChangeAggregator implements IChangeAggregator {
 	}
 
 	@Override
-	public void createDataChange() {
+	public void createDataChange(String... causingUuids) {
 		List<IDataChangeEntry> inserts = this.inserts;
 		List<IDataChangeEntry> updates = this.updates;
 		List<IDataChangeEntry> deletes = this.deletes;
@@ -109,6 +110,7 @@ public class ChangeAggregator implements IChangeAggregator {
 		Long currentTime = database.getContextProvider().getCurrentTime();
 		DataChangeEvent dataChange = new DataChangeEvent(inserts, updates, deletes,
 				currentTime.longValue(), false);
+		dataChange.setCausingUUIDs(causingUuids);
 		IDataChangeOfSession localDataChange = new DataChangeOfSession(database.getSessionId(),
 				dataChange);
 		eventDispatcher.dispatchEvent(localDataChange);

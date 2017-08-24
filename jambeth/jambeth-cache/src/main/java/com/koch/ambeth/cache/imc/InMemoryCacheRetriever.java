@@ -129,7 +129,8 @@ public class InMemoryCacheRetriever
 	}
 
 	@Override
-	public IOriCollection merge(ICUDResult cudResult, IMethodDescription methodDescription) {
+	public IOriCollection merge(ICUDResult cudResult, String[] causingUuids,
+			IMethodDescription methodDescription) {
 		throw new UnsupportedOperationException();
 	}
 

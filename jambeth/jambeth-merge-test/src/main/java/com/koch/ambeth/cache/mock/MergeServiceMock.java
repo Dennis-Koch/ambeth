@@ -34,7 +34,8 @@ import com.koch.ambeth.util.model.IMethodDescription;
  */
 public class MergeServiceMock implements IMergeService {
 	@Override
-	public IOriCollection merge(ICUDResult cudResult, IMethodDescription methodDescription) {
+	public IOriCollection merge(ICUDResult cudResult, String[] causingUuids,
+			IMethodDescription methodDescription) {
 		return null;
 	}
 

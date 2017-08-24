@@ -30,7 +30,8 @@ import com.koch.ambeth.service.merge.model.IEntityMetaData;
 import com.koch.ambeth.util.model.IMethodDescription;
 
 public interface IMergeServiceExtension {
-	IOriCollection merge(ICUDResult cudResult, IMethodDescription methodDescription);
+	IOriCollection merge(ICUDResult cudResult, String[] causingUuids,
+			IMethodDescription methodDescription);
 
 	ICUDResult evaluateImplictChanges(ICUDResult cudResult, IIncrementalMergeState incrementalState);
 

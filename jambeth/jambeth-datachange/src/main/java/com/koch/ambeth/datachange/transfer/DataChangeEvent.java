@@ -69,6 +69,9 @@ public class DataChangeEvent implements IDataChange {
 	@XmlElement(required = true)
 	protected List<IDataChangeEntry> inserts;
 
+	@XmlElement(required = false)
+	protected String[] causingUUIDs;
+
 	protected transient List<IDataChangeEntry> all;
 
 	protected transient boolean isLocalSource;
@@ -84,6 +87,15 @@ public class DataChangeEvent implements IDataChange {
 		this.deletes = deletes;
 		this.changeTime = changeTime;
 		this.isLocalSource = isLocalSource;
+	}
+
+	@Override
+	public String[] getCausingUUIDs() {
+		return causingUUIDs;
+	}
+
+	public void setCausingUUIDs(String[] causingUUIDs) {
+		this.causingUUIDs = causingUUIDs;
 	}
 
 	@Override
@@ -191,7 +203,8 @@ public class DataChangeEvent implements IDataChange {
 	@Override
 	public IDataChange derive(Object... interestedEntityIds) {
 		Set<Object> interestedEntityIdsSet = interestedEntityIds.length == 0
-				? Collections.<Object>emptySet() : new HashSet<>(interestedEntityIds);
+				? Collections.<Object>emptySet()
+				: new HashSet<>(interestedEntityIds);
 
 		List<IDataChangeEntry> derivedInserts = buildDerivedIds(inserts, interestedEntityIdsSet);
 		List<IDataChangeEntry> derivedUpdates = buildDerivedIds(updates, interestedEntityIdsSet);

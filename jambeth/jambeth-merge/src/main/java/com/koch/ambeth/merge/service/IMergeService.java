@@ -31,7 +31,8 @@ import com.koch.ambeth.util.model.IMethodDescription;
 
 @XmlType
 public interface IMergeService {
-	IOriCollection merge(ICUDResult cudResult, IMethodDescription methodDescription);
+	IOriCollection merge(ICUDResult cudResult, String[] causingUuids,
+			IMethodDescription methodDescription);
 
 	List<IEntityMetaData> getMetaData(List<Class<?>> entityTypes);
 

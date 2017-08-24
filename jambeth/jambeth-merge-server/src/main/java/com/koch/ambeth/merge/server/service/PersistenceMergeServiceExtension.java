@@ -142,8 +142,9 @@ public class PersistenceMergeServiceExtension implements IMergeServiceExtension 
 		public void invoke() throws Exception {
 			if (addedORIs != null) {
 				for (IObjRef addedObjRef : addedORIs) {
-					CreateOrUpdateContainerBuild referredChangeContainer = (CreateOrUpdateContainerBuild) objRefToChangeContainerMap
-							.get(addedObjRef);
+					CreateOrUpdateContainerBuild referredChangeContainer =
+							(CreateOrUpdateContainerBuild) objRefToChangeContainerMap
+									.get(addedObjRef);
 					RelationUpdateItemBuild existingRui = referredChangeContainer
 							.ensureRelation(reverseMember.getName());
 					existingRui.addObjRef(objRef);
@@ -151,8 +152,9 @@ public class PersistenceMergeServiceExtension implements IMergeServiceExtension 
 			}
 			if (removedORIs != null) {
 				for (IObjRef removedObjRef : removedORIs) {
-					CreateOrUpdateContainerBuild referredChangeContainer = (CreateOrUpdateContainerBuild) objRefToChangeContainerMap
-							.get(removedObjRef);
+					CreateOrUpdateContainerBuild referredChangeContainer =
+							(CreateOrUpdateContainerBuild) objRefToChangeContainerMap
+									.get(removedObjRef);
 					RelationUpdateItemBuild existingRui = referredChangeContainer
 							.ensureRelation(reverseMember.getName());
 					existingRui.removeObjRef(objRef);
@@ -315,78 +317,82 @@ public class PersistenceMergeServiceExtension implements IMergeServiceExtension 
 		try {
 			List<IChangeContainer> allChanges = cudResult.getAllChanges();
 			List<Object> originalRefs = cudResult.getOriginalRefs();
-			IdentityHashMap<IChangeContainer, IChangeContainer> buildableToOriginalChangeContainerMap = IdentityHashMap
-					.<IChangeContainer, IChangeContainer>create(allChanges.size());
+			IdentityHashMap<IChangeContainer, IChangeContainer> buildableToOriginalChangeContainerMap =
+					IdentityHashMap
+							.<IChangeContainer, IChangeContainer>create(allChanges.size());
 			HashMap<String, ITableChange> tableChangeMap = new HashMap<>();
 			ArrayList<IObjRef> oriList = new ArrayList<>(allChanges.size());
 
 			HashMap<Long, IObjRef> mockIdToObjRefMap = new HashMap<>();
 			HashMap<IObjRef, Object> objRefToEntityMap = new HashMap<>();
-			LinkedHashMap<IObjRef, IChangeContainer> objRefToChangeContainerMap = new LinkedHashMap<IObjRef, IChangeContainer>() {
-				@Override
-				public IChangeContainer put(IObjRef key, IChangeContainer value) {
-					if (value instanceof LinkContainer) {
-						ILinkChangeCommand linkCommand = ((LinkContainer) value).getCommand();
-						IDirectedLinkMetaData linkMetaData = linkCommand.getDirectedLink().getMetaData();
-						IObjRef objRef = linkCommand.getReference();
-						RelationMember fromMember = linkMetaData.getMember();
-						if (fromMember != null) {
-							IChangeContainer changeContainer = get(objRef);
-							if (!(changeContainer instanceof DeleteContainer)) {
-								if (changeContainer == null) {
-									changeContainer = incrementalState.newUpdateContainer(objRef.getRealType());
-									changeContainer.setReference(objRef);
-									put(objRef, changeContainer);
+			LinkedHashMap<IObjRef, IChangeContainer> objRefToChangeContainerMap =
+					new LinkedHashMap<IObjRef, IChangeContainer>() {
+						@Override
+						public IChangeContainer put(IObjRef key, IChangeContainer value) {
+							if (value instanceof LinkContainer) {
+								ILinkChangeCommand linkCommand = ((LinkContainer) value).getCommand();
+								IDirectedLinkMetaData linkMetaData = linkCommand.getDirectedLink().getMetaData();
+								IObjRef objRef = linkCommand.getReference();
+								RelationMember fromMember = linkMetaData.getMember();
+								if (fromMember != null) {
+									IChangeContainer changeContainer = get(objRef);
+									if (!(changeContainer instanceof DeleteContainer)) {
+										if (changeContainer == null) {
+											changeContainer = incrementalState.newUpdateContainer(objRef.getRealType());
+											changeContainer.setReference(objRef);
+											put(objRef, changeContainer);
+										}
+										RelationUpdateItemBuild rui = ((CreateOrUpdateContainerBuild) changeContainer)
+												.ensureRelation(fromMember.getName());
+										rui.addObjRefs(linkCommand.getRefsToLink());
+										rui.removeObjRefs(linkCommand.getRefsToUnlink());
+									}
 								}
-								RelationUpdateItemBuild rui = ((CreateOrUpdateContainerBuild) changeContainer)
-										.ensureRelation(fromMember.getName());
-								rui.addObjRefs(linkCommand.getRefsToLink());
-								rui.removeObjRefs(linkCommand.getRefsToUnlink());
+								RelationMember toMember = linkMetaData.getReverseLink().getMember();
+								if (toMember != null) {
+									String toMemberName = toMember.getName();
+									List<IObjRef> refsToLink = linkCommand.getRefsToLink();
+									for (int a = refsToLink.size(); a-- > 0;) {
+										IObjRef linkedObjRef = refsToLink.get(a);
+										IChangeContainer changeContainer = get(linkedObjRef);
+										if (changeContainer instanceof DeleteContainer) {
+											continue;
+										}
+										if (changeContainer == null) {
+											changeContainer =
+													incrementalState.newUpdateContainer(linkedObjRef.getRealType());
+											changeContainer.setReference(linkedObjRef);
+											put(linkedObjRef, changeContainer);
+										}
+										((CreateOrUpdateContainerBuild) changeContainer).ensureRelation(toMemberName)
+												.addObjRef(objRef);
+									}
+									List<IObjRef> refsToUnlink = linkCommand.getRefsToUnlink();
+									for (int a = refsToUnlink.size(); a-- > 0;) {
+										IObjRef linkedObjRef = refsToUnlink.get(a);
+										IChangeContainer changeContainer = get(linkedObjRef);
+										if (changeContainer instanceof DeleteContainer) {
+											continue;
+										}
+										if (changeContainer == null) {
+											changeContainer =
+													incrementalState.newUpdateContainer(linkedObjRef.getRealType());
+											changeContainer.setReference(linkedObjRef);
+											put(linkedObjRef, changeContainer);
+										}
+										((CreateOrUpdateContainerBuild) changeContainer).ensureRelation(toMemberName)
+												.removeObjRef(objRef);
+									}
+								}
+								return null;
 							}
+							IChangeContainer existingValue = super.get(key);
+							if (existingValue == value || existingValue instanceof DeleteContainer) {
+								return null;
+							}
+							return super.put(key, value);
 						}
-						RelationMember toMember = linkMetaData.getReverseLink().getMember();
-						if (toMember != null) {
-							String toMemberName = toMember.getName();
-							List<IObjRef> refsToLink = linkCommand.getRefsToLink();
-							for (int a = refsToLink.size(); a-- > 0;) {
-								IObjRef linkedObjRef = refsToLink.get(a);
-								IChangeContainer changeContainer = get(linkedObjRef);
-								if (changeContainer instanceof DeleteContainer) {
-									continue;
-								}
-								if (changeContainer == null) {
-									changeContainer = incrementalState.newUpdateContainer(linkedObjRef.getRealType());
-									changeContainer.setReference(linkedObjRef);
-									put(linkedObjRef, changeContainer);
-								}
-								((CreateOrUpdateContainerBuild) changeContainer).ensureRelation(toMemberName)
-										.addObjRef(objRef);
-							}
-							List<IObjRef> refsToUnlink = linkCommand.getRefsToUnlink();
-							for (int a = refsToUnlink.size(); a-- > 0;) {
-								IObjRef linkedObjRef = refsToUnlink.get(a);
-								IChangeContainer changeContainer = get(linkedObjRef);
-								if (changeContainer instanceof DeleteContainer) {
-									continue;
-								}
-								if (changeContainer == null) {
-									changeContainer = incrementalState.newUpdateContainer(linkedObjRef.getRealType());
-									changeContainer.setReference(linkedObjRef);
-									put(linkedObjRef, changeContainer);
-								}
-								((CreateOrUpdateContainerBuild) changeContainer).ensureRelation(toMemberName)
-										.removeObjRef(objRef);
-							}
-						}
-						return null;
-					}
-					IChangeContainer existingValue = super.get(key);
-					if (existingValue == value || existingValue instanceof DeleteContainer) {
-						return null;
-					}
-					return super.put(key, value);
-				}
-			};
+					};
 			IList<IChangeContainer> buildableAllChanges = transformToBuildableCUDResult(cudResult,
 					incrementalState, buildableToOriginalChangeContainerMap);
 
@@ -583,7 +589,8 @@ public class PersistenceMergeServiceExtension implements IMergeServiceExtension 
 	}
 
 	@Override
-	public IOriCollection merge(ICUDResult cudResult, IMethodDescription methodDescription) {
+	public IOriCollection merge(ICUDResult cudResult, String[] causingUuids,
+			IMethodDescription methodDescription) {
 		IDatabase database = this.database.getCurrent();
 		try {
 			// ensureCorrectIdIndexOfAllRelations(cudResult);
@@ -630,7 +637,7 @@ public class PersistenceMergeServiceExtension implements IMergeServiceExtension 
 				}
 			}
 			IChangeAggregator changeAggregator = persistTableChanges(database, tableChangeMap);
-			changeAggregator.createDataChange();
+			changeAggregator.createDataChange(causingUuids);
 
 			for (int a = oriList.size(); a-- > 0;) {
 				IObjRef objRef = oriList.get(a);
@@ -663,7 +670,8 @@ public class PersistenceMergeServiceExtension implements IMergeServiceExtension 
 			IRootCache rootCache = this.rootCache.getCurrentRootCache();
 
 			HashMap<IObjRef, RootCacheValue> toDeleteMap = new HashMap<>();
-			LinkedHashMap<ITableChange, IList<ILinkChangeCommand>> linkChangeCommands = new LinkedHashMap<>();
+			LinkedHashMap<ITableChange, IList<ILinkChangeCommand>> linkChangeCommands =
+					new LinkedHashMap<>();
 			LinkedHashMap<Class<?>, IList<IObjRef>> typeToIdlessReferenceMap = new LinkedHashMap<>();
 			ArrayList<IObjRef> toLoadForDeletion = new ArrayList<>();
 			fillOriList(oriList, allChanges, toLoadForDeletion);
@@ -773,9 +781,12 @@ public class PersistenceMergeServiceExtension implements IMergeServiceExtension 
 
 		changeQueue.pushAllFrom(allChanges);
 
-		LinkedHashMap<CheckForPreviousParentKey, IList<IObjRef>> previousParentToMovedOrisMap = new LinkedHashMap<>();
-		LinkedHashMap<IncomingRelationKey, IList<IObjRef>> incomingRelationToReferenceMap = new LinkedHashMap<>();
-		LinkedHashMap<OutgoingRelationKey, IList<IObjRef>> outgoingRelationToReferenceMap = new LinkedHashMap<>();
+		LinkedHashMap<CheckForPreviousParentKey, IList<IObjRef>> previousParentToMovedOrisMap =
+				new LinkedHashMap<>();
+		LinkedHashMap<IncomingRelationKey, IList<IObjRef>> incomingRelationToReferenceMap =
+				new LinkedHashMap<>();
+		LinkedHashMap<OutgoingRelationKey, IList<IObjRef>> outgoingRelationToReferenceMap =
+				new LinkedHashMap<>();
 		HashSet<IObjRef> allAddedORIs = new HashSet<>();
 		final HashSet<EntityLinkKey> alreadyHandled = new HashSet<>();
 		final IdentityHashSet<RootCacheValue> alreadyPrefetched = new IdentityHashSet<>();
@@ -945,10 +956,8 @@ public class PersistenceMergeServiceExtension implements IMergeServiceExtension 
 	/**
 	 * Finds all ORIs referenced as 'added' in a RUI. Used to not cascade-delete moved entities.
 	 *
-	 * @param allChanges
-	 *          All changes in the CUDResult.
-	 * @param allAddedORIs
-	 *          All ORIs referenced as 'added' in a RUI.
+	 * @param allChanges All changes in the CUDResult.
+	 * @param allAddedORIs All ORIs referenced as 'added' in a RUI.
 	 */
 	protected void findAllNewlyReferencedORIs(List<IChangeContainer> allChanges,
 			HashSet<IObjRef> allAddedORIs) {

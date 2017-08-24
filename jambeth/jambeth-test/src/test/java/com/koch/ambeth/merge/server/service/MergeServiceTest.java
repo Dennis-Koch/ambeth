@@ -160,7 +160,7 @@ public class MergeServiceTest extends AbstractInformationBusWithPersistenceTest 
 		List<IChangeContainer> allChanges = new ArrayList<>();
 		List<Object> originalRefs = new ArrayList<>();
 		ICUDResult cudResult = new CUDResult(allChanges, originalRefs);
-		IOriCollection actual = fixtureProxy.merge(cudResult, null);
+		IOriCollection actual = fixtureProxy.merge(cudResult, null, null);
 		assertTrue(actual.getAllChangeORIs().isEmpty());
 		assertEquals("anonymous", actual.getChangedBy());
 		assertTrue(System.currentTimeMillis() - actual.getChangedOn() < 500);
@@ -177,7 +177,7 @@ public class MergeServiceTest extends AbstractInformationBusWithPersistenceTest 
 		allChanges.add(container);
 
 		ICUDResult cudResult = new CUDResult(allChanges, null);
-		IOriCollection actual = fixtureProxy.merge(cudResult, null);
+		IOriCollection actual = fixtureProxy.merge(cudResult, null, null);
 		assertTrue(System.currentTimeMillis() - actual.getChangedOn() < 500);
 		assertEquals("anonymous", actual.getChangedBy());
 		assertEquals(1, actual.getAllChangeORIs().size());
@@ -221,7 +221,7 @@ public class MergeServiceTest extends AbstractInformationBusWithPersistenceTest 
 		allChanges.add(container2);
 
 		ICUDResult cudResult = new CUDResult(allChanges, null);
-		IOriCollection actual = fixtureProxy.merge(cudResult, null);
+		IOriCollection actual = fixtureProxy.merge(cudResult, null, null);
 		assertTrue(System.currentTimeMillis() - actual.getChangedOn() < 500);
 		assertEquals("anonymous", actual.getChangedBy());
 		assertEquals(2, actual.getAllChangeORIs().size());

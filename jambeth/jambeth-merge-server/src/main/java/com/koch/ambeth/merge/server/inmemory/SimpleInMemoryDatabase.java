@@ -320,7 +320,8 @@ public class SimpleInMemoryDatabase implements ICacheRetriever, IMergeServiceExt
 
 	@Override
 	@PersistenceContext(PersistenceContextType.REQUIRED)
-	public IOriCollection merge(ICUDResult cudResult, IMethodDescription methodDescription) {
+	public IOriCollection merge(ICUDResult cudResult, String[] causingUuids,
+			IMethodDescription methodDescription) {
 		if (!transactionState.isTransactionActive()) {
 			throw new IllegalStateException(
 					"No transaction active. This operation-mode is currently not supported!");

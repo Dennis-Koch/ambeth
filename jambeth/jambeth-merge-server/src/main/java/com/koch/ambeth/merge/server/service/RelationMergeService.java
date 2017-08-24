@@ -498,6 +498,9 @@ public class RelationMergeService implements IRelationMergeService, IEventListen
 
 		HashMap<String, ChildMember> childMemberNameToDataIndexMap = new HashMap<>();
 
+		ArrayList<AbstractChangeContainer> relevantChangeContainers =
+				new ArrayList<>();
+
 		ILinkedMap<String, IList<Object>> childMemberNameToIdsMap =
 				buildPropertyNameToIdsMap(oris, member.getElementType());
 		IQuery<?> query = buildParentChildQuery(metaData, memberName, childMemberNameToIdsMap,
@@ -510,7 +513,8 @@ public class RelationMergeService implements IRelationMergeService, IEventListen
 			int primaryIdIndex =
 					childMemberNameToDataIndexMap.get(metaData.getIdMember().getName()).dataIndex;
 			int versionIndex = metaData.getVersionMember() != null
-					? childMemberNameToDataIndexMap.get(metaData.getVersionMember().getName()).dataIndex : -1;
+					? childMemberNameToDataIndexMap.get(metaData.getVersionMember().getName()).dataIndex
+					: -1;
 
 			IPreparedObjRefFactory preparedObjRefFactory =
 					objRefFactory.prepareObjRefFactory(metaData.getEntityType(), ObjRef.PRIMARY_KEY_INDEX);
@@ -530,7 +534,8 @@ public class RelationMergeService implements IRelationMergeService, IEventListen
 					continue;
 				}
 				AbstractChangeContainer updateContainer = incrementalState != null
-						? incrementalState.newUpdateContainer(objRef.getRealType()) : new UpdateContainer();
+						? incrementalState.newUpdateContainer(objRef.getRealType())
+						: new UpdateContainer();
 				updateContainer.setReference(objRef);
 				if (changeContainers == null) {
 					changeContainers = new ArrayList<>();
@@ -660,7 +665,8 @@ public class RelationMergeService implements IRelationMergeService, IEventListen
 					IObjRef primaryObjRef =
 							objRefFactory.createObjRef(relatedEntity, ObjRef.PRIMARY_KEY_INDEX);
 					IObjRef objRef = idIndex != ObjRef.PRIMARY_KEY_INDEX
-							? objRefFactory.createObjRef(relatedEntity, idIndex) : primaryObjRef;
+							? objRefFactory.createObjRef(relatedEntity, idIndex)
+							: primaryObjRef;
 					relatedObjRefsWithVersion[j] = objRef; // use the alternate id objref matching to the link
 					if (!toDeleteMap.putIfNotExists(primaryObjRef, relatedEntity)
 							|| (primaryObjRef != objRef && !toDeleteMap.putIfNotExists(objRef, relatedEntity))) {
@@ -805,7 +811,8 @@ public class RelationMergeService implements IRelationMergeService, IEventListen
 				final IObjRef primaryObjRef =
 						oriHelper.entityToObjRef(relatingEntity, idIndex, relatedMetaData);
 				IObjRef relatingRef = idIndex != ObjRef.PRIMARY_KEY_INDEX
-						? oriHelper.entityToObjRef(relatingEntity, idIndex, relatedMetaData) : primaryObjRef;
+						? oriHelper.entityToObjRef(relatingEntity, idIndex, relatedMetaData)
+						: primaryObjRef;
 				relatingRefs.add(relatingRef);
 
 				if (linkMD.getReverseLink().getMember() != null) {
@@ -858,7 +865,8 @@ public class RelationMergeService implements IRelationMergeService, IEventListen
 						continue;
 					}
 					AbstractChangeContainer updateContainer = incrementalState != null
-							? incrementalState.newUpdateContainer(objRef.getRealType()) : new UpdateContainer();
+							? incrementalState.newUpdateContainer(objRef.getRealType())
+							: new UpdateContainer();
 					updateContainer.setReference(objRef);
 					changeContainers.add(updateContainer);
 					objRefToChangeContainerMap.put(updateContainer.getReference(), updateContainer);
@@ -869,7 +877,7 @@ public class RelationMergeService implements IRelationMergeService, IEventListen
 			}
 		}
 
-		if (removeRelations && !relatingRefs.isEmpty()) {
+		if (!relatingRefs.isEmpty()) {
 			IDirectedLink directedLink = becauseOfSelfRelation ? link : link.getReverseLink();
 			addLinkChangeContainer(changeContainers, directedLink, relatingRefs, references);
 		}
@@ -887,7 +895,8 @@ public class RelationMergeService implements IRelationMergeService, IEventListen
 			int primaryIdIndex =
 					childMemberNameToDataIndexMap.get(metaData.getIdMember().getName()).dataIndex;
 			int versionIndex = metaData.getVersionMember() != null
-					? childMemberNameToDataIndexMap.get(metaData.getVersionMember().getName()).dataIndex : -1;
+					? childMemberNameToDataIndexMap.get(metaData.getVersionMember().getName()).dataIndex
+					: -1;
 
 			int[] dataIndices =
 					new int[childMemberNameToDataIndexMap.size() - (versionIndex != -1 ? 2 : 1)];

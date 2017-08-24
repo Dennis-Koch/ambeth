@@ -162,7 +162,8 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 	@Autowired
 	protected ILightweightTransaction transaction;
 
-	@Property(name = AuditConfigurationConstants.AuditedServiceDefaultModeActive, defaultValue = "true")
+	@Property(name = AuditConfigurationConstants.AuditedServiceDefaultModeActive,
+			defaultValue = "true")
 	protected boolean auditedServiceDefaultModeActive;
 
 	@Property(name = SecurityServerConfigurationConstants.SignatureActive, defaultValue = "false")
@@ -321,7 +322,7 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 		}
 	}
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@SuppressWarnings({"unchecked", "rawtypes"})
 	protected IDirectObjRef getOrCreateRef(IObjRef objRef, AuditControllerState auditControllerState,
 			IMap<IObjRef, IDirectObjRef> objRefToRefMap) {
 		IDirectObjRef ref = objRefToRefMap.get(objRef);
@@ -557,7 +558,7 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 				Boolean oldAddNewlyPersistedEntities = MergeProcess.getAddNewlyPersistedEntities();
 				MergeProcess.setAddNewlyPersistedEntities(Boolean.FALSE);
 				try {
-					mergeService.merge(auditMerge, null);
+					mergeService.merge(auditMerge, null, null);
 				}
 				finally {
 					MergeProcess.setAddNewlyPersistedEntities(oldAddNewlyPersistedEntities);

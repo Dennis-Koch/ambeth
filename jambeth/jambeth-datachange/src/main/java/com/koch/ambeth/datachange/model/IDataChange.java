@@ -28,6 +28,8 @@ import com.koch.ambeth.util.annotation.XmlType;
 public interface IDataChange {
 	long getChangeTime();
 
+	String[] getCausingUUIDs();
+
 	List<IDataChangeEntry> getAll();
 
 	List<IDataChangeEntry> getDeletes();

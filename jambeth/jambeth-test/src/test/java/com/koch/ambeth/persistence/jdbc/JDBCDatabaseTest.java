@@ -228,7 +228,7 @@ public class JDBCDatabaseTest extends AbstractInformationBusWithPersistenceTest 
 
 		CUDResult cudResult = new CUDResult(allChanges, originalRefs);
 
-		IOriCollection oriCollection = mergeService.merge(cudResult, null);
+		IOriCollection oriCollection = mergeService.merge(cudResult, null, null);
 
 		List<IObjRef> allChangeORIs = oriCollection.getAllChangeORIs();
 		Assert.assertTrue("Number of changes wrong", allChangeORIs.size() == 2);

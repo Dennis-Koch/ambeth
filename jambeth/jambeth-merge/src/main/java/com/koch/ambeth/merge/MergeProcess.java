@@ -24,12 +24,16 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.CountDownLatch;
 
 import com.koch.ambeth.datachange.model.DirectDataChangeEntry;
+import com.koch.ambeth.datachange.model.IDataChange;
 import com.koch.ambeth.datachange.model.IDataChangeEntry;
-import com.koch.ambeth.datachange.transfer.DataChangeEntry;
 import com.koch.ambeth.datachange.transfer.DataChangeEvent;
 import com.koch.ambeth.event.IEventDispatcher;
+import com.koch.ambeth.event.IEventListener;
+import com.koch.ambeth.event.IEventListenerExtendable;
 import com.koch.ambeth.ioc.IServiceContext;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.config.Property;
@@ -45,7 +49,6 @@ import com.koch.ambeth.merge.model.IRelationUpdateItem;
 import com.koch.ambeth.merge.service.IMergeService;
 import com.koch.ambeth.merge.transfer.CreateContainer;
 import com.koch.ambeth.merge.transfer.DeleteContainer;
-import com.koch.ambeth.merge.transfer.ObjRef;
 import com.koch.ambeth.merge.transfer.RelationUpdateItem;
 import com.koch.ambeth.merge.transfer.UpdateContainer;
 import com.koch.ambeth.service.config.ServiceConfigurationConstants;
@@ -87,6 +90,9 @@ public class MergeProcess implements IMergeProcess {
 
 	@Autowired
 	protected IEventDispatcher eventDispatcher;
+
+	@Autowired
+	protected IEventListenerExtendable eventListenerExtendable;
 
 	@Autowired
 	protected IGuiThreadHelper guiThreadHelper;
@@ -142,7 +148,8 @@ public class MergeProcess implements IMergeProcess {
 				allChanges.add(deleteContainer);
 				originalRefs.add(item);
 			}
-		} else if (argument.getClass().isArray()) {
+		}
+		else if (argument.getClass().isArray()) {
 			Object[] array = (Object[]) argument;
 			for (int a = 0, size = oriList.size(); a < size; a++) {
 				Object item = array[a];
@@ -158,7 +165,8 @@ public class MergeProcess implements IMergeProcess {
 				allChanges.add(deleteContainer);
 				originalRefs.add(item);
 			}
-		} else {
+		}
+		else {
 			IObjRef ori = oriList.get(0);
 			if (ori.getId() == null) {
 				unpersistedObjectsToDelete.add(argument);
@@ -183,7 +191,8 @@ public class MergeProcess implements IMergeProcess {
 		if (guiThreadHelper.isInGuiThread()) {
 			mergePhase2(objectToMerge, objectToDelete, mergeHandle, cudResult, proceedHook,
 					mergeFinishedCallback, addNewEntitiesToCache);
-		} else {
+		}
+		else {
 			guiThreadHelper.invokeInGui(new IBackgroundWorkerDelegate() {
 				@Override
 				public void invoke() throws Exception {
@@ -219,7 +228,8 @@ public class MergeProcess implements IMergeProcess {
 							mergeFinishedCallback, addNewEntitiesToCache);
 				}
 			});
-		} else {
+		}
+		else {
 			mergePhase3(objectToMerge, unpersistedObjectsToDelete, cudResult, proceedHook,
 					mergeFinishedCallback, addNewEntitiesToCache);
 		}
@@ -234,7 +244,8 @@ public class MergeProcess implements IMergeProcess {
 			processCUDResult(objectToMerge, cudResult, unpersistedObjectsToDelete, proceedHook,
 					addNewEntitiesToCache);
 			success = true;
-		} finally {
+		}
+		finally {
 			if (mergeFinishedCallback != null) {
 				mergeFinishedCallback.invoke(success);
 			}
@@ -270,7 +281,8 @@ public class MergeProcess implements IMergeProcess {
 							addNewEntitiesToCache);
 				}
 			});
-		} else {
+		}
+		else {
 			mergePhase1(objectToMerge, objectToDelete, proceedHook, mergeFinishedCallback,
 					addNewEntitiesToCache);
 		}
@@ -283,12 +295,41 @@ public class MergeProcess implements IMergeProcess {
 			if (log.isInfoEnabled()) {
 				log.info("Service call skipped early because there is nothing to merge");
 			}
-		} else {
+		}
+		else {
 			if (proceedHook != null) {
 				boolean proceed = proceedHook.checkToProceed(cudResult);
 				if (!proceed) {
 					return;
 				}
+			}
+			final String uuid = UUID.randomUUID().toString();
+			final CountDownLatch latch;
+			final IEventListener listenOnce;
+			if (isNetworkClientMode) {
+				latch = new CountDownLatch(1);
+				listenOnce = new IEventListener() {
+					@Override
+					public void handleEvent(Object eventObject, long dispatchTime, long sequenceId)
+							throws Exception {
+						// wait for the DCE corresponding to our merge process is dispatched
+						IDataChange dataChange = (IDataChange) eventObject;
+						String[] causingUUIDs = dataChange.getCausingUUIDs();
+						if (causingUUIDs != null) {
+							for (String causingUUID : causingUUIDs) {
+								if (uuid.equals(causingUUID)) {
+									eventListenerExtendable.unregisterEventListener(this, IDataChange.class);
+									latch.countDown();
+									return;
+								}
+							}
+						}
+					}
+				};
+			}
+			else {
+				latch = null;
+				listenOnce = null;
 			}
 			final IOriCollection oriColl;
 			eventDispatcher.enableEventQueue();
@@ -303,7 +344,7 @@ public class MergeProcess implements IMergeProcess {
 									@Override
 									public IOriCollection invoke() throws Exception {
 										IOriCollection oriColl =
-												mergeService.merge(cudResult, null);
+												mergeService.merge(cudResult, new String[] {uuid}, null);
 										mergeController.applyChangesToOriginals(cudResult, oriColl,
 												null);
 										return oriColl;
@@ -311,64 +352,91 @@ public class MergeProcess implements IMergeProcess {
 								};
 						if (transaction == null || transaction.isActive()) {
 							oriColl = runnable.invoke();
-						} else {
+						}
+						else {
 							oriColl = transaction.runInLazyTransaction(runnable);
 						}
-					} catch (Exception e) {
+					}
+					catch (Exception e) {
 						throw RuntimeExceptionUtil.mask(e);
-					} finally {
+					}
+					finally {
 						addNewlyPersistedEntitiesTL.set(oldNewlyPersistedEntities);
 					}
-				} finally {
-					eventDispatcher.resume(cache);
-				}
-			} finally {
-				eventDispatcher.flushEventQueue();
-			}
-
-			if (isNetworkClientMode) {
-				DataChangeEvent dataChange = DataChangeEvent.create(-1, -1, -1);
-				// This is intentionally a remote source
-				dataChange.setLocalSource(false);
-
-				List<IChangeContainer> allChanges = cudResult.getAllChanges();
-
-				List<IObjRef> orisInReturn = oriColl.getAllChangeORIs();
-				for (int a = allChanges.size(); a-- > 0;) {
-					IChangeContainer changeContainer = allChanges.get(a);
-					IObjRef reference = changeContainer.getReference();
-					IObjRef referenceInReturn = orisInReturn.get(a);
-					if (changeContainer instanceof CreateContainer) {
-						if (referenceInReturn.getIdNameIndex() != ObjRef.PRIMARY_KEY_INDEX) {
-							throw new RuntimeException(
-									"Implementation error: Only PK references are allowed in events");
-						}
-						dataChange.getInserts()
-								.add(new DataChangeEntry(referenceInReturn.getRealType(),
-										referenceInReturn.getIdNameIndex(),
-										referenceInReturn.getId(), referenceInReturn.getVersion()));
-					} else if (changeContainer instanceof UpdateContainer) {
-						if (referenceInReturn.getIdNameIndex() != ObjRef.PRIMARY_KEY_INDEX) {
-							throw new RuntimeException(
-									"Implementation error: Only PK references are allowed in events");
-						}
-						dataChange.getUpdates()
-								.add(new DataChangeEntry(referenceInReturn.getRealType(),
-										referenceInReturn.getIdNameIndex(),
-										referenceInReturn.getId(), referenceInReturn.getVersion()));
-					} else if (changeContainer instanceof DeleteContainer) {
-						if (reference.getIdNameIndex() != ObjRef.PRIMARY_KEY_INDEX) {
-							throw new RuntimeException(
-									"Implementation error: Only PK references are allowed in events");
-						}
-						dataChange.getDeletes()
-								.add(new DataChangeEntry(reference.getRealType(),
-										reference.getIdNameIndex(), reference.getId(),
-										reference.getVersion()));
+					if (listenOnce != null) {
+						eventListenerExtendable.registerEventListener(listenOnce, IDataChange.class);
 					}
 				}
-				eventDispatcher.dispatchEvent(dataChange);
+				finally {
+					eventDispatcher.resume(cache);
+				}
 			}
+			finally {
+				eventDispatcher.flushEventQueue();
+			}
+			if (latch != null) {
+				try {
+					latch.await();
+				}
+				catch (InterruptedException e) {
+					Thread.interrupted(); // clear flag
+					throw RuntimeExceptionUtil.mask(e);
+				}
+			}
+
+			// if (isNetworkClientMode) {
+			// DataChangeEvent dataChange = DataChangeEvent.create(-1, -1, -1);
+			// // This is intentionally a remote source
+			// dataChange.setLocalSource(false);
+			//
+			// List<IChangeContainer> allChanges = cudResult.getAllChanges();
+			//
+			// List<IObjRef> orisInReturn = oriColl.getAllChangeORIs();
+			// for (int a = orisInReturn.size(); a-- > 0;) {
+			// IObjRef referenceInReturn = orisInReturn.get(a);
+			// if (a >= allChanges.size()) {
+			// // this is an implicit objRef not known to the current local merge process
+			// dataChange.getUpdates()
+			// .add(new DataChangeEntry(referenceInReturn.getRealType(),
+			// referenceInReturn.getIdNameIndex(),
+			// referenceInReturn.getId(), referenceInReturn.getVersion()));
+			// continue;
+			// }
+			// IChangeContainer changeContainer = allChanges.get(a);
+			// IObjRef reference = changeContainer.getReference();
+			// if (changeContainer instanceof CreateContainer) {
+			// if (referenceInReturn.getIdNameIndex() != ObjRef.PRIMARY_KEY_INDEX) {
+			// throw new RuntimeException(
+			// "Implementation error: Only PK references are allowed in events");
+			// }
+			// dataChange.getInserts()
+			// .add(new DataChangeEntry(referenceInReturn.getRealType(),
+			// referenceInReturn.getIdNameIndex(),
+			// referenceInReturn.getId(), referenceInReturn.getVersion()));
+			// }
+			// else if (changeContainer instanceof UpdateContainer) {
+			// if (referenceInReturn.getIdNameIndex() != ObjRef.PRIMARY_KEY_INDEX) {
+			// throw new RuntimeException(
+			// "Implementation error: Only PK references are allowed in events");
+			// }
+			// dataChange.getUpdates()
+			// .add(new DataChangeEntry(referenceInReturn.getRealType(),
+			// referenceInReturn.getIdNameIndex(),
+			// referenceInReturn.getId(), referenceInReturn.getVersion()));
+			// }
+			// else if (changeContainer instanceof DeleteContainer) {
+			// if (reference.getIdNameIndex() != ObjRef.PRIMARY_KEY_INDEX) {
+			// throw new RuntimeException(
+			// "Implementation error: Only PK references are allowed in events");
+			// }
+			// dataChange.getDeletes()
+			// .add(new DataChangeEntry(reference.getRealType(),
+			// reference.getIdNameIndex(), reference.getId(),
+			// reference.getVersion()));
+			// }
+			// }
+			// eventDispatcher.dispatchEvent(dataChange);
+			// }
 		}
 		if (unpersistedObjectsToDelete != null && !unpersistedObjectsToDelete.isEmpty()) {
 			// Create a DCE for all objects without an id but which should be deleted...
@@ -419,9 +487,11 @@ public class MergeProcess implements IMergeProcess {
 			IRelationUpdateItem[] relations;
 			if (changeContainer instanceof CreateContainer) {
 				relations = ((CreateContainer) changeContainer).getRelations();
-			} else if (changeContainer instanceof UpdateContainer) {
+			}
+			else if (changeContainer instanceof UpdateContainer) {
 				relations = ((UpdateContainer) changeContainer).getRelations();
-			} else {
+			}
+			else {
 				// DeleteContainers can not refer anything beside themselves
 				continue;
 			}
@@ -442,7 +512,8 @@ public class MergeProcess implements IMergeProcess {
 					if (addedOris.length == 1) {
 						if (childItem.getRemovedORIs() != null) {
 							((RelationUpdateItem) childItem).setAddedORIs(null);
-						} else {
+						}
+						else {
 							if (relations.length == 1) {
 								allChanges.remove(a);
 								originalRefs.remove(a);
@@ -457,7 +528,8 @@ public class MergeProcess implements IMergeProcess {
 							relations = newChildItems;
 							if (changeContainer instanceof CreateContainer) {
 								((CreateContainer) changeContainer).setRelations(relations);
-							} else {
+							}
+							else {
 								((UpdateContainer) changeContainer).setRelations(relations);
 							}
 						}
