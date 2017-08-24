@@ -681,6 +681,24 @@ public class ServiceContext
 	}
 
 	@Override
+	public ILinkRegistryNeededRuntime<?> link(IBeanConfiguration listenerBean, String methodName) {
+		checkNotDisposed();
+		return beanContextFactory.link(this, listenerBean, methodName);
+	}
+
+	@Override
+	public ILinkRegistryNeededRuntime<?> link(Object listener, String methodName) {
+		checkNotDisposed();
+		return beanContextFactory.link(this, listener, methodName);
+	}
+
+	@Override
+	public ILinkRegistryNeededRuntime<?> link(String listenerBeanName, String methodName) {
+		checkNotDisposed();
+		return beanContextFactory.link(this, listenerBeanName, methodName);
+	}
+
+	@Override
 	public void registerDisposable(IDisposableBean disposableBean) {
 		registerDisposableIntern(disposableBean, true);
 	}

@@ -27,7 +27,11 @@ limitations under the License.
  */
 public interface ILinkRuntimeFinish {
 	/**
-	 * Finishes the link configuration and executes it.
+	 * Finishes the link configuration and executes it. Note that it is NOT necessary to call
+	 * {@link ILinkContainer#link()} on the result.
+	 *
+	 * @return The already executed (linked) handle. Allows to unlink() it before the IoC context
+	 *         would unlink it during its end of life
 	 */
-	void finishLink();
+	ILinkContainer finishLink();
 }

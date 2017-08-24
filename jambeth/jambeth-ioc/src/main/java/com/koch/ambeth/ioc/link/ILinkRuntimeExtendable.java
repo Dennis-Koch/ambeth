@@ -38,6 +38,15 @@ public interface ILinkRuntimeExtendable {
 	ILinkRegistryNeededRuntime<?> link(String listenerBeanName);
 
 	/**
+	 * Start linking a named bean to a specific registry method.
+	 *
+	 * @param listenerBeanName Name of the bean to add to a registry.
+	 * @param methodName Name of the registry method.
+	 * @return Next step of the fluent interface.
+	 */
+	ILinkRegistryNeededRuntime<?> link(String listenerBeanName, String methodName);
+
+	/**
 	 * Start linking a bean identified by its {@link IBeanConfiguration}.
 	 *
 	 * @param listenerBean Identifier for the bean to add to a registry.
@@ -46,10 +55,29 @@ public interface ILinkRuntimeExtendable {
 	ILinkRegistryNeededRuntime<?> link(IBeanConfiguration listenerBean);
 
 	/**
+	 * Start linking a bean identified by its {@link IBeanConfiguration} to a specific registry
+	 * method.
+	 *
+	 * @param listenerBean Identifier for the bean to add to a registry.
+	 * @param methodName Name of the registry method.
+	 * @return Next step of the fluent interface.
+	 */
+	ILinkRegistryNeededRuntime<?> link(IBeanConfiguration listenerBean, String methodName);
+
+	/**
 	 * Start linking a object or bean instance.
 	 *
 	 * @param listener Object or bean to add to a registry.
 	 * @return Next step of the fluent interface.
 	 */
 	<D> ILinkRegistryNeededRuntime<D> link(D listener);
+
+	/**
+	 * Start linking a object or bean instance to a specific registry method.
+	 *
+	 * @param listener Object or bean to add to a registry.
+	 * @param methodName Name of the registry method.
+	 * @return Next step of the fluent interface.
+	 */
+	ILinkRegistryNeededRuntime<?> link(Object listener, String methodName);
 }

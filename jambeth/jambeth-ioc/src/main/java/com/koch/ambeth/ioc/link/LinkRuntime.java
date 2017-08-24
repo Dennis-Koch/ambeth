@@ -53,8 +53,8 @@ public class LinkRuntime<D> extends BeanRuntime<ILinkContainer>
 	}
 
 	@Override
-	public void finishLink() {
-		finish();
+	public ILinkContainer finishLink() {
+		return finish();
 	}
 
 	public ILinkRegistryNeededRuntime<?> listener(IBeanConfiguration listenerBean) {
