@@ -497,4 +497,9 @@ public class AmbethLogger implements IConfigurableLogger {
 	public void setLogToStream(boolean logToStream) {
 		this.logToStream = logToStream;
 	}
+
+	@Override
+	public String toString() {
+		return getClass().getSimpleName() + ": " + source;
+	}
 }
