@@ -104,7 +104,9 @@ public class CollectionElementHandler extends AbstractHandler implements INameBa
 		else {
 			coll = length > 0 ? new ArrayList<>(length) : new ArrayList<>();
 		}
-		reader.putObjectWithId(coll, id);
+		if (id > 0) {
+			reader.putObjectWithId(coll, id);
+		}
 		reader.nextTag();
 		boolean useObjectFuture = false;
 		ICommandBuilder commandBuilder = this.commandBuilder;

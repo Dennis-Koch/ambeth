@@ -129,11 +129,15 @@ public class ArrayNameHandler extends AbstractHandler
 				targetArray = conversionHelper.convertValueToType(targetArray.getClass(),
 						listOfValuesString,
 						EncodingInformation.SOURCE_BASE64 | EncodingInformation.TARGET_PLAIN);
-				reader.putObjectWithId(targetArray, id);
+				if (id > 0) {
+					reader.putObjectWithId(targetArray, id);
+				}
 			}
 			else {
 				targetArray = Array.newInstance(componentType, length);
-				reader.putObjectWithId(targetArray, id);
+				if (id > 0) {
+					reader.putObjectWithId(targetArray, id);
+				}
 				String[] items = splitPattern.split(listOfValuesString);
 				for (int a = 0, size = items.length; a < size; a++) {
 					String item = items[a];

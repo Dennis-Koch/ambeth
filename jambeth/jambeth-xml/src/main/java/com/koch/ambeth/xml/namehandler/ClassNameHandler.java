@@ -238,7 +238,9 @@ public class ClassNameHandler extends AbstractHandler implements INameBasedHandl
 				tlObjectCollector.dispose(sb);
 			}
 		}
-		reader.putObjectWithId(typeObj, classId);
+		if (classId > 0) {
+			reader.putObjectWithId(typeObj, classId);
+		}
 		return typeObj;
 	}
 
