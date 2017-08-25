@@ -28,6 +28,7 @@ import com.koch.ambeth.ioc.extendable.MapExtendableContainer;
 import com.koch.ambeth.merge.IProxyHelper;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.IntKeyMap;
+import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.xml.typehandler.AbstractHandler;
 
 public class CyclicXmlController extends AbstractHandler
@@ -38,11 +39,13 @@ public class CyclicXmlController extends AbstractHandler
 	@Autowired
 	protected IXmlTypeRegistry xmlTypeRegistry;
 
-	protected final ClassExtendableContainer<ITypeBasedHandler> typeToElementHandlers = new ClassExtendableContainer<>(
-			"elementHandler", "type");
+	protected final ClassExtendableContainer<ITypeBasedHandler> typeToElementHandlers =
+			new ClassExtendableContainer<>(
+					"elementHandler", "type");
 
-	protected final MapExtendableContainer<String, INameBasedHandler> nameBasedElementReaders = new MapExtendableContainer<>(
-			"nameBasedElementReader", "elementName");
+	protected final MapExtendableContainer<String, INameBasedHandler> nameBasedElementReaders =
+			new MapExtendableContainer<>(
+					"nameBasedElementReader", "elementName");
 
 	protected final List<INameBasedHandler> nameBasedElementWriters = new ArrayList<>();
 
@@ -84,27 +87,34 @@ public class CyclicXmlController extends AbstractHandler
 		}
 		String idValue = reader.getAttributeValue(xmlDictionary.getIdAttribute());
 		int id = idValue != null && idValue.length() > 0 ? Integer.parseInt(idValue) : 0;
-		if (xmlDictionary.getRefElement().equals(elementName)) {
-			reader.moveOverElementEnd();
-			return reader.getObjectById(id);
-		}
-		Object obj;
-		if (xmlDictionary.getObjectElement().equals(elementName)) {
-			Class<?> type = classElementHandler.readFromAttribute(reader);
-			obj = readObjectContent(returnType, type, id, reader);
-		}
-		else {
-			INameBasedHandler nameBasedElementReader = nameBasedElementReaders.getExtension(elementName);
-			if (nameBasedElementReader == null) {
-				throw new IllegalStateException("Element name '" + elementName + "' not supported");
+		try {
+			if (xmlDictionary.getRefElement().equals(elementName)) {
+				reader.moveOverElementEnd();
+				return reader.getObjectById(id);
 			}
-			obj = nameBasedElementReader.readObject(returnType, elementName, id, reader);
+			Object obj;
+			if (xmlDictionary.getObjectElement().equals(elementName)) {
+				Class<?> type = classElementHandler.readFromAttribute(reader);
+				obj = readObjectContent(returnType, type, id, reader);
+			}
+			else {
+				INameBasedHandler nameBasedElementReader =
+						nameBasedElementReaders.getExtension(elementName);
+				if (nameBasedElementReader == null) {
+					throw new IllegalStateException("Element name '" + elementName + "' not supported");
+				}
+				obj = nameBasedElementReader.readObject(returnType, elementName, id, reader);
+			}
+			if (id > 0) {
+				reader.putObjectWithId(obj, id);
+			}
+			reader.moveOverElementEnd();
+			return obj;
 		}
-		if (id > 0) {
-			reader.putObjectWithId(obj, id);
+		catch (Throwable e) {
+			throw RuntimeExceptionUtil.mask(e,
+					"Error occured while processing element '" + elementName + "' with id '" + id + "'");
 		}
-		reader.moveOverElementEnd();
-		return obj;
 	}
 
 	@Override

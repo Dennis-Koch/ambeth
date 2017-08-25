@@ -180,12 +180,21 @@ public class ClassNameHandler extends AbstractHandler implements INameBasedHandl
 		int classId = 0;
 		if (classIdValue != null && classIdValue.length() > 0) {
 			classId = Integer.parseInt(classIdValue);
-		}
-		Class<?> typeObj = (Class<?>) reader.getObjectById(classId, false);
-		if (typeObj != null) {
-			return typeObj;
+			Class<?> typeObj = (Class<?>) reader.getObjectById(classId, false);
+			if (typeObj != null) {
+				return typeObj;
+			}
 		}
 		String name = reader.getAttributeValue(classNameAttribute);
+		if (name == null) {
+			if (classId > 0) {
+				throw new IllegalStateException(
+						"Class with id '" + classIdAttribute + "' not yet specified in this stream");
+			}
+			throw new IllegalStateException(
+					"Neither class id '" + classIdAttribute + "' nor class type '" + classNameAttribute
+							+ "' specified");
+		}
 		String namespace = reader.getAttributeValue(classNamespaceAttribute);
 
 		IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
@@ -196,7 +205,7 @@ public class ClassNameHandler extends AbstractHandler implements INameBasedHandl
 			dimensionCount++;
 			arrayIndex -= 2;
 		}
-		typeObj = xmlTypeRegistry.getType(name.substring(0, arrayIndex), namespace);
+		Class<?> typeObj = xmlTypeRegistry.getType(name.substring(0, arrayIndex), namespace);
 
 		String classMemberValue = reader.getAttributeValue(classMemberAttribute);
 		if (classMemberValue != null) {

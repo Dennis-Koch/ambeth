@@ -1121,7 +1121,8 @@ public class RootCache extends AbstractCache<RootCacheValue>
 			ArrayList<IObjRef> filteredObjRefsToGet = new ArrayList<>(objRefsToGet.size());
 			privilegesOfObjRefsToGet = new IPrivilege[objRefsToGet.size()];
 			RootCacheValue[] filteredRootCacheValuesToGet = rootCacheValuesToGet != null
-					? new RootCacheValue[objRefsToGet.size()] : null;
+					? new RootCacheValue[objRefsToGet.size()]
+					: null;
 			getCount = 0;
 			for (int a = 0, size = objRefsToGet.size(); a < size; a++) {
 				IPrivilege privilege = privileges[a];
@@ -1254,7 +1255,7 @@ public class RootCache extends AbstractCache<RootCacheValue>
 		}
 	}
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@SuppressWarnings({"unchecked", "rawtypes"})
 	protected Object createObjectFromScratch(IEntityMetaData metaData, RootCacheValue cacheValue,
 			ICacheIntern targetCache, ArrayList<IObjRef> tempObjRefList, boolean filteringNecessary,
 			IPrivilege privilegeOfObjRef) {
@@ -1311,7 +1312,7 @@ public class RootCache extends AbstractCache<RootCacheValue>
 		}
 	}
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@SuppressWarnings({"unchecked", "rawtypes"})
 	protected void updateExistingObject(IEntityMetaData metaData, RootCacheValue cacheValue,
 			Object obj, ICacheIntern targetCache, boolean filteringNecessary,
 			IPrivilege privilegeOfObjRef) {
@@ -1808,8 +1809,11 @@ public class RootCache extends AbstractCache<RootCacheValue>
 			IObjRef related = relations[i];
 			Integer count = relationOris.get(related);
 			if (count == null) {
-				log.warn("Potential inconsistency in RootCache: ObjRef unknown: '" + related + "' used in '"
-						+ cacheValue + "'");
+				if (log.isWarnEnabled()) {
+					log.warn(
+							"Potential inconsistency in RootCache: ObjRef unknown: '" + related + "' used in '"
+									+ cacheValue + "'");
+				}
 				continue;
 			}
 			if (count == 1) {
@@ -1821,7 +1825,7 @@ public class RootCache extends AbstractCache<RootCacheValue>
 		}
 	}
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings({"rawtypes", "unchecked"})
 	protected void updateReferenceVersion(IObjRef ori) {
 		Object version = ori.getVersion();
 		if (version == null) {
@@ -2002,7 +2006,7 @@ public class RootCache extends AbstractCache<RootCacheValue>
 		cacheValue.setRelation(relationIndex, relationsOfMember);
 	}
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@SuppressWarnings({"unchecked", "rawtypes"})
 	@Override
 	public List<ILoadContainer> getEntities(List<IObjRef> orisToLoad) {
 		IList result = getObjects(orisToLoad, CacheDirective.loadContainerResult());
