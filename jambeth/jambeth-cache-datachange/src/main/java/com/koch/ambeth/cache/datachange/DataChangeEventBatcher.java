@@ -31,7 +31,7 @@ import com.koch.ambeth.datachange.transfer.DataChangeEvent;
 import com.koch.ambeth.event.IEventBatcher;
 import com.koch.ambeth.event.IQueuedEvent;
 import com.koch.ambeth.event.QueuedEvent;
-import com.koch.ambeth.ioc.IInitializingBean;
+import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.merge.transfer.DirectObjRef;
 import com.koch.ambeth.merge.transfer.ObjRef;
 import com.koch.ambeth.service.merge.IEntityMetaDataProvider;
@@ -39,30 +39,17 @@ import com.koch.ambeth.service.merge.model.IEntityMetaData;
 import com.koch.ambeth.service.merge.model.IObjRef;
 import com.koch.ambeth.service.metadata.Member;
 import com.koch.ambeth.util.IConversionHelper;
-import com.koch.ambeth.util.ParamChecker;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.HashSet;
 import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.ISet;
 
-public class DataChangeEventBatcher implements IEventBatcher, IInitializingBean {
+public class DataChangeEventBatcher implements IEventBatcher {
+	@Autowired
 	protected IConversionHelper conversionHelper;
 
+	@Autowired
 	protected IEntityMetaDataProvider entityMetaDataProvider;
-
-	@Override
-	public void afterPropertiesSet() {
-		ParamChecker.assertNotNull(conversionHelper, "ConversionHelper");
-		ParamChecker.assertNotNull(entityMetaDataProvider, "EntityMetaDataProvider");
-	}
-
-	public void setConversionHelper(IConversionHelper conversionHelper) {
-		this.conversionHelper = conversionHelper;
-	}
-
-	public void setEntityMetaDataProvider(IEntityMetaDataProvider entityMetaDataProvider) {
-		this.entityMetaDataProvider = entityMetaDataProvider;
-	}
 
 	@Override
 	public IList<IQueuedEvent> batchEvents(List<IQueuedEvent> batchableEvents) {
@@ -97,6 +84,7 @@ public class DataChangeEventBatcher implements IEventBatcher, IInitializingBean 
 		long lastDCETime = 0, lastQueuedEventTime = 0, lastSequenceNumber = -1;
 		Boolean isLocalSource = null;
 
+		HashSet<String> causingUuids = new HashSet<>();
 		for (int a = 0, size = batchableEvents.size(); a < size; a++) {
 			IQueuedEvent batchableEvent = batchableEvents.get(a);
 			IDataChange dataChange = (IDataChange) batchableEvent.getEventObject();
@@ -105,6 +93,10 @@ public class DataChangeEventBatcher implements IEventBatcher, IInitializingBean 
 				// IsLocalSource differs, we can not batch the events here
 				splitIndex = a;
 				break;
+			}
+			String[] currCausingUUIDs = dataChange.getCausingUUIDs();
+			if (currCausingUUIDs != null) {
+				causingUuids.addAll(currCausingUUIDs);
 			}
 			isLocalSource = dataChange.isLocalSource();
 			lastQueuedEventTime = batchableEvent.getDispatchTime();
@@ -189,6 +181,8 @@ public class DataChangeEventBatcher implements IEventBatcher, IInitializingBean 
 			}
 			DataChangeEvent compositeDataChange = new DataChangeEvent(inserts, updates, deletes,
 					lastDCETime, isLocalSource.booleanValue());
+			compositeDataChange
+					.setCausingUUIDs(causingUuids.size() > 0 ? causingUuids.toArray(String.class) : null);
 			targetBatchedEvents
 					.add(new QueuedEvent(compositeDataChange, lastQueuedEventTime, lastSequenceNumber));
 		}
