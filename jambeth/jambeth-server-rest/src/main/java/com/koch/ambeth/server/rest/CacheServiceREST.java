@@ -60,10 +60,10 @@ public class CacheServiceREST extends AbstractServiceREST {
 		try {
 			Object[] args = getArguments(is, request);
 			List<ILoadContainer> result = getCacheService().getEntities((List<IObjRef>) args[0]);
-			return createResult(result, response);
+			return createResult(result, request, response);
 		}
 		catch (Throwable e) {
-			return createExceptionResult(e, response);
+			return createExceptionResult(e, request, response);
 		}
 		finally {
 			rollback.rollback();
@@ -80,10 +80,10 @@ public class CacheServiceREST extends AbstractServiceREST {
 			Object[] args = getArguments(is, request);
 			List<IObjRelationResult> result = getCacheService()
 					.getRelations((List<IObjRelation>) args[0]);
-			return createResult(result, response);
+			return createResult(result, request, response);
 		}
 		catch (Throwable e) {
-			return createExceptionResult(e, response);
+			return createExceptionResult(e, request, response);
 		}
 		finally {
 			rollback.rollback();
@@ -99,10 +99,10 @@ public class CacheServiceREST extends AbstractServiceREST {
 			Object[] args = getArguments(is, request);
 			IServiceResult result = getCacheService()
 					.getORIsForServiceRequest((IServiceDescription) args[0]);
-			return createResult(result, response);
+			return createResult(result, request, response);
 		}
 		catch (Throwable e) {
-			return createExceptionResult(e, response);
+			return createExceptionResult(e, request, response);
 		}
 		finally {
 			rollback.rollback();

@@ -52,10 +52,10 @@ public class ProcessServiceREST extends AbstractServiceREST {
 		try {
 			Object[] args = getArguments(is, request);
 			Object result = getProcessService().invokeService((IServiceDescription) args[0]);
-			return createResult(result, response);
+			return createResult(result, request, response);
 		}
 		catch (Throwable e) {
-			return createExceptionResult(e, response);
+			return createExceptionResult(e, request, response);
 		}
 		finally {
 			rollback.rollback();

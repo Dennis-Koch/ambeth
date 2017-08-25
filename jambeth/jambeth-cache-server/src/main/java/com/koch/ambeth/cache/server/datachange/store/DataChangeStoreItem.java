@@ -35,16 +35,19 @@ public class DataChangeStoreItem extends ArrayList<ObjRefStore>
 
 	protected long dispatchTime, sequenceNumber;
 
+	protected String[] causingUuids;
+
 	protected Object listHandle;
 
 	protected IListElem<IQueuedEvent> prev, next;
 
 	public DataChangeStoreItem(ObjRefStore[] allArray, int insertCount, int updateCount,
-			long changeTime) {
+			long changeTime, String[] causingUuids) {
 		super(allArray);
 		this.insertCount = insertCount;
 		this.updateCount = updateCount;
 		this.changeTime = changeTime;
+		this.causingUuids = causingUuids;
 	}
 
 	@Override
@@ -103,17 +106,21 @@ public class DataChangeStoreItem extends ArrayList<ObjRefStore>
 	}
 
 	@Override
-	public long getSequenceNumber() {
-		return sequenceNumber;
-	}
-
-	@Override
 	public void setDispatchTime(long dispatchTime) {
 		this.dispatchTime = dispatchTime;
 	}
 
 	@Override
+	public long getSequenceNumber() {
+		return sequenceNumber;
+	}
+
+	@Override
 	public void setSequenceNumber(long sequenceNumber) {
 		this.sequenceNumber = sequenceNumber;
+	}
+
+	public String[] getCausingUuids() {
+		return causingUuids;
 	}
 }

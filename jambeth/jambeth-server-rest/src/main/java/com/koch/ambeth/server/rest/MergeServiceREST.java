@@ -66,10 +66,10 @@ public class MergeServiceREST extends AbstractServiceREST {
 		IStateRollback rollback = preServiceCall(request, response);
 		try {
 			String dot = getMergeService().createMetaDataDOT();
-			return createResult(dot, response);
+			return createResult(dot, request, response);
 		}
 		catch (Throwable e) {
-			return createExceptionResult(e, response);
+			return createExceptionResult(e, request, response);
 		}
 		finally {
 			rollback.rollback();
@@ -95,7 +95,7 @@ public class MergeServiceREST extends AbstractServiceREST {
 			};
 		}
 		catch (Throwable e) {
-			return createExceptionResult(e, response);
+			return createExceptionResult(e, request, response);
 		}
 		finally {
 			rollback.rollback();
@@ -111,10 +111,10 @@ public class MergeServiceREST extends AbstractServiceREST {
 			Object[] args = getArguments(is, request);
 			IOriCollection result = getMergeService().merge((ICUDResult) args[0], (String[]) args[1],
 					(IMethodDescription) args[2]);
-			return createResult(result, response);
+			return createResult(result, request, response);
 		}
 		catch (Throwable e) {
-			return createExceptionResult(e, response);
+			return createExceptionResult(e, request, response);
 		}
 		finally {
 			rollback.rollback();
@@ -139,10 +139,10 @@ public class MergeServiceREST extends AbstractServiceREST {
 						.convertValueToType(EntityMetaDataTransfer.class, source);
 				emdTransfer.add(target);
 			}
-			return createResult(emdTransfer, response);
+			return createResult(emdTransfer, request, response);
 		}
 		catch (Throwable e) {
-			return createExceptionResult(e, response);
+			return createExceptionResult(e, request, response);
 		}
 		finally {
 			rollback.rollback();

@@ -455,9 +455,19 @@ public class PersistenceMergeServiceExtension implements IMergeServiceExtension 
 						newAllObjects[a] = entity;
 						continue;
 					}
-					if (objRefsToLoad[a] != null) {
-						throw new IllegalStateException("Must never happen");
+					IObjRef objRefToLoad = objRefsToLoad[a];
+					if (objRefToLoad == null) {
+						continue;
 					}
+					Object anyVersion = cache.getObject(new ObjRef(objRefToLoad.getRealType(),
+							objRefToLoad.getIdNameIndex(), objRefToLoad.getId(), null),
+							CacheDirective.returnMisses());
+					if (anyVersion == null) {
+						throw OptimisticLockUtil.throwDeleted(objRefToLoad);
+					}
+					IObjRef objRefOfAnyVersion = objRefHelper.entityToObjRef(anyVersion);
+					throw OptimisticLockUtil.throwModified(objRefsToLoad[a],
+							objRefOfAnyVersion.getVersion());
 				}
 			}
 			return new CUDResult(changeContainers, new ArrayList<>(newAllObjects));

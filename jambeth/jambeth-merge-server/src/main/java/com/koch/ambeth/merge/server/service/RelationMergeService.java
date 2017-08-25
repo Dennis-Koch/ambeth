@@ -570,16 +570,29 @@ public class RelationMergeService implements IRelationMergeService, IEventListen
 			IDirectedLink link = links.get(i);
 			IDirectedLinkMetaData linkMD = link.getMetaData();
 			IDirectedLinkMetaData reverseLinkMD = link.getReverseLink().getMetaData();
+
+			boolean incomingHandled = false;
 			if (reverseLinkMD.getMember() != null) {
 				RelationMember member = reverseLinkMD.getMember();
 				Class<?> entityType = reverseLinkMD.getFromTable().getEntityType();
-				CheckForPreviousParentKey key = new CheckForPreviousParentKey(entityType, member.getName());
-				IList<IObjRef> movedOris = previousParentToMovedOrisMap.get(key);
+				{
+					CheckForPreviousParentKey key =
+							new CheckForPreviousParentKey(entityType, member.getName());
+					IList<IObjRef> movedOris = previousParentToMovedOrisMap.get(key);
+					if (movedOris == null) {
+						movedOris = new ArrayList<>();
+						previousParentToMovedOrisMap.put(key, movedOris);
+					}
+					movedOris.add(reference);
+				}
+				IncomingRelationKey key = new IncomingRelationKey(reference.getIdNameIndex(), table, link);
+				IList<IObjRef> movedOris = incomingRelationToReferenceMap.get(key);
 				if (movedOris == null) {
 					movedOris = new ArrayList<>();
-					previousParentToMovedOrisMap.put(key, movedOris);
+					incomingRelationToReferenceMap.put(key, movedOris);
 				}
 				movedOris.add(reference);
+				incomingHandled = true;
 			}
 
 			boolean cascadeDelete = linkMD.isCascadeDelete();
@@ -606,6 +619,9 @@ public class RelationMergeService implements IRelationMergeService, IEventListen
 					outgoingRelationToReferenceMap.put(key, movedOris);
 				}
 				movedOris.add(reference);
+			}
+			if (incomingHandled) {
+				continue;
 			}
 			Boolean becauseOfSelfRelation = null;
 			if (linkMD.getReverseLink().getMember() != null) {
@@ -748,10 +764,6 @@ public class RelationMergeService implements IRelationMergeService, IEventListen
 		}
 		else {
 			removeRelations = linkMD.isStandaloneLink();
-		}
-		if (!cascadeDelete && !removeRelations) {
-			throw new IllegalStateException(
-					"Must never happen, because the queueing map would not have been filled with this state");
 		}
 		Boolean becauseOfSelfRelation = null;
 		if (linkMD.getReverseLink().getMember() != null) {

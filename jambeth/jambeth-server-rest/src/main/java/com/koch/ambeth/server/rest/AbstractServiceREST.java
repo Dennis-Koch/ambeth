@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -103,9 +104,6 @@ public abstract class AbstractServiceREST {
 	@Context
 	protected ServletContext servletContext;
 
-	@Context
-	protected HttpHeaders headers;
-
 	protected final AmbethServletAspect aspect = new AmbethServletAspect();
 
 	private ILogger log;
@@ -116,7 +114,7 @@ public abstract class AbstractServiceREST {
 
 	private long waitForRebuildMaxDelay = 30000;
 
-	private final Lock writeLock = new ReentrantLock();
+	protected final Lock writeLock = new ReentrantLock();
 
 	private final Condition rebuildContextCond = writeLock.newCondition();
 
@@ -139,7 +137,7 @@ public abstract class AbstractServiceREST {
 	public void prepareBeanContextRebuild() {
 		writeLock.lock();
 		try {
-			beanContext = null;
+			setBeanContext(null);
 			waitForRebuild = true;
 		}
 		finally {
@@ -157,14 +155,14 @@ public abstract class AbstractServiceREST {
 
 	@GET
 	@Path("ping")
-	@Produces({ MediaType.TEXT_PLAIN })
+	@Produces({MediaType.TEXT_PLAIN})
 	public String ping() {
 		return "Ping";
 	}
 
 	@GET
 	@Path("ping2")
-	@Produces({ MediaType.TEXT_XML })
+	@Produces({MediaType.TEXT_XML})
 	public ObjRef ping2() {
 		ObjRef objRef = new ObjRef();
 		objRef.setId(5);
@@ -258,18 +256,24 @@ public abstract class AbstractServiceREST {
 		return getServiceContext().getService(beanName, serviceType);
 	}
 
-	protected String readSingleValueFromHeader(String name) {
-		List<String> values = headers.getRequestHeader(name);
-		return values != null && !values.isEmpty() ? values.get(0) : null;
+	protected String readSingleValueFromHeader(String name, HttpServletRequest request) {
+		return request.getHeader(name);
 	}
 
-	protected List<String> readMultiValueFromHeader(String name) {
-		List<String> values = headers.getRequestHeader(name);
-		return values != null && !values.isEmpty() ? values : EmptyList.<String>getInstance();
+	protected List<String> readMultiValueFromHeader(String name, HttpServletRequest request) {
+		Enumeration<String> headers = request.getHeaders(name);
+		if (!headers.hasMoreElements()) {
+			return EmptyList.<String>getInstance();
+		}
+		ArrayList<String> list = new ArrayList<>();
+		while (headers.hasMoreElements()) {
+			list.add(headers.nextElement());
+		}
+		return list;
 	}
 
 	protected Object[] getArguments(InputStream is, HttpServletRequest request) {
-		is = decompressContentIfNecessary(is);
+		is = decompressContentIfNecessary(is, request);
 
 		String contentType = request.getContentType();
 
@@ -305,10 +309,11 @@ public abstract class AbstractServiceREST {
 		if (args instanceof Object[]) {
 			return (Object[]) args;
 		}
-		return new Object[] { args };
+		return new Object[] {args};
 	}
 
-	protected StreamingOutput createExceptionResult(Throwable e, final HttpServletResponse response) {
+	protected StreamingOutput createExceptionResult(Throwable e, HttpServletRequest request,
+			final HttpServletResponse response) {
 		if (e.getClass().getName().equals(MaskingRuntimeException.class.getName())
 				&& e.getMessage() == null) {
 			e = e.getCause();
@@ -329,7 +334,7 @@ public abstract class AbstractServiceREST {
 			errorStatus = HttpServletResponse.SC_FORBIDDEN;
 		}
 		final int fErrorStatus = errorStatus;
-		final StreamingOutput streamingOutput = createResult(result, response);
+		final StreamingOutput streamingOutput = createResult(result, request, response);
 		response.setStatus(fErrorStatus);
 		return new StreamingOutput() {
 			@Override
@@ -346,12 +351,14 @@ public abstract class AbstractServiceREST {
 		cyclicXmlHandler.writeToStream(os, result);
 	}
 
-	protected StreamingOutput createResult(Object result, HttpServletResponse response) {
-		return createResult(result, response, null, true);
+	protected StreamingOutput createResult(Object result, HttpServletRequest request,
+			HttpServletResponse response) {
+		return createResult(result, request, response, null, true);
 	}
 
-	protected StreamingOutput createSynchronousResult(Object result, HttpServletResponse response) {
-		StreamingOutput asyncOutput = createResult(result, response, null, false);
+	protected StreamingOutput createSynchronousResult(Object result, HttpServletRequest request,
+			HttpServletResponse response) {
+		StreamingOutput asyncOutput = createResult(result, request, response, null, false);
 		final FastByteArrayOutputStream bos = new FastByteArrayOutputStream();
 		try {
 			asyncOutput.write(bos);
@@ -367,10 +374,11 @@ public abstract class AbstractServiceREST {
 		}
 	}
 
-	protected StreamingOutput createResult(final Object result, final HttpServletResponse response,
+	protected StreamingOutput createResult(final Object result, HttpServletRequest request,
+			final HttpServletResponse response,
 			final IBackgroundWorkerParamDelegate<Throwable> streamingFinishedCallback,
 			final boolean cleanupOnFinally) {
-		final String contentEncoding = evaluateAcceptedContentEncoding(response);
+		final String contentEncoding = evaluateAcceptedContentEncoding(request, response);
 		return new StreamingOutput() {
 			@Override
 			public void write(OutputStream output) throws IOException, WebApplicationException {
@@ -435,10 +443,11 @@ public abstract class AbstractServiceREST {
 		};
 	}
 
-	protected String evaluateAcceptedContentEncoding(HttpServletResponse response) {
-		List<String> acceptEncoding = readMultiValueFromHeader(ACCEPT_ENCODING_WORKAROUND);
+	protected String evaluateAcceptedContentEncoding(HttpServletRequest request,
+			HttpServletResponse response) {
+		List<String> acceptEncoding = readMultiValueFromHeader(ACCEPT_ENCODING_WORKAROUND, request);
 		if (acceptEncoding.isEmpty()) {
-			acceptEncoding = readMultiValueFromHeader(HttpHeaders.ACCEPT_ENCODING);
+			acceptEncoding = readMultiValueFromHeader(HttpHeaders.ACCEPT_ENCODING, request);
 		}
 		for (int a = acceptEncoding.size(); a-- > 0;) {
 			acceptEncoding.set(a, acceptEncoding.get(a).toLowerCase());
@@ -454,10 +463,10 @@ public abstract class AbstractServiceREST {
 		return "text/xml";
 	}
 
-	protected InputStream decompressContentIfNecessary(InputStream is) {
-		String contentEncoding = readSingleValueFromHeader("Content-Encoding-Workaround");
+	protected InputStream decompressContentIfNecessary(InputStream is, HttpServletRequest request) {
+		String contentEncoding = readSingleValueFromHeader("Content-Encoding-Workaround", request);
 		if (contentEncoding == null || contentEncoding.length() == 0) {
-			contentEncoding = readSingleValueFromHeader(HttpHeaders.CONTENT_ENCODING);
+			contentEncoding = readSingleValueFromHeader(HttpHeaders.CONTENT_ENCODING, request);
 		}
 		if (contentEncoding == null) {
 			contentEncoding = "";

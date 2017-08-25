@@ -56,10 +56,10 @@ public class SecurityServiceREST extends AbstractServiceREST {
 			Object[] args = getArguments(is, request);
 			Object result = getSecurityService().callServiceInSecurityScope((ISecurityScope[]) args[0],
 					(IServiceDescription) args[1]);
-			return createResult(result, response);
+			return createResult(result, request, response);
 		}
 		catch (Throwable e) {
-			return createExceptionResult(e, response);
+			return createExceptionResult(e, request, response);
 		}
 		finally {
 			rollback.rollback();
@@ -73,10 +73,10 @@ public class SecurityServiceREST extends AbstractServiceREST {
 		IStateRollback rollback = preServiceCall(request, response);
 		try {
 			boolean result = getService(ISecurityActivation.class).isSecured();
-			return createResult(result, response);
+			return createResult(result, request, response);
 		}
 		catch (Throwable e) {
-			return createExceptionResult(e, response);
+			return createExceptionResult(e, request, response);
 		}
 		finally {
 			rollback.rollback();

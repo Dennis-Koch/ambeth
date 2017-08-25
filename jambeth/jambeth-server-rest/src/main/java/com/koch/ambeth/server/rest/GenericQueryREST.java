@@ -91,7 +91,7 @@ public class GenericQueryREST extends AbstractServiceREST {
 				IGenericQueryService genericQueryService = getService(IGenericQueryService.class);
 				IPagingResponse<?> result = genericQueryService.filter((IFilterDescriptor<?>) args[0],
 						(ISortDescriptor[]) args[1], (IPagingRequest) args[2]);
-				StreamingOutput streamingOutput = createResult(result, response,
+				StreamingOutput streamingOutput = createResult(result, request, response,
 						new IBackgroundWorkerParamDelegate<Throwable>() {
 							@Override
 							public void invoke(Throwable e) throws Exception {
@@ -118,7 +118,7 @@ public class GenericQueryREST extends AbstractServiceREST {
 			}
 		}
 		catch (Throwable e) {
-			return createExceptionResult(e, response);
+			return createExceptionResult(e, request, response);
 		}
 	}
 
@@ -154,7 +154,7 @@ public class GenericQueryREST extends AbstractServiceREST {
 					new Object[0], Object.class);
 
 			if (config == null) {
-				return createResult(result, response);
+				return createResult(result, request, response);
 			}
 			IMapperServiceFactory mapperServiceFactory = getService(IMapperServiceFactory.class);
 
@@ -164,7 +164,7 @@ public class GenericQueryREST extends AbstractServiceREST {
 				Object valueObject = result instanceof List
 						? mapperService.mapToValueObjectList((List<?>) result, config.getValueType())
 						: mapperService.mapToValueObject(result, config.getValueType());
-				return createResult(valueObject, response);
+				return createResult(valueObject, request, response);
 			}
 			finally {
 				mapperService.dispose();
@@ -174,7 +174,7 @@ public class GenericQueryREST extends AbstractServiceREST {
 			throw e;
 		}
 		catch (Throwable e) {
-			return createExceptionResult(e, response);
+			return createExceptionResult(e, request, response);
 		}
 		finally {
 			rollback.rollback();

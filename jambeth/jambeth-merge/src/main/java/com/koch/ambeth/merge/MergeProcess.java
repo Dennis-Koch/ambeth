@@ -30,6 +30,7 @@ import java.util.concurrent.CountDownLatch;
 import com.koch.ambeth.datachange.model.DirectDataChangeEntry;
 import com.koch.ambeth.datachange.model.IDataChange;
 import com.koch.ambeth.datachange.model.IDataChangeEntry;
+import com.koch.ambeth.datachange.transfer.DataChangeEntry;
 import com.koch.ambeth.datachange.transfer.DataChangeEvent;
 import com.koch.ambeth.event.IEventDispatcher;
 import com.koch.ambeth.event.IEventListener;
@@ -49,6 +50,7 @@ import com.koch.ambeth.merge.model.IRelationUpdateItem;
 import com.koch.ambeth.merge.service.IMergeService;
 import com.koch.ambeth.merge.transfer.CreateContainer;
 import com.koch.ambeth.merge.transfer.DeleteContainer;
+import com.koch.ambeth.merge.transfer.ObjRef;
 import com.koch.ambeth.merge.transfer.RelationUpdateItem;
 import com.koch.ambeth.merge.transfer.UpdateContainer;
 import com.koch.ambeth.service.config.ServiceConfigurationConstants;
@@ -326,6 +328,7 @@ public class MergeProcess implements IMergeProcess {
 						}
 					}
 				};
+				eventListenerExtendable.registerEventListener(listenOnce, IDataChange.class);
 			}
 			else {
 				latch = null;
@@ -363,9 +366,6 @@ public class MergeProcess implements IMergeProcess {
 					finally {
 						addNewlyPersistedEntitiesTL.set(oldNewlyPersistedEntities);
 					}
-					if (listenOnce != null) {
-						eventListenerExtendable.registerEventListener(listenOnce, IDataChange.class);
-					}
 				}
 				finally {
 					eventDispatcher.resume(cache);
@@ -384,59 +384,59 @@ public class MergeProcess implements IMergeProcess {
 				}
 			}
 
-			// if (isNetworkClientMode) {
-			// DataChangeEvent dataChange = DataChangeEvent.create(-1, -1, -1);
-			// // This is intentionally a remote source
-			// dataChange.setLocalSource(false);
-			//
-			// List<IChangeContainer> allChanges = cudResult.getAllChanges();
-			//
-			// List<IObjRef> orisInReturn = oriColl.getAllChangeORIs();
-			// for (int a = orisInReturn.size(); a-- > 0;) {
-			// IObjRef referenceInReturn = orisInReturn.get(a);
-			// if (a >= allChanges.size()) {
-			// // this is an implicit objRef not known to the current local merge process
-			// dataChange.getUpdates()
-			// .add(new DataChangeEntry(referenceInReturn.getRealType(),
-			// referenceInReturn.getIdNameIndex(),
-			// referenceInReturn.getId(), referenceInReturn.getVersion()));
-			// continue;
-			// }
-			// IChangeContainer changeContainer = allChanges.get(a);
-			// IObjRef reference = changeContainer.getReference();
-			// if (changeContainer instanceof CreateContainer) {
-			// if (referenceInReturn.getIdNameIndex() != ObjRef.PRIMARY_KEY_INDEX) {
-			// throw new RuntimeException(
-			// "Implementation error: Only PK references are allowed in events");
-			// }
-			// dataChange.getInserts()
-			// .add(new DataChangeEntry(referenceInReturn.getRealType(),
-			// referenceInReturn.getIdNameIndex(),
-			// referenceInReturn.getId(), referenceInReturn.getVersion()));
-			// }
-			// else if (changeContainer instanceof UpdateContainer) {
-			// if (referenceInReturn.getIdNameIndex() != ObjRef.PRIMARY_KEY_INDEX) {
-			// throw new RuntimeException(
-			// "Implementation error: Only PK references are allowed in events");
-			// }
-			// dataChange.getUpdates()
-			// .add(new DataChangeEntry(referenceInReturn.getRealType(),
-			// referenceInReturn.getIdNameIndex(),
-			// referenceInReturn.getId(), referenceInReturn.getVersion()));
-			// }
-			// else if (changeContainer instanceof DeleteContainer) {
-			// if (reference.getIdNameIndex() != ObjRef.PRIMARY_KEY_INDEX) {
-			// throw new RuntimeException(
-			// "Implementation error: Only PK references are allowed in events");
-			// }
-			// dataChange.getDeletes()
-			// .add(new DataChangeEntry(reference.getRealType(),
-			// reference.getIdNameIndex(), reference.getId(),
-			// reference.getVersion()));
-			// }
-			// }
-			// eventDispatcher.dispatchEvent(dataChange);
-			// }
+			if (isNetworkClientMode) {
+				DataChangeEvent dataChange = DataChangeEvent.create(-1, -1, -1);
+				// This is intentionally a remote source
+				dataChange.setLocalSource(false);
+
+				List<IChangeContainer> allChanges = cudResult.getAllChanges();
+
+				List<IObjRef> orisInReturn = oriColl.getAllChangeORIs();
+				for (int a = orisInReturn.size(); a-- > 0;) {
+					IObjRef referenceInReturn = orisInReturn.get(a);
+					if (a >= allChanges.size()) {
+						// this is an implicit objRef not known to the current local merge process
+						dataChange.getUpdates()
+								.add(new DataChangeEntry(referenceInReturn.getRealType(),
+										referenceInReturn.getIdNameIndex(),
+										referenceInReturn.getId(), referenceInReturn.getVersion()));
+						continue;
+					}
+					IChangeContainer changeContainer = allChanges.get(a);
+					IObjRef reference = changeContainer.getReference();
+					if (changeContainer instanceof CreateContainer) {
+						if (referenceInReturn.getIdNameIndex() != ObjRef.PRIMARY_KEY_INDEX) {
+							throw new RuntimeException(
+									"Implementation error: Only PK references are allowed in events");
+						}
+						dataChange.getInserts()
+								.add(new DataChangeEntry(referenceInReturn.getRealType(),
+										referenceInReturn.getIdNameIndex(),
+										referenceInReturn.getId(), referenceInReturn.getVersion()));
+					}
+					else if (changeContainer instanceof UpdateContainer) {
+						if (referenceInReturn.getIdNameIndex() != ObjRef.PRIMARY_KEY_INDEX) {
+							throw new RuntimeException(
+									"Implementation error: Only PK references are allowed in events");
+						}
+						dataChange.getUpdates()
+								.add(new DataChangeEntry(referenceInReturn.getRealType(),
+										referenceInReturn.getIdNameIndex(),
+										referenceInReturn.getId(), referenceInReturn.getVersion()));
+					}
+					else if (changeContainer instanceof DeleteContainer) {
+						if (reference.getIdNameIndex() != ObjRef.PRIMARY_KEY_INDEX) {
+							throw new RuntimeException(
+									"Implementation error: Only PK references are allowed in events");
+						}
+						dataChange.getDeletes()
+								.add(new DataChangeEntry(reference.getRealType(),
+										reference.getIdNameIndex(), reference.getId(),
+										reference.getVersion()));
+					}
+				}
+				eventDispatcher.dispatchEvent(dataChange);
+			}
 		}
 		if (unpersistedObjectsToDelete != null && !unpersistedObjectsToDelete.isEmpty()) {
 			// Create a DCE for all objects without an id but which should be deleted...

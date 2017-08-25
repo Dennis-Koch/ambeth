@@ -97,7 +97,7 @@ public class DataChangeEventStoreHandler implements IEventStoreHandler, IInitial
 			writeLock.unlock();
 		}
 		DataChangeStoreItem dcStoreItem = new DataChangeStoreItem(allArray, insertCount, updateCount,
-				dataChange.getChangeTime());
+				dataChange.getChangeTime(), dataChange.getCausingUUIDs());
 		return dcStoreItem;
 	}
 
@@ -116,16 +116,19 @@ public class DataChangeEventStoreHandler implements IEventStoreHandler, IInitial
 				: Collections.<IDataChangeEntry>emptyList();
 
 		int index = 0;
+		for (int a = deleteCount; a-- > 0;) {
+			deletes.add(readFromCacheEntry(items[index++]));
+		}
 		for (int a = insertCount; a-- > 0;) {
 			inserts.add(readFromCacheEntry(items[index++]));
 		}
 		for (int a = updateCount; a-- > 0;) {
 			updates.add(readFromCacheEntry(items[index++]));
 		}
-		for (int a = deleteCount; a-- > 0;) {
-			deletes.add(readFromCacheEntry(items[index++]));
-		}
-		return new DataChangeEvent(inserts, updates, deletes, dataChangeStoreItem.changeTime, false);
+		DataChangeEvent dce =
+				new DataChangeEvent(inserts, updates, deletes, dataChangeStoreItem.changeTime, false);
+		dce.setCausingUUIDs(dataChangeStoreItem.getCausingUuids());
+		return dce;
 	}
 
 	protected IDataChangeEntry readFromCacheEntry(ObjRefStore cachedObjRefStore) {

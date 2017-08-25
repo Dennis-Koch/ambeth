@@ -140,7 +140,7 @@ public class GenericEntityREST extends AbstractServiceREST {
 
 		if (value == null) {
 			if (navigationMode == NavigationMode.TRY_ONLY) {
-				return new NavigationStep[] { new NavigationStep(null, metaData, config, null) };
+				return new NavigationStep[] {new NavigationStep(null, metaData, config, null)};
 			}
 			throw new NotFoundException("Entity '" + pathSB + "'  with id '" + entityId + "' not found");
 		}
@@ -246,19 +246,19 @@ public class GenericEntityREST extends AbstractServiceREST {
 				try {
 					Object valueObject = mapperService.mapToValueObject(lastStep.value,
 							lastStep.config.getValueType());
-					return createSynchronousResult(valueObject, response);
+					return createSynchronousResult(valueObject, request, response);
 				}
 				finally {
 					mapperService.dispose();
 				}
 			}
-			return createSynchronousResult(lastStep.value, response);
+			return createSynchronousResult(lastStep.value, request, response);
 		}
 		catch (WebApplicationException e) {
 			throw e;
 		}
 		catch (Throwable e) {
-			return createExceptionResult(e, response);
+			return createExceptionResult(e, request, response);
 		}
 		finally {
 			rollback.rollback();
@@ -319,7 +319,7 @@ public class GenericEntityREST extends AbstractServiceREST {
 	// throw e;
 	// }
 	// catch (Throwable e) {
-	// return createExceptionResult(e, response);
+	// return createExceptionResult(e, request, response);
 	// }
 	// finally {
 	// postServiceCall();
@@ -337,7 +337,8 @@ public class GenericEntityREST extends AbstractServiceREST {
 
 			NavigationStep[] navigationSteps = navigateTo(path, NavigationMode.DEFAULT);
 			NavigationStep parentStep = navigationSteps.length >= 2
-					? navigationSteps[navigationSteps.length - 2] : null;
+					? navigationSteps[navigationSteps.length - 2]
+					: null;
 			NavigationStep lastStep = navigationSteps[navigationSteps.length - 1];
 
 			Object[] args = getArguments(is, request);
@@ -371,7 +372,7 @@ public class GenericEntityREST extends AbstractServiceREST {
 					mergeProcess.process(businessObject, null, null, null);
 
 					valueObject = mapperService.mapToValueObject(businessObject, config.getValueType());
-					return createResult(valueObject, response);
+					return createResult(valueObject, request, response);
 				}
 				finally {
 					mapperService.dispose();
@@ -385,7 +386,7 @@ public class GenericEntityREST extends AbstractServiceREST {
 				IMapperService mapperService = mapperServiceFactory.create();
 				try {
 					valueObject = mapperService.mapToValueObject(entity, config.getValueType());
-					return createResult(valueObject, response);
+					return createResult(valueObject, request, response);
 				}
 				finally {
 					mapperService.dispose();
@@ -396,7 +397,7 @@ public class GenericEntityREST extends AbstractServiceREST {
 			throw e;
 		}
 		catch (Throwable e) {
-			return createExceptionResult(e, response);
+			return createExceptionResult(e, request, response);
 		}
 		finally {
 			rollback.rollback();
@@ -414,7 +415,8 @@ public class GenericEntityREST extends AbstractServiceREST {
 
 			NavigationStep[] navigationSteps = navigateTo(path, NavigationMode.DEFAULT);
 			NavigationStep parentStep = navigationSteps.length >= 2
-					? navigationSteps[navigationSteps.length - 2] : null;
+					? navigationSteps[navigationSteps.length - 2]
+					: null;
 			NavigationStep lastStep = navigationSteps[navigationSteps.length - 1];
 
 			Object[] args = getArguments(is, request);
@@ -478,7 +480,7 @@ public class GenericEntityREST extends AbstractServiceREST {
 
 				valueObject = mapperService.mapToValueObject(businessObject,
 						lastStep.config.getValueType());
-				return createResult(valueObject, response);
+				return createResult(valueObject, request, response);
 			}
 			finally {
 				mapperService.dispose();
@@ -488,7 +490,7 @@ public class GenericEntityREST extends AbstractServiceREST {
 			throw e;
 		}
 		catch (Throwable e) {
-			return createExceptionResult(e, response);
+			return createExceptionResult(e, request, response);
 		}
 		finally {
 			rollback.rollback();
@@ -523,7 +525,7 @@ public class GenericEntityREST extends AbstractServiceREST {
 			throw e;
 		}
 		catch (Throwable e) {
-			return createExceptionResult(e, response);
+			return createExceptionResult(e, request, response);
 		}
 		finally {
 			rollback.rollback();

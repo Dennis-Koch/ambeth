@@ -169,7 +169,8 @@ public class CUDResultApplier implements ICUDResultApplier {
 			Object originalEntity = originalRefs != null ? originalRefs.get(a) : null;
 
 			StateEntry stateEntry = originalEntity != null
-					? incrementalState.entityToStateMap.get(originalEntity) : null;
+					? incrementalState.entityToStateMap.get(originalEntity)
+					: null;
 
 			IChangeContainer newChangeContainer;
 			if (changeContainer instanceof CreateContainer) {
@@ -223,7 +224,9 @@ public class CUDResultApplier implements ICUDResultApplier {
 			for (int a = allChanges.size(); a-- > 0;) {
 				IChangeContainer changeContainer = allChanges.get(a);
 				IObjRefContainer entity = (IObjRefContainer) allObjects.get(a);
-
+				if (entity == null) {
+					continue;
+				}
 				changeContainer = fillClonedChangeContainer(changeContainer, alreadyClonedMap);
 
 				IPrimitiveUpdateItem[] puis;

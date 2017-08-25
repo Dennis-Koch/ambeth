@@ -56,10 +56,10 @@ public class PrivilegeServiceREST extends AbstractServiceREST {
 			Object[] args = getArguments(is, request);
 			List<IPrivilegeOfService> result = getPrivilegeService().getPrivileges((IObjRef[]) args[0],
 					(ISecurityScope[]) args[1]);
-			return createResult(result, response);
+			return createResult(result, request, response);
 		}
 		catch (Throwable e) {
-			return createExceptionResult(e, response);
+			return createExceptionResult(e, request, response);
 		}
 		finally {
 			rollback.rollback();
