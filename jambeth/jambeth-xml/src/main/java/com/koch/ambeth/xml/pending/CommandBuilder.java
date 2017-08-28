@@ -45,12 +45,8 @@ public class CommandBuilder implements ICommandBuilder {
 					.propertyValue("Index", optionals[0]).finish();
 		}
 		else if (parent instanceof Collection) {
-			IBeanRuntime<? extends CollectionSetterCommand> beanRuntime = buildIntern(commandTypeRegistry,
-					CollectionSetterCommand.class, objectFuture, parent);
-			if (optionals.length == 1) {
-				beanRuntime.propertyValue("Object", optionals[0]);
-			}
-			command = beanRuntime.finish();
+			command = new CollectionSetterCommand(objectFuture, parent,
+					optionals.length == 1 ? optionals[0] : null);
 		}
 		else if (parent instanceof CreateContainer || parent instanceof UpdateContainer) {
 			command = buildIntern(commandTypeRegistry, MergeCommand.class, objectFuture, parent).finish();

@@ -24,11 +24,23 @@ import java.util.Collection;
 
 import com.koch.ambeth.ioc.IInitializingBean;
 import com.koch.ambeth.util.ParamChecker;
+import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.xml.IReader;
 
 public class CollectionSetterCommand extends AbstractObjectCommand
 		implements IObjectCommand, IInitializingBean {
 	private Object object;
+
+	public CollectionSetterCommand(IObjectFuture objectFuture, Object parent, Object object) {
+		super(objectFuture, parent);
+		this.object = object;
+		try {
+			afterPropertiesSet();
+		}
+		catch (Throwable e) {
+			throw RuntimeExceptionUtil.mask(e);
+		}
+	}
 
 	@Override
 	public void afterPropertiesSet() throws Throwable {

@@ -24,9 +24,20 @@ import com.koch.ambeth.ioc.IInitializingBean;
 import com.koch.ambeth.util.ParamChecker;
 
 public abstract class AbstractObjectCommand implements IObjectCommand, IInitializingBean {
+
 	protected IObjectFuture objectFuture;
 
 	protected Object parent;
+
+	public AbstractObjectCommand() {
+		// intended blank
+	}
+
+	public AbstractObjectCommand(IObjectFuture objectFuture, Object parent) {
+		super();
+		this.objectFuture = objectFuture;
+		this.parent = parent;
+	}
 
 	@Override
 	public void afterPropertiesSet() throws Throwable {
@@ -39,15 +50,7 @@ public abstract class AbstractObjectCommand implements IObjectCommand, IInitiali
 		return objectFuture;
 	}
 
-	public void setObjectFuture(IObjectFuture objectFuture) {
-		this.objectFuture = objectFuture;
-	}
-
 	public Object getParent() {
 		return parent;
-	}
-
-	public void setParent(Object parent) {
-		this.parent = parent;
 	}
 }
