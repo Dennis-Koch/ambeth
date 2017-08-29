@@ -39,7 +39,6 @@ import com.koch.ambeth.ioc.extendable.ClassExtendableListContainer;
 import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.cache.ICacheModification;
-import com.koch.ambeth.merge.proxy.IEnhancedType;
 import com.koch.ambeth.merge.proxy.IEntityMetaDataHolder;
 import com.koch.ambeth.service.merge.model.IEntityMetaData;
 import com.koch.ambeth.service.metadata.PrimitiveMember;
@@ -103,10 +102,16 @@ public class PropertyChangeMixin
 			IPropertyInfo prop = propertyInfoProvider.getProperty(type, propertyName);
 			PropertyChangeAspect propertyChangeAspect = null;
 			Class<?> currType = type;
-			while (IEnhancedType.class.isAssignableFrom(currType)) {
-				propertyChangeAspect = currType.getSuperclass().getAnnotation(PropertyChangeAspect.class);
+			findAnnotation: while (currType != null) {
+				propertyChangeAspect = currType.getAnnotation(PropertyChangeAspect.class);
 				if (propertyChangeAspect != null) {
-					break;
+					break findAnnotation;
+				}
+				for (Class<?> interfaceType : currType.getInterfaces()) {
+					propertyChangeAspect = interfaceType.getAnnotation(PropertyChangeAspect.class);
+					if (propertyChangeAspect != null) {
+						break findAnnotation;
+					}
 				}
 				currType = currType.getSuperclass();
 			}
@@ -202,13 +207,16 @@ public class PropertyChangeMixin
 		}
 	}
 
-	protected final SmartCopyMap<IPropertyInfo, PropertyEntry> propertyToEntryMap = new SmartCopyMap<>();
+	protected final SmartCopyMap<IPropertyInfo, PropertyEntry> propertyToEntryMap =
+			new SmartCopyMap<>();
 
-	protected final ClassExtendableListContainer<IPropertyChangeExtension> propertyChangeExtensions = new ClassExtendableListContainer<>(
-			"propertyChangeExtension", "entityType");
+	protected final ClassExtendableListContainer<IPropertyChangeExtension> propertyChangeExtensions =
+			new ClassExtendableListContainer<>(
+					"propertyChangeExtension", "entityType");
 
-	protected final ClassExtendableListContainer<ICollectionChangeExtension> collectionChangeExtensions = new ClassExtendableListContainer<>(
-			"collectionChangeExtension", "entityType");
+	protected final ClassExtendableListContainer<ICollectionChangeExtension> collectionChangeExtensions =
+			new ClassExtendableListContainer<>(
+					"collectionChangeExtension", "entityType");
 
 	@LogInstance
 	private ILogger log;
@@ -500,7 +508,8 @@ public class PropertyChangeMixin
 			Object[] oldValues, Object[] currentValues) {
 		boolean debugEnabled = log.isDebugEnabled();
 		PropertyChangeListener pcl = (PropertyChangeListener) (obj instanceof PropertyChangeListener
-				? obj : null);
+				? obj
+				: null);
 
 		for (int a = 0, size = propertyNames.length; a < size; a++) {
 			String propertyName = propertyNames[a];
