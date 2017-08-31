@@ -98,9 +98,8 @@ public class ThreadLocalCleanupController implements IInitializingBean, IDisposa
 
 	@Override
 	public void cleanupThreadLocal() {
-		IThreadLocalCleanupBean[] extensions = listeners.getExtensions();
-		for (int a = 0, size = extensions.length; a < size; a++) {
-			extensions[a].cleanupThreadLocal();
+		for (IThreadLocalCleanupBean extension : listeners.getExtensionsShared()) {
+			extension.cleanupThreadLocal();
 		}
 		if (objectCollector != null) {
 			objectCollector.clearThreadLocal();
@@ -157,11 +156,10 @@ public class ThreadLocalCleanupController implements IInitializingBean, IDisposa
 
 	@SuppressWarnings("resource")
 	private void acquireStateEntries() throws IllegalArgumentException, IllegalAccessException {
-		IThreadLocalCleanupBean[] extensions = listeners.getExtensions();
+		IThreadLocalCleanupBean[] extensions = listeners.getExtensionsShared();
 		ArrayList<ForkStateEntry> forkedStateEntries = new ArrayList<>(extensions.length);
 		ArrayList<ForkStateEntry> threadLocalStateEntries = new ArrayList<>(extensions.length);
-		for (int a = 0, size = extensions.length; a < size; a++) {
-			IThreadLocalCleanupBean extension = extensions[a];
+		for (IThreadLocalCleanupBean extension : extensions) {
 			Field[] fields = ReflectUtil.getDeclaredFieldsInHierarchy(extension.getClass());
 			for (Field field : fields) {
 				if (!ThreadLocal.class.isAssignableFrom(field.getType())) {

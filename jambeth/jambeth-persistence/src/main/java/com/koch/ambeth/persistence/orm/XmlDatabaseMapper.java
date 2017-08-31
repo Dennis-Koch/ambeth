@@ -112,7 +112,7 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper
 				throw new IllegalArgumentException("Illegal full qualified name '" + fqName + "'");
 			}
 		}
-		return new String[] { schemaName, softName };
+		return new String[] {schemaName, softName};
 	}
 
 	@LogInstance
@@ -185,7 +185,7 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper
 			throw RuntimeExceptionUtil.mask(e);
 		}
 		handleExternalEntities();
-		mapFieldsIntern(database, ormConfigGroups.getExtensions());
+		mapFieldsIntern(database, ormConfigGroups.getExtensionsShared());
 		super.mapFields(connection, schemaNames, database);
 	}
 
@@ -223,7 +223,7 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper
 					IMemberConfig idMemberConfig = entityConfig.getIdMemberConfig();
 					idName = idMemberConfig.getName();
 					if (idMemberConfig instanceof MemberConfig) {
-						handleIdField(new MemberConfig[] { (MemberConfig) idMemberConfig }, table);
+						handleIdField(new MemberConfig[] {(MemberConfig) idMemberConfig}, table);
 					}
 					else {
 						handleIdField(((CompositeMemberConfig) idMemberConfig).getMembers(), table);
@@ -349,7 +349,7 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper
 		}
 
 		DatabaseMetaData databaseImpl = (DatabaseMetaData) database;
-		for (IOrmConfigGroup ormConfigGroup : ormConfigGroups.getExtensions()) {
+		for (IOrmConfigGroup ormConfigGroup : ormConfigGroups.getExtensionsShared()) {
 			for (IEntityConfig entityConfig : ormConfigGroup.getLocalEntityConfigs()) {
 				Class<?> entityType = entityConfig.getEntityType();
 
@@ -740,9 +740,11 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper
 			String propertyName, EntityIdentifier entityIdentifier, boolean doDelete, boolean mayDelete) {
 		boolean localIsLeft = entityIdentifier == EntityIdentifier.LEFT;
 		DirectedLinkMetaData localLinkMetaData = (DirectedLinkMetaData) (localIsLeft
-				? link.getDirectedLink() : link.getReverseDirectedLink());
+				? link.getDirectedLink()
+				: link.getReverseDirectedLink());
 		DirectedLinkMetaData remoteLinkMetaData = (DirectedLinkMetaData) (localIsLeft
-				? link.getReverseDirectedLink() : link.getDirectedLink());
+				? link.getReverseDirectedLink()
+				: link.getDirectedLink());
 
 		localLinkMetaData.setCascadeDelete(doDelete);
 		remoteLinkMetaData.setCascadeDelete(mayDelete);
@@ -756,10 +758,10 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper
 		boolean[] cascadeDeletes;
 		CascadeDeleteDirection cascadeDeleteDirection = linkConfig.getCascadeDeleteDirection();
 		if (CascadeDeleteDirection.BOTH == cascadeDeleteDirection) {
-			cascadeDeletes = new boolean[] { true, true };
+			cascadeDeletes = new boolean[] {true, true};
 		}
 		else if (CascadeDeleteDirection.NONE == cascadeDeleteDirection) {
-			cascadeDeletes = new boolean[] { false, false };
+			cascadeDeletes = new boolean[] {false, false};
 		}
 		else {
 			cascadeDeletes = new boolean[2];
@@ -967,7 +969,7 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper
 		IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
 		StringBuilder debugSb = tlObjectCollector.create(StringBuilder.class);
 		try {
-			for (IOrmConfigGroup ormConfigGroup : ormConfigGroups.getExtensions()) {
+			for (IOrmConfigGroup ormConfigGroup : ormConfigGroups.getExtensionsShared()) {
 				for (IEntityConfig entityConfig : ormConfigGroup.getExternalEntityConfigs()) {
 					Class<?> entityType = entityConfig.getEntityType();
 					Class<?> realType = entityConfig.getRealType();

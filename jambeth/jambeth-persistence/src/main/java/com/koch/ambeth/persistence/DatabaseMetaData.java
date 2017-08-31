@@ -40,7 +40,6 @@ import com.koch.ambeth.persistence.api.IFieldMetaData;
 import com.koch.ambeth.persistence.api.ILinkMetaData;
 import com.koch.ambeth.persistence.api.IPermissionGroup;
 import com.koch.ambeth.persistence.api.ITableMetaData;
-import com.koch.ambeth.persistence.database.IDatabaseMappedListener;
 import com.koch.ambeth.persistence.orm.XmlDatabaseMapper;
 import com.koch.ambeth.service.merge.IEntityMetaDataProvider;
 import com.koch.ambeth.util.ParamChecker;
@@ -48,7 +47,6 @@ import com.koch.ambeth.util.StringConversionHelper;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.HashMap;
 import com.koch.ambeth.util.collections.HashSet;
-import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.Tuple2KeyHashMap;
 import com.koch.ambeth.util.objectcollector.IThreadLocalObjectCollector;
 import com.koch.ambeth.util.typeinfo.IRelationProvider;
@@ -58,10 +56,10 @@ import com.koch.ambeth.util.typeinfo.ITypeInfoProvider;
 
 public class DatabaseMetaData
 		implements
-			IDatabaseMetaData,
-			IConfigurableDatabaseMetaData,
-			IInitializingBean,
-			IStartingBean {
+		IDatabaseMetaData,
+		IConfigurableDatabaseMetaData,
+		IInitializingBean,
+		IStartingBean {
 	@LogInstance
 	private ILogger log;
 
@@ -122,7 +120,8 @@ public class DatabaseMetaData
 		ILinkMetaData[] links = tablesToLinkDict.get(fromTable, toTable);
 		if (links == null) {
 			links = new ILinkMetaData[] {link};
-		} else {
+		}
+		else {
 			ILinkMetaData[] newLinks = new ILinkMetaData[links.length + 1];
 			System.arraycopy(links, 0, newLinks, 0, links.length);
 			newLinks[links.length] = link;
@@ -269,7 +268,8 @@ public class DatabaseMetaData
 		if (table.isArchive()) {
 			typeToArchiveTableDict.put(fromType, table);
 			return;
-		} else {
+		}
+		else {
 			typeToTableDict.put(fromType, table);
 		}
 
@@ -335,7 +335,8 @@ public class DatabaseMetaData
 					}
 					continue;
 				}
-			} else {
+			}
+			else {
 				toType = link.getToEntityType();
 			}
 			String memberName = table.getMemberNameByLinkName(link.getName());

@@ -56,7 +56,7 @@ public abstract class AbstractOfflineServiceUrlProvider
 
 	@Override
 	public void lockForRestart(boolean offlineAfterRestart) {
-		IOfflineListener[] listeners = offlineListeners.getExtensions();
+		IOfflineListener[] listeners = offlineListeners.getExtensionsShared();
 
 		for (IOfflineListener offlineListener : listeners) {
 			if (offlineAfterRestart) {
@@ -77,7 +77,7 @@ public abstract class AbstractOfflineServiceUrlProvider
 	}
 
 	protected void isOfflineChanged() {
-		IOfflineListener[] listeners = offlineListeners.getExtensions();
+		IOfflineListener[] listeners = offlineListeners.getExtensionsShared();
 
 		for (IOfflineListener offlineListener : listeners) {
 			if (isOffline) {

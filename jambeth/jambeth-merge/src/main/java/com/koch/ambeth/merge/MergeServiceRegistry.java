@@ -256,32 +256,35 @@ public class MergeServiceRegistry implements IMergeService, IMergeServiceExtensi
 							List<IObjRef> allChangedObjRefsExtended = oriCollExtended.getAllChangeORIs();
 							IObjRef[] allChangedObjRefsResult = new IObjRef[allChangesOriginal.size()];
 
-							IdentityHashMap<Object, Integer> originalRefOfCacheToIndexMap = new IdentityHashMap<>();
+							IdentityHashMap<Object, Integer> originalRefOfCacheToIndexMap =
+									new IdentityHashMap<>();
 							for (int a = originalRefsOfCache.size(); a-- > 0;) {
 								originalRefOfCacheToIndexMap.put(originalRefsOfCache.get(a), Integer.valueOf(a));
 							}
 							for (int a = originalRefsExtended.size(); a-- > 0;) {
-							Integer indexOfCache = originalRefOfCacheToIndexMap.get(originalRefsExtended.get(a));
-							if (indexOfCache == null) {
-								// this is a change implied by a rule or an persistence-implicit change
-								// we do not know about it in the outer original CUDResult
-								continue;
+								Integer indexOfCache =
+										originalRefOfCacheToIndexMap.get(originalRefsExtended.get(a));
+								if (indexOfCache == null) {
+									// this is a change implied by a rule or an persistence-implicit change
+									// we do not know about it in the outer original CUDResult
+									continue;
+								}
+								IObjRef objRefExtended = allChangedObjRefsExtended.get(a);
+								IObjRef objRefOriginal =
+										allChangesOriginal.get(indexOfCache.intValue()).getReference();
+								if (objRefExtended == null) {
+									// entity has been deleted
+									objRefOriginal.setVersion(null);
+								}
+								else {
+									objRefOriginal.setId(objRefExtended.getId());
+									objRefOriginal.setVersion(objRefExtended.getVersion());
+								}
+								if (objRefOriginal instanceof IDirectObjRef) {
+									((IDirectObjRef) objRefOriginal).setDirect(null);
+								}
+								allChangedObjRefsResult[indexOfCache.intValue()] = objRefOriginal;
 							}
-							IObjRef objRefExtended = allChangedObjRefsExtended.get(a);
-							IObjRef objRefOriginal = allChangesOriginal.get(indexOfCache.intValue()).getReference();
-							if (objRefExtended == null) {
-								// entity has been deleted
-								objRefOriginal.setVersion(null);
-							}
-							else {
-								objRefOriginal.setId(objRefExtended.getId());
-								objRefOriginal.setVersion(objRefExtended.getVersion());
-							}
-							if (objRefOriginal instanceof IDirectObjRef) {
-								((IDirectObjRef) objRefOriginal).setDirect(null);
-							}
-							allChangedObjRefsResult[indexOfCache.intValue()] = objRefOriginal;
-						}
 							OriCollection oriCollection = new OriCollection(
 									new ArrayList<IObjRef>(allChangedObjRefsResult));
 
@@ -337,7 +340,7 @@ public class MergeServiceRegistry implements IMergeService, IMergeServiceExtensi
 			finally {
 				rollback.rollback();
 			}
-			for (IMergeListener mergeListener : mergeListeners.getExtensions()) {
+			for (IMergeListener mergeListener : mergeListeners.getExtensionsShared()) {
 				ICUDResult explAndImplCudResult = mergeListener.preMerge(cudResult,
 						incrementalState.getStateCache());
 				cudResult = mergeCudResult(cudResult, explAndImplCudResult, mergeListener,
@@ -432,7 +435,7 @@ public class MergeServiceRegistry implements IMergeService, IMergeServiceExtensi
 		else {
 			oriCollection.setAllChangedOn(allChangedOn);
 		}
-		for (IMergeListener mergeListener : mergeListeners.getExtensions()) {
+		for (IMergeListener mergeListener : mergeListeners.getExtensionsShared()) {
 			mergeListener.postMerge(cudResult, objRefs);
 		}
 		if (originalRefs != null) {

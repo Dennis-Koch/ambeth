@@ -225,7 +225,7 @@ public class Database implements IDatabase, IInitializingBean, IStartingBean, ID
 			databaseLocal.remove();
 		}
 		clear();
-		for (IDatabaseDisposeHook disposeHook : databaseDisposeHooks.getExtensions()) {
+		for (IDatabaseDisposeHook disposeHook : databaseDisposeHooks.getExtensionsShared()) {
 			disposeHook.databaseDisposed(this);
 		}
 	}

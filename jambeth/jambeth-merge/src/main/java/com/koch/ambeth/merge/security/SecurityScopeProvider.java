@@ -39,8 +39,9 @@ public class SecurityScopeProvider implements IThreadLocalCleanupBean, ISecurity
 	@Forkable
 	protected final ThreadLocal<SecurityScopeHandle> securityScopeTL = new SensitiveThreadLocal<>();
 
-	protected final DefaultExtendableContainer<ISecurityScopeChangeListener> securityScopeChangeListeners = new DefaultExtendableContainer<>(
-			ISecurityScopeChangeListener.class, "securityScopeChangeListener");
+	protected final DefaultExtendableContainer<ISecurityScopeChangeListener> securityScopeChangeListeners =
+			new DefaultExtendableContainer<>(
+					ISecurityScopeChangeListener.class, "securityScopeChangeListener");
 
 	@Override
 	public void cleanupThreadLocal() {
@@ -79,7 +80,7 @@ public class SecurityScopeProvider implements IThreadLocalCleanupBean, ISecurity
 	@Override
 	public IStateRollback pushSecurityScopes(ISecurityScope securityScope,
 			IStateRollback... rollbacks) {
-		return pushSecurityScopes(new ISecurityScope[] { securityScope }, rollbacks);
+		return pushSecurityScopes(new ISecurityScope[] {securityScope}, rollbacks);
 	}
 
 	@Override
@@ -97,7 +98,7 @@ public class SecurityScopeProvider implements IThreadLocalCleanupBean, ISecurity
 
 	protected void notifySecurityScopeChangeListeners(SecurityScopeHandle securityScopeHandle) {
 		for (ISecurityScopeChangeListener securityScopeChangeListener : securityScopeChangeListeners
-				.getExtensions()) {
+				.getExtensionsShared()) {
 			securityScopeChangeListener.securityScopeChanged(securityScopeHandle.securityScopes);
 		}
 	}

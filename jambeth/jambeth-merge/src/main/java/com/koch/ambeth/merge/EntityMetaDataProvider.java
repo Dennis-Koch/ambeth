@@ -118,25 +118,31 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 	@Autowired
 	protected ValueObjectMap valueObjectMap;
 
-	protected final ThreadLocal<ClassExtendableContainer<IEntityMetaData>> pendingToRefreshMetaDatasTL = new ThreadLocal<>();
+	protected final ThreadLocal<ClassExtendableContainer<IEntityMetaData>> pendingToRefreshMetaDatasTL =
+			new ThreadLocal<>();
 
 	protected IEntityMetaData alreadyHandled;
 
 	protected Class<?>[] businessObjectSaveOrder;
 
-	protected final DefaultExtendableContainer<IFimExtension> federatedInformationModelExtensions = new DefaultExtendableContainer<>(
-			IFimExtension.class, "federatedInformationModelExtension");
+	protected final DefaultExtendableContainer<IFimExtension> federatedInformationModelExtensions =
+			new DefaultExtendableContainer<>(
+					IFimExtension.class, "federatedInformationModelExtension");
 
-	protected final ClassExtendableContainer<IEntityInstantiationExtension> entityInstantiationExtensions = new ClassExtendableContainer<>(
-			"entityFactoryExtension", "entityType");
+	protected final ClassExtendableContainer<IEntityInstantiationExtension> entityInstantiationExtensions =
+			new ClassExtendableContainer<>(
+					"entityFactoryExtension", "entityType");
 
-	protected final HashMap<Class<?>, IMap<String, ITypeInfoItem>> typeToPropertyMap = new HashMap<>();
+	protected final HashMap<Class<?>, IMap<String, ITypeInfoItem>> typeToPropertyMap =
+			new HashMap<>();
 
-	protected final ClassExtendableListContainer<IEntityLifecycleExtension> entityLifecycleExtensions = new ClassExtendableListContainer<>(
-			"entityLifecycleExtension", "entityType");
+	protected final ClassExtendableListContainer<IEntityLifecycleExtension> entityLifecycleExtensions =
+			new ClassExtendableListContainer<>(
+					"entityLifecycleExtension", "entityType");
 
-	protected final MapExtendableContainer<Class<?>, Class<?>> technicalEntityTypes = new MapExtendableContainer<>(
-			"technicalEntityType", "entityType");
+	protected final MapExtendableContainer<Class<?>, Class<?>> technicalEntityTypes =
+			new MapExtendableContainer<>(
+					"technicalEntityType", "entityType");
 
 	public EntityMetaDataProvider() {
 		super("entity meta data", "entity class");
@@ -270,8 +276,9 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 		if (contains) {
 			return true;
 		}
-		ClassExtendableContainer<IEntityMetaData> pendingToRefreshMetaDatas = pendingToRefreshMetaDatasTL
-				.get();
+		ClassExtendableContainer<IEntityMetaData> pendingToRefreshMetaDatas =
+				pendingToRefreshMetaDatasTL
+						.get();
 		if (pendingToRefreshMetaDatas == null) {
 			return contains;
 		}
@@ -330,8 +337,9 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 		if (metaData != null) {
 			return metaData;
 		}
-		ClassExtendableContainer<IEntityMetaData> pendingToRefreshMetaDatas = pendingToRefreshMetaDatasTL
-				.get();
+		ClassExtendableContainer<IEntityMetaData> pendingToRefreshMetaDatas =
+				pendingToRefreshMetaDatasTL
+						.get();
 		if (pendingToRefreshMetaDatas == null) {
 			return null;
 		}
@@ -348,8 +356,9 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 		if (metaData != null) {
 			return metaData;
 		}
-		ClassExtendableContainer<IEntityMetaData> pendingToRefreshMetaDatas = pendingToRefreshMetaDatasTL
-				.get();
+		ClassExtendableContainer<IEntityMetaData> pendingToRefreshMetaDatas =
+				pendingToRefreshMetaDatasTL
+						.get();
 		if (pendingToRefreshMetaDatas == null) {
 			return null;
 		}
@@ -445,8 +454,9 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 		}
 		boolean handlePendingMetaData = false;
 		try {
-			ClassExtendableContainer<IEntityMetaData> pendingToRefreshMetaDatas = pendingToRefreshMetaDatasTL
-					.get();
+			ClassExtendableContainer<IEntityMetaData> pendingToRefreshMetaDatas =
+					pendingToRefreshMetaDatasTL
+							.get();
 			if (pendingToRefreshMetaDatas == null) {
 				pendingToRefreshMetaDatas = new ClassExtendableContainer<>("metaData", "entityType");
 				pendingToRefreshMetaDatasTL.set(pendingToRefreshMetaDatas);
@@ -920,8 +930,9 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 			}
 		});
 
-		ClassTupleExtendableContainer<IEntityMetaData> metaDataInheritanceMap = new ClassTupleExtendableContainer<>(
-				"metaData", "entityType", true);
+		ClassTupleExtendableContainer<IEntityMetaData> metaDataInheritanceMap =
+				new ClassTupleExtendableContainer<>(
+						"metaData", "entityType", true);
 		for (IEntityMetaData metaData : extensions) {
 			if (metaData == alreadyHandled) {
 				continue;
@@ -932,7 +943,8 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 		try (IDotWriter dot = new DotWriter(writer)) {
 			writer.write("\n\tgraph [truecolor=true start=1];");
 			// writer.write("\n\tedge [len=4];");
-			IFimExtension[] fimEntityExtensions = federatedInformationModelExtensions.getExtensions();
+			IFimExtension[] fimEntityExtensions =
+					federatedInformationModelExtensions.getExtensionsShared();
 
 			StringBuilder sb = new StringBuilder();
 

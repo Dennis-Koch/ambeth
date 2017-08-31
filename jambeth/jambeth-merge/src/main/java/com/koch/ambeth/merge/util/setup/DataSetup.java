@@ -67,8 +67,9 @@ public class DataSetup implements IDataSetup, IDatasetBuilderExtendable {
 	@Autowired
 	protected ILightweightSecurityContext securityContext;
 
-	protected final IExtendableContainer<IDatasetBuilder> datasetBuilderContainer = new DefaultExtendableContainer<>(
-			IDatasetBuilder.class, "TestBedBuilders");
+	protected final IExtendableContainer<IDatasetBuilder> datasetBuilderContainer =
+			new DefaultExtendableContainer<>(
+					IDatasetBuilder.class, "TestBedBuilders");
 
 	@Override
 	public void registerDatasetBuilder(IDatasetBuilder testBedBuilder) {
@@ -83,7 +84,7 @@ public class DataSetup implements IDataSetup, IDatasetBuilderExtendable {
 
 	@Override
 	public IDataSetupWithAuthorization resolveDataSetupWithAuthorization() {
-		for (IDatasetBuilder datasetBuilder : datasetBuilderContainer.getExtensions()) {
+		for (IDatasetBuilder datasetBuilder : datasetBuilderContainer.getExtensionsShared()) {
 			if (datasetBuilder instanceof IDataSetupWithAuthorization) {
 				return (IDataSetupWithAuthorization) datasetBuilder;
 			}
@@ -109,7 +110,7 @@ public class DataSetup implements IDataSetup, IDatasetBuilderExtendable {
 		List<IDatasetBuilder> sortedBuilders = new ArrayList<>();
 		Collection<Class<? extends IDatasetBuilder>> processedBuilders = new HashSet<>();
 
-		IDatasetBuilder[] datasetBuilders = datasetBuilderContainer.getExtensions();
+		IDatasetBuilder[] datasetBuilders = datasetBuilderContainer.getExtensionsShared();
 		outer: while (processedBuilders.size() < datasetBuilders.length) {
 			for (IDatasetBuilder datasetBuilder : datasetBuilders) {
 				if (!processedBuilders.contains(datasetBuilder.getClass())
@@ -130,8 +131,7 @@ public class DataSetup implements IDataSetup, IDatasetBuilderExtendable {
 
 	@Override
 	public void eraseEntityReferences() {
-		IDatasetBuilder[] extensions = datasetBuilderContainer.getExtensions();
-		for (IDatasetBuilder extension : extensions) {
+		for (IDatasetBuilder extension : datasetBuilderContainer.getExtensionsShared()) {
 			eraseEntityReference(extension);
 		}
 	}
@@ -206,13 +206,12 @@ public class DataSetup implements IDataSetup, IDatasetBuilderExtendable {
 
 	@Override
 	public void refreshEntityReferences() {
-		IDatasetBuilder[] extensions = datasetBuilderContainer.getExtensions();
 		ArrayList<IObjRef> objRefs = new ArrayList<>();
 		ArrayList<IBackgroundWorkerDelegate> runnables = new ArrayList<>();
 		IdentityHashMap<IObjRef, Object> objRefToEntityMap = new IdentityHashMap<>();
 		boolean isAuthenticated = securityContext.isAuthenticated();
 		IdentityHashSet<ICache> cachesToClear = new IdentityHashSet<>();
-		for (IDatasetBuilder extension : extensions) {
+		for (IDatasetBuilder extension : datasetBuilderContainer.getExtensionsShared()) {
 			refreshEntityReference(extension, objRefs, runnables, objRefToEntityMap, isAuthenticated,
 					cachesToClear);
 		}

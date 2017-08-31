@@ -75,8 +75,9 @@ import com.koch.ambeth.util.objectcollector.IThreadLocalObjectCollector;
 
 public class SecurityManager
 		implements ISecurityManager, IMergeSecurityManager, IServiceFilterExtendable {
-	protected final DefaultExtendableContainer<IServiceFilter> serviceFilters = new DefaultExtendableContainer<>(
-			IServiceFilter.class, "serviceFilter");
+	protected final DefaultExtendableContainer<IServiceFilter> serviceFilters =
+			new DefaultExtendableContainer<>(
+					IServiceFilter.class, "serviceFilter");
 
 	protected final Lock readLock, writeLock;
 
@@ -456,7 +457,8 @@ public class SecurityManager
 			IPrivilege privilege) {
 		IPropertyPrivilege defaultPropertyPrivilege = privilege.getDefaultPropertyPrivilegeIfValid();
 		IEntityMetaData metaData = defaultPropertyPrivilege == null
-				? entityMetaDataProvider.getMetaData(changeContainer.getReference().getRealType()) : null;
+				? entityMetaDataProvider.getMetaData(changeContainer.getReference().getRealType())
+				: null;
 		IPrimitiveUpdateItem[] primitives = changeContainer.getPrimitives();
 		IRelationUpdateItem[] relations = changeContainer.getRelations();
 		if (primitives != null) {
@@ -501,7 +503,8 @@ public class SecurityManager
 			IPrivilege privilege) {
 		IPropertyPrivilege defaultPropertyPrivilege = privilege.getDefaultPropertyPrivilegeIfValid();
 		IEntityMetaData metaData = defaultPropertyPrivilege == null
-				? entityMetaDataProvider.getMetaData(changeContainer.getReference().getRealType()) : null;
+				? entityMetaDataProvider.getMetaData(changeContainer.getReference().getRealType())
+				: null;
 		IPrimitiveUpdateItem[] primitives = changeContainer.getPrimitives();
 		IRelationUpdateItem[] relations = changeContainer.getRelations();
 		if (primitives != null) {
@@ -597,10 +600,10 @@ public class SecurityManager
 			SecurityContextType securityContextType, IAuthorization authorization) {
 		ISecurityScope[] securityScopes = securityScopeProvider.getSecurityScopes();
 		if (securityScopes.length == 0) {
-			securityScopes = new ISecurityScope[] { StringSecurityScope.DEFAULT_SCOPE };
+			securityScopes = new ISecurityScope[] {StringSecurityScope.DEFAULT_SCOPE};
 		}
 		CallPermission restrictiveCallPermission = CallPermission.ALLOWED;
-		for (IServiceFilter serviceFilter : serviceFilters.getExtensions()) {
+		for (IServiceFilter serviceFilter : serviceFilters.getExtensionsShared()) {
 			CallPermission callPermission = serviceFilter.checkCallPermissionOnService(method, arguments,
 					securityContextType, authorization, securityScopes);
 			switch (callPermission) {

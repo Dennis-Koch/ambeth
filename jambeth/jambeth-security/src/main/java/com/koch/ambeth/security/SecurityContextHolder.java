@@ -42,7 +42,8 @@ import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
 import com.koch.ambeth.util.threading.SensitiveThreadLocal;
 
 public class SecurityContextHolder implements IAuthorizationChangeListenerExtendable,
-		ISecurityContextHolder, IThreadLocalCleanupBean, ILightweightSecurityContext, ISecurityContextFactory {
+		ISecurityContextHolder, IThreadLocalCleanupBean, ILightweightSecurityContext,
+		ISecurityContextFactory {
 	public static class SecurityContextForkProcessor implements IForkProcessor {
 		@Override
 		public Object resolveOriginalValue(Object bean, String fieldName, ThreadLocal<?> fieldValueTL) {
@@ -85,8 +86,9 @@ public class SecurityContextHolder implements IAuthorizationChangeListenerExtend
 	@Property(name = MergeConfigurationConstants.SecurityActive, defaultValue = "false")
 	protected boolean securityActive;
 
-	protected final DefaultExtendableContainer<IAuthorizationChangeListener> authorizationChangeListeners = new DefaultExtendableContainer<>(
-			IAuthorizationChangeListener.class, "authorizationChangeListener");
+	protected final DefaultExtendableContainer<IAuthorizationChangeListener> authorizationChangeListeners =
+			new DefaultExtendableContainer<>(
+					IAuthorizationChangeListener.class, "authorizationChangeListener");
 
 	@Forkable(processor = SecurityContextForkProcessor.class)
 	protected final ThreadLocal<ISecurityContext> contextTL = new SensitiveThreadLocal<>();
@@ -95,7 +97,7 @@ public class SecurityContextHolder implements IAuthorizationChangeListenerExtend
 		authenticatedUserHolder
 				.setAuthenticatedSID(authorization != null ? authorization.getSID() : null);
 		for (IAuthorizationChangeListener authorizationChangeListener : authorizationChangeListeners
-				.getExtensions()) {
+				.getExtensionsShared()) {
 			authorizationChangeListener.authorizationChanged(authorization);
 		}
 	}
@@ -130,7 +132,8 @@ public class SecurityContextHolder implements IAuthorizationChangeListenerExtend
 		return contextTL.get();
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see com.koch.ambeth.security.ISecurityContextFactory#createSecurityContext()
 	 */
 	@Override

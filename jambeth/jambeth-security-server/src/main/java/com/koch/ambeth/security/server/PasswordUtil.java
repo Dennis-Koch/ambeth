@@ -114,25 +114,30 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil,
 	@Autowired
 	protected IQueryBuilderFactory queryBuilderFactory;
 
-	@Property(name = SecurityServerConfigurationConstants.LoginPasswordAlgorithmName, defaultValue = "PBKDF2WithHmacSHA1")
+	@Property(name = SecurityServerConfigurationConstants.LoginPasswordAlgorithmName,
+			defaultValue = "PBKDF2WithHmacSHA1")
 	protected String algorithm;
 
-	@Property(name = SecurityServerConfigurationConstants.LoginPasswordAlgorithmIterationCount, defaultValue = "8192")
+	@Property(name = SecurityServerConfigurationConstants.LoginPasswordAlgorithmIterationCount,
+			defaultValue = "8192")
 	protected int iterationCount;
 
-	@Property(name = SecurityServerConfigurationConstants.LoginPasswordAlgorithmKeySize, defaultValue = "160")
+	@Property(name = SecurityServerConfigurationConstants.LoginPasswordAlgorithmKeySize,
+			defaultValue = "160")
 	protected int keySize;
 
 	@Property(name = SecurityServerConfigurationConstants.LoginSaltLength, defaultValue = "16")
 	protected int saltLength;
 
-	@Property(name = SecurityServerConfigurationConstants.LoginPasswordGeneratedLength, defaultValue = "16")
+	@Property(name = SecurityServerConfigurationConstants.LoginPasswordGeneratedLength,
+			defaultValue = "16")
 	protected int generatedPasswordLength;
 
 	@Property(name = SecurityServerConfigurationConstants.LoginPasswordLifetime, defaultValue = "30")
 	protected int generatedPasswordLifetimeInDays;
 
-	@Property(name = SecurityServerConfigurationConstants.LoginPasswordHistoryCount, defaultValue = "10")
+	@Property(name = SecurityServerConfigurationConstants.LoginPasswordHistoryCount,
+			defaultValue = "10")
 	protected int passwordHistoryCount;
 
 	@Property(name = IocConfigurationConstants.DebugModeActive, defaultValue = "false")
@@ -147,11 +152,13 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil,
 	@Property(name = SecurityServerConfigurationConstants.SignatureActive, defaultValue = "false")
 	protected boolean signatureActive;
 
-	protected final SmartCopyMap<String, Reference<SecretKeyFactory>> algorithmToSecretKeyFactoryMap = new SmartCopyMap<>(
-			0.5f);
+	protected final SmartCopyMap<String, Reference<SecretKeyFactory>> algorithmToSecretKeyFactoryMap =
+			new SmartCopyMap<>(
+					0.5f);
 
-	protected final DefaultExtendableContainer<IPasswordValidationExtension> extensions = new DefaultExtendableContainer<>(
-			IPasswordValidationExtension.class, "passwordValidadtionExtension");
+	protected final DefaultExtendableContainer<IPasswordValidationExtension> extensions =
+			new DefaultExtendableContainer<>(
+					IPasswordValidationExtension.class, "passwordValidadtionExtension");
 
 	protected final Lock saltReencryptionLock = new ReentrantLock();
 
@@ -359,7 +366,7 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil,
 			return;
 		}
 		StringBuilder validationErrorSB = null;
-		for (IPasswordValidationExtension extension : extensions.getExtensions()) {
+		for (IPasswordValidationExtension extension : extensions.getExtensionsShared()) {
 			CharSequence validationError = extension.validatePassword(clearTextPassword);
 			if (validationError != null && validationError.length() > 0) {
 				if (validationErrorSB == null) {
@@ -412,7 +419,7 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil,
 		return newClearTextPassword;
 	}
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings({"rawtypes", "unchecked"})
 	protected void setNewPasswordIntern(IUser user, IPassword password) {
 		IPassword existingPassword = user.getPassword();
 		user.setPassword(password);
