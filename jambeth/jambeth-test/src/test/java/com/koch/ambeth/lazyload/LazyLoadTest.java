@@ -165,6 +165,5 @@ public class LazyLoadTest extends AbstractInformationBusWithPersistenceTest {
 			}
 		});
 		latch.await();
-		System.out.println("2KERWLERWERWER2");
 	}
 }
