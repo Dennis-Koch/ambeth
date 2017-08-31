@@ -190,10 +190,17 @@ public class ClassGenerator extends ClassVisitor {
 	}
 
 	public MethodInstance implementGetter(MethodInstance method, FieldInstance field) {
+		return implementGetter(method, field, null);
+	}
+
+	public MethodInstance implementGetter(MethodInstance method, FieldInstance field, Script script) {
 		MethodGenerator mg = visitMethod(method);
 		mg.getThisField(field);
 		mg.returnValue();
 		mg.endMethod();
+		if (script != null) {
+			script.execute(mg);
+		}
 		return MethodInstance.findByTemplate(method, false);
 	}
 

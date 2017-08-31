@@ -1,5 +1,7 @@
 package com.koch.ambeth.merge.proxy;
 
+import com.koch.ambeth.ioc.bytecode.IBytecodeEnhancer;
+
 /*-
  * #%L
  * jambeth-merge
@@ -20,6 +22,19 @@ limitations under the License.
  * #L%
  */
 
+/**
+ * Marker interface for any type that has been generated via the Ambeth Bytecode library at runtime
+ */
 public interface IEnhancedType {
+	/**
+	 * Returns the original type that has been "derived" from. The original type may be a class or an
+	 * interface and is not necessarily a super type if this object (though in nearly all cases this
+	 * is true).
+	 *
+	 * @return The original contextual type that has been passed to
+	 *         {@link IBytecodeEnhancer#getEnhancedType(Class, com.koch.ambeth.ioc.bytecode.IEnhancementHint)}
+	 *         during enhancement. In most cases this contextual type is an ordinary "static class" -
+	 *         with existing readable source code in your SCM.
+	 */
 	Class<?> get__BaseType();
 }

@@ -24,6 +24,8 @@ limitations under the License.
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.Collection;
 
@@ -44,6 +46,7 @@ import com.koch.ambeth.service.merge.model.IEntityMetaData;
 import com.koch.ambeth.service.metadata.PrimitiveMember;
 import com.koch.ambeth.service.metadata.RelationMember;
 import com.koch.ambeth.service.typeinfo.PropertyInfoItem;
+import com.koch.ambeth.util.ReflectUtil;
 import com.koch.ambeth.util.WrapperTypeSet;
 import com.koch.ambeth.util.annotation.FireTargetOnPropertyChange;
 import com.koch.ambeth.util.annotation.FireThisOnPropertyChange;
@@ -73,6 +76,10 @@ public class PropertyChangeMixin
 	public static final Object UNKNOWN_VALUE = new Object();
 
 	public class PropertyEntry {
+		public static final String parentPropertyName = "Parent";
+
+		public static final String parentFieldName = "f_" + parentPropertyName;
+
 		public final String propertyName;
 
 		public final String javaBeansPropertyName;
@@ -100,21 +107,8 @@ public class PropertyChangeMixin
 			LinkedHashSet<String> propertyNames = new LinkedHashSet<>();
 			propertyNames.add(propertyName);
 			IPropertyInfo prop = propertyInfoProvider.getProperty(type, propertyName);
-			PropertyChangeAspect propertyChangeAspect = null;
-			Class<?> currType = type;
-			findAnnotation: while (currType != null) {
-				propertyChangeAspect = currType.getAnnotation(PropertyChangeAspect.class);
-				if (propertyChangeAspect != null) {
-					break findAnnotation;
-				}
-				for (Class<?> interfaceType : currType.getInterfaces()) {
-					propertyChangeAspect = interfaceType.getAnnotation(PropertyChangeAspect.class);
-					if (propertyChangeAspect != null) {
-						break findAnnotation;
-					}
-				}
-				currType = currType.getSuperclass();
-			}
+			PropertyChangeAspect propertyChangeAspect =
+					findAnnotation(type, PropertyChangeAspect.class, true);
 			if (propertyChangeAspect != null) {
 				includeNewValue = propertyChangeAspect.includeNewValue();
 				includeOldValue = propertyChangeAspect.includeOldValue();
@@ -168,6 +162,34 @@ public class PropertyChangeMixin
 			else {
 				getDelegate = null;
 			}
+		}
+
+		private <A extends Annotation> A findAnnotation(Class<?> type, Class<A> annotationType,
+				boolean checkEmbedded) {
+			Class<?> currType = type;
+			while (currType != null) {
+				A propertyChangeAspect = currType.getAnnotation(annotationType);
+				if (propertyChangeAspect != null) {
+					return propertyChangeAspect;
+				}
+				for (Class<?> interfaceType : currType.getInterfaces()) {
+					propertyChangeAspect = interfaceType.getAnnotation(annotationType);
+					if (propertyChangeAspect != null) {
+						return propertyChangeAspect;
+					}
+				}
+				currType = currType.getSuperclass();
+			}
+			if (!checkEmbedded) {
+				return null;
+			}
+			if (!IEmbeddedType.class.isAssignableFrom(type)) {
+				return null;
+			}
+			for (Field declaredField : ReflectUtil.getDeclaredFieldInHierarchy(type, parentFieldName)) {
+				return findAnnotation(declaredField.getType(), annotationType, true);
+			}
+			return null;
 		}
 	}
 

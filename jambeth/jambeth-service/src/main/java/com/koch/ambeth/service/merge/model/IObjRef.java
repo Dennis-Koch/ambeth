@@ -32,6 +32,10 @@ import com.koch.ambeth.util.annotation.XmlType;
  */
 @XmlType
 public interface IObjRef extends IDTOType {
+	public static final IObjRef[] EMPTY_ARRAY = new IObjRef[0];
+
+	public static final IObjRef[][] EMPTY_ARRAY_ARRAY = new IObjRef[0][0];
+
 	byte getIdNameIndex();
 
 	void setIdNameIndex(byte idNameIndex);

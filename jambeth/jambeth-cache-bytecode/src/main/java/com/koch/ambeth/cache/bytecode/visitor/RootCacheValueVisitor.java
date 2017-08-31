@@ -33,7 +33,6 @@ import com.koch.ambeth.bytecode.MethodInstance;
 import com.koch.ambeth.bytecode.Script;
 import com.koch.ambeth.bytecode.ScriptWithIndex;
 import com.koch.ambeth.cache.rootcachevalue.RootCacheValue;
-import com.koch.ambeth.merge.transfer.ObjRef;
 import com.koch.ambeth.service.merge.model.IEntityMetaData;
 import com.koch.ambeth.service.merge.model.IObjRef;
 import com.koch.ambeth.service.metadata.Member;
@@ -52,7 +51,7 @@ public class RootCacheValueVisitor extends ClassGenerator {
 			ReflectUtil.getDeclaredField(RootCacheValueVisitor.class, "OBJ_EMPTY_ARRAY_ARRAY"));
 
 	private static final FieldInstance sf_objRefArrayArray = new FieldInstance(
-			ReflectUtil.getDeclaredField(ObjRef.class, "EMPTY_ARRAY_ARRAY"));
+			ReflectUtil.getDeclaredField(IObjRef.class, "EMPTY_ARRAY_ARRAY"));
 
 	protected final IEntityMetaData metaData;
 
@@ -107,7 +106,8 @@ public class RootCacheValueVisitor extends ClassGenerator {
 		FieldInstance[] f_nullFlags = new FieldInstance[primitiveMembers.length];
 		Class<?>[] fieldType = new Class<?>[primitiveMembers.length];
 
-		for (int primitiveIndex = 0, size = primitiveMembers.length; primitiveIndex < size; primitiveIndex++) {
+		for (int primitiveIndex = 0, size =
+				primitiveMembers.length; primitiveIndex < size; primitiveIndex++) {
 			Member member = primitiveMembers[primitiveIndex];
 			Class<?> realType = member.getRealType();
 			Class<?> nativeType = WrapperTypeSet.getUnwrappedType(realType);
@@ -186,7 +186,8 @@ public class RootCacheValueVisitor extends ClassGenerator {
 		mv.push(f_primitives.length);
 		mv.newArray(objType);
 
-		for (int primitiveIndex = 0, size = f_primitives.length; primitiveIndex < size; primitiveIndex++) {
+		for (int primitiveIndex = 0, size =
+				f_primitives.length; primitiveIndex < size; primitiveIndex++) {
 			FieldInstance f_primitive = f_primitives[primitiveIndex];
 			FieldInstance f_nullFlag = f_nullFlags[primitiveIndex];
 
@@ -223,7 +224,8 @@ public class RootCacheValueVisitor extends ClassGenerator {
 		MethodGenerator mv = visitMethod(template_m_setPrimitives);
 		final int loc_item = mv.newLocal(objType);
 
-		for (int primitiveIndex = 0, size = f_primitives.length; primitiveIndex < size; primitiveIndex++) {
+		for (int primitiveIndex = 0, size =
+				f_primitives.length; primitiveIndex < size; primitiveIndex++) {
 			final FieldInstance f_primitive = f_primitives[primitiveIndex];
 			FieldInstance f_nullFlag = f_nullFlags[primitiveIndex];
 			Member member = primitiveMembers[primitiveIndex];
@@ -333,7 +335,8 @@ public class RootCacheValueVisitor extends ClassGenerator {
 		RelationMember[] relationMembers = metaData.getRelationMembers();
 		FieldInstance[] f_relations = new FieldInstance[relationMembers.length];
 
-		for (int relationIndex = 0, size = relationMembers.length; relationIndex < size; relationIndex++) {
+		for (int relationIndex = 0, size =
+				relationMembers.length; relationIndex < size; relationIndex++) {
 			RelationMember member = relationMembers[relationIndex];
 			FieldInstance f_relation = implementField(new FieldInstance(Opcodes.ACC_PRIVATE,
 					CacheMapEntryVisitor.getFieldName(member), null, IObjRef[].class));

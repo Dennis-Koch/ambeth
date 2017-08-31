@@ -42,6 +42,8 @@ import com.koch.ambeth.util.ReflectUtil;
 import com.koch.ambeth.util.StringConversionHelper;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.HashMap;
+import com.koch.ambeth.util.collections.HashSet;
+import com.koch.ambeth.util.collections.ISet;
 import com.koch.ambeth.util.objectcollector.IThreadLocalObjectCollector;
 import com.koch.ambeth.util.typeinfo.IPropertyInfo;
 
@@ -57,6 +59,21 @@ public class DefaultPropertiesMethodVisitor extends ClassGenerator {
 		this.objectCollector = objectCollector;
 	}
 
+	protected ISet<Class<?>> buildAllInterfaces(Class<?> currType) {
+		ISet<Class<?>> interfaceSet = new HashSet<>();
+		if (currType.isInterface()) {
+			interfaceSet.add(currType);
+		}
+		while (currType != null) {
+			Class<?>[] interfaces = currType.getInterfaces();
+			for (int a = interfaces.length; a-- > 0;) {
+				interfaceSet.add(interfaces[a]);
+			}
+			currType = currType.getSuperclass();
+		}
+		return interfaceSet;
+	}
+
 	@Override
 	public void visitEnd() {
 		HashMap<String, List<Method>> nameToMethodsMap = new HashMap<>();
@@ -68,18 +85,25 @@ public class DefaultPropertiesMethodVisitor extends ClassGenerator {
 			}
 			methodList.add(method);
 		}
+		ISet<Class<?>> allInterfaces = buildAllInterfaces(getState().getOriginalType());
+		allInterfaces.addAll(buildAllInterfaces(getState().getCurrentType()));
+
 		for (IPropertyInfo propertyInfo : propertyInfos) {
 			if (propertyInfo instanceof FieldPropertyInfo) {
 				// if there is neither a setter nor a getter we let the field untouched
 				continue;
 			}
 			Method getter = ((MethodPropertyInfo) propertyInfo).getGetter();
-			Method setter = ((MethodPropertyInfo) propertyInfo).getSetter();
 			if (getter == null) {
 				// look for abstract definition of the getter
 				getter = ReflectUtil.getDeclaredMethod(true, getState().getCurrentType(),
 						propertyInfo.getPropertyType(), "get" + propertyInfo.getName());
 			}
+			if (getter != null && getter.isAnnotationPresent(PropertyExpression.class)) {
+				// this member will be handled by another visitor
+				continue;
+			}
+			Method setter = ((MethodPropertyInfo) propertyInfo).getSetter();
 			if (setter == null) {
 				// look for abstract definition of the setter
 				setter = ReflectUtil.getDeclaredMethod(true, getState().getCurrentType(), void.class,
@@ -88,9 +112,15 @@ public class DefaultPropertiesMethodVisitor extends ClassGenerator {
 			Method fluentSetter = ReflectUtil.getDeclaredMethod(true, getState().getCurrentType(),
 					getState().getOriginalType(), "with" + propertyInfo.getName(),
 					propertyInfo.getPropertyType());
-			if (getter != null && getter.isAnnotationPresent(PropertyExpression.class)) {
-				// this member will be handled by another visitor
-				continue;
+			if (fluentSetter == null) {
+				for (Class<?> interfaceType : allInterfaces) {
+					fluentSetter = ReflectUtil.getDeclaredMethod(true, interfaceType,
+							null, "with" + propertyInfo.getName(),
+							propertyInfo.getPropertyType());
+					if (fluentSetter != null) {
+						break;
+					}
+				}
 			}
 			MethodInstance m_getterTemplate = getter != null ? new MethodInstance(getter) : null;
 			MethodInstance m_setterTemplate = setter != null ? new MethodInstance(setter) : null;
@@ -140,13 +170,6 @@ public class DefaultPropertiesMethodVisitor extends ClassGenerator {
 				m_setterTemplate = new MethodInstance(null, Opcodes.ACC_PUBLIC,
 						m_setterTemplate != null ? m_setterTemplate.getReturnType() : Type.VOID_TYPE,
 						"set" + propertyInfo.getName(), null, f_backingField.getType());
-			}
-			if (m_fluentSetterTemplate == null) {
-				m_fluentSetterTemplate = new MethodInstance(null, Opcodes.ACC_PUBLIC,
-						m_fluentSetterTemplate != null
-								? m_fluentSetterTemplate.getReturnType()
-								: Type.getType(getState().getOriginalType()),
-						"with" + propertyInfo.getName(), null, f_backingField.getType());
 			}
 			// implement setter
 			m_setterTemplate = implementSetter(m_setterTemplate, f_backingField);

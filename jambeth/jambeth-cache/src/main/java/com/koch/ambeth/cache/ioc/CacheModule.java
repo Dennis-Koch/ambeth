@@ -51,6 +51,7 @@ import com.koch.ambeth.cache.interceptor.TransactionalRootCacheInterceptor;
 import com.koch.ambeth.cache.mixin.DataObjectMixin;
 import com.koch.ambeth.cache.mixin.EmbeddedTypeMixin;
 import com.koch.ambeth.cache.mixin.EntityEqualsMixin;
+import com.koch.ambeth.cache.mixin.IAsyncLazyLoadController;
 import com.koch.ambeth.cache.mixin.PropertyChangeMixin;
 import com.koch.ambeth.cache.mixin.ValueHolderContainerMixin;
 import com.koch.ambeth.cache.proxy.CacheContextPostProcessor;
@@ -184,7 +185,7 @@ public class CacheModule implements IInitializingModule {
 				.autowireable(ITransactionalRootCacheManager.class, ISecondLevelCacheManager.class);
 
 		Object txRcProxy = proxyFactory.createProxy(
-				new Class<?>[] { IRootCache.class, ICacheIntern.class, IOfflineListener.class },
+				new Class<?>[] {IRootCache.class, ICacheIntern.class, IOfflineListener.class},
 				txRcInterceptor);
 
 		beanContextFactory.registerExternalBean(ROOT_CACHE, txRcProxy).autowireable(IRootCache.class,
@@ -204,7 +205,8 @@ public class CacheModule implements IInitializingModule {
 			// cleared with each service
 			// request. Effectively this means that the root cache itself only lives per-request and does
 			// not hold a longer state
-			ThreadLocalRootCacheInterceptor threadLocalRcInterceptor = new ThreadLocalRootCacheInterceptor();
+			ThreadLocalRootCacheInterceptor threadLocalRcInterceptor =
+					new ThreadLocalRootCacheInterceptor();
 
 			beanContextFactory
 					.registerWithLifecycle("threadLocalRootCacheInterceptor", threadLocalRcInterceptor)
@@ -228,7 +230,7 @@ public class CacheModule implements IInitializingModule {
 				.getInstance();
 
 		Object cacheProxy = proxyFactory.createProxy(ICache.class,
-				new Class[] { ICacheProvider.class, IWritableCache.class }, cacheProviderInterceptor);
+				new Class[] {ICacheProvider.class, IWritableCache.class}, cacheProviderInterceptor);
 		beanContextFactory.registerExternalBean("cache", cacheProxy).autowireable(ICache.class);
 
 		beanContextFactory.registerBean("pagingQuerySRP", PagingQueryServiceResultProcessor.class);
@@ -301,6 +303,6 @@ public class CacheModule implements IInitializingModule {
 				PropertyChangeMixin.class, IPropertyChangeExtensionExtendable.class,
 				ICollectionChangeExtensionExtendable.class);
 		beanContextFactory.registerBean(ValueHolderContainerMixin.class)
-				.autowireable(ValueHolderContainerMixin.class);
+				.autowireable(ValueHolderContainerMixin.class, IAsyncLazyLoadController.class);
 	}
 }

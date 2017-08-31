@@ -34,10 +34,6 @@ import com.koch.ambeth.util.StringBuilderUtil;
 @XmlRootElement(name = "ObjRef", namespace = "http://schema.kochdev.com/Ambeth")
 @XmlAccessorType(XmlAccessType.FIELD)
 public class ObjRef implements IObjRef, IPrintable {
-	public static final IObjRef[] EMPTY_ARRAY = new IObjRef[0];
-
-	public static final IObjRef[][] EMPTY_ARRAY_ARRAY = new IObjRef[0][];
-
 	public static final byte PRIMARY_KEY_INDEX = -1;
 
 	public static final byte UNDEFINED_KEY_INDEX = Byte.MIN_VALUE;

@@ -23,6 +23,7 @@ limitations under the License.
 import java.util.List;
 
 import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.Opcodes;
 
 import com.koch.ambeth.bytecode.MethodInstance;
 import com.koch.ambeth.bytecode.behavior.AbstractBehavior;
@@ -60,7 +61,7 @@ public class LazyRelationsBehavior extends AbstractBehavior {
 
 	@Override
 	public Class<?>[] getEnhancements() {
-		return new Class<?>[] { IObjRefContainer.class, IValueHolderContainer.class };
+		return new Class<?>[] {IObjRefContainer.class, IValueHolderContainer.class};
 	}
 
 	@Override
@@ -84,8 +85,14 @@ public class LazyRelationsBehavior extends AbstractBehavior {
 				Member cMember = ((IEmbeddedMember) member).getChildMember();
 				MethodPropertyInfo prop = (MethodPropertyInfo) propertyInfoProvider
 						.getProperty(cMember.getDeclaringType(), cMember.getName());
+				MethodInstance setter =
+						prop.getSetter() != null ? new MethodInstance(prop.getSetter()) : null;
+				if (setter == null) {
+					setter = new MethodInstance(null, Opcodes.ACC_PUBLIC, void.class, "set" + prop.getName(),
+							null, prop.getPropertyType());
+				}
 				if (state.hasMethod(new MethodInstance(prop.getGetter()))
-						|| state.hasMethod(new MethodInstance(prop.getSetter()))) {
+						|| state.hasMethod(setter)) {
 					// Handle this behavior in the next iteration
 					cascadePendingBehaviors.add(this);
 					return visitor;

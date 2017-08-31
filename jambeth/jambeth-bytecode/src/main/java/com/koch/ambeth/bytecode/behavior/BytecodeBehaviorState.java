@@ -35,6 +35,8 @@ import com.koch.ambeth.util.MethodKeyOfType;
 import com.koch.ambeth.util.ReflectUtil;
 import com.koch.ambeth.util.collections.LinkedHashMap;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
+import com.koch.ambeth.util.state.AbstractStateRollback;
+import com.koch.ambeth.util.state.IStateRollback;
 import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
 
 public class BytecodeBehaviorState implements IBytecodeBehaviorState {
@@ -77,12 +79,16 @@ public class BytecodeBehaviorState implements IBytecodeBehaviorState {
 		return stateTL.get();
 	}
 
+	/**
+	 * Please use
+	 * {@link #pushState(Class, Class, Type, IServiceContext, IEnhancementHint, IStateRollback...)}
+	 * instead
+	 */
+	@Deprecated
 	public static <T> T setState(Class<?> originalType, Class<?> currentType, Type newType,
 			IServiceContext beanContext, IEnhancementHint context,
 			IResultingBackgroundWorkerDelegate<T> runnable) {
-		IBytecodeBehaviorState oldState = stateTL.get();
-		stateTL
-				.set(new BytecodeBehaviorState(currentType, newType, originalType, beanContext, context));
+		IStateRollback rollback = pushState(originalType, currentType, newType, beanContext, context);
 		try {
 			return runnable.invoke();
 		}
@@ -90,13 +96,26 @@ public class BytecodeBehaviorState implements IBytecodeBehaviorState {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 		finally {
-			if (oldState != null) {
-				stateTL.set(oldState);
-			}
-			else {
-				stateTL.remove();
-			}
+			rollback.rollback();
 		}
+	}
+
+	public static IStateRollback pushState(Class<?> originalType, Class<?> currentType, Type newType,
+			IServiceContext beanContext, IEnhancementHint context, IStateRollback... rollbacks) {
+		final IBytecodeBehaviorState oldState = stateTL.get();
+		stateTL
+				.set(new BytecodeBehaviorState(currentType, newType, originalType, beanContext, context));
+		return new AbstractStateRollback(rollbacks) {
+			@Override
+			protected void rollbackIntern() throws Exception {
+				if (oldState != null) {
+					stateTL.set(oldState);
+				}
+				else {
+					stateTL.remove();
+				}
+			}
+		};
 	}
 
 	private final Class<?> currentType;

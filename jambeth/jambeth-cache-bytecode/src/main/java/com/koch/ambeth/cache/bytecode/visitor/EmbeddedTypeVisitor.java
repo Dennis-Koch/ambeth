@@ -33,6 +33,7 @@ import com.koch.ambeth.bytecode.MethodInstance;
 import com.koch.ambeth.bytecode.PropertyInstance;
 import com.koch.ambeth.bytecode.Script;
 import com.koch.ambeth.cache.mixin.EmbeddedTypeMixin;
+import com.koch.ambeth.cache.mixin.PropertyChangeMixin.PropertyEntry;
 import com.koch.ambeth.merge.bytecode.EmbeddedEnhancementHint;
 import com.koch.ambeth.util.model.IEmbeddedType;
 
@@ -42,7 +43,8 @@ public class EmbeddedTypeVisitor extends ClassGenerator {
 	public static final String templatePropertyName = "__" + templateType.getSimpleName();
 
 	public static final PropertyInstance t_p_Parent =
-			PropertyInstance.findByTemplate(IEmbeddedType.class, "Parent", Object.class, false);
+			PropertyInstance.findByTemplate(IEmbeddedType.class, PropertyEntry.parentPropertyName,
+					Object.class, false);
 
 	public static final PropertyInstance t_p_Root =
 			PropertyInstance.findByTemplate(IEmbeddedType.class, "Root", Object.class, false);
@@ -50,17 +52,17 @@ public class EmbeddedTypeVisitor extends ClassGenerator {
 	public static final MethodInstance m_getRoot =
 			new MethodInstance(null, templateType, Object.class, "getRoot", IEmbeddedType.class);
 
-	private static final String parentFieldName = "f_" + t_p_Parent.getName();
-
 	public static FieldInstance getParentEntityField(ClassGenerator cv) {
-		FieldInstance f_parentEntity = getState().getAlreadyImplementedField(parentFieldName);
+		FieldInstance f_parentEntity =
+				getState().getAlreadyImplementedField(PropertyEntry.parentFieldName);
 		if (f_parentEntity != null) {
 			return f_parentEntity;
 		}
 		Class<?> parentEntityType =
 				EmbeddedEnhancementHint.getParentObjectType(getState().getContext());
-		f_parentEntity = new FieldInstance(Opcodes.ACC_PRIVATE | Opcodes.ACC_FINAL, parentFieldName,
-				null, parentEntityType);
+		f_parentEntity =
+				new FieldInstance(Opcodes.ACC_PRIVATE | Opcodes.ACC_FINAL, PropertyEntry.parentFieldName,
+						null, parentEntityType);
 		return cv.implementField(f_parentEntity);
 	}
 

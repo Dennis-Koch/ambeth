@@ -61,7 +61,6 @@ import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.proxy.IEnhancedType;
 import com.koch.ambeth.util.IClassLoaderProvider;
-import com.koch.ambeth.util.ParamHolder;
 import com.koch.ambeth.util.ReflectUtil;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.HashSet;
@@ -70,7 +69,7 @@ import com.koch.ambeth.util.collections.IdentityLinkedSet;
 import com.koch.ambeth.util.collections.SmartCopyMap;
 import com.koch.ambeth.util.collections.WeakSmartCopyMap;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
-import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
+import com.koch.ambeth.util.state.IStateRollback;
 
 public class BytecodeEnhancer
 		implements IBytecodeEnhancer, IBytecodeBehaviorExtendable, IStartingBean {
@@ -104,16 +103,19 @@ public class BytecodeEnhancer
 	@Property(name = BytecodeConfigurationConstants.EnhancementTraceDirectory, mandatory = false)
 	protected String traceDir;
 
-	protected final WeakSmartCopyMap<Class<?>, ValueType> typeToExtendedType = new WeakSmartCopyMap<>();
+	protected final WeakSmartCopyMap<Class<?>, ValueType> typeToExtendedType =
+			new WeakSmartCopyMap<>();
 
-	protected final WeakSmartCopyMap<Class<?>, Reference<Class<?>>> extendedTypeToType = new WeakSmartCopyMap<>();
+	protected final WeakSmartCopyMap<Class<?>, Reference<Class<?>>> extendedTypeToType =
+			new WeakSmartCopyMap<>();
 
 	protected final HashSet<Class<?>> supportedEnhancements = new HashSet<>(0.5f);
 
 	protected final Lock writeLock = new ReentrantLock();
 
-	protected final IExtendableContainer<IBytecodeBehavior> bytecodeBehaviorExtensions = new ExtendableContainer<>(
-			IBytecodeBehavior.class, "bytecodeBehavior");
+	protected final IExtendableContainer<IBytecodeBehavior> bytecodeBehaviorExtensions =
+			new ExtendableContainer<>(
+					IBytecodeBehavior.class, "bytecodeBehavior");
 
 	protected Map<BytecodeStoreKey, BytecodeStoreItem> enhancedTypes;
 
@@ -192,7 +194,8 @@ public class BytecodeEnhancer
 	protected Class<?> getEnhancedTypeFromStore(Class<?> entityType, IEnhancementHint enhancementHint,
 			ClassLoader classLoader) {
 		BytecodeStoreItem bytecodeStoreItem = enhancedTypes != null
-				? enhancedTypes.get(new BytecodeStoreKey(entityType, enhancementHint)) : null;
+				? enhancedTypes.get(new BytecodeStoreKey(entityType, enhancementHint))
+				: null;
 		if (bytecodeStoreItem == null) {
 			return null;
 		}
@@ -284,9 +287,15 @@ public class BytecodeEnhancer
 							enhancedTypesPipeline, clpClassLoader);
 					classLoader = clpClassLoader;
 				}
+				catch (Error e) {
+					throw e;
+				}
 				catch (Throwable e) {
 					enhancedType = enhanceTypeIntern(typeToEnhance, newTypeNamePrefix, pendingBehaviors, hint,
 							enhancedTypesPipeline, typeClassLoader);
+					if (enhancedType == typeToEnhance) {
+						throw RuntimeExceptionUtil.mask(e);
+					}
 					classLoader = typeClassLoader;
 				}
 			}
@@ -376,10 +385,9 @@ public class BytecodeEnhancer
 		}
 	}
 
-	@SuppressWarnings("resource")
 	protected Class<?> enhanceTypeIntern(Class<?> originalType, String newTypeNamePrefix,
-			final IList<IBytecodeBehavior> pendingBehaviors, final IEnhancementHint hint,
-			List<Class<?>> enhancedTypesPipeline, final ClassLoader classLoader) {
+			IList<IBytecodeBehavior> pendingBehaviors, IEnhancementHint hint,
+			List<Class<?>> enhancedTypesPipeline, ClassLoader classLoader) {
 		if (pendingBehaviors.isEmpty()) {
 			return originalType;
 		}
@@ -411,7 +419,7 @@ public class BytecodeEnhancer
 				Type newTypeHandle = Type.getObjectType(newTypeNamePrefix + "$A" + iterationCount);
 				lastTypeHandleName = newTypeHandle.getClassName();
 
-				final IBytecodeBehavior[] currentPendingBehaviors = pendingBehaviors
+				IBytecodeBehavior[] currentPendingBehaviors = pendingBehaviors
 						.toArray(IBytecodeBehavior.class);
 				pendingBehaviors.clear();
 
@@ -419,19 +427,19 @@ public class BytecodeEnhancer
 					log.debug("Applying behaviors on " + newTypeHandle.getClassName() + ": "
 							+ Arrays.toString(currentPendingBehaviors));
 				}
-				final BytecodeEnhancer This = this;
-				final byte[] fCurrentContent = currentContent;
-
-				final ParamHolder<BytecodeBehaviorState> acquiredState = new ParamHolder<>();
-				byte[] newContent = BytecodeBehaviorState.setState(originalType, currentType, newTypeHandle,
-						beanContext, hint, new IResultingBackgroundWorkerDelegate<byte[]>() {
-							@Override
-							public byte[] invoke() throws Exception {
-								acquiredState.setValue((BytecodeBehaviorState) BytecodeBehaviorState.getState());
-								return This.executePendingBehaviors(fCurrentContent, sw, currentPendingBehaviors,
-										pendingBehaviors, classLoader);
-							}
-						});
+				BytecodeBehaviorState acquiredState;
+				byte[] newContent;
+				IStateRollback rollback =
+						BytecodeBehaviorState.pushState(originalType, currentType, newTypeHandle,
+								beanContext, hint, IStateRollback.EMPTY_ROLLBACKS);
+				try {
+					acquiredState = (BytecodeBehaviorState) BytecodeBehaviorState.getState();
+					newContent = executePendingBehaviors(currentContent, sw, currentPendingBehaviors,
+							pendingBehaviors, classLoader);
+				}
+				finally {
+					rollback.rollback();
+				}
 				if (newContent == null) {
 					if (!pendingBehaviors.isEmpty()) {
 						// "fix" the iterationCount to have a consistent class name hierarchy
@@ -443,7 +451,7 @@ public class BytecodeEnhancer
 				Class<?> newType = bytecodeClassLoader.loadClass(newTypeHandle.getInternalName(),
 						newContent, classLoader);
 				extendedTypeToType.put(newType, entityTypeR);
-				pendingStatesToPostProcess.add(acquiredState.getValue());
+				pendingStatesToPostProcess.add(acquiredState);
 				currentContent = newContent;
 				currentType = newType;
 				enhancedTypesPipeline.add(currentType);
@@ -462,6 +470,9 @@ public class BytecodeEnhancer
 				else {
 					throw RuntimeExceptionUtil.mask(e, "Bytecode:\n" + classByteCode);
 				}
+			}
+			if (e instanceof Error) {
+				throw (Error) e;
 			}
 			throw RuntimeExceptionUtil.mask(e);
 		}

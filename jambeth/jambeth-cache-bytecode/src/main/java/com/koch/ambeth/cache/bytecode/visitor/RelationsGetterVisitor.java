@@ -1,5 +1,11 @@
 package com.koch.ambeth.cache.bytecode.visitor;
 
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Array;
+import java.lang.reflect.Method;
+
+import org.objectweb.asm.AnnotationVisitor;
+
 /*-
  * #%L
  * jambeth-cache-bytecode
@@ -46,7 +52,6 @@ import com.koch.ambeth.merge.bytecode.EmbeddedEnhancementHint;
 import com.koch.ambeth.merge.cache.ICache;
 import com.koch.ambeth.merge.cache.ValueHolderState;
 import com.koch.ambeth.merge.proxy.IObjRefContainer;
-import com.koch.ambeth.merge.transfer.ObjRef;
 import com.koch.ambeth.service.cache.model.IObjRelation;
 import com.koch.ambeth.service.merge.model.IEntityMetaData;
 import com.koch.ambeth.service.merge.model.IObjRef;
@@ -203,11 +208,14 @@ public class RelationsGetterVisitor extends ClassGenerator {
 
 		PropertyInstance p_targetCache = implementTargetCache(p_valueHolderContainerTemplate);
 
+
+		MethodInstance m_getState;
 		if (!EmbeddedEnhancementHint.hasMemberPath(getState().getContext())) {
 			PropertyInstance p_valueHolderContainerEntry =
 					implementAssignedReadonlyProperty("ValueHolderContainerEntry",
 							new ValueHolderContainerEntryValueResolver(valueHolderContainerHelper));
-			implementGetState(p_valueHolderContainerTemplate, p_valueHolderContainerEntry);
+			m_getState =
+					implementGetState(p_valueHolderContainerTemplate, p_valueHolderContainerEntry);
 			implementSetInitPending(p_valueHolderContainerTemplate, p_valueHolderContainerEntry);
 			implementIsInitialized(p_valueHolderContainerTemplate, p_valueHolderContainerEntry);
 			implementGetObjRefs(p_valueHolderContainerTemplate, p_valueHolderContainerEntry);
@@ -216,8 +224,12 @@ public class RelationsGetterVisitor extends ClassGenerator {
 			implementSetValueDirect(p_valueHolderContainerTemplate, p_valueHolderContainerEntry);
 			implementSetUninitialized(p_valueHolderContainerTemplate, p_valueHolderContainerEntry);
 		}
-
-		implementValueHolderCode(p_valueHolderContainerTemplate, p_targetCache, p_relationMembers);
+		else {
+			m_getState =
+					implementGetState(p_valueHolderContainerTemplate, null);
+		}
+		implementValueHolderCode(p_valueHolderContainerTemplate, p_targetCache, p_relationMembers,
+				m_getState);
 
 		implementConstructors();
 		super.visitEnd();
@@ -250,7 +262,7 @@ public class RelationsGetterVisitor extends ClassGenerator {
 			return;
 		}
 		final PropertyInstance p_emptyRelations =
-				implementAssignedReadonlyProperty("EmptyRelations", ObjRef.EMPTY_ARRAY);
+				implementAssignedReadonlyProperty("EmptyRelations", IObjRef.EMPTY_ARRAY);
 
 		overrideConstructors(new IOverrideConstructorDelegate() {
 			@Override
@@ -306,17 +318,35 @@ public class RelationsGetterVisitor extends ClassGenerator {
 		return field;
 	}
 
-	protected void implementGetState(PropertyInstance p_valueHolderContainerTemplate,
+	protected MethodInstance implementGetState(PropertyInstance p_valueHolderContainerTemplate,
 			PropertyInstance p_valueHolderContainerEntry) {
-		{
+		if (EmbeddedEnhancementHint.hasMemberPath(getState().getContext())) {
+			final PropertyInstance p_rootEntity = EmbeddedTypeVisitor.getRootEntityProperty(this);
 			MethodGenerator mv = visitMethod(m_template_getState_Member);
-			mv.callThisGetter(p_valueHolderContainerEntry);
-			mv.loadThis();
-			mv.loadArgs();
-			mv.invokeVirtual(m_vhce_getState_Member);
+			Label l_finish = mv.newLabel();
+			mv.callThisGetter(p_rootEntity);
+			mv.dup();
+			mv.ifNull(l_finish);
+			mv.checkCast(IObjRefContainer.class);
+			mv.loadArg(0);
+			mv.invokeInterface(m_template_getState_Member);
+			mv.mark(l_finish);
+			mv.checkCast(m_template_getState_Member.getReturnType());
 			mv.returnValue();
 			mv.endMethod();
+			return mv.getMethod();
 		}
+		if (p_valueHolderContainerEntry == null) {
+			throw new IllegalArgumentException("p_valueHolderContainerEntry must be valid");
+		}
+		MethodGenerator mv = visitMethod(m_template_getState_Member);
+		mv.callThisGetter(p_valueHolderContainerEntry);
+		mv.loadThis();
+		mv.loadArgs();
+		mv.invokeVirtual(m_vhce_getState_Member);
+		mv.returnValue();
+		mv.endMethod();
+		return mv.getMethod();
 	}
 
 	protected void implementSetInitPending(PropertyInstance p_valueHolderContainerTemplate,
@@ -473,7 +503,8 @@ public class RelationsGetterVisitor extends ClassGenerator {
 	}
 
 	protected void implementValueHolderCode(PropertyInstance p_valueHolderContainerTemplate,
-			PropertyInstance p_targetCache, PropertyInstance p_relationMembers) {
+			PropertyInstance p_targetCache, PropertyInstance p_relationMembers,
+			MethodInstance m_getState) {
 		RelationMember[] relationMembers = metaData.getRelationMembers();
 		for (int relationIndex = relationMembers.length; relationIndex-- > 0;) {
 			RelationMember relationMember = relationMembers[relationIndex];
@@ -482,7 +513,7 @@ public class RelationsGetterVisitor extends ClassGenerator {
 				// member is handled in another type
 				continue;
 			}
-			String propertyName = relationMember.getName();
+			final String propertyName = relationMember.getName();
 			IPropertyInfo propertyInfo =
 					propertyInfoProvider.getProperty(relationMember.getDeclaringType(), propertyName);
 			PropertyInstance prop = PropertyInstance.findByTemplate(propertyInfo, true);
@@ -511,7 +542,12 @@ public class RelationsGetterVisitor extends ClassGenerator {
 				f_initialized_existing = implementField(f_initialized);
 				implementGetter(new MethodInstance(null, Opcodes.ACC_PUBLIC,
 						f_initialized_existing.getType(), "get" + f_initialized_existing.getName(), null),
-						f_initialized_existing);
+						f_initialized_existing, new Script() {
+							@Override
+							public void execute(MethodGenerator mg) {
+								addAnnotation(mg, ClassGenerator.c_fireThisOPC, propertyName);
+							}
+						});
 				implementSetter(
 						new MethodInstance(null, Opcodes.ACC_PUBLIC, Type.VOID_TYPE,
 								"set" + f_initialized_existing.getName(), null, f_initialized_existing.getType()),
@@ -520,7 +556,7 @@ public class RelationsGetterVisitor extends ClassGenerator {
 
 			implementRelationGetter(propertyName, m_get, m_set, relationIndex,
 					p_valueHolderContainerTemplate, p_targetCache, p_relationMembers, f_initialized_existing,
-					f_objRefs_existing);
+					f_objRefs_existing, m_getState);
 			implementRelationSetter(propertyName, m_set, f_initialized_existing, f_objRefs_existing);
 		}
 	}
@@ -613,7 +649,7 @@ public class RelationsGetterVisitor extends ClassGenerator {
 			final MethodInstance m_setMethod, final int relationIndex,
 			final PropertyInstance p_valueHolderContainerTemplate, final PropertyInstance p_targetCache,
 			final PropertyInstance p_relationMembers, FieldInstance f_initialized,
-			final FieldInstance f_objRefs) {
+			final FieldInstance f_objRefs, MethodInstance m_getState) {
 		// public String getPropertyName()
 		// {
 		// if (!PropertyName$initialized)
@@ -653,9 +689,10 @@ public class RelationsGetterVisitor extends ClassGenerator {
 					Type.VOID_TYPE, propertyName + "$doInitialize", null);
 			{
 				MethodGenerator mg = visitMethod(m_getMethod_scoped);
+				int value_loc = mg.newLocal(Object.class);
+				Label l_pending = mg.newLabel();
 
-				// property => for this.setPropertyName(...)
-				mg.loadThis();
+				// mg.loadThis();
 				// call template.getValue(..)
 				mg.callThisGetter(p_valueHolderContainerTemplate);
 				// getVhc()
@@ -669,8 +706,24 @@ public class RelationsGetterVisitor extends ClassGenerator {
 				// propertyName$objRefs
 				mg.getThisField(f_objRefs);
 				mg.invokeVirtual(m_template_getValue);
+				mg.storeLocal(value_loc);
+
+				// this.getState(relationIndex)
+				mg.loadThis();
+				mg.push(relationIndex);
+				mg.invokeVirtual(m_getState);
+				// mg.pushEnum(ValueHolderState.PENDING);
+				mg.pushEnum(ValueHolderState.PENDING);
+				mg.ifCmp(ValueHolderState.class, GeneratorAdapter.EQ, l_pending);
+				//
+				// // property => for this.setPropertyName(...)
+				mg.loadThis();
+				mg.loadLocal(value_loc);
 				mg.checkCast(m_setMethod.getParameters()[0]);
 				mg.invokeVirtual(m_setMethod);
+				mg.returnValue();
+
+				mg.mark(l_pending);
 				mg.returnValue();
 				mg.endMethod();
 			}
@@ -762,5 +815,36 @@ public class RelationsGetterVisitor extends ClassGenerator {
 			mv.returnVoidOrThis();
 			mv.endMethod();
 		}
+	}
+
+	public void addAnnotation(MethodGenerator mv, Class<? extends Annotation> ci, Object... args) {
+		AnnotationVisitor av = mv.visitAnnotation(Type.getDescriptor(ci), true);
+		Method[] methods = ci.getDeclaredMethods();
+		for (int a = methods.length; a-- > 0;) {
+			Method method = methods[a];
+			convertArg(av, method.getName(), method.getReturnType(), args[a]);
+		}
+		av.visitEnd();
+	}
+
+	protected void convertArg(AnnotationVisitor av, String name, Class<?> expectedType, Object arg) {
+		if (expectedType.isArray()) {
+			AnnotationVisitor ava = av.visitArray(name);
+			if (arg.getClass().isArray()) {
+				for (int a = 0, size = Array.getLength(arg); a < size; a++) {
+					ava.visit(null, Array.get(arg, a));
+				}
+			}
+			else {
+				ava.visit(null, arg);
+			}
+			ava.visitEnd();
+			return;
+		}
+		else if (expectedType.isAssignableFrom(arg.getClass())) {
+			av.visit(name, arg);
+			return;
+		}
+		throw new IllegalArgumentException("Can not convert " + arg.getClass() + " to " + expectedType);
 	}
 }

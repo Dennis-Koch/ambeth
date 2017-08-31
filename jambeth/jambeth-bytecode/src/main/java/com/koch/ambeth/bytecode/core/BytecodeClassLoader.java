@@ -63,7 +63,8 @@ public class BytecodeClassLoader implements IBytecodeClassLoader, IEventListener
 	public static class ClassLoaderEntry {
 		protected final AmbethClassLoader ambethClassLoader;
 
-		protected final WeakSmartCopyMap<Class<?>, Reference<byte[]>> typeToContentMap = new WeakSmartCopyMap<>();
+		protected final WeakSmartCopyMap<Class<?>, Reference<byte[]>> typeToContentMap =
+				new WeakSmartCopyMap<>();
 
 		public ClassLoaderEntry(AmbethClassLoader ambethClassLoader) {
 			super();
@@ -81,7 +82,8 @@ public class BytecodeClassLoader implements IBytecodeClassLoader, IEventListener
 	@Autowired
 	protected IClassLoaderProvider classLoaderProvider;
 
-	protected final WeakSmartCopyMap<ClassLoader, ClassLoaderEntry> typeToContentMap = new WeakSmartCopyMap<>();
+	protected final WeakSmartCopyMap<ClassLoader, ClassLoaderEntry> typeToContentMap =
+			new WeakSmartCopyMap<>();
 
 	@Override
 	public void handleEvent(Object eventObject, long dispatchTime, long sequenceId) throws Exception {
@@ -106,7 +108,9 @@ public class BytecodeClassLoader implements IBytecodeClassLoader, IEventListener
 	@Override
 	public Class<?> loadClass(String typeName, byte[] content, ClassLoader classLoader) {
 		typeName = typeName.replaceAll(Pattern.quote("/"), Matcher.quoteReplacement("."));
-		return ensureEntry(classLoader).ambethClassLoader.defineClass(typeName, content);
+		Class<?> type = ensureEntry(classLoader).ambethClassLoader.defineClass(typeName, content);
+		type.getDeclaredConstructors(); // helps to get some early verification errors
+		return type;
 	}
 
 	@Override
@@ -181,8 +185,9 @@ public class BytecodeClassLoader implements IBytecodeClassLoader, IEventListener
 			ClassNode cn = new ClassNode();
 			cr.accept(cn, ClassReader.SKIP_DEBUG | ClassReader.EXPAND_FRAMES);
 
-			ClassWriter cw = new ClassLoaderAwareClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES,
-					classLoader);
+			ClassWriter cw =
+					new ClassLoaderAwareClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES,
+							classLoader);
 			PrintWriter pw = new PrintWriter(writer);
 
 			ClassVisitor visitor = new SuppressLinesClassVisitor(cw);
@@ -216,6 +221,9 @@ public class BytecodeClassLoader implements IBytecodeClassLoader, IEventListener
 			byte[] content = cw.toByteArray();
 			verify(content, classLoader);
 			return content;
+		}
+		catch (Error e) {
+			throw e;
 		}
 		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
