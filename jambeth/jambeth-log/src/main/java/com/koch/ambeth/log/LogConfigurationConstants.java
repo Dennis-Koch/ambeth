@@ -30,6 +30,8 @@ public class LogConfigurationConstants {
 	 */
 	public static final String LogFile = "ambeth.log.file";
 
+	public static final String LoggerType = "ambeth.log.class";
+
 	private LogConfigurationConstants() {
 		// Intended blank
 	}

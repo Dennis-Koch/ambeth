@@ -132,18 +132,21 @@ public final class LoggerFactory {
 			logger.setInfoEnabled(true);
 			logger.setWarnEnabled(true);
 			logger.setErrorEnabled(true);
-		} else if (logLevelInfo.equalsIgnoreCase(logLevelValue)) {
+		}
+		else if (logLevelInfo.equalsIgnoreCase(logLevelValue)) {
 			logger.setDebugEnabled(false);
 			logger.setInfoEnabled(true);
 			logger.setWarnEnabled(true);
 			logger.setErrorEnabled(true);
-		} else if (logLevelWarn.equalsIgnoreCase(logLevelValue) || logLevelValue == null) {
+		}
+		else if (logLevelWarn.equalsIgnoreCase(logLevelValue) || logLevelValue == null) {
 			// if nothing is configured the logger defaults to "warn" level
 			logger.setDebugEnabled(false);
 			logger.setInfoEnabled(false);
 			logger.setWarnEnabled(true);
 			logger.setErrorEnabled(true);
-		} else if (logLevelError.equalsIgnoreCase(logLevelValue)) {
+		}
+		else if (logLevelError.equalsIgnoreCase(logLevelValue)) {
 			logger.setDebugEnabled(false);
 			logger.setInfoEnabled(false);
 			logger.setWarnEnabled(false);
@@ -162,12 +165,23 @@ public final class LoggerFactory {
 		return getLogger(source, Properties.getApplication());
 	}
 
+	@SuppressWarnings("unchecked")
 	public static ILogger getLogger(Class<?> source, IProperties props) {
 		if (props == null) {
 			props = Properties.getApplication();
 		}
 		try {
-			ILogger logger = LoggerFactory.loggerType.getConstructor(String.class)
+			Object loggerTypeName = props.getString(LogConfigurationConstants.LoggerType);
+			Class<? extends ILogger> loggerType = LoggerFactory.loggerType;
+			if (loggerTypeName != null) {
+				if (loggerTypeName instanceof Class) {
+					loggerType = (Class<? extends ILogger>) loggerTypeName;
+				}
+				loggerType =
+						(Class<? extends ILogger>) Thread.currentThread().getContextClassLoader()
+								.loadClass((String) loggerTypeName);
+			}
+			ILogger logger = loggerType.getConstructor(String.class)
 					.newInstance(source.getName());
 
 			if (logger instanceof IConfigurableLogger) {
@@ -175,7 +189,8 @@ public final class LoggerFactory {
 						props);
 			}
 			return logger;
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
@@ -189,7 +204,8 @@ public final class LoggerFactory {
 				LoggerFactory.configureLogger(source, (IConfigurableLogger) logger);
 			}
 			return logger;
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
