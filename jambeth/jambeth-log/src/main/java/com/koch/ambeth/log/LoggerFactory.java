@@ -171,7 +171,7 @@ public final class LoggerFactory {
 			props = Properties.getApplication();
 		}
 		try {
-			Object loggerTypeName = props.getString(LogConfigurationConstants.LoggerType);
+			Object loggerTypeName = props.get(LogConfigurationConstants.LoggerType);
 			Class<? extends ILogger> loggerType = LoggerFactory.loggerType;
 			if (loggerTypeName != null) {
 				if (loggerTypeName instanceof Class) {
