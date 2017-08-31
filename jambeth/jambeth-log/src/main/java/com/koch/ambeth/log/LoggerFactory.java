@@ -177,9 +177,11 @@ public final class LoggerFactory {
 				if (loggerTypeName instanceof Class) {
 					loggerType = (Class<? extends ILogger>) loggerTypeName;
 				}
-				loggerType =
-						(Class<? extends ILogger>) Thread.currentThread().getContextClassLoader()
-								.loadClass((String) loggerTypeName);
+				else {
+					loggerType =
+							(Class<? extends ILogger>) Thread.currentThread().getContextClassLoader()
+									.loadClass((String) loggerTypeName);
+				}
 			}
 			ILogger logger = loggerType.getConstructor(String.class)
 					.newInstance(source.getName());
