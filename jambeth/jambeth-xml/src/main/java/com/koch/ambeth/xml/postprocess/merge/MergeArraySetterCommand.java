@@ -28,9 +28,14 @@ import com.koch.ambeth.service.merge.model.IObjRef;
 import com.koch.ambeth.xml.IReader;
 import com.koch.ambeth.xml.pending.ArraySetterCommand;
 import com.koch.ambeth.xml.pending.IObjectCommand;
+import com.koch.ambeth.xml.pending.IObjectFuture;
 
 public class MergeArraySetterCommand extends ArraySetterCommand
 		implements IObjectCommand, IInitializingBean {
+	public MergeArraySetterCommand(IObjectFuture objectFuture, Object parent, int index) {
+		super(objectFuture, parent, index);
+	}
+
 	@Override
 	public void execute(IReader reader) {
 		Object value = objectFuture.getValue();

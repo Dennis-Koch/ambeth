@@ -21,14 +21,24 @@ limitations under the License.
  */
 
 import com.koch.ambeth.ioc.IInitializingBean;
-import com.koch.ambeth.ioc.config.Property;
 import com.koch.ambeth.service.metadata.Member;
+import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.xml.IReader;
 
 public class ObjectSetterCommand extends AbstractObjectCommand
 		implements IObjectCommand, IInitializingBean {
-	@Property
-	protected Member member;
+	protected final Member member;
+
+	public ObjectSetterCommand(IObjectFuture objectFuture, Object parent, Member member) {
+		super(objectFuture, parent);
+		this.member = member;
+		try {
+			afterPropertiesSet();
+		}
+		catch (Throwable e) {
+			throw RuntimeExceptionUtil.mask(e);
+		}
+	}
 
 	@Override
 	public void execute(IReader reader) {

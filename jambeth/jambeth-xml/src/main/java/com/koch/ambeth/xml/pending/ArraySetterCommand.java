@@ -24,22 +24,29 @@ import java.lang.reflect.Array;
 
 import com.koch.ambeth.ioc.IInitializingBean;
 import com.koch.ambeth.util.ParamChecker;
+import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.xml.IReader;
 
 public class ArraySetterCommand extends AbstractObjectCommand
 		implements IObjectCommand, IInitializingBean {
-	protected Integer index;
+	protected int index;
+
+	public ArraySetterCommand(IObjectFuture objectFuture, Object parent, int index) {
+		super(objectFuture, parent);
+		this.index = index;
+		try {
+			afterPropertiesSet();
+		}
+		catch (Throwable e) {
+			throw RuntimeExceptionUtil.mask(e);
+		}
+	}
 
 	@Override
 	public void afterPropertiesSet() throws Throwable {
 		super.afterPropertiesSet();
 
 		ParamChecker.assertTrue(parent.getClass().isArray(), "Parent has to be an array");
-		ParamChecker.assertNotNull(index, "Index");
-	}
-
-	public void setIndex(Integer index) {
-		this.index = index;
 	}
 
 	@Override

@@ -37,6 +37,7 @@ import com.koch.ambeth.util.collections.IntKeyMap;
 import com.koch.ambeth.util.collections.LinkedHashMap;
 import com.koch.ambeth.util.collections.LinkedHashSet;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
+import com.koch.ambeth.xml.pending.ICommandCreator;
 import com.koch.ambeth.xml.pending.ICommandTypeExtendable;
 import com.koch.ambeth.xml.pending.ICommandTypeRegistry;
 import com.koch.ambeth.xml.pending.IObjectCommand;
@@ -55,7 +56,7 @@ public class DefaultXmlReader
 
 	protected final IList<IObjectCommand> objectCommands = new ArrayList<>();
 
-	protected final IMapExtendableContainer<Class<? extends IObjectCommand>, Class<? extends IObjectCommand>> commandTypeExtendable =
+	protected final IMapExtendableContainer<Class<? extends IObjectCommand>, ICommandCreator> commandTypeExtendable =
 			new MapExtendableContainer<>(
 					"Overriding command type", "Original command type");
 
@@ -287,23 +288,21 @@ public class DefaultXmlReader
 		return this;
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
-	public <T extends IObjectCommand> Class<? extends T> getOverridingCommandType(
-			Class<? extends T> commandType) {
-		return (Class<? extends T>) commandTypeExtendable.getExtension(commandType);
+	public ICommandCreator getOverridingCommandType(Class<? extends IObjectCommand> commandType) {
+		return commandTypeExtendable.getExtension(commandType);
 	}
 
 	@Override
-	public void registerOverridingCommandType(Class<? extends IObjectCommand> overridingCommandType,
+	public void registerOverridingCommandCreator(ICommandCreator overridingCommandCreator,
 			Class<? extends IObjectCommand> commandType) {
-		commandTypeExtendable.register(overridingCommandType, commandType);
+		commandTypeExtendable.register(overridingCommandCreator, commandType);
 	}
 
 	@Override
-	public void unregisterOverridingCommandType(Class<? extends IObjectCommand> overridingCommandType,
+	public void unregisterOverridingCommandCreator(ICommandCreator overridingCommandCreator,
 			Class<? extends IObjectCommand> commandType) {
-		commandTypeExtendable.unregister(overridingCommandType, commandType);
+		commandTypeExtendable.unregister(overridingCommandCreator, commandType);
 	}
 
 	@Override

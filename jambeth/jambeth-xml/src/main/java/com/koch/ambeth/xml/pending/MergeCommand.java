@@ -23,7 +23,6 @@ limitations under the License.
 import java.util.Collection;
 
 import com.koch.ambeth.ioc.IInitializingBean;
-import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.merge.IObjRefHelper;
 import com.koch.ambeth.merge.cache.ValueHolderState;
 import com.koch.ambeth.merge.model.IChangeContainer;
@@ -33,11 +32,9 @@ import com.koch.ambeth.merge.model.IRelationUpdateItem;
 import com.koch.ambeth.merge.proxy.IEntityMetaDataHolder;
 import com.koch.ambeth.merge.proxy.IObjRefContainer;
 import com.koch.ambeth.merge.transfer.CreateContainer;
-import com.koch.ambeth.merge.transfer.ObjRef;
 import com.koch.ambeth.merge.transfer.UpdateContainer;
 import com.koch.ambeth.merge.util.DirectValueHolderRef;
 import com.koch.ambeth.merge.util.OptimisticLockUtil;
-import com.koch.ambeth.service.merge.IEntityMetaDataProvider;
 import com.koch.ambeth.service.merge.model.IEntityMetaData;
 import com.koch.ambeth.service.merge.model.IObjRef;
 import com.koch.ambeth.service.metadata.Member;
@@ -48,18 +45,27 @@ import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.ILinkedSet;
 import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.LinkedHashSet;
+import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.xml.IReader;
 
 public class MergeCommand extends AbstractObjectCommand
 		implements IObjectCommand, IInitializingBean {
-	@Autowired
-	protected ICommandBuilder commandBuilder;
+	protected final ICommandBuilder commandBuilder;
 
-	@Autowired
-	protected IEntityMetaDataProvider entityMetaDataProvider;
+	protected final IObjRefHelper objRefHelper;
 
-	@Autowired
-	protected IObjRefHelper oriHelper;
+	public MergeCommand(IObjectFuture objectFuture, Object parent, ICommandBuilder commandBuilder,
+			IObjRefHelper objRefHelper) {
+		super(objectFuture, parent);
+		this.commandBuilder = commandBuilder;
+		this.objRefHelper = objRefHelper;
+		try {
+			afterPropertiesSet();
+		}
+		catch (Throwable e) {
+			throw RuntimeExceptionUtil.mask(e);
+		}
+	}
 
 	@Override
 	public void afterPropertiesSet() throws Throwable {
@@ -132,7 +138,7 @@ public class MergeCommand extends AbstractObjectCommand
 				if (removedORIs != null && addedORIs.length > 0) {
 					throw new IllegalArgumentException("Removing from empty member");
 				}
-				newORIs = addedORIs != null ? addedORIs : ObjRef.EMPTY_ARRAY;
+				newORIs = addedORIs != null ? addedORIs : IObjRef.EMPTY_ARRAY;
 			}
 			else {
 				// Set to efficiently remove entries
@@ -140,7 +146,7 @@ public class MergeCommand extends AbstractObjectCommand
 				if (removedORIs != null && removedORIs.length > 0) {
 					for (IObjRef removedORI : removedORIs) {
 						if (!existingORIsSet.remove(removedORI)) {
-							throw OptimisticLockUtil.throwModified(oriHelper.entityToObjRef(entity), null,
+							throw OptimisticLockUtil.throwModified(objRefHelper.entityToObjRef(entity), null,
 									entity);
 						}
 					}
@@ -148,13 +154,13 @@ public class MergeCommand extends AbstractObjectCommand
 				if (addedORIs != null && addedORIs.length > 0) {
 					for (IObjRef addedORI : addedORIs) {
 						if (!existingORIsSet.add(addedORI)) {
-							throw OptimisticLockUtil.throwModified(oriHelper.entityToObjRef(entity), null,
+							throw OptimisticLockUtil.throwModified(objRefHelper.entityToObjRef(entity), null,
 									entity);
 						}
 					}
 				}
 				if (existingORIsSet.isEmpty()) {
-					newORIs = ObjRef.EMPTY_ARRAY;
+					newORIs = IObjRef.EMPTY_ARRAY;
 				}
 				else {
 					newORIs = existingORIsSet.toArray(IObjRef.class);

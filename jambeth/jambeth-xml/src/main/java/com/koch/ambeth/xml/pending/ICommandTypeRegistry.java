@@ -21,6 +21,5 @@ limitations under the License.
  */
 
 public interface ICommandTypeRegistry {
-	<T extends IObjectCommand> Class<? extends T> getOverridingCommandType(
-			Class<? extends T> commandType);
+	ICommandCreator getOverridingCommandType(Class<? extends IObjectCommand> commandType);
 }

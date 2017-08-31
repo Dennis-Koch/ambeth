@@ -49,6 +49,7 @@ import com.koch.ambeth.util.threading.IBackgroundWorkerParamDelegate;
 import com.koch.ambeth.util.typeinfo.ITypeInfoProvider;
 import com.koch.ambeth.xml.pending.ArraySetterCommand;
 import com.koch.ambeth.xml.pending.ICommandBuilder;
+import com.koch.ambeth.xml.pending.ICommandCreator;
 import com.koch.ambeth.xml.pending.ICommandTypeExtendable;
 import com.koch.ambeth.xml.pending.ICommandTypeRegistry;
 import com.koch.ambeth.xml.pending.IObjectCommand;
@@ -81,6 +82,15 @@ public class MergeXmlPostProcessor implements IXmlPostProcessor, IStartingBean {
 	protected ITypeInfoProvider typeInfoProvider;
 
 	protected Member directObjRefDirectMember;
+
+	protected final ICommandCreator mergeArraySetterCommand = new ICommandCreator() {
+		@Override
+		public IObjectCommand createCommand(ICommandTypeRegistry commandTypeRegistry,
+				IObjectFuture objectFuture, Object parent, Object[] optionals) {
+			return new MergeArraySetterCommand(objectFuture, parent,
+					((Number) optionals[0]).intValue());
+		}
+	};
 
 	@Override
 	public void afterStarted() throws Throwable {
@@ -135,10 +145,10 @@ public class MergeXmlPostProcessor implements IXmlPostProcessor, IStartingBean {
 
 		ICommandTypeRegistry commandTypeRegistry = reader.getCommandTypeRegistry();
 		ICommandTypeExtendable commandTypeExtendable = reader.getCommandTypeExtendable();
-		commandTypeExtendable.registerOverridingCommandType(MergeArraySetterCommand.class,
+		commandTypeExtendable.registerOverridingCommandCreator(mergeArraySetterCommand,
 				ArraySetterCommand.class);
 		Object result = reader.readObject();
-		commandTypeExtendable.unregisterOverridingCommandType(MergeArraySetterCommand.class,
+		commandTypeExtendable.unregisterOverridingCommandCreator(mergeArraySetterCommand,
 				ArraySetterCommand.class);
 
 		if (!(result instanceof CUDResult)) {
