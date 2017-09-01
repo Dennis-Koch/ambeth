@@ -29,10 +29,13 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import com.koch.ambeth.cache.ICacheIntern;
+import com.koch.ambeth.cache.config.CacheConfigurationConstants;
 import com.koch.ambeth.cache.mixin.ValueHolderContainerMixin;
 import com.koch.ambeth.cache.proxy.IValueHolderContainer;
 import com.koch.ambeth.cache.rootcachevalue.RootCacheValue;
+import com.koch.ambeth.ioc.IInitializingBean;
 import com.koch.ambeth.ioc.IServiceContext;
+import com.koch.ambeth.ioc.accessor.IAccessorTypeProvider;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.config.Property;
 import com.koch.ambeth.merge.ILightweightTransaction;
@@ -44,7 +47,6 @@ import com.koch.ambeth.merge.config.MergeConfigurationConstants;
 import com.koch.ambeth.merge.metadata.IMemberTypeProvider;
 import com.koch.ambeth.merge.proxy.IEntityMetaDataHolder;
 import com.koch.ambeth.merge.proxy.IObjRefContainer;
-import com.koch.ambeth.merge.transfer.ObjRef;
 import com.koch.ambeth.merge.util.DirectValueHolderRef;
 import com.koch.ambeth.merge.util.ICacheHelper;
 import com.koch.ambeth.merge.util.IPrefetchConfig;
@@ -78,11 +80,19 @@ import com.koch.ambeth.util.threading.IBackgroundWorkerDelegate;
 import com.koch.ambeth.util.threading.IGuiThreadHelper;
 import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
 
-public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHelper {
+public class CacheHelper
+		implements IInitializingBean, ICacheHelper, ICachePathHelper, IPrefetchHelper {
 	private static final Object[] emptyObjectArray = new Object[0];
 
 	private static final Set<CacheDirective> failEarlyReturnMisses = EnumSet
 			.of(CacheDirective.FailEarly, CacheDirective.ReturnMisses);
+
+	public abstract static class CollectionConstructor {
+		public abstract Collection<?> create();
+	}
+
+	@Autowired
+	protected IAccessorTypeProvider accessorTypeProvider;
 
 	@Autowired
 	protected IServiceContext beanContext;
@@ -111,10 +121,28 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 	@Autowired
 	protected ValueHolderContainerMixin valueHolderContainerMixin;
 
-	@Property(name = MergeConfigurationConstants.PrefetchInLazyTransactionActive, defaultValue = "true")
+	@Property(name = MergeConfigurationConstants.PrefetchInLazyTransactionActive,
+			defaultValue = "true")
 	protected boolean lazyTransactionActive;
 
+	@Property(name = CacheConfigurationConstants.RelationListType, mandatory = false)
+	protected Class<?> listClass = ObservableArrayList.class;
+
+	@Property(name = CacheConfigurationConstants.RelationSetType, mandatory = false)
+	protected Class<?> setClass = ObservableHashSet.class;
+
 	protected final ThreadLocal<AlreadyHandledSet> alreadyHandledSetTL = new ThreadLocal<>();
+
+	private CollectionConstructor listConstructor;
+
+	private CollectionConstructor setConstructor;
+
+	@Override
+	public void afterPropertiesSet() throws Throwable {
+		listConstructor =
+				accessorTypeProvider.getConstructorType(CollectionConstructor.class, listClass);
+		setConstructor = accessorTypeProvider.getConstructorType(CollectionConstructor.class, setClass);
+	}
 
 	@Override
 	public void buildCachePath(Class<?> entityType, String memberToInitialize,
@@ -229,10 +257,13 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 				setCreated = true;
 			}
 
-			IdentityLinkedMap<ICacheIntern, ISet<IObjRef>> cacheToOrisLoadedHistory = new IdentityLinkedMap<>();
-			IdentityLinkedMap<ICacheIntern, ISet<IObjRelation>> cacheToOrelsLoadedHistory = new IdentityLinkedMap<>();
+			IdentityLinkedMap<ICacheIntern, ISet<IObjRef>> cacheToOrisLoadedHistory =
+					new IdentityLinkedMap<>();
+			IdentityLinkedMap<ICacheIntern, ISet<IObjRelation>> cacheToOrelsLoadedHistory =
+					new IdentityLinkedMap<>();
 			IdentityLinkedMap<ICacheIntern, ISet<IObjRef>> cacheToOrisToLoad = new IdentityLinkedMap<>();
-			IdentityLinkedMap<ICacheIntern, IMap<IObjRelation, Boolean>> cacheToOrelsToLoad = new IdentityLinkedMap<>();
+			IdentityLinkedMap<ICacheIntern, IMap<IObjRelation, Boolean>> cacheToOrelsToLoad =
+					new IdentityLinkedMap<>();
 
 			ArrayList<PrefetchCommand> loadItems = new ArrayList<>();
 
@@ -349,7 +380,8 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 				@Override
 				public void invoke() throws Exception {
 					ICacheModification cacheModification = CacheHelper.this.cacheModification;
-					ValueHolderContainerMixin valueHolderContainerMixin = CacheHelper.this.valueHolderContainerMixin;
+					ValueHolderContainerMixin valueHolderContainerMixin =
+							CacheHelper.this.valueHolderContainerMixin;
 					boolean oldActive = cacheModification.isActive();
 					if (!oldActive) {
 						cacheModification.setActive(true);
@@ -741,24 +773,24 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 	public Collection createInstanceOfTargetExpectedType(Class<?> expectedType,
 			Class<?> elementType) {
 		// OneToMany or ManyToMany Relationship
-		if (Iterable.class.isAssignableFrom(expectedType)) {
-			if (expectedType.isInterface()) {
-				if (Set.class.isAssignableFrom(expectedType)) {
-					return new ObservableHashSet();
-				}
-				return new ObservableArrayList();
-			}
-			try {
-				return (Collection) expectedType.newInstance();
-			}
-			catch (Exception e) {
-				throw RuntimeExceptionUtil.mask(e);
-			}
+		if (!Iterable.class.isAssignableFrom(expectedType)) {
+			return null;
 		}
-		return null;
+		if (expectedType.isAssignableFrom(listClass)) {
+			return listConstructor.create();
+		}
+		if (expectedType.isAssignableFrom(setClass)) {
+			return setConstructor.create();
+		}
+		try {
+			return (Collection) expectedType.newInstance();
+		}
+		catch (Exception e) {
+			throw RuntimeExceptionUtil.mask(e);
+		}
 	}
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@SuppressWarnings({"unchecked", "rawtypes"})
 	@Override
 	public Object convertResultListToExpectedType(List<Object> resultList, Class<?> expectedType,
 			Class<?> elementType) {
@@ -815,7 +847,7 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 		RelationMember[] relationMembers = metaData.getRelationMembers();
 
 		if (relationMembers.length == 0) {
-			return ObjRef.EMPTY_ARRAY_ARRAY;
+			return IObjRef.EMPTY_ARRAY_ARRAY;
 		}
 		IValueHolderContainer vhc = (IValueHolderContainer) obj;
 		IObjRef[][] relations = new IObjRef[relationMembers.length][];
@@ -828,7 +860,7 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 			}
 			Object relationValue = relationMembers[a].getValue(obj, false);
 			if (relationValue == null) {
-				relations[a] = ObjRef.EMPTY_ARRAY;
+				relations[a] = IObjRef.EMPTY_ARRAY;
 				continue;
 			}
 			IList<IObjRef> oris = objRefHelper.extractObjRefList(relationValue, null, null);

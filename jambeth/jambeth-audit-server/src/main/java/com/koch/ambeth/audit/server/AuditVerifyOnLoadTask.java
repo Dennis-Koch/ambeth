@@ -82,7 +82,7 @@ public class AuditVerifyOnLoadTask implements Runnable, IAuditVerifyOnLoadTask, 
 
 	protected final ArrayList<IObjRef> queuedObjRefs = new ArrayList<>();
 
-	protected boolean isActive, isDestroyed;
+	protected volatile boolean isActive, isDestroyed;
 
 	protected final Lock writeLock = new ReentrantLock();
 
@@ -114,7 +114,7 @@ public class AuditVerifyOnLoadTask implements Runnable, IAuditVerifyOnLoadTask, 
 			return;
 		}
 		final long openTransactionUntil = System.currentTimeMillis() + verifyEntitiesMaxTransactionTime;
-		Boolean reQueue;
+		Boolean reQueue = null;
 		Thread currentThread = Thread.currentThread();
 		String oldName = currentThread.getName();
 		currentThread.setName(getClass().getSimpleName());
@@ -144,12 +144,20 @@ public class AuditVerifyOnLoadTask implements Runnable, IAuditVerifyOnLoadTask, 
 							}
 						});
 			}
+			catch (Exception e) {
+				if (!isDestroyed) {
+					throw e;
+				}
+			}
 			finally {
 				rollback.rollback();
 			}
 		}
 		finally {
 			currentThread.setName(oldName);
+		}
+		if (isDestroyed) {
+			return;
 		}
 		if (Boolean.TRUE.equals(reQueue)) {
 			writeLock.lock();
