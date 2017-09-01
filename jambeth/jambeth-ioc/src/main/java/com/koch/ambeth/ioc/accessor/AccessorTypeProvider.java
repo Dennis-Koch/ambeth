@@ -53,25 +53,27 @@ public class AccessorTypeProvider implements IAccessorTypeProvider, IInitializin
 	@LogInstance
 	private ILogger log;
 
-	protected final Tuple2KeyHashMap<Class<?>, String, Reference<AbstractAccessor>> typeToAccessorMap = new Tuple2KeyHashMap<Class<?>, String, Reference<AbstractAccessor>>() {
-		@Override
-		protected void resize(int newCapacity) {
-			ArrayList<Object[]> removeKeys = new ArrayList<>();
-			for (Tuple2KeyEntry<Class<?>, String, Reference<AbstractAccessor>> entry : this) {
-				if (entry.getValue().get() == null) {
-					removeKeys.add(new Object[] { entry.getKey1(), entry.getKey2() });
+	protected final Tuple2KeyHashMap<Class<?>, String, Reference<AbstractAccessor>> typeToAccessorMap =
+			new Tuple2KeyHashMap<Class<?>, String, Reference<AbstractAccessor>>() {
+				@Override
+				protected void resize(int newCapacity) {
+					ArrayList<Object[]> removeKeys = new ArrayList<>();
+					for (Tuple2KeyEntry<Class<?>, String, Reference<AbstractAccessor>> entry : this) {
+						if (entry.getValue().get() == null) {
+							removeKeys.add(new Object[] {entry.getKey1(), entry.getKey2()});
+						}
+					}
+					for (Object[] removeKey : removeKeys) {
+						remove((Class<?>) removeKey[0], (String) removeKey[1]);
+					}
+					if (size() >= threshold) {
+						super.resize(2 * table.length);
+					}
 				}
-			}
-			for (Object[] removeKey : removeKeys) {
-				remove((Class<?>) removeKey[0], (String) removeKey[1]);
-			}
-			if (size() >= threshold) {
-				super.resize(2 * table.length);
-			}
-		}
-	};
+			};
 
-	protected final Tuple2KeyHashMap<Class<?>, Class<?>, Object> typeWithDelegateToConstructorMap = new Tuple2KeyHashMap<>();
+	protected final Tuple2KeyHashMap<Class<?>, Class<?>, Object> typeWithDelegateToConstructorMap =
+			new Tuple2KeyHashMap<>();
 
 	protected final Lock writeLock = new ReentrantLock();
 
@@ -306,7 +308,7 @@ public class AccessorTypeProvider implements IAccessorTypeProvider, IInitializin
 		if (delegateType.isInterface()) {
 			superType = objType;
 			cw.visit(Opcodes.V1_1, Opcodes.ACC_PUBLIC + Opcodes.ACC_SUPER, constructorClassNameInternal,
-					null, superType.getInternalName(), new String[] { delegateTypeHandle.getInternalName() });
+					null, superType.getInternalName(), new String[] {delegateTypeHandle.getInternalName()});
 		}
 		else {
 			superType = delegateTypeHandle;
@@ -389,29 +391,34 @@ public class AccessorTypeProvider implements IAccessorTypeProvider, IInitializin
 	public static void smartBox(MethodVisitor mv, Type unboxedType) {
 		switch (unboxedType.getSort()) {
 			case Type.BOOLEAN:
-				mv.visitMethodInsn(INVOKESTATIC, "java/lang/Boolean", "valueOf", "(Z)Ljava/lang/Boolean;");
+				mv.visitMethodInsn(INVOKESTATIC, "java/lang/Boolean", "valueOf", "(Z)Ljava/lang/Boolean;",
+						false);
 				break;
 			case Type.BYTE:
-				mv.visitMethodInsn(INVOKESTATIC, "java/lang/Byte", "valueOf", "(B)Ljava/lang/Byte;");
+				mv.visitMethodInsn(INVOKESTATIC, "java/lang/Byte", "valueOf", "(B)Ljava/lang/Byte;", false);
 				break;
 			case Type.CHAR:
 				mv.visitMethodInsn(INVOKESTATIC, "java/lang/Character", "valueOf",
-						"(C)Ljava/lang/Character;");
+						"(C)Ljava/lang/Character;", false);
 				break;
 			case Type.SHORT:
-				mv.visitMethodInsn(INVOKESTATIC, "java/lang/Short", "valueOf", "(S)Ljava/lang/Short;");
+				mv.visitMethodInsn(INVOKESTATIC, "java/lang/Short", "valueOf", "(S)Ljava/lang/Short;",
+						false);
 				break;
 			case Type.INT:
-				mv.visitMethodInsn(INVOKESTATIC, "java/lang/Integer", "valueOf", "(I)Ljava/lang/Integer;");
+				mv.visitMethodInsn(INVOKESTATIC, "java/lang/Integer", "valueOf", "(I)Ljava/lang/Integer;",
+						false);
 				break;
 			case Type.FLOAT:
-				mv.visitMethodInsn(INVOKESTATIC, "java/lang/Float", "valueOf", "(F)Ljava/lang/Float;");
+				mv.visitMethodInsn(INVOKESTATIC, "java/lang/Float", "valueOf", "(F)Ljava/lang/Float;",
+						false);
 				break;
 			case Type.LONG:
-				mv.visitMethodInsn(INVOKESTATIC, "java/lang/Long", "valueOf", "(J)Ljava/lang/Long;");
+				mv.visitMethodInsn(INVOKESTATIC, "java/lang/Long", "valueOf", "(J)Ljava/lang/Long;", false);
 				break;
 			case Type.DOUBLE:
-				mv.visitMethodInsn(INVOKESTATIC, "java/lang/Double", "valueOf", "(D)Ljava/lang/Double;");
+				mv.visitMethodInsn(INVOKESTATIC, "java/lang/Double", "valueOf", "(D)Ljava/lang/Double;",
+						false);
 				break;
 		}
 	}
