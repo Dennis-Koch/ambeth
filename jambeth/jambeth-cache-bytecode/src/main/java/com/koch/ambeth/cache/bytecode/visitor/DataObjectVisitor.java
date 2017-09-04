@@ -51,6 +51,9 @@ public class DataObjectVisitor extends ClassGenerator {
 
 	protected static final String templatePropertyName = "__" + templateType.getSimpleName();
 
+	public static final MethodInstance m_toBeUpdatedChanging = new MethodInstance(null, templateType,
+			void.class, "toBeUpdatedChanging", IDataObject.class, boolean.class, boolean.class);
+
 	public static final MethodInstance m_toBeUpdatedChanged = new MethodInstance(null, templateType,
 			void.class, "toBeUpdatedChanged", IDataObject.class, boolean.class, boolean.class);
 
@@ -149,91 +152,91 @@ public class DataObjectVisitor extends ClassGenerator {
 				if (parentChildMembers.isEmpty()) {
 					mg.getThisField(f_toBeUpdated);
 					mg.returnValue();
+					return;
 				}
-				else {
-					int loc_iterator = -1;
-					if (fAtLeastOneToManyMember) {
-						loc_iterator = mg.newLocal(Iterator.class);
-					}
-					// we have to check the toBeUpdated-State for our "parentChild" members to decide our own
-					// toBeUpdate-State by OR-concatenation
-					int loc_parentChildValue = mg.newLocal(Object.class);
-					Label trueLabel = mg.newLabel();
-
-					mg.getThisField(f_toBeUpdated);
-					mg.ifZCmp(GeneratorAdapter.NE, trueLabel);
-
-					for (RelationMember parentChildMember : parentChildMembers) {
-						int relationIndex = metaData.getIndexByRelationName(parentChildMember.getName());
-						Label l_valueIsNull = mg.newLabel();
-						// load this RelationMember at runtime to be able to call its "getValue(Object obj)"
-
-						mg.loadThis();
-						mg.push(relationIndex);
-
-						mg.invokeVirtual(MethodInstance
-								.findByTemplate(RelationsGetterVisitor.m_template_isInitialized_Member, false));
-
-						mg.ifZCmp(GeneratorAdapter.EQ, l_valueIsNull); // skip this member if it is not
-																														// initialized
-
-						mg.loadThis();
-						mg.push(relationIndex);
-						mg.invokeVirtual(MethodInstance
-								.findByTemplate(RelationsGetterVisitor.m_template_getValueDirect_Member, false));
-
-						mg.storeLocal(loc_parentChildValue);
-
-						mg.loadLocal(loc_parentChildValue);
-						mg.ifNull(l_valueIsNull);
-
-						mg.loadLocal(loc_parentChildValue);
-
-						if (parentChildMember.isToMany()) {
-							Label l_startLoop = mg.newLabel();
-							Label l_endLoop = mg.newLabel();
-
-							mg.checkCast(Collection.class);
-							mg.invokeInterface(
-									new MethodInstance(null, Collection.class, Iterator.class, "iterator"));
-							mg.storeLocal(loc_iterator);
-
-							mg.mark(l_startLoop);
-							mg.loadLocal(loc_iterator);
-							mg.invokeInterface(
-									new MethodInstance(null, Iterator.class, boolean.class, "hasNext"));
-
-							mg.ifZCmp(GeneratorAdapter.EQ, l_endLoop);
-							mg.loadLocal(loc_iterator);
-							mg.invokeInterface(new MethodInstance(null, Iterator.class, Object.class, "next"));
-
-							mg.checkCast(IDataObject.class);
-							mg.invokeInterface(template_p_toBeUpdated.getGetter());
-							mg.ifZCmp(GeneratorAdapter.NE, trueLabel);
-
-							mg.goTo(l_startLoop);
-							mg.mark(l_endLoop);
-						}
-						else {
-							mg.checkCast(IDataObject.class);
-							mg.invokeInterface(template_p_toBeUpdated.getGetter());
-							mg.ifZCmp(GeneratorAdapter.NE, trueLabel);
-						}
-						mg.mark(l_valueIsNull);
-					}
-
-					mg.push(false);
-					mg.returnValue();
-
-					mg.mark(trueLabel);
-					mg.push(true);
-					mg.returnValue();
+				int loc_iterator = -1;
+				if (fAtLeastOneToManyMember) {
+					loc_iterator = mg.newLocal(Iterator.class);
 				}
+				// we have to check the toBeUpdated-State for our "parentChild" members to decide our own
+				// toBeUpdate-State by OR-concatenation
+				int loc_parentChildValue = mg.newLocal(Object.class);
+				Label trueLabel = mg.newLabel();
+
+				mg.getThisField(f_toBeUpdated);
+				mg.ifZCmp(GeneratorAdapter.NE, trueLabel);
+
+				for (RelationMember parentChildMember : parentChildMembers) {
+					int relationIndex = metaData.getIndexByRelationName(parentChildMember.getName());
+					Label l_valueIsNull = mg.newLabel();
+					// load this RelationMember at runtime to be able to call its "getValue(Object obj)"
+
+					mg.loadThis();
+					mg.push(relationIndex);
+
+					mg.invokeVirtual(MethodInstance
+							.findByTemplate(RelationsGetterVisitor.m_template_isInitialized_Member, false));
+
+					mg.ifZCmp(GeneratorAdapter.EQ, l_valueIsNull); // skip this member if it is not
+																													// initialized
+
+					mg.loadThis();
+					mg.push(relationIndex);
+					mg.invokeVirtual(MethodInstance
+							.findByTemplate(RelationsGetterVisitor.m_template_getValueDirect_Member, false));
+
+					mg.storeLocal(loc_parentChildValue);
+
+					mg.loadLocal(loc_parentChildValue);
+					mg.ifNull(l_valueIsNull);
+
+					mg.loadLocal(loc_parentChildValue);
+
+					if (parentChildMember.isToMany()) {
+						Label l_startLoop = mg.newLabel();
+						Label l_endLoop = mg.newLabel();
+
+						mg.checkCast(Collection.class);
+						mg.invokeInterface(
+								new MethodInstance(null, Collection.class, Iterator.class, "iterator"));
+						mg.storeLocal(loc_iterator);
+
+						mg.mark(l_startLoop);
+						mg.loadLocal(loc_iterator);
+						mg.invokeInterface(
+								new MethodInstance(null, Iterator.class, boolean.class, "hasNext"));
+
+						mg.ifZCmp(GeneratorAdapter.EQ, l_endLoop);
+						mg.loadLocal(loc_iterator);
+						mg.invokeInterface(new MethodInstance(null, Iterator.class, Object.class, "next"));
+
+						mg.checkCast(IDataObject.class);
+						mg.invokeInterface(template_p_toBeUpdated.getGetter());
+						mg.ifZCmp(GeneratorAdapter.NE, trueLabel);
+
+						mg.goTo(l_startLoop);
+						mg.mark(l_endLoop);
+					}
+					else {
+						mg.checkCast(IDataObject.class);
+						mg.invokeInterface(template_p_toBeUpdated.getGetter());
+						mg.ifZCmp(GeneratorAdapter.NE, trueLabel);
+					}
+					mg.mark(l_valueIsNull);
+				}
+
+				mg.push(false);
+				mg.returnValue();
+
+				mg.mark(trueLabel);
+				mg.push(true);
+				mg.returnValue();
 			}
 		}, new Script() {
 			@Override
 			public void execute(MethodGenerator mv) {
 				int loc_existingValue = mv.newLocal(boolean.class);
+				int loc_dataObjectTemplate = mv.newLocal(p_dataObjectTemplate.getPropertyType());
 				Label l_finish = mv.newLabel();
 				mv.getThisField(f_toBeUpdated);
 				mv.storeLocal(loc_existingValue);
@@ -241,6 +244,19 @@ public class DataObjectVisitor extends ClassGenerator {
 				mv.loadLocal(loc_existingValue);
 				mv.loadArg(0);
 				mv.ifCmp(boolean.class, GeneratorAdapter.EQ, l_finish);
+
+				// call dataObjectTemplate
+				mv.callThisGetter(p_dataObjectTemplate);
+				mv.storeLocal(loc_dataObjectTemplate);
+
+				mv.loadLocal(loc_dataObjectTemplate);
+				// "this" argument
+				mv.loadThis();
+				// oldValue argument
+				mv.loadLocal(loc_existingValue);
+				// newValue argument
+				mv.loadArg(0);
+				mv.invokeVirtual(m_toBeUpdatedChanging);
 
 				mv.putThisField(f_toBeUpdated, new Script() {
 
@@ -251,7 +267,7 @@ public class DataObjectVisitor extends ClassGenerator {
 				});
 
 				// call dataObjectTemplate
-				mv.callThisGetter(p_dataObjectTemplate);
+				mv.loadLocal(loc_dataObjectTemplate);
 				// "this" argument
 				mv.loadThis();
 				// oldValue argument

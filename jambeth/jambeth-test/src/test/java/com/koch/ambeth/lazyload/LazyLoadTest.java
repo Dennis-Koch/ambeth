@@ -28,7 +28,6 @@ import com.koch.ambeth.testutil.AbstractInformationBusWithPersistenceTest;
 import com.koch.ambeth.testutil.TestModule;
 import com.koch.ambeth.testutil.TestProperties;
 import com.koch.ambeth.testutil.TestPropertiesList;
-import com.koch.ambeth.testutil.TestRebuildContext;
 import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.model.IEmbeddedType;
 import com.koch.ambeth.util.model.INotifyPropertyChanged;
@@ -43,7 +42,6 @@ import com.koch.ambeth.util.threading.IGuiThreadHelper;
 @SQLData("lazyloadtest_data.sql")
 @SQLStructure("lazyloadtest_structure.sql")
 @TestModule(LazyLoadTestModule.class)
-@TestRebuildContext
 public class LazyLoadTest extends AbstractInformationBusWithPersistenceTest {
 	public static class WaitingForInitPCL implements PropertyChangeListener {
 		public static PropertyChangeListener create(IEntityMetaData metaData,

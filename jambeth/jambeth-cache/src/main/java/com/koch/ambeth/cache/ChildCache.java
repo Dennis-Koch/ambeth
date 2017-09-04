@@ -74,7 +74,7 @@ import com.koch.ambeth.util.state.NoOpStateRollback;
 
 public class ChildCache extends AbstractCache<Object>
 		implements ICacheIntern, IWritableCache, IDisposableCache {
-	private static final Class<?>[] ADDITIONAL_GC_PROXY_TYPES = new Class[] { IWritableCache.class };
+	private static final Class<?>[] ADDITIONAL_GC_PROXY_TYPES = new Class[] {IWritableCache.class};
 
 	public static final String P_EVENT_QUEUE = "EventQueue";
 
@@ -126,7 +126,8 @@ public class ChildCache extends AbstractCache<Object>
 	@Property(name = CacheConfigurationConstants.ValueholderOnEmptyToOne, defaultValue = "false")
 	protected boolean valueholderOnEmptyToOne;
 
-	@Property(name = CacheConfigurationConstants.OverwriteToManyRelationsInChildCache, defaultValue = "true")
+	@Property(name = CacheConfigurationConstants.OverwriteToManyRelationsInChildCache,
+			defaultValue = "true")
 	protected boolean overwriteToManyRelations;
 
 	@Property
@@ -651,9 +652,7 @@ public class ChildCache extends AbstractCache<Object>
 				// Reuse existing collection
 				Collection<Object> coll = (Collection<Object>) relationValue;
 				coll.clear();
-				for (int b = 0, sizeB = relationItems.size(); b < sizeB; b++) {
-					coll.add(relationItems.get(b));
-				}
+				coll.addAll(potentialNewItems);
 			}
 			else {
 				// We have to create a new empty collection

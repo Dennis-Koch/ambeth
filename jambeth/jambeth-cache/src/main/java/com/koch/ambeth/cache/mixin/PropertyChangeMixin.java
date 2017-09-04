@@ -1,7 +1,5 @@
 package com.koch.ambeth.cache.mixin;
 
-import java.beans.Introspector;
-
 /*-
  * #%L
  * jambeth-cache
@@ -24,8 +22,6 @@ limitations under the License.
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.Collection;
 
@@ -35,9 +31,11 @@ import com.koch.ambeth.cache.databinding.ICollectionChangeExtensionExtendable;
 import com.koch.ambeth.cache.databinding.IPropertyChangeExtension;
 import com.koch.ambeth.cache.databinding.IPropertyChangeExtensionExtendable;
 import com.koch.ambeth.cache.proxy.IValueHolderContainer;
+import com.koch.ambeth.ioc.DefaultExtendableContainer;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.config.Property;
 import com.koch.ambeth.ioc.extendable.ClassExtendableListContainer;
+import com.koch.ambeth.ioc.extendable.IExtendableContainer;
 import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.cache.ICacheModification;
@@ -45,17 +43,10 @@ import com.koch.ambeth.merge.proxy.IEntityMetaDataHolder;
 import com.koch.ambeth.service.merge.model.IEntityMetaData;
 import com.koch.ambeth.service.metadata.PrimitiveMember;
 import com.koch.ambeth.service.metadata.RelationMember;
-import com.koch.ambeth.service.typeinfo.PropertyInfoItem;
-import com.koch.ambeth.util.ReflectUtil;
-import com.koch.ambeth.util.WrapperTypeSet;
 import com.koch.ambeth.util.annotation.FireTargetOnPropertyChange;
 import com.koch.ambeth.util.annotation.FireThisOnPropertyChange;
-import com.koch.ambeth.util.annotation.IgnoreToBeUpdated;
 import com.koch.ambeth.util.annotation.ParentChild;
-import com.koch.ambeth.util.annotation.PropertyChangeAspect;
-import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.IList;
-import com.koch.ambeth.util.collections.LinkedHashSet;
 import com.koch.ambeth.util.collections.SmartCopyMap;
 import com.koch.ambeth.util.collections.specialized.INotifyCollectionChanged;
 import com.koch.ambeth.util.collections.specialized.NotifyCollectionChangedEvent;
@@ -69,129 +60,11 @@ import com.koch.ambeth.util.threading.IBackgroundWorkerDelegate;
 import com.koch.ambeth.util.threading.IGuiThreadHelper;
 import com.koch.ambeth.util.typeinfo.IPropertyInfo;
 import com.koch.ambeth.util.typeinfo.IPropertyInfoProvider;
-import com.koch.ambeth.util.typeinfo.ITypeInfoItem;
 
 public class PropertyChangeMixin
-		implements IPropertyChangeExtensionExtendable, ICollectionChangeExtensionExtendable {
+		implements IPropertyChangeExtensionExtendable, ICollectionChangeExtensionExtendable,
+		IPropertyChangeItemListenerExtendable, ICollectionChangeProcessor {
 	public static final Object UNKNOWN_VALUE = new Object();
-
-	public class PropertyEntry {
-		public static final String parentPropertyName = "Parent";
-
-		public static final String parentFieldName = "f_" + parentPropertyName;
-
-		public final String propertyName;
-
-		public final String javaBeansPropertyName;
-
-		public final ITypeInfoItem getDelegate;
-
-		public final boolean doesModifyToBeUpdated;
-
-		public final boolean firesToBeCreatedPCE;
-
-		public final String[] propertyNames;
-
-		public final Object[] unknownValues;
-
-		public final boolean isParentChildSetter;
-
-		public final boolean isAddedRemovedCheckNecessary;
-
-		public final Boolean includeNewValue, includeOldValue;
-
-		public PropertyEntry(Class<?> type, String propertyName, String javaBeansPropertyName,
-				IPropertyInfoProvider propertyInfoProvider) {
-			this.propertyName = propertyName;
-			this.javaBeansPropertyName = javaBeansPropertyName;
-			LinkedHashSet<String> propertyNames = new LinkedHashSet<>();
-			propertyNames.add(propertyName);
-			IPropertyInfo prop = propertyInfoProvider.getProperty(type, propertyName);
-			PropertyChangeAspect propertyChangeAspect =
-					findAnnotation(type, PropertyChangeAspect.class, true);
-			if (propertyChangeAspect != null) {
-				includeNewValue = propertyChangeAspect.includeNewValue();
-				includeOldValue = propertyChangeAspect.includeOldValue();
-			}
-			else {
-				includeNewValue = null;
-				includeOldValue = null;
-			}
-			doesModifyToBeUpdated = (IDataObject.class.isAssignableFrom(type)
-					|| IEmbeddedType.class.isAssignableFrom(type))
-					&& !prop.isAnnotationPresent(IgnoreToBeUpdated.class);
-			isParentChildSetter = IDataObject.class.isAssignableFrom(type)
-					&& prop.isAnnotationPresent(ParentChild.class);
-			isAddedRemovedCheckNecessary = !prop.getPropertyType().isPrimitive()
-					&& WrapperTypeSet.getUnwrappedType(prop.getPropertyType()) == null
-					&& !String.class.equals(prop.getPropertyType());
-
-			evaluateDependentProperties(type, prop, propertyNames, propertyInfoProvider);
-
-			while (true) {
-				int startCount = propertyNames.size();
-
-				for (String currPropertyName : new ArrayList<>(propertyNames)) {
-					IPropertyInfo currProp = propertyInfoProvider.getProperty(type, currPropertyName);
-					if (currProp.isWritable()) {
-						continue;
-					}
-					// Is is just an evaluating property which has to be re-evaluated because of the change on
-					// the current property
-					evaluateDependentProperties(type, currProp, propertyNames, propertyInfoProvider);
-				}
-				if (startCount == propertyNames.size()) {
-					break;
-				}
-			}
-			String[] normalPropertyNames = propertyNames.toArray(String.class);
-			propertyNames.clear();
-			for (String normalPropertyName : normalPropertyNames) {
-				propertyNames.add(Introspector.decapitalize(normalPropertyName));
-			}
-			this.propertyNames = propertyNames.toArray(String.class);
-			boolean firesToBeCreatedPCE = false;
-			unknownValues = createArrayOfValues(UNKNOWN_VALUE, this.propertyNames.length);
-			for (String invokedPropertyName : this.propertyNames) {
-				firesToBeCreatedPCE |= "ToBeCreated".equals(invokedPropertyName);
-			}
-			this.firesToBeCreatedPCE = firesToBeCreatedPCE;
-			if (prop.isReadable()) {
-				getDelegate = new PropertyInfoItem(prop);
-			}
-			else {
-				getDelegate = null;
-			}
-		}
-
-		private <A extends Annotation> A findAnnotation(Class<?> type, Class<A> annotationType,
-				boolean checkEmbedded) {
-			Class<?> currType = type;
-			while (currType != null) {
-				A propertyChangeAspect = currType.getAnnotation(annotationType);
-				if (propertyChangeAspect != null) {
-					return propertyChangeAspect;
-				}
-				for (Class<?> interfaceType : currType.getInterfaces()) {
-					propertyChangeAspect = interfaceType.getAnnotation(annotationType);
-					if (propertyChangeAspect != null) {
-						return propertyChangeAspect;
-					}
-				}
-				currType = currType.getSuperclass();
-			}
-			if (!checkEmbedded) {
-				return null;
-			}
-			if (!IEmbeddedType.class.isAssignableFrom(type)) {
-				return null;
-			}
-			for (Field declaredField : ReflectUtil.getDeclaredFieldInHierarchy(type, parentFieldName)) {
-				return findAnnotation(declaredField.getType(), annotationType, true);
-			}
-			return null;
-		}
-	}
 
 	public static Object[] createArrayOfValues(Object value, int length) {
 		Object[] values = new Object[length];
@@ -229,17 +102,6 @@ public class PropertyChangeMixin
 		}
 	}
 
-	protected final SmartCopyMap<IPropertyInfo, PropertyEntry> propertyToEntryMap =
-			new SmartCopyMap<>();
-
-	protected final ClassExtendableListContainer<IPropertyChangeExtension> propertyChangeExtensions =
-			new ClassExtendableListContainer<>(
-					"propertyChangeExtension", "entityType");
-
-	protected final ClassExtendableListContainer<ICollectionChangeExtension> collectionChangeExtensions =
-			new ClassExtendableListContainer<>(
-					"collectionChangeExtension", "entityType");
-
 	@LogInstance
 	private ILogger log;
 
@@ -258,10 +120,25 @@ public class PropertyChangeMixin
 	@Property(name = CacheConfigurationConstants.FireOldPropertyValueActive, defaultValue = "false")
 	protected boolean fireOldPropertyValueActive;
 
-	protected PropertyEntry getPropertyEntry(Class<?> type, IPropertyInfo property) {
-		PropertyEntry entry = propertyToEntryMap.get(property);
+	protected final SmartCopyMap<IPropertyInfo, PropertyChangeMixinEntry> propertyToEntryMap =
+			new SmartCopyMap<>();
+
+	protected final ClassExtendableListContainer<IPropertyChangeExtension> propertyChangeExtensions =
+			new ClassExtendableListContainer<>(
+					"propertyChangeExtension", "entityType");
+
+	protected final ClassExtendableListContainer<ICollectionChangeExtension> collectionChangeExtensions =
+			new ClassExtendableListContainer<>(
+					"collectionChangeExtension", "entityType");
+
+	protected final IExtendableContainer<IPropertyChangeItemListener> propertyChangeItemListeners =
+			new DefaultExtendableContainer<>(IPropertyChangeItemListener.class,
+					"propertyChangeItemListener");
+
+	protected PropertyChangeMixinEntry getPropertyEntry(Class<?> type, IPropertyInfo property) {
+		PropertyChangeMixinEntry entry = propertyToEntryMap.get(property);
 		if (entry == null) {
-			entry = new PropertyEntry(type, property.getName(), property.getNameForJavaBeans(),
+			entry = new PropertyChangeMixinEntry(type, property.getName(), property.getNameForJavaBeans(),
 					propertyInfoProvider);
 			propertyToEntryMap.put(property, entry);
 		}
@@ -291,11 +168,16 @@ public class PropertyChangeMixin
 
 	public void handleCollectionChange(INotifyPropertyChangedSource obj,
 			NotifyCollectionChangedEvent evnt) {
+		handleCollectionChange(obj, evnt, evnt.getSource(), this);
+	}
+
+	public void handleCollectionChange(INotifyPropertyChangedSource obj,
+			Object evnt, Object source, ICollectionChangeProcessor collectionChangeProcessor) {
 		IEntityMetaData metaData = ((IEntityMetaDataHolder) obj).get__EntityMetaData();
 
-		Object source = evnt.getSource();
 		Object base = null;
 		boolean parentChildProperty = false;
+		IPropertyInfo property = null;
 
 		RelationMember[] relationMembers = metaData.getRelationMembers();
 		for (int relationIndex = relationMembers.length; relationIndex-- > 0;) {
@@ -303,7 +185,9 @@ public class PropertyChangeMixin
 			if (valueDirect != source) {
 				continue;
 			}
-			if (relationMembers[relationIndex].getAnnotation(ParentChild.class) != null) {
+			RelationMember relationMember = relationMembers[relationIndex];
+			property = propertyInfoProvider.getProperty(valueDirect.getClass(), relationMember.getName());
+			if (relationMember.getAnnotation(ParentChild.class) != null) {
 				base = obj;
 				parentChildProperty = true;
 			}
@@ -318,6 +202,8 @@ public class PropertyChangeMixin
 				if (valueDirect != source) {
 					continue;
 				}
+				property =
+						propertyInfoProvider.getProperty(valueDirect.getClass(), primitiveMember.getName());
 				base = obj;
 				parentChildProperty = true;
 				break;
@@ -330,36 +216,8 @@ public class PropertyChangeMixin
 		boolean oldCacheModification = cacheModification.isActive();
 		boolean cacheModificationUsed = false;
 		try {
-			switch (evnt.getAction()) {
-				case Add:
-				case Remove:
-				case Replace:
-					if (evnt.getOldItems() != null) {
-						for (Object oldItem : evnt.getOldItems()) {
-							handleRemovedItem(obj, oldItem, parentChildProperty);
-						}
-					}
-					if (evnt.getNewItems() != null) {
-						for (Object newItem : evnt.getNewItems()) {
-							handleAddedItem(obj, newItem, parentChildProperty);
-						}
-					}
-					break;
-				case Move:
-					// Nothing to do in that case
-					break;
-				case Reset:
-					throw new UnsupportedOperationException("Reset is not allowed in a managed collection");
-				default:
-					throw RuntimeExceptionUtil.createEnumNotSupportedException(evnt.getAction());
-			}
-			IList<ICollectionChangeExtension> extensions = collectionChangeExtensions
-					.getExtensions(obj.getClass());
-			if (extensions != null) {
-				for (int a = 0, size = extensions.size(); a < size; a++) {
-					extensions.get(a).collectionChanged(obj, evnt);
-				}
-			}
+			collectionChangeProcessor.processCollectionChangeEvent(obj, property, evnt,
+					parentChildProperty);
 		}
 		finally {
 			if (!oldCacheModification) {
@@ -367,6 +225,44 @@ public class PropertyChangeMixin
 			}
 			if (cacheModificationUsed) {
 				cacheModification.setActive(oldCacheModification);
+			}
+		}
+	}
+
+	@Override
+	public void processCollectionChangeEvent(INotifyPropertyChangedSource obj,
+			IPropertyInfo property,
+			Object anon_evnt, boolean isParentChildProperty) {
+		NotifyCollectionChangedEvent evnt = (NotifyCollectionChangedEvent) anon_evnt;
+		switch (evnt.getAction()) {
+			case Add:
+			case Remove:
+			case Replace:
+				if (evnt.getOldItems() != null) {
+					for (Object oldItem : evnt.getOldItems()) {
+						handleRemovedItem(obj, property, oldItem, isParentChildProperty);
+					}
+				}
+				if (evnt.getNewItems() != null) {
+					for (Object newItem : evnt.getNewItems()) {
+						handleAddedItem(obj, property, newItem, isParentChildProperty);
+					}
+				}
+				break;
+			case Move:
+				// Nothing to do in that case
+				break;
+			case Reset:
+				throw new UnsupportedOperationException(
+						"Reset is not allowed in a managed collection");
+			default:
+				throw RuntimeExceptionUtil.createEnumNotSupportedException(evnt.getAction());
+		}
+		IList<ICollectionChangeExtension> extensions = collectionChangeExtensions
+				.getExtensions(obj.getClass());
+		if (extensions != null) {
+			for (int a = 0, size = extensions.size(); a < size; a++) {
+				extensions.get(a).collectionChanged(obj, evnt);
 			}
 		}
 	}
@@ -384,11 +280,16 @@ public class PropertyChangeMixin
 				"Property not found: " + obj.getClass().getName() + "." + propertyName);
 	}
 
-	protected void handleRemovedItem(INotifyPropertyChangedSource obj, Object removedItem,
-			boolean isParentChildProperty) {
+	public void handleRemovedItem(INotifyPropertyChangedSource obj, IPropertyInfo property,
+			Object removedItem, boolean isParentChildProperty) {
 		if (removedItem instanceof INotifyCollectionChanged) {
 			((INotifyCollectionChanged) removedItem)
 					.removeNotifyCollectionChangedListener(obj.getCollectionEventHandler());
+		}
+		for (IPropertyChangeItemListener propertyChangeItemListener : propertyChangeItemListeners
+				.getExtensionsShared()) {
+			propertyChangeItemListener.handleRemovedItem(obj, property, removedItem,
+					isParentChildProperty);
 		}
 		if (isParentChildProperty && removedItem instanceof INotifyPropertyChanged) {
 			((INotifyPropertyChanged) removedItem)
@@ -396,7 +297,8 @@ public class PropertyChangeMixin
 		}
 	}
 
-	protected void handleAddedItem(INotifyPropertyChangedSource obj, Object addedItem,
+	public void handleAddedItem(INotifyPropertyChangedSource obj, IPropertyInfo property,
+			Object addedItem,
 			boolean isParentChildProperty) {
 		if (isParentChildProperty && addedItem instanceof INotifyPropertyChanged) {
 			((INotifyPropertyChanged) addedItem)
@@ -405,6 +307,10 @@ public class PropertyChangeMixin
 		if (addedItem instanceof INotifyCollectionChanged) {
 			((INotifyCollectionChanged) addedItem)
 					.addNotifyCollectionChangedListener(obj.getCollectionEventHandler());
+		}
+		for (IPropertyChangeItemListener propertyChangeItemListener : propertyChangeItemListeners
+				.getExtensionsShared()) {
+			propertyChangeItemListener.handleAddedItem(obj, property, addedItem, isParentChildProperty);
 		}
 	}
 
@@ -418,14 +324,14 @@ public class PropertyChangeMixin
 			PropertyChangeSupport propertyChangeSupport, IPropertyInfo property, Object oldValue,
 			Object currentValue) {
 		ICacheModification cacheModification = this.cacheModification;
-		PropertyEntry entry = getPropertyEntry(obj.getClass(), property);
+		PropertyChangeMixinEntry entry = getPropertyEntry(obj.getClass(), property);
 		try {
 			if (entry.isAddedRemovedCheckNecessary) {
 				if (oldValue != null) {
-					handleRemovedItem(obj, oldValue, entry.isParentChildSetter);
+					handleRemovedItem(obj, property, oldValue, entry.isParentChildSetter);
 				}
 				if (currentValue != null) {
-					handleAddedItem(obj, currentValue, entry.isParentChildSetter);
+					handleAddedItem(obj, property, currentValue, entry.isParentChildSetter);
 				}
 			}
 			String[] propertyNames = entry.propertyNames;
@@ -588,5 +494,17 @@ public class PropertyChangeMixin
 	public void unregisterCollectionChangeExtension(
 			ICollectionChangeExtension collectionChangeExtension, Class<?> entityType) {
 		collectionChangeExtensions.unregister(collectionChangeExtension, entityType);
+	}
+
+	@Override
+	public void registerIPropertyChangeItemListener(
+			IPropertyChangeItemListener propertyChangeItemListener) {
+		propertyChangeItemListeners.register(propertyChangeItemListener);
+	}
+
+	@Override
+	public void unregisterIPropertyChangeItemListener(
+			IPropertyChangeItemListener propertyChangeItemListener) {
+		propertyChangeItemListeners.unregister(propertyChangeItemListener);
 	}
 }

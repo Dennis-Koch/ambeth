@@ -52,6 +52,7 @@ import com.koch.ambeth.cache.mixin.DataObjectMixin;
 import com.koch.ambeth.cache.mixin.EmbeddedTypeMixin;
 import com.koch.ambeth.cache.mixin.EntityEqualsMixin;
 import com.koch.ambeth.cache.mixin.IAsyncLazyLoadController;
+import com.koch.ambeth.cache.mixin.IPropertyChangeItemListenerExtendable;
 import com.koch.ambeth.cache.mixin.PropertyChangeMixin;
 import com.koch.ambeth.cache.mixin.ValueHolderContainerMixin;
 import com.koch.ambeth.cache.proxy.CacheContextPostProcessor;
@@ -301,7 +302,7 @@ public class CacheModule implements IInitializingModule {
 		beanContextFactory.registerBean(EmbeddedTypeMixin.class).autowireable(EmbeddedTypeMixin.class);
 		beanContextFactory.registerBean(PropertyChangeMixin.class).autowireable(
 				PropertyChangeMixin.class, IPropertyChangeExtensionExtendable.class,
-				ICollectionChangeExtensionExtendable.class);
+				ICollectionChangeExtensionExtendable.class, IPropertyChangeItemListenerExtendable.class);
 		beanContextFactory.registerBean(ValueHolderContainerMixin.class)
 				.autowireable(ValueHolderContainerMixin.class, IAsyncLazyLoadController.class);
 	}

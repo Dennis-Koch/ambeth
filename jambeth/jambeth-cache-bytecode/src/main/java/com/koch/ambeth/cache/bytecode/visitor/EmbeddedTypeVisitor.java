@@ -33,7 +33,7 @@ import com.koch.ambeth.bytecode.MethodInstance;
 import com.koch.ambeth.bytecode.PropertyInstance;
 import com.koch.ambeth.bytecode.Script;
 import com.koch.ambeth.cache.mixin.EmbeddedTypeMixin;
-import com.koch.ambeth.cache.mixin.PropertyChangeMixin.PropertyEntry;
+import com.koch.ambeth.cache.mixin.PropertyChangeMixinEntry;
 import com.koch.ambeth.merge.bytecode.EmbeddedEnhancementHint;
 import com.koch.ambeth.util.model.IEmbeddedType;
 
@@ -43,7 +43,8 @@ public class EmbeddedTypeVisitor extends ClassGenerator {
 	public static final String templatePropertyName = "__" + templateType.getSimpleName();
 
 	public static final PropertyInstance t_p_Parent =
-			PropertyInstance.findByTemplate(IEmbeddedType.class, PropertyEntry.parentPropertyName,
+			PropertyInstance.findByTemplate(IEmbeddedType.class,
+					PropertyChangeMixinEntry.parentPropertyName,
 					Object.class, false);
 
 	public static final PropertyInstance t_p_Root =
@@ -54,14 +55,15 @@ public class EmbeddedTypeVisitor extends ClassGenerator {
 
 	public static FieldInstance getParentEntityField(ClassGenerator cv) {
 		FieldInstance f_parentEntity =
-				getState().getAlreadyImplementedField(PropertyEntry.parentFieldName);
+				getState().getAlreadyImplementedField(PropertyChangeMixinEntry.parentFieldName);
 		if (f_parentEntity != null) {
 			return f_parentEntity;
 		}
 		Class<?> parentEntityType =
 				EmbeddedEnhancementHint.getParentObjectType(getState().getContext());
 		f_parentEntity =
-				new FieldInstance(Opcodes.ACC_PRIVATE | Opcodes.ACC_FINAL, PropertyEntry.parentFieldName,
+				new FieldInstance(Opcodes.ACC_PRIVATE | Opcodes.ACC_FINAL,
+						PropertyChangeMixinEntry.parentFieldName,
 						null, parentEntityType);
 		return cv.implementField(f_parentEntity);
 	}

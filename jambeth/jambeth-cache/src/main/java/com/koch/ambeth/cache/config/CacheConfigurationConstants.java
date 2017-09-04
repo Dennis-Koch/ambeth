@@ -1,5 +1,7 @@
 package com.koch.ambeth.cache.config;
 
+import com.koch.ambeth.cache.util.IRelationalCollectionFactory;
+
 /*-
  * #%L
  * jambeth-cache
@@ -119,6 +121,13 @@ public final class CacheConfigurationConstants {
 	 * public default (no-arg) constructor.
 	 */
 	public static final String RelationSetType = "cache.relation.set.type";
+
+	/**
+	 * Type of the factory to be used. It must implement {@link IRelationalCollectionFactory} and will
+	 * be initialized as an IoC bean to create the expected collection programmatically and not
+	 * declaratively.
+	 */
+	public static final String RelationCollectionFactory = "cache.relation.collection.factory";
 
 	/**
 	 * Defines whether the old value should be added to a PropertyChangeEvent which is fired by the

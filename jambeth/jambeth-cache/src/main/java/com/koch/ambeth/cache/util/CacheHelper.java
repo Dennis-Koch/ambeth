@@ -75,7 +75,6 @@ import com.koch.ambeth.util.collections.LinkedHashMap;
 import com.koch.ambeth.util.collections.LinkedHashSet;
 import com.koch.ambeth.util.collections.ObservableArrayList;
 import com.koch.ambeth.util.collections.ObservableHashSet;
-import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.threading.IBackgroundWorkerDelegate;
 import com.koch.ambeth.util.threading.IGuiThreadHelper;
 import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
@@ -116,6 +115,9 @@ public class CacheHelper
 	protected IPrioMembersProvider prioMembersProvider;
 
 	@Autowired(optional = true)
+	protected IRelationalCollectionFactory relationalCollectionFactory;
+
+	@Autowired(optional = true)
 	protected ILightweightTransaction transaction;
 
 	@Autowired
@@ -125,11 +127,13 @@ public class CacheHelper
 			defaultValue = "true")
 	protected boolean lazyTransactionActive;
 
+	@SuppressWarnings("rawtypes")
 	@Property(name = CacheConfigurationConstants.RelationListType, mandatory = false)
-	protected Class<?> listClass = ObservableArrayList.class;
+	protected Class<? extends List> listClass = ObservableArrayList.class;
 
+	@SuppressWarnings("rawtypes")
 	@Property(name = CacheConfigurationConstants.RelationSetType, mandatory = false)
-	protected Class<?> setClass = ObservableHashSet.class;
+	protected Class<? extends Set> setClass = ObservableHashSet.class;
 
 	protected final ThreadLocal<AlreadyHandledSet> alreadyHandledSetTL = new ThreadLocal<>();
 
@@ -139,9 +143,12 @@ public class CacheHelper
 
 	@Override
 	public void afterPropertiesSet() throws Throwable {
-		listConstructor =
-				accessorTypeProvider.getConstructorType(CollectionConstructor.class, listClass);
-		setConstructor = accessorTypeProvider.getConstructorType(CollectionConstructor.class, setClass);
+		if (relationalCollectionFactory == null) {
+			listConstructor =
+					accessorTypeProvider.getConstructorType(CollectionConstructor.class, listClass);
+			setConstructor =
+					accessorTypeProvider.getConstructorType(CollectionConstructor.class, setClass);
+		}
 	}
 
 	@Override
@@ -768,26 +775,23 @@ public class CacheHelper
 		}
 	}
 
-	@SuppressWarnings("rawtypes")
 	@Override
-	public Collection createInstanceOfTargetExpectedType(Class<?> expectedType,
+	public Collection<?> createInstanceOfTargetExpectedType(Class<?> expectedType,
 			Class<?> elementType) {
 		// OneToMany or ManyToMany Relationship
 		if (!Iterable.class.isAssignableFrom(expectedType)) {
 			return null;
 		}
-		if (expectedType.isAssignableFrom(listClass)) {
-			return listConstructor.create();
-		}
-		if (expectedType.isAssignableFrom(setClass)) {
+		if (Set.class.isAssignableFrom(expectedType)) {
+			if (relationalCollectionFactory != null) {
+				return relationalCollectionFactory.createSet(expectedType, elementType);
+			}
 			return setConstructor.create();
 		}
-		try {
-			return (Collection) expectedType.newInstance();
+		if (relationalCollectionFactory != null) {
+			return relationalCollectionFactory.createList(expectedType, elementType);
 		}
-		catch (Exception e) {
-			throw RuntimeExceptionUtil.mask(e);
-		}
+		return listConstructor.create();
 	}
 
 	@SuppressWarnings({"unchecked", "rawtypes"})
