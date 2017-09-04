@@ -29,11 +29,9 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import com.koch.ambeth.cache.ICacheIntern;
-import com.koch.ambeth.cache.config.CacheConfigurationConstants;
 import com.koch.ambeth.cache.mixin.ValueHolderContainerMixin;
 import com.koch.ambeth.cache.proxy.IValueHolderContainer;
 import com.koch.ambeth.cache.rootcachevalue.RootCacheValue;
-import com.koch.ambeth.ioc.IInitializingBean;
 import com.koch.ambeth.ioc.IServiceContext;
 import com.koch.ambeth.ioc.accessor.IAccessorTypeProvider;
 import com.koch.ambeth.ioc.annotation.Autowired;
@@ -80,15 +78,11 @@ import com.koch.ambeth.util.threading.IGuiThreadHelper;
 import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
 
 public class CacheHelper
-		implements IInitializingBean, ICacheHelper, ICachePathHelper, IPrefetchHelper {
+		implements ICacheHelper, ICachePathHelper, IPrefetchHelper {
 	private static final Object[] emptyObjectArray = new Object[0];
 
 	private static final Set<CacheDirective> failEarlyReturnMisses = EnumSet
 			.of(CacheDirective.FailEarly, CacheDirective.ReturnMisses);
-
-	public abstract static class CollectionConstructor {
-		public abstract Collection<?> create();
-	}
 
 	@Autowired
 	protected IAccessorTypeProvider accessorTypeProvider;
@@ -127,29 +121,7 @@ public class CacheHelper
 			defaultValue = "true")
 	protected boolean lazyTransactionActive;
 
-	@SuppressWarnings("rawtypes")
-	@Property(name = CacheConfigurationConstants.RelationListType, mandatory = false)
-	protected Class<? extends List> listClass = ObservableArrayList.class;
-
-	@SuppressWarnings("rawtypes")
-	@Property(name = CacheConfigurationConstants.RelationSetType, mandatory = false)
-	protected Class<? extends Set> setClass = ObservableHashSet.class;
-
 	protected final ThreadLocal<AlreadyHandledSet> alreadyHandledSetTL = new ThreadLocal<>();
-
-	private CollectionConstructor listConstructor;
-
-	private CollectionConstructor setConstructor;
-
-	@Override
-	public void afterPropertiesSet() throws Throwable {
-		if (relationalCollectionFactory == null) {
-			listConstructor =
-					accessorTypeProvider.getConstructorType(CollectionConstructor.class, listClass);
-			setConstructor =
-					accessorTypeProvider.getConstructorType(CollectionConstructor.class, setClass);
-		}
-	}
 
 	@Override
 	public void buildCachePath(Class<?> entityType, String memberToInitialize,
@@ -786,12 +758,12 @@ public class CacheHelper
 			if (relationalCollectionFactory != null) {
 				return relationalCollectionFactory.createSet(expectedType, elementType);
 			}
-			return setConstructor.create();
+			return new ObservableHashSet<>();
 		}
 		if (relationalCollectionFactory != null) {
 			return relationalCollectionFactory.createList(expectedType, elementType);
 		}
-		return listConstructor.create();
+		return new ObservableArrayList<>();
 	}
 
 	@SuppressWarnings({"unchecked", "rawtypes"})

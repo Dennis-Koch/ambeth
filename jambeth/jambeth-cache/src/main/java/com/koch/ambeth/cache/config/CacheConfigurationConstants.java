@@ -24,8 +24,6 @@ limitations under the License.
 
 import com.koch.ambeth.util.annotation.ConfigurationConstantDescription;
 import com.koch.ambeth.util.annotation.ConfigurationConstants;
-import com.koch.ambeth.util.collections.ObservableArrayList;
-import com.koch.ambeth.util.collections.ObservableHashSet;
 
 @ConfigurationConstants
 public final class CacheConfigurationConstants {
@@ -107,20 +105,6 @@ public final class CacheConfigurationConstants {
 	 * "false".
 	 */
 	public static final String AsyncPropertyChangeActive = "cache.asyncpropertychange.active";
-
-	/**
-	 * Type of the collection to be used for list-typed to-many relations. If not explicitly specified
-	 * the runtime defaults to {@link ObservableArrayList}. The specified type must have at least the
-	 * public default (no-arg) constructor.
-	 */
-	public static final String RelationListType = "cache.relation.list.type";
-
-	/**
-	 * Type of the collection to be used for set-typed to-many relations. If not explicitly specified
-	 * the runtime defaults to {@link ObservableHashSet}. The specified type must have at least the
-	 * public default (no-arg) constructor.
-	 */
-	public static final String RelationSetType = "cache.relation.set.type";
 
 	/**
 	 * Type of the factory to be used. It must implement {@link IRelationalCollectionFactory} and will
