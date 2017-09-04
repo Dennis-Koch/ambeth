@@ -61,7 +61,6 @@ import com.koch.ambeth.merge.cache.ValueHolderState;
 import com.koch.ambeth.merge.config.MergeConfigurationConstants;
 import com.koch.ambeth.merge.copy.IObjectCopier;
 import com.koch.ambeth.merge.metadata.IObjRefFactory;
-import com.koch.ambeth.merge.model.IDirectObjRef;
 import com.koch.ambeth.merge.proxy.IEntityMetaDataHolder;
 import com.koch.ambeth.merge.proxy.IObjRefContainer;
 import com.koch.ambeth.merge.security.ISecurityActivation;
@@ -87,7 +86,6 @@ import com.koch.ambeth.util.ListUtil;
 import com.koch.ambeth.util.Lock;
 import com.koch.ambeth.util.LockState;
 import com.koch.ambeth.util.ParamHolder;
-import com.koch.ambeth.util.ReadWriteLock;
 import com.koch.ambeth.util.annotation.CascadeLoadMode;
 import com.koch.ambeth.util.collections.AbstractHashSet;
 import com.koch.ambeth.util.collections.ArrayList;
@@ -107,7 +105,6 @@ import com.koch.ambeth.util.model.IDataObject;
 import com.koch.ambeth.util.state.IStateRollback;
 import com.koch.ambeth.util.state.NoOpStateRollback;
 import com.koch.ambeth.util.threading.IBackgroundWorkerParamDelegate;
-import com.koch.ambeth.util.threading.IGuiThreadHelper;
 import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
 
 public class RootCache extends AbstractCache<RootCacheValue>
@@ -163,8 +160,6 @@ public class RootCache extends AbstractCache<RootCacheValue>
 	private ILogger log;
 
 	protected final HashMap<IObjRef, Integer> relationOris = new HashMap<>();
-
-	protected final HashSet<IObjRef> currentPendingKeys = new HashSet<>();
 
 	protected final InterfaceFastList<RootCacheValue> lruList = new InterfaceFastList<>();
 
@@ -223,12 +218,7 @@ public class RootCache extends AbstractCache<RootCacheValue>
 
 	protected long lastRelationObjRefsRefreshTime;
 
-	protected final Lock pendingKeysReadLock, pendingKeysWriteLock;
-
 	public RootCache() {
-		ReadWriteLock pendingKeysRwLock = new ReadWriteLock();
-		pendingKeysReadLock = pendingKeysRwLock.getReadLock();
-		pendingKeysWriteLock = pendingKeysRwLock.getWriteLock();
 		relationOris.setResizeMapCallback(new DoRelationObjRefsRefreshOnResize(this));
 	}
 
@@ -486,83 +476,54 @@ public class RootCache extends AbstractCache<RootCacheValue>
 		Lock writeLock = getWriteLock();
 
 		int cacheVersionBeforeLongTimeAction;
-		if (boundThread == null) {
-			RootCacheValue[] rootCacheValuesToGet = new RootCacheValue[orisToGet.size()];
-			cacheVersionBeforeLongTimeAction = waitForConcurrentReadFinish(orisToGet,
-					rootCacheValuesToGet, orisToLoad, cacheDirective);
+		readLock.lock();
+		try {
+			IList<Object> result = createResult(orisToGet, null, cacheDirective, targetCache, false,
+					orisToLoad);
 			if (orisToLoad.isEmpty()) {
-				// Everything found in the cache. We STILL hold the readlock so we can immediately create
-				// the result
-				// We already even checked the version. So we do not bother with versions anymore here
-				try {
-					return createResult(orisToGet, rootCacheValuesToGet, cacheDirective, targetCache, false,
-							null);
-				}
-				finally {
-					readLock.unlock();
-				}
+				return result;
 			}
+			cacheVersionBeforeLongTimeAction = changeVersion;
 		}
-		else {
-			readLock.lock();
-			try {
-				IList<Object> result = createResult(orisToGet, null, cacheDirective, targetCache, false,
-						orisToLoad);
-				if (orisToLoad.isEmpty()) {
-					return result;
-				}
-				cacheVersionBeforeLongTimeAction = changeVersion;
-			}
-			finally {
-				readLock.unlock();
-			}
+		finally {
+			readLock.unlock();
 		}
+		// }
 		int cacheVersionAfterLongTimeAction;
 		boolean releaseWriteLock = false;
 		try {
-			boolean loadSuccess = false;
+			List<ILoadContainer> loadedEntities;
+			IStateRollback rollback = NoOpStateRollback.instance;
+			if (privileged && securityActivation != null && securityActivation.isFilterActivated()) {
+				rollback = securityActivation.pushWithoutFiltering(IStateRollback.EMPTY_ROLLBACKS);
+			}
 			try {
-				List<ILoadContainer> loadedEntities;
-				IStateRollback rollback = NoOpStateRollback.instance;
-				if (privileged && securityActivation != null && securityActivation.isFilterActivated()) {
-					rollback = securityActivation.pushWithoutFiltering(IStateRollback.EMPTY_ROLLBACKS);
-				}
-				try {
-					loadedEntities = cacheRetriever.getEntities(orisToLoad);
-				}
-				finally {
-					rollback.rollback();
-				}
+				loadedEntities = cacheRetriever.getEntities(orisToLoad);
+			}
+			finally {
+				rollback.rollback();
+			}
 
-				// Acquire write lock and mark this state. In the finally-Block the writeLock
-				// has to be released in a deterministic way
-				LockState releasedState = writeLock.releaseAllLocks();
-				try {
-					writeLock.lock();
-					releaseWriteLock = true;
+			// Acquire write lock and mark this state. In the finally-Block the writeLock
+			// has to be released in a deterministic way
+			LockState releasedState = writeLock.releaseAllLocks();
+			try {
+				writeLock.lock();
+				releaseWriteLock = true;
 
-					cacheVersionAfterLongTimeAction = changeVersion;
-					loadObjects(loadedEntities, neededObjRefs, pendingValueHolders);
+				cacheVersionAfterLongTimeAction = changeVersion;
+				loadObjects(loadedEntities, neededObjRefs, pendingValueHolders);
 
-					loadSuccess = true;
+				orisToLoad.clear();
 
-					clearPendingKeysOfCurrentThread(orisToLoad);
-					orisToLoad.clear();
-
-					if (!neededObjRefs.isEmpty() || !pendingValueHolders.isEmpty()) {
-						writeLock.unlock();
-						releaseWriteLock = false;
-						return null;
-					}
-				}
-				finally {
-					writeLock.reacquireLocks(releasedState);
+				if (!neededObjRefs.isEmpty() || !pendingValueHolders.isEmpty()) {
+					writeLock.unlock();
+					releaseWriteLock = false;
+					return null;
 				}
 			}
 			finally {
-				if (!loadSuccess) {
-					clearPendingKeysOfCurrentThread(orisToLoad);
-				}
+				writeLock.reacquireLocks(releasedState);
 			}
 			if (cacheVersionAfterLongTimeAction != cacheVersionBeforeLongTimeAction) {
 				// Another thread did some changes (possibly DataChange-Remove actions)
@@ -887,7 +848,7 @@ public class RootCache extends AbstractCache<RootCacheValue>
 			if (count == relations.length) {
 				continue;
 			}
-			IObjRef[] filteredRelations = count > 0 ? new IObjRef[count] : ObjRef.EMPTY_ARRAY;
+			IObjRef[] filteredRelations = count > 0 ? new IObjRef[count] : IObjRef.EMPTY_ARRAY;
 			int index = 0;
 			for (int b = relations.length; b-- > 0;) {
 				IObjRef relation = relations[b];
@@ -949,7 +910,7 @@ public class RootCache extends AbstractCache<RootCacheValue>
 				unregisterRelations(cacheValue.getRelation(index), cacheValue);
 				IObjRef[] relationsOfMember = objRelResult.getRelations();
 				if (relationsOfMember.length == 0) {
-					relationsOfMember = ObjRef.EMPTY_ARRAY;
+					relationsOfMember = IObjRef.EMPTY_ARRAY;
 				}
 				cacheValue.setRelation(index, relationsOfMember);
 				registerRelations(relationsOfMember);
@@ -957,85 +918,6 @@ public class RootCache extends AbstractCache<RootCacheValue>
 		}
 		finally {
 			writeLock.unlock();
-		}
-	}
-
-	protected int waitForConcurrentReadFinish(List<IObjRef> orisToGet,
-			RootCacheValue[] rootCacheValuesToGet, ArrayList<IObjRef> orisToLoad,
-			Set<CacheDirective> cacheDirective) {
-		Lock readLock = getReadLock();
-		Lock pendingKeysReadLock = this.pendingKeysReadLock;
-		HashSet<IObjRef> currentPendingKeys = this.currentPendingKeys;
-		IGuiThreadHelper guiThreadHelper = this.guiThreadHelper;
-		while (true) {
-			boolean concurrentPendingItems = false;
-			boolean releaseReadLock = true;
-			readLock.lock();
-			pendingKeysReadLock.lock();
-			try {
-				for (int a = 0, size = orisToGet.size(); a < size; a++) {
-					IObjRef oriToGet = orisToGet.get(a);
-					if (oriToGet == null) {
-						continue;
-					}
-					if ((cacheDirective.contains(CacheDirective.CacheValueResult)
-							|| cacheDirective.contains(CacheDirective.LoadContainerResult))
-							&& oriToGet instanceof IDirectObjRef
-							&& ((IDirectObjRef) oriToGet).getDirect() != null) {
-						throw new IllegalArgumentException(
-								IDirectObjRef.class.getName() + " cannot be loaded as CacheValue or LoadContainer");
-					}
-					RootCacheValue cacheValue = existsValue(oriToGet);
-					if (cacheValue != null) {
-						rootCacheValuesToGet[a] = cacheValue;
-						continue;
-					}
-					if (currentPendingKeys.contains(oriToGet)) {
-						concurrentPendingItems = true;
-						orisToLoad.clear();
-						break;
-					}
-					orisToLoad.add(oriToGet);
-				}
-				if (!concurrentPendingItems && orisToLoad.isEmpty()) {
-					// Do not release the readlock, to prohibit concurrent DCEs
-					releaseReadLock = false;
-					return changeVersion;
-				}
-			}
-			finally {
-				pendingKeysReadLock.unlock();
-				if (releaseReadLock) {
-					readLock.unlock();
-				}
-			}
-			if (!concurrentPendingItems) {
-				Lock pendingKeysWriteLock = this.pendingKeysWriteLock;
-				pendingKeysWriteLock.lock();
-				try {
-					for (int a = 0, size = orisToLoad.size(); a < size; a++) {
-						IObjRef objRef = orisToLoad.get(a);
-						currentPendingKeys.add(objRef);
-					}
-					return changeVersion;
-				}
-				finally {
-					pendingKeysWriteLock.unlock();
-				}
-			}
-			if (guiThreadHelper != null && guiThreadHelper.isInGuiThread()) {
-				throw new UnsupportedOperationException(
-						"It is not allowed to call to method while within specified"
-								+ " synchronisation context. If this error currently occurs on client side maybe you are calling from a GUI thread?");
-			}
-			synchronized (currentPendingKeys) {
-				try {
-					currentPendingKeys.wait(5000);
-				}
-				catch (InterruptedException e) {
-					// Intended blank
-				}
-			}
 		}
 	}
 
@@ -1074,23 +956,6 @@ public class RootCache extends AbstractCache<RootCacheValue>
 	@Override
 	protected void putIntern(ILoadContainer loadContainer) {
 		loadObject(loadContainer, null, null);
-	}
-
-	protected void clearPendingKeysOfCurrentThread(ArrayList<IObjRef> cacheKeysToRemove) {
-		if (cacheKeysToRemove.isEmpty()) {
-			return;
-		}
-		Lock pendingKeysWriteLock = this.pendingKeysWriteLock;
-		pendingKeysWriteLock.lock();
-		try {
-			currentPendingKeys.removeAll(cacheKeysToRemove);
-		}
-		finally {
-			pendingKeysWriteLock.unlock();
-		}
-		synchronized (currentPendingKeys) {
-			currentPendingKeys.notifyAll();
-		}
 	}
 
 	protected boolean isFilteringNecessary(ICacheIntern targetCache) {
@@ -1516,7 +1381,7 @@ public class RootCache extends AbstractCache<RootCacheValue>
 				}
 			}
 			filteredRelations[a] = !tempList.isEmpty() ? tempList.toArray(IObjRef.class)
-					: ObjRef.EMPTY_ARRAY;
+					: IObjRef.EMPTY_ARRAY;
 		}
 		return filteredRelations;
 	}
@@ -2001,7 +1866,7 @@ public class RootCache extends AbstractCache<RootCacheValue>
 			IObjRelation objRelation, IObjRef[] relationsOfMember) {
 		int relationIndex = metaData.getIndexByRelationName(objRelation.getMemberName());
 		if (relationsOfMember.length == 0) {
-			relationsOfMember = ObjRef.EMPTY_ARRAY;
+			relationsOfMember = IObjRef.EMPTY_ARRAY;
 		}
 		cacheValue.setRelation(relationIndex, relationsOfMember);
 	}
