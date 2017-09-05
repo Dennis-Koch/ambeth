@@ -32,13 +32,6 @@ public class DataObjectMixin {
 	@Autowired
 	protected IRevertChangesHelper revertChangesHelper;
 
-	public final void toBeUpdatedChanging(IDataObject obj, boolean previousValue,
-			boolean currentValue) {
-		if (previousValue && !currentValue && !cacheModification.isActiveOrFlushing()) {
-			revertChangesHelper.revertChanges(obj);
-		}
-	}
-
 	public final void toBeUpdatedChanged(IDataObject obj, boolean previousValue,
 			boolean currentValue) {
 		// Intended blank

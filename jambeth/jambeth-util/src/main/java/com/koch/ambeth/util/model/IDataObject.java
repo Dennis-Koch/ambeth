@@ -1,5 +1,7 @@
 package com.koch.ambeth.util.model;
 
+import java.beans.Introspector;
+
 /*-
  * #%L
  * jambeth-util
@@ -21,6 +23,22 @@ limitations under the License.
  */
 
 public interface IDataObject {
+	String P_TO_BE_DELETED = "ToBeDeleted";
+
+	String P_TO_BE_UPDATED = "ToBeUpdated";
+
+	String P_TO_BE_CREATED = "ToBeCreated";
+
+	String P_HAS_PENDING_CHANGES = "HasPendingChanges";
+
+	String BEANS_TO_BE_DELETED = Introspector.decapitalize(P_TO_BE_DELETED);
+
+	String BEANS_TO_BE_UPDATED = Introspector.decapitalize(P_TO_BE_UPDATED);
+
+	String BEANS_TO_BE_CREATED = Introspector.decapitalize(P_TO_BE_CREATED);
+
+	String BEANS_HAS_PENDING_CHANGES = Introspector.decapitalize(P_HAS_PENDING_CHANGES);
+
 	boolean isToBeDeleted();
 
 	boolean isToBeUpdated();

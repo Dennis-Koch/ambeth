@@ -99,7 +99,7 @@ public class PropertyChangeMixinEntry {
 		unknownValues = PropertyChangeMixin.createArrayOfValues(PropertyChangeMixin.UNKNOWN_VALUE,
 				this.propertyNames.length);
 		for (String invokedPropertyName : this.propertyNames) {
-			firesToBeCreatedPCE |= "ToBeCreated".equals(invokedPropertyName);
+			firesToBeCreatedPCE |= IDataObject.P_TO_BE_CREATED.equals(invokedPropertyName);
 		}
 		this.firesToBeCreatedPCE = firesToBeCreatedPCE;
 		if (prop.isReadable()) {

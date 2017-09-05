@@ -11,6 +11,9 @@ import com.koch.ambeth.cache.AbstractCache;
 import com.koch.ambeth.cache.ICacheIntern;
 import com.koch.ambeth.cache.IFirstLevelCacheManager;
 import com.koch.ambeth.cache.IRootCache;
+import com.koch.ambeth.cache.RootCache;
+import com.koch.ambeth.cache.rootcachevalue.RootCacheValue;
+import com.koch.ambeth.cache.util.IndirectValueHolderRef;
 import com.koch.ambeth.datachange.model.DirectDataChangeEntry;
 import com.koch.ambeth.datachange.model.IDataChangeEntry;
 import com.koch.ambeth.datachange.transfer.DataChangeEntry;
@@ -32,6 +35,8 @@ import com.koch.ambeth.merge.cache.ValueHolderState;
 import com.koch.ambeth.merge.proxy.IEntityMetaDataHolder;
 import com.koch.ambeth.merge.proxy.IObjRefContainer;
 import com.koch.ambeth.merge.transfer.ObjRef;
+import com.koch.ambeth.merge.util.DirectValueHolderRef;
+import com.koch.ambeth.merge.util.IPrefetchHelper;
 import com.koch.ambeth.merge.util.ValueHolderRef;
 import com.koch.ambeth.service.merge.IEntityMetaDataProvider;
 import com.koch.ambeth.service.merge.model.IEntityMetaData;
@@ -41,6 +46,7 @@ import com.koch.ambeth.service.metadata.RelationMember;
 import com.koch.ambeth.util.IParamHolder;
 import com.koch.ambeth.util.ParamHolder;
 import com.koch.ambeth.util.collections.ArrayList;
+import com.koch.ambeth.util.collections.HashSet;
 import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.IMap;
 import com.koch.ambeth.util.collections.ISet;
@@ -76,6 +82,9 @@ public class RevertChangesHelper implements IRevertChangesHelper {
 
 	@Autowired
 	protected IMergeController mergeController;
+
+	@Autowired
+	protected IPrefetchHelper prefetchHelper;
 
 	@Autowired
 	protected IProxyHelper proxyHelper;
@@ -172,7 +181,7 @@ public class RevertChangesHelper implements IRevertChangesHelper {
 
 	private void callWaitEventToResumeInGui(final IList<IDataChangeEntry> directObjectDeletes,
 			final IList<IObjRef> orisToRevert, final ISet<Object> persistedObjectsToRevert,
-			final IList<Object> objectsToRevert, final IList<Object> hardRefsToRootCacheValues,
+			final IList<Object> objectsToRevert, final IList<Object> rootCacheValues,
 			final IParamHolder<Boolean> success1, final IParamHolder<Boolean> success2,
 			final IParamHolder<Boolean> success3,
 			final RevertChangesFinishedCallback revertChangesFinishedCallback) {
@@ -183,32 +192,64 @@ public class RevertChangesHelper implements IRevertChangesHelper {
 					@Override
 					public void invoke(IProcessResumeItem processResumeItem) throws Exception {
 						try {
+							IList<IWritableCache> firstLevelCaches = firstLevelCacheManager
+									.selectFirstLevelCaches();
+
+							HashSet<DirectValueHolderRef> relationsToPrefetch = new HashSet<>();
+
+							ArrayList<Runnable> runnables = new ArrayList<>();
+
+							final RootCache rootCache =
+									(RootCache) RevertChangesHelper.this.rootCache.getCurrentRootCache();
+
+							for (final IWritableCache firstLevelCache : firstLevelCaches) {
+								IList<Object> persistedObjectsInThisCache = firstLevelCache
+										.getObjects(orisToRevert, CacheDirective.failEarlyAndReturnMisses());
+
+								for (int a = persistedObjectsInThisCache.size(); a-- > 0;) {
+									final IObjRefContainer persistedObjectInThisCache =
+											(IObjRefContainer) persistedObjectsInThisCache.get(a);
+									if (persistedObjectInThisCache == null) {
+										continue;
+									}
+									if (!persistedObjectsToRevert.contains(persistedObjectInThisCache)) {
+										continue;
+									}
+									RootCacheValue rootCacheValue = (RootCacheValue) rootCacheValues.get(a);
+									if (rootCacheValue != null) {
+										RelationMember[] relationMembers =
+												persistedObjectInThisCache.get__EntityMetaData().getRelationMembers();
+										for (int relationIndex = relationMembers.length; relationIndex-- > 0;) {
+											if (persistedObjectInThisCache.is__Initialized(relationIndex)) {
+												relationsToPrefetch.add(new IndirectValueHolderRef(
+														rootCacheValue, relationMembers[relationIndex], rootCache));
+											}
+										}
+									}
+									runnables.add(new Runnable() {
+										@Override
+										public void run() {
+											rootCache.applyValues(persistedObjectInThisCache,
+													(ICacheIntern) firstLevelCache, null);
+										}
+									});
+								}
+							}
+							// need a hard GC ref to the given collection during asynchronous
+							// processing
+							ArrayList<Object> hardRefs = new ArrayList<>();
+							hardRefs.add(rootCacheValues);
+							hardRefs.add(prefetchHelper.prefetch(relationsToPrefetch));
+
 							boolean oldCacheModificationValue = cacheModification.isActive();
 							boolean oldFailEarlyModeActive = AbstractCache.isFailInCacheHierarchyModeActive();
 							cacheModification.setActive(true);
 							AbstractCache.setFailInCacheHierarchyModeActive(true);
 							try {
-								IList<IWritableCache> firstLevelCaches = firstLevelCacheManager
-										.selectFirstLevelCaches();
-
-								// need a hard GC ref to the given collection during asynchronous
-								// processing
-								@SuppressWarnings("unused")
-								IList<Object> hardRefsToRootCacheValuesHere = hardRefsToRootCacheValues;
-
-								for (IWritableCache firstLevelCache : firstLevelCaches) {
-									IList<Object> persistedObjectsInThisCache = firstLevelCache
-											.getObjects(orisToRevert, CacheDirective.failEarly());
-
-									for (int a = persistedObjectsInThisCache.size(); a-- > 0;) {
-										Object persistedObjectInThisCache = persistedObjectsInThisCache.get(a);
-										if (!persistedObjectsToRevert.contains(persistedObjectInThisCache)) {
-											continue;
-										}
-										rootCache.applyValues(persistedObjectInThisCache,
-												(ICacheIntern) firstLevelCache, null);
-									}
+								for (int a = 0, size = runnables.size(); a < size; a++) {
+									runnables.get(a).run();
 								}
+
 								for (int a = objectsToRevert.size(); a-- > 0;) {
 									Object objectToRevert = objectsToRevert.get(a);
 									if (objectToRevert instanceof IDataObject) {

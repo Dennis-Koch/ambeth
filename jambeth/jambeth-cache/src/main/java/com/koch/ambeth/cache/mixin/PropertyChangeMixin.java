@@ -163,7 +163,9 @@ public class PropertyChangeMixin
 		if (cacheModification.isActiveOrFlushingOrInternalUpdate()) {
 			return;
 		}
-		((IDataObject) obj).setToBeUpdated(true);
+		if (!IDataObject.BEANS_TO_BE_UPDATED.equals(evnt.getPropertyName())) {
+			((IDataObject) obj).setToBeUpdated(true);
+		}
 	}
 
 	public void handleCollectionChange(INotifyPropertyChangedSource obj,

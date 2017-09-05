@@ -46,7 +46,6 @@ import com.koch.ambeth.merge.cache.ICacheModification;
 import com.koch.ambeth.merge.cache.IDisposableCache;
 import com.koch.ambeth.merge.cache.ValueHolderState;
 import com.koch.ambeth.merge.proxy.IObjRefContainer;
-import com.koch.ambeth.merge.transfer.ObjRef;
 import com.koch.ambeth.service.config.ServiceConfigurationConstants;
 import com.koch.ambeth.service.merge.IEntityMetaDataProvider;
 import com.koch.ambeth.service.merge.model.IEntityMetaData;
@@ -375,7 +374,7 @@ public class ValueHolderContainerTest extends AbstractInformationBusTest {
 
 		Assert.assertFalse(vhc.is__Initialized(embMatTypeIndex));
 
-		IObjRef[] emptyRefs = ObjRef.EMPTY_ARRAY;
+		IObjRef[] emptyRefs = IObjRef.EMPTY_ARRAY;
 		((IObjRefContainer) obj).set__ObjRefs(embMatTypeIndex, emptyRefs);
 		IObjRef[] objRefs = vhc.get__ObjRefs(embMatTypeIndex);
 		Assert.assertSame(emptyRefs, objRefs);
@@ -469,10 +468,13 @@ public class ValueHolderContainerTest extends AbstractInformationBusTest {
 		waitForUI();
 
 		Assert.assertEquals(4, propertyNameToHitCountMap.size());
-		Assert.assertEquals(Integer.valueOf(1), propertyNameToHitCountMap.get("Id"));
-		Assert.assertEquals(Integer.valueOf(1), propertyNameToHitCountMap.get("ToBeCreated"));
-		Assert.assertEquals(Integer.valueOf(1), propertyNameToHitCountMap.get("ToBeUpdated"));
-		Assert.assertEquals(Integer.valueOf(2), propertyNameToHitCountMap.get("HasPendingChanges"));
+		Assert.assertEquals(Integer.valueOf(1), propertyNameToHitCountMap.get("id"));
+		Assert.assertEquals(Integer.valueOf(1),
+				propertyNameToHitCountMap.get(IDataObject.BEANS_TO_BE_CREATED));
+		Assert.assertEquals(Integer.valueOf(1),
+				propertyNameToHitCountMap.get(IDataObject.BEANS_TO_BE_UPDATED));
+		Assert.assertEquals(Integer.valueOf(2),
+				propertyNameToHitCountMap.get(IDataObject.BEANS_HAS_PENDING_CHANGES));
 		((IDataObject) obj).setToBeUpdated(false);
 		propertyNameToHitCountMap.clear();
 
@@ -480,11 +482,13 @@ public class ValueHolderContainerTest extends AbstractInformationBusTest {
 		waitForUI();
 
 		Assert.assertEquals(5, propertyNameToHitCountMap.size());
-		Assert.assertEquals(Integer.valueOf(1), propertyNameToHitCountMap.get("Name"));
-		Assert.assertEquals(Integer.valueOf(1), propertyNameToHitCountMap.get("Temp1"));
-		Assert.assertEquals(Integer.valueOf(1), propertyNameToHitCountMap.get("Temp2"));
-		Assert.assertEquals(Integer.valueOf(1), propertyNameToHitCountMap.get("ToBeUpdated"));
-		Assert.assertEquals(Integer.valueOf(1), propertyNameToHitCountMap.get("HasPendingChanges"));
+		Assert.assertEquals(Integer.valueOf(1), propertyNameToHitCountMap.get("name"));
+		Assert.assertEquals(Integer.valueOf(1), propertyNameToHitCountMap.get("temp1"));
+		Assert.assertEquals(Integer.valueOf(1), propertyNameToHitCountMap.get("temp2"));
+		Assert.assertEquals(Integer.valueOf(1),
+				propertyNameToHitCountMap.get(IDataObject.BEANS_TO_BE_UPDATED));
+		Assert.assertEquals(Integer.valueOf(1),
+				propertyNameToHitCountMap.get(IDataObject.BEANS_HAS_PENDING_CHANGES));
 		propertyNameToHitCountMap.clear();
 	}
 
@@ -558,10 +562,10 @@ public class ValueHolderContainerTest extends AbstractInformationBusTest {
 			waitForUI();
 
 			Assert.assertEquals(4, pceCounter.size());
-			Assert.assertEquals(Integer.valueOf(1), pceCounter.get("Name"));
-			Assert.assertEquals(Integer.valueOf(1), pceCounter.get("Temp1"));
-			Assert.assertEquals(Integer.valueOf(1), pceCounter.get("Temp2"));
-			Assert.assertEquals(Integer.valueOf(1), pceCounter.get("Version"));
+			Assert.assertEquals(Integer.valueOf(1), pceCounter.get("name"));
+			Assert.assertEquals(Integer.valueOf(1), pceCounter.get("temp1"));
+			Assert.assertEquals(Integer.valueOf(1), pceCounter.get("temp2"));
+			Assert.assertEquals(Integer.valueOf(1), pceCounter.get("version"));
 		}
 		{
 			Material obj = entityFactory.createEntity(Material.class);
@@ -582,8 +586,9 @@ public class ValueHolderContainerTest extends AbstractInformationBusTest {
 			waitForUI();
 
 			Assert.assertEquals(2, pceCounter.size());
-			Assert.assertEquals(Integer.valueOf(1), pceCounter.get("ToBeUpdated"));
-			Assert.assertEquals(Integer.valueOf(1), pceCounter.get("HasPendingChanges"));
+			Assert.assertEquals(Integer.valueOf(1), pceCounter.get(IDataObject.BEANS_TO_BE_UPDATED));
+			Assert.assertEquals(Integer.valueOf(1),
+					pceCounter.get(IDataObject.BEANS_HAS_PENDING_CHANGES));
 		}
 	}
 
@@ -598,10 +603,10 @@ public class ValueHolderContainerTest extends AbstractInformationBusTest {
 		obj.setId(1);
 		waitForUI();
 
-		Assert.assertEquals(Integer.valueOf(1), pceCounter.get("Id"));
-		Assert.assertEquals(Integer.valueOf(1), pceCounter.get("ToBeCreated"));
-		Assert.assertEquals(Integer.valueOf(1), pceCounter.get("ToBeUpdated"));
-		Assert.assertEquals(Integer.valueOf(2), pceCounter.get("HasPendingChanges"));
+		Assert.assertEquals(Integer.valueOf(1), pceCounter.get("id"));
+		Assert.assertEquals(Integer.valueOf(1), pceCounter.get(IDataObject.BEANS_TO_BE_CREATED));
+		Assert.assertEquals(Integer.valueOf(1), pceCounter.get(IDataObject.BEANS_TO_BE_UPDATED));
+		Assert.assertEquals(Integer.valueOf(2), pceCounter.get(IDataObject.BEANS_HAS_PENDING_CHANGES));
 		Assert.assertEquals(4, pceCounter.size());
 
 		pceCounter.clear();
@@ -609,10 +614,10 @@ public class ValueHolderContainerTest extends AbstractInformationBusTest {
 		obj.setId(0);
 		waitForUI();
 
-		Assert.assertEquals(Integer.valueOf(1), pceCounter.get("Id"));
-		Assert.assertEquals(Integer.valueOf(1), pceCounter.get("ToBeCreated"));
-		Assert.assertEquals(Integer.valueOf(1), pceCounter.get("ToBeUpdated"));
-		Assert.assertEquals(Integer.valueOf(2), pceCounter.get("HasPendingChanges"));
+		Assert.assertEquals(Integer.valueOf(1), pceCounter.get("id"));
+		Assert.assertEquals(Integer.valueOf(1), pceCounter.get(IDataObject.BEANS_TO_BE_CREATED));
+		Assert.assertEquals(Integer.valueOf(1), pceCounter.get(IDataObject.BEANS_TO_BE_UPDATED));
+		Assert.assertEquals(Integer.valueOf(2), pceCounter.get(IDataObject.BEANS_HAS_PENDING_CHANGES));
 		Assert.assertEquals(4, pceCounter.size());
 	}
 
@@ -633,8 +638,8 @@ public class ValueHolderContainerTest extends AbstractInformationBusTest {
 		waitForUI();
 
 		Assert.assertEquals(2, pceCounter.size());
-		Assert.assertEquals(Integer.valueOf(1), pceCounter.get("ToBeUpdated"));
-		Assert.assertEquals(Integer.valueOf(1), pceCounter.get("HasPendingChanges"));
+		Assert.assertEquals(Integer.valueOf(1), pceCounter.get(IDataObject.BEANS_TO_BE_UPDATED));
+		Assert.assertEquals(Integer.valueOf(1), pceCounter.get(IDataObject.BEANS_HAS_PENDING_CHANGES));
 	}
 
 	@Test
@@ -654,8 +659,8 @@ public class ValueHolderContainerTest extends AbstractInformationBusTest {
 		waitForUI();
 
 		Assert.assertEquals(2, pceCounter.size());
-		Assert.assertEquals(Integer.valueOf(1), pceCounter.get("ToBeUpdated"));
-		Assert.assertEquals(Integer.valueOf(1), pceCounter.get("HasPendingChanges"));
+		Assert.assertEquals(Integer.valueOf(1), pceCounter.get(IDataObject.BEANS_TO_BE_UPDATED));
+		Assert.assertEquals(Integer.valueOf(1), pceCounter.get(IDataObject.BEANS_HAS_PENDING_CHANGES));
 	}
 
 	@Test
@@ -691,13 +696,13 @@ public class ValueHolderContainerTest extends AbstractInformationBusTest {
 		waitForUI();
 
 		Assert.assertEquals(4, counter.size());
-		Assert.assertEquals(Integer.valueOf(1), counter.get("Id"));
-		Assert.assertEquals(Integer.valueOf(1), counter.get("ToBeCreated"));
-		Assert.assertEquals(Integer.valueOf(1), counter.get("ToBeUpdated"));
-		Assert.assertEquals(Integer.valueOf(2), counter.get("HasPendingChanges"));
+		Assert.assertEquals(Integer.valueOf(1), counter.get("id"));
+		Assert.assertEquals(Integer.valueOf(1), counter.get(IDataObject.BEANS_TO_BE_CREATED));
+		Assert.assertEquals(Integer.valueOf(1), counter.get(IDataObject.BEANS_TO_BE_UPDATED));
+		Assert.assertEquals(Integer.valueOf(2), counter.get(IDataObject.BEANS_HAS_PENDING_CHANGES));
 		Assert.assertEquals(0, embMat_counter.size());
 		Assert.assertEquals(1, embMat_embMat2_counter.size());
-		Assert.assertEquals(Integer.valueOf(1), embMat_embMat2_counter.get("Name2"));
+		Assert.assertEquals(Integer.valueOf(1), embMat_embMat2_counter.get("name2"));
 	}
 
 	@Test
@@ -716,9 +721,9 @@ public class ValueHolderContainerTest extends AbstractInformationBusTest {
 		waitForUI();
 
 		Assert.assertEquals(3, propertyNameToHitCountMap.size());
-		Assert.assertEquals(Integer.valueOf(1), propertyNameToHitCountMap.get("Name"));
-		Assert.assertEquals(Integer.valueOf(1), propertyNameToHitCountMap.get("Temp1"));
-		Assert.assertEquals(Integer.valueOf(1), propertyNameToHitCountMap.get("Temp2"));
+		Assert.assertEquals(Integer.valueOf(1), propertyNameToHitCountMap.get("name"));
+		Assert.assertEquals(Integer.valueOf(1), propertyNameToHitCountMap.get("temp1"));
+		Assert.assertEquals(Integer.valueOf(1), propertyNameToHitCountMap.get("temp2"));
 
 		((INotifyPropertyChanged) obj).addPropertyChangeListener(handler);
 	}
@@ -801,22 +806,22 @@ public class ValueHolderContainerTest extends AbstractInformationBusTest {
 		Assert.assertTrue(((IDataObject) obj2).hasPendingChanges());
 
 		Assert.assertEquals(2, matCounter.size());
-		Assert.assertTrue(matCounter.containsKey("ToBeUpdated"));
-		Assert.assertTrue(matCounter.containsKey("HasPendingChanges"));
-		Assert.assertEquals(1, matCounter.get("ToBeUpdated").intValue());
-		Assert.assertEquals(1, matCounter.get("HasPendingChanges").intValue());
+		Assert.assertTrue(matCounter.containsKey(IDataObject.BEANS_TO_BE_UPDATED));
+		Assert.assertTrue(matCounter.containsKey(IDataObject.BEANS_HAS_PENDING_CHANGES));
+		Assert.assertEquals(1, matCounter.get(IDataObject.BEANS_TO_BE_UPDATED).intValue());
+		Assert.assertEquals(1, matCounter.get(IDataObject.BEANS_HAS_PENDING_CHANGES).intValue());
 
 		Assert.assertEquals(5, matTypeCounter.size());
-		Assert.assertTrue(matTypeCounter.containsKey("Name"));
-		Assert.assertTrue(matTypeCounter.containsKey("Temp1"));
-		Assert.assertTrue(matTypeCounter.containsKey("Temp2"));
-		Assert.assertTrue(matTypeCounter.containsKey("ToBeUpdated"));
-		Assert.assertTrue(matTypeCounter.containsKey("HasPendingChanges"));
-		Assert.assertEquals(1, matTypeCounter.get("Name").intValue());
-		Assert.assertEquals(1, matTypeCounter.get("Temp1").intValue());
-		Assert.assertEquals(1, matTypeCounter.get("Temp2").intValue());
-		Assert.assertEquals(1, matTypeCounter.get("ToBeUpdated").intValue());
-		Assert.assertEquals(1, matTypeCounter.get("HasPendingChanges").intValue());
+		Assert.assertTrue(matTypeCounter.containsKey("name"));
+		Assert.assertTrue(matTypeCounter.containsKey("temp1"));
+		Assert.assertTrue(matTypeCounter.containsKey("temp2"));
+		Assert.assertTrue(matTypeCounter.containsKey(IDataObject.BEANS_TO_BE_UPDATED));
+		Assert.assertTrue(matTypeCounter.containsKey(IDataObject.BEANS_HAS_PENDING_CHANGES));
+		Assert.assertEquals(1, matTypeCounter.get("name").intValue());
+		Assert.assertEquals(1, matTypeCounter.get("temp1").intValue());
+		Assert.assertEquals(1, matTypeCounter.get("temp2").intValue());
+		Assert.assertEquals(1, matTypeCounter.get(IDataObject.BEANS_TO_BE_UPDATED).intValue());
+		Assert.assertEquals(1, matTypeCounter.get(IDataObject.BEANS_HAS_PENDING_CHANGES).intValue());
 	}
 
 	@Test
@@ -858,10 +863,10 @@ public class ValueHolderContainerTest extends AbstractInformationBusTest {
 		waitForUI();
 
 		Assert.assertEquals(2, matCounter.size());
-		Assert.assertTrue(matCounter.containsKey("ToBeUpdated"));
-		Assert.assertTrue(matCounter.containsKey("HasPendingChanges"));
-		Assert.assertEquals(1, matCounter.get("ToBeUpdated").intValue());
-		Assert.assertEquals(1, matCounter.get("HasPendingChanges").intValue());
+		Assert.assertTrue(matCounter.containsKey(IDataObject.BEANS_TO_BE_UPDATED));
+		Assert.assertTrue(matCounter.containsKey(IDataObject.BEANS_HAS_PENDING_CHANGES));
+		Assert.assertEquals(1, matCounter.get(IDataObject.BEANS_TO_BE_UPDATED).intValue());
+		Assert.assertEquals(1, matCounter.get(IDataObject.BEANS_HAS_PENDING_CHANGES).intValue());
 	}
 
 	@Test
@@ -900,11 +905,11 @@ public class ValueHolderContainerTest extends AbstractInformationBusTest {
 		});
 		latch.await();
 		Assert.assertEquals(5, counter.size());
-		Assert.assertTrue(counter.containsKey("ToBeCreated"));
-		Assert.assertTrue(counter.containsKey("ToBeUpdated"));
-		Assert.assertTrue(counter.containsKey("Id"));
-		Assert.assertTrue(counter.containsKey("Name"));
-		Assert.assertTrue(counter.containsKey("HasPendingChanges"));
+		Assert.assertTrue(counter.containsKey(IDataObject.BEANS_TO_BE_CREATED));
+		Assert.assertTrue(counter.containsKey(IDataObject.BEANS_TO_BE_UPDATED));
+		Assert.assertTrue(counter.containsKey("id"));
+		Assert.assertTrue(counter.containsKey("name"));
+		Assert.assertTrue(counter.containsKey(IDataObject.BEANS_HAS_PENDING_CHANGES));
 
 		Thread guiThread = Thread.currentThread();
 

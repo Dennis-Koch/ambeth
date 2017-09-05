@@ -34,6 +34,7 @@
 		<module>jambeth-datachange-persistence</module>
 		<module>jambeth-doc-scope</module>
 		<module>jambeth-dot</module>
+		<module>jambeth-eclipse-databinding</module>
 		<module>jambeth-event</module>
 		<module>jambeth-event-datachange</module>
 		<module>jambeth-event-kafka</module>
@@ -337,6 +338,12 @@
 				<version>${project.version}</version>
 				<classifier>sources</classifier>
 				<scope>provided</scope>
+			</dependency>
+			
+			<dependency>
+				<groupId>com.koch.ambeth</groupId>
+				<artifactId>jambeth-eclipse-databinding</artifactId>
+				<version>${project.version}</version>
 			</dependency>
 
 			<dependency>

@@ -55,6 +55,16 @@
 				<groupId>com.bruker.horizon</groupId>
 				<artifactId>kar2tycho-maven-plugin</artifactId>
 				<configuration>
+					<artifacts>
+						<!-- The following bundles are needed for the eclipse RCP client, 
+								but should not be included into the karaf feature -->
+						<!-- groupId:artifactId:version -->
+						<artifact>
+							<id>com.koch.ambeth:jambeth-eclipse-databinding:jar:${project.version}</id>
+							<transitive>false</transitive>
+							<source>true</source>
+						</artifact>
+					</artifacts>
 					<sources>
 						<source>com.koch.ambeth:jambeth-audit:jar:${project.version}</source>
 						<source>com.koch.ambeth:jambeth-audit-server:jar:${project.version}</source>
@@ -67,6 +77,7 @@
 						<source>com.koch.ambeth:jambeth-core:jar:${project.version}</source>
 						<source>com.koch.ambeth:jambeth-datachange:jar:${project.version}</source>
 						<source>com.koch.ambeth:jambeth-dot:jar:${project.version}</source>
+						<source>com.koch.ambeth:jambeth-eclipse-databinding:jar:${project.version}</source>
 						<source>com.koch.ambeth:jambeth-event:jar:${project.version}</source>
 						<source>com.koch.ambeth:jambeth-event-server:jar:${project.version}</source>
 						<source>com.koch.ambeth:jambeth-event-datachange:jar:${project.version}</source>

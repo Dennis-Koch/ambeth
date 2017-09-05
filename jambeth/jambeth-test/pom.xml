@@ -18,6 +18,20 @@
 		</dependency>
 
 		<dependency>
+			<groupId>org.eclipse.core</groupId>
+			<artifactId>databinding</artifactId>
+			<version>1.0.0-I20070606-0010</version>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.eclipse.platform</groupId>
+			<artifactId>org.eclipse.equinox.common</artifactId>
+			<version>3.8.0</version>
+			<scope>test</scope>
+		</dependency>
+		
+		<dependency>
 			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-information-bus-test</artifactId>
 		</dependency>
@@ -68,6 +82,11 @@
 			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-datachange-persistence-test</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>com.koch.ambeth</groupId>
+			<artifactId>jambeth-eclipse-databinding</artifactId>
+		</dependency>
+		
 		<dependency>
 			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-event-datachange</artifactId>

@@ -51,23 +51,24 @@ public class DataObjectVisitor extends ClassGenerator {
 
 	protected static final String templatePropertyName = "__" + templateType.getSimpleName();
 
-	public static final MethodInstance m_toBeUpdatedChanging = new MethodInstance(null, templateType,
-			void.class, "toBeUpdatedChanging", IDataObject.class, boolean.class, boolean.class);
-
 	public static final MethodInstance m_toBeUpdatedChanged = new MethodInstance(null, templateType,
 			void.class, "toBeUpdatedChanged", IDataObject.class, boolean.class, boolean.class);
 
 	public static final PropertyInstance p_hasPendingChanges =
-			PropertyInstance.findByTemplate(IDataObject.class, "HasPendingChanges", boolean.class, false);
+			PropertyInstance.findByTemplate(IDataObject.class, IDataObject.P_HAS_PENDING_CHANGES,
+					boolean.class, false);
 
 	public static final PropertyInstance template_p_toBeCreated =
-			PropertyInstance.findByTemplate(IDataObject.class, "ToBeCreated", boolean.class, false);
+			PropertyInstance.findByTemplate(IDataObject.class, IDataObject.P_TO_BE_CREATED, boolean.class,
+					false);
 
 	public static final PropertyInstance template_p_toBeUpdated =
-			PropertyInstance.findByTemplate(IDataObject.class, "ToBeUpdated", boolean.class, false);
+			PropertyInstance.findByTemplate(IDataObject.class, IDataObject.P_TO_BE_UPDATED, boolean.class,
+					false);
 
 	public static final PropertyInstance template_p_toBeDeleted =
-			PropertyInstance.findByTemplate(IDataObject.class, "ToBeDeleted", boolean.class, false);
+			PropertyInstance.findByTemplate(IDataObject.class, IDataObject.P_TO_BE_DELETED, boolean.class,
+					false);
 
 	public static final Class<IgnoreToBeUpdated> c_ignoreToBeUpdated = IgnoreToBeUpdated.class;
 
@@ -236,7 +237,6 @@ public class DataObjectVisitor extends ClassGenerator {
 			@Override
 			public void execute(MethodGenerator mv) {
 				int loc_existingValue = mv.newLocal(boolean.class);
-				int loc_dataObjectTemplate = mv.newLocal(p_dataObjectTemplate.getPropertyType());
 				Label l_finish = mv.newLabel();
 				mv.getThisField(f_toBeUpdated);
 				mv.storeLocal(loc_existingValue);
@@ -244,19 +244,6 @@ public class DataObjectVisitor extends ClassGenerator {
 				mv.loadLocal(loc_existingValue);
 				mv.loadArg(0);
 				mv.ifCmp(boolean.class, GeneratorAdapter.EQ, l_finish);
-
-				// call dataObjectTemplate
-				mv.callThisGetter(p_dataObjectTemplate);
-				mv.storeLocal(loc_dataObjectTemplate);
-
-				mv.loadLocal(loc_dataObjectTemplate);
-				// "this" argument
-				mv.loadThis();
-				// oldValue argument
-				mv.loadLocal(loc_existingValue);
-				// newValue argument
-				mv.loadArg(0);
-				mv.invokeVirtual(m_toBeUpdatedChanging);
 
 				mv.putThisField(f_toBeUpdated, new Script() {
 
@@ -267,7 +254,7 @@ public class DataObjectVisitor extends ClassGenerator {
 				});
 
 				// call dataObjectTemplate
-				mv.loadLocal(loc_dataObjectTemplate);
+				mv.callThisGetter(p_dataObjectTemplate);
 				// "this" argument
 				mv.loadThis();
 				// oldValue argument

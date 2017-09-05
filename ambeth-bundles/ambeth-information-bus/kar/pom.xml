@@ -71,6 +71,16 @@
 				<groupId>com.bruker.horizon</groupId>
 				<artifactId>kar2tycho-maven-plugin</artifactId>
 				<configuration>
+					<artifacts>
+						<!-- The following bundles are needed for the eclipse RCP client, 
+								but should not be included into the karaf feature -->
+						<!-- groupId:artifactId:version -->
+						<artifact>
+							<id>com.koch.ambeth:jambeth-eclipse-databinding:jar:${project.version}</id>
+							<transitive>false</transitive>
+							<source>true</source>
+						</artifact>
+					</artifacts>
 					<sources>
 						<source>com.koch.ambeth:jambeth-audit:jar:${project.version}</source>
 						<source>com.koch.ambeth:jambeth-bytecode:jar:${project.version}</source>

@@ -585,7 +585,7 @@ public class ChildCache extends AbstractCache<Object>
 			IObjRef[] relationsOfMember = relations[relationIndex];
 
 			if (!CascadeLoadMode.EAGER.equals(relationMember.getCascadeLoadMode())) {
-				if (ValueHolderState.INIT != vhc.get__State(relationIndex)) {
+				if (!vhc.is__Initialized(relationIndex)) {
 					// Update ObjRef information within the entity and do nothing else
 					vhc.set__ObjRefs(relationIndex, relationsOfMember);
 					continue;
@@ -594,6 +594,11 @@ public class ChildCache extends AbstractCache<Object>
 			// We can safely access to relation if we want to
 			if (relationsOfMember == null) {
 				// Reset value holder state because we do not know the content currently
+				if (vhc.is__Initialized(relationIndex)) {
+					throw new IllegalStateException(
+							"Relation already initialized but reverted state unknown: '"
+									+ vhc.get__Self(relationIndex));
+				}
 				vhc.set__Uninitialized(relationIndex, null);
 				continue;
 			}

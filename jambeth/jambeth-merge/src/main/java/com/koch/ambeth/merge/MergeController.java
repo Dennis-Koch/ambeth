@@ -111,10 +111,12 @@ public class MergeController implements IMergeController, IMergeExtendable {
 	@Autowired
 	protected ISecurityActivation securityActivation;
 
-	@Property(name = MergeConfigurationConstants.ExactVersionForOptimisticLockingRequired, defaultValue = "false")
+	@Property(name = MergeConfigurationConstants.ExactVersionForOptimisticLockingRequired,
+			defaultValue = "false")
 	protected boolean exactVersionForOptimisticLockingRequired;
 
-	@Property(name = MergeConfigurationConstants.AlwaysUpdateVersionInChangedEntities, defaultValue = "false")
+	@Property(name = MergeConfigurationConstants.AlwaysUpdateVersionInChangedEntities,
+			defaultValue = "false")
 	protected boolean alwaysUpdateVersionInChangedEntities;
 
 	protected final List<IMergeExtension> mergeExtensions = new ArrayList<>();
@@ -584,7 +586,7 @@ public class MergeController implements IMergeController, IMergeExtendable {
 		return !equalsReferenceOrId(objValue, cloneValue, handle, metaData);
 	}
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@SuppressWarnings({"unchecked", "rawtypes"})
 	protected void merge(final Object obj, final Object clone, final MergeHandle handle) {
 		IEntityMetaDataProvider entityMetaDataProvider = this.entityMetaDataProvider;
 		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(obj.getClass());
@@ -939,7 +941,8 @@ public class MergeController implements IMergeController, IMergeExtendable {
 			return;
 		}
 		IObjRef objRef = null;
-		if (objRefs != null || privilegedObjRefs != null || valueHolderKeys != null) {
+		if (objects != null || objRefs != null || privilegedObjRefs != null
+				|| valueHolderKeys != null) {
 			Object id = metaData.getIdMember().getValue(obj, false);
 			boolean isEntityFromPrivilegedCache = false;
 			if (id != null) {
