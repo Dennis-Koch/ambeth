@@ -121,15 +121,14 @@ public abstract class AbstractCache<V> implements ICache, IInitializingBean, IDi
 	@Property(name = UtilConfigurationConstants.DebugMode, defaultValue = "false")
 	protected boolean debugMode;
 
-	public AbstractCache() {
-		DebugMode debugModeEnum = debugMode ? DebugMode.TRUE : DebugMode.FALSE;
-		ReadWriteLock rwLock = new ReadWriteLock(debugModeEnum);
-		readLock = rwLock.getReadLock();
-		writeLock = rwLock.getWriteLock();
-	}
-
 	@Override
 	public void afterPropertiesSet() {
+		if (readLock == null && writeLock == null) {
+			DebugMode debugModeEnum = debugMode ? DebugMode.TRUE : DebugMode.FALSE;
+			ReadWriteLock rwLock = new ReadWriteLock(debugModeEnum);
+			readLock = rwLock.getReadLock();
+			writeLock = rwLock.getWriteLock();
+		}
 		keyToCacheValueDict = new CacheHashMap(cacheMapEntryTypeProvider);
 	}
 
