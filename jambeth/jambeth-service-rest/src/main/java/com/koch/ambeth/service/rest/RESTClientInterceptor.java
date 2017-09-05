@@ -1,5 +1,7 @@
 package com.koch.ambeth.service.rest;
 
+import java.io.BufferedReader;
+
 /*-
  * #%L
  * jambeth-service-rest
@@ -23,8 +25,10 @@ limitations under the License.
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Array;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.net.URL;
@@ -34,6 +38,8 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
 
 import org.apache.http.HttpHost;
@@ -57,6 +63,7 @@ import com.koch.ambeth.service.remote.IRemoteInterceptor;
 import com.koch.ambeth.service.remote.IRemoteTargetProvider;
 import com.koch.ambeth.service.rest.config.RESTConfigurationConstants;
 import com.koch.ambeth.service.transfer.AmbethServiceException;
+import com.koch.ambeth.util.IClassCache;
 import com.koch.ambeth.util.IConversionHelper;
 import com.koch.ambeth.util.ListUtil;
 import com.koch.ambeth.util.ParamChecker;
@@ -82,6 +89,9 @@ public class RESTClientInterceptor extends AbstractSimpleInterceptor
 
 	@Autowired
 	protected IAuthenticationHolder authenticationHolder;
+
+	@Autowired
+	protected IClassCache classCache;
 
 	@Autowired
 	protected IConversionHelper conversionHelper;
@@ -292,14 +302,58 @@ public class RESTClientInterceptor extends AbstractSimpleInterceptor
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	protected Exception parseServiceException(AmbethServiceException serviceException) {
 		AmbethServiceException serviceCause = serviceException.getCause();
 		Exception cause = null;
 		if (serviceCause != null) {
 			cause = parseServiceException(serviceCause);
 		}
-		return new IllegalStateException(
-				serviceException.getMessage() + "\n" + serviceException.getStackTrace(), cause);
+		try {
+			Class<? extends Exception> exceptionType =
+					(Class<? extends Exception>) classCache.loadClass(serviceException.getExceptionType());
+			Exception ex;
+			if (cause == null) {
+				Constructor<? extends Exception> constructor = exceptionType.getConstructor(String.class);
+				ex = constructor.newInstance(serviceException.getMessage());
+			}
+			else {
+				Constructor<? extends Exception> constructor =
+						exceptionType.getConstructor(String.class, Throwable.class);
+				ex = constructor.newInstance(serviceException.getMessage(), cause);
+			}
+
+			ArrayList<StackTraceElement> stes = new ArrayList<>();
+			Pattern stePattern = Pattern.compile("\\s*(.+)\\.([^\\.]+)\\(([^\\:\\)]+)(?:\\:(\\d+))?\\)");
+			BufferedReader reader =
+					new BufferedReader(new StringReader(serviceException.getStackTrace()));
+			String line;
+			while ((line = reader.readLine()) != null) {
+				Matcher matcher = stePattern.matcher(line);
+				if (!matcher.matches()) {
+					return new IllegalStateException(
+							serviceException.getMessage() + "\n" + serviceException.getStackTrace(), cause);
+				}
+				String declaringClass = matcher.group(1);
+				String methodName = matcher.group(2);
+				String file = matcher.group(3);
+				String lineNumber = matcher.group(4);
+				if ("Native Method".equals(file)) {
+					file = null;
+					lineNumber = "-2";
+				}
+				stes.add(new StackTraceElement(declaringClass, methodName, file,
+						lineNumber != null ? Integer.valueOf(lineNumber) : -1));
+			}
+			ex.setStackTrace(stes.toArray(StackTraceElement.class));
+			return ex;
+		}
+		catch (Exception ignored) {
+			return new IllegalStateException(
+					serviceException.getExceptionType() + ":" + serviceException.getMessage() + "\n"
+							+ serviceException.getStackTrace(),
+					cause);
+		}
 	}
 
 	/// <summary>
@@ -375,7 +429,7 @@ public class RESTClientInterceptor extends AbstractSimpleInterceptor
 		}
 	}
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings({"rawtypes", "unchecked"})
 	protected Object convertToExpectedType(Class<?> expectedType, Type genericType, Object result) {
 		if (void.class.equals(expectedType) || result == null) {
 			return null;

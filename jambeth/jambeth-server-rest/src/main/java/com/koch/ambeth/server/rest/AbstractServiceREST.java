@@ -312,6 +312,20 @@ public abstract class AbstractServiceREST {
 		return new Object[] {args};
 	}
 
+	protected AmbethServiceException convertThrowable(Throwable e) {
+		if (e == null) {
+			return null;
+		}
+		AmbethServiceException result = new AmbethServiceException();
+		StringBuilder sb = new StringBuilder();
+		AmbethLogger.printThrowable(e, sb, "\n", 0, false);
+		result.setMessage(e.getMessage());
+		result.setExceptionType(e.getClass().getName());
+		result.setStackTrace(sb.toString());
+		result.setCause(convertThrowable(e.getCause()));
+		return result;
+	}
+
 	protected StreamingOutput createExceptionResult(Throwable e, HttpServletRequest request,
 			final HttpServletResponse response) {
 		if (e.getClass().getName().equals(MaskingRuntimeException.class.getName())
@@ -322,12 +336,7 @@ public abstract class AbstractServiceREST {
 		if (beanContext != null && beanContext.isRunning() && !beanContext.isDisposing()) {
 			logException(e, null);
 		}
-		AmbethServiceException result = new AmbethServiceException();
-		StringBuilder sb = new StringBuilder();
-		AmbethLogger.extractFullStackTrace(e, sb);
-		result.setMessage(e.getMessage());
-		result.setExceptionType(e.getClass().getName());
-		result.setStackTrace(sb.toString());
+		AmbethServiceException result = convertThrowable(e);
 
 		int errorStatus = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 		if (e instanceof SecurityException) {
