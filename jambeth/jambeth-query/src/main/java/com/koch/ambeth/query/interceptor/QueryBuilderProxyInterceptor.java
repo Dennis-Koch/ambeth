@@ -15,7 +15,7 @@ import net.sf.cglib.proxy.MethodInterceptor;
 import net.sf.cglib.proxy.MethodProxy;
 
 public class QueryBuilderProxyInterceptor implements MethodInterceptor {
-	private static final Class<?>[] INTERFACES = new Class<?>[] { IPropertyPath.class };
+	private static final Class<?>[] INTERFACES = new Class<?>[] {IPropertyPath.class};
 
 	public static interface IPropertyPath {
 		String getPropertyPath();
@@ -93,9 +93,12 @@ public class QueryBuilderProxyInterceptor implements MethodInterceptor {
 		}
 		String propertyPath = this.propertyPath != null ? this.propertyPath + '.' + propertyName
 				: propertyName;
-		lastPropertyPathTL.set(propertyPath.toString());
+		lastPropertyPathTL.set(propertyPath);
 		if (Number.class.isAssignableFrom(elementType)) {
 			childPlan = elementType.getConstructor(String.class).newInstance("0");
+		}
+		else if (String.class.isAssignableFrom(elementType)) {
+			childPlan = propertyPath;
 		}
 		else {
 			childPlan = proxyFactory.createProxy(elementType, INTERFACES,
