@@ -291,8 +291,14 @@ public class BytecodeEnhancer
 					throw e;
 				}
 				catch (Throwable e) {
-					enhancedType = enhanceTypeIntern(typeToEnhance, newTypeNamePrefix, pendingBehaviors, hint,
-							enhancedTypesPipeline, typeClassLoader);
+					try {
+						enhancedType =
+								enhanceTypeIntern(typeToEnhance, newTypeNamePrefix, pendingBehaviors, hint,
+										enhancedTypesPipeline, typeClassLoader);
+					}
+					catch (Throwable ignored) {
+						throw RuntimeExceptionUtil.mask(e);
+					}
 					if (enhancedType == typeToEnhance) {
 						throw RuntimeExceptionUtil.mask(e);
 					}

@@ -3,6 +3,7 @@ package com.koch.ambeth.eclipse.databinding.bytecode;
 import org.eclipse.core.databinding.observable.list.IListChangeListener;
 import org.eclipse.core.databinding.observable.list.ListChangeEvent;
 import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.Type;
 
 import com.koch.ambeth.bytecode.ClassGenerator;
 import com.koch.ambeth.bytecode.MethodGenerator;
@@ -14,6 +15,7 @@ import com.koch.ambeth.eclipse.databinding.IListChangeListenerSource;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.merge.bytecode.EmbeddedEnhancementHint;
 import com.koch.ambeth.service.merge.model.IEntityMetaData;
+import com.koch.ambeth.util.ReflectUtil;
 import com.koch.ambeth.util.typeinfo.IPropertyInfoProvider;
 
 public class EclipseBindingClassVisitor extends ClassGenerator {
@@ -22,8 +24,11 @@ public class EclipseBindingClassVisitor extends ClassGenerator {
 	protected static final String templatePropertyName = "__" + templateType.getSimpleName();
 
 	public static final MethodInstance template_m_collectionChanged =
-			new MethodInstance(null, IListChangeListener.class, void.class,
-					"handleListChange", ListChangeEvent.class);
+			new MethodInstance(null, ReflectUtil.getDeclaredMethod(false, IListChangeListener.class,
+					void.class, "handleListChange", ListChangeEvent.class),
+					"(L" + Type.getType(ListChangeEvent.class).getInternalName() + "<+"
+							+ Type.getDescriptor(Object.class)
+							+ ">;)V");
 
 	public static final MethodInstance m_handleCollectionChange =
 			new MethodInstance(null, templateType, void.class, "handleListChange",

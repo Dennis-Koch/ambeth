@@ -754,16 +754,22 @@ public class CacheHelper
 		if (!Iterable.class.isAssignableFrom(expectedType)) {
 			return null;
 		}
+		Collection<?> coll = null;
 		if (Set.class.isAssignableFrom(expectedType)) {
 			if (relationalCollectionFactory != null) {
-				return relationalCollectionFactory.createSet(expectedType, elementType);
+				coll = relationalCollectionFactory.createSet(expectedType, elementType);
 			}
-			return new ObservableHashSet<>();
+			if (coll == null) {
+				coll = new ObservableHashSet<>();
+			}
 		}
-		if (relationalCollectionFactory != null) {
-			return relationalCollectionFactory.createList(expectedType, elementType);
+		else if (relationalCollectionFactory != null) {
+			coll = relationalCollectionFactory.createList(expectedType, elementType);
 		}
-		return new ObservableArrayList<>();
+		if (coll == null) {
+			coll = new ObservableArrayList<>();
+		}
+		return coll;
 	}
 
 	@SuppressWarnings({"unchecked", "rawtypes"})

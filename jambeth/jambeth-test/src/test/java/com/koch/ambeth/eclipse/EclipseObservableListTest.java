@@ -1,5 +1,8 @@
 package com.koch.ambeth.eclipse;
 
+import java.beans.BeanInfo;
+import java.beans.IntrospectionException;
+import java.beans.Introspector;
 import java.util.List;
 
 import org.eclipse.core.databinding.observable.Realm;
@@ -56,6 +59,13 @@ public class EclipseObservableListTest extends AbstractInformationBusWithPersist
 
 	@Autowired
 	protected IRevertChangesHelper revertChangesHelper;
+
+	@Test
+	public void testGenericInterface() throws IntrospectionException {
+		Class<?> enhancedType = entityMetaDataProvider.getMetaData(EntityA.class).getEnhancedType();
+		BeanInfo beanInfo = Introspector.getBeanInfo(enhancedType);
+		Assert.assertNotNull(beanInfo);
+	}
 
 	@Test
 	public void test() {

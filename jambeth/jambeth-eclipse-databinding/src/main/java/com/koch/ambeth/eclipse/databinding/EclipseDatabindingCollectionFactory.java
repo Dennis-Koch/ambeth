@@ -11,17 +11,24 @@ import com.koch.ambeth.cache.util.IRelationalCollectionFactory;
 import com.koch.ambeth.ioc.annotation.Autowired;
 
 public class EclipseDatabindingCollectionFactory implements IRelationalCollectionFactory {
-	public static final String P_REALM = "Realm";
 	@Autowired
-	protected Realm realm;
+	protected IRealmHolder realmHolder;
 
 	@Override
 	public List<?> createList(Class<?> expectedType, Class<?> elementType) {
+		Realm realm = realmHolder.getRealm();
+		if (realm == null) {
+			return null;
+		}
 		return new WritableList(realm);
 	}
 
 	@Override
 	public Set<?> createSet(Class<?> expectedType, Class<?> elementType) {
+		Realm realm = realmHolder.getRealm();
+		if (realm == null) {
+			return null;
+		}
 		return new WritableSet(realm);
 	}
 }

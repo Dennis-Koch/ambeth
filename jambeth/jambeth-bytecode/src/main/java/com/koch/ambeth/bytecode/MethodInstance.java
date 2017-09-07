@@ -157,9 +157,17 @@ public class MethodInstance {
 		this(Type.getType(method.getDeclaringClass()), method);
 	}
 
+	public MethodInstance(java.lang.reflect.Method method, String signature) {
+		this(Type.getType(method.getDeclaringClass()), method, signature);
+	}
+
 	public MethodInstance(Type owner, java.lang.reflect.Method method) {
+		this(owner, method, getSignature(method));
+	}
+
+	public MethodInstance(Type owner, java.lang.reflect.Method method, String signature) {
 		this(owner, TypeUtil.getModifiersToAccess(method.getModifiers()),
-				Type.getType(method.getReturnType()), method.getName(), getSignature(method),
+				Type.getType(method.getReturnType()), method.getName(), signature,
 				TypeUtil.getClassesToTypes(method.getParameterTypes()));
 	}
 

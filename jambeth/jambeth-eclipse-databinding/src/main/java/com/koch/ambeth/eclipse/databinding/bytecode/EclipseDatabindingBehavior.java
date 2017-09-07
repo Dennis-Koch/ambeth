@@ -59,8 +59,10 @@ public class EclipseDatabindingBehavior extends AbstractBehavior {
 						// NotifyPropertyChangedBehavior executes in this cascade
 						// add IPropertyChanged
 
-						visitor = new InterfaceAdder(visitor, IListChangeListener.class,
-								IListChangeListenerSource.class);
+						visitor = new InterfaceAdder(visitor, new String[] {
+								"Lorg/eclipse/core/databinding/observable/list/IListChangeListener<Ljava/lang/Object;>;",
+								null},
+								new Class<?>[] {IListChangeListener.class, IListChangeListenerSource.class});
 						visitor = beanContext.registerWithLifecycle(
 								new EclipseBindingClassVisitor(visitor, metaData, null)).finish();
 						return visitor;

@@ -18,7 +18,7 @@ public class EclipseBindingMixin
 	@Autowired
 	protected PropertyChangeMixin propertyChangeMixin;
 
-	public void handleListChange(Object obj, ListChangeEvent evnt) {
+	public void handleListChange(Object obj, ListChangeEvent<?> evnt) {
 		propertyChangeMixin.handleCollectionChange((INotifyPropertyChangedSource) obj, evnt,
 				evnt.getSource(), this);
 	}
@@ -26,8 +26,8 @@ public class EclipseBindingMixin
 	@Override
 	public void processCollectionChangeEvent(INotifyPropertyChangedSource obj, IPropertyInfo property,
 			Object evnt_anon, boolean isParentChildProperty) {
-		ListChangeEvent evnt = (ListChangeEvent) evnt_anon;
-		for (ListDiffEntry entry : evnt.diff.getDifferences()) {
+		ListChangeEvent<?> evnt = (ListChangeEvent<?>) evnt_anon;
+		for (ListDiffEntry<?> entry : evnt.diff.getDifferences()) {
 			Object item = entry.getElement();
 			if (entry.isAddition()) {
 				propertyChangeMixin.handleAddedItem(obj, property, item, isParentChildProperty);
@@ -38,6 +38,7 @@ public class EclipseBindingMixin
 		}
 	}
 
+	@SuppressWarnings({"rawtypes", "unchecked"})
 	@Override
 	public void handleAddedItem(INotifyPropertyChangedSource obj, IPropertyInfo property,
 			Object item, boolean isParentChildProperty) {
@@ -54,6 +55,7 @@ public class EclipseBindingMixin
 		((IObservableList) item).addListChangeListener(listChangeListener);
 	}
 
+	@SuppressWarnings({"rawtypes", "unchecked"})
 	@Override
 	public void handleRemovedItem(INotifyPropertyChangedSource obj, IPropertyInfo property,
 			Object item, boolean isParentChildProperty) {
