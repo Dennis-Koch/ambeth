@@ -51,5 +51,6 @@ public interface ISqlConnection {
 			CharSequence limitSql, int offset, int length, List<Object> parameters, String tableAlias);
 
 	IResultSet createResultSet(String tableName, String idFieldName, Class<?> idFieldType,
-			String fieldsSQL, String additionalWhereSQL, List<?> ids);
+			CharSequence fieldsSql, CharSequence additionalWhereSql, CharSequence orderBySql,
+			List<?> ids);
 }

@@ -140,7 +140,7 @@ public class SqlTable extends Table {
 			ResultSetCursor cursor = new ResultSetCursor();
 			cursor.setContainsVersion(versionField != null);
 			cursor.setResultSet(sqlConnection.createResultSet(getMetaData().getFullqualifiedEscapedName(),
-					idFieldName, idField.getFieldType(), selectSB.toString(), null, ids));
+					idFieldName, idField.getFieldType(), selectSB.toString(), null, null, ids));
 			cursor.setFields(cursorFields.toArray(IFieldMetaData.class));
 			cursor.afterPropertiesSet();
 			return cursor;
@@ -196,7 +196,7 @@ public class SqlTable extends Table {
 			}
 			IResultSet resultSet = sqlConnection.createResultSet(
 					getMetaData().getFullqualifiedEscapedName(), idFieldName, idFieldType,
-					selectSB.toString(), null, alternateIds);
+					selectSB.toString(), null, null, alternateIds);
 			ResultSetCursor cursor = new ResultSetCursor();
 			cursor.setContainsVersion(versionField != null);
 			cursor.setResultSet(resultSet);
@@ -230,7 +230,7 @@ public class SqlTable extends Table {
 			versionCursor.setContainsVersion(versionField != null);
 			versionCursor
 					.setResultSet(sqlConnection.createResultSet(getMetaData().getFullqualifiedEscapedName(),
-							idFieldName, idField.getFieldType(), selectSB.toString(), null, ids));
+							idFieldName, idField.getFieldType(), selectSB.toString(), null, null, ids));
 			versionCursor.afterPropertiesSet();
 			return versionCursor;
 		}
@@ -285,7 +285,7 @@ public class SqlTable extends Table {
 			versionCursor.setContainsVersion(versionField != null);
 			versionCursor
 					.setResultSet(sqlConnection.createResultSet(getMetaData().getFullqualifiedEscapedName(),
-							idFieldName, idFieldType, selectSB.toString(), null, alternateIds));
+							idFieldName, idFieldType, selectSB.toString(), null, null, alternateIds));
 			versionCursor.afterPropertiesSet();
 			return versionCursor;
 		}

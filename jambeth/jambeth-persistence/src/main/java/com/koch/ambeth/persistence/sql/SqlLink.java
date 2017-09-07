@@ -23,6 +23,7 @@ limitations under the License.
 import java.util.List;
 
 import com.koch.ambeth.ioc.annotation.Autowired;
+import com.koch.ambeth.ioc.config.Property;
 import com.koch.ambeth.persistence.IPersistenceHelper;
 import com.koch.ambeth.persistence.Link;
 import com.koch.ambeth.persistence.api.IDirectedLink;
@@ -31,6 +32,7 @@ import com.koch.ambeth.persistence.api.IFieldMetaData;
 import com.koch.ambeth.persistence.api.ILinkCursor;
 import com.koch.ambeth.persistence.api.ILinkMetaData;
 import com.koch.ambeth.persistence.api.sql.ISqlBuilder;
+import com.koch.ambeth.persistence.config.PersistenceConfigurationConstants;
 import com.koch.ambeth.util.IConversionHelper;
 import com.koch.ambeth.util.ParamChecker;
 import com.koch.ambeth.util.appendable.AppendableStringBuilder;
@@ -53,6 +55,9 @@ public class SqlLink extends Link {
 
 	@Autowired
 	protected IConversionHelper conversionHelper;
+
+	@Property(name = PersistenceConfigurationConstants.OrderedRelations, defaultValue = "false")
+	protected boolean orderedRelations;
 
 	@Override
 	public void afterPropertiesSet() {
@@ -84,6 +89,8 @@ public class SqlLink extends Link {
 		// 2) T,F WHERE F IN (?) findAllLinkedTo isToId=true
 		IThreadLocalObjectCollector current = objectCollector.getCurrent();
 		AppendableStringBuilder fieldNamesSB = current.create(AppendableStringBuilder.class);
+		AppendableStringBuilder orderBySqlSB =
+				orderedRelations ? current.create(AppendableStringBuilder.class) : null;
 		try {
 			IDirectedLinkMetaData fromLinkMetaData = fromLink.getMetaData();
 			IFieldMetaData fromField = fromLinkMetaData.getFromField();
@@ -113,11 +120,16 @@ public class SqlLink extends Link {
 			fieldNamesSB.reset();
 			sqlBuilder.appendName(wantedField.getName(), fieldNamesSB);
 			fieldNamesSB.append(" IS NOT NULL");
-			String whereSQL = fieldNamesSB.toString();
+
+			if (orderBySqlSB != null) {
+				orderBySqlSB.append("ORDER BY ");
+				sqlBuilder.appendName(wantedField.getName(), orderBySqlSB);
+				orderBySqlSB.append(" ASC");
+			}
 
 			IResultSet resultSet = sqlConnection.createResultSet(
 					getMetaData().getFullqualifiedEscapedTableName(), whereField.getName(),
-					whereField.getFieldType(), fieldNames, whereSQL, fromOrToIds);
+					whereField.getFieldType(), fieldNames, fieldNamesSB, orderBySqlSB, fromOrToIds);
 
 			ResultSetLinkCursor linkCursor = new ResultSetLinkCursor();
 			linkCursor.setFromIdIndex(fromField.getIdIndex());
@@ -128,6 +140,9 @@ public class SqlLink extends Link {
 			return linkCursor;
 		}
 		finally {
+			if (orderBySqlSB != null) {
+				current.dispose(orderBySqlSB);
+			}
 			current.dispose(fieldNamesSB);
 		}
 	}
@@ -340,8 +355,7 @@ public class SqlLink extends Link {
 	 *
 	 * @param fromTable
 	 * @param fromId
-	 * @param toIds
-	 *          For 1:n version
+	 * @param toIds For 1:n version
 	 */
 	private void unlinkByUpdate(IDirectedLink fromLink, Object fromId, List<?> toIds) {
 		IThreadLocalObjectCollector current = objectCollector.getCurrent();

@@ -322,14 +322,15 @@ public abstract class SqlConnection implements ISqlConnection, IInitializingBean
 
 	@Override
 	public IResultSet createResultSet(final String tableName, final String idFieldName,
-			final Class<?> idFieldType, final String fieldsSQL, final String additionalWhereSQL,
+			final Class<?> idFieldType, CharSequence fieldsSql,
+			CharSequence additionalWhereSql, CharSequence orderBySql,
 			List<?> ids) {
 		if (ids == null || ids.isEmpty()) {
 			return EmptyResultSet.instance;
 		}
 		if (ids.size() <= maxInClauseBatchThreshold) {
-			return createResultSetIntern(tableName, idFieldName, idFieldType, fieldsSQL,
-					additionalWhereSQL, ids);
+			return createResultSetIntern(tableName, idFieldName, idFieldType, fieldsSql,
+					additionalWhereSql, orderBySql, ids);
 		}
 		IList<IList<Object>> splitValues = persistenceHelper.splitValues(ids,
 				maxInClauseBatchThreshold);
@@ -337,6 +338,10 @@ public abstract class SqlConnection implements ISqlConnection, IInitializingBean
 		ArrayList<IResultSetProvider> resultSetProviderStack = new ArrayList<>(splitValues.size());
 		// Stack gets evaluated last->first so back iteration is correct to execute the sql in order
 		// later
+		final String unmod_fieldsSql = fieldsSql != null ? fieldsSql.toString() : null;
+		final String unmod_additionalWhereSql =
+				additionalWhereSql != null ? additionalWhereSql.toString() : null;
+		final String unmod_orderBySql = orderBySql != null ? orderBySql.toString() : null;
 		for (int a = splitValues.size(); a-- > 0;) {
 			final IList<Object> values = splitValues.get(a);
 			resultSetProviderStack.add(new IResultSetProvider() {
@@ -347,8 +352,8 @@ public abstract class SqlConnection implements ISqlConnection, IInitializingBean
 
 				@Override
 				public IResultSet getResultSet() {
-					return createResultSetIntern(tableName, idFieldName, idFieldType, fieldsSQL,
-							additionalWhereSQL, values);
+					return createResultSetIntern(tableName, idFieldName, idFieldType, unmod_fieldsSql,
+							unmod_additionalWhereSql, unmod_orderBySql, values);
 				}
 			});
 		}
@@ -359,7 +364,8 @@ public abstract class SqlConnection implements ISqlConnection, IInitializingBean
 	}
 
 	protected IResultSet createResultSetIntern(String tableName, String idFieldName,
-			Class<?> idFieldType, String fieldsSQL, String additionalWhereSQL, List<?> ids) {
+			Class<?> idFieldType, CharSequence fieldsSQL, CharSequence additionalWhereSQL,
+			CharSequence orderBySQL, List<?> ids) {
 		IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
 		ArrayList<Object> parameters = new ArrayList<>();
 		AppendableStringBuilder whereSB = tlObjectCollector.create(AppendableStringBuilder.class);
@@ -368,12 +374,7 @@ public abstract class SqlConnection implements ISqlConnection, IInitializingBean
 			if (additionalWhereSQL != null) {
 				whereSB.append(" AND ").append(additionalWhereSQL);
 			}
-			// if (forceOrder)
-			// {
-			// whereSB.Append(" ORDER BY ");
-			// SqlBuilder.Append(idFieldName, whereSB);
-			// }
-			return selectFields(tableName, fieldsSQL, whereSB, null, null, parameters);
+			return selectFields(tableName, fieldsSQL, whereSB, orderBySQL, null, parameters);
 		}
 		finally {
 			tlObjectCollector.dispose(whereSB);

@@ -37,6 +37,14 @@ public final class PersistenceConfigurationConstants {
 	@ConfigurationConstantDescription("TODO")
 	public static final String FetchSize = "persistence.fetchsize";
 
+	/**
+	 * If specified to true to-many relations are resolved from the persistence in deterministic
+	 * order: That is the target relations are ordered by their primary key to allow some "natively
+	 * sorted list". Note that performance-wise this sorting implies a small overhead penalty. It
+	 * defaults to false
+	 */
+	public static final String OrderedRelations = "persistence.relations.ordered";
+
 	@ConfigurationConstantDescription("TODO")
 	public static final String DatabasePoolMaxPending = "database.pool.maxpending";
 
