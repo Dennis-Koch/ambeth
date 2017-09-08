@@ -741,6 +741,20 @@ public class ChildCache extends AbstractCache<Object>
 	}
 
 	@Override
+	protected void putInternPersistedEntity(Object entity) {
+		ICacheIntern targetCache = ((IValueHolderContainer) entity).get__TargetCache();
+		if (targetCache != null) {
+			if (targetCache == gcProxy) {
+				return;
+			}
+			throw new IllegalStateException(
+					"Entity '" + entity + "' is owned by another cache: '" + targetCache + "'");
+		}
+		assignEntityToCache(entity);
+		super.putInternPersistedEntity(entity);
+	}
+
+	@Override
 	protected void putInternUnpersistedEntity(Object entity) {
 		assignEntityToCache(entity);
 		super.putInternUnpersistedEntity(entity);

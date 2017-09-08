@@ -605,6 +605,7 @@ public abstract class AbstractCache<V> implements ICache, IInitializingBean, IDi
 			else {
 				hardRefsToCacheValue.add(cacheValue);
 			}
+			putInternPersistedEntity(objectToCache);
 		}
 		else {
 			putInternUnpersistedEntity(objectToCache);
@@ -614,6 +615,10 @@ public abstract class AbstractCache<V> implements ICache, IInitializingBean, IDi
 		for (int a = relationValues.size(); a-- > 0;) {
 			putIntern(relationValues.get(a), hardRefsToCacheValue, alreadyHandledSet, cascadeNeededORIs);
 		}
+	}
+
+	protected void putInternPersistedEntity(Object entity) {
+		// Intended blank
 	}
 
 	protected void putInternUnpersistedEntity(Object entity) {
