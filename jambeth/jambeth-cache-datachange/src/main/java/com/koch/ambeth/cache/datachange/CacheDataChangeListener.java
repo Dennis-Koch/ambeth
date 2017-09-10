@@ -20,7 +20,6 @@ limitations under the License.
  * #L%
  */
 
-import java.util.Collection;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
@@ -83,9 +82,10 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
 	protected static final Set<CacheDirective> cacheValueResultAndReturnMissesSet = EnumSet
 			.of(CacheDirective.CacheValueResult, CacheDirective.ReturnMisses);
 
-	protected static final Set<CacheDirective> failInCacheHierarchyAndCacheValueResultAndReturnMissesSet = EnumSet
-			.of(CacheDirective.FailInCacheHierarchy, CacheDirective.CacheValueResult,
-					CacheDirective.ReturnMisses);
+	protected static final Set<CacheDirective> failInCacheHierarchyAndCacheValueResultAndReturnMissesSet =
+			EnumSet
+					.of(CacheDirective.FailInCacheHierarchy, CacheDirective.CacheValueResult,
+							CacheDirective.ReturnMisses);
 
 	@Autowired
 	protected ICacheModification cacheModification;
@@ -350,7 +350,8 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
 		IList<IWritableCache> selectedFirstLevelCaches = firstLevelCacheManager
 				.selectFirstLevelCaches();
 
-		IdentityHashMap<IRootCache, CacheDependencyNode> secondLevelCacheToNodeMap = new IdentityHashMap<>();
+		IdentityHashMap<IRootCache, CacheDependencyNode> secondLevelCacheToNodeMap =
+				new IdentityHashMap<>();
 		if (privilegedSecondLevelCache != null) {
 			CacheDependencyNodeFactory.addRootCache(privilegedSecondLevelCache.getCurrentRootCache(),
 					secondLevelCacheToNodeMap);
@@ -456,7 +457,8 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
 					if (objRefWithVersion.getVersion() != null) {
 						IEntityMetaData metaData = ((IEntityMetaDataHolder) result).get__EntityMetaData();
 						Object versionInCache = metaData.getVersionMember() != null
-								? metaData.getVersionMember().getValue(result, false) : null;
+								? metaData.getVersionMember().getValue(result, false)
+								: null;
 						if (versionInCache != null && ((Comparable<Object>) objRefWithVersion.getVersion())
 								.compareTo(versionInCache) <= 0) {
 							continue;
@@ -485,49 +487,6 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
 		for (int a = childNodes.size(); a-- > 0;) {
 			buildCacheChangeItems(childNodes.get(a), deletesToSearchInCache, changesToSearchInCache,
 					changesWithVersion);
-		}
-	}
-
-	protected void scanForInitializedObjects(Object obj, Set<Object> alreadyScannedObjects,
-			Set<IObjRef> objRefs) {
-		if (obj == null || !alreadyScannedObjects.add(obj)) {
-			return;
-		}
-		if (obj instanceof List) {
-			List<?> list = (List<?>) obj;
-			for (int a = list.size(); a-- > 0;) {
-				Object item = list.get(a);
-				scanForInitializedObjects(item, alreadyScannedObjects, objRefs);
-			}
-			return;
-		}
-		if (obj instanceof Collection) {
-			for (Object item : (Collection<?>) obj) {
-				scanForInitializedObjects(item, alreadyScannedObjects, objRefs);
-			}
-			return;
-		}
-		IEntityMetaData metaData = ((IEntityMetaDataHolder) obj).get__EntityMetaData();
-		Object id = metaData.getIdMember().getValue(obj, false);
-		if (id == null) {
-			// This may happen if a normally retrieved object gets deleted and therefore has lost its
-			// primary id
-			// TODO: The object is still contained in the cache, maybe this should be reviewed
-			return;
-		}
-		ObjRef objRef = new ObjRef(metaData.getEntityType(), ObjRef.PRIMARY_KEY_INDEX, id, null);
-		objRefs.add(objRef);
-		RelationMember[] relationMembers = metaData.getRelationMembers();
-		if (relationMembers.length == 0) {
-			return;
-		}
-		IObjRefContainer vhc = (IObjRefContainer) obj;
-		for (int relationIndex = relationMembers.length; relationIndex-- > 0;) {
-			if (ValueHolderState.INIT != vhc.get__State(relationIndex)) {
-				continue;
-			}
-			Object value = relationMembers[relationIndex].getValue(obj, false);
-			scanForInitializedObjects(value, alreadyScannedObjects, objRefs);
 		}
 	}
 

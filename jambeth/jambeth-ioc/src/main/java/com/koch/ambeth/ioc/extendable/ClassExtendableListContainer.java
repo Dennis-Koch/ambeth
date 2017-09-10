@@ -26,6 +26,7 @@ import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.EmptyList;
 import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.IListElem;
+import com.koch.ambeth.util.collections.IdentityHashSet;
 import com.koch.ambeth.util.collections.InterfaceFastList;
 
 public class ClassExtendableListContainer<V> extends ClassExtendableContainer<V> {
@@ -101,13 +102,16 @@ public class ClassExtendableListContainer<V> extends ClassExtendableContainer<V>
 			}
 			return;
 		}
+		IdentityHashSet<Object> usedExtensions = new IdentityHashSet<>();
 		IListElem<DefEntry<V>> pointer = ((InterfaceFastList<DefEntry<V>>) obj).first();
 		while (pointer != null) {
 			V extension = pointer.getElemValue().extension;
+			usedExtensions.add(extension);
 			if (!list.contains(extension)) {
 				list.add(extension);
 			}
 			pointer = pointer.getNext();
 		}
+		list.retainAll(usedExtensions);
 	}
 }

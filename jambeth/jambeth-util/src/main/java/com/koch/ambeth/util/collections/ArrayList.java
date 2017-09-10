@@ -30,6 +30,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Set;
 
 import com.koch.ambeth.util.EqualsUtil;
 import com.koch.ambeth.util.IPrintable;
@@ -500,7 +501,40 @@ public class ArrayList<V> implements IList<V>, Externalizable, IPrintable, Clone
 
 	@Override
 	public boolean retainAll(final Collection<?> c) {
-		throw new UnsupportedOperationException();
+		if (c.size() == 0) {
+			if (isEmpty()) {
+				return false;
+			}
+			clear();
+			return true;
+		}
+		boolean changed = false;
+		if (c instanceof Set) {
+			Object[] array = this.array;
+			Object[] newArray = new Object[c.size()];
+			int newSize = 0;
+			for (int a = 0, size = size(); a < size; a++) {
+				Object item = array[a];
+				if (c.contains(item)) {
+					newArray[newSize] = item;
+					newSize++;
+				}
+				else {
+					changed = true;
+				}
+			}
+			this.array = newArray;
+			size = newSize;
+			return changed;
+		}
+		Object[] array = this.array;
+		for (int a = size(); a-- > 0;) {
+			if (!c.contains(array[a])) {
+				changed = true;
+				remove(a);
+			}
+		}
+		return changed;
 	}
 
 	@Override

@@ -53,6 +53,7 @@ import com.koch.ambeth.merge.transfer.RelationUpdateItem;
 import com.koch.ambeth.merge.transfer.UpdateContainer;
 import com.koch.ambeth.service.config.ServiceConfigurationConstants;
 import com.koch.ambeth.service.merge.model.IObjRef;
+import com.koch.ambeth.util.ParamHolder;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.IdentityHashSet;
@@ -305,6 +306,7 @@ public class MergeProcess implements IMergeProcess {
 			}
 			final String uuid = UUID.randomUUID().toString();
 			final CountDownLatch latch;
+			final ParamHolder<IDataChange> foreignThreadDCE = new ParamHolder<>();
 			final IEventListener listenOnce;
 			if (isNetworkClientMode) {
 				latch = new CountDownLatch(1);
@@ -315,13 +317,15 @@ public class MergeProcess implements IMergeProcess {
 						// wait for the DCE corresponding to our merge process is dispatched
 						IDataChange dataChange = (IDataChange) eventObject;
 						String[] causingUUIDs = dataChange.getCausingUUIDs();
-						if (causingUUIDs != null) {
-							for (String causingUUID : causingUUIDs) {
-								if (uuid.equals(causingUUID)) {
-									eventListenerExtendable.unregisterEventListener(this, IDataChange.class);
-									latch.countDown();
-									return;
-								}
+						if (causingUUIDs == null) {
+							return;
+						}
+						for (String causingUUID : causingUUIDs) {
+							if (uuid.equals(causingUUID)) {
+								eventListenerExtendable.unregisterEventListener(this, IDataChange.class);
+								foreignThreadDCE.setValue(dataChange);
+								latch.countDown();
+								return;
 							}
 						}
 					}
@@ -377,9 +381,10 @@ public class MergeProcess implements IMergeProcess {
 					latch.await();
 				}
 				catch (InterruptedException e) {
-					Thread.interrupted(); // clear flag
 					throw RuntimeExceptionUtil.mask(e);
 				}
+				IDataChange dataChange = foreignThreadDCE.getValue();
+				eventDispatcher.dispatchEvent(dataChange);
 			}
 		}
 		if (unpersistedObjectsToDelete != null && !unpersistedObjectsToDelete.isEmpty()) {
