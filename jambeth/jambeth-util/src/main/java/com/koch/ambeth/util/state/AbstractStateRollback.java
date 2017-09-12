@@ -75,6 +75,9 @@ public abstract class AbstractStateRollback implements IStateRollback {
 		}
 		else if (rollbacks.length == 1) {
 			rollback = rollbacks[0];
+			if (rollback == NoOpStateRollback.instance) {
+				rollback = null;
+			}
 			rollbacks = null;
 		}
 		this.rollbacks = rollbacks;

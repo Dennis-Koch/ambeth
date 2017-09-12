@@ -22,8 +22,34 @@ limitations under the License.
 
 import com.koch.ambeth.util.IDisposable;
 
+/**
+ * Created by {@link IGarbageProxyFactory#createGarbageProxyConstructor(Class, Class...)} to allow
+ * very fast instantiation of "GarbageProxy" instances sharing the same contract (=generic type "T")
+ * at runtime.
+ *
+ * @param <T>
+ */
 public abstract class IGarbageProxyConstructor<T> {
+	/**
+	 * Creates an instance of a "GarbageProxy" implementing the necessary contracts and forwarding all
+	 * calls to the given target. This is a convience overloads for
+	 * {@link #createInstance(Object, IDisposable)} where the target is also the
+	 * <code>Disposable</code>.
+	 *
+	 * @param target The target to forward to contract calls to and also used as the
+	 *        <code>Disposable</code> to call during the finalize() phase of the "GarbageProxy"
+	 * @return An instance of "GarbageProxy" implementing all requested interfaces
+	 */
 	public abstract T createInstance(IDisposable target);
 
+	/**
+	 * Creates an instance of a "GarbageProxy" implementing the necessary contracts and forwarding all
+	 * calls to the given target.
+	 *
+	 * @param target The target to forward to contract calls to
+	 * @param disposable The <code>Disposable</code> to call during the finalize() phase of the
+	 *        "GarbageProxy"
+	 * @return An instance of "GarbageProxy" implementing all requested interfaces
+	 */
 	public abstract T createInstance(Object target, IDisposable disposable);
 }
