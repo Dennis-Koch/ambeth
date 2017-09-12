@@ -31,6 +31,8 @@ import java.util.Set;
 
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.config.Property;
+import com.koch.ambeth.merge.IDeepScanRecursion.EntityDelegate;
+import com.koch.ambeth.merge.IDeepScanRecursion.Proceed;
 import com.koch.ambeth.merge.cache.CacheDirective;
 import com.koch.ambeth.merge.cache.CacheFactoryDirective;
 import com.koch.ambeth.merge.cache.ICache;
@@ -47,6 +49,7 @@ import com.koch.ambeth.merge.model.IOriCollection;
 import com.koch.ambeth.merge.model.IRelationUpdateItem;
 import com.koch.ambeth.merge.model.IUpdateItem;
 import com.koch.ambeth.merge.model.RelationUpdateItemBuild;
+import com.koch.ambeth.merge.proxy.IEntityMetaDataHolder;
 import com.koch.ambeth.merge.proxy.IObjRefContainer;
 import com.koch.ambeth.merge.security.ISecurityActivation;
 import com.koch.ambeth.merge.transfer.ObjRef;
@@ -68,7 +71,6 @@ import com.koch.ambeth.util.collections.EmptySet;
 import com.koch.ambeth.util.collections.HashSet;
 import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.ISet;
-import com.koch.ambeth.util.collections.IdentityHashSet;
 import com.koch.ambeth.util.collections.LinkedHashMap;
 import com.koch.ambeth.util.model.IDataObject;
 import com.koch.ambeth.util.threading.IBackgroundWorkerDelegate;
@@ -89,6 +91,9 @@ public class MergeController implements IMergeController, IMergeExtendable {
 
 	@Autowired
 	protected IConversionHelper conversionHelper;
+
+	@Autowired
+	protected IDeepScanRecursion deepScanRecursion;
 
 	@Autowired
 	protected IEntityMetaDataProvider entityMetaDataProvider;
@@ -586,87 +591,93 @@ public class MergeController implements IMergeController, IMergeExtendable {
 		return !equalsReferenceOrId(objValue, cloneValue, handle, metaData);
 	}
 
-	@SuppressWarnings({"unchecked", "rawtypes"})
-	protected void merge(final Object obj, final Object clone, final MergeHandle handle) {
+	protected void merge(Object obj, Object clone, MergeHandle handle) {
 		IEntityMetaDataProvider entityMetaDataProvider = this.entityMetaDataProvider;
 		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(obj.getClass());
 
 		boolean fieldBasedMergeActive = handle.isFieldBasedMergeActive();
 		boolean oneChangeOccured = false;
-		try {
-			RelationMember[] relationMembers = metaData.getRelationMembers();
-			if (relationMembers.length > 0) {
-				IObjRefContainer vhc = (IObjRefContainer) obj;
+		RelationMember[] relationMembers = metaData.getRelationMembers();
+		if (relationMembers.length > 0) {
+			IObjRefContainer vhc = (IObjRefContainer) obj;
 
-				for (int relationIndex = relationMembers.length; relationIndex-- > 0;) {
-					RelationMember relationMember = relationMembers[relationIndex];
-					if (!metaData.isMergeRelevant(relationMember)) {
+			for (int relationIndex = relationMembers.length; relationIndex-- > 0;) {
+				RelationMember relationMember = relationMembers[relationIndex];
+				if (!metaData.isMergeRelevant(relationMember)) {
+					continue;
+				}
+				if (!vhc.is__Initialized(relationIndex)) {
+					// v2 valueholder is not initialized. so a change is impossible
+					continue;
+				}
+				Object objMember = relationMember.getValue(obj, false);
+				Object cloneMember = relationMember.getValue(clone, false);
+				if (objMember instanceof IDataObject && !((IDataObject) objMember).hasPendingChanges()) {
+					IEntityMetaData relationMetaData = entityMetaDataProvider
+							.getMetaData(relationMember.getRealType());
+					if (equalsReferenceOrId(objMember, cloneMember, handle, relationMetaData)) {
 						continue;
-					}
-					if (ValueHolderState.INIT != vhc.get__State(relationIndex)) {
-						// v2 valueholder is not initialized. so a change is impossible
-						continue;
-					}
-					Object objMember = relationMember.getValue(obj, false);
-					Object cloneMember = relationMember.getValue(clone, false);
-					if (objMember instanceof IDataObject && !((IDataObject) objMember).hasPendingChanges()) {
-						IEntityMetaData relationMetaData = entityMetaDataProvider
-								.getMetaData(relationMember.getRealType());
-						if (equalsReferenceOrId(objMember, cloneMember, handle, relationMetaData)) {
-							continue;
-						}
-					}
-
-					IEntityMetaData childMetaData = entityMetaDataProvider
-							.getMetaData(relationMember.getElementType());
-
-					if (isMemberModified(objMember, cloneMember, handle, childMetaData)) {
-						oneChangeOccured = true;
-						addOriModification(obj, relationMember.getName(), objMember, cloneMember, handle);
 					}
 				}
-			}
-			if (fieldBasedMergeActive) {
-				mergePrimitivesFieldBased(metaData, obj, clone, handle);
-				return;
-			}
-			boolean additionalRound;
-			do {
-				additionalRound = !oneChangeOccured;
-				for (Member primitiveMember : metaData.getPrimitiveMembers()) {
-					if (!metaData.isMergeRelevant(primitiveMember)) {
-						continue;
-					}
-					Object objValue = primitiveMember.getValue(obj, true);
-					if (oneChangeOccured) {
-						addModification(obj, primitiveMember.getName(), primitiveMember.getElementType(),
-								objValue, null, handle);
-						continue;
-					}
-					Object cloneValue = primitiveMember.getValue(clone, true);
-					if (!arePrimitivesEqual(metaData, primitiveMember, objValue, cloneValue, handle)) {
-						oneChangeOccured = true;
-						break;
-					}
+
+				IEntityMetaData childMetaData = entityMetaDataProvider
+						.getMetaData(relationMember.getElementType());
+
+				if (isMemberModified(objMember, cloneMember, handle, childMetaData)) {
+					oneChangeOccured = true;
+					addOriModification(obj, relationMember.getName(), objMember, cloneMember, handle);
 				}
 			}
-			while (additionalRound && oneChangeOccured);
 		}
-		finally {
-			Member versionMember = metaData.getVersionMember();
-			if (oneChangeOccured && versionMember != null) {
-				// Check for early optimistic locking (Another, later level is directly on
-				// persistence
-				// layer)
-				Object versionToMerge = versionMember.getValue(obj, true);
-				Object currentVersion = versionMember.getValue(clone, true);
-
-				int compareResult = ((Comparable) versionToMerge).compareTo(currentVersion);
-				if (exactVersionForOptimisticLockingRequired ? compareResult != 0 : compareResult < 0) {
-					throw OptimisticLockUtil.throwModified(oriHelper.entityToObjRef(clone), versionToMerge,
-							obj);
+		if (fieldBasedMergeActive) {
+			mergePrimitivesFieldBased(metaData, obj, clone, handle);
+			if (oneChangeOccured) {
+				checkOptimisticLock(obj, clone, metaData);
+			}
+			return;
+		}
+		boolean additionalRound;
+		do {
+			additionalRound = !oneChangeOccured;
+			for (Member primitiveMember : metaData.getPrimitiveMembers()) {
+				if (!metaData.isMergeRelevant(primitiveMember)) {
+					continue;
+				}
+				Object objValue = primitiveMember.getValue(obj, true);
+				if (oneChangeOccured) {
+					addModification(obj, primitiveMember.getName(), primitiveMember.getElementType(),
+							objValue, null, handle);
+					continue;
+				}
+				Object cloneValue = primitiveMember.getValue(clone, true);
+				if (!arePrimitivesEqual(metaData, primitiveMember, objValue, cloneValue, handle)) {
+					oneChangeOccured = true;
+					break;
 				}
 			}
+		}
+		while (additionalRound && oneChangeOccured);
+
+		if (oneChangeOccured) {
+			checkOptimisticLock(obj, clone, metaData);
+		}
+	}
+
+	@SuppressWarnings({"unchecked", "rawtypes"})
+	private void checkOptimisticLock(Object obj, Object clone, IEntityMetaData metaData) {
+		Member versionMember = metaData.getVersionMember();
+		if (versionMember == null) {
+			return;
+		}
+		// Check for early optimistic locking (Another, later level is directly on
+		// persistence layer)
+		Object versionToMerge = versionMember.getValue(obj, true);
+		Object currentVersion = versionMember.getValue(clone, true);
+
+		int compareResult = ((Comparable) versionToMerge).compareTo(currentVersion);
+		if (exactVersionForOptimisticLockingRequired ? compareResult != 0 : compareResult < 0) {
+			throw OptimisticLockUtil.throwModified(oriHelper.entityToObjRef(clone), versionToMerge,
+					obj);
 		}
 	}
 
@@ -890,109 +901,74 @@ public class MergeController implements IMergeController, IMergeExtendable {
 	}
 
 	@Override
-	public IList<Object> scanForInitializedObjects(Object obj, boolean isDeepMerge,
-			Map<Class<?>, IList<Object>> typeToObjectsToMerge, List<IObjRef> objRefs,
-			List<IObjRef> privilegedObjRefs, List<ValueHolderRef> valueHolderKeys) {
-		ArrayList<Object> objects = new ArrayList<>();
-		IdentityHashSet<Object> alreadyHandledObjectsSet = new IdentityHashSet<>();
-		scanForInitializedObjectsIntern(obj, isDeepMerge, objects, typeToObjectsToMerge,
-				alreadyHandledObjectsSet, objRefs, privilegedObjRefs, valueHolderKeys);
+	public IList<Object> scanForInitializedObjects(Object obj, final boolean isDeepMerge,
+			final Map<Class<?>, IList<Object>> typeToObjectsToMerge, final List<IObjRef> objRefs,
+			final List<IObjRef> privilegedObjRefs, final List<ValueHolderRef> valueHolderKeys) {
+		final ArrayList<Object> objects = new ArrayList<>();
+		deepScanRecursion.handleDeep(obj, new EntityDelegate() {
+			@Override
+			public boolean visitEntity(Object entity, Proceed p) {
+				IEntityMetaData metaData = ((IEntityMetaDataHolder) entity).get__EntityMetaData();
+				IObjRef objRef = null;
+				if (objects != null || objRefs != null || privilegedObjRefs != null
+						|| valueHolderKeys != null) {
+					Object id = metaData.getIdMember().getValue(entity, false);
+					boolean isEntityFromPrivilegedCache = false;
+					if (id != null) {
+						objRef =
+								objRefFactory.createObjRef(metaData.getEntityType(), ObjRef.PRIMARY_KEY_INDEX, id,
+										null);
+						ICache cache = ((IObjRefContainer) entity).get__Cache();
+						isEntityFromPrivilegedCache = cache.isPrivileged();
+					}
+					if (!(entity instanceof IDataObject) || ((IDataObject) entity).hasPendingChanges()) {
+						if (typeToObjectsToMerge != null) {
+							IList<Object> objectsToMerge = typeToObjectsToMerge.get(metaData.getEntityType());
+							if (objectsToMerge == null) {
+								objectsToMerge = new ArrayList<>();
+								typeToObjectsToMerge.put(metaData.getEntityType(), objectsToMerge);
+							}
+							objectsToMerge.add(entity);
+						}
+						objects.add(entity);
+						if (isEntityFromPrivilegedCache) {
+							if (privilegedObjRefs != null) {
+								privilegedObjRefs.add(objRef);
+							}
+						}
+						else {
+							if (objRefs != null) {
+								objRefs.add(objRef);
+							}
+						}
+					}
+				}
+				if (!isDeepMerge) {
+					return true;
+				}
+				RelationMember[] relationMembers = metaData.getRelationMembers();
+				if (relationMembers.length == 0) {
+					return true;
+				}
+				IObjRefContainer vhc = (IObjRefContainer) entity;
+				for (int relationIndex = relationMembers.length; relationIndex-- > 0;) {
+					if (!vhc.is__Initialized(relationIndex)) {
+						continue;
+					}
+					RelationMember relationMember = relationMembers[relationIndex];
+					Object item = relationMember.getValue(entity);
+					if (valueHolderKeys != null && objRef != null && item != null) {
+						ValueHolderRef vhk = new ValueHolderRef(objRef, relationMember, relationIndex);
+						valueHolderKeys.add(vhk);
+					}
+					if (!p.proceed(item)) {
+						return false;
+					}
+				}
+				return true;
+			}
+		});
 		return objects;
-	}
-
-	protected void scanForInitializedObjectsIntern(Object obj, boolean isDeepMerge,
-			List<Object> objects, Map<Class<?>, IList<Object>> typeToObjectsToMerge,
-			ISet<Object> alreadyHandledObjectsSet, List<IObjRef> objRefs, List<IObjRef> privilegedObjRefs,
-			List<ValueHolderRef> valueHolderKeys) {
-		if (obj == null || !alreadyHandledObjectsSet.add(obj)) {
-			return;
-		}
-		if (obj instanceof List) {
-			List<?> list = (List<?>) obj;
-			for (int a = 0, size = list.size(); a < size; a++) {
-				scanForInitializedObjectsIntern(list.get(a), isDeepMerge, objects, typeToObjectsToMerge,
-						alreadyHandledObjectsSet, objRefs, privilegedObjRefs, valueHolderKeys);
-			}
-			return;
-		}
-		else if (obj instanceof Iterable) {
-			for (Object item : (Iterable<?>) obj) {
-				scanForInitializedObjectsIntern(item, isDeepMerge, objects, typeToObjectsToMerge,
-						alreadyHandledObjectsSet, objRefs, privilegedObjRefs, valueHolderKeys);
-			}
-			return;
-		}
-		else if (obj.getClass().isArray()) {
-			if (obj.getClass().getComponentType().isPrimitive()) {
-				// primitive arrays can not be casted to Object[]
-				return;
-			}
-			// This is valid for non-native arrays in java
-			Object[] array = (Object[]) obj;
-			for (int a = array.length; a-- > 0;) {
-				Object item = array[a];
-				scanForInitializedObjectsIntern(item, isDeepMerge, objects, typeToObjectsToMerge,
-						alreadyHandledObjectsSet, objRefs, privilegedObjRefs, valueHolderKeys);
-			}
-			return;
-		}
-		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(obj.getClass(), true);
-		if (metaData == null) {
-			return;
-		}
-		IObjRef objRef = null;
-		if (objects != null || objRefs != null || privilegedObjRefs != null
-				|| valueHolderKeys != null) {
-			Object id = metaData.getIdMember().getValue(obj, false);
-			boolean isEntityFromPrivilegedCache = false;
-			if (id != null) {
-				objRef = objRefFactory.createObjRef(metaData.getEntityType(), ObjRef.PRIMARY_KEY_INDEX, id,
-						null);
-				isEntityFromPrivilegedCache = ((IObjRefContainer) obj).get__Cache().isPrivileged();
-			}
-			if (!(obj instanceof IDataObject) || ((IDataObject) obj).hasPendingChanges()) {
-				if (typeToObjectsToMerge != null) {
-					IList<Object> objectsToMerge = typeToObjectsToMerge.get(metaData.getEntityType());
-					if (objectsToMerge == null) {
-						objectsToMerge = new ArrayList<>();
-						typeToObjectsToMerge.put(metaData.getEntityType(), objectsToMerge);
-					}
-					objectsToMerge.add(obj);
-				}
-				objects.add(obj);
-				if (isEntityFromPrivilegedCache) {
-					if (privilegedObjRefs != null) {
-						privilegedObjRefs.add(objRef);
-					}
-				}
-				else {
-					if (objRefs != null) {
-						objRefs.add(objRef);
-					}
-				}
-			}
-		}
-		if (!isDeepMerge) {
-			return;
-		}
-		RelationMember[] relationMembers = metaData.getRelationMembers();
-		if (relationMembers.length == 0) {
-			return;
-		}
-		IObjRefContainer vhc = (IObjRefContainer) obj;
-		for (int relationIndex = relationMembers.length; relationIndex-- > 0;) {
-			if (ValueHolderState.INIT != vhc.get__State(relationIndex)) {
-				continue;
-			}
-			RelationMember relationMember = relationMembers[relationIndex];
-			Object item = relationMember.getValue(obj);
-			if (valueHolderKeys != null && objRef != null && item != null) {
-				ValueHolderRef vhk = new ValueHolderRef(objRef, relationMember, relationIndex);
-				valueHolderKeys.add(vhk);
-			}
-			scanForInitializedObjectsIntern(item, isDeepMerge, objects, typeToObjectsToMerge,
-					alreadyHandledObjectsSet, objRefs, privilegedObjRefs, valueHolderKeys);
-		}
 	}
 
 	@Override

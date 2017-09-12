@@ -10,6 +10,7 @@ import com.koch.ambeth.ioc.IExternalServiceContext;
 import com.koch.ambeth.ioc.config.IBeanConfiguration;
 import com.koch.ambeth.ioc.factory.BeanContextInit;
 import com.koch.ambeth.ioc.factory.BeanContextInitializer;
+import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.typeinfo.IPropertyInfo;
 
 public class OsgiExternalServiceContext implements IExternalServiceContext {
@@ -27,7 +28,13 @@ public class OsgiExternalServiceContext implements IExternalServiceContext {
 		if (serviceReference == null) {
 			return null;
 		}
-		return bundleContext.getService(serviceReference);
+		try {
+			return bundleContext.getService(serviceReference);
+		}
+		catch (Throwable e) {
+			throw RuntimeExceptionUtil.mask(e,
+					"Error occured while resolving OSGi component with '" + serviceReference + "'");
+		}
 	}
 
 	@Override

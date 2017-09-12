@@ -32,12 +32,14 @@ import com.koch.ambeth.ioc.util.DedicatedConverterUtil;
 import com.koch.ambeth.merge.CUDResultApplier;
 import com.koch.ambeth.merge.CUDResultComparer;
 import com.koch.ambeth.merge.CUDResultHelper;
+import com.koch.ambeth.merge.DeepScanRecursion;
 import com.koch.ambeth.merge.EntityMetaDataClient;
 import com.koch.ambeth.merge.EntityMetaDataProvider;
 import com.koch.ambeth.merge.ICUDResultApplier;
 import com.koch.ambeth.merge.ICUDResultComparer;
 import com.koch.ambeth.merge.ICUDResultExtendable;
 import com.koch.ambeth.merge.ICUDResultHelper;
+import com.koch.ambeth.merge.IDeepScanRecursion;
 import com.koch.ambeth.merge.IEntityFactory;
 import com.koch.ambeth.merge.IEntityInstantiationExtensionExtendable;
 import com.koch.ambeth.merge.IEntityMetaDataExtendable;
@@ -129,6 +131,7 @@ public class MergeModule implements IInitializingModule {
 
 	@Override
 	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
+		beanContextFactory.registerAutowireableBean(IDeepScanRecursion.class, DeepScanRecursion.class);
 		beanContextFactory.registerAutowireableBean(IMergeController.class, MergeController.class);
 		beanContextFactory.registerAutowireableBean(IMergeProcess.class, MergeProcess.class);
 		beanContextFactory.registerAutowireableBean(ICUDResultApplier.class,

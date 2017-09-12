@@ -1,5 +1,7 @@
 package com.koch.ambeth.eclipse.databinding;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -14,21 +16,23 @@ public class EclipseDatabindingCollectionFactory implements IRelationalCollectio
 	@Autowired
 	protected IRealmHolder realmHolder;
 
+	@SuppressWarnings({"rawtypes", "unchecked"})
 	@Override
 	public List<?> createList(Class<?> expectedType, Class<?> elementType) {
 		Realm realm = realmHolder.getRealm();
 		if (realm == null) {
 			return null;
 		}
-		return new WritableList(realm);
+		return new WritableList(realm, new ArrayList<>(), elementType);
 	}
 
+	@SuppressWarnings({"rawtypes", "unchecked"})
 	@Override
 	public Set<?> createSet(Class<?> expectedType, Class<?> elementType) {
 		Realm realm = realmHolder.getRealm();
 		if (realm == null) {
 			return null;
 		}
-		return new WritableSet(realm);
+		return new WritableSet(realm, new HashSet<>(), elementType);
 	}
 }
