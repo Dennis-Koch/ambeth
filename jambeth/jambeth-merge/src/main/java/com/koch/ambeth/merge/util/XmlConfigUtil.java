@@ -92,6 +92,9 @@ public class XmlConfigUtil implements IXmlConfigUtil, IInitializingBean {
 
 	@Override
 	public Document[] readXmlFiles(String xmlFileNames) {
+		if (xmlFileNames == null || xmlFileNames.isEmpty()) {
+			return new Document[0];
+		}
 		String[] fileNames = FileUtil.splitConfigFileNames(xmlFileNames);
 		Document[] docs = new Document[fileNames.length];
 
@@ -150,6 +153,9 @@ public class XmlConfigUtil implements IXmlConfigUtil, IInitializingBean {
 	}
 
 	protected Document readXmlStream(InputStream xmlStream) {
+		if (xmlStream == null) {
+			return null;
+		}
 		Document doc = null;
 		RuntimeException throwLater = null;
 		try {
