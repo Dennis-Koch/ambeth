@@ -1,5 +1,7 @@
 package com.koch.ambeth.util;
 
+import com.koch.ambeth.util.state.IStateRollback;
+
 /*-
  * #%L
  * jambeth-util
@@ -22,4 +24,6 @@ limitations under the License.
 
 public interface IClassLoaderProvider {
 	ClassLoader getClassLoader();
+
+	IStateRollback pushClassLoader(IStateRollback... rollbacks);
 }

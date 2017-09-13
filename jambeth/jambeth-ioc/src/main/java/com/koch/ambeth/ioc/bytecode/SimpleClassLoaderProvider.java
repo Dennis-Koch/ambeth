@@ -22,6 +22,8 @@ limitations under the License.
 
 import com.koch.ambeth.ioc.IInitializingBean;
 import com.koch.ambeth.util.IClassLoaderProvider;
+import com.koch.ambeth.util.state.AbstractStateRollback;
+import com.koch.ambeth.util.state.IStateRollback;
 
 public class SimpleClassLoaderProvider implements IClassLoaderProvider, IInitializingBean {
 
@@ -43,5 +45,17 @@ public class SimpleClassLoaderProvider implements IClassLoaderProvider, IInitial
 
 	public void setClassLoader(ClassLoader classLoader) {
 		this.classLoader = classLoader;
+	}
+
+	@Override
+	public IStateRollback pushClassLoader(IStateRollback... rollbacks) {
+		final ClassLoader oldCL = Thread.currentThread().getContextClassLoader();
+		Thread.currentThread().setContextClassLoader(getClassLoader());
+		return new AbstractStateRollback(rollbacks) {
+			@Override
+			protected void rollbackIntern() throws Exception {
+				Thread.currentThread().setContextClassLoader(oldCL);
+			}
+		};
 	}
 }
