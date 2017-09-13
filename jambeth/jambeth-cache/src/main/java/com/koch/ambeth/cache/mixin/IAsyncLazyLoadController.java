@@ -1,5 +1,7 @@
 package com.koch.ambeth.cache.mixin;
 
+import java.util.concurrent.TimeUnit;
+
 import com.koch.ambeth.util.state.IStateRollback;
 
 /**
@@ -12,4 +14,8 @@ import com.koch.ambeth.util.state.IStateRollback;
 public interface IAsyncLazyLoadController {
 
 	IStateRollback pushAsynchronousResultAllowed(IStateRollback... rollbacks);
+
+	void awaitAsyncWorkload() throws InterruptedException;
+
+	boolean awaitAsyncWorkload(long time, TimeUnit unit) throws InterruptedException;
 }

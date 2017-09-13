@@ -27,7 +27,7 @@ import java.util.Set;
 import com.koch.ambeth.util.collections.specialized.INotifyCollectionChangedListener;
 import com.koch.ambeth.util.collections.specialized.NotifyCollectionChangedAction;
 import com.koch.ambeth.util.collections.specialized.NotifyCollectionChangedEvent;
-import com.koch.ambeth.util.collections.specialized.NotifyCollectionChangedSupport;
+import com.koch.ambeth.util.collections.specialized.CollectionChangeSupport;
 
 public class ObservableHashSet<V> extends HashSet<V> implements Externalizable, IObservableSet<V> {
 	protected Object notifyCollectionChangedSupport;
@@ -75,13 +75,13 @@ public class ObservableHashSet<V> extends HashSet<V> implements Externalizable, 
 			notifyCollectionChangedSupport = listener;
 			return;
 		}
-		if (!(notifyCollectionChangedSupport instanceof NotifyCollectionChangedSupport)) {
+		if (!(notifyCollectionChangedSupport instanceof CollectionChangeSupport)) {
 			INotifyCollectionChangedListener owner =
 					(INotifyCollectionChangedListener) notifyCollectionChangedSupport;
-			notifyCollectionChangedSupport = new NotifyCollectionChangedSupport();
+			notifyCollectionChangedSupport = new CollectionChangeSupport();
 			addNotifyCollectionChangedListener(owner);
 		}
-		((NotifyCollectionChangedSupport) notifyCollectionChangedSupport)
+		((CollectionChangeSupport) notifyCollectionChangedSupport)
 				.addNotifyCollectionChangedListener(listener);
 	}
 
@@ -94,10 +94,10 @@ public class ObservableHashSet<V> extends HashSet<V> implements Externalizable, 
 			notifyCollectionChangedSupport = null;
 			return;
 		}
-		if (!(notifyCollectionChangedSupport instanceof NotifyCollectionChangedSupport)) {
+		if (!(notifyCollectionChangedSupport instanceof CollectionChangeSupport)) {
 			return;
 		}
-		((NotifyCollectionChangedSupport) notifyCollectionChangedSupport)
+		((CollectionChangeSupport) notifyCollectionChangedSupport)
 				.removeNotifyCollectionChangedListener(listener);
 	}
 
@@ -105,14 +105,14 @@ public class ObservableHashSet<V> extends HashSet<V> implements Externalizable, 
 		if (notifyCollectionChangedSupport == null) {
 			return;
 		}
-		if (!(notifyCollectionChangedSupport instanceof NotifyCollectionChangedSupport)) {
+		if (!(notifyCollectionChangedSupport instanceof CollectionChangeSupport)) {
 			INotifyCollectionChangedListener owner =
 					(INotifyCollectionChangedListener) notifyCollectionChangedSupport;
 			owner.collectionChanged(event);
 			return;
 		}
-		((NotifyCollectionChangedSupport) notifyCollectionChangedSupport)
-				.fireNotifyCollectionChanged(event);
+		((CollectionChangeSupport) notifyCollectionChangedSupport)
+				.fireCollectionChange(event);
 	}
 
 	@Override

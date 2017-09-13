@@ -1,5 +1,7 @@
 package com.koch.ambeth.merge.model;
 
+import java.beans.Introspector;
+
 /*-
  * #%L
  * jambeth-merge
@@ -39,6 +41,7 @@ import com.koch.ambeth.util.annotation.Interning;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.HashMap;
 import com.koch.ambeth.util.collections.HashSet;
+import com.koch.ambeth.util.collections.IMap;
 import com.koch.ambeth.util.collections.IdentityHashMap;
 import com.koch.ambeth.util.collections.SmartCopySet;
 
@@ -63,7 +66,8 @@ public class EntityMetaData implements IEntityMetaData {
 
 	public static final RelationMember[] emptyRelationMembers = new RelationMember[0];
 
-	public static final IEntityLifecycleExtension[] emptyEntityLifecycleExtensions = new IEntityLifecycleExtension[0];
+	public static final IEntityLifecycleExtension[] emptyEntityLifecycleExtensions =
+			new IEntityLifecycleExtension[0];
 
 	protected Class<?> entityType;
 
@@ -121,8 +125,9 @@ public class EntityMetaData implements IEntityMetaData {
 
 	protected final HashMap<String, Integer> primMemberNameToIndexDict = new HashMap<>(0.5f);
 
-	protected final IdentityHashMap<RelationMember, Integer> relMemberToIndexDict = new IdentityHashMap<>(
-			0.5f);
+	protected final IdentityHashMap<RelationMember, Integer> relMemberToIndexDict =
+			new IdentityHashMap<>(
+					0.5f);
 
 	protected final IdentityHashMap<Member, Integer> primMemberToIndexDict = new IdentityHashMap<>(
 			0.5f);
@@ -500,23 +505,20 @@ public class EntityMetaData implements IEntityMetaData {
 		primMemberNameToIndexDict.clear();
 		if (getIdMember() != null) {
 			PrimitiveMember idMember = getIdMember();
-			nameToMemberDict.put(idMember.getName(), idMember);
+			putMemberToMap(nameToMemberDict, idMember);
 			if (idMember instanceof CompositeIdMember) {
 				for (PrimitiveMember member : ((CompositeIdMember) idMember).getMembers()) {
-					nameToMemberDict.put(member.getName(), member);
+					putMemberToMap(nameToMemberDict, member);
 				}
 			}
 		}
 		if (getVersionMember() != null) {
-			nameToMemberDict.put(getVersionMember().getName(), getVersionMember());
+			putMemberToMap(nameToMemberDict, getVersionMember());
 		}
 		for (int a = primitiveMembers.length; a-- > 0;) {
 			Member member = primitiveMembers[a];
-			if (nameToMemberDict.put(member.getName(), member) != null) {
-				throw new IllegalArgumentException(
-						"Duplicate property: " + entityType.getName() + "." + member.getName());
-			}
-			primMemberNameToIndexDict.put(member.getName(), Integer.valueOf(a));
+			putMemberToMap(nameToMemberDict, member);
+			putToMap(primMemberNameToIndexDict, member.getName(), Integer.valueOf(a));
 			primMemberToIndexDict.put(member, Integer.valueOf(a));
 
 			if (member == getIdMember() || member == getVersionMember() || member == getUpdatedByMember()
@@ -528,16 +530,14 @@ public class EntityMetaData implements IEntityMetaData {
 		}
 		for (int a = relationMembers.length; a-- > 0;) {
 			RelationMember member = relationMembers[a];
-			if (nameToMemberDict.put(member.getName(), member) != null) {
-				throw new IllegalArgumentException(
-						"Duplicate relation property: " + entityType.getName() + "." + member.getName());
-			}
-			relMemberNameToIndexDict.put(member.getName(), Integer.valueOf(a));
+			putMemberToMap(nameToMemberDict, member);
+			putToMap(relMemberNameToIndexDict, member.getName(), Integer.valueOf(a));
 			relMemberToIndexDict.put(member, Integer.valueOf(a));
 		}
 		memberNameToIdIndexDict.clear();
 		if (getIdMember() != null) {
-			memberNameToIdIndexDict.put(getIdMember().getName(), Byte.valueOf(ObjRef.PRIMARY_KEY_INDEX));
+			putToMap(memberNameToIdIndexDict, getIdMember().getName(),
+					Byte.valueOf(ObjRef.PRIMARY_KEY_INDEX));
 		}
 		alternateIdMemberIndicesInPrimitives = new int[alternateIdMembers.length][];
 
@@ -549,7 +549,7 @@ public class EntityMetaData implements IEntityMetaData {
 				memberItems = ((CompositeIdMember) alternateIdMember).getMembers();
 			}
 			else {
-				memberItems = new Member[] { alternateIdMember };
+				memberItems = new Member[] {alternateIdMember};
 			}
 			compositeIndex = new int[memberItems.length];
 
@@ -567,7 +567,7 @@ public class EntityMetaData implements IEntityMetaData {
 				}
 			}
 			alternateIdMemberIndicesInPrimitives[idIndex] = compositeIndex;
-			memberNameToIdIndexDict.put(alternateIdMember.getName(), Byte.valueOf((byte) idIndex));
+			putToMap(memberNameToIdIndexDict, alternateIdMember.getName(), Byte.valueOf((byte) idIndex));
 		}
 		if (typesRelatingToThis != null && typesRelatingToThis.length > 0) {
 			typesRelatingToThisSet.addAll(Arrays.asList(typesRelatingToThis));
@@ -591,6 +591,20 @@ public class EntityMetaData implements IEntityMetaData {
 		setTechnicalMember(getCreatedOnMember());
 		setTechnicalMember(getUpdatedByMember());
 		setTechnicalMember(getUpdatedOnMember());
+	}
+
+	private void putMemberToMap(HashMap<String, Member> nameToMemberMap,
+			Member member) {
+		putToMap(nameToMemberMap, member.getName(), member);
+	}
+
+	private <V> void putToMap(IMap<String, V> nameToMemberMap,
+			String name, V value) {
+		if (!nameToMemberMap.putIfNotExists(name, value)) {
+			throw new IllegalArgumentException(
+					"Duplicate property: " + entityType.getName() + "." + name);
+		}
+		nameToMemberMap.put(Introspector.decapitalize(name), value);
 	}
 
 	protected void setTechnicalMember(PrimitiveMember member) {

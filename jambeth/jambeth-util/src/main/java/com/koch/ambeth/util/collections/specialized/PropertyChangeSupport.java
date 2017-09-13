@@ -53,7 +53,7 @@ public class PropertyChangeSupport extends ArrayList<PropertyChangeListener>
 		if (!add(listener)) {
 			return;
 		}
-		listenersCopy = toArray();
+		listenersCopy = null;
 	}
 
 	/**
@@ -67,7 +67,7 @@ public class PropertyChangeSupport extends ArrayList<PropertyChangeListener>
 		if (!remove(listener)) {
 			return;
 		}
-		listenersCopy = toArray();
+		listenersCopy = null;
 	}
 
 	/**
@@ -78,13 +78,20 @@ public class PropertyChangeSupport extends ArrayList<PropertyChangeListener>
 		return toArray();
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
+	public PropertyChangeListener[] getPropertyChangeListenersShared() {
+		PropertyChangeListener[] listenersCopy = this.listenersCopy;
+		if (listenersCopy != null) {
+			return listenersCopy;
+		}
+		listenersCopy = getPropertyChangeListeners();
+		this.listenersCopy = listenersCopy;
+		return listenersCopy;
+	}
+
 	@Override
 	public void firePropertyChange(Object obj, String propertyName, Object oldValue,
 			Object currentValue) {
-		PropertyChangeListener[] listenersCopy = this.listenersCopy;
+		PropertyChangeListener[] listenersCopy = getPropertyChangeListenersShared();
 		if (listenersCopy.length == 0) {
 			return;
 		}
@@ -94,13 +101,9 @@ public class PropertyChangeSupport extends ArrayList<PropertyChangeListener>
 		}
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	@Override
 	public void firePropertyChange(PropertyChangeEvent evnt) {
-		PropertyChangeListener[] listenersCopy = this.listenersCopy;
-		for (PropertyChangeListener listener : listenersCopy) {
+		for (PropertyChangeListener listener : getPropertyChangeListenersShared()) {
 			listener.propertyChange(evnt);
 		}
 	}

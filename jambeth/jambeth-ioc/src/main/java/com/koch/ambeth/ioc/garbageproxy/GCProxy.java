@@ -26,7 +26,7 @@ import com.koch.ambeth.ioc.exception.BeanAlreadyDisposedException;
 import com.koch.ambeth.util.IDisposable;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
-public abstract class GCProxy implements IDisposable {
+public abstract class GCProxy implements IDisposable, IGCProxy {
 	public static final Method disposeMethod;
 
 	static {
@@ -73,6 +73,11 @@ public abstract class GCProxy implements IDisposable {
 		}
 		throw new BeanAlreadyDisposedException(
 				"This handle has already been disposed. This seems like a memory leak in your application if you refer to illegal handles");
+	}
+
+	@Override
+	public Object getGCProxyTarget() {
+		return resolveTarget();
 	}
 
 	@Override

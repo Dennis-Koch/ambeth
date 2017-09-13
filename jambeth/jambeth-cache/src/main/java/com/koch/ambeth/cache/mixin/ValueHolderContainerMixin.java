@@ -83,13 +83,15 @@ public class ValueHolderContainerMixin implements IDisposableBean, IAsyncLazyLoa
 	protected final Lock writeLock = new ReentrantLock();
 
 	protected final Condition cond = writeLock.newCondition(),
-			haveDataCond = writeLock.newCondition();
+			haveDataCond = writeLock.newCondition(), sleepingCond = writeLock.newCondition();
 
 	protected final ThreadLocal<Boolean> asynchronousResultAllowedTL = new ThreadLocal<>();
 
 	protected long queueInterval = 100;
 
 	protected Thread thread;
+
+	protected volatile boolean sleeping = true;
 
 	@Override
 	public void destroy() throws Throwable {
@@ -233,6 +235,13 @@ public class ValueHolderContainerMixin implements IDisposableBean, IAsyncLazyLoa
 		if (thread != null && thread.isAlive()) {
 			return;
 		}
+		writeLock.lock();
+		try {
+			sleeping = false;
+		}
+		finally {
+			writeLock.unlock();
+		}
 		thread = new Thread(new Runnable() {
 			@Override
 			public void run() {
@@ -240,7 +249,10 @@ public class ValueHolderContainerMixin implements IDisposableBean, IAsyncLazyLoa
 					DirectValueHolderRef[] vhRefs;
 					writeLock.lock();
 					try {
+						sleeping = false;
 						if (vhRefToPendingEventHandlersMap.size() == 0) {
+							sleeping = true;
+							sleepingCond.signalAll();
 							haveDataCond.await();
 							continue;
 						}
@@ -282,5 +294,39 @@ public class ValueHolderContainerMixin implements IDisposableBean, IAsyncLazyLoa
 		IObjRef[] objRefs = vhc.get__ObjRefs(relationIndex);
 		return getValue(vhc, relationIndex, relationMember, vhc.get__TargetCache(), objRefs,
 				cacheDirective);
+	}
+
+	@Override
+	public void awaitAsyncWorkload() throws InterruptedException {
+		writeLock.lock();
+		try {
+			while (!sleeping) {
+				sleepingCond.await();
+			}
+		}
+		finally {
+			writeLock.unlock();
+		}
+	}
+
+	@Override
+	public boolean awaitAsyncWorkload(long time, TimeUnit unit) throws InterruptedException {
+		long waitTill = System.currentTimeMillis() + unit.toMillis(time);
+		writeLock.lock();
+		try {
+			while (!sleeping) {
+				long maxWait = waitTill - System.currentTimeMillis();
+				if (maxWait <= 0) {
+					return false;
+				}
+				if (sleepingCond.await(maxWait, TimeUnit.MILLISECONDS)) {
+					return true;
+				}
+			}
+			return false;
+		}
+		finally {
+			writeLock.unlock();
+		}
 	}
 }

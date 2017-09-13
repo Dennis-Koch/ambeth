@@ -28,11 +28,13 @@ import com.koch.ambeth.util.collections.ArrayList;
  * field of your collection and delegate these types of work to it. The
  * {@link INotifyCollectionChangedListener} can be registered for the collection
  */
-public class NotifyCollectionChangedSupport extends ArrayList<INotifyCollectionChangedListener> {
-	private INotifyCollectionChangedListener[] listenersCopy =
-			toArray(INotifyCollectionChangedListener.class);
+public class CollectionChangeSupport extends ArrayList<INotifyCollectionChangedListener> {
+	private static final INotifyCollectionChangedListener[] EMPTY_LISTENERS =
+			new INotifyCollectionChangedListener[0];
 
-	public NotifyCollectionChangedSupport() {
+	private volatile INotifyCollectionChangedListener[] listenersCopy = EMPTY_LISTENERS;
+
+	public CollectionChangeSupport() {
 		super(1);
 	}
 
@@ -44,14 +46,15 @@ public class NotifyCollectionChangedSupport extends ArrayList<INotifyCollectionC
 	 *
 	 * @param listener The NotifyCollectionChangedListener to be added
 	 */
-	public void addNotifyCollectionChangedListener(INotifyCollectionChangedListener listener) {
+	public synchronized void addNotifyCollectionChangedListener(
+			INotifyCollectionChangedListener listener) {
 		if (listener == null) {
 			return;
 		}
 		if (!add(listener)) {
 			return;
 		}
-		listenersCopy = toArray(INotifyCollectionChangedListener.class);
+		listenersCopy = null;
 	}
 
 	/**
@@ -63,14 +66,15 @@ public class NotifyCollectionChangedSupport extends ArrayList<INotifyCollectionC
 	 *
 	 * @param listener The NotifyCollectionChangedListener to be removed
 	 */
-	public void removeNotifyCollectionChangedListener(INotifyCollectionChangedListener listener) {
+	public synchronized void removeNotifyCollectionChangedListener(
+			INotifyCollectionChangedListener listener) {
 		if (listener == null) {
 			return;
 		}
 		if (!remove(listener)) {
 			return;
 		}
-		listenersCopy = toArray(INotifyCollectionChangedListener.class);
+		listenersCopy = null;
 	}
 
 	/**
@@ -80,8 +84,18 @@ public class NotifyCollectionChangedSupport extends ArrayList<INotifyCollectionC
 	 * @return all of the <code>NotifyCollectionChangedListeners</code> added or an empty array if no
 	 *         listeners have been added
 	 */
-	public INotifyCollectionChangedListener[] getNotifyCollectionChangedListeners() {
-		return toArray(INotifyCollectionChangedListener.class);
+	public INotifyCollectionChangedListener[] getCollectionChangeListeners() {
+		return toArray();
+	}
+
+	public INotifyCollectionChangedListener[] getCollectionChangeListenersShared() {
+		INotifyCollectionChangedListener[] listenersCopy = this.listenersCopy;
+		if (listenersCopy != null) {
+			return listenersCopy;
+		}
+		listenersCopy = getCollectionChangeListeners();
+		this.listenersCopy = listenersCopy;
+		return listenersCopy;
 	}
 
 	/**
@@ -90,10 +104,18 @@ public class NotifyCollectionChangedSupport extends ArrayList<INotifyCollectionC
 	 *
 	 * @param event the {@code NotifyCollectionChangedEvent} to be fired
 	 */
-	public void fireNotifyCollectionChanged(NotifyCollectionChangedEvent event) {
-		INotifyCollectionChangedListener[] listenersCopy = this.listenersCopy;
-		for (INotifyCollectionChangedListener listener : listenersCopy) {
+	public void fireCollectionChange(NotifyCollectionChangedEvent event) {
+		for (INotifyCollectionChangedListener listener : getCollectionChangeListenersShared()) {
 			listener.collectionChanged(event);
 		}
+	}
+
+	@Override
+	public synchronized INotifyCollectionChangedListener[] toArray() {
+		if (size() == 0) {
+			return EMPTY_LISTENERS;
+		}
+		// necessary to lock the otherwise not thread-safe toArray() operation
+		return toArray(new INotifyCollectionChangedListener[size()]);
 	}
 }

@@ -33,7 +33,7 @@ import java.util.ListIterator;
 import com.koch.ambeth.util.collections.specialized.INotifyCollectionChangedListener;
 import com.koch.ambeth.util.collections.specialized.NotifyCollectionChangedAction;
 import com.koch.ambeth.util.collections.specialized.NotifyCollectionChangedEvent;
-import com.koch.ambeth.util.collections.specialized.NotifyCollectionChangedSupport;
+import com.koch.ambeth.util.collections.specialized.CollectionChangeSupport;
 
 public class ObservableArrayList<V>
 		implements List<V>, IList<V>, Externalizable, IObservableList<V> {
@@ -133,12 +133,13 @@ public class ObservableArrayList<V>
 			notifyCollectionChangedSupport = listener;
 			return;
 		}
-		if (!(notifyCollectionChangedSupport instanceof NotifyCollectionChangedSupport)) {
-			INotifyCollectionChangedListener owner = (INotifyCollectionChangedListener) notifyCollectionChangedSupport;
-			notifyCollectionChangedSupport = new NotifyCollectionChangedSupport();
+		if (!(notifyCollectionChangedSupport instanceof CollectionChangeSupport)) {
+			INotifyCollectionChangedListener owner =
+					(INotifyCollectionChangedListener) notifyCollectionChangedSupport;
+			notifyCollectionChangedSupport = new CollectionChangeSupport();
 			addNotifyCollectionChangedListener(owner);
 		}
-		((NotifyCollectionChangedSupport) notifyCollectionChangedSupport)
+		((CollectionChangeSupport) notifyCollectionChangedSupport)
 				.addNotifyCollectionChangedListener(listener);
 	}
 
@@ -151,10 +152,10 @@ public class ObservableArrayList<V>
 			notifyCollectionChangedSupport = null;
 			return;
 		}
-		if (!(notifyCollectionChangedSupport instanceof NotifyCollectionChangedSupport)) {
+		if (!(notifyCollectionChangedSupport instanceof CollectionChangeSupport)) {
 			return;
 		}
-		((NotifyCollectionChangedSupport) notifyCollectionChangedSupport)
+		((CollectionChangeSupport) notifyCollectionChangedSupport)
 				.removeNotifyCollectionChangedListener(listener);
 	}
 
@@ -162,13 +163,14 @@ public class ObservableArrayList<V>
 		if (notifyCollectionChangedSupport == null) {
 			return;
 		}
-		if (!(notifyCollectionChangedSupport instanceof NotifyCollectionChangedSupport)) {
-			INotifyCollectionChangedListener owner = (INotifyCollectionChangedListener) notifyCollectionChangedSupport;
+		if (!(notifyCollectionChangedSupport instanceof CollectionChangeSupport)) {
+			INotifyCollectionChangedListener owner =
+					(INotifyCollectionChangedListener) notifyCollectionChangedSupport;
 			owner.collectionChanged(event);
 			return;
 		}
-		((NotifyCollectionChangedSupport) notifyCollectionChangedSupport)
-				.fireNotifyCollectionChanged(event);
+		((CollectionChangeSupport) notifyCollectionChangedSupport)
+				.fireCollectionChange(event);
 	}
 
 	protected void init(final Object[] array, final int size) {
@@ -547,7 +549,7 @@ public class ObservableArrayList<V>
 	}
 
 	@Override
-	@SuppressWarnings({ "rawtypes" })
+	@SuppressWarnings({"rawtypes"})
 	public boolean removeAll(final Collection<?> c) {
 		final ArrayList<Object> result = new ArrayList<>(c.size());
 		if (c instanceof List) {
@@ -570,7 +572,8 @@ public class ObservableArrayList<V>
 		}
 		if (notifyCollectionChangedSupport != null && result.size > 0) {
 			fireNotifyCollectionChanged(
-					new NotifyCollectionChangedEvent(this, NotifyCollectionChangedAction.Remove, result));
+					new NotifyCollectionChangedEvent(this, NotifyCollectionChangedAction.Remove,
+							result.toArray()));
 		}
 		return result.size > 0;
 	}
