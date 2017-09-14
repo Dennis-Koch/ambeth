@@ -1,6 +1,7 @@
 package com.koch.ambeth.cache.datachange.revert;
 
-import com.koch.ambeth.util.EqualsUtil;
+import java.util.Objects;
+
 import com.koch.ambeth.util.typeinfo.ITypeInfoItem;
 
 public class ObjectBackup implements IBackup {
@@ -22,7 +23,7 @@ public class ObjectBackup implements IBackup {
 				continue;
 			}
 			ITypeInfoItem member = allMembers[b];
-			if (!EqualsUtil.equals(member.getValue(target), originalValue)) {
+			if (!Objects.equals(member.getValue(target), originalValue)) {
 				member.setValue(target, originalValue);
 			}
 		}

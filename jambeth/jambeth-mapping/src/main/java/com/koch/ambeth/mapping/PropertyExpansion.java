@@ -21,11 +21,11 @@ limitations under the License.
  */
 
 import java.util.Arrays;
+import java.util.Objects;
 
 import com.koch.ambeth.ioc.accessor.AbstractAccessor;
 import com.koch.ambeth.service.merge.model.IEntityMetaData;
 import com.koch.ambeth.service.metadata.Member;
-import com.koch.ambeth.util.EqualsUtil;
 import com.koch.ambeth.util.model.IDataObject;
 
 public class PropertyExpansion extends AbstractAccessor {
@@ -97,7 +97,7 @@ public class PropertyExpansion extends AbstractAccessor {
 		}
 		Member lastMember = memberPath[memberPath.length - 1];
 		// if we are here, then obj is the last element
-		if (!EqualsUtil.equals(lastMember.getValue(targetObj), value)) {
+		if (!Objects.equals(lastMember.getValue(targetObj), value)) {
 			lastMember.setValue(targetObj, value);
 			IDataObject dObj = (IDataObject) targetObj;
 			// FIXME: this hack tells the merge process that "we did something here"

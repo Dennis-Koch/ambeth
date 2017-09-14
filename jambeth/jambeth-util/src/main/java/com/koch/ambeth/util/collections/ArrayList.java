@@ -30,9 +30,9 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Objects;
 import java.util.Set;
 
-import com.koch.ambeth.util.EqualsUtil;
 import com.koch.ambeth.util.IPrintable;
 import com.koch.ambeth.util.StringBuilderUtil;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
@@ -439,7 +439,7 @@ public class ArrayList<V> implements IList<V>, Externalizable, IPrintable, Clone
 	@Override
 	public int lastIndexOf(final Object o) {
 		for (int a = size(); a-- > 0;) {
-			if (EqualsUtil.equals(get(a), o)) {
+			if (Objects.equals(get(a), o)) {
 				return a;
 			}
 		}

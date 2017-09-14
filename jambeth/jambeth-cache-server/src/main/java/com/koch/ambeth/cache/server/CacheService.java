@@ -22,6 +22,7 @@ limitations under the License.
 
 import java.lang.reflect.Method;
 import java.util.List;
+import java.util.Objects;
 
 import com.koch.ambeth.cache.ExecuteServiceDelegate;
 import com.koch.ambeth.cache.IServiceResultCache;
@@ -52,7 +53,6 @@ import com.koch.ambeth.service.cache.model.IServiceResult;
 import com.koch.ambeth.service.cache.transfer.ServiceResult;
 import com.koch.ambeth.service.merge.model.IObjRef;
 import com.koch.ambeth.service.model.IServiceDescription;
-import com.koch.ambeth.util.EqualsUtil;
 import com.koch.ambeth.util.ParamChecker;
 import com.koch.ambeth.util.annotation.AnnotationCache;
 import com.koch.ambeth.util.annotation.AnnotationUtil;
@@ -70,13 +70,14 @@ public class CacheService implements ICacheService, IInitializingBean, ExecuteSe
 	@LogInstance
 	private ILogger log;
 
-	protected final AnnotationCache<QueryBehavior> queryBehaviorCache = new AnnotationCache<QueryBehavior>(
-			QueryBehavior.class) {
-		@Override
-		protected boolean annotationEquals(QueryBehavior left, QueryBehavior right) {
-			return EqualsUtil.equals(left.value(), right.value());
-		}
-	};
+	protected final AnnotationCache<QueryBehavior> queryBehaviorCache =
+			new AnnotationCache<QueryBehavior>(
+					QueryBehavior.class) {
+				@Override
+				protected boolean annotationEquals(QueryBehavior left, QueryBehavior right) {
+					return Objects.equals(left.value(), right.value());
+				}
+			};
 
 	@Autowired
 	protected ICache cache;

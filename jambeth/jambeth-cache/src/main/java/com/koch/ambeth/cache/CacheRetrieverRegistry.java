@@ -22,6 +22,7 @@ limitations under the License.
 
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.concurrent.locks.Lock;
 
 import com.koch.ambeth.cache.service.ICacheRetriever;
@@ -54,7 +55,6 @@ import com.koch.ambeth.service.merge.model.IObjRef;
 import com.koch.ambeth.service.metadata.Member;
 import com.koch.ambeth.service.metadata.PrimitiveMember;
 import com.koch.ambeth.service.remote.IRemoteInterceptor;
-import com.koch.ambeth.util.EqualsUtil;
 import com.koch.ambeth.util.IDisposable;
 import com.koch.ambeth.util.ParamChecker;
 import com.koch.ambeth.util.collections.ArrayList;
@@ -88,17 +88,21 @@ public class CacheRetrieverRegistry implements ICacheRetriever, ICacheRetrieverE
 	@LogInstance
 	private ILogger log;
 
-	protected final ClassExtendableContainer<ICacheRetriever> typeToCacheRetrieverMap = new ClassExtendableContainer<>(
-			"cacheRetriever", "entityType");
+	protected final ClassExtendableContainer<ICacheRetriever> typeToCacheRetrieverMap =
+			new ClassExtendableContainer<>(
+					"cacheRetriever", "entityType");
 
-	protected final ClassExtendableContainer<HashMap<String, IRelationRetriever>> typeToRelationRetrieverEC = new ClassExtendableContainer<>(
-			"relationRetriever", "handledType");
+	protected final ClassExtendableContainer<HashMap<String, IRelationRetriever>> typeToRelationRetrieverEC =
+			new ClassExtendableContainer<>(
+					"relationRetriever", "handledType");
 
-	protected final ClassExtendableContainer<HashMap<String, IPrimitiveRetriever>> typeToPrimitiveRetrieverEC = new ClassExtendableContainer<>(
-			"primitiveRetriever", "handledType");
+	protected final ClassExtendableContainer<HashMap<String, IPrimitiveRetriever>> typeToPrimitiveRetrieverEC =
+			new ClassExtendableContainer<>(
+					"primitiveRetriever", "handledType");
 
-	protected final MapExtendableContainer<String, ICacheService> nameToCacheServiceEC = new MapExtendableContainer<>(
-			"cacheService", "serviceName");
+	protected final MapExtendableContainer<String, ICacheService> nameToCacheServiceEC =
+			new MapExtendableContainer<>(
+					"cacheService", "serviceName");
 
 	@Autowired(optional = true)
 	protected ICacheRetriever defaultCacheRetriever;
@@ -210,10 +214,12 @@ public class CacheRetrieverRegistry implements ICacheRetriever, ICacheRetrieverE
 
 		IList<ILoadContainer> result = getEntitiesIntern(orisToLoad);
 
-		final IdentityLinkedMap<IObjRelation, IBackgroundWorkerParamDelegate<Object>> objRelToDelegateMap = new IdentityLinkedMap<>();
+		final IdentityLinkedMap<IObjRelation, IBackgroundWorkerParamDelegate<Object>> objRelToDelegateMap =
+				new IdentityLinkedMap<>();
 
-		ILinkedMap<IPrimitiveRetriever, PrimitiveRetrieverArguments> fetchablePrimitives = bucketSortObjRelsForFetchablePrimitives(
-				result, objRelToDelegateMap);
+		ILinkedMap<IPrimitiveRetriever, PrimitiveRetrieverArguments> fetchablePrimitives =
+				bucketSortObjRelsForFetchablePrimitives(
+						result, objRelToDelegateMap);
 
 		if (fetchablePrimitives.isEmpty()) {
 			return result;
@@ -339,7 +345,8 @@ public class CacheRetrieverRegistry implements ICacheRetriever, ICacheRetrieverE
 
 	protected ILinkedMap<ICacheRetriever, IList<IObjRef>> bucketSortObjRefs(
 			List<? extends IObjRef> orisToLoad) {
-		IdentityLinkedMap<ICacheRetriever, IList<IObjRef>> serviceToAssignedObjRefsDict = new IdentityLinkedMap<>();
+		IdentityLinkedMap<ICacheRetriever, IList<IObjRef>> serviceToAssignedObjRefsDict =
+				new IdentityLinkedMap<>();
 
 		for (int i = orisToLoad.size(); i-- > 0;) {
 			IObjRef objRef = orisToLoad.get(i);
@@ -358,7 +365,8 @@ public class CacheRetrieverRegistry implements ICacheRetriever, ICacheRetrieverE
 
 	protected ILinkedMap<IRelationRetriever, IList<IObjRelation>> bucketSortObjRels(
 			List<? extends IObjRelation> orisToLoad) {
-		IdentityLinkedMap<IRelationRetriever, IList<IObjRelation>> retrieverToAssignedObjRelsDict = new IdentityLinkedMap<>();
+		IdentityLinkedMap<IRelationRetriever, IList<IObjRelation>> retrieverToAssignedObjRelsDict =
+				new IdentityLinkedMap<>();
 
 		for (int i = orisToLoad.size(); i-- > 0;) {
 			IObjRelation orelToLoad = orisToLoad.get(i);
@@ -385,7 +393,8 @@ public class CacheRetrieverRegistry implements ICacheRetriever, ICacheRetrieverE
 	protected ILinkedMap<IPrimitiveRetriever, PrimitiveRetrieverArguments> bucketSortObjRelsForFetchablePrimitives(
 			List<ILoadContainer> loadContainers,
 			ILinkedMap<IObjRelation, IBackgroundWorkerParamDelegate<Object>> objRelToDelegateMap) {
-		IdentityLinkedMap<IPrimitiveRetriever, PrimitiveRetrieverArguments> retrieverToAssignedObjRelsDict = new IdentityLinkedMap<>();
+		IdentityLinkedMap<IPrimitiveRetriever, PrimitiveRetrieverArguments> retrieverToAssignedObjRelsDict =
+				new IdentityLinkedMap<>();
 
 		for (int a = loadContainers.size(); a-- > 0;) {
 			ILoadContainer loadContainer = loadContainers.get(a);
@@ -443,7 +452,7 @@ public class CacheRetrieverRegistry implements ICacheRetriever, ICacheRetrieverE
 		for (Entry<Class<?>, ICacheRetriever> entry : typeToCacheRetrieverMap.getExtensions()) {
 			ICacheRetriever cacheRetriever = entry.getValue();
 			Object cacheRemoteSourceIdentifier = resolveRemoteSourceIdentifier(cacheRetriever);
-			if (EqualsUtil.equals(remoteSourceIdentifier, cacheRemoteSourceIdentifier)) {
+			if (Objects.equals(remoteSourceIdentifier, cacheRemoteSourceIdentifier)) {
 				entityTypesToUpdateSet.add(entry.getKey());
 			}
 		}
@@ -452,7 +461,7 @@ public class CacheRetrieverRegistry implements ICacheRetriever, ICacheRetrieverE
 			for (Entry<String, IRelationRetriever> propertyEntry : entry.getValue()) {
 				IRelationRetriever cacheRetriever = propertyEntry.getValue();
 				Object cacheRemoteSourceIdentifier = resolveRemoteSourceIdentifier(cacheRetriever);
-				if (EqualsUtil.equals(remoteSourceIdentifier, cacheRemoteSourceIdentifier)) {
+				if (Objects.equals(remoteSourceIdentifier, cacheRemoteSourceIdentifier)) {
 					entityTypesToUpdateSet.add(entry.getKey());
 				}
 			}
@@ -462,7 +471,7 @@ public class CacheRetrieverRegistry implements ICacheRetriever, ICacheRetrieverE
 			for (Entry<String, IPrimitiveRetriever> propertyEntry : entry.getValue()) {
 				IPrimitiveRetriever cacheRetriever = propertyEntry.getValue();
 				Object cacheRemoteSourceIdentifier = resolveRemoteSourceIdentifier(cacheRetriever);
-				if (EqualsUtil.equals(remoteSourceIdentifier, cacheRemoteSourceIdentifier)) {
+				if (Objects.equals(remoteSourceIdentifier, cacheRemoteSourceIdentifier)) {
 					entityTypesToUpdateSet.add(entry.getKey());
 				}
 			}

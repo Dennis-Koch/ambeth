@@ -22,6 +22,7 @@ limitations under the License.
 
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Objects;
 
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.merge.model.CreateOrUpdateContainerBuild;
@@ -38,7 +39,6 @@ import com.koch.ambeth.service.merge.model.IEntityMetaData;
 import com.koch.ambeth.service.merge.model.IObjRef;
 import com.koch.ambeth.service.metadata.PrimitiveMember;
 import com.koch.ambeth.service.metadata.RelationMember;
-import com.koch.ambeth.util.EqualsUtil;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.EmptyList;
 import com.koch.ambeth.util.collections.HashMap;
@@ -374,7 +374,7 @@ public class CUDResultComparer implements ICUDResultComparer {
 
 	protected boolean equalsPUI(CUDResultDiff cudResultDiff, IPrimitiveUpdateItem left,
 			IPrimitiveUpdateItem right) {
-		if (EqualsUtil.equals(left.getNewValue(), right.getNewValue())) {
+		if (Objects.equals(left.getNewValue(), right.getNewValue())) {
 			return true;
 		}
 		if (!cudResultDiff.doFullDiff) {

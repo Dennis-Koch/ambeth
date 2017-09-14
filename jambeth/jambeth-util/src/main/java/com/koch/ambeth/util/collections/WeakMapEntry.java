@@ -23,8 +23,8 @@ limitations under the License.
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
 import java.util.Map.Entry;
+import java.util.Objects;
 
-import com.koch.ambeth.util.EqualsUtil;
 import com.koch.ambeth.util.IPrintable;
 import com.koch.ambeth.util.StringBuilderUtil;
 
@@ -33,10 +33,8 @@ import com.koch.ambeth.util.StringBuilderUtil;
  *
  * @author kochd
  *
- * @param <K>
- *          Der Typ des Keys
- * @param <V>
- *          Der Typ des Values
+ * @param <K> Der Typ des Keys
+ * @param <V> Der Typ des Values
  */
 public class WeakMapEntry<K, V> extends WeakReference<K> implements IMapEntry<K, V>, IPrintable {
 	protected final int hash;
@@ -78,8 +76,8 @@ public class WeakMapEntry<K, V> extends WeakReference<K> implements IMapEntry<K,
 			return false;
 		}
 		Entry<Object, Object> other = (Entry<Object, Object>) obj;
-		return EqualsUtil.equals(getKey(), other.getKey())
-				&& EqualsUtil.equals(getValue(), other.getValue());
+		return Objects.equals(getKey(), other.getKey())
+				&& Objects.equals(getValue(), other.getValue());
 	}
 
 	@Override

@@ -27,6 +27,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Set;
 
 import com.koch.ambeth.ioc.annotation.Autowired;
@@ -64,7 +65,6 @@ import com.koch.ambeth.service.merge.model.IEntityMetaData;
 import com.koch.ambeth.service.merge.model.IObjRef;
 import com.koch.ambeth.service.metadata.Member;
 import com.koch.ambeth.service.metadata.RelationMember;
-import com.koch.ambeth.util.EqualsUtil;
 import com.koch.ambeth.util.IConversionHelper;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.EmptySet;
@@ -529,7 +529,7 @@ public class MergeController implements IMergeController, IMergeExtendable {
 			return false;
 		}
 		Member keyMember = metaData.getIdMember();
-		return EqualsUtil.equals(keyMember.getValue(clone, false), keyMember.getValue(original, false));
+		return Objects.equals(keyMember.getValue(clone, false), keyMember.getValue(original, false));
 	}
 
 	@SuppressWarnings("rawtypes")

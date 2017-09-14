@@ -26,6 +26,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import com.koch.ambeth.ioc.DefaultExtendableContainer;
@@ -38,7 +39,6 @@ import com.koch.ambeth.merge.IEntityFactory;
 import com.koch.ambeth.merge.proxy.IEntityMetaDataHolder;
 import com.koch.ambeth.service.merge.model.IEntityMetaData;
 import com.koch.ambeth.service.metadata.Member;
-import com.koch.ambeth.util.EqualsUtil;
 import com.koch.ambeth.util.ParamChecker;
 import com.koch.ambeth.util.collections.HashMap;
 
@@ -87,7 +87,6 @@ public class TestDataGenerator
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see com.basf.ap.soa.services.rnd.logistic.delivery.bservice.testdata.ITestDataGenerator#
 	 * generateTestClass(java.lang .Class)
 	 */
@@ -99,7 +98,6 @@ public class TestDataGenerator
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see com.basf.ap.soa.services.rnd.logistic.delivery.bservice.testdata.ITestDataGenerator#
 	 * generateTestClass(java.lang .Class, java.util.Map)
 	 */
@@ -143,7 +141,6 @@ public class TestDataGenerator
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see com.basf.ap.soa.services.rnd.logistic.delivery.bservice.testdata.ITestDataGenerator#
 	 * checkTestInstance(java.lang .Object, java.lang.String)
 	 */
@@ -155,7 +152,6 @@ public class TestDataGenerator
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see com.basf.ap.soa.services.rnd.logistic.delivery.bservice.testdata.ITestDataGenerator#
 	 * checkTestInstance(java.lang .Object, java.util.Map, java.lang.String)
 	 */
@@ -256,7 +252,7 @@ public class TestDataGenerator
 				Class<?> clazz = expectedItem.getClass();
 				if (wrapperToPrimitive(clazz) != null || clazz.isPrimitive()
 						|| String.class.isAssignableFrom(clazz)) {
-					ParamChecker.assertTrue(EqualsUtil.equals(expectedItem, instanceItem),
+					ParamChecker.assertTrue(Objects.equals(expectedItem, instanceItem),
 							instance.getClass().getName());
 				}
 				else if (recursive && !alreadyCompared.contains(expectedItem)) {
@@ -279,7 +275,7 @@ public class TestDataGenerator
 				Class<?> parameterType = member.getRealType();
 				if (wrapperToPrimitive(parameterType) != null || parameterType.isPrimitive()
 						|| String.class.isAssignableFrom(parameterType)) {
-					ParamChecker.assertTrue(EqualsUtil.equals(expectedContent, content), name);
+					ParamChecker.assertTrue(Objects.equals(expectedContent, content), name);
 				}
 				else if (recursive && !alreadyCompared.contains(expectedContent)) {
 					alreadyCompared.add(expectedContent);

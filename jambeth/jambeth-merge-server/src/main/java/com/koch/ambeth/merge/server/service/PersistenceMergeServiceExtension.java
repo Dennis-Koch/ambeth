@@ -24,6 +24,7 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Objects;
 
 import javax.persistence.OptimisticLockException;
 import javax.persistence.PersistenceException;
@@ -96,7 +97,6 @@ import com.koch.ambeth.service.merge.model.IObjRef;
 import com.koch.ambeth.service.metadata.Member;
 import com.koch.ambeth.service.metadata.PrimitiveMember;
 import com.koch.ambeth.service.metadata.RelationMember;
-import com.koch.ambeth.util.EqualsUtil;
 import com.koch.ambeth.util.IConversionHelper;
 import com.koch.ambeth.util.StringBuilderUtil;
 import com.koch.ambeth.util.collections.ArrayList;
@@ -767,7 +767,7 @@ public class PersistenceMergeServiceExtension implements IMergeServiceExtension 
 						expectedVersion);
 			}
 			IList<IObjRef> references = objRefHelper.entityToAllObjRefs(object);
-			if (!EqualsUtil.equals(expectedVersion, references.get(0).getVersion())) {
+			if (!Objects.equals(expectedVersion, references.get(0).getVersion())) {
 				throw OptimisticLockUtil.throwModified(references.get(0), expectedVersion, object);
 			}
 			for (int j = references.size(); j-- > 0;) {

@@ -23,6 +23,7 @@ limitations under the License.
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Method;
+import java.util.Objects;
 import java.util.Set;
 
 import com.koch.ambeth.ioc.IBeanRuntime;
@@ -44,7 +45,6 @@ import com.koch.ambeth.service.proxy.AbstractCascadePostProcessor;
 import com.koch.ambeth.service.proxy.IBehaviorTypeExtractor;
 import com.koch.ambeth.service.proxy.IMethodLevelBehavior;
 import com.koch.ambeth.service.proxy.MethodLevelBehavior;
-import com.koch.ambeth.util.EqualsUtil;
 import com.koch.ambeth.util.annotation.AnnotationCache;
 import com.koch.ambeth.util.proxy.ICascadedInterceptor;
 
@@ -54,57 +54,61 @@ public class SecurityPostProcessor extends AbstractCascadePostProcessor
 			SecurityContext.class) {
 		@Override
 		protected boolean annotationEquals(SecurityContext left, SecurityContext right) {
-			return EqualsUtil.equals(left.value(), right.value());
+			return Objects.equals(left.value(), right.value());
 		}
 	};
 
-	protected final IBehaviorTypeExtractor<SecurityContext, SecurityMethodMode> btExtractor = new IBehaviorTypeExtractor<SecurityContext, SecurityMethodMode>() {
-		@Override
-		public SecurityMethodMode extractBehaviorType(SecurityContext annotation,
-				AnnotatedElement annotatedElement) {
-			if (!(annotatedElement instanceof Method)) {
-				return new SecurityMethodMode(annotation.value());
-			}
-			Method method = (Method) annotatedElement;
-			Annotation[][] parameterAnnotations = method.getParameterAnnotations();
-			int userNameIndex = -1;
-			int passwordIndex = -1;
-			PasswordType passwordType = null;
-			int securityScopeIndex = -1;
-			for (int a = parameterAnnotations.length; a-- > 0;) {
-				for (Annotation annotationOfParam : parameterAnnotations[a]) {
-					if (annotationOfParam instanceof SecurityContextUserName) {
-						if (userNameIndex != -1) {
-							throw new IllegalStateException(
-									"Annotation '" + SecurityContextUserName.class.getName()
-											+ "' ambiguous on method signature '" + method.toGenericString() + "'");
-						}
-						userNameIndex = a;
+	protected final IBehaviorTypeExtractor<SecurityContext, SecurityMethodMode> btExtractor =
+			new IBehaviorTypeExtractor<SecurityContext, SecurityMethodMode>() {
+				@Override
+				public SecurityMethodMode extractBehaviorType(SecurityContext annotation,
+						AnnotatedElement annotatedElement) {
+					if (!(annotatedElement instanceof Method)) {
+						return new SecurityMethodMode(annotation.value());
 					}
-					else if (annotationOfParam instanceof SecurityContextPassword) {
-						if (passwordIndex != -1) {
-							throw new IllegalStateException(
-									"Annotation '" + SecurityContextPassword.class.getName()
-											+ "' ambiguous on method signature '" + method.toGenericString() + "'");
+					Method method = (Method) annotatedElement;
+					Annotation[][] parameterAnnotations = method.getParameterAnnotations();
+					int userNameIndex = -1;
+					int passwordIndex = -1;
+					PasswordType passwordType = null;
+					int securityScopeIndex = -1;
+					for (int a = parameterAnnotations.length; a-- > 0;) {
+						for (Annotation annotationOfParam : parameterAnnotations[a]) {
+							if (annotationOfParam instanceof SecurityContextUserName) {
+								if (userNameIndex != -1) {
+									throw new IllegalStateException(
+											"Annotation '" + SecurityContextUserName.class.getName()
+													+ "' ambiguous on method signature '" + method.toGenericString() + "'");
+								}
+								userNameIndex = a;
+							}
+							else if (annotationOfParam instanceof SecurityContextPassword) {
+								if (passwordIndex != -1) {
+									throw new IllegalStateException(
+											"Annotation '" + SecurityContextPassword.class.getName()
+													+ "' ambiguous on method signature '" + method.toGenericString() + "'");
+								}
+								passwordIndex = a;
+								passwordType = ((SecurityContextPassword) annotationOfParam).value();
+							}
+							else if (annotationOfParam instanceof SecurityContextScope) {
+								if (securityScopeIndex != -1) {
+									throw new IllegalStateException(
+											"Annotation '" + SecurityContextScope.class.getName()
+													+ "' ambiguous on method signature '" + method.toGenericString() + "'");
+								}
+								securityScopeIndex = a;
+							}
 						}
-						passwordIndex = a;
-						passwordType = ((SecurityContextPassword) annotationOfParam).value();
 					}
-					else if (annotationOfParam instanceof SecurityContextScope) {
-						if (securityScopeIndex != -1) {
-							throw new IllegalStateException("Annotation '" + SecurityContextScope.class.getName()
-									+ "' ambiguous on method signature '" + method.toGenericString() + "'");
-						}
-						securityScopeIndex = a;
-					}
+					ISecurityScope securityScope =
+							securityScopeIndex == -1 ? StringSecurityScope.DEFAULT_SCOPE
+									: null;
+					return new SecurityMethodMode(annotation.value(), userNameIndex, passwordIndex,
+							passwordType,
+							securityScopeIndex, securityScope);
 				}
-			}
-			ISecurityScope securityScope = securityScopeIndex == -1 ? StringSecurityScope.DEFAULT_SCOPE
-					: null;
-			return new SecurityMethodMode(annotation.value(), userNameIndex, passwordIndex, passwordType,
-					securityScopeIndex, securityScope);
-		}
-	};
+			};
 
 	@Override
 	protected ICascadedInterceptor handleServiceIntern(IBeanContextFactory beanContextFactory,

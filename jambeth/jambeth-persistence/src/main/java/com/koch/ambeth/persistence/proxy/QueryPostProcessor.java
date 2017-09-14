@@ -1,5 +1,7 @@
 package com.koch.ambeth.persistence.proxy;
 
+import java.util.Objects;
+
 /*-
  * #%L
  * jambeth-persistence
@@ -34,7 +36,6 @@ import com.koch.ambeth.query.squery.ISquery;
 import com.koch.ambeth.service.proxy.AbstractCascadePostProcessor;
 import com.koch.ambeth.service.proxy.Service;
 import com.koch.ambeth.service.proxy.ServiceClient;
-import com.koch.ambeth.util.EqualsUtil;
 import com.koch.ambeth.util.annotation.AnnotationCache;
 import com.koch.ambeth.util.proxy.ICascadedInterceptor;
 
@@ -46,7 +47,7 @@ public class QueryPostProcessor extends AbstractCascadePostProcessor {
 			new AnnotationCache<CacheContext>(CacheContext.class) {
 				@Override
 				protected boolean annotationEquals(CacheContext left, CacheContext right) {
-					return EqualsUtil.equals(left.value(), right.value());
+					return Objects.equals(left.value(), right.value());
 				}
 			};
 
@@ -54,7 +55,7 @@ public class QueryPostProcessor extends AbstractCascadePostProcessor {
 			new AnnotationCache<Service>(Service.class) {
 				@Override
 				protected boolean annotationEquals(Service left, Service right) {
-					return EqualsUtil.equals(left.value(), right.value());
+					return Objects.equals(left.value(), right.value());
 				}
 			};
 
@@ -62,7 +63,7 @@ public class QueryPostProcessor extends AbstractCascadePostProcessor {
 			new AnnotationCache<ServiceClient>(ServiceClient.class) {
 				@Override
 				protected boolean annotationEquals(ServiceClient left, ServiceClient right) {
-					return EqualsUtil.equals(left.value(), right.value());
+					return Objects.equals(left.value(), right.value());
 				}
 			};
 

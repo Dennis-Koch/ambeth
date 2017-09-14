@@ -21,6 +21,7 @@ limitations under the License.
  */
 
 import java.util.Arrays;
+import java.util.Objects;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -30,7 +31,6 @@ import javax.xml.bind.annotation.XmlRootElement;
 import com.koch.ambeth.merge.transfer.ObjRef;
 import com.koch.ambeth.service.cache.model.IObjRelation;
 import com.koch.ambeth.service.merge.model.IObjRef;
-import com.koch.ambeth.util.EqualsUtil;
 import com.koch.ambeth.util.IPrintable;
 import com.koch.ambeth.util.StringBuilderUtil;
 
@@ -153,8 +153,8 @@ public class ObjRelation implements IObjRelation, IPrintable {
 			return false;
 		}
 		ObjRelation other = (ObjRelation) obj;
-		return EqualsUtil.equals(getRealType(), other.getRealType())
-				&& EqualsUtil.equals(getMemberName(), other.getMemberName())
+		return Objects.equals(getRealType(), other.getRealType())
+				&& Objects.equals(getMemberName(), other.getMemberName())
 				&& Arrays.equals(getObjRefs(), other.getObjRefs());
 	}
 

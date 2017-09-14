@@ -21,6 +21,7 @@ limitations under the License.
  */
 
 import java.lang.reflect.AnnotatedElement;
+import java.util.Objects;
 import java.util.Set;
 
 import com.koch.ambeth.ioc.IBeanRuntime;
@@ -33,26 +34,27 @@ import com.koch.ambeth.service.proxy.AbstractCascadePostProcessor;
 import com.koch.ambeth.service.proxy.IBehaviorTypeExtractor;
 import com.koch.ambeth.service.proxy.IMethodLevelBehavior;
 import com.koch.ambeth.service.proxy.MethodLevelBehavior;
-import com.koch.ambeth.util.EqualsUtil;
 import com.koch.ambeth.util.annotation.AnnotationCache;
 import com.koch.ambeth.util.proxy.ICascadedInterceptor;
 
 public class PersistencePostProcessor extends AbstractCascadePostProcessor {
-	protected final AnnotationCache<PersistenceContext> annotationCache = new AnnotationCache<PersistenceContext>(
-			PersistenceContext.class) {
-		@Override
-		protected boolean annotationEquals(PersistenceContext left, PersistenceContext right) {
-			return EqualsUtil.equals(left.value(), right.value());
-		}
-	};
+	protected final AnnotationCache<PersistenceContext> annotationCache =
+			new AnnotationCache<PersistenceContext>(
+					PersistenceContext.class) {
+				@Override
+				protected boolean annotationEquals(PersistenceContext left, PersistenceContext right) {
+					return Objects.equals(left.value(), right.value());
+				}
+			};
 
-	protected final IBehaviorTypeExtractor<PersistenceContext, PersistenceContextType> btExtractor = new IBehaviorTypeExtractor<PersistenceContext, PersistenceContextType>() {
-		@Override
-		public PersistenceContextType extractBehaviorType(PersistenceContext annotation,
-				AnnotatedElement annotatedElement) {
-			return annotation.value();
-		}
-	};
+	protected final IBehaviorTypeExtractor<PersistenceContext, PersistenceContextType> btExtractor =
+			new IBehaviorTypeExtractor<PersistenceContext, PersistenceContextType>() {
+				@Override
+				public PersistenceContextType extractBehaviorType(PersistenceContext annotation,
+						AnnotatedElement annotatedElement) {
+					return annotation.value();
+				}
+			};
 
 	@Override
 	protected ICascadedInterceptor handleServiceIntern(IBeanContextFactory beanContextFactory,

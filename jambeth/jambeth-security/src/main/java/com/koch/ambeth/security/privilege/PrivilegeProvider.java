@@ -22,6 +22,7 @@ limitations under the License.
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -67,7 +68,6 @@ import com.koch.ambeth.service.merge.IEntityMetaDataProvider;
 import com.koch.ambeth.service.merge.model.IEntityMetaData;
 import com.koch.ambeth.service.merge.model.IObjRef;
 import com.koch.ambeth.service.model.ISecurityScope;
-import com.koch.ambeth.util.EqualsUtil;
 import com.koch.ambeth.util.IInterningFeature;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.HashMap;
@@ -125,9 +125,9 @@ public class PrivilegeProvider
 				return false;
 			}
 			PrivilegeKey other = (PrivilegeKey) obj;
-			return EqualsUtil.equals(id, other.id) && EqualsUtil.equals(entityType, other.entityType)
-					&& idIndex == other.idIndex && EqualsUtil.equals(userSID, other.userSID)
-					&& EqualsUtil.equals(securityScope, other.securityScope);
+			return Objects.equals(id, other.id) && Objects.equals(entityType, other.entityType)
+					&& idIndex == other.idIndex && Objects.equals(userSID, other.userSID)
+					&& Objects.equals(securityScope, other.securityScope);
 		}
 
 		@Override
@@ -174,7 +174,8 @@ public class PrivilegeProvider
 
 	protected final LinkedHashMap<PrivilegeKey, IPrivilege> privilegeCache = new LinkedHashMap<>();
 
-	protected final Tuple3KeyHashMap<Class<?>, String, String, ITypePrivilege> entityTypePrivilegeCache = new Tuple3KeyHashMap<>();
+	protected final Tuple3KeyHashMap<Class<?>, String, String, ITypePrivilege> entityTypePrivilegeCache =
+			new Tuple3KeyHashMap<>();
 
 	@Override
 	public void afterPropertiesSet() {
@@ -213,7 +214,7 @@ public class PrivilegeProvider
 	@Override
 	public IPrivilege getPrivilegeByObjRef(IObjRef objRef, ISecurityScope[] securityScopes) {
 		IPrivilegeResult result = getPrivilegesByObjRef(
-				new ArrayList<IObjRef>(new IObjRef[] { objRef }), securityScopes);
+				new ArrayList<IObjRef>(new IObjRef[] {objRef}), securityScopes);
 		return result.getPrivileges()[0];
 	}
 
@@ -420,7 +421,7 @@ public class PrivilegeProvider
 	@Override
 	public ITypePrivilege getPrivilegeByType(Class<?> entityType, ISecurityScope[] securityScopes) {
 		ITypePrivilegeResult result = getPrivilegesByType(
-				new ArrayList<Class<?>>(new Class<?>[] { entityType }), securityScopes);
+				new ArrayList<Class<?>>(new Class<?>[] {entityType}), securityScopes);
 		return result.getTypePrivileges()[0];
 	}
 

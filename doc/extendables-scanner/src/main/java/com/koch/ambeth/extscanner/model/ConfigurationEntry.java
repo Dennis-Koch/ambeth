@@ -1,9 +1,10 @@
 package com.koch.ambeth.extscanner.model;
 
+import java.util.Objects;
+
 import com.koch.ambeth.ioc.config.Property;
 import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
-import com.koch.ambeth.util.EqualsUtil;
 import com.koch.ambeth.util.collections.ArrayList;
 
 public class ConfigurationEntry implements IMultiPlatformFeature, Comparable<ConfigurationEntry> {
@@ -59,7 +60,7 @@ public class ConfigurationEntry implements IMultiPlatformFeature, Comparable<Con
 	}
 
 	public void setDefaultValue(String defaultValue) {
-		if (defaultValueSpecified && !EqualsUtil.equals(this.defaultValue, defaultValue)) {
+		if (defaultValueSpecified && !Objects.equals(this.defaultValue, defaultValue)) {
 			log.warn("Default value for property '" + propertyName + "' is not unique: '"
 					+ this.defaultValue + "' vs. '" + defaultValue + "'");
 			return;

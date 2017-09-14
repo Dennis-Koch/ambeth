@@ -21,6 +21,7 @@ limitations under the License.
  */
 
 import java.util.Arrays;
+import java.util.Objects;
 
 import org.objectweb.asm.Type;
 
@@ -66,8 +67,8 @@ public class MethodKeyOfType {
 			return false;
 		}
 		MethodKeyOfType other = (MethodKeyOfType) obj;
-		if (!EqualsUtil.equals(methodName, other.methodName)
-				|| !EqualsUtil.equals(returnType, other.returnType)) {
+		if (!Objects.equals(methodName, other.methodName)
+				|| !Objects.equals(returnType, other.returnType)) {
 			return false;
 		}
 		if (!Arrays.equals(parameterTypes, other.parameterTypes)) {

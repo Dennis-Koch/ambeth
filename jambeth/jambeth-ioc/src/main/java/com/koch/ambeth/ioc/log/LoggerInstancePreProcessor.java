@@ -22,6 +22,7 @@ limitations under the License.
 
 import java.lang.reflect.Field;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
 
@@ -34,7 +35,6 @@ import com.koch.ambeth.log.IConfigurableLogger;
 import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.log.LoggerFactory;
-import com.koch.ambeth.util.EqualsUtil;
 import com.koch.ambeth.util.ParamChecker;
 import com.koch.ambeth.util.ReflectUtil;
 import com.koch.ambeth.util.annotation.AnnotationCache;
@@ -50,7 +50,7 @@ public class LoggerInstancePreProcessor extends WeakSmartCopyMap<Class<?>, ILogg
 			new AnnotationCache<LogInstance>(LogInstance.class) {
 				@Override
 				protected boolean annotationEquals(LogInstance left, LogInstance right) {
-					return EqualsUtil.equals(left.value(), right.value());
+					return Objects.equals(left.value(), right.value());
 				}
 			};
 

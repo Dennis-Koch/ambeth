@@ -21,9 +21,9 @@ limitations under the License.
  */
 
 import java.util.Map;
+import java.util.Objects;
 
 import com.koch.ambeth.informationbus.persistence.datagenerator.ITestSetter;
-import com.koch.ambeth.util.EqualsUtil;
 import com.koch.ambeth.util.ParamChecker;
 
 public abstract class AbstractTestSetter implements ITestSetter {
@@ -42,6 +42,6 @@ public abstract class AbstractTestSetter implements ITestSetter {
 	@Override
 	public void compareResult(String propertyName, Map<Object, Object> arguments, Object content) {
 		Object parameter = createParameter(propertyName, arguments);
-		ParamChecker.assertTrue(EqualsUtil.equals(parameter, content), propertyName);
+		ParamChecker.assertTrue(Objects.equals(parameter, content), propertyName);
 	}
 }

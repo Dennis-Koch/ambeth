@@ -9,6 +9,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.locks.Lock;
 import java.util.function.Consumer;
 
@@ -52,7 +53,6 @@ import com.koch.ambeth.service.metadata.Member;
 import com.koch.ambeth.service.metadata.PrimitiveMember;
 import com.koch.ambeth.service.metadata.RelationMember;
 import com.koch.ambeth.service.xml.IXmlTypeHelper;
-import com.koch.ambeth.util.EqualsUtil;
 import com.koch.ambeth.util.ReflectUtil;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.HashMap;
@@ -659,7 +659,7 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 					// the related BO where ALL potential VOs will be derived from:
 					Class<?> boMemberElementType = boMember.getElementType();
 
-					if (EqualsUtil.equals(entityType, boMemberElementType)) {
+					if (Objects.equals(entityType, boMemberElementType)) {
 						continue;
 					}
 

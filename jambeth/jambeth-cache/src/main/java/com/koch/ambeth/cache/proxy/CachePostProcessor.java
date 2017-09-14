@@ -22,6 +22,7 @@ limitations under the License.
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
+import java.util.Objects;
 import java.util.Set;
 
 import com.koch.ambeth.cache.Cached;
@@ -39,7 +40,6 @@ import com.koch.ambeth.service.config.ServiceConfigurationConstants;
 import com.koch.ambeth.service.proxy.IMethodLevelBehavior;
 import com.koch.ambeth.service.proxy.Service;
 import com.koch.ambeth.service.proxy.ServiceClient;
-import com.koch.ambeth.util.EqualsUtil;
 import com.koch.ambeth.util.annotation.AnnotationCache;
 import com.koch.ambeth.util.annotation.AnnotationEntry;
 import com.koch.ambeth.util.proxy.ICascadedInterceptor;
@@ -52,8 +52,8 @@ public class CachePostProcessor extends MergePostProcessor {
 			new AnnotationCache<Service>(Service.class) {
 				@Override
 				protected boolean annotationEquals(Service left, Service right) {
-					return EqualsUtil.equals(left.value(), right.value())
-							&& EqualsUtil.equals(left.name(), right.name());
+					return Objects.equals(left.value(), right.value())
+							&& Objects.equals(left.name(), right.name());
 				}
 			};
 
@@ -61,7 +61,7 @@ public class CachePostProcessor extends MergePostProcessor {
 			new AnnotationCache<ServiceClient>(ServiceClient.class) {
 				@Override
 				protected boolean annotationEquals(ServiceClient left, ServiceClient right) {
-					return EqualsUtil.equals(left.value(), right.value());
+					return Objects.equals(left.value(), right.value());
 				}
 			};
 

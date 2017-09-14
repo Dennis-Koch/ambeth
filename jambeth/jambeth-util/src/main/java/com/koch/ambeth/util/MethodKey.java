@@ -21,6 +21,7 @@ limitations under the License.
  */
 
 import java.util.Arrays;
+import java.util.Objects;
 
 public class MethodKey implements IPrintable {
 	protected final String methodName;
@@ -57,7 +58,7 @@ public class MethodKey implements IPrintable {
 			return false;
 		}
 		MethodKey other = (MethodKey) obj;
-		if (!EqualsUtil.equals(methodName, other.methodName)) {
+		if (!Objects.equals(methodName, other.methodName)) {
 			return false;
 		}
 		if (!Arrays.equals(parameterTypes, other.parameterTypes)) {

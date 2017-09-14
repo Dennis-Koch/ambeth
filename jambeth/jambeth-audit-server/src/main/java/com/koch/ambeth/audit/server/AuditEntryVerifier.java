@@ -29,6 +29,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.concurrent.locks.Lock;
 import java.util.function.BiFunction;
 
@@ -86,7 +87,6 @@ import com.koch.ambeth.service.merge.model.IObjRef;
 import com.koch.ambeth.service.metadata.Member;
 import com.koch.ambeth.service.metadata.PrimitiveMember;
 import com.koch.ambeth.service.metadata.RelationMember;
-import com.koch.ambeth.util.EqualsUtil;
 import com.koch.ambeth.util.IClassCache;
 import com.koch.ambeth.util.IConversionHelper;
 import com.koch.ambeth.util.StringBuilderUtil;
@@ -541,7 +541,7 @@ public class AuditEntryVerifier
 						HashMap<String, Boolean> validPropertyMap = objRefToValidPropertyMap.get(tempObjRef);
 
 						String newValue = primitive.getNewValue();
-						boolean valid = EqualsUtil.equals(newValue, entityValue);
+						boolean valid = Objects.equals(newValue, entityValue);
 						validPropertyMap.put(memberName, Boolean.valueOf(valid));
 					}
 					auditedEntitiesToVerify.add(auditedEntity);

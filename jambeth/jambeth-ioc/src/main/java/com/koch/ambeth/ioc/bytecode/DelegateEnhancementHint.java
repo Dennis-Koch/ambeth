@@ -1,26 +1,6 @@
 package com.koch.ambeth.ioc.bytecode;
 
-/*-
- * #%L
- * jambeth-ioc
- * %%
- * Copyright (C) 2017 Koch Softwaredevelopment
- * %%
- * Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-     http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
- * #L%
- */
-
-import com.koch.ambeth.util.EqualsUtil;
+import java.util.Objects;
 
 public class DelegateEnhancementHint implements IEnhancementHint, ITargetNameEnhancementHint {
 	private final Class<?> type;
@@ -56,9 +36,9 @@ public class DelegateEnhancementHint implements IEnhancementHint, ITargetNameEnh
 			return false;
 		}
 		DelegateEnhancementHint other = (DelegateEnhancementHint) obj;
-		return EqualsUtil.equals(other.getType(), getType())
-				&& EqualsUtil.equals(other.getMethodName(), getMethodName())
-				&& EqualsUtil.equals(other.getParameterType(), getParameterType());
+		return Objects.equals(other.getType(), getType())
+				&& Objects.equals(other.getMethodName(), getMethodName())
+				&& Objects.equals(other.getParameterType(), getParameterType());
 	}
 
 	@Override

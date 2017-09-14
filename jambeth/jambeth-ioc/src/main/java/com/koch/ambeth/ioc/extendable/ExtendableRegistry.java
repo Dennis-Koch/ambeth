@@ -21,12 +21,12 @@ limitations under the License.
  */
 
 import java.lang.reflect.Method;
+import java.util.Objects;
 import java.util.concurrent.locks.Lock;
 
 import com.koch.ambeth.ioc.IInitializingBean;
 import com.koch.ambeth.ioc.exception.ExtendableException;
 import com.koch.ambeth.ioc.extendable.ExtendableRegistry.KeyItem;
-import com.koch.ambeth.util.EqualsUtil;
 import com.koch.ambeth.util.IParamHolder;
 import com.koch.ambeth.util.ParamChecker;
 import com.koch.ambeth.util.ReflectUtil;
@@ -74,7 +74,7 @@ public class ExtendableRegistry extends SmartCopyMap<KeyItem, Method[]>
 			KeyItem other = (KeyItem) obj;
 			return extendableInterface.equals(other.extendableInterface)
 					&& argumentCount == other.argumentCount
-					&& EqualsUtil.equals(propertyName, other.propertyName);
+					&& Objects.equals(propertyName, other.propertyName);
 		}
 	}
 
@@ -221,7 +221,7 @@ public class ExtendableRegistry extends SmartCopyMap<KeyItem, Method[]>
 								+ extendableInterface.getName() + " to add extension signature with exactly "
 								+ expectedParamCount + " argument(s)");
 			}
-			addRemoveMethods = new Method[] { addMethod, removeMethod };
+			addRemoveMethods = new Method[] {addMethod, removeMethod};
 
 			put(keyItem, addRemoveMethods);
 			return addRemoveMethods;
@@ -287,7 +287,7 @@ public class ExtendableRegistry extends SmartCopyMap<KeyItem, Method[]>
 			}
 			KeyItem keyItem = new KeyItem(extendableInterface, null,
 					addMethod.getParameterTypes().length);
-			Method[] addRemoveMethods = new Method[] { addMethod, removeMethod };
+			Method[] addRemoveMethods = new Method[] {addMethod, removeMethod};
 
 			put(keyItem, addRemoveMethods);
 

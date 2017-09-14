@@ -1,5 +1,7 @@
 package com.koch.ambeth.merge.util;
 
+import java.util.Objects;
+
 /*-
  * #%L
  * jambeth-merge
@@ -22,7 +24,6 @@ limitations under the License.
 
 import com.koch.ambeth.service.merge.model.IObjRef;
 import com.koch.ambeth.service.metadata.RelationMember;
-import com.koch.ambeth.util.EqualsUtil;
 
 public class ValueHolderRef {
 	protected IObjRef objRef;
@@ -58,7 +59,7 @@ public class ValueHolderRef {
 			return false;
 		}
 		ValueHolderRef other = (ValueHolderRef) obj;
-		return EqualsUtil.equals(getObjRef(), other.getObjRef())
+		return Objects.equals(getObjRef(), other.getObjRef())
 				&& getRelationIndex() == other.getRelationIndex();
 	}
 

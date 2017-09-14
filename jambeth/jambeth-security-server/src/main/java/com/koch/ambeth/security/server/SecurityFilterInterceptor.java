@@ -21,6 +21,7 @@ limitations under the License.
  */
 
 import java.lang.reflect.Method;
+import java.util.Objects;
 
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.config.Property;
@@ -39,7 +40,6 @@ import com.koch.ambeth.security.SecurityContextType;
 import com.koch.ambeth.security.StringSecurityScope;
 import com.koch.ambeth.service.model.ISecurityScope;
 import com.koch.ambeth.service.proxy.IMethodLevelBehavior;
-import com.koch.ambeth.util.EqualsUtil;
 import com.koch.ambeth.util.IConversionHelper;
 import com.koch.ambeth.util.config.IProperties;
 import com.koch.ambeth.util.proxy.CascadedInterceptor;
@@ -89,11 +89,11 @@ public class SecurityFilterInterceptor extends CascadedInterceptor {
 				return false;
 			}
 			SecurityMethodMode other = (SecurityMethodMode) obj;
-			return EqualsUtil.equals(securityContextType, other.securityContextType)
+			return Objects.equals(securityContextType, other.securityContextType)
 					&& userNameIndex == other.userNameIndex && userPasswordIndex == other.userPasswordIndex
-					&& EqualsUtil.equals(passwordType, other.passwordType)
+					&& Objects.equals(passwordType, other.passwordType)
 					&& securityScopeIndex == other.securityScopeIndex
-					&& EqualsUtil.equals(securityScope, other.securityScope);
+					&& Objects.equals(securityScope, other.securityScope);
 		}
 
 		@Override
@@ -202,7 +202,7 @@ public class SecurityFilterInterceptor extends CascadedInterceptor {
 				ISecurityScope securityScope = securityScopeName
 						.equals(StringSecurityScope.DEFAULT_SCOPE_NAME) ? StringSecurityScope.DEFAULT_SCOPE
 								: new StringSecurityScope(securityScopeName);
-				securityScopeProvider.setSecurityScopes(new ISecurityScope[] { securityScope });
+				securityScopeProvider.setSecurityScopes(new ISecurityScope[] {securityScope});
 			}
 		}
 		else if (securityMethodMode.securityScope != null) {
@@ -213,7 +213,7 @@ public class SecurityFilterInterceptor extends CascadedInterceptor {
 			}
 			else {
 				securityScopeProvider
-						.setSecurityScopes(new ISecurityScope[] { securityMethodMode.securityScope });
+						.setSecurityScopes(new ISecurityScope[] {securityMethodMode.securityScope});
 			}
 		}
 		try {

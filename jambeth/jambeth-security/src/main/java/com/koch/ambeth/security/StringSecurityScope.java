@@ -1,5 +1,7 @@
 package com.koch.ambeth.security;
 
+import java.util.Objects;
+
 /*-
  * #%L
  * jambeth-security
@@ -21,7 +23,6 @@ limitations under the License.
  */
 
 import com.koch.ambeth.service.model.ISecurityScope;
-import com.koch.ambeth.util.EqualsUtil;
 
 public class StringSecurityScope implements ISecurityScope {
 	public static final String DEFAULT_SCOPE_NAME = "defaultScope";
@@ -53,7 +54,7 @@ public class StringSecurityScope implements ISecurityScope {
 			return false;
 		}
 		StringSecurityScope other = (StringSecurityScope) obj;
-		return EqualsUtil.equals(getName(), other.getName());
+		return Objects.equals(getName(), other.getName());
 	}
 
 	@Override

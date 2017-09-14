@@ -22,8 +22,8 @@ limitations under the License.
 
 import java.lang.ref.WeakReference;
 import java.util.Map.Entry;
+import java.util.Objects;
 
-import com.koch.ambeth.util.EqualsUtil;
 import com.koch.ambeth.util.IPrintable;
 import com.koch.ambeth.util.StringBuilderUtil;
 
@@ -67,8 +67,8 @@ public class WeakValueMapEntry<K, V> extends WeakReference<V>
 			return false;
 		}
 		Entry<Object, Object> other = (Entry<Object, Object>) obj;
-		return EqualsUtil.equals(getKey(), other.getKey())
-				&& EqualsUtil.equals(getValue(), other.getValue());
+		return Objects.equals(getKey(), other.getKey())
+				&& Objects.equals(getValue(), other.getValue());
 	}
 
 	@Override

@@ -1,5 +1,7 @@
 package com.koch.ambeth.merge.bytecode.compositeid;
 
+import java.util.Objects;
+
 /*-
  * #%L
  * jambeth-merge-bytecode
@@ -23,7 +25,6 @@ limitations under the License.
 import com.koch.ambeth.ioc.bytecode.IEnhancementHint;
 import com.koch.ambeth.ioc.bytecode.ITargetNameEnhancementHint;
 import com.koch.ambeth.service.metadata.Member;
-import com.koch.ambeth.util.EqualsUtil;
 import com.koch.ambeth.util.IPrintable;
 
 public class CompositeIdEnhancementHint
@@ -60,8 +61,8 @@ public class CompositeIdEnhancementHint
 		for (int a = idMembers.length; a-- > 0;) {
 			Member idMember = idMembers[a];
 			Member otherIdMember = other.idMembers[a];
-			if (!EqualsUtil.equals(idMember.getName(), otherIdMember.getName())
-					|| !EqualsUtil.equals(idMember.getRealType(), otherIdMember.getRealType())) {
+			if (!Objects.equals(idMember.getName(), otherIdMember.getName())
+					|| !Objects.equals(idMember.getRealType(), otherIdMember.getRealType())) {
 				return false;
 			}
 		}

@@ -26,8 +26,8 @@ import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.lang.reflect.Array;
 import java.util.Iterator;
+import java.util.Objects;
 
-import com.koch.ambeth.util.EqualsUtil;
 import com.koch.ambeth.util.IPrintable;
 import com.koch.ambeth.util.StringBuilderUtil;
 
@@ -267,7 +267,7 @@ public abstract class AbstractTuple2KeyHashMap<Key1, Key2, V>
 
 	protected boolean equalKeys(final Key1 key1, final Key2 key2,
 			final Tuple2KeyEntry<Key1, Key2, V> entry) {
-		return EqualsUtil.equals(key1, entry.getKey1()) && EqualsUtil.equals(key2, entry.getKey2());
+		return Objects.equals(key1, entry.getKey1()) && Objects.equals(key2, entry.getKey2());
 	}
 
 	public void putAll(
