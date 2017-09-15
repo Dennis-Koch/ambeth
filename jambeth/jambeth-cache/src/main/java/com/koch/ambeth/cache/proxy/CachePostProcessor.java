@@ -158,7 +158,7 @@ public class CachePostProcessor extends MergePostProcessor {
 		IMethodLevelBehavior<Annotation> behavior = createInterceptorModeBehavior(type);
 
 		CacheInterceptor interceptor = new CacheInterceptor();
-		if (beanContext != null) {
+		if (beanContext.isRunning()) {
 			interceptor = beanContext.registerWithLifecycle(interceptor)//
 					.propertyValue(MergeInterceptor.SERVICE_NAME_PROP, serviceName)//
 					.propertyValue(MergeInterceptor.BEHAVIOR_PROP, behavior)//

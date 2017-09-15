@@ -29,15 +29,25 @@ public class StringSecurityScope implements ISecurityScope {
 
 	public static final ISecurityScope DEFAULT_SCOPE = new StringSecurityScope(DEFAULT_SCOPE_NAME);
 
-	protected final String name;
+	protected String name;
+
+	public StringSecurityScope() {
+	}
 
 	public StringSecurityScope(String name) {
-		this.name = name;
+		setName(name);
 	}
 
 	@Override
 	public String getName() {
 		return name;
+	}
+
+	public void setName(String name) {
+		if (this.name != null) {
+			throw new IllegalStateException("Name is only allowed to be specified once");
+		}
+		this.name = name;
 	}
 
 	@Override

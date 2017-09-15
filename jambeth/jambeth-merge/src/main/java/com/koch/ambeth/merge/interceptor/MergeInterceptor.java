@@ -86,6 +86,12 @@ public class MergeInterceptor extends AbstractInterceptor {
 
 	@Override
 	protected Annotation getMethodLevelBehavior(Method method) {
+		if (behavior == null) {
+			// this may be the case if during proxy instiation on the to-be-booted IoC container an
+			// exception occurs
+			// e.g. a DuplicateAutowireableException
+			return null;
+		}
 		return behavior.getBehaviourOfMethod(method);
 	}
 
@@ -141,7 +147,8 @@ public class MergeInterceptor extends AbstractInterceptor {
 			Annotation annotation, Boolean isAsyncBegin) throws Throwable {
 		Boolean oldProcessServiceActive = processServiceActive.get();
 		if (Boolean.TRUE.equals(oldProcessServiceActive) || processService == null
-				|| !method.getDeclaringClass().isAnnotationPresent(ServiceClient.class)) {
+				|| (!method.getDeclaringClass().isAnnotationPresent(ServiceClient.class)
+						&& !(annotation instanceof com.koch.ambeth.util.annotation.Process))) {
 			return super.interceptApplication(obj, method, args, proxy, annotation, isAsyncBegin);
 		}
 		ISecurityScope[] securityScopes = securityScopeProvider.getSecurityScopes();

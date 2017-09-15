@@ -38,6 +38,7 @@ import com.koch.ambeth.service.cache.IServiceResultProcessorRegistry;
 import com.koch.ambeth.service.cache.ServiceResultProcessorRegistry;
 import com.koch.ambeth.service.config.ServiceConfigurationConstants;
 import com.koch.ambeth.service.log.LoggingPostProcessor;
+import com.koch.ambeth.service.remote.ClientServiceBean;
 import com.koch.ambeth.service.remote.IClientServiceInterceptorBuilder;
 import com.koch.ambeth.service.remote.SyncClientServiceInterceptorBuilder;
 import com.koch.ambeth.service.typeinfo.TypeInfoProvider;
@@ -107,8 +108,15 @@ public class ServiceModule implements IInitializingModule {
 
 		beanContextFactory.registerBean("loggingPostProcessor", LoggingPostProcessor.class);
 
-		beanContextFactory.registerBean("processService", ProcessService.class)
-				.autowireable(IProcessService.class);
+		if (networkClientMode && isProcessServiceBeanActive) {
+			beanContextFactory.registerBean("processService", ClientServiceBean.class)
+					.propertyValue(ClientServiceBean.INTERFACE_PROP_NAME, IProcessService.class)
+					.autowireable(IProcessService.class);
+		}
+		else {
+			beanContextFactory.registerBean("processService", ProcessService.class)
+					.autowireable(IProcessService.class);
+		}
 
 		beanContextFactory.registerBean("xmlTypeHelper", XmlTypeHelper.class)
 				.autowireable(IXmlTypeHelper.class);
