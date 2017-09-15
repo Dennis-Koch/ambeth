@@ -21,13 +21,16 @@ limitations under the License.
  */
 
 import com.koch.ambeth.ioc.IInitializingBean;
+import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.extendable.MapExtendableContainer;
 import com.koch.ambeth.util.ParamChecker;
 
 public class ServiceByNameProvider
 		implements IServiceByNameProvider, IServiceExtendable, IInitializingBean {
-	protected MapExtendableContainer<String, Object> serviceNameToObjectMap;
+	protected final MapExtendableContainer<String, Object> serviceNameToObjectMap =
+			new MapExtendableContainer<>("serviceName", "service");
 
+	@Autowired(optional = true)
 	protected IServiceByNameProvider parentServiceByNameProvider;
 
 	@Override
@@ -35,12 +38,11 @@ public class ServiceByNameProvider
 		if (parentServiceByNameProvider != null) {
 			ParamChecker.assertTrue(parentServiceByNameProvider != this, "parentServiceByNameProvider");
 		}
-
-		serviceNameToObjectMap = new MapExtendableContainer<>("serviceName", "service");
 	}
 
-	public void setParentServiceByNameProvider(IServiceByNameProvider parentServiceByNameProvider) {
-		this.parentServiceByNameProvider = parentServiceByNameProvider;
+	@Override
+	public String[] getAllRegisteredServiceNames() {
+		return serviceNameToObjectMap.getExtensions().keyList().toArray(String.class);
 	}
 
 	@Override

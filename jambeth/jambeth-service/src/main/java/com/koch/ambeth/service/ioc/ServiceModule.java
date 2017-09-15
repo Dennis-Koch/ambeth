@@ -90,7 +90,7 @@ public class ServiceModule implements IInitializingModule {
 			beanContextFactory.registerBean(NoOpOfflineExtendable.class)
 					.autowireable(IOfflineListenerExtendable.class);
 		}
-		beanContextFactory.registerBean("serviceByNameProvider", ServiceByNameProvider.class)
+		beanContextFactory.registerBean(ServiceByNameProvider.class)
 				.propertyValue("ParentServiceByNameProvider", null)
 				.autowireable(IServiceByNameProvider.class, IServiceExtendable.class);
 

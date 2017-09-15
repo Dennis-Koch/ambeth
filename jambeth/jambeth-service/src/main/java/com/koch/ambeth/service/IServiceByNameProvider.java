@@ -22,4 +22,6 @@ limitations under the License.
 
 public interface IServiceByNameProvider {
 	Object getService(String serviceName);
+
+	String[] getAllRegisteredServiceNames();
 }
