@@ -186,9 +186,21 @@ public class RESTClientInterceptor extends AbstractSimpleInterceptor
 
 	@Override
 	public void propertyChange(PropertyChangeEvent evt) {
-		if (ServiceConfigurationConstants.ServiceBaseUrl.equals(evt.getPropertyName())) {
-			Object newValue = evt.getNewValue();
-			serviceBaseUrl = newValue != null ? newValue.toString() : null;
+		if (!ServiceConfigurationConstants.ServiceBaseUrl.equals(evt.getPropertyName())) {
+			return;
+		}
+		Object newValue = evt.getNewValue();
+		serviceBaseUrl = newValue != null ? newValue.toString() : null;
+
+		writeLock.lock();
+		try {
+			connectionChangeCond.signalAll();
+			for (Thread responsePendingThread : responsePendingThreadSet) {
+				responsePendingThread.interrupt();
+			}
+		}
+		finally {
+			writeLock.unlock();
 		}
 	}
 
@@ -304,8 +316,8 @@ public class RESTClientInterceptor extends AbstractSimpleInterceptor
 			return convertToExpectedType(method.getReturnType(), method.getGenericReturnType(), result);
 		}
 		catch (Throwable e) {
-			if (enrichException) {
-				throw RuntimeExceptionUtil.mask(e, "Error occurred while calling url '" + url);
+			if (enrichException && url != null) {
+				throw RuntimeExceptionUtil.mask(e, "Error occurred while calling url '" + url + "'");
 			}
 			throw e;
 		}
