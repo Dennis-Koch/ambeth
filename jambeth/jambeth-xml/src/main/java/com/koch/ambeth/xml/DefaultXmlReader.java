@@ -182,7 +182,7 @@ public class DefaultXmlReader
 	@Override
 	public Object getObjectById(int id, boolean checkExistence) {
 		Object object = idToObjectMap.get(id);
-		if (object == null && checkExistence) {
+		if (object == null && checkExistence && !idToObjectMap.containsKey(id)) {
 			throw new IllegalStateException("No object found in xml with id " + id);
 		}
 		return object;
@@ -190,11 +190,14 @@ public class DefaultXmlReader
 
 	@Override
 	public void putObjectWithId(Object obj, int id) {
-		Object existingObj = idToObjectMap.get(id);
-		if (existingObj != null && existingObj != obj) {
-			throw new IllegalStateException("Already mapped object to id " + id + " found");
+		if (idToObjectMap.putIfNotExists(id, obj)) {
+			return;
 		}
-		idToObjectMap.put(id, obj);
+		Object existingObj = idToObjectMap.get(id);
+		if (existingObj == obj) {
+			return;
+		}
+		throw new IllegalStateException("Already mapped object to id " + id + " found");
 	}
 
 	@Override

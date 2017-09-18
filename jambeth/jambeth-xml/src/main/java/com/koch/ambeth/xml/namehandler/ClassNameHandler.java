@@ -32,6 +32,7 @@ import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.HashSet;
 import com.koch.ambeth.util.collections.IdentityLinkedMap;
 import com.koch.ambeth.util.collections.LinkedHashMap;
+import com.koch.ambeth.util.exception.MaskingRuntimeException;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.objectcollector.IThreadLocalObjectCollector;
 import com.koch.ambeth.util.typeinfo.ITypeInfo;
@@ -298,37 +299,24 @@ public class ClassNameHandler extends AbstractHandler implements INameBasedHandl
 		String name = reader.getAttributeValue(xmlDictionary.getClassNameAttribute());
 		String namespace = reader.getAttributeValue(xmlDictionary.getClassNamespaceAttribute());
 
-		// IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
-		// String arraySuffix;
+		int arrayIndex = name.length();
 		int dimensionCount = 0;
-		// StringBuilder arraySuffixSB = tlObjectCollector.create(StringBuilder.class);
-		// try
-		// {
-		while (name.endsWith("[]")) {
+		while (name.startsWith("[]", arrayIndex - 2)) {
 			dimensionCount++;
-			name = name.substring(0, name.length() - 2);
-			// arraySuffixSB.append("[");
+			arrayIndex -= 2;
 		}
-		// arraySuffix = arraySuffixSB.toString();
-		// }
-		// finally
-		// {
-		// tlObjectCollector.dispose(arraySuffixSB);
-		// arraySuffixSB = null;
-		// }
-		Class<?> typeObj = xmlTypeRegistry.getType(name, namespace);
-		if (dimensionCount > 0) {
-			// try
-			// {
-			// return classLoaderProvider.getClassLoader().loadClass(arraySuffix + "L" +
-			// typeObj.getName() + ";");
-			// }
-			// catch (ClassNotFoundException e)
-			// {
-			// throw RuntimeExceptionUtil.mask(e);
-			// }
-			return Array.newInstance(typeObj, 0).getClass();
+		try {
+			Class<?> typeObj = xmlTypeRegistry.getType(name.substring(0, arrayIndex), namespace);
+			if (dimensionCount > 0) {
+				return Array.newInstance(typeObj, 0).getClass();
+			}
+			return typeObj;
 		}
-		return typeObj;
+		catch (MaskingRuntimeException e) {
+			if (e.getCause() instanceof ClassNotFoundException) {
+				return null;
+			}
+			throw e;
+		}
 	}
 }
