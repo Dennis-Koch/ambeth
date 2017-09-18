@@ -33,6 +33,8 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.StreamingOutput;
 
 import com.koch.ambeth.merge.security.ISecurityActivation;
+import com.koch.ambeth.security.ICurrentUserProvider;
+import com.koch.ambeth.security.model.IUser;
 import com.koch.ambeth.security.service.ISecurityService;
 import com.koch.ambeth.service.model.ISecurityScope;
 import com.koch.ambeth.service.model.IServiceDescription;
@@ -73,6 +75,42 @@ public class SecurityServiceREST extends AbstractServiceREST {
 		IStateRollback rollback = preServiceCall(request, response);
 		try {
 			boolean result = getService(ISecurityActivation.class).isSecured();
+			return createResult(result, request, response);
+		}
+		catch (Throwable e) {
+			return createExceptionResult(e, request, response);
+		}
+		finally {
+			rollback.rollback();
+		}
+	}
+
+	@GET
+	@Path("getCurrentUser")
+	public StreamingOutput getCurrentUser(@Context HttpServletRequest request,
+			@Context HttpServletResponse response) {
+		IStateRollback rollback = preServiceCall(request, response);
+		try {
+			IUser result = getService(ICurrentUserProvider.class).getCurrentUser();
+			return createResult(result, request, response);
+		}
+		catch (Throwable e) {
+			return createExceptionResult(e, request, response);
+		}
+		finally {
+			rollback.rollback();
+		}
+	}
+
+	@POST
+	@Path("currentUserHasActionPermission")
+	public StreamingOutput hasActionPermission(InputStream is, @Context HttpServletRequest request,
+			@Context HttpServletResponse response) {
+		IStateRollback rollback = preServiceCall(request, response);
+		try {
+			Object[] args = getArguments(is, request);
+			boolean result =
+					getService(ICurrentUserProvider.class).currentUserHasActionPermission((String) args[0]);
 			return createResult(result, request, response);
 		}
 		catch (Throwable e) {

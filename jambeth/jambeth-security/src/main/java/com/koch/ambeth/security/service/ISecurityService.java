@@ -1,5 +1,7 @@
 package com.koch.ambeth.security.service;
 
+import com.koch.ambeth.security.model.IUser;
+
 /*-
  * #%L
  * jambeth-security
@@ -28,4 +30,10 @@ import com.koch.ambeth.util.annotation.XmlType;
 public interface ISecurityService {
 	Object callServiceInSecurityScope(ISecurityScope[] securityScopes,
 			IServiceDescription serviceDescription);
+
+	boolean isSecured();
+
+	IUser getCurrentUser();
+
+	boolean currentUserHasActionPermission(String permission);
 }
