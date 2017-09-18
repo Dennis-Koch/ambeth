@@ -37,8 +37,8 @@ import com.koch.ambeth.util.collections.IMap;
 import com.koch.ambeth.util.collections.LinkedHashMap;
 import com.koch.ambeth.util.exception.MaskingRuntimeException;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
-import com.koch.ambeth.util.proxy.CascadedInterceptor;
 import com.koch.ambeth.util.proxy.DelegateInterceptor;
+import com.koch.ambeth.util.proxy.ICascadedInterceptor;
 import com.koch.ambeth.util.proxy.IProxyFactory;
 
 import net.sf.cglib.proxy.Callback;
@@ -166,11 +166,11 @@ public class LinkContainer extends AbstractLinkContainer {
 			Callback[] callbacks = ((Factory) listener).getCallbacks();
 			if (callbacks != null && callbacks.length == 1) {
 				Callback callback = callbacks[0];
-				if (callback instanceof CascadedInterceptor) {
-					CascadedInterceptor cascadedInterceptor = (CascadedInterceptor) callback;
+				if (callback instanceof ICascadedInterceptor) {
+					ICascadedInterceptor cascadedInterceptor = (ICascadedInterceptor) callback;
 					Object target = cascadedInterceptor;
-					while (target instanceof CascadedInterceptor) {
-						Object targetOfTarget = ((CascadedInterceptor) target).getTarget();
+					while (target instanceof ICascadedInterceptor) {
+						Object targetOfTarget = ((ICascadedInterceptor) target).getTarget();
 						if (targetOfTarget != null) {
 							target = targetOfTarget;
 						}

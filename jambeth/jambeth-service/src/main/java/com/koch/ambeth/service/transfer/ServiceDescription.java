@@ -66,14 +66,21 @@ public class ServiceDescription implements IServiceDescription, IDTOType {
 	@Override
 	public Method getMethod(Class<?> serviceType, IObjectCollector objectCollector) {
 		if (method == null) {
+			Class<?>[] paramTypes = getParamTypes();
+			for (Class<?> paramType : paramTypes) {
+				if (paramType == null) {
+					// paramType could not be resolved with the current classloader
+					return null;
+				}
+			}
 			try {
 				try {
 					method = serviceType.getMethod(
-							StringConversionHelper.upperCaseFirst(objectCollector, methodName), paramTypes);
+							StringConversionHelper.upperCaseFirst(objectCollector, getMethodName()), paramTypes);
 				}
 				catch (NoSuchMethodException e) {
 					method = serviceType.getMethod(
-							StringConversionHelper.lowerCaseFirst(objectCollector, methodName), paramTypes);
+							StringConversionHelper.lowerCaseFirst(objectCollector, getMethodName()), paramTypes);
 				}
 			}
 			catch (Exception e) {
@@ -115,5 +122,28 @@ public class ServiceDescription implements IServiceDescription, IDTOType {
 
 	public void setSecurityScopes(ISecurityScope[] securityScopes) {
 		this.securityScopes = securityScopes;
+	}
+
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		sb.append(getServiceName()).append(" => ").append(getMethodName()).append('(');
+		boolean first = true;
+		for (Class<?> paramType : getParamTypes()) {
+			if (first) {
+				first = false;
+			}
+			else {
+				sb.append(',');
+			}
+			if (paramType == null) {
+				sb.append("<n/a>");
+			}
+			else {
+				sb.append(paramType.getSimpleName());
+			}
+		}
+		sb.append(')');
+		return sb.toString();
 	}
 }

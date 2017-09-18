@@ -63,7 +63,7 @@ import com.koch.ambeth.util.collections.IMap;
 import com.koch.ambeth.util.collections.IdentityHashMap;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.model.IMethodDescription;
-import com.koch.ambeth.util.proxy.CascadedInterceptor;
+import com.koch.ambeth.util.proxy.ICascadedInterceptor;
 import com.koch.ambeth.util.state.IStateRollback;
 import com.koch.ambeth.util.state.NoOpStateRollback;
 import com.koch.ambeth.util.threading.IGuiThreadHelper;
@@ -466,8 +466,8 @@ public class MergeServiceRegistry implements IMergeService, IMergeServiceExtensi
 			if (currHandle instanceof Factory) {
 				MethodInterceptor interceptor = (MethodInterceptor) ((Factory) currHandle)
 						.getCallbacks()[0];
-				while (interceptor instanceof CascadedInterceptor) {
-					Object target = ((CascadedInterceptor) interceptor).getTarget();
+				while (interceptor instanceof ICascadedInterceptor) {
+					Object target = ((ICascadedInterceptor) interceptor).getTarget();
 					if (target instanceof MethodInterceptor) {
 						interceptor = ((MethodInterceptor) target);
 						continue;
