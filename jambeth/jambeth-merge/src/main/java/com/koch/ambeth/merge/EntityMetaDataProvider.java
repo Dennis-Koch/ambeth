@@ -63,6 +63,7 @@ import com.koch.ambeth.util.collections.IMap;
 import com.koch.ambeth.util.collections.ISet;
 import com.koch.ambeth.util.collections.IdentityHashSet;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
+import com.koch.ambeth.util.model.IEmbeddedType;
 import com.koch.ambeth.util.objectcollector.IThreadLocalObjectCollector;
 import com.koch.ambeth.util.proxy.IProxyFactory;
 import com.koch.ambeth.util.typeinfo.IPropertyInfo;
@@ -217,6 +218,14 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 					}
 				}
 			}
+			for (int a = entityTypes.size(); a-- > 0;) {
+				Class<?> entityType = entityTypes.get(a);
+				IEntityMetaData existingMetaData = getExtension(entityType);
+				if (existingMetaData != null) {
+					continue;
+				}
+				pendingToRefreshMetaDatasTL.get().register(alreadyHandled, entityType);
+			}
 			return cascadeMissingEntityTypes != null ? cascadeMissingEntityTypes.toList() : null;
 		}
 		finally {
@@ -349,7 +358,8 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 	@Override
 	public IEntityMetaData getExtensionHardKey(Class<?> key) {
 		if (key == null || ImmutableTypeSet.isImmutableType(key) || key.isArray()
-				|| IDTOType.class.isAssignableFrom(key) || Collection.class.isAssignableFrom(key)) {
+				|| IDTOType.class.isAssignableFrom(key) || Collection.class.isAssignableFrom(key)
+				|| IEmbeddedType.class.isAssignableFrom(key)) {
 			return alreadyHandled;
 		}
 		IEntityMetaData metaData = super.getExtensionHardKey(key);
