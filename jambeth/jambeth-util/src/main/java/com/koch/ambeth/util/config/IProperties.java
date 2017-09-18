@@ -25,8 +25,9 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import com.koch.ambeth.util.collections.ISet;
+import com.koch.ambeth.util.model.INotifyPropertyChanged;
 
-public interface IProperties {
+public interface IProperties extends INotifyPropertyChanged {
 	IProperties getParent();
 
 	Object get(String key);

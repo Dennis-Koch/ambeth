@@ -1,5 +1,8 @@
 package com.koch.ambeth.log.config;
 
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+
 /*-
  * #%L
  * jambeth-log
@@ -24,6 +27,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.lang.ref.ReferenceQueue;
+import java.lang.ref.WeakReference;
 import java.nio.charset.Charset;
 import java.util.Iterator;
 import java.util.Map.Entry;
@@ -31,16 +36,48 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.koch.ambeth.log.ILogger;
+import com.koch.ambeth.log.LoggerFactory;
 import com.koch.ambeth.log.io.FileUtil;
 import com.koch.ambeth.util.collections.HashSet;
 import com.koch.ambeth.util.collections.ISet;
 import com.koch.ambeth.util.collections.LinkedHashMap;
 import com.koch.ambeth.util.collections.LinkedHashSet;
+import com.koch.ambeth.util.collections.specialized.PropertyChangeSupport;
 import com.koch.ambeth.util.config.IProperties;
 import com.koch.ambeth.util.config.UtilConfigurationConstants;
 import com.koch.ambeth.util.threading.SensitiveThreadLocal;
 
 public class Properties implements IProperties, Iterable<Entry<String, Object>> {
+	private static class WeakPropertyChangeListener extends WeakReference<Properties>
+			implements PropertyChangeListener {
+		public WeakPropertyChangeListener(Properties referent, ReferenceQueue<? super Properties> q) {
+			super(referent, q);
+		}
+
+		public WeakPropertyChangeListener(Properties referent) {
+			super(referent);
+		}
+
+		@Override
+		public void propertyChange(PropertyChangeEvent evt) {
+			Properties target = get();
+			if (target == null) {
+				Properties sourceProps = (Properties) evt.getSource();
+				sourceProps.removePropertyChangeListener(this);
+				return;
+			}
+			if (target.dictionary.containsKey(evt.getPropertyName())) {
+				// change is not propagated to child because it defines already its own value for it
+				return;
+			}
+			PropertyChangeSupport pcs = target.pcs;
+			if (pcs != null) {
+				pcs.firePropertyChange(target, evt.getPropertyName(), evt.getOldValue(), evt.getNewValue());
+			}
+		}
+	}
+
 	protected static final Pattern commentRegex = Pattern.compile(" *[#;'].*");
 	protected static final Pattern propertyRegex =
 			Pattern.compile(" *([^= ]+) *(?:=? *(?:(.*)|'(.*)'|\"(.*)\") *)?");
@@ -55,7 +92,7 @@ public class Properties implements IProperties, Iterable<Entry<String, Object>> 
 
 	protected final LinkedHashMap<String, Object> dictionary = new LinkedHashMap<>();
 
-	protected IProperties parent;
+	protected final IProperties parent;
 
 	static {
 		Iterator<Entry<String, String>> iter = System.getenv().entrySet().iterator();
@@ -130,6 +167,8 @@ public class Properties implements IProperties, Iterable<Entry<String, Object>> 
 	protected final ThreadLocal<HashSet<String>> unknownListTL =
 			new SensitiveThreadLocal<>();
 
+	protected volatile PropertyChangeSupport pcs;
+
 	public Properties() {
 		this((IProperties) null);
 		// Intended blank
@@ -137,6 +176,9 @@ public class Properties implements IProperties, Iterable<Entry<String, Object>> 
 
 	public Properties(IProperties parent) {
 		this.parent = parent;
+		if (parent != null) {
+			parent.addPropertyChangeListener(new WeakPropertyChangeListener(this));
+		}
 	}
 
 	public Properties(String filepath) {
@@ -493,6 +535,33 @@ public class Properties implements IProperties, Iterable<Entry<String, Object>> 
 	}
 
 	protected void putProperty(String key, Object value) {
-		dictionary.put(key, value);
+		Object oldValue = dictionary.put(key, value);
+		if (pcs != null) {
+			ILogger logger = LoggerFactory.getLogger(getClass(), this);
+			if (logger.isInfoEnabled()) {
+				logger.info("Updated property '" + key + "' to value '" + value + "'");
+			}
+			pcs.firePropertyChange(this, key, oldValue, value);
+		}
+	}
+
+	@Override
+	public void addPropertyChangeListener(PropertyChangeListener listener) {
+		if (pcs == null) {
+			synchronized (this) {
+				if (pcs == null) {
+					pcs = new PropertyChangeSupport();
+				}
+			}
+		}
+		pcs.addPropertyChangeListener(listener);
+	}
+
+	@Override
+	public void removePropertyChangeListener(PropertyChangeListener listener) {
+		if (pcs == null) {
+			return;
+		}
+		pcs.removePropertyChangeListener(listener);
 	}
 }

@@ -1,5 +1,7 @@
 package com.koch.ambeth.service.rest;
 
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.BufferedReader;
 
 /*-
@@ -57,6 +59,7 @@ import com.koch.ambeth.ioc.config.Property;
 import com.koch.ambeth.ioc.typeinfo.TypeInfoItemUtil;
 import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
+import com.koch.ambeth.log.config.WeakPropertyChangeListener;
 import com.koch.ambeth.service.IOfflineListener;
 import com.koch.ambeth.service.config.ServiceConfigurationConstants;
 import com.koch.ambeth.service.remote.IRemoteInterceptor;
@@ -70,6 +73,7 @@ import com.koch.ambeth.util.ParamChecker;
 import com.koch.ambeth.util.codec.Base64;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.IdentityHashSet;
+import com.koch.ambeth.util.config.IProperties;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.io.FastByteArrayOutputStream;
 import com.koch.ambeth.util.proxy.AbstractSimpleInterceptor;
@@ -81,7 +85,8 @@ import com.koch.ambeth.xml.ioc.XmlModule;
 import net.sf.cglib.proxy.MethodProxy;
 
 public class RESTClientInterceptor extends AbstractSimpleInterceptor
-		implements IRemoteInterceptor, IInitializingBean, IOfflineListener, IDisposableBean {
+		implements IRemoteInterceptor, IInitializingBean, IOfflineListener, IDisposableBean,
+		PropertyChangeListener {
 	public static final String DEFLATE_MIME_TYPE = "application/octet-stream";
 
 	@LogInstance
@@ -104,6 +109,9 @@ public class RESTClientInterceptor extends AbstractSimpleInterceptor
 
 	@Autowired
 	protected IHttpClientProvider httpClientProvider;
+
+	@Autowired
+	protected IProperties props;
 
 	@Autowired(optional = true)
 	protected IRESTClientServiceUrlBuilder restClientServiceUrlBuilder;
@@ -137,9 +145,12 @@ public class RESTClientInterceptor extends AbstractSimpleInterceptor
 
 	protected final IdentityHashSet<Thread> responsePendingThreadSet = new IdentityHashSet<>();
 
+	protected final PropertyChangeListener weakPCL = new WeakPropertyChangeListener(this);
+
 	@Override
 	public void afterPropertiesSet() {
 		ParamChecker.assertNotNull(serviceName, IRemoteTargetProvider.SERVICE_NAME_PROP);
+		props.addPropertyChangeListener(weakPCL);
 	}
 
 	@Override
@@ -147,6 +158,7 @@ public class RESTClientInterceptor extends AbstractSimpleInterceptor
 		disposed = true;
 		writeLock.lock();
 		try {
+			props.removePropertyChangeListener(weakPCL);
 			connectionChangeCond.signalAll();
 			for (Thread responsePendingThread : responsePendingThreadSet) {
 				responsePendingThread.interrupt();
@@ -170,6 +182,14 @@ public class RESTClientInterceptor extends AbstractSimpleInterceptor
 	@Override
 	public String getServiceName() {
 		return serviceName;
+	}
+
+	@Override
+	public void propertyChange(PropertyChangeEvent evt) {
+		if (ServiceConfigurationConstants.ServiceBaseUrl.equals(evt.getPropertyName())) {
+			Object newValue = evt.getNewValue();
+			serviceBaseUrl = newValue != null ? newValue.toString() : null;
+		}
 	}
 
 	@Override
