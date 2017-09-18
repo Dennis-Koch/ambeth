@@ -183,6 +183,11 @@ public class EntityPermissionEvaluation implements IEntityPermissionEvaluation, 
 	}
 
 	@Override
+	public ICreateEntityStep skipRead() {
+		return this;
+	}
+
+	@Override
 	public void denyRead() {
 		if (read == null || readTrueDefault) {
 			read = Boolean.FALSE;

@@ -29,6 +29,8 @@ public interface IEntityPermissionEvaluation {
 
 	ICreateEntityPropertyStep allowReadProperty(String propertyName);
 
+	ICreateEntityStep skipRead();
+
 	void denyRead();
 
 	IEntityPermissionEvaluation denyReadProperty(String propertyName);
