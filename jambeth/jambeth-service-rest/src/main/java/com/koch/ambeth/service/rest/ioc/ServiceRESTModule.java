@@ -48,8 +48,10 @@ public class ServiceRESTModule implements IInitializingModule {
 			if (authenticationHolderType == null) {
 				authenticationHolderType = AuthenticationHolder.class;
 			}
-			beanContextFactory.registerBean(authenticationHolderType)
-					.autowireable(IAuthenticationHolder.class);
+			if (!Object.class.equals(authenticationHolderType)) {
+				beanContextFactory.registerBean(authenticationHolderType)
+						.autowireable(IAuthenticationHolder.class);
+			}
 		}
 		beanContextFactory.registerBean(HttpClientProvider.class)
 				.autowireable(IHttpClientProvider.class);
