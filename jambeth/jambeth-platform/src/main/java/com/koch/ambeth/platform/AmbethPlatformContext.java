@@ -27,7 +27,6 @@ import com.koch.ambeth.ioc.IServiceContext;
 import com.koch.ambeth.ioc.factory.BeanContextFactory;
 import com.koch.ambeth.ioc.factory.IBeanContextFactory;
 import com.koch.ambeth.ioc.threadlocal.IThreadLocalCleanupController;
-import com.koch.ambeth.ioc.util.ImmutableTypeSet;
 import com.koch.ambeth.ioc.util.ModuleUtil;
 import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LoggerFactory;
@@ -173,7 +172,6 @@ public class AmbethPlatformContext implements IAmbethPlatformContext {
 			((ThreadLocalObjectCollector) tlObjectCollector).clearThreadLocal();
 			((ThreadLocalObjectCollector) tlObjectCollector).clearThreadLocals();
 		}
-		ImmutableTypeSet.flushState();
 	}
 
 	@Override

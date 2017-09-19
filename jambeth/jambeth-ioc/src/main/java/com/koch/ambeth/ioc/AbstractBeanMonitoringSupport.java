@@ -35,7 +35,7 @@ import javax.management.MBeanOperationInfo;
 import javax.management.ReflectionException;
 
 import com.koch.ambeth.ioc.annotation.MBeanOperation;
-import com.koch.ambeth.ioc.util.ImmutableTypeSet;
+import com.koch.ambeth.ioc.util.IImmutableTypeSet;
 import com.koch.ambeth.util.IConversionHelper;
 import com.koch.ambeth.util.ReflectUtil;
 import com.koch.ambeth.util.collections.ArrayList;
@@ -51,6 +51,8 @@ public abstract class AbstractBeanMonitoringSupport implements DynamicMBean {
 		super();
 		this.bean = bean;
 	}
+
+	protected abstract IImmutableTypeSet getImmutableTypeSet();
 
 	protected abstract IPropertyInfoProvider getPropertyInfoProvider();
 
@@ -149,6 +151,7 @@ public abstract class AbstractBeanMonitoringSupport implements DynamicMBean {
 	public MBeanInfo getMBeanInfo() {
 		IPropertyInfoProvider propertyInfoProvider = getPropertyInfoProvider();
 		IPropertyInfo[] properties = propertyInfoProvider.getProperties(bean.getClass());
+		IImmutableTypeSet immutableTypeSet = getImmutableTypeSet();
 
 		Method[] methods = ReflectUtil.getDeclaredMethods(bean.getClass());
 		ArrayList<MBeanOperationInfo> operations = null;
@@ -168,7 +171,7 @@ public abstract class AbstractBeanMonitoringSupport implements DynamicMBean {
 			if (!propertyInfo.isReadable() || propertyInfo.isAnnotationPresent(MBeanOperation.class)) {
 				continue;
 			}
-			if (!ImmutableTypeSet.isImmutableType(propertyInfo.getPropertyType())) {
+			if (!immutableTypeSet.isImmutableType(propertyInfo.getPropertyType())) {
 				continue;
 			}
 			if (attributes == null) {

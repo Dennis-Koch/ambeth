@@ -28,6 +28,7 @@ import java.io.OutputStreamWriter;
 import com.koch.ambeth.ioc.IDisposableBean;
 import com.koch.ambeth.ioc.IInitializingBean;
 import com.koch.ambeth.ioc.config.Property;
+import com.koch.ambeth.ioc.util.ImmutableTypeSet;
 import com.koch.ambeth.log.config.Properties;
 import com.koch.ambeth.util.ParamChecker;
 import com.koch.ambeth.util.appendable.AppendableStringBuilder;
@@ -38,7 +39,7 @@ public class Measurement implements IMeasurement, IInitializingBean, IDisposable
 	protected final StringBuilder measurementXML = new StringBuilder();
 
 	protected final DefaultXmlWriter xmlWriter = new DefaultXmlWriter(
-			new AppendableStringBuilder(measurementXML), null);
+			new AppendableStringBuilder(measurementXML), null, new ImmutableTypeSet());
 
 	protected String measurementFile;
 

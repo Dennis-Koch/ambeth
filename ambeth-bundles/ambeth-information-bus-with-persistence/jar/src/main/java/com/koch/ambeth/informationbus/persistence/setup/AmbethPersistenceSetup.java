@@ -67,7 +67,6 @@ import com.koch.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationConst
 import com.koch.ambeth.persistence.jdbc.connector.DialectSelectorModule;
 import com.koch.ambeth.util.annotation.AnnotationInfo;
 import com.koch.ambeth.util.annotation.IAnnotationInfo;
-import com.koch.ambeth.util.appendable.AppendableStringBuilder;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.HashMap;
 import com.koch.ambeth.util.collections.IList;
@@ -79,7 +78,6 @@ import com.koch.ambeth.util.config.UtilConfigurationConstants;
 import com.koch.ambeth.util.exception.MaskingRuntimeException;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.state.IStateRollback;
-import com.koch.ambeth.xml.DefaultXmlWriter;
 
 public class AmbethPersistenceSetup implements Closeable {
 	private static String[] sqlExecutionOrder;
@@ -109,42 +107,37 @@ public class AmbethPersistenceSetup implements Closeable {
 
 	private static final Pattern whitespaces = Pattern.compile("[ \\t]+");
 
-	private static final Pattern[] sqlComments = { Pattern.compile("^--[^:].*"),
-			Pattern.compile("^/\\*.*\\*/"), Pattern.compile(" *@@@ *") };
+	private static final Pattern[] sqlComments = {Pattern.compile("^--[^:].*"),
+			Pattern.compile("^/\\*.*\\*/"), Pattern.compile(" *@@@ *")};
 
-	private static final Pattern[] ignoreOutside = { Pattern.compile("^/$") };
+	private static final Pattern[] ignoreOutside = {Pattern.compile("^/$")};
 
-	private static final Pattern[] ignoreIfContains = { Pattern.compile(".*?DROP CONSTRAINT.*?") };
+	private static final Pattern[] ignoreIfContains = {Pattern.compile(".*?DROP CONSTRAINT.*?")};
 
 	private static final Pattern[][] sqlCommands = {
-			{ Pattern.compile(
+			{Pattern.compile(
 					"CREATE( +OR +REPLACE)? +(?:TABLE|VIEW|INDEX|TYPE|SEQUENCE|SYNONYM|TABLESPACE) +.+",
 					Pattern.CASE_INSENSITIVE),
-					Pattern.compile(".*?([;\\/]|@@@)") },
-			{ Pattern.compile("CREATE( +OR +REPLACE)? +(?:FUNCTION|PROCEDURE|TRIGGER) +.+",
+					Pattern.compile(".*?([;\\/]|@@@)")},
+			{Pattern.compile("CREATE( +OR +REPLACE)? +(?:FUNCTION|PROCEDURE|TRIGGER) +.+",
 					Pattern.CASE_INSENSITIVE),
-					Pattern.compile(".*?END(?:[;\\/]|@@@)", Pattern.CASE_INSENSITIVE) },
-			{ Pattern.compile("ALTER +(?:TABLE|VIEW) .+", Pattern.CASE_INSENSITIVE),
-					Pattern.compile(".*?([;\\/]|@@@)") },
-			{ Pattern.compile("CALL +.+", Pattern.CASE_INSENSITIVE), Pattern.compile(".*?([;\\/]|@@@)") },
-			{ Pattern.compile("(?:INSERT +INTO|UPDATE) .+", Pattern.CASE_INSENSITIVE),
-					Pattern.compile(".*?([;\\/]|@@@)") },
-			{ Pattern.compile("(?:COMMENT) .+", Pattern.CASE_INSENSITIVE),
-					Pattern.compile(".*?([;\\/]|@@@)") } };
+					Pattern.compile(".*?END(?:[;\\/]|@@@)", Pattern.CASE_INSENSITIVE)},
+			{Pattern.compile("ALTER +(?:TABLE|VIEW) .+", Pattern.CASE_INSENSITIVE),
+					Pattern.compile(".*?([;\\/]|@@@)")},
+			{Pattern.compile("CALL +.+", Pattern.CASE_INSENSITIVE), Pattern.compile(".*?([;\\/]|@@@)")},
+			{Pattern.compile("(?:INSERT +INTO|UPDATE) .+", Pattern.CASE_INSENSITIVE),
+					Pattern.compile(".*?([;\\/]|@@@)")},
+			{Pattern.compile("(?:COMMENT) .+", Pattern.CASE_INSENSITIVE),
+					Pattern.compile(".*?([;\\/]|@@@)")}};
 
-	private static final Pattern[][] sqlIgnoredCommands = { {
-			Pattern.compile("DROP +.+", Pattern.CASE_INSENSITIVE), Pattern.compile(".*?([;\\/]|@@@)") } };
+	private static final Pattern[][] sqlIgnoredCommands = {{
+			Pattern.compile("DROP +.+", Pattern.CASE_INSENSITIVE), Pattern.compile(".*?([;\\/]|@@@)")}};
 
 	// TODO Check only implemented for first array element
 	private static final Pattern[][] sqlTryOnlyCommands = {
-			{ Pattern.compile("CREATE OR REPLACE *.*") } };
+			{Pattern.compile("CREATE OR REPLACE *.*")}};
 
 	private static final Pattern optionLine = Pattern.compile("^--:(.*)");
-
-	protected final StringBuilder measurementXML = new StringBuilder();
-
-	protected final DefaultXmlWriter xmlWriter = new DefaultXmlWriter(
-			new AppendableStringBuilder(measurementXML), null);
 
 	protected boolean testUserHasBeenCreated;
 
@@ -1177,10 +1170,8 @@ public class AmbethPersistenceSetup implements Closeable {
 	/**
 	 * Delete the content from all tables within the given schema.
 	 *
-	 * @param conn
-	 *          SQL connection
-	 * @param schemaNames
-	 *          Schema names to use
+	 * @param conn SQL connection
+	 * @param schemaNames Schema names to use
 	 * @throws SQLException
 	 */
 	protected void truncateAllTablesBySchema(final Connection conn, final String... schemaNames)
@@ -1211,10 +1202,8 @@ public class AmbethPersistenceSetup implements Closeable {
 	/**
 	 * Delete the content from the given tables.
 	 *
-	 * @param conn
-	 *          SQL connection
-	 * @param explicitTableNames
-	 *          Table name with schema (or synonym)
+	 * @param conn SQL connection
+	 * @param explicitTableNames Table name with schema (or synonym)
 	 * @throws SQLException
 	 */
 	protected void truncateAllTablesExplicitlyGiven(final Connection conn,

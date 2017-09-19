@@ -30,7 +30,6 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.locks.ReentrantLock;
@@ -48,7 +47,7 @@ import com.koch.ambeth.cache.util.IndirectValueHolderRef;
 import com.koch.ambeth.event.IEventQueue;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.config.Property;
-import com.koch.ambeth.ioc.util.ImmutableTypeSet;
+import com.koch.ambeth.ioc.util.IImmutableTypeSet;
 import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.IObjRefHelper;
@@ -100,6 +99,7 @@ import com.koch.ambeth.util.collections.IntArrayList;
 import com.koch.ambeth.util.collections.InterfaceFastList;
 import com.koch.ambeth.util.collections.LinkedHashSet;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
+import com.koch.ambeth.util.factory.IEmptyArrayFactory;
 import com.koch.ambeth.util.io.FastByteArrayOutputStream;
 import com.koch.ambeth.util.model.IDataObject;
 import com.koch.ambeth.util.state.IStateRollback;
@@ -136,40 +136,11 @@ public class RootCache extends AbstractCache<RootCacheValue>
 
 	public static final String P_EVENT_QUEUE = "EventQueue";
 
-	protected static final Map<Class<?>, Object> typeToEmptyArray = new HashMap<>(128, 0.5f);
-
 	public static final Set<CacheDirective> failEarlyCacheValueResultSet = EnumSet
 			.of(CacheDirective.FailEarly, CacheDirective.CacheValueResult);
 
-	static {
-		List<Class<?>> types = new ArrayList<>();
-		ImmutableTypeSet.addImmutableTypesTo(types);
-		types.add(Object.class);
-		for (Class<?> type : types) {
-			if (!void.class.equals(type)) {
-				createEmptyArrayEntry(type);
-			}
-		}
-	}
-
-	protected static void createEmptyArrayEntry(Class<?> componentType) {
-		typeToEmptyArray.put(componentType, Array.newInstance(componentType, 0));
-	}
-
 	@LogInstance
 	private ILogger log;
-
-	protected final HashMap<IObjRef, Integer> relationOris = new HashMap<>();
-
-	protected final InterfaceFastList<RootCacheValue> lruList = new InterfaceFastList<>();
-
-	protected final ReentrantLock lruLock = new ReentrantLock();
-
-	@Property(name = CacheConfigurationConstants.CacheLruThreshold, defaultValue = "0")
-	protected int lruThreshold;
-
-	@Property(name = MergeConfigurationConstants.SecurityActive, defaultValue = "false")
-	protected boolean securityActive;
 
 	@Autowired
 	protected ICacheFactory cacheFactory;
@@ -180,8 +151,14 @@ public class RootCache extends AbstractCache<RootCacheValue>
 	@Autowired(optional = true)
 	protected ICacheRetriever cacheRetriever;
 
+	@Autowired
+	protected IEmptyArrayFactory emptyArrayFactory;
+
 	@Autowired(optional = true)
 	protected IEventQueue eventQueue;
+
+	@Autowired
+	protected IImmutableTypeSet immutableTypeSet;
 
 	@Autowired(optional = true)
 	protected IObjectCopier objectCopier;
@@ -210,8 +187,20 @@ public class RootCache extends AbstractCache<RootCacheValue>
 	@Autowired(optional = true)
 	protected IVerifyOnLoad verifyOnLoad;
 
+	@Property(name = CacheConfigurationConstants.CacheLruThreshold, defaultValue = "0")
+	protected int lruThreshold;
+
+	@Property(name = MergeConfigurationConstants.SecurityActive, defaultValue = "false")
+	protected boolean securityActive;
+
 	@Property(mandatory = false)
 	protected boolean privileged;
+
+	protected final HashMap<IObjRef, Integer> relationOris = new HashMap<>();
+
+	protected final InterfaceFastList<RootCacheValue> lruList = new InterfaceFastList<>();
+
+	protected final ReentrantLock lruLock = new ReentrantLock();
 
 	protected long relationObjRefsRefreshThrottleOnGC = 60000; // throttle refresh to at most 1 time
 																															// per minute
@@ -1473,18 +1462,14 @@ public class RootCache extends AbstractCache<RootCacheValue>
 
 	protected Object createArray(Class<?> componentType, int size) {
 		if (size == 0) {
-			Object array = typeToEmptyArray.get(componentType);
-			if (array == null) {
-				array = Array.newInstance(componentType, 0);
-			}
-			return array;
+			return emptyArrayFactory.createSharedEmptyArray(componentType);
 		}
 		return Array.newInstance(componentType, size);
 	}
 
 	protected Object copyByValue(Object obj) {
 		Class<?> type = obj.getClass();
-		if (ImmutableTypeSet.isImmutableType(type)) {
+		if (immutableTypeSet.isImmutableType(type)) {
 			return obj;
 		}
 		// VERY SLOW fallback if no IObjectCopier implementation provided

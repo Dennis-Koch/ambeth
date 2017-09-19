@@ -26,9 +26,10 @@ import java.util.Collection;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.extendable.ClassExtendableContainer;
 import com.koch.ambeth.ioc.threadlocal.IThreadLocalCleanupBean;
-import com.koch.ambeth.ioc.util.ImmutableTypeSet;
+import com.koch.ambeth.ioc.util.IImmutableTypeSet;
 import com.koch.ambeth.util.collections.IdentityHashMap;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
+import com.koch.ambeth.util.factory.IEmptyArrayFactory;
 import com.koch.ambeth.util.typeinfo.IPropertyInfo;
 import com.koch.ambeth.util.typeinfo.IPropertyInfoProvider;
 
@@ -39,6 +40,12 @@ import com.koch.ambeth.util.typeinfo.IPropertyInfoProvider;
  */
 public class ObjectCopier
 		implements IObjectCopier, IObjectCopierExtendable, IThreadLocalCleanupBean {
+	@Autowired
+	protected IEmptyArrayFactory emptyArrayFactory;
+
+	@Autowired
+	protected IImmutableTypeSet immutableTypeSet;
+
 	@Autowired
 	protected IPropertyInfoProvider propertyInfoProvider;
 
@@ -83,7 +90,7 @@ public class ObjectCopier
 	@Override
 	public <T> T clone(T source) {
 		// Don't clone a null object or immutable objects. Return the identical reference in these cases
-		if (source == null || ImmutableTypeSet.isImmutableType(source.getClass())) {
+		if (source == null || immutableTypeSet.isImmutableType(source.getClass())) {
 			return source;
 		}
 		// Try to access current "in-use" ObjectCopierState first
@@ -113,7 +120,7 @@ public class ObjectCopier
 	@SuppressWarnings("unchecked")
 	protected <T> T cloneRecursive(T source, ObjectCopierState ocState) {
 		// Don't clone a null object or immutable objects. Return the identical reference in these cases
-		if (source == null || ImmutableTypeSet.isImmutableType(source.getClass())) {
+		if (source == null || immutableTypeSet.isImmutableType(source.getClass())) {
 			return source;
 		}
 		Class<?> objType = source.getClass();
@@ -145,9 +152,13 @@ public class ObjectCopier
 		Class<?> objType = source.getClass();
 		Class<?> elementType = objType.getComponentType();
 		int length = Array.getLength(source);
-		Object cloneArray = Array.newInstance(elementType, length);
+		Object cloneArray = length == 0 ? emptyArrayFactory.createSharedEmptyArray(elementType)
+				: Array.newInstance(elementType, length);
 		ocState.objectToCloneDict.put(source, cloneArray);
-		if (ImmutableTypeSet.isImmutableType(elementType)) {
+		if (length == 0) {
+			return cloneArray;
+		}
+		if (immutableTypeSet.isImmutableType(elementType)) {
 			// Clone native array with native functionality for performance reasons
 			System.arraycopy(source, 0, cloneArray, 0, length);
 		}

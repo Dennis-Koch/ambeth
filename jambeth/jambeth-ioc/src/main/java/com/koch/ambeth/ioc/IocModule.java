@@ -58,6 +58,8 @@ import com.koch.ambeth.util.appendable.AppendableStringBuilder;
 import com.koch.ambeth.util.converter.BooleanArrayConverter;
 import com.koch.ambeth.util.converter.ByteArrayConverter;
 import com.koch.ambeth.util.converter.CharArrayConverter;
+import com.koch.ambeth.util.factory.EmptyArrayFactory;
+import com.koch.ambeth.util.factory.IEmptyArrayFactory;
 import com.koch.ambeth.util.objectcollector.AppendableStringBuilderCollectableController;
 import com.koch.ambeth.util.objectcollector.ICollectableControllerExtendable;
 import com.koch.ambeth.util.threading.FastThreadPool;
@@ -192,5 +194,7 @@ public class IocModule implements IInitializingModule {
 		beanContextFactory.registerBean(MultithreadingHelper.class)
 				.autowireable(IMultithreadingHelper.class)//
 				.propertyRef(fastThreadPoolBean);
+
+		beanContextFactory.registerBean(EmptyArrayFactory.class).autowireable(IEmptyArrayFactory.class);
 	}
 }

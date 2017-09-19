@@ -60,6 +60,9 @@ import com.koch.ambeth.ioc.threadlocal.ThreadLocalCleanupController;
 import com.koch.ambeth.ioc.typeinfo.PropertyInfoProvider;
 import com.koch.ambeth.ioc.util.ConversionHelper;
 import com.koch.ambeth.ioc.util.DelegatingConversionHelper;
+import com.koch.ambeth.ioc.util.IImmutableTypeExtendable;
+import com.koch.ambeth.ioc.util.IImmutableTypeSet;
+import com.koch.ambeth.ioc.util.ImmutableTypeSet;
 import com.koch.ambeth.log.ILoggerHistory;
 import com.koch.ambeth.log.config.Properties;
 import com.koch.ambeth.util.DelegateFactory;
@@ -182,6 +185,7 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
 			GarbageProxyFactory garbageProxyFactory = new GarbageProxyFactory();
 			InterningFeature interningFeature = new InterningFeature();
 			PropertyInfoProvider propertyInfoProvider = new PropertyInfoProvider();
+			ImmutableTypeSet immutableTypeSet = new ImmutableTypeSet();
 
 			BeanContextInitializer beanContextInitializer = new BeanContextInitializer();
 			CallingProxyPostProcessor callingProxyPostProcessor = new CallingProxyPostProcessor();
@@ -267,6 +271,8 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
 			parentContextFactory.registerWithLifecycle(proxyFactory).autowireable(IProxyFactory.class);
 			parentContextFactory.registerWithLifecycle(threadLocalCleanupController).autowireable(
 					IThreadLocalCleanupController.class, IThreadLocalCleanupBeanExtendable.class);
+			parentContextFactory.registerWithLifecycle(immutableTypeSet)
+					.autowireable(IImmutableTypeSet.class, IImmutableTypeExtendable.class);
 
 			if (objectCollector == tlObjectCollector) {
 				parentContextFactory.registerWithLifecycle(objectCollector).autowireable(

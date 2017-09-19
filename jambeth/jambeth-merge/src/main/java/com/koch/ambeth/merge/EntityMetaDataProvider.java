@@ -30,7 +30,7 @@ import com.koch.ambeth.ioc.extendable.ClassExtendableContainer;
 import com.koch.ambeth.ioc.extendable.ClassExtendableListContainer;
 import com.koch.ambeth.ioc.extendable.MapExtendableContainer;
 import com.koch.ambeth.ioc.util.ClassTupleExtendableContainer;
-import com.koch.ambeth.ioc.util.ImmutableTypeSet;
+import com.koch.ambeth.ioc.util.IImmutableTypeSet;
 import com.koch.ambeth.merge.IFimExtension.IDotNodeCallback;
 import com.koch.ambeth.merge.bytecode.EntityEnhancementHint;
 import com.koch.ambeth.merge.cache.ICacheModification;
@@ -94,6 +94,9 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 
 	@Autowired
 	protected IEventDispatcher eventDispatcher;
+
+	@Autowired
+	protected IImmutableTypeSet immutableTypeSet;
 
 	@Autowired
 	protected IMemberTypeProvider memberTypeProvider;
@@ -357,7 +360,7 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 
 	@Override
 	public IEntityMetaData getExtensionHardKey(Class<?> key) {
-		if (key == null || ImmutableTypeSet.isImmutableType(key) || key.isArray()
+		if (key == null || immutableTypeSet.isImmutableType(key) || key.isArray()
 				|| IDTOType.class.isAssignableFrom(key) || Collection.class.isAssignableFrom(key)
 				|| IEmbeddedType.class.isAssignableFrom(key)) {
 			return alreadyHandled;
@@ -654,7 +657,7 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 						voMemberRealType = typeInfoProvider.getMember(voMemberRealType, properties[0])
 								.getRealType();
 					}
-					if (!ImmutableTypeSet.isImmutableType(voMemberRealType)) {
+					if (!immutableTypeSet.isImmutableType(voMemberRealType)) {
 						// vo member is either a list or a single direct relation to another VO
 						// This implies that a potential service can handle both VO types as new
 						// objects at once

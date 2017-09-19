@@ -70,6 +70,7 @@ import com.koch.ambeth.ioc.IServiceContext;
 import com.koch.ambeth.ioc.factory.BeanContextFactory;
 import com.koch.ambeth.ioc.factory.IBeanContextFactory;
 import com.koch.ambeth.ioc.log.ILoggerCache;
+import com.koch.ambeth.ioc.util.ImmutableTypeSet;
 import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.config.Properties;
 import com.koch.ambeth.log.io.FileUtil;
@@ -159,42 +160,42 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 
 	private static final Pattern whitespaces = Pattern.compile("[ \\t]+");
 
-	private static final Pattern[] sqlComments = { Pattern.compile("^--[^:].*"),
-			Pattern.compile("^/\\*.*\\*/"), Pattern.compile(" *@@@ *") };
+	private static final Pattern[] sqlComments = {Pattern.compile("^--[^:].*"),
+			Pattern.compile("^/\\*.*\\*/"), Pattern.compile(" *@@@ *")};
 
-	private static final Pattern[] ignoreOutside = { Pattern.compile("^/$") };
+	private static final Pattern[] ignoreOutside = {Pattern.compile("^/$")};
 
-	private static final Pattern[] ignoreIfContains = { Pattern.compile(".*?DROP CONSTRAINT.*?") };
+	private static final Pattern[] ignoreIfContains = {Pattern.compile(".*?DROP CONSTRAINT.*?")};
 
 	private static final Pattern[][] sqlCommands = {
-			{ Pattern.compile(
+			{Pattern.compile(
 					"CREATE( +OR +REPLACE)? +(?:TABLE|VIEW|INDEX|TYPE|SEQUENCE|SYNONYM|TABLESPACE) +.+",
 					Pattern.CASE_INSENSITIVE),
-					Pattern.compile(".*?([;\\/]|@@@)") },
-			{ Pattern.compile("CREATE( +OR +REPLACE)? +(?:FUNCTION|PROCEDURE|TRIGGER) +.+",
+					Pattern.compile(".*?([;\\/]|@@@)")},
+			{Pattern.compile("CREATE( +OR +REPLACE)? +(?:FUNCTION|PROCEDURE|TRIGGER) +.+",
 					Pattern.CASE_INSENSITIVE),
-					Pattern.compile(".*?END(?:[;\\/]|@@@)", Pattern.CASE_INSENSITIVE) },
-			{ Pattern.compile("ALTER +(?:TABLE|VIEW) .+", Pattern.CASE_INSENSITIVE),
-					Pattern.compile(".*?([;\\/]|@@@)") },
-			{ Pattern.compile("CALL +.+", Pattern.CASE_INSENSITIVE), Pattern.compile(".*?([;\\/]|@@@)") },
-			{ Pattern.compile("(?:INSERT +INTO|UPDATE) .+", Pattern.CASE_INSENSITIVE),
-					Pattern.compile(".*?([;\\/]|@@@)") },
-			{ Pattern.compile("(?:COMMENT) .+", Pattern.CASE_INSENSITIVE),
-					Pattern.compile(".*?([;\\/]|@@@)") } };
+					Pattern.compile(".*?END(?:[;\\/]|@@@)", Pattern.CASE_INSENSITIVE)},
+			{Pattern.compile("ALTER +(?:TABLE|VIEW) .+", Pattern.CASE_INSENSITIVE),
+					Pattern.compile(".*?([;\\/]|@@@)")},
+			{Pattern.compile("CALL +.+", Pattern.CASE_INSENSITIVE), Pattern.compile(".*?([;\\/]|@@@)")},
+			{Pattern.compile("(?:INSERT +INTO|UPDATE) .+", Pattern.CASE_INSENSITIVE),
+					Pattern.compile(".*?([;\\/]|@@@)")},
+			{Pattern.compile("(?:COMMENT) .+", Pattern.CASE_INSENSITIVE),
+					Pattern.compile(".*?([;\\/]|@@@)")}};
 
-	private static final Pattern[][] sqlIgnoredCommands = { {
-			Pattern.compile("DROP +.+", Pattern.CASE_INSENSITIVE), Pattern.compile(".*?([;\\/]|@@@)") } };
+	private static final Pattern[][] sqlIgnoredCommands = {{
+			Pattern.compile("DROP +.+", Pattern.CASE_INSENSITIVE), Pattern.compile(".*?([;\\/]|@@@)")}};
 
 	// TODO Check only implemented for first array element
 	private static final Pattern[][] sqlTryOnlyCommands = {
-			{ Pattern.compile("CREATE OR REPLACE *.*") } };
+			{Pattern.compile("CREATE OR REPLACE *.*")}};
 
 	private static final Pattern optionLine = Pattern.compile("^--:(.*)");
 
 	protected final StringBuilder measurementXML = new StringBuilder();
 
 	protected final DefaultXmlWriter xmlWriter = new DefaultXmlWriter(
-			new AppendableStringBuilder(measurementXML), null);
+			new AppendableStringBuilder(measurementXML), null, new ImmutableTypeSet());
 
 	protected boolean testUserHasBeenCreated;
 
@@ -206,8 +207,9 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 	@Override
 	protected List<Class<? extends IInitializingModule>> buildFrameworkTestModuleList(
 			FrameworkMethod frameworkMethod) {
-		List<Class<? extends IInitializingModule>> frameworkTestModuleList = super.buildFrameworkTestModuleList(
-				frameworkMethod);
+		List<Class<? extends IInitializingModule>> frameworkTestModuleList =
+				super.buildFrameworkTestModuleList(
+						frameworkMethod);
 		frameworkTestModuleList.add(DialectSelectorTestModule.class);
 		frameworkTestModuleList.add(DataSetupExecutorModule.class);
 		frameworkTestModuleList.add(SetupModule.class);
@@ -547,7 +549,8 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 			final FrameworkMethod frameworkMethod) {
 		List<ISchemaRunnable> schemaRunnables = new ArrayList<>();
 
-		List<IAnnotationInfo<?>> annotations = findAnnotations(type, frameworkMethod != null ? frameworkMethod.getMethod() : null, SQLDataList.class,
+		List<IAnnotationInfo<?>> annotations = findAnnotations(type,
+				frameworkMethod != null ? frameworkMethod.getMethod() : null, SQLDataList.class,
 				SQLData.class);
 
 		IServiceContext schemaContext = getOrCreateSchemaContext();
@@ -849,8 +852,9 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 	@Override
 	protected org.junit.runners.model.Statement methodInvoker(final FrameworkMethod method,
 			Object test) {
-		final org.junit.runners.model.Statement parentStatement = AmbethInformationBusWithPersistenceRunner.super.methodInvoker(
-				method, test);
+		final org.junit.runners.model.Statement parentStatement =
+				AmbethInformationBusWithPersistenceRunner.super.methodInvoker(
+						method, test);
 		final org.junit.runners.model.Statement statement = new org.junit.runners.model.Statement() {
 			@Override
 			public void evaluate() throws Throwable {
@@ -905,20 +909,21 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 				}
 				final ISecurityScope scope = new StringSecurityScope(authentication.scope());
 
-				IMethodLevelBehavior<SecurityMethodMode> behaviour = new IMethodLevelBehavior<SecurityMethodMode>() {
-					private final SecurityMethodMode mode = new SecurityMethodMode(
-							SecurityContextType.AUTHENTICATED, -1, -1, null, -1, scope);
+				IMethodLevelBehavior<SecurityMethodMode> behaviour =
+						new IMethodLevelBehavior<SecurityMethodMode>() {
+							private final SecurityMethodMode mode = new SecurityMethodMode(
+									SecurityContextType.AUTHENTICATED, -1, -1, null, -1, scope);
 
-					@Override
-					public SecurityMethodMode getBehaviourOfMethod(Method method) {
-						return mode;
-					}
+							@Override
+							public SecurityMethodMode getBehaviourOfMethod(Method method) {
+								return mode;
+							}
 
-					@Override
-					public SecurityMethodMode getDefaultBehaviour() {
-						return mode;
-					}
-				};
+							@Override
+							public SecurityMethodMode getDefaultBehaviour() {
+								return mode;
+							}
+						};
 
 				SecurityFilterInterceptor interceptor = beanContext
 						.registerBean(SecurityFilterInterceptor.class)
@@ -926,7 +931,7 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 						.propertyValue("Target", statement).finish();
 				org.junit.runners.model.Statement stmt = (org.junit.runners.model.Statement) beanContext
 						.getService(IProxyFactory.class)
-						.createProxy(new Class<?>[] { org.junit.runners.model.Statement.class }, interceptor);
+						.createProxy(new Class<?>[] {org.junit.runners.model.Statement.class}, interceptor);
 				final org.junit.runners.model.Statement fStatement = stmt;
 				ISecurityContextHolder securityContextHolder = beanContext
 						.getService(ISecurityContextHolder.class);
@@ -1325,10 +1330,8 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 	/**
 	 * Delete the content from all tables within the given schema.
 	 *
-	 * @param conn
-	 *          SQL connection
-	 * @param schemaNames
-	 *          Schema names to use
+	 * @param conn SQL connection
+	 * @param schemaNames Schema names to use
 	 * @throws SQLException
 	 */
 	protected void truncateAllTablesBySchema(final Connection conn, final String... schemaNames)
@@ -1359,10 +1362,8 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 	/**
 	 * Delete the content from the given tables.
 	 *
-	 * @param conn
-	 *          SQL connection
-	 * @param explicitTableNames
-	 *          Table name with schema (or synonym)
+	 * @param conn SQL connection
+	 * @param explicitTableNames Table name with schema (or synonym)
 	 * @throws SQLException
 	 */
 	protected void truncateAllTablesExplicitlyGiven(final Connection conn,

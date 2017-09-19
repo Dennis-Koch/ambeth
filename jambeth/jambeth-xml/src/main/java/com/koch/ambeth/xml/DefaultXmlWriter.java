@@ -22,6 +22,7 @@ limitations under the License.
 
 import java.io.Writer;
 
+import com.koch.ambeth.ioc.util.IImmutableTypeSet;
 import com.koch.ambeth.ioc.util.ImmutableTypeSet;
 import com.koch.ambeth.util.appendable.IAppendable;
 import com.koch.ambeth.util.appendable.WriterAppendable;
@@ -36,6 +37,8 @@ public class DefaultXmlWriter implements IWriter, IPostProcessWriter {
 	protected final IAppendable appendable;
 
 	protected final ICyclicXmlController xmlController;
+
+	protected final IImmutableTypeSet immutableTypeSet;
 
 	protected final IdentityHashMap<Object, Integer> mutableToIdMap =
 			new IdentityHashMap<>();
@@ -59,13 +62,26 @@ public class DefaultXmlWriter implements IWriter, IPostProcessWriter {
 
 	protected boolean beautifierActive;
 
+	@Deprecated
 	public DefaultXmlWriter(final Writer osw, ICyclicXmlController xmlController) {
-		this(new WriterAppendable(osw), xmlController);
+		this(new WriterAppendable(osw), xmlController, new ImmutableTypeSet());
 	}
 
+	@Deprecated
 	public DefaultXmlWriter(IAppendable appendable, ICyclicXmlController xmlController) {
+		this(appendable, xmlController, new ImmutableTypeSet());
+	}
+
+	public DefaultXmlWriter(final Writer osw, ICyclicXmlController xmlController,
+			IImmutableTypeSet immutableTypeSet) {
+		this(new WriterAppendable(osw), xmlController, immutableTypeSet);
+	}
+
+	public DefaultXmlWriter(IAppendable appendable, ICyclicXmlController xmlController,
+			IImmutableTypeSet immutableTypeSet) {
 		this.appendable = appendable;
 		this.xmlController = xmlController;
+		this.immutableTypeSet = immutableTypeSet;
 	}
 
 	public void setBeautifierActive(boolean beautifierActive) {
@@ -236,7 +252,7 @@ public class DefaultXmlWriter implements IWriter, IPostProcessWriter {
 
 	@Override
 	public int acquireIdForObject(Object obj) {
-		boolean isImmutableType = ImmutableTypeSet.isImmutableType(obj.getClass());
+		boolean isImmutableType = immutableTypeSet.isImmutableType(obj.getClass());
 		IMap<Object, Integer> objectToIdMap = isImmutableType ? immutableToIdMap : mutableToIdMap;
 
 		Integer id = Integer.valueOf(nextIdMapIndex++);
@@ -249,7 +265,7 @@ public class DefaultXmlWriter implements IWriter, IPostProcessWriter {
 
 	@Override
 	public int getIdOfObject(Object obj) {
-		boolean isImmutableType = ImmutableTypeSet.isImmutableType(obj.getClass());
+		boolean isImmutableType = immutableTypeSet.isImmutableType(obj.getClass());
 		IMap<Object, Integer> objectToIdMap = isImmutableType ? immutableToIdMap : mutableToIdMap;
 
 		Integer id = objectToIdMap.get(obj);

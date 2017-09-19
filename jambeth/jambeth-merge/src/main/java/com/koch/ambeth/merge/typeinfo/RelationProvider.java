@@ -24,21 +24,28 @@ import java.util.Arrays;
 
 import javax.persistence.Embeddable;
 
+import com.koch.ambeth.ioc.IInitializingBean;
+import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.extendable.ClassExtendableContainer;
-import com.koch.ambeth.ioc.util.ImmutableTypeSet;
+import com.koch.ambeth.ioc.util.IImmutableTypeSet;
 import com.koch.ambeth.service.metadata.IDTOType;
 import com.koch.ambeth.util.collections.SmartCopySet;
 import com.koch.ambeth.util.typeinfo.INoEntityTypeExtendable;
 import com.koch.ambeth.util.typeinfo.IRelationProvider;
 
-public class RelationProvider implements IRelationProvider, INoEntityTypeExtendable {
+public class RelationProvider
+		implements IRelationProvider, INoEntityTypeExtendable, IInitializingBean {
+	@Autowired
+	protected IImmutableTypeSet immutableTypeSet;
+
 	protected final SmartCopySet<Class<?>> primitiveTypes = new SmartCopySet<>();
 
 	protected final ClassExtendableContainer<Boolean> noEntityTypeExtendables =
 			new ClassExtendableContainer<>("flag", "noEntityType");
 
-	public RelationProvider() {
-		ImmutableTypeSet.addImmutableTypesTo(primitiveTypes);
+	@Override
+	public void afterPropertiesSet() throws Throwable {
+		immutableTypeSet.addImmutableTypesTo(primitiveTypes);
 
 		primitiveTypes.addAll(
 				Arrays.asList(new Class<?>[] {Object.class, java.util.Date.class, java.sql.Date.class,
@@ -51,7 +58,7 @@ public class RelationProvider implements IRelationProvider, INoEntityTypeExtenda
 
 	@Override
 	public boolean isEntityType(Class<?> type) {
-		if (type == null || ImmutableTypeSet.isImmutableType(type) || primitiveTypes.contains(type)
+		if (type == null || immutableTypeSet.isImmutableType(type) || primitiveTypes.contains(type)
 				|| Boolean.TRUE == noEntityTypeExtendables.getExtension(type)
 				|| type.isAnnotationPresent(Embeddable.class)) {
 			return false;

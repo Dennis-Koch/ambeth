@@ -26,6 +26,7 @@ import java.util.Comparator;
 import java.util.List;
 
 import com.koch.ambeth.ioc.annotation.Autowired;
+import com.koch.ambeth.ioc.util.IImmutableTypeSet;
 import com.koch.ambeth.merge.ICUDResultPrinter;
 import com.koch.ambeth.merge.incremental.IIncrementalMergeState;
 import com.koch.ambeth.merge.incremental.IncrementalMergeState;
@@ -58,22 +59,27 @@ public class CUDResultPrinter implements ICUDResultPrinter {
 	protected IEntityMetaDataProvider entityMetaDataProvider;
 
 	@Autowired
+	protected IImmutableTypeSet immutableTypeSet;
+
+	@Autowired
 	protected IThreadLocalObjectCollector objectCollector;
 
-	protected final Comparator<IChangeContainer> changeContainerComparator = new Comparator<IChangeContainer>() {
-		@Override
-		public int compare(IChangeContainer o1, IChangeContainer o2) {
-			return o1.getReference().getRealType().getName()
-					.compareTo(o2.getReference().getRealType().getName());
-		}
-	};
+	protected final Comparator<IChangeContainer> changeContainerComparator =
+			new Comparator<IChangeContainer>() {
+				@Override
+				public int compare(IChangeContainer o1, IChangeContainer o2) {
+					return o1.getReference().getRealType().getName()
+							.compareTo(o2.getReference().getRealType().getName());
+				}
+			};
 
 	@Override
 	public CharSequence printCUDResult(ICUDResult cudResult, IIncrementalMergeState state) {
 		IThreadLocalObjectCollector objectCollector = this.objectCollector.getCurrent();
 		StringBuilder sb = objectCollector.create(StringBuilder.class);
 		try {
-			DefaultXmlWriter writer = new DefaultXmlWriter(new AppendableStringBuilder(sb), null);
+			DefaultXmlWriter writer =
+					new DefaultXmlWriter(new AppendableStringBuilder(sb), null, immutableTypeSet);
 			writer.setBeautifierActive(true);
 			writer.setBeautifierLinebreak("\n");
 

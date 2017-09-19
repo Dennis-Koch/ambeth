@@ -22,6 +22,8 @@ limitations under the License.
 
 import java.lang.management.ManagementFactory;
 import java.lang.reflect.Field;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -62,7 +64,6 @@ import com.koch.ambeth.ioc.link.ILinkContainer;
 import com.koch.ambeth.ioc.proxy.CallingProxyPostProcessor;
 import com.koch.ambeth.ioc.proxy.Self;
 import com.koch.ambeth.ioc.typeinfo.FieldPropertyInfo;
-import com.koch.ambeth.ioc.util.ImmutableTypeSet;
 import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.log.config.Properties;
@@ -99,14 +100,36 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 
 	protected static final HashSet<Class<?>> primitiveSet = new HashSet<>(0.5f);
 
-	protected static final IdentityHashMap<PrecedenceType, Integer> precedenceOrder = new IdentityHashMap<>(
-			0.5f);
+	protected static final IdentityHashMap<PrecedenceType, Integer> precedenceOrder =
+			new IdentityHashMap<>(
+					0.5f);
 
 	// Intentionally no SensitiveThreadLocal. Usage will alLways be cleaned up immediately
-	protected static final ThreadLocal<BeanContextInit> currentBeanContextInitTL = new ThreadLocal<>();
+	protected static final ThreadLocal<BeanContextInit> currentBeanContextInitTL =
+			new ThreadLocal<>();
 
 	static {
-		ImmutableTypeSet.addImmutableTypesTo(primitiveSet);
+		primitiveSet.add(Integer.class);
+		primitiveSet.add(Integer.TYPE);
+		primitiveSet.add(Long.class);
+		primitiveSet.add(Long.TYPE);
+		primitiveSet.add(Double.class);
+		primitiveSet.add(Double.TYPE);
+		primitiveSet.add(Float.class);
+		primitiveSet.add(Float.TYPE);
+		primitiveSet.add(Short.class);
+		primitiveSet.add(Short.TYPE);
+		primitiveSet.add(Character.class);
+		primitiveSet.add(Character.TYPE);
+		primitiveSet.add(Byte.class);
+		primitiveSet.add(Byte.TYPE);
+		primitiveSet.add(Boolean.class);
+		primitiveSet.add(Boolean.TYPE);
+		primitiveSet.add(String.class);
+		primitiveSet.add(Class.class);
+		primitiveSet.add(void.class);
+		primitiveSet.add(BigInteger.class);
+		primitiveSet.add(BigDecimal.class);
 		primitiveSet.add(Object.class);
 
 		precedenceOrder.put(PrecedenceType.LOWEST, Integer.valueOf(6));
@@ -185,8 +208,10 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 			beanContext.setBeanContextFactory(beanContextFactory);
 			return;
 		}
-		IdentityLinkedMap<Object, IBeanConfiguration> objectToBeanConfigurationMap = new IdentityLinkedMap<>();
-		IdentityHashMap<Object, IBeanConfiguration> objectToHandledBeanConfigurationMap = new IdentityHashMap<>();
+		IdentityLinkedMap<Object, IBeanConfiguration> objectToBeanConfigurationMap =
+				new IdentityLinkedMap<>();
+		IdentityHashMap<Object, IBeanConfiguration> objectToHandledBeanConfigurationMap =
+				new IdentityHashMap<>();
 		LinkedHashMap<String, IBeanConfiguration> nameToBeanConfigurationMap = new LinkedHashMap<>();
 		IdentityLinkedSet<Object> allLifeCycledBeansSet = new IdentityLinkedSet<>();
 		IdentityHashSet<IBeanConfiguration> alreadyHandledConfigsSet = new IdentityHashSet<>();
@@ -352,7 +377,8 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 			return;
 		}
 		IServiceContext beanContext = beanContextInit.beanContext;
-		IdentityHashMap<Object, IBeanConfiguration> objectToHandledBeanConfigurationMap = beanContextInit.objectToHandledBeanConfigurationMap;
+		IdentityHashMap<Object, IBeanConfiguration> objectToHandledBeanConfigurationMap =
+				beanContextInit.objectToHandledBeanConfigurationMap;
 		final MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
 		if (mbs == null) {
 			// JMX not activated
@@ -416,7 +442,8 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 	}
 
 	protected void resolveBeansInSequence(BeanContextInit beanContextInit) {
-		ILinkedMap<Object, IBeanConfiguration> objectToBeanConfigurationMap = beanContextInit.objectToBeanConfigurationMap;
+		ILinkedMap<Object, IBeanConfiguration> objectToBeanConfigurationMap =
+				beanContextInit.objectToBeanConfigurationMap;
 
 		while (!objectToBeanConfigurationMap.isEmpty()) {
 			for (Entry<Object, IBeanConfiguration> entry : objectToBeanConfigurationMap) {
@@ -529,7 +556,8 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 	public Object resolveBean(String fromContext, String beanName, Class<?> propertyType,
 			boolean isHighPriorityBean, BeanContextInit beanContextInit) {
 		IServiceContextIntern beanContext = beanContextInit.beanContext;
-		ILinkedMap<Object, IBeanConfiguration> objectToBeanConfigurationMap = beanContextInit.objectToBeanConfigurationMap;
+		ILinkedMap<Object, IBeanConfiguration> objectToBeanConfigurationMap =
+				beanContextInit.objectToBeanConfigurationMap;
 		// Module beans are only allowed to demand beans from the parent
 		// context
 
@@ -966,7 +994,8 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 			IPropertyConfiguration propertyConf, IPropertyInfo[] propertyInfos,
 			Set<String> alreadySpecifiedPropertyNamesSet) {
 		ServiceContext beanContext = beanContextInit.beanContext;
-		ILinkedMap<Object, IBeanConfiguration> objectToBeanConfigurationMap = beanContextInit.objectToBeanConfigurationMap;
+		ILinkedMap<Object, IBeanConfiguration> objectToBeanConfigurationMap =
+				beanContextInit.objectToBeanConfigurationMap;
 
 		String refBeanName = propertyConf.getBeanName();
 
@@ -1058,7 +1087,8 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 			return;
 		}
 		ServiceContext beanContext = beanContextInit.beanContext;
-		ILinkedMap<Object, IBeanConfiguration> objectToBeanConfigurationMap = beanContextInit.objectToBeanConfigurationMap;
+		ILinkedMap<Object, IBeanConfiguration> objectToBeanConfigurationMap =
+				beanContextInit.objectToBeanConfigurationMap;
 
 		HashMap<Integer, OrderState> orderToHighBeanConfigurations = new HashMap<>();
 		HashMap<Integer, OrderState> orderToLowBeanConfigurations = new HashMap<>();
@@ -1235,7 +1265,8 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 				continue;
 			}
 			Map<Integer, OrderState> orderToBeanConfigurations = highPriority
-					? orderToHighBeanConfigurations : orderToLowBeanConfigurations;
+					? orderToHighBeanConfigurations
+					: orderToLowBeanConfigurations;
 
 			PrecedenceType currentPrecedenceType = beanConfiguration.getPrecedence();
 			Integer order = precedenceOrder.get(currentPrecedenceType);

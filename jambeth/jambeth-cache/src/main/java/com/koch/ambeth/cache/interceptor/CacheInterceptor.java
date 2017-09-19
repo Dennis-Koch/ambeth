@@ -31,7 +31,7 @@ import com.koch.ambeth.cache.Cached;
 import com.koch.ambeth.cache.service.ICacheService;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.typeinfo.TypeInfoItemUtil;
-import com.koch.ambeth.ioc.util.ImmutableTypeSet;
+import com.koch.ambeth.ioc.util.IImmutableTypeSet;
 import com.koch.ambeth.merge.cache.CacheDirective;
 import com.koch.ambeth.merge.cache.ICache;
 import com.koch.ambeth.merge.interceptor.MergeInterceptor;
@@ -65,6 +65,9 @@ public class CacheInterceptor extends MergeInterceptor {
 	@Autowired
 	protected ICache cache;
 
+	@Autowired
+	protected IImmutableTypeSet immutableTypeSet;
+
 	@Autowired(optional = true)
 	protected IServiceResultHolder serviceResultHolder;
 
@@ -84,7 +87,7 @@ public class CacheInterceptor extends MergeInterceptor {
 		}
 
 		Class<?> returnType = method.getReturnType();
-		if (ImmutableTypeSet.isImmutableType(returnType)
+		if (immutableTypeSet.isImmutableType(returnType)
 				|| IDTOType.class.isAssignableFrom(returnType)) {
 			// No possible result which might been read by cache
 			return super.interceptLoad(obj, method, args, proxy, annotation, isAsyncBegin);
@@ -207,7 +210,7 @@ public class CacheInterceptor extends MergeInterceptor {
 		return postProcessCacheResult(objRefs, syncObjects, expectedType, null, null, annotation);
 	}
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings({"rawtypes", "unchecked"})
 	protected Object postProcessCacheResult(List<IObjRef> objRefs, IList<Object> cacheResult,
 			Class<?> expectedType, IServiceResult serviceResult, Object[] originalArgs,
 			Annotation annotation) {

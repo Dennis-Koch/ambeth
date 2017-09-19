@@ -27,6 +27,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.WritableByteChannel;
 
 import com.koch.ambeth.ioc.annotation.Autowired;
+import com.koch.ambeth.ioc.util.IImmutableTypeSet;
 import com.koch.ambeth.log.config.Properties;
 import com.koch.ambeth.util.appendable.AppendableStringBuilder;
 import com.koch.ambeth.util.appendable.ByteBufferAppendable;
@@ -40,6 +41,9 @@ import com.koch.ambeth.xml.IWriter;
 
 public class SimpleXmlWriter implements ICyclicXmlWriter {
 	@Autowired
+	protected IImmutableTypeSet immutableTypeSet;
+
+	@Autowired
 	protected IThreadLocalObjectCollector objectCollector;
 
 	@Autowired
@@ -52,7 +56,7 @@ public class SimpleXmlWriter implements ICyclicXmlWriter {
 		StringBuilder sb = tlObjectCollector.create(StringBuilder.class);
 		try {
 			DefaultXmlWriter writer =
-					new DefaultXmlWriter(new AppendableStringBuilder(sb), xmlController);
+					new DefaultXmlWriter(new AppendableStringBuilder(sb), xmlController, immutableTypeSet);
 
 			writePrefix(writer);
 			writer.writeObject(obj);
@@ -72,7 +76,8 @@ public class SimpleXmlWriter implements ICyclicXmlWriter {
 	public void writeToStream(OutputStream os, Object obj) {
 		try {
 			OutputStreamWriter osw = new OutputStreamWriter(os, Properties.CHARSET_UTF_8);
-			DefaultXmlWriter writer = new DefaultXmlWriter(new WriterAppendable(osw), xmlController);
+			DefaultXmlWriter writer =
+					new DefaultXmlWriter(new WriterAppendable(osw), xmlController, immutableTypeSet);
 
 			writePrefix(writer);
 			writer.writeObject(obj);
@@ -92,7 +97,8 @@ public class SimpleXmlWriter implements ICyclicXmlWriter {
 		final ByteBuffer byteBuffer = tlObjectCollector.create(ByteBuffer.class);
 		try {
 			DefaultXmlWriter writer =
-					new DefaultXmlWriter(new ByteBufferAppendable(byteChannel, byteBuffer), xmlController);
+					new DefaultXmlWriter(new ByteBufferAppendable(byteChannel, byteBuffer), xmlController,
+							immutableTypeSet);
 
 			writePrefix(writer);
 			writer.writeObject(obj);

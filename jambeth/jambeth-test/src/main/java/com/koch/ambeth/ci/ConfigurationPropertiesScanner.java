@@ -32,7 +32,9 @@ import java.util.Comparator;
 import java.util.List;
 
 import com.koch.ambeth.ioc.IServiceContext;
+import com.koch.ambeth.ioc.IocModule;
 import com.koch.ambeth.ioc.factory.BeanContextFactory;
+import com.koch.ambeth.ioc.util.IImmutableTypeSet;
 import com.koch.ambeth.log.config.Properties;
 import com.koch.ambeth.util.IClasspathScanner;
 import com.koch.ambeth.util.annotation.ConfigurationConstantDescription;
@@ -51,83 +53,85 @@ public final class ConfigurationPropertiesScanner {
 		props.put("ambeth.log.level", "INFO");
 
 		List<Class<?>> types;
-		try (IServiceContext bootstrapContext = BeanContextFactory.createBootstrap(props)) {
+		try (IServiceContext bootstrapContext =
+				BeanContextFactory.createBootstrap(props, IocModule.class)) {
+			IImmutableTypeSet immutableTypeSet = bootstrapContext.getService(IImmutableTypeSet.class);
 			IClasspathScanner classpathScanner = bootstrapContext.registerBean(ClasspathScanner.class)
 					.finish();
 			types = classpathScanner.scanClassesAnnotatedWith(ConfigurationConstants.class);
+			Collections.sort(types, new Comparator<Class<?>>() {
+				@Override
+				public int compare(Class<?> o1, Class<?> o2) {
+					return o1.getName().compareTo(o2.getName());
+				}
+			});
+
+			List<Field> fields = new ArrayList<>();
+			for (Class<?> type : types) {
+				Field[] fieldsOfType = type.getFields();
+				for (Field fieldOfType : fieldsOfType) {
+					int modifiers = fieldOfType.getModifiers();
+					if ((modifiers & Modifier.STATIC) == 0) {
+						continue;
+					}
+					if ((modifiers & Modifier.PUBLIC) == 0) {
+						continue;
+					}
+					if ((modifiers & Modifier.FINAL) == 0) {
+						continue;
+					}
+					if (!String.class.equals(fieldOfType.getType())) {
+						continue;
+					}
+					fields.add(fieldOfType);
+				}
+			}
+			Collections.sort(fields, new Comparator<Field>() {
+				@Override
+				public int compare(Field o1, Field o2) {
+					try {
+						return ((String) o1.get(null)).compareTo((String) o2.get(null));
+					}
+					catch (Exception e) {
+						throw RuntimeExceptionUtil.mask(e);
+					}
+				}
+			});
+
+			File configOverviewFile = new File(args[0]);
+			try (OutputStream os = new FileOutputStream(configOverviewFile);
+					OutputStreamWriter fw = new OutputStreamWriter(os, Charset.forName("UTF-8"))) {
+				DefaultXmlWriter xmlWriter = new DefaultXmlWriter(fw, null, immutableTypeSet);
+
+				String allPropsElementName = "properties";
+				String propElementName = "property";
+				String propName = "name";
+				String propDescriptionName = "description";
+				xmlWriter.writeOpenElement(allPropsElementName);
+				for (Field field : fields) {
+					String propertyConstant = (String) field.get(null);
+
+					System.out.println("Found property '" + propertyConstant + "'");
+					xmlWriter.writeStartElement(propElementName);
+					xmlWriter.writeAttribute(propName, propertyConstant);
+					xmlWriter.writeStartElementEnd();
+					xmlWriter.writeOpenElement(propDescriptionName);
+
+					ConfigurationConstantDescription description = field
+							.getAnnotation(ConfigurationConstantDescription.class);
+
+					if (description != null) {
+						xmlWriter.writeEscapedXml(description.value());
+					}
+					xmlWriter.writeCloseElement(propDescriptionName);
+
+					xmlWriter.writeCloseElement(propElementName);
+				}
+				xmlWriter.writeCloseElement(allPropsElementName);
+			}
+			System.out.println("Finished successfully. Found " + fields.size() + " properties");
+			System.out.println("Wrote properties to file '" + configOverviewFile.getAbsolutePath() + "'");
 		}
-		Collections.sort(types, new Comparator<Class<?>>() {
-			@Override
-			public int compare(Class<?> o1, Class<?> o2) {
-				return o1.getName().compareTo(o2.getName());
-			}
-		});
-
-		List<Field> fields = new ArrayList<>();
-		for (Class<?> type : types) {
-			Field[] fieldsOfType = type.getFields();
-			for (Field fieldOfType : fieldsOfType) {
-				int modifiers = fieldOfType.getModifiers();
-				if ((modifiers & Modifier.STATIC) == 0) {
-					continue;
-				}
-				if ((modifiers & Modifier.PUBLIC) == 0) {
-					continue;
-				}
-				if ((modifiers & Modifier.FINAL) == 0) {
-					continue;
-				}
-				if (!String.class.equals(fieldOfType.getType())) {
-					continue;
-				}
-				fields.add(fieldOfType);
-			}
-		}
-		Collections.sort(fields, new Comparator<Field>() {
-			@Override
-			public int compare(Field o1, Field o2) {
-				try {
-					return ((String) o1.get(null)).compareTo((String) o2.get(null));
-				}
-				catch (Exception e) {
-					throw RuntimeExceptionUtil.mask(e);
-				}
-			}
-		});
-
-		File configOverviewFile = new File(args[0]);
-		try (OutputStream os = new FileOutputStream(configOverviewFile);
-				OutputStreamWriter fw = new OutputStreamWriter(os, Charset.forName("UTF-8"))) {
-			DefaultXmlWriter xmlWriter = new DefaultXmlWriter(fw, null);
-
-			String allPropsElementName = "properties";
-			String propElementName = "property";
-			String propName = "name";
-			String propDescriptionName = "description";
-			xmlWriter.writeOpenElement(allPropsElementName);
-			for (Field field : fields) {
-				String propertyConstant = (String) field.get(null);
-
-				System.out.println("Found property '" + propertyConstant + "'");
-				xmlWriter.writeStartElement(propElementName);
-				xmlWriter.writeAttribute(propName, propertyConstant);
-				xmlWriter.writeStartElementEnd();
-				xmlWriter.writeOpenElement(propDescriptionName);
-
-				ConfigurationConstantDescription description = field
-						.getAnnotation(ConfigurationConstantDescription.class);
-
-				if (description != null) {
-					xmlWriter.writeEscapedXml(description.value());
-				}
-				xmlWriter.writeCloseElement(propDescriptionName);
-
-				xmlWriter.writeCloseElement(propElementName);
-			}
-			xmlWriter.writeCloseElement(allPropsElementName);
-		}
-		System.out.println("Finished successfully. Found " + fields.size() + " properties");
-		System.out.println("Wrote properties to file '" + configOverviewFile.getAbsolutePath() + "'");
 	}
 
 	private ConfigurationPropertiesScanner() {

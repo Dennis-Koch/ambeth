@@ -46,74 +46,80 @@ import com.koch.ambeth.ioc.extendable.ClassExtendableContainer;
 import com.koch.ambeth.util.IImmutableType;
 import com.koch.ambeth.util.collections.LinkedHashSet;
 
-public final class ImmutableTypeSet {
-	protected static final LinkedHashSet<Class<?>> immutableTypeSet =
+public class ImmutableTypeSet extends IImmutableTypeSet implements IImmutableTypeExtendable {
+	protected static final LinkedHashSet<Class<?>> staticImmutableTypeSet =
 			new LinkedHashSet<>(0.5f);
 
-	private static final ClassExtendableContainer<Class<?>> immutableSuperTypes =
-			new ClassExtendableContainer<>("", "");
-
 	static {
-		immutableTypeSet.add(Integer.class);
-		immutableTypeSet.add(Integer.TYPE);
-		immutableTypeSet.add(Long.class);
-		immutableTypeSet.add(Long.TYPE);
-		immutableTypeSet.add(Double.class);
-		immutableTypeSet.add(Double.TYPE);
-		immutableTypeSet.add(Float.class);
-		immutableTypeSet.add(Float.TYPE);
-		immutableTypeSet.add(Short.class);
-		immutableTypeSet.add(Short.TYPE);
-		immutableTypeSet.add(Character.class);
-		immutableTypeSet.add(Character.TYPE);
-		immutableTypeSet.add(Byte.class);
-		immutableTypeSet.add(Byte.TYPE);
-		immutableTypeSet.add(Boolean.class);
-		immutableTypeSet.add(Boolean.TYPE);
-		immutableTypeSet.add(String.class);
-		immutableTypeSet.add(Class.class);
-		immutableTypeSet.add(void.class);
-		immutableTypeSet.add(BigInteger.class);
-		immutableTypeSet.add(BigDecimal.class);
+		staticImmutableTypeSet.add(Integer.class);
+		staticImmutableTypeSet.add(Integer.TYPE);
+		staticImmutableTypeSet.add(Long.class);
+		staticImmutableTypeSet.add(Long.TYPE);
+		staticImmutableTypeSet.add(Double.class);
+		staticImmutableTypeSet.add(Double.TYPE);
+		staticImmutableTypeSet.add(Float.class);
+		staticImmutableTypeSet.add(Float.TYPE);
+		staticImmutableTypeSet.add(Short.class);
+		staticImmutableTypeSet.add(Short.TYPE);
+		staticImmutableTypeSet.add(Character.class);
+		staticImmutableTypeSet.add(Character.TYPE);
+		staticImmutableTypeSet.add(Byte.class);
+		staticImmutableTypeSet.add(Byte.TYPE);
+		staticImmutableTypeSet.add(Boolean.class);
+		staticImmutableTypeSet.add(Boolean.TYPE);
+		staticImmutableTypeSet.add(String.class);
+		staticImmutableTypeSet.add(Class.class);
+		staticImmutableTypeSet.add(void.class);
+		staticImmutableTypeSet.add(BigInteger.class);
+		staticImmutableTypeSet.add(BigDecimal.class);
 
-		immutableTypeSet.add(Pattern.class);
-		immutableTypeSet.add(URI.class);
-		immutableTypeSet.add(URL.class);
-		immutableTypeSet.add(File.class);
+		staticImmutableTypeSet.add(Pattern.class);
+		staticImmutableTypeSet.add(URI.class);
+		staticImmutableTypeSet.add(URL.class);
+		staticImmutableTypeSet.add(File.class);
 
 		// java time
-		immutableTypeSet.add(Duration.class);
-		immutableTypeSet.add(Instant.class);
-		immutableTypeSet.add(LocalDate.class);
-		immutableTypeSet.add(LocalDateTime.class);
-		immutableTypeSet.add(LocalTime.class);
-		immutableTypeSet.add(MonthDay.class);
-		immutableTypeSet.add(OffsetDateTime.class);
-		immutableTypeSet.add(OffsetTime.class);
-		immutableTypeSet.add(Period.class);
-		immutableTypeSet.add(Year.class);
-		immutableTypeSet.add(YearMonth.class);
-		immutableTypeSet.add(ZonedDateTime.class);
-		immutableTypeSet.add(ZoneOffset.class);
+		staticImmutableTypeSet.add(Duration.class);
+		staticImmutableTypeSet.add(Instant.class);
+		staticImmutableTypeSet.add(LocalDate.class);
+		staticImmutableTypeSet.add(LocalDateTime.class);
+		staticImmutableTypeSet.add(LocalTime.class);
+		staticImmutableTypeSet.add(MonthDay.class);
+		staticImmutableTypeSet.add(OffsetDateTime.class);
+		staticImmutableTypeSet.add(OffsetTime.class);
+		staticImmutableTypeSet.add(Period.class);
+		staticImmutableTypeSet.add(Year.class);
+		staticImmutableTypeSet.add(YearMonth.class);
+		staticImmutableTypeSet.add(ZonedDateTime.class);
+		staticImmutableTypeSet.add(ZoneOffset.class);
+	}
 
+	private final ClassExtendableContainer<Class<?>> immutableSuperTypes =
+			new ClassExtendableContainer<>("", "");
+
+	public ImmutableTypeSet() {
 		immutableSuperTypes.register(Charset.class, Charset.class);
 	}
 
-	public static void addImmutableTypesTo(Collection<Class<?>> collection) {
-		collection.addAll(immutableTypeSet);
+	@Override
+	public void addImmutableTypesTo(Collection<Class<?>> collection) {
+		collection.addAll(staticImmutableTypeSet);
 	}
 
-	public static boolean isImmutableType(Class<?> type) {
-		return type.isPrimitive() || type.isEnum() || immutableTypeSet.contains(type)
+	@Override
+	public boolean isImmutableType(Class<?> type) {
+		return type.isPrimitive() || type.isEnum() || staticImmutableTypeSet.contains(type)
 				|| IImmutableType.class.isAssignableFrom(type)
 				|| immutableSuperTypes.getExtension(type) != null;
 	}
 
-	public static void flushState() {
-		immutableSuperTypes.clearWeakCache();
+	@Override
+	public void registerImmutableType(Class<?> immutableType) {
+		immutableSuperTypes.register(immutableType, immutableType);
 	}
 
-	private ImmutableTypeSet() {
-		// Intended blank
+	@Override
+	public void unregisterImmutableType(Class<?> immutableType) {
+		immutableSuperTypes.unregister(immutableType, immutableType);
 	}
 }

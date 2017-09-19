@@ -22,7 +22,7 @@ import com.koch.ambeth.event.IEventDispatcher;
 import com.koch.ambeth.event.IProcessResumeItem;
 import com.koch.ambeth.ioc.IServiceContext;
 import com.koch.ambeth.ioc.annotation.Autowired;
-import com.koch.ambeth.ioc.util.ImmutableTypeSet;
+import com.koch.ambeth.ioc.util.IImmutableTypeSet;
 import com.koch.ambeth.merge.IMergeController;
 import com.koch.ambeth.merge.IProxyHelper;
 import com.koch.ambeth.merge.IRevertChangesHelper;
@@ -81,6 +81,9 @@ public class RevertChangesHelper implements IRevertChangesHelper {
 	protected IGuiThreadHelper guiThreadHelper;
 
 	@Autowired
+	protected IImmutableTypeSet immutableTypeSet;
+
+	@Autowired
 	protected IMergeController mergeController;
 
 	@Autowired
@@ -100,7 +103,7 @@ public class RevertChangesHelper implements IRevertChangesHelper {
 			return;
 		}
 		Class<?> objType = proxyHelper.getRealType(obj.getClass());
-		if (ImmutableTypeSet.isImmutableType(objType) || originalToValueBackup.containsKey(obj)) {
+		if (immutableTypeSet.isImmutableType(objType) || originalToValueBackup.containsKey(obj)) {
 			return;
 		}
 		if (obj.getClass().isArray()) {
@@ -110,7 +113,7 @@ public class RevertChangesHelper implements IRevertChangesHelper {
 			System.arraycopy(objType, 0, clone, 0, length);
 			ArrayBackup arrayBackup = new ArrayBackup(clone);
 			originalToValueBackup.put(obj, arrayBackup);
-			if (!ImmutableTypeSet.isImmutableType(elementType)) {
+			if (!immutableTypeSet.isImmutableType(elementType)) {
 				for (int a = length; a-- > 0;) {
 					Object arrayItem = Array.get(obj, a);
 					backupObjects(arrayItem, originalToValueBackup);

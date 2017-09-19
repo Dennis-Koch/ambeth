@@ -23,7 +23,6 @@ import com.koch.ambeth.event.IEventDispatcher;
 import com.koch.ambeth.ioc.IInitializingModule;
 import com.koch.ambeth.ioc.IServiceContext;
 import com.koch.ambeth.ioc.threadlocal.IThreadLocalCleanupController;
-import com.koch.ambeth.ioc.util.ImmutableTypeSet;
 import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LoggerFactory;
 import com.koch.ambeth.log.config.Properties;
@@ -137,48 +136,43 @@ public class AmbethServletListener implements ServletContextListener, HttpSessio
 
 	@Override
 	public void contextDestroyed(ServletContextEvent event) {
-		try {
-			log.info("Shutting down...");
-			// remove the instance of IServiceContext in servlet context
-			event.getServletContext().removeAttribute(ATTRIBUTE_I_SERVICE_CONTEXT);
+		log.info("Shutting down...");
+		// remove the instance of IServiceContext in servlet context
+		event.getServletContext().removeAttribute(ATTRIBUTE_I_SERVICE_CONTEXT);
 
-			IAmbethApplication ambethApp =
-					(IAmbethApplication) event.getServletContext().getAttribute(ATTRIBUTE_I_APPLICATION);
-			event.getServletContext().removeAttribute(ATTRIBUTE_I_APPLICATION);
+		IAmbethApplication ambethApp =
+				(IAmbethApplication) event.getServletContext().getAttribute(ATTRIBUTE_I_APPLICATION);
+		event.getServletContext().removeAttribute(ATTRIBUTE_I_APPLICATION);
 
-			// dispose the IServiceContext
-			if (ambethApp != null) {
-				try {
-					ambethApp.close();
-				}
-				catch (Throwable e) {
-					log.error("Could not close ambeth application", e);
-				}
+		// dispose the IServiceContext
+		if (ambethApp != null) {
+			try {
+				ambethApp.close();
 			}
-			ClassLoader currentCL = Thread.currentThread().getContextClassLoader();
-			Enumeration<Driver> drivers = DriverManager.getDrivers();
-			while (drivers.hasMoreElements()) {
-				Driver driver = drivers.nextElement();
-				ClassLoader driverCL = driver.getClass().getClassLoader();
-				if (!ClassLoaderUtil.isParentOf(currentCL, driverCL)) {
-					// this driver is not associated to the current CL
-					continue;
-				}
-				try {
-					DriverManager.deregisterDriver(driver);
-				}
-				catch (SQLException e) {
-					if (log.isErrorEnabled()) {
-						log.error("Error deregistering driver " + driver, e);
-					}
-				}
-			}
-			if (log.isInfoEnabled()) {
-				log.info("Shutdown completed");
+			catch (Throwable e) {
+				log.error("Could not close ambeth application", e);
 			}
 		}
-		finally {
-			ImmutableTypeSet.flushState();
+		ClassLoader currentCL = Thread.currentThread().getContextClassLoader();
+		Enumeration<Driver> drivers = DriverManager.getDrivers();
+		while (drivers.hasMoreElements()) {
+			Driver driver = drivers.nextElement();
+			ClassLoader driverCL = driver.getClass().getClassLoader();
+			if (!ClassLoaderUtil.isParentOf(currentCL, driverCL)) {
+				// this driver is not associated to the current CL
+				continue;
+			}
+			try {
+				DriverManager.deregisterDriver(driver);
+			}
+			catch (SQLException e) {
+				if (log.isErrorEnabled()) {
+					log.error("Error deregistering driver " + driver, e);
+				}
+			}
+		}
+		if (log.isInfoEnabled()) {
+			log.info("Shutdown completed");
 		}
 	}
 

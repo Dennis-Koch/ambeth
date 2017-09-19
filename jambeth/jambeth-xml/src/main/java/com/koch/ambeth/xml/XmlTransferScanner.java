@@ -32,7 +32,7 @@ import com.koch.ambeth.ioc.IDisposableBean;
 import com.koch.ambeth.ioc.IInitializingBean;
 import com.koch.ambeth.ioc.IStartingBean;
 import com.koch.ambeth.ioc.annotation.Autowired;
-import com.koch.ambeth.ioc.util.ImmutableTypeSet;
+import com.koch.ambeth.ioc.util.IImmutableTypeSet;
 import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.service.merge.IEntityMetaDataProvider;
@@ -48,6 +48,9 @@ public class XmlTransferScanner implements IInitializingBean, IStartingBean, IDi
 
 	@Autowired
 	protected IEntityMetaDataProvider entityMetaDataProvider;
+
+	@Autowired
+	protected IImmutableTypeSet immutableTypeSet;
 
 	@Autowired
 	protected ITypeInfoProvider typeInfoProvider;
@@ -137,7 +140,7 @@ public class XmlTransferScanner implements IInitializingBean, IStartingBean, IDi
 		// problem
 		List<Class<?>> types = new ArrayList<>();
 		for (Class<?> type : rootElementClasses) {
-			if (type.isInterface() || ImmutableTypeSet.isImmutableType(type)) {
+			if (type.isInterface() || immutableTypeSet.isImmutableType(type)) {
 				continue;
 			}
 			types.add(type);
