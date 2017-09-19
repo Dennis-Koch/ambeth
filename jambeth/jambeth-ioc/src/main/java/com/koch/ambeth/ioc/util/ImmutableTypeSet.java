@@ -26,7 +26,19 @@ import java.math.BigInteger;
 import java.net.URI;
 import java.net.URL;
 import java.nio.charset.Charset;
+import java.time.Duration;
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.MonthDay;
+import java.time.OffsetDateTime;
+import java.time.OffsetTime;
+import java.time.Period;
+import java.time.Year;
+import java.time.YearMonth;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.util.Collection;
 import java.util.regex.Pattern;
 
@@ -68,7 +80,21 @@ public final class ImmutableTypeSet {
 		immutableTypeSet.add(URI.class);
 		immutableTypeSet.add(URL.class);
 		immutableTypeSet.add(File.class);
+
+		// java time
+		immutableTypeSet.add(Duration.class);
 		immutableTypeSet.add(Instant.class);
+		immutableTypeSet.add(LocalDate.class);
+		immutableTypeSet.add(LocalDateTime.class);
+		immutableTypeSet.add(LocalTime.class);
+		immutableTypeSet.add(MonthDay.class);
+		immutableTypeSet.add(OffsetDateTime.class);
+		immutableTypeSet.add(OffsetTime.class);
+		immutableTypeSet.add(Period.class);
+		immutableTypeSet.add(Year.class);
+		immutableTypeSet.add(YearMonth.class);
+		immutableTypeSet.add(ZonedDateTime.class);
+		immutableTypeSet.add(ZoneOffset.class);
 
 		immutableSuperTypes.register(Charset.class, Charset.class);
 	}
