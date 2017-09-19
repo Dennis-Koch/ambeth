@@ -26,6 +26,7 @@ import javax.persistence.Embeddable;
 
 import com.koch.ambeth.ioc.extendable.ClassExtendableContainer;
 import com.koch.ambeth.ioc.util.ImmutableTypeSet;
+import com.koch.ambeth.service.metadata.IDTOType;
 import com.koch.ambeth.util.collections.SmartCopySet;
 import com.koch.ambeth.util.typeinfo.INoEntityTypeExtendable;
 import com.koch.ambeth.util.typeinfo.IRelationProvider;
@@ -44,6 +45,8 @@ public class RelationProvider implements IRelationProvider, INoEntityTypeExtenda
 						java.sql.Timestamp.class, java.util.Calendar.class}));
 		primitiveTypes.add(java.util.GregorianCalendar.class);
 		primitiveTypes.add(javax.xml.datatype.XMLGregorianCalendar.class);
+
+		noEntityTypeExtendables.register(Boolean.TRUE, IDTOType.class);
 	}
 
 	@Override
