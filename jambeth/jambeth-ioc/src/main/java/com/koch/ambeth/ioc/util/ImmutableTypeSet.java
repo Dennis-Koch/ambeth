@@ -26,6 +26,7 @@ import java.math.BigInteger;
 import java.net.URI;
 import java.net.URL;
 import java.nio.charset.Charset;
+import java.time.Instant;
 import java.util.Collection;
 import java.util.regex.Pattern;
 
@@ -67,6 +68,7 @@ public final class ImmutableTypeSet {
 		immutableTypeSet.add(URI.class);
 		immutableTypeSet.add(URL.class);
 		immutableTypeSet.add(File.class);
+		immutableTypeSet.add(Instant.class);
 
 		immutableSuperTypes.register(Charset.class, Charset.class);
 	}

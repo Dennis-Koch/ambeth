@@ -31,6 +31,7 @@ import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.log.LogTypesUtil;
 import com.koch.ambeth.service.config.ServiceConfigurationConstants;
+import com.koch.ambeth.service.log.LogServiceUtil;
 import com.koch.ambeth.util.config.IProperties;
 import com.koch.ambeth.util.objectcollector.IThreadLocalObjectCollector;
 import com.koch.ambeth.util.proxy.CascadedInterceptor;
@@ -132,10 +133,9 @@ public class LogInterceptor extends CascadedInterceptor {
 			return returnValue;
 		}
 		catch (Throwable e) {
-			if (beanContext.isRunning()) {
-				if (log.isErrorEnabled()) {
-					log.error(e);
-				}
+			if (LogServiceUtil.isExplicitExceptionLoggingEnabled() && beanContext.isRunning()
+					&& log.isErrorEnabled()) {
+				log.error(e);
 			}
 			throw e;
 		}

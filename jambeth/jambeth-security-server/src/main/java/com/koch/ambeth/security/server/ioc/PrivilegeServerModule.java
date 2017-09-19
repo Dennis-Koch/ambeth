@@ -34,7 +34,7 @@ import com.koch.ambeth.security.service.IPrivilegeService;
 public class PrivilegeServerModule implements IInitializingModule {
 	@Override
 	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
-		beanContextFactory.registerBean("privilegeService", PrivilegeService.class).autowireable(//
+		beanContextFactory.registerBean(PrivilegeService.class).autowireable(//
 				IPrivilegeService.class, //
 				IEntityPermissionRuleExtendable.class, IEntityTypePermissionRuleExtendable.class, //
 				IEntityPermissionRuleProvider.class, IEntityTypePermissionRuleProvider.class);

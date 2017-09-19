@@ -25,6 +25,11 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+/**
+ * Used to mark any bean as to-be-intercepted for exceptions during method invocations. If such an
+ * exception occurs there is an associated logger from the 'com.koch.ambeth.service.log.interceptor'
+ * package which logs those exception on error level.
+ */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE, ElementType.METHOD})
 public @interface LogException {

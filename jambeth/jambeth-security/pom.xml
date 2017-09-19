@@ -12,20 +12,7 @@
 	<dependencies>
 		<dependency>
 			<groupId>com.koch.ambeth</groupId>
-			<artifactId>jambeth-datachange</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>com.koch.ambeth</groupId>
-			<artifactId>jambeth-event</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-merge</artifactId>
 		</dependency>
-		<dependency>
-			<groupId>com.koch.ambeth</groupId>
-			<artifactId>jambeth-service</artifactId>
-		</dependency>
 	</dependencies>
-
 </project>
