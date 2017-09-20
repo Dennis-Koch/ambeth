@@ -2,8 +2,8 @@ package com.koch.ambeth.security.server;
 
 import com.koch.ambeth.security.IAuthorization;
 import com.koch.ambeth.security.ISecurityContext;
-import com.koch.ambeth.security.server.exceptions.AuthenticationMissingException;
-import com.koch.ambeth.security.server.exceptions.InvalidUserException;
+import com.koch.ambeth.security.exceptions.AuthenticationMissingException;
+import com.koch.ambeth.security.exceptions.InvalidUserException;
 
 public interface IAuthorizationProcess {
 

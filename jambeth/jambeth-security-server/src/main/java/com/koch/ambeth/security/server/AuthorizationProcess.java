@@ -14,9 +14,9 @@ import com.koch.ambeth.security.ISecurityContext;
 import com.koch.ambeth.security.ISecurityContextHolder;
 import com.koch.ambeth.security.ISidHelper;
 import com.koch.ambeth.security.events.AuthorizationMissingEvent;
+import com.koch.ambeth.security.exceptions.AuthenticationMissingException;
+import com.koch.ambeth.security.exceptions.InvalidUserException;
 import com.koch.ambeth.security.exceptions.PasswordChangeRequiredException;
-import com.koch.ambeth.security.server.exceptions.AuthenticationMissingException;
-import com.koch.ambeth.security.server.exceptions.InvalidUserException;
 import com.koch.ambeth.service.model.ISecurityScope;
 
 public class AuthorizationProcess implements IAuthorizationProcess {

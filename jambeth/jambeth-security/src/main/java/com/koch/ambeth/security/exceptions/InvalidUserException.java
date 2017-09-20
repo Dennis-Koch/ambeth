@@ -1,4 +1,4 @@
-package com.koch.ambeth.security.server.exceptions;
+package com.koch.ambeth.security.exceptions;
 
 /*-
  * #%L
