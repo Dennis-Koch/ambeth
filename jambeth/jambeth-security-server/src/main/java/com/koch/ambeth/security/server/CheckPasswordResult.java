@@ -21,12 +21,14 @@ limitations under the License.
  */
 
 public class CheckPasswordResult implements ICheckPasswordResult {
-	protected final boolean passwordCorrect, changeRecommended, rehashRecommended;
+	protected final boolean passwordCorrect, changeRecommended, changeRequired, rehashRecommended;
 
 	public CheckPasswordResult(boolean passwordCorrect, boolean changeRecommended,
+			boolean changeRequired,
 			boolean rehashRecommended) {
 		this.passwordCorrect = passwordCorrect;
 		this.changeRecommended = changeRecommended;
+		this.changeRequired = changeRequired;
 		this.rehashRecommended = rehashRecommended;
 	}
 
@@ -38,6 +40,11 @@ public class CheckPasswordResult implements ICheckPasswordResult {
 	@Override
 	public boolean isChangePasswordRecommended() {
 		return changeRecommended;
+	}
+
+	@Override
+	public boolean isChangePasswordRequired() {
+		return changeRequired;
 	}
 
 	@Override

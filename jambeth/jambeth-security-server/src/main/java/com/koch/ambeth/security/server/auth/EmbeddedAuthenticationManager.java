@@ -50,7 +50,8 @@ public class EmbeddedAuthenticationManager extends AbstractAuthenticationManager
 	@Autowired
 	protected ISecurityActivation securityActivation;
 
-	@Property(name = SecurityServerConfigurationConstants.LoginPasswordAutoRehashActive, defaultValue = "true")
+	@Property(name = SecurityServerConfigurationConstants.LoginPasswordAutoRehashActive,
+			defaultValue = "true")
 	protected boolean autoRehashPasswords;
 
 	@Override
@@ -98,7 +99,7 @@ public class EmbeddedAuthenticationManager extends AbstractAuthenticationManager
 			}
 			String sid = userIdentifierProvider.getSID(user);
 			return new AuthenticationResult(sid, checkPasswordResult.isChangePasswordRecommended(),
-					rehashRecommended);
+					checkPasswordResult.isChangePasswordRequired(), rehashRecommended);
 		}
 		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);

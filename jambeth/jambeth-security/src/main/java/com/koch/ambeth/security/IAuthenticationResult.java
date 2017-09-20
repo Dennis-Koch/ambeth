@@ -30,5 +30,7 @@ public interface IAuthenticationResult {
 
 	boolean isChangePasswordRecommended();
 
+	boolean isChangePasswordRequired();
+
 	boolean isRehashPasswordRecommended();
 }

@@ -66,11 +66,13 @@ public class LDAPAuthenticationManager extends AbstractAuthenticationManager {
 	@Property(name = SecurityServerConfigurationConstants.LdapUserAttribute, defaultValue = "uid")
 	protected String userPrincipalName;
 
-	@Property(name = SecurityServerConfigurationConstants.LdapCtxFactory, defaultValue = "com.sun.jndi.ldap.LdapCtxFactory")
+	@Property(name = SecurityServerConfigurationConstants.LdapCtxFactory,
+			defaultValue = "com.sun.jndi.ldap.LdapCtxFactory")
 	protected String ldapContextFactory;
 
-	@Property(name = SecurityServerConfigurationConstants.LdapFilter, defaultValue = "(&(objectClass=user)(sAMAccountName="
-			+ USER_NAME_VARIABLE_DEF + "))")
+	@Property(name = SecurityServerConfigurationConstants.LdapFilter,
+			defaultValue = "(&(objectClass=user)(sAMAccountName="
+					+ USER_NAME_VARIABLE_DEF + "))")
 	protected String searchFilter;
 
 	protected LdapContext createContext(String userName, String password) {
@@ -94,7 +96,7 @@ public class LDAPAuthenticationManager extends AbstractAuthenticationManager {
 
 	protected NamingEnumeration<SearchResult> query(String userName, LdapContext ctxGC) {
 		try {
-			String[] returnedAtts = { userPrincipalName };
+			String[] returnedAtts = {userPrincipalName};
 
 			// Create the search controls
 			SearchControls searchCtls = new SearchControls();
@@ -119,7 +121,7 @@ public class LDAPAuthenticationManager extends AbstractAuthenticationManager {
 		Map<String, Object> map = result.get(0);
 		Object nameValue = map.get(userPrincipalName);
 		final String sid = (String) nameValue;
-		return new AuthenticationResult(sid, false, false);
+		return new AuthenticationResult(sid, false, false, false);
 	}
 
 	@Override
@@ -195,8 +197,7 @@ public class LDAPAuthenticationManager extends AbstractAuthenticationManager {
 	/**
 	 * Get the username and domain (the domain is taken from username if specified or default domain)
 	 *
-	 * @param userName
-	 *          The username (with or without domain (e.g. "admin@example.com"))
+	 * @param userName The username (with or without domain (e.g. "admin@example.com"))
 	 * @return String array with username and domain
 	 */
 	private String[] getUserNameAndDomain(String userName) {
@@ -207,11 +208,11 @@ public class LDAPAuthenticationManager extends AbstractAuthenticationManager {
 			}
 			String userNameWithoutDomain = userName.substring(0, index);
 			String domain = userName.substring(index + 1);
-			return new String[] { userNameWithoutDomain, domain };
+			return new String[] {userNameWithoutDomain, domain};
 		}
 		else {
 			// no domain specified in userName so use default domain
-			return new String[] { userName, domain };
+			return new String[] {userName, domain};
 		}
 	}
 }

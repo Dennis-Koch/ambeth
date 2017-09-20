@@ -5,6 +5,8 @@ import com.koch.ambeth.security.model.IUser;
 import com.koch.ambeth.util.state.IStateRollback;
 
 public interface IPasswordUtil {
+	void validatePassword(char[] clearTextPassword, IUser user);
+
 	void assignNewPassword(char[] clearTextPassword, IUser user, char[] oldClearTextPassword);
 
 	char[] assignNewRandomPassword(IUser user, char[] oldClearTextPassword);
@@ -18,4 +20,6 @@ public interface IPasswordUtil {
 	void reencryptAllSalts(char[] newLoginSaltPassword);
 
 	IStateRollback pushSuppressPasswordValidation(IStateRollback... rollbacks);
+
+	IStateRollback pushSuppressPasswordChangeRequired(IStateRollback... rollbacks);
 }

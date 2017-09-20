@@ -32,6 +32,7 @@ import java.lang.ref.WeakReference;
 import java.nio.charset.Charset;
 import java.util.Iterator;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -536,7 +537,7 @@ public class Properties implements IProperties, Iterable<Entry<String, Object>> 
 
 	protected void putProperty(String key, Object value) {
 		Object oldValue = dictionary.put(key, value);
-		if (pcs != null) {
+		if (pcs != null && !Objects.equals(oldValue, value)) {
 			ILogger logger = LoggerFactory.getLogger(getClass(), this);
 			if (logger.isInfoEnabled()) {
 				logger.info("Updated property '" + key + "' to value '" + value + "'");

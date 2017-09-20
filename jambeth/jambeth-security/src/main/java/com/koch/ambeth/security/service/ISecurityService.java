@@ -36,4 +36,8 @@ public interface ISecurityService {
 	IUser getCurrentUser();
 
 	boolean currentUserHasActionPermission(String permission);
+
+	boolean validatePassword(char[] newCleartextPassword);
+
+	boolean changePassword(char[] newCleartextPassword);
 }

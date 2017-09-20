@@ -32,9 +32,13 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.StreamingOutput;
 
+import com.koch.ambeth.merge.IMergeProcess;
 import com.koch.ambeth.merge.security.ISecurityActivation;
 import com.koch.ambeth.security.ICurrentUserProvider;
+import com.koch.ambeth.security.ISecurityContext;
+import com.koch.ambeth.security.ISecurityContextHolder;
 import com.koch.ambeth.security.model.IUser;
+import com.koch.ambeth.security.server.IPasswordUtil;
 import com.koch.ambeth.security.service.ISecurityService;
 import com.koch.ambeth.service.model.ISecurityScope;
 import com.koch.ambeth.service.model.IServiceDescription;
@@ -112,6 +116,59 @@ public class SecurityServiceREST extends AbstractServiceREST {
 			boolean result =
 					getService(ICurrentUserProvider.class).currentUserHasActionPermission((String) args[0]);
 			return createResult(result, request, response);
+		}
+		catch (Throwable e) {
+			return createExceptionResult(e, request, response);
+		}
+		finally {
+			rollback.rollback();
+		}
+	}
+
+	@POST
+	@Path("validatePassword")
+	public StreamingOutput validatePassword(InputStream is, @Context HttpServletRequest request,
+			@Context HttpServletResponse response) {
+		IStateRollback rollback = preServiceCall(request, response);
+		try {
+			Object[] args = getArguments(is, request);
+			char[] newCleartextPassword = (char[]) args[0];
+
+			IPasswordUtil passwordUtil = getService(IPasswordUtil.class);
+			rollback = passwordUtil.pushSuppressPasswordChangeRequired(rollback);
+			IUser currentUser = getService(ICurrentUserProvider.class).getCurrentUser();
+			passwordUtil.validatePassword(newCleartextPassword, currentUser);
+			return createResult(true, request, response);
+		}
+		catch (Throwable e) {
+			return createExceptionResult(e, request, response);
+		}
+		finally {
+			rollback.rollback();
+		}
+	}
+
+	@POST
+	@Path("changePassword")
+	public StreamingOutput changePassword(InputStream is, @Context HttpServletRequest request,
+			@Context HttpServletResponse response) {
+		IStateRollback rollback = preServiceCall(request, response);
+		try {
+			Object[] args = getArguments(is, request);
+			char[] newCleartextPassword = (char[]) args[0];
+
+			ISecurityContext securityContext = getService(ISecurityContextHolder.class).getContext();
+			if (securityContext == null || securityContext.getAuthentication() == null) {
+				throw new SecurityException("No authenticaton provided");
+			}
+			IPasswordUtil passwordUtil = getService(IPasswordUtil.class);
+			rollback = passwordUtil.pushSuppressPasswordChangeRequired(rollback);
+			IUser currentUser = getService(ICurrentUserProvider.class).getCurrentUser();
+			passwordUtil.assignNewPassword(newCleartextPassword, currentUser,
+					securityContext.getAuthentication().getPassword());
+
+			getService(IMergeProcess.class).process(currentUser);
+			return createResult(true, request, response);
 		}
 		catch (Throwable e) {
 			return createExceptionResult(e, request, response);

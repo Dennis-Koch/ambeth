@@ -25,5 +25,7 @@ public interface ICheckPasswordResult {
 
 	boolean isChangePasswordRecommended();
 
+	boolean isChangePasswordRequired();
+
 	boolean isRehashPasswordRecommended();
 }

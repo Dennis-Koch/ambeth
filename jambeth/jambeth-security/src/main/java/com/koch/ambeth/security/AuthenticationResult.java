@@ -24,14 +24,16 @@ limitations under the License.
 public class AuthenticationResult implements IAuthenticationResult {
 	private final String sid;
 
-	private final boolean changePasswordRecommended;
+	private final boolean changePasswordRecommended, changePasswordRequired;
 
 	private final boolean rehashPasswordRecommended;
 
 	public AuthenticationResult(String sid, boolean changePasswordRecommended,
+			boolean changePasswordRequired,
 			boolean rehashPasswordRecommended) {
 		this.sid = sid;
 		this.changePasswordRecommended = changePasswordRecommended;
+		this.changePasswordRequired = changePasswordRequired;
 		this.rehashPasswordRecommended = rehashPasswordRecommended;
 	}
 
@@ -43,6 +45,11 @@ public class AuthenticationResult implements IAuthenticationResult {
 	@Override
 	public boolean isChangePasswordRecommended() {
 		return changePasswordRecommended;
+	}
+
+	@Override
+	public boolean isChangePasswordRequired() {
+		return changePasswordRequired;
 	}
 
 	@Override

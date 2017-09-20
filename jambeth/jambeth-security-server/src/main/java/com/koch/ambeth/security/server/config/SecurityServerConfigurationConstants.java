@@ -75,6 +75,10 @@ public final class SecurityServerConfigurationConstants {
 	@ConfigurationConstantDescription("Configures the maximum lifetime (in days) after which a password should be changed. Optional parameter. Must be >0. Default = 30")
 	public static final String LoginPasswordLifetime = "security.login.password.lifetime";
 
+	@ConfigurationConstantDescription("Configures the password change recommendation (in days) before it is required to change. Default = 7")
+	public static final String LoginPasswordChangeRecommendation =
+			"security.login.password.changerecommendation";
+
 	/**
 	 * Configures the maximum password history which should be kept to 'help' a user to do a 'real'
 	 * password change.<br>

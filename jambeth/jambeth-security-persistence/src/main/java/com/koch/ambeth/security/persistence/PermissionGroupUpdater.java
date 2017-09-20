@@ -191,9 +191,11 @@ public class PermissionGroupUpdater implements IInitializingBean, IPermissionGro
 	@Property(name = MergeConfigurationConstants.SecurityActive, defaultValue = "false")
 	protected boolean securityActive;
 
-	protected final SmartCopyMap<Class<?>, IQuery<?>> entityTypeToAllEntitiesQuery = new SmartCopyMap<>();
+	protected final SmartCopyMap<Class<?>, IQuery<?>> entityTypeToAllEntitiesQuery =
+			new SmartCopyMap<>();
 
-	protected final SmartCopyMap<Class<?>, Class<?>[]> entityTypeToRuleReferredEntitiesMap = new SmartCopyMap<>();
+	protected final SmartCopyMap<Class<?>, Class<?>[]> entityTypeToRuleReferredEntitiesMap =
+			new SmartCopyMap<>();
 
 	protected final SmartCopySet<Class<?>> metaDataAvailableSet = new SmartCopySet<>();
 
@@ -347,7 +349,7 @@ public class PermissionGroupUpdater implements IInitializingBean, IPermissionGro
 		}
 	}
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings({"rawtypes", "unchecked"})
 	protected boolean hasChangesOnRuleReferredEntities(Class<?> entityType, IDataChange dataChange,
 			IMap<Class<?>, IDataChange> entityTypeToDataChangeMap,
 			IMap<Class<?>, Boolean> entityTypeToEmptyFlagMap) {
@@ -361,8 +363,9 @@ public class PermissionGroupUpdater implements IInitializingBean, IPermissionGro
 				entityPermissionRule.buildPrefetchConfig(entityType, prefetchConfig);
 			}
 			IPrefetchHandle prefetchHandle = prefetchConfig.build();
-			ILinkedMap<Class<?>, PrefetchPath[]> entityTypeToPrefetchSteps = ((PrefetchHandle) prefetchHandle)
-					.getEntityTypeToPrefetchSteps();
+			ILinkedMap<Class<?>, PrefetchPath[]> entityTypeToPrefetchSteps =
+					((PrefetchHandle) prefetchHandle)
+							.getEntityTypeToPrefetchSteps();
 
 			HashSet<Class<?>> touchedByRuleTypesSet = HashSet
 					.<Class<?>>create(entityTypeToPrefetchSteps.size());
@@ -430,12 +433,12 @@ public class PermissionGroupUpdater implements IInitializingBean, IPermissionGro
 			return;
 		}
 		long start = System.currentTimeMillis();
-		ISecurityScope[] securityScopes = new ISecurityScope[] { new ISecurityScope() {
+		ISecurityScope[] securityScopes = new ISecurityScope[] {new ISecurityScope() {
 			@Override
 			public String getName() {
 				return "dummy";
 			}
-		} };
+		}};
 
 		IStateRollback rollback = securityScopeProvider.pushSecurityScopes(securityScopes);
 		try {
@@ -811,13 +814,13 @@ public class PermissionGroupUpdater implements IInitializingBean, IPermissionGro
 			final ISecurityScope[] securityScopes) {
 		if (authorizationManager != null) {
 			IAuthorization authorization = authorizationManager.authorize(sid, securityScopes,
-					new AuthenticationResult(sid, false, false));
+					new AuthenticationResult(sid, false, false, false));
 			if (authorization == null) {
 				throw new IllegalStateException();
 			}
 			return authorization;
 		}
 		return new DefaultAuthorization(sid, securityScopes, CallPermission.FORBIDDEN,
-				System.currentTimeMillis(), new AuthenticationResult(sid, false, false));
+				System.currentTimeMillis(), new AuthenticationResult(sid, false, false, false));
 	}
 }

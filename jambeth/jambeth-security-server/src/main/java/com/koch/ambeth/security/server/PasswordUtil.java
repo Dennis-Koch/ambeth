@@ -55,6 +55,7 @@ import com.koch.ambeth.security.IAuthorization;
 import com.koch.ambeth.security.ISecurityContext;
 import com.koch.ambeth.security.ISecurityContextHolder;
 import com.koch.ambeth.security.PasswordType;
+import com.koch.ambeth.security.exceptions.PasswordConstraintException;
 import com.koch.ambeth.security.model.IPBEConfiguration;
 import com.koch.ambeth.security.model.IPassword;
 import com.koch.ambeth.security.model.ISignature;
@@ -62,7 +63,6 @@ import com.koch.ambeth.security.model.IUser;
 import com.koch.ambeth.security.privilege.IPrivilegeProvider;
 import com.koch.ambeth.security.privilege.model.ITypePrivilege;
 import com.koch.ambeth.security.server.config.SecurityServerConfigurationConstants;
-import com.koch.ambeth.security.server.exceptions.PasswordConstraintException;
 import com.koch.ambeth.service.merge.IEntityMetaDataProvider;
 import com.koch.ambeth.service.merge.model.IEntityMetaData;
 import com.koch.ambeth.service.metadata.Member;
@@ -75,6 +75,7 @@ import com.koch.ambeth.util.collections.SmartCopyMap;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.state.AbstractStateRollback;
 import com.koch.ambeth.util.state.IStateRollback;
+import com.koch.ambeth.util.state.NoOpStateRollback;
 
 public class PasswordUtil implements IInitializingBean, IPasswordUtil,
 		IPasswordValidationExtendable, IThreadLocalCleanupBean {
@@ -140,6 +141,10 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil,
 			defaultValue = "10")
 	protected int passwordHistoryCount;
 
+	@Property(name = SecurityServerConfigurationConstants.LoginPasswordChangeRecommendation,
+			defaultValue = "7")
+	protected int passwordChangeRecommendation;
+
 	@Property(name = IocConfigurationConstants.DebugModeActive, defaultValue = "false")
 	protected boolean debugModeActive;
 
@@ -163,6 +168,8 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil,
 	protected final Lock saltReencryptionLock = new ReentrantLock();
 
 	protected final ThreadLocal<Boolean> suppressPasswordValidationTL = new ThreadLocal<>();
+
+	protected final ThreadLocal<Boolean> suppressPasswordChangeRequiredTL = new ThreadLocal<>();
 
 	@Override
 	public void afterPropertiesSet() throws Throwable {
@@ -211,8 +218,26 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil,
 	}
 
 	@Override
+	public IStateRollback pushSuppressPasswordChangeRequired(IStateRollback... rollbacks) {
+		final Boolean oldValue = suppressPasswordChangeRequiredTL.get();
+		if (Boolean.TRUE.equals(oldValue)) {
+			return NoOpStateRollback.createNoOpRollback(rollbacks);
+		}
+		suppressPasswordChangeRequiredTL.set(Boolean.TRUE);
+		return new AbstractStateRollback(rollbacks) {
+			@Override
+			protected void rollbackIntern() throws Exception {
+				suppressPasswordChangeRequiredTL.set(oldValue);
+			}
+		};
+	}
+
+	@Override
 	public IStateRollback pushSuppressPasswordValidation(IStateRollback... rollbacks) {
 		final Boolean oldValue = suppressPasswordValidationTL.get();
+		if (Boolean.TRUE.equals(oldValue)) {
+			return NoOpStateRollback.createNoOpRollback(rollbacks);
+		}
 		suppressPasswordValidationTL.set(Boolean.TRUE);
 		return new AbstractStateRollback(rollbacks) {
 			@Override
@@ -222,9 +247,9 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil,
 		};
 	}
 
-	protected RuntimeException createIllegalPasswordException() {
+	protected RuntimeException createIllegalPasswordException(String message) {
 		PasswordConstraintException e = new PasswordConstraintException(
-				"New password does not meet the security criteria: Password has already been used recently");
+				message);
 		if (!debugModeActive) {
 			e.setStackTrace(RuntimeExceptionUtil.EMPTY_STACK_TRACE);
 		}
@@ -241,13 +266,14 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil,
 				log.info("The given hash of the current authentication is: '" + givenPasswordString
 						+ "'. Expected hash: '" + expectedPasswordString + "'");
 			}
-			return new CheckPasswordResult(false, false, false);
+			return new CheckPasswordResult(false, false, false, false);
 		}
 		// password is correct. now check if we should rehash the password on-the-fly to ensure
 		// long-term security
 		boolean changeRecommended = isChangeRecommended(password);
+		boolean changeRequired = isChangeRequired(password);
 		boolean rehashRecommended = isRehashRecommended(password);
-		return new CheckPasswordResult(true, changeRecommended, rehashRecommended);
+		return new CheckPasswordResult(true, changeRecommended, changeRequired, rehashRecommended);
 	}
 
 	@Override
@@ -313,7 +339,20 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil,
 
 	protected boolean isChangeRecommended(IPassword password) {
 		Calendar changeAfter = password.getChangeAfter();
-		return changeAfter == null || Calendar.getInstance().after(changeAfter);
+		if (changeAfter == null) {
+			return false;
+		}
+		changeAfter = (Calendar) changeAfter.clone();
+		changeAfter.add(Calendar.DAY_OF_MONTH, -passwordChangeRecommendation);
+		return Calendar.getInstance().after(changeAfter);
+	}
+
+	protected boolean isChangeRequired(IPassword password) {
+		if (Boolean.TRUE.equals(suppressPasswordChangeRequiredTL.get())) {
+			return false;
+		}
+		Calendar changeAfter = password.getChangeAfter();
+		return changeAfter != null && Calendar.getInstance().after(changeAfter);
 	}
 
 	protected boolean isRehashRecommended(IPassword password) {
@@ -361,10 +400,8 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil,
 		}
 	}
 
-	protected void validatePassword(char[] clearTextPassword) {
-		if (Boolean.TRUE.equals(suppressPasswordValidationTL.get())) {
-			return;
-		}
+	@Override
+	public void validatePassword(char[] clearTextPassword, IUser user) {
 		StringBuilder validationErrorSB = null;
 		for (IPasswordValidationExtension extension : extensions.getExtensionsShared()) {
 			CharSequence validationError = extension.validatePassword(clearTextPassword);
@@ -379,8 +416,13 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil,
 			}
 		}
 		if (validationErrorSB != null) {
-			throw new PasswordConstraintException(
+			throw createIllegalPasswordException(
 					"New password does not meet the security criteria: " + validationErrorSB.toString());
+		}
+		List<IPassword> passwordHistory = buildPasswordHistory(user);
+		if (isPasswordUsedInHistory(clearTextPassword, passwordHistory)) {
+			throw createIllegalPasswordException(
+					"New password does not meet the security criteria: Password has already been used recently");
 		}
 	}
 
@@ -389,10 +431,8 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil,
 		ParamChecker.assertParamNotNull(clearTextPassword, "clearTextPassword");
 		ParamChecker.assertParamNotNull(user, "user");
 
-		validatePassword(clearTextPassword);
-		List<IPassword> passwordHistory = buildPasswordHistory(user);
-		if (isPasswordUsedInHistory(clearTextPassword, passwordHistory)) {
-			throw createIllegalPasswordException();
+		if (!Boolean.TRUE.equals(suppressPasswordValidationTL.get())) {
+			validatePassword(clearTextPassword, user);
 		}
 		IPassword newEmptyPassword = entityFactory.createEntity(IPassword.class);
 		fillPassword(clearTextPassword, oldClearTextPassword, newEmptyPassword, user, true);
