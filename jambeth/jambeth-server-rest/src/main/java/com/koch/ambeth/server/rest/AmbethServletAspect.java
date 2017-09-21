@@ -217,7 +217,7 @@ public class AmbethServletAspect {
 
 				Matcher matcher = pattern.matcher(decodedValue);
 				if (!matcher.matches()) {
-					throw new IllegalStateException(decodedValue);
+					throw new SecurityException("Illegal BASIC AUTH parameter (no username/password pair)");
 				}
 				userName = matcher.group(1);
 				userPass = matcher.group(2);
