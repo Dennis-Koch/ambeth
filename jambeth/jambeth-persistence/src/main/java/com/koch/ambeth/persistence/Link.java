@@ -22,15 +22,19 @@ limitations under the License.
 
 import java.util.List;
 
+import javax.persistence.PersistenceException;
+
 import com.koch.ambeth.ioc.IInitializingBean;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.config.Property;
 import com.koch.ambeth.persistence.api.IDirectedLink;
+import com.koch.ambeth.persistence.api.IDirectedLinkMetaData;
 import com.koch.ambeth.persistence.api.ILink;
 import com.koch.ambeth.persistence.api.ILinkCursor;
 import com.koch.ambeth.persistence.api.ILinkMetaData;
 import com.koch.ambeth.persistence.api.ITable;
 import com.koch.ambeth.persistence.util.IAlreadyLinkedCache;
+import com.koch.ambeth.service.metadata.Member;
 import com.koch.ambeth.util.ParamChecker;
 
 public class Link implements ILink, IInitializingBean {
@@ -54,8 +58,25 @@ public class Link implements ILink, IInitializingBean {
 
 	@Override
 	public void afterPropertiesSet() {
-		ParamChecker.assertTrue(toTable != null || directedLink.getMetaData().getToMember() != null,
+		IDirectedLinkMetaData metaData = getDirectedLink().getMetaData();
+		ParamChecker.assertTrue(toTable != null || metaData.getToMember() != null,
 				"toTable or toMember");
+		Class<?> fromEntityType = metaData.getFromEntityType();
+		Member fromMember = metaData.getFromMember();
+		Class<?> toEntityType = metaData.getToEntityType();
+		Member toMember = metaData.getToMember();
+		if (fromMember != null && toEntityType != null
+				&& !fromMember.getElementType().isAssignableFrom(toEntityType)) {
+			throw new PersistenceException("Member '" + fromEntityType.getName() + '.'
+					+ fromMember.getName() + " is of element type '" + fromMember.getElementType().getName()
+					+ "' which is not assignable from linked entity type '" + toEntityType.getName() + "'");
+		}
+		if (toMember != null && fromEntityType != null
+				&& !toMember.getElementType().isAssignableFrom(fromEntityType)) {
+			throw new PersistenceException("Member '" + toEntityType.getName() + '.'
+					+ toMember.getName() + " is of element type '" + toMember.getElementType().getName()
+					+ "' which is not assignable from linked entity type '" + fromEntityType.getName() + "'");
+		}
 	}
 
 	@Override
