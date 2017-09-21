@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<or-mappings xmlns="http://schema.kochdev.com/ambeth/ambeth_orm_2_0">
+
+	<entity-mappings>
+		<external-entity class="com.koch.ambeth.datachange.kafka.TestEntity">
+			<attributes>
+				<id name="Id"/>
+				<version name="Version"/>
+			</attributes>
+		</external-entity>
+	</entity-mappings>
+</or-mappings>

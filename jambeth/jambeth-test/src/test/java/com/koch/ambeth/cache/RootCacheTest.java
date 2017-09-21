@@ -47,6 +47,7 @@ import com.koch.ambeth.cache.config.CacheConfigurationConstants;
 import com.koch.ambeth.cache.ioc.CacheModule;
 import com.koch.ambeth.cache.rootcachevalue.DefaultRootCacheValue;
 import com.koch.ambeth.cache.rootcachevalue.RootCacheValue;
+import com.koch.ambeth.cache.stream.CacheRetrieverFake;
 import com.koch.ambeth.cache.transfer.LoadContainer;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.merge.IEntityFactory;
@@ -332,7 +333,7 @@ public class RootCacheTest extends AbstractInformationBusTest {
 		Integer id = 3;
 		Long version = 2l;
 		String name = "test unit name";
-		IObjRef[][] relations = ObjRef.EMPTY_ARRAY_ARRAY;
+		IObjRef[][] relations = IObjRef.EMPTY_ARRAY_ARRAY;
 
 		ChildCache targetCache = beanContext.registerBean(ChildCache.class)//
 				.propertyValue("Parent", fixture)//
@@ -410,7 +411,7 @@ public class RootCacheTest extends AbstractInformationBusTest {
 	@Test(expected = UnsupportedOperationException.class)
 	public final void testAddDirect() {
 		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(Material.class);
-		fixture.addDirect(metaData, 1, 1, new Object(), ObjRef.EMPTY_ARRAY, ObjRef.EMPTY_ARRAY_ARRAY);
+		fixture.addDirect(metaData, 1, 1, new Object(), IObjRef.EMPTY_ARRAY, IObjRef.EMPTY_ARRAY_ARRAY);
 	}
 
 	@Test
@@ -507,7 +508,7 @@ public class RootCacheTest extends AbstractInformationBusTest {
 	public final void testEnsureRelationsExist() {
 		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(Material.class);
 		IObjRef unitRef = new ObjRef(Unit.class, 9, 2);
-		IObjRef[][] relations = ObjRef.EMPTY_ARRAY_ARRAY;
+		IObjRef[][] relations = IObjRef.EMPTY_ARRAY_ARRAY;
 		LinkedHashSet<IObjRef> cascadeNeededORIs = null;
 		ArrayList<DirectValueHolderRef> pendingValueHolders = new ArrayList<>();
 

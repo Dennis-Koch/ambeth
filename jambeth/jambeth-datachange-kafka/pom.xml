@@ -14,5 +14,13 @@
 			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-event-kafka</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>com.koch.ambeth</groupId>
+			<artifactId>jambeth-event-kafka-test</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.koch.ambeth</groupId>
+			<artifactId>jambeth-ioc-test</artifactId>
+		</dependency>
 	</dependencies>
 </project>

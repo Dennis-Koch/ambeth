@@ -33,25 +33,18 @@
 		<dependency>
 			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-information-bus-test</artifactId>
+			<scope>compile</scope>
 		</dependency>
 		
 		<dependency>
 			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-information-bus-with-persistence-test</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>com.koch.ambeth</groupId>
-			<artifactId>jambeth-server-with-persistence-test</artifactId>
+			<scope>compile</scope>
 		</dependency>
 
 		<dependency>
 			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-audit-server</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>com.koch.ambeth</groupId>
-			<artifactId>jambeth-audit-server-test</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>com.koch.ambeth</groupId>
@@ -71,15 +64,7 @@
 		</dependency>
 		<dependency>
 			<groupId>com.koch.ambeth</groupId>
-			<artifactId>jambeth-cache-server-test</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-datachange-persistence</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>com.koch.ambeth</groupId>
-			<artifactId>jambeth-datachange-persistence-test</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>com.koch.ambeth</groupId>
@@ -101,10 +86,6 @@
 		<dependency>
 			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-merge-bytecode</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>com.koch.ambeth</groupId>
-			<artifactId>jambeth-merge-bytecode-test</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>com.koch.ambeth</groupId>
@@ -190,16 +171,6 @@
 		<dependency>
 			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-xml-test</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>com.koch.ambeth</groupId>
-			<artifactId>jambeth-util-test</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>com.koch.ambeth</groupId>
-			<artifactId>jambeth-service-test</artifactId>
 		</dependency>
 	</dependencies>
 

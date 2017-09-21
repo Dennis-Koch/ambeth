@@ -32,14 +32,7 @@
 		
 		<dependency>
 			<groupId>com.koch.ambeth</groupId>
-			<artifactId>jambeth-server-with-persistence-test</artifactId>
-			<scope>test</scope>
-		</dependency>
-
-		<dependency>
-			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-information-bus-with-persistence-test</artifactId>
-			<scope>test</scope>
 		</dependency>
 
 		<dependency>

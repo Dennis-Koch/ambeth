@@ -21,18 +21,6 @@
 			<artifactId>jambeth-ioc-test</artifactId>
 			<scope>compile</scope>
 		</dependency>
-
-		<dependency>
-			<groupId>com.koch.ambeth</groupId>
-			<artifactId>jambeth-log-test</artifactId>
-			<scope>compile</scope>
-		</dependency>
-
-		<dependency>
-			<groupId>com.koch.ambeth</groupId>
-			<artifactId>jambeth-util-test</artifactId>
-			<scope>compile</scope>
-		</dependency>
 	</dependencies>
 
 	<build>

@@ -22,11 +22,11 @@ limitations under the License.
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.koch.ambeth.cache.CacheRetrieverFake;
-import com.koch.ambeth.cache.InputSourceTemplateFake;
-import com.koch.ambeth.cache.InputSourceTemplateFakeConverter;
 import com.koch.ambeth.cache.ioc.CacheModule;
 import com.koch.ambeth.cache.service.ICacheRetriever;
+import com.koch.ambeth.cache.stream.CacheRetrieverFake;
+import com.koch.ambeth.cache.stream.InputSourceTemplateFake;
+import com.koch.ambeth.cache.stream.InputSourceTemplateFakeConverter;
 import com.koch.ambeth.cache.stream.ioc.CacheStreamModule;
 import com.koch.ambeth.cache.transfer.LoadContainer;
 import com.koch.ambeth.event.server.ioc.EventServerModule;

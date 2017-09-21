@@ -47,7 +47,7 @@ public class AmbethServletAspect {
 	protected static final Pattern basicPattern = Pattern.compile("Basic *(.+) *",
 			Pattern.CASE_INSENSITIVE);
 
-	protected static final Pattern pattern = Pattern.compile("(.+) *\\: *(.+)");
+	protected static final Pattern pattern = Pattern.compile("(.+) *\\: *(.*)?");
 
 	protected IServiceContext beanContext;
 

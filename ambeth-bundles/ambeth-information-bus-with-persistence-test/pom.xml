@@ -23,48 +23,7 @@
 
 		<dependency>
 			<groupId>com.koch.ambeth</groupId>
-			<artifactId>jambeth-audit-server-test</artifactId>
-			<scope>compile</scope>
-		</dependency>
-
-		<dependency>
-			<groupId>com.koch.ambeth</groupId>
-			<artifactId>jambeth-cache-server-test</artifactId>
-			<scope>compile</scope>
-		</dependency>
-
-		<dependency>
-			<groupId>com.koch.ambeth</groupId>
-			<artifactId>jambeth-event-server-test</artifactId>
-			<scope>compile</scope>
-		</dependency>
-
-		<dependency>
-			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-ioc-test</artifactId>
-			<scope>compile</scope>
-		</dependency>
-
-		<dependency>
-			<groupId>com.koch.ambeth</groupId>
-			<artifactId>jambeth-job-test</artifactId>
-			<scope>compile</scope>
-		</dependency>
-
-		<dependency>
-			<groupId>com.koch.ambeth</groupId>
-			<artifactId>jambeth-job-cron4j-test</artifactId>
-			<scope>compile</scope>
-		</dependency>
-
-		<dependency>
-			<groupId>com.koch.ambeth</groupId>
-			<artifactId>jambeth-merge-server-test</artifactId>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.koch.ambeth</groupId>
-			<artifactId>jambeth-merge-test</artifactId>
 			<scope>compile</scope>
 		</dependency>
 
@@ -77,30 +36,6 @@
 		<dependency>
 			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-persistence-jdbc-test</artifactId>
-			<scope>compile</scope>
-		</dependency>
-
-		<dependency>
-			<groupId>com.koch.ambeth</groupId>
-			<artifactId>jambeth-query-test</artifactId>
-			<scope>compile</scope>
-		</dependency>
-
-		<dependency>
-			<groupId>com.koch.ambeth</groupId>
-			<artifactId>jambeth-security-test</artifactId>
-			<scope>compile</scope>
-		</dependency>
-
-		<dependency>
-			<groupId>com.koch.ambeth</groupId>
-			<artifactId>jambeth-security-persistence-test</artifactId>
-			<scope>compile</scope>
-		</dependency>
-
-		<dependency>
-			<groupId>com.koch.ambeth</groupId>
-			<artifactId>jambeth-security-server-test</artifactId>
 			<scope>compile</scope>
 		</dependency>
 

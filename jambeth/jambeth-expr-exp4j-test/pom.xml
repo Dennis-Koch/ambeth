@@ -15,13 +15,7 @@
 			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-expr-exp4j</artifactId>
 		</dependency>
-		
-		<dependency>
-			<groupId>com.koch.ambeth</groupId>
-			<artifactId>jambeth-expr-test</artifactId>
-			<scope>compile</scope>
-		</dependency>
-		
+				
 		<dependency>
 			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-information-bus-test</artifactId>

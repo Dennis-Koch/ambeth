@@ -11,35 +11,12 @@
 	</parent>
 
 	<modules>
-		<module>../jambeth-audit-server-test</module>
-		<module>../jambeth-bytecode-test</module>
-		<module>../jambeth-cache-test</module>
-		<module>../jambeth-cache-bytecode-test</module>
-		<module>../jambeth-cache-datachange-test</module>
-		<module>../jambeth-cache-server-test</module>
-		<module>../jambeth-cache-stream-test</module>
-		<module>../jambeth-datachange-test</module>
-		<module>../jambeth-datachange-kafka-test</module>
-		<module>../jambeth-datachange-persistence-test</module>
-		<module>../jambeth-event-test</module>
-		<module>../jambeth-event-datachange-test</module>
 		<module>../jambeth-event-kafka-test</module>
-		<module>../jambeth-event-server-test</module>
 		<module>../jambeth-examples-test</module>
-		<module>../jambeth-expr-test</module>
 		<module>../jambeth-expr-exp4j-test</module>
-		<module>../jambeth-filter-test</module>
 		<module>../jambeth-ioc-test</module>
-		<module>../jambeth-job-test</module>
-		<module>../jambeth-job-cron4j-test</module>
-		<module>../jambeth-log-test</module>
-		<module>../jambeth-mapping-test</module>
-		<module>../jambeth-merge-test</module>
-		<module>../jambeth-merge-bytecode-test</module>
-		<module>../jambeth-merge-server-test</module>
 		<module>../jambeth-mina-test</module>
 		<module>../jambeth-persistence-test</module>
-		<module>../jambeth-persistence-api-test</module>
 		<module>../jambeth-persistence-h2-test</module>
 		<module>../jambeth-persistence-jdbc-test</module>
 		<module>../jambeth-persistence-maria-test</module>
@@ -47,21 +24,6 @@
 		<module>../jambeth-persistence-oracle11-test</module>
 		<module>../jambeth-persistence-pg-test</module>
 		<module>../jambeth-persistence-sqlite-test</module>
-		<module>../jambeth-platform-test</module>
-		<module>../jambeth-query-test</module>
-		<module>../jambeth-query-inmemory-test</module>
-		<module>../jambeth-query-jdbc-test</module>
-		<module>../jambeth-security-test</module>
-		<module>../jambeth-security-bytecode-test</module>
-		<module>../jambeth-security-job-test</module>
-		<module>../jambeth-security-persistence-test</module>
-		<module>../jambeth-security-server-test</module>
-		<module>../jambeth-sensor-test</module>
-		<module>../jambeth-server-rest-test</module>
-		<module>../jambeth-service-test</module>
-		<module>../jambeth-soap-test</module>
-		<module>../jambeth-stream-test</module>
-		<module>../jambeth-util-test</module>
 		<module>../jambeth-xml-test</module>
 		<!-- REMOVED till migrated from other repo <module>../jAmbeth.Xml.File</module> -->
 

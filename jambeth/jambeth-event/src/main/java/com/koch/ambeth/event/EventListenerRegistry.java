@@ -55,20 +55,25 @@ public class EventListenerRegistry
 	@Autowired
 	protected IGuiThreadHelper guiThreadHelper;
 
-	protected final ClassExtendableListContainer<IEventListenerMarker> typeToListenersDict = new ClassExtendableListContainer<>(
-			"eventListener", "eventType");
+	protected final ClassExtendableListContainer<IEventListenerMarker> typeToListenersDict =
+			new ClassExtendableListContainer<>(
+					"eventListener", "eventType");
 
-	protected final ClassExtendableContainer<IEventBatcher> typeToBatchersDict = new ClassExtendableContainer<>(
-			"eventBatcher", "eventType");
+	protected final ClassExtendableContainer<IEventBatcher> typeToBatchersDict =
+			new ClassExtendableContainer<>(
+					"eventBatcher", "eventType");
 
-	protected final ClassExtendableContainer<IEventTargetExtractor> typeToEventTargetExtractorsDict = new ClassExtendableContainer<>(
-			"eventTargetExtractor", "eventType");
+	protected final ClassExtendableContainer<IEventTargetExtractor> typeToEventTargetExtractorsDict =
+			new ClassExtendableContainer<>(
+					"eventTargetExtractor", "eventType");
 
-	protected final ThreadLocal<IList<IList<IQueuedEvent>>> eventQueueTL = new SensitiveThreadLocal<>();
+	protected final ThreadLocal<IList<IList<IQueuedEvent>>> eventQueueTL =
+			new SensitiveThreadLocal<>();
 
 	protected final IdentityLinkedSet<WaitForResumeItem> waitForResumeSet = new IdentityLinkedSet<>();
 
-	protected final IdentityLinkedMap<Object, PausedEventTargetItem> pausedTargets = new IdentityLinkedMap<>();
+	protected final IdentityLinkedMap<Object, PausedEventTargetItem> pausedTargets =
+			new IdentityLinkedMap<>();
 
 	protected final Lock listenersReadLock, listenersWriteLock;
 
@@ -118,7 +123,8 @@ public class EventListenerRegistry
 			return;
 		}
 		IList<IQueuedEvent> batchedEvents = batchEvents(eventQueue);
-		IdentityLinkedSet<IBatchedEventListener> collectedBatchedEventDispatchAwareSet = new IdentityLinkedSet<>();
+		IdentityLinkedSet<IBatchedEventListener> collectedBatchedEventDispatchAwareSet =
+				new IdentityLinkedSet<>();
 
 		List<IList<IQueuedEvent>> tlEventQueueList = eventQueueTL.get();
 
@@ -466,7 +472,9 @@ public class EventListenerRegistry
 				}
 				for (WaitForResumeItem resumeItem : freeLatchMap) {
 					try {
-						resumeItem.getResultLatch().await();
+						while (!resumeItem.getResultLatch().await(1000, TimeUnit.MILLISECONDS)) {
+							log.info("RESUME AWAIT");
+						}
 					}
 					catch (InterruptedException e) {
 						throw RuntimeExceptionUtil.mask(e,
@@ -526,7 +534,9 @@ public class EventListenerRegistry
 			CountDownLatch latch = pauseItem.getLatch();
 			try {
 				if (maxWaitTime < 0) {
-					latch.await();
+					while (!latch.await(1000, TimeUnit.MILLISECONDS)) {
+						log.info("WAITING");
+					}
 				}
 				else if (maxWaitTime > 0) {
 					latch.await(maxWaitTime, TimeUnit.MILLISECONDS);

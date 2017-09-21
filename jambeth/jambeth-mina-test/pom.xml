@@ -16,13 +16,9 @@
 			<artifactId>jambeth-mina</artifactId>
 		</dependency>
 
-		<!-- test -->
-
 		<dependency>
 			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-core-test</artifactId>
-			<scope>test</scope>
 		</dependency>
-	</dependencies>
-	
+	</dependencies>	
 </project>

@@ -18,13 +18,7 @@
 
 		<dependency>
 			<groupId>com.koch.ambeth</groupId>
-			<artifactId>jambeth-ioc-test</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>com.koch.ambeth</groupId>
-			<artifactId>jambeth-merge-test</artifactId>
+			<artifactId>jambeth-information-bus-test</artifactId>
 		</dependency>
 	</dependencies>
-
 </project>

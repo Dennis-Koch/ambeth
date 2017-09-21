@@ -22,9 +22,9 @@ limitations under the License.
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.koch.ambeth.cache.CacheRetrieverFake;
 import com.koch.ambeth.cache.ioc.CacheModule;
 import com.koch.ambeth.cache.service.ICacheRetrieverExtendable;
+import com.koch.ambeth.cache.stream.CacheRetrieverFake;
 import com.koch.ambeth.event.server.ioc.EventServerModule;
 import com.koch.ambeth.ioc.IInitializingModule;
 import com.koch.ambeth.ioc.annotation.FrameworkModule;

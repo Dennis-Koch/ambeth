@@ -37,6 +37,7 @@ import org.junit.Test;
 
 import com.koch.ambeth.cache.AbstractCacheTest.AbstractCacheTestModule;
 import com.koch.ambeth.cache.service.ICacheRetrieverExtendable;
+import com.koch.ambeth.cache.stream.CacheRetrieverFake;
 import com.koch.ambeth.ioc.IInitializingModule;
 import com.koch.ambeth.ioc.annotation.FrameworkModule;
 import com.koch.ambeth.ioc.config.IBeanConfiguration;
@@ -312,7 +313,7 @@ public class AbstractCacheTest extends AbstractInformationBusTest {
 	@Ignore
 	public void testGetObjectsIObjRefArraySetOfCacheDirective() {
 		IList<Object> actual;
-		IObjRef[] orisToGetArray = ObjRef.EMPTY_ARRAY;
+		IObjRef[] orisToGetArray = IObjRef.EMPTY_ARRAY;
 		actual = fixture.getObjects(orisToGetArray, Collections.<CacheDirective>emptySet());
 		assertNotNull(actual);
 		assertEquals(1, actual.size());

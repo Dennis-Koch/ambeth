@@ -22,18 +22,6 @@
 		</dependency>
 
 		<dependency>
-			<groupId>com.koch.ambeth</groupId>
-			<artifactId>jambeth-platform-test</artifactId>
-			<scope>compile</scope>
-		</dependency>
-
-		<dependency>
-			<groupId>com.koch.ambeth</groupId>
-			<artifactId>jambeth-server-rest-test</artifactId>
-			<scope>compile</scope>
-		</dependency>
-
-		<dependency>
 			<groupId>javax.servlet</groupId>
 			<artifactId>javax.servlet-api</artifactId>
 			<scope>test</scope>

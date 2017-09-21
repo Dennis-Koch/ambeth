@@ -34,7 +34,6 @@
 		<module>ambeth-server</module>
 		<module>ambeth-server-test</module>
 		<module>ambeth-server-with-persistence</module>
-		<module>ambeth-server-with-persistence-test</module>
 	</modules>
 
 	<dependencyManagement>
