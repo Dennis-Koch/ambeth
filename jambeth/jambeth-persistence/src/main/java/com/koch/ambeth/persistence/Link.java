@@ -35,6 +35,7 @@ import com.koch.ambeth.persistence.api.ILinkMetaData;
 import com.koch.ambeth.persistence.api.ITable;
 import com.koch.ambeth.persistence.util.IAlreadyLinkedCache;
 import com.koch.ambeth.service.metadata.Member;
+import com.koch.ambeth.service.metadata.RelationMember;
 import com.koch.ambeth.util.ParamChecker;
 
 public class Link implements ILink, IInitializingBean {
@@ -65,13 +66,13 @@ public class Link implements ILink, IInitializingBean {
 		Member fromMember = metaData.getFromMember();
 		Class<?> toEntityType = metaData.getToEntityType();
 		Member toMember = metaData.getToMember();
-		if (fromMember != null && toEntityType != null
+		if (fromMember instanceof RelationMember && toEntityType != null
 				&& !fromMember.getElementType().isAssignableFrom(toEntityType)) {
 			throw new PersistenceException("Member '" + fromEntityType.getName() + '.'
 					+ fromMember.getName() + " is of element type '" + fromMember.getElementType().getName()
 					+ "' which is not assignable from linked entity type '" + toEntityType.getName() + "'");
 		}
-		if (toMember != null && fromEntityType != null
+		if (toMember instanceof RelationMember && fromEntityType != null
 				&& !toMember.getElementType().isAssignableFrom(fromEntityType)) {
 			throw new PersistenceException("Member '" + toEntityType.getName() + '.'
 					+ toMember.getName() + " is of element type '" + toMember.getElementType().getName()
