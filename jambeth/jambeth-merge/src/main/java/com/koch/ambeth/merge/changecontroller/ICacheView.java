@@ -22,14 +22,14 @@ limitations under the License.
 
 import java.util.Collection;
 
+import com.koch.ambeth.merge.incremental.IMergeProcessFinishListenerExtendable;
 import com.koch.ambeth.merge.model.IChangeContainer;
-import com.koch.ambeth.util.threading.IBackgroundWorkerParamDelegate;
 
 /**
  * This is a utility class that provides access to all new objects that should be merged with the
  * database.
  */
-public interface ICacheView {
+public interface ICacheView extends IMergeProcessFinishListenerExtendable {
 
 	/**
 	 * Returns a list of new objects that have the given interface as type.
@@ -58,9 +58,9 @@ public interface ICacheView {
 	 */
 	IChangeContainer getChangeContainer(Object newOrOldObject);
 
-	Object getCustomState(Object key);
+	<V> V getCustomState(Object key);
 
-	void setCustomState(Object key, Object value);
+	<V> V setCustomState(Object key, Object value);
 
-	void queueRunnable(IBackgroundWorkerParamDelegate<ICacheView> runnable);
+	void queuePreFlush(IMergeStepPreFlushListener mergeStepPreFlushListener);
 }

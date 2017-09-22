@@ -23,14 +23,14 @@ limitations under the License.
 import java.util.Collection;
 import java.util.List;
 
+import com.koch.ambeth.merge.incremental.IIncrementalMergeState;
+import com.koch.ambeth.merge.incremental.IMergePipelineFinishListener;
 import com.koch.ambeth.merge.model.IChangeContainer;
 import com.koch.ambeth.util.ParamChecker;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.HashMap;
-import com.koch.ambeth.util.collections.IMap;
 import com.koch.ambeth.util.collections.IdentityHashMap;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
-import com.koch.ambeth.util.threading.IBackgroundWorkerParamDelegate;
 
 public class CacheView implements ICacheView {
 	// objects contains all new objects
@@ -38,7 +38,7 @@ public class CacheView implements ICacheView {
 
 	protected final List<IChangeContainer> changes;
 
-	protected final IMap<Object, Object> customStateMap;
+	protected final IIncrementalMergeState incrementalMergeState;
 
 	// views contains a map from an interface to all objects whose class implements it. Entries are
 	// created lazily below.
@@ -50,14 +50,14 @@ public class CacheView implements ICacheView {
 
 	protected IdentityHashMap<Object, IChangeContainer> objectToChangeContainerMap;
 
-	protected ArrayList<IBackgroundWorkerParamDelegate<ICacheView>> customRunnables;
+	protected ArrayList<IMergeStepPreFlushListener> customRunnables;
 
 	public CacheView(List<Object> newObjects, List<Object> oldObjects,
-			List<IChangeContainer> changes, IMap<Object, Object> customStateMap) {
+			List<IChangeContainer> changes, IIncrementalMergeState incrementalMergeState) {
 		this.newObjects = newObjects;
 		this.oldObjects = oldObjects;
 		this.changes = changes;
-		this.customStateMap = customStateMap;
+		this.incrementalMergeState = incrementalMergeState;
 	}
 
 	@Override
@@ -141,41 +141,50 @@ public class CacheView implements ICacheView {
 	}
 
 	@Override
-	public Object getCustomState(Object key) {
-		return customStateMap.get(key);
+	public <T> T getCustomState(Object key) {
+		return incrementalMergeState.getCustomState(key);
 	}
 
 	@Override
-	public void setCustomState(Object key, Object value) {
-		customStateMap.put(key, value);
+	public <T> T setCustomState(Object key, Object value) {
+		return incrementalMergeState.setCustomState(key, value);
 	}
 
 	@Override
-	public void queueRunnable(IBackgroundWorkerParamDelegate<ICacheView> runnable) {
+	public void queuePreFlush(IMergeStepPreFlushListener mergeStepPreFlushListener) {
 		if (customRunnables == null) {
 			customRunnables = new ArrayList<>();
 		}
-		customRunnables.add(runnable);
+		customRunnables.add(mergeStepPreFlushListener);
 	}
 
-	@SuppressWarnings("unchecked")
 	public void processRunnables() {
 		if (customRunnables == null) {
 			return;
 		}
 		// while loop because a runnable could queue cascading runnables
 		while (!customRunnables.isEmpty()) {
-			IBackgroundWorkerParamDelegate<ICacheView>[] runnables =
-					customRunnables.toArray(IBackgroundWorkerParamDelegate.class);
+			IMergeStepPreFlushListener[] runnables =
+					customRunnables.toArray(IMergeStepPreFlushListener.class);
 			customRunnables.clear();
 			try {
-				for (IBackgroundWorkerParamDelegate<ICacheView> runnable : runnables) {
-					runnable.invoke(this);
+				for (IMergeStepPreFlushListener runnable : runnables) {
+					runnable.preFlushStep(this);
 				}
 			}
 			catch (Exception e) {
 				throw RuntimeExceptionUtil.mask(e);
 			}
 		}
+	}
+
+	@Override
+	public void registerMergeProcessFinishListener(IMergePipelineFinishListener extension) {
+		incrementalMergeState.registerMergeProcessFinishListener(extension);
+	}
+
+	@Override
+	public void unregisterMergeProcessFinishListener(IMergePipelineFinishListener extension) {
+		incrementalMergeState.unregisterMergeProcessFinishListener(extension);
 	}
 }

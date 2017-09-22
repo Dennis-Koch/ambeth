@@ -40,13 +40,14 @@ import com.koch.ambeth.merge.cache.ICacheContext;
 import com.koch.ambeth.merge.cache.ICacheFactory;
 import com.koch.ambeth.merge.cache.IDisposableCache;
 import com.koch.ambeth.merge.config.MergeConfigurationConstants;
+import com.koch.ambeth.merge.incremental.IIncrementalMergeState;
+import com.koch.ambeth.merge.incremental.IMergePipelineFinishListener;
 import com.koch.ambeth.merge.model.ICUDResult;
 import com.koch.ambeth.merge.model.IChangeContainer;
 import com.koch.ambeth.merge.transfer.CreateContainer;
 import com.koch.ambeth.service.merge.model.IObjRef;
 import com.koch.ambeth.util.ParamChecker;
 import com.koch.ambeth.util.collections.HashSet;
-import com.koch.ambeth.util.collections.IMap;
 import com.koch.ambeth.util.collections.ISet;
 import com.koch.ambeth.util.collections.IdentityLinkedSet;
 import com.koch.ambeth.util.collections.SmartCopyMap;
@@ -64,6 +65,23 @@ import com.koch.ambeth.util.state.IStateRollback;
  */
 public class ChangeController
 		implements IChangeController, IChangeControllerExtendable, IMergeListener {
+	public class MergeProcessFinishListener implements IMergePipelineFinishListener {
+		@Override
+		public void mergePipelineFinished(boolean success,
+				IIncrementalMergeState incrementalMergeState) {
+			ISet<IMergePipelineListener> pipelineExtensions =
+					incrementalMergeState.getCustomState(key);
+			for (IMergePipelineListener pipelineExtension : pipelineExtensions) {
+				if (success) {
+					pipelineExtension.flushPipeline(incrementalMergeState);
+				}
+				else {
+					pipelineExtension.rollbackPipeline(incrementalMergeState);
+				}
+			}
+		}
+	}
+
 	@Autowired
 	protected ICacheContext cacheContext;
 
@@ -81,6 +99,10 @@ public class ChangeController
 	@Property(name = MergeConfigurationConstants.edblActive, defaultValue = "true")
 	protected boolean edblActive;
 
+	private final String key = getClass().getSimpleName() + "_PIPELINE_LISTENERS";
+
+	private final String cleanupKey = getClass().getSimpleName() + "_PIPELINE_CLEANUP";
+
 	protected final ClassExtendableListContainer<IChangeControllerExtension<?>> extensions =
 			new ClassExtendableListContainer<>(
 					"change controller extension", "entity");
@@ -89,8 +111,7 @@ public class ChangeController
 			new SmartCopyMap<>();
 
 	@Override
-	public ICUDResult preMerge(ICUDResult cudResult, ICache cache,
-			IMap<Object, Object> customStateMap) {
+	public ICUDResult preMerge(ICUDResult cudResult, IIncrementalMergeState incrementalMergeState) {
 		if (!edblActive || (edblActiveTL.get() != null && Boolean.FALSE.equals(edblActiveTL.get()))) {
 			return cudResult;
 		}
@@ -104,10 +125,11 @@ public class ChangeController
 				List<Object> newObjects = cudResult.getOriginalRefs();
 				List<Object> oldObjects = oldCache.getObjects(references, CacheDirective.returnMisses());
 
+				ICache cache = incrementalMergeState.getStateCache();
 				boolean extensionCalled;
 				IStateRollback rollback = cacheContext.pushCache(cache);
 				try {
-					extensionCalled = processChanges(newObjects, oldObjects, changes, customStateMap);
+					extensionCalled = processChanges(newObjects, oldObjects, changes, incrementalMergeState);
 				}
 				finally {
 					rollback.rollback();
@@ -158,11 +180,11 @@ public class ChangeController
 	 */
 	@SuppressWarnings("rawtypes")
 	protected boolean processChanges(List<Object> newEntities, List<Object> oldEntities,
-			List<IChangeContainer> changes, IMap<Object, Object> customStateMap) {
+			List<IChangeContainer> changes, IIncrementalMergeState incrementalMergeState) {
 		int size = newEntities.size();
 		ParamChecker.assertTrue(size == oldEntities.size(),
 				"number of old and new objects should be equal");
-		CacheView views = new CacheView(newEntities, oldEntities, changes, customStateMap);
+		CacheView views = new CacheView(newEntities, oldEntities, changes, incrementalMergeState);
 		IdentityLinkedSet<IChangeControllerExtension<?>> calledExtensionsSet =
 				new IdentityLinkedSet<>();
 
@@ -175,20 +197,31 @@ public class ChangeController
 				if (oldEntity == null) {
 					toBeCreated = true;
 				}
-				processChange(newEntity, oldEntity, toBeDeleted, toBeCreated, views, calledExtensionsSet);
+				processChange(newEntity, oldEntity, toBeDeleted, toBeCreated, incrementalMergeState, views,
+						calledExtensionsSet);
 			}
 			views.processRunnables();
 			for (IChangeControllerExtension ext : calledExtensionsSet) {
-				if (ext instanceof IBatchAwareChangeControllerExtension) {
-					((IBatchAwareChangeControllerExtension) ext).flush(views);
+				if (ext instanceof IMergeStepListener) {
+					((IMergeStepListener) ext).flushStep(views);
 				}
 			}
-			return !calledExtensionsSet.isEmpty();
+			boolean result = !calledExtensionsSet.isEmpty();
+			Object customState = incrementalMergeState.getCustomState(key);
+			if (customState != null) {
+				// register pipeline cleanup
+				if (incrementalMergeState.getCustomState(cleanupKey) == null) {
+					incrementalMergeState
+							.registerMergeProcessFinishListener(new MergeProcessFinishListener());
+					incrementalMergeState.setCustomState(cleanupKey, Boolean.TRUE);
+				}
+			}
+			return result;
 		}
 		catch (Throwable e) {
 			for (IChangeControllerExtension ext : calledExtensionsSet) {
-				if (ext instanceof IBatchAwareChangeControllerExtension) {
-					((IBatchAwareChangeControllerExtension) ext).rollback(views);
+				if (ext instanceof IMergeStepListener) {
+					((IMergeStepListener) ext).rollbackStep(views);
 				}
 			}
 			throw RuntimeExceptionUtil.mask(e);
@@ -209,7 +242,7 @@ public class ChangeController
 	 */
 	@SuppressWarnings({"rawtypes", "unchecked"})
 	protected void processChange(Object newEntity, Object oldEntity, boolean toBeDeleted,
-			boolean toBeCreated, ICacheView views,
+			boolean toBeCreated, IIncrementalMergeState incrementalMergeState, ICacheView views,
 			ISet<IChangeControllerExtension<?>> calledExtensionsSet) {
 		// Both objects should be of the same class, so we just need one them. We just have to keep in
 		// mind that one of them could be null.
@@ -222,9 +255,25 @@ public class ChangeController
 			Arrays.sort(sortedExtensions);
 			typeToSortedExtensions.put(entityType, sortedExtensions);
 		}
+		ISet<IMergePipelineListener> calledPipelineExtensionsSet = null;
 		for (IChangeControllerExtension ext : sortedExtensions) {
-			if (calledExtensionsSet.add(ext) && ext instanceof IBatchAwareChangeControllerExtension) {
-				((IBatchAwareChangeControllerExtension) ext).queue(views);
+			if (ext instanceof IMergePipelineListener) {
+				if (calledPipelineExtensionsSet == null) {
+					calledPipelineExtensionsSet = views.getCustomState(key);
+					if (calledPipelineExtensionsSet == null) {
+						calledPipelineExtensionsSet = new IdentityLinkedSet<>();
+						views.setCustomState(key, calledPipelineExtensionsSet);
+					}
+				}
+				if (calledPipelineExtensionsSet.add((IMergePipelineListener) ext)) {
+					((IMergePipelineListener) ext).queuePipeline(incrementalMergeState);
+				}
+			}
+			if (calledExtensionsSet.add(ext) && ext instanceof IMergeStepListener) {
+				((IMergeStepListener) ext).queueStep(views);
+			}
+			if (calledExtensionsSet.add(ext) && ext instanceof IMergeStepListener) {
+				((IMergeStepListener) ext).queueStep(views);
 			}
 			ext.processChange(newEntity, oldEntity, toBeDeleted, toBeCreated, views);
 
@@ -251,7 +300,7 @@ public class ChangeController
 
 	@Override
 	public void postMerge(ICUDResult cudResult, IObjRef[] updatedObjRefs,
-			IMap<Object, Object> customStateMap) {
+			IIncrementalMergeState incrementalMergeState) {
 		// intentionally left blank
 	}
 

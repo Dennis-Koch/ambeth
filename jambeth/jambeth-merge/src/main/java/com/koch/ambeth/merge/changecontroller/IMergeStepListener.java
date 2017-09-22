@@ -21,24 +21,25 @@ limitations under the License.
  */
 
 /**
- * Rules that want to work in a batch mode: that is "queue" necessary steps until the batch is
- * "flushed"
+ * Marker interface for rules that want to work in a batch mode: that is "queue" necessary steps
+ * until the batch is "flushed". Just implement this interface on any custom
+ * {@link IChangeControllerExtension}.
  */
-public interface IBatchAwareChangeControllerExtension<T> extends IChangeControllerExtension<T> {
+public interface IMergeStepListener {
 	/**
 	 * Callback to notify the extension that a new batch sequence is started
 	 */
-	void queue(ICacheView cacheView);
+	void queueStep(ICacheView cacheView);
 
 	/**
 	 * Callback to notify the extension that the previous batch sequence called with "queue" is now
 	 * finished.
 	 */
-	void flush(ICacheView cacheView);
+	void flushStep(ICacheView cacheView);
 
 	/**
 	 * Callback to notify the extension that the previous batch sequence called with "queue" is
 	 * reverted (mostly due to an exception).
 	 */
-	void rollback(ICacheView cacheView);
+	void rollbackStep(ICacheView cacheView);
 }

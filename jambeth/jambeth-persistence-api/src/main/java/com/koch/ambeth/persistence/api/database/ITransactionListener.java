@@ -25,5 +25,7 @@ public interface ITransactionListener {
 
 	void handlePreCommit(long sessionId) throws Exception;
 
-	void handlePostRollback(long sessionId) throws Exception;
+	void handlePostCommit(long sessionId) throws Exception;
+
+	void handlePostRollback(long sessionId, boolean fatalError) throws Exception;
 }

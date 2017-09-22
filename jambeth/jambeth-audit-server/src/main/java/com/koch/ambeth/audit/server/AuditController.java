@@ -48,7 +48,7 @@ import com.koch.ambeth.merge.ILightweightTransaction;
 import com.koch.ambeth.merge.IMergeListener;
 import com.koch.ambeth.merge.IObjRefHelper;
 import com.koch.ambeth.merge.MergeProcess;
-import com.koch.ambeth.merge.cache.ICache;
+import com.koch.ambeth.merge.incremental.IIncrementalMergeState;
 import com.koch.ambeth.merge.model.CreateOrUpdateContainerBuild;
 import com.koch.ambeth.merge.model.ICUDResult;
 import com.koch.ambeth.merge.model.IChangeContainer;
@@ -240,15 +240,14 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 	}
 
 	@Override
-	public ICUDResult preMerge(ICUDResult cudResult, ICache cache,
-			IMap<Object, Object> customStateMap) {
+	public ICUDResult preMerge(ICUDResult cudResult, IIncrementalMergeState incrementalMergeState) {
 		// intended blank
 		return cudResult;
 	}
 
 	@Override
 	public void postMerge(ICUDResult cudResult, IObjRef[] updatedObjRefs,
-			IMap<Object, Object> customStateMap) {
+			IIncrementalMergeState incrementalMergeState) {
 		if (Boolean.TRUE.equals(getAdditionalAuditInfo().ownAuditMergeActive)) {
 			// ignore this dataChange because it is our own Audit merge
 			return;
@@ -509,7 +508,7 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 	}
 
 	@Override
-	public void handlePostRollback(long sessionId) throws Exception {
+	public void handlePostRollback(long sessionId, boolean fatalError) throws Exception {
 		auditEntryTL.set(null);
 		AdditionalAuditInfo additionalAuditInfo = additionalAuditInfoTL.get();
 		if (additionalAuditInfo != null && additionalAuditInfo.doClearPassword) {
@@ -521,7 +520,7 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 	public void handlePreCommit(long sessionId) throws Exception {
 		final AuditControllerState auditEntryState = auditEntryTL.get();
 		if (auditEntryState == null) {
-			handlePostRollback(sessionId);
+			handlePostRollback(sessionId, false);
 			return;
 		}
 		auditEntryTL.set(null);
@@ -579,6 +578,11 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 				additionalAuditInfo.clearTextPassword = null;
 			}
 		}
+	}
+
+	@Override
+	public void handlePostCommit(long sessionId) throws Exception {
+		// intended blank
 	}
 
 	public AdditionalAuditInfo getAdditionalAuditInfo() {

@@ -188,9 +188,9 @@ public class MergeServiceRegistry implements IMergeService, IMergeServiceExtensi
 				new IResultingBackgroundWorkerDelegate<IOriCollection>() {
 					@Override
 					public IOriCollection invoke() throws Exception {
+						IncrementalMergeState state = null;
 						IDisposableCache childCache = null;
 						try {
-							IncrementalMergeState state = null;
 							ICUDResult cudResultOfCache;
 							if (MergeProcess.isAddNewlyPersistedEntities()
 									|| (log.isDebugEnabled() && cudResultPrinter != null)) {
@@ -287,8 +287,16 @@ public class MergeServiceRegistry implements IMergeService, IMergeServiceExtensi
 							}
 							OriCollection oriCollection = new OriCollection(
 									new ArrayList<IObjRef>(allChangedObjRefsResult));
-
+							if (state != null) {
+								state.notifyMergeProcessFinishListeners(true);
+							}
 							return oriCollection;
+						}
+						catch (Throwable e) {
+							if (state != null) {
+								state.notifyMergeProcessFinishListeners(false);
+							}
+							throw e;
 						}
 						finally {
 							if (childCache != null) {
@@ -341,8 +349,7 @@ public class MergeServiceRegistry implements IMergeService, IMergeServiceExtensi
 				rollback.rollback();
 			}
 			for (IMergeListener mergeListener : mergeListeners.getExtensionsShared()) {
-				ICUDResult explAndImplCudResult = mergeListener.preMerge(cudResult,
-						incrementalState.getStateCache(), incrementalState.customStateMap);
+				ICUDResult explAndImplCudResult = mergeListener.preMerge(cudResult, incrementalState);
 				cudResult = mergeCudResult(cudResult, explAndImplCudResult, mergeListener,
 						hasAtLeastOneImplicitChange, incrementalState);
 			}
@@ -436,7 +443,7 @@ public class MergeServiceRegistry implements IMergeService, IMergeServiceExtensi
 			oriCollection.setAllChangedOn(allChangedOn);
 		}
 		for (IMergeListener mergeListener : mergeListeners.getExtensionsShared()) {
-			mergeListener.postMerge(cudResult, objRefs, incrementalState.customStateMap);
+			mergeListener.postMerge(cudResult, objRefs, incrementalState);
 		}
 		if (originalRefs != null) {
 			// Set each original ref to null in order to suppress a post-processing in a potentially

@@ -20,6 +20,7 @@ limitations under the License.
  * #L%
  */
 
+@FunctionalInterface
 public interface IBackgroundWorkerDelegate {
 	void invoke() throws Exception;
 }

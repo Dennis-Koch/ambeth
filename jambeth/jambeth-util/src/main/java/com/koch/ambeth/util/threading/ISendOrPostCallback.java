@@ -20,6 +20,7 @@ limitations under the License.
  * #L%
  */
 
+@FunctionalInterface
 public interface ISendOrPostCallback {
 	void invoke(Object state);
 }

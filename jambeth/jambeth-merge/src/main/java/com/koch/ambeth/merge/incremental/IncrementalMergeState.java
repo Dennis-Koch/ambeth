@@ -26,6 +26,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.config.Property;
+import com.koch.ambeth.ioc.extendable.ExtendableContainer;
 import com.koch.ambeth.merge.ICUDResultHelper;
 import com.koch.ambeth.merge.cache.ICache;
 import com.koch.ambeth.merge.model.CreateOrUpdateContainerBuild;
@@ -70,7 +71,7 @@ public class IncrementalMergeState implements IIncrementalMergeState {
 
 	public final HashMap<IObjRef, StateEntry> objRefToStateMap = new HashMap<>();
 
-	public final IMap<Object, Object> customStateMap = new HashMap<>();
+	private IMap<Object, Object> customStateMap;
 
 	private final HashMap<Class<?>, HashMap<String, Integer>> typeToMemberNameToIndexMap =
 			new HashMap<>();
@@ -109,6 +110,8 @@ public class IncrementalMergeState implements IIncrementalMergeState {
 			return -1;
 		}
 	};
+
+	private ExtendableContainer<IMergePipelineFinishListener> mergeProcessFinishListeners;
 
 	@Override
 	public ICache getStateCache() {
@@ -187,5 +190,42 @@ public class IncrementalMergeState implements IIncrementalMergeState {
 				getOrCreateRelationMemberNameToIndexMap(entityType, typeToMemberNameToIndexMap),
 				getOrCreatePrimitiveMemberNameToIndexMap(entityType, typeToPrimitiveMemberNameToIndexMap),
 				cudResultHelper);
+	}
+
+	@Override
+	public Object getCustomState(Object key) {
+		if (customStateMap == null) {
+			return null;
+		}
+		return customStateMap.get(key);
+	}
+
+	@Override
+	public Object setCustomState(Object key, Object value) {
+		if (customStateMap == null) {
+			customStateMap = new HashMap<>();
+		}
+		return customStateMap.put(key, value);
+	}
+
+	@Override
+	public void registerMergeProcessFinishListener(IMergePipelineFinishListener extension) {
+		if (mergeProcessFinishListeners == null) {
+			mergeProcessFinishListeners = new ExtendableContainer<>(
+					IMergePipelineFinishListener.class, "mergeProcessFinishListener");
+		}
+		mergeProcessFinishListeners.register(extension);
+	}
+
+	@Override
+	public void unregisterMergeProcessFinishListener(IMergePipelineFinishListener extension) {
+		mergeProcessFinishListeners.unregister(extension);
+	}
+
+	public void notifyMergeProcessFinishListeners(boolean success) {
+		for (IMergePipelineFinishListener mergeProcessFinishListener : mergeProcessFinishListeners
+				.getExtensionsShared()) {
+			mergeProcessFinishListener.mergePipelineFinished(success, this);
+		}
 	}
 }

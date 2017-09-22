@@ -168,10 +168,12 @@ public class JdbcTransaction
 					tli.alreadyOnStack = null;
 				}
 			}
-			ILinkedMap<Object, IDatabaseProvider> persistenceUnitToDatabaseProviderMap = databaseProviderRegistry
-					.getPersistenceUnitToDatabaseProviderMap();
-			ILinkedMap<Object, IConnectionHolder> persistenceUnitToConnectionHolderMap = connectionHolderRegistry
-					.getPersistenceUnitToConnectionHolderMap();
+			ILinkedMap<Object, IDatabaseProvider> persistenceUnitToDatabaseProviderMap =
+					databaseProviderRegistry
+							.getPersistenceUnitToDatabaseProviderMap();
+			ILinkedMap<Object, IConnectionHolder> persistenceUnitToConnectionHolderMap =
+					connectionHolderRegistry
+							.getPersistenceUnitToConnectionHolderMap();
 
 			LinkedHashMap<Object, IDatabase> persistenceUnitToDatabaseMap = new LinkedHashMap<>();
 
@@ -280,10 +282,12 @@ public class JdbcTransaction
 			}
 		}
 		notifyRunnables(tli.preCommitRunnables);
-		ILinkedMap<Object, IDatabaseProvider> persistenceUnitToDatabaseProviderMap = databaseProviderRegistry
-				.getPersistenceUnitToDatabaseProviderMap();
-		ILinkedMap<Object, IConnectionHolder> persistenceUnitToConnectionHolderMap = connectionHolderRegistry
-				.getPersistenceUnitToConnectionHolderMap();
+		ILinkedMap<Object, IDatabaseProvider> persistenceUnitToDatabaseProviderMap =
+				databaseProviderRegistry
+						.getPersistenceUnitToDatabaseProviderMap();
+		ILinkedMap<Object, IConnectionHolder> persistenceUnitToConnectionHolderMap =
+				connectionHolderRegistry
+						.getPersistenceUnitToConnectionHolderMap();
 		try {
 			long tillFlushTime = System.currentTimeMillis();
 			for (Entry<Object, IDatabaseProvider> entry : persistenceUnitToDatabaseProviderMap) {
@@ -377,6 +381,14 @@ public class JdbcTransaction
 				databaseSessionIdController.releaseSessionId(sessionId);
 			}
 		}
+		for (ITransactionListener transactionListener : transactionListeners) {
+			try {
+				transactionListener.handlePostCommit(sessionId);
+			}
+			catch (Exception e) {
+				throw RuntimeExceptionUtil.mask(e);
+			}
+		}
 	}
 
 	@Override
@@ -400,8 +412,9 @@ public class JdbcTransaction
 			Boolean readOnly = tli.isReadOnly;
 			tli.isReadOnly = null;
 			if (!Boolean.TRUE.equals(tli.ignoreReleaseDatabase)) {
-				ILinkedMap<Object, IConnectionHolder> persistenceUnitToConnectionHolderMap = connectionHolderRegistry
-						.getPersistenceUnitToConnectionHolderMap();
+				ILinkedMap<Object, IConnectionHolder> persistenceUnitToConnectionHolderMap =
+						connectionHolderRegistry
+								.getPersistenceUnitToConnectionHolderMap();
 
 				for (Entry<Object, IDatabase> entry : databaseMap) {
 					Object persistenceUnit = entry.getKey();
@@ -441,7 +454,7 @@ public class JdbcTransaction
 					.getTransactionListeners();
 			for (ITransactionListener transactionListener : transactionListeners) {
 				try {
-					transactionListener.handlePostRollback(sessionId);
+					transactionListener.handlePostRollback(sessionId, fatalError);
 				}
 				catch (Exception e) {
 					throw RuntimeExceptionUtil.mask(e);
