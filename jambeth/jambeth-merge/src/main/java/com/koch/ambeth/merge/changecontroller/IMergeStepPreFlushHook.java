@@ -21,6 +21,6 @@ limitations under the License.
  */
 
 @FunctionalInterface
-public interface IMergeStepPreFlushListener {
+public interface IMergeStepPreFlushHook {
 	void preFlushStep(ICacheView cacheView);
 }

@@ -21,11 +21,17 @@ limitations under the License.
  */
 
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import com.koch.ambeth.merge.incremental.IIncrementalMergeState;
-import com.koch.ambeth.merge.incremental.IMergePipelineFinishListener;
+import com.koch.ambeth.merge.incremental.IMergePipelineFinishHook;
 import com.koch.ambeth.merge.model.IChangeContainer;
+import com.koch.ambeth.merge.model.ICreateOrUpdateContainer;
+import com.koch.ambeth.merge.model.IUpdateItem;
+import com.koch.ambeth.merge.transfer.DeleteContainer;
 import com.koch.ambeth.util.ParamChecker;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.HashMap;
@@ -50,7 +56,7 @@ public class CacheView implements ICacheView {
 
 	protected IdentityHashMap<Object, IChangeContainer> objectToChangeContainerMap;
 
-	protected ArrayList<IMergeStepPreFlushListener> customRunnables;
+	protected ArrayList<IMergeStepPreFlushHook> mergeStepPreFlushHooks;
 
 	public CacheView(List<Object> newObjects, List<Object> oldObjects,
 			List<IChangeContainer> changes, IIncrementalMergeState incrementalMergeState) {
@@ -61,31 +67,46 @@ public class CacheView implements ICacheView {
 	}
 
 	@Override
-	public IChangeContainer getChangeContainer(Object newOrOldObject) {
+	public IChangeContainer getChangeContainer(Object newObject) {
 		if (objectToChangeContainerMap != null) {
-			return objectToChangeContainerMap.get(newOrOldObject);
+			return objectToChangeContainerMap.get(newObject);
 		}
 		objectToChangeContainerMap = new IdentityHashMap<>();
 		for (int a = newObjects.size(); a-- > 0;) {
-			Object newObject = newObjects.get(a);
-			Object oldObject = oldObjects.get(a);
+			Object currNewObject = newObjects.get(a);
 			IChangeContainer changeContainer = changes.get(a);
-			if (newObject != null) {
-				objectToChangeContainerMap.put(newObject, changeContainer);
-			}
-			if (oldObject != null) {
-				objectToChangeContainerMap.put(oldObject, changeContainer);
-			}
+			objectToChangeContainerMap.put(currNewObject, changeContainer);
 		}
-		return objectToChangeContainerMap.get(newOrOldObject);
+		return objectToChangeContainerMap.get(newObject);
 	}
 
-	/**
-	 * Returns a list of new objects that have the given interface as type.
-	 *
-	 * @param clazz The interface that the object should implemented by the objects
-	 * @return a list of new objects that implement the interface, never <code>null</code>
-	 */
+	@Override
+	public Set<String> getChangedMembers(Object newObject) {
+		IChangeContainer changeContainer = getChangeContainer(newObject);
+		if (changeContainer == null || changeContainer instanceof DeleteContainer) {
+			return Collections.emptySet();
+		}
+		ICreateOrUpdateContainer container = (ICreateOrUpdateContainer) changeContainer;
+		HashSet<String> changedMembers = new HashSet<>();
+		IUpdateItem[] updateItems = container.getFullPUIs();
+		if (updateItems != null) {
+			for (IUpdateItem pui : updateItems) {
+				if (pui != null) {
+					changedMembers.add(pui.getMemberName());
+				}
+			}
+		}
+		updateItems = container.getFullRUIs();
+		if (updateItems != null) {
+			for (IUpdateItem rui : updateItems) {
+				if (rui != null) {
+					changedMembers.add(rui.getMemberName());
+				}
+			}
+		}
+		return changedMembers;
+	}
+
 	@Override
 	@SuppressWarnings("unchecked")
 	public <T> Collection<T> getNewObjectsOfClass(Class<T> clazz) {
@@ -142,34 +163,37 @@ public class CacheView implements ICacheView {
 
 	@Override
 	public <T> T getCustomState(Object key) {
+		ParamChecker.assertParamNotNull(key, "key");
 		return incrementalMergeState.getCustomState(key);
 	}
 
 	@Override
 	public <T> T setCustomState(Object key, Object value) {
+		ParamChecker.assertParamNotNull(key, "key");
 		return incrementalMergeState.setCustomState(key, value);
 	}
 
 	@Override
-	public void queuePreFlush(IMergeStepPreFlushListener mergeStepPreFlushListener) {
-		if (customRunnables == null) {
-			customRunnables = new ArrayList<>();
+	public void queuePreFlush(IMergeStepPreFlushHook mergeStepPreFlushHook) {
+		ParamChecker.assertParamNotNull(mergeStepPreFlushHook, "mergeStepPreFlushHook");
+		if (mergeStepPreFlushHooks == null) {
+			mergeStepPreFlushHooks = new ArrayList<>();
 		}
-		customRunnables.add(mergeStepPreFlushListener);
+		mergeStepPreFlushHooks.add(mergeStepPreFlushHook);
 	}
 
 	public void processRunnables() {
-		if (customRunnables == null) {
+		if (mergeStepPreFlushHooks == null) {
 			return;
 		}
 		// while loop because a runnable could queue cascading runnables
-		while (!customRunnables.isEmpty()) {
-			IMergeStepPreFlushListener[] runnables =
-					customRunnables.toArray(IMergeStepPreFlushListener.class);
-			customRunnables.clear();
+		while (!mergeStepPreFlushHooks.isEmpty()) {
+			IMergeStepPreFlushHook[] hooks =
+					mergeStepPreFlushHooks.toArray(IMergeStepPreFlushHook.class);
+			mergeStepPreFlushHooks.clear();
 			try {
-				for (IMergeStepPreFlushListener runnable : runnables) {
-					runnable.preFlushStep(this);
+				for (IMergeStepPreFlushHook hook : hooks) {
+					hook.preFlushStep(this);
 				}
 			}
 			catch (Exception e) {
@@ -179,12 +203,12 @@ public class CacheView implements ICacheView {
 	}
 
 	@Override
-	public void registerMergeProcessFinishListener(IMergePipelineFinishListener extension) {
-		incrementalMergeState.registerMergeProcessFinishListener(extension);
+	public void registerMergePipelineFinishHook(IMergePipelineFinishHook hook) {
+		incrementalMergeState.registerMergePipelineFinishHook(hook);
 	}
 
 	@Override
-	public void unregisterMergeProcessFinishListener(IMergePipelineFinishListener extension) {
-		incrementalMergeState.unregisterMergeProcessFinishListener(extension);
+	public void unregisterMergePipelineFinishHook(IMergePipelineFinishHook hook) {
+		incrementalMergeState.unregisterMergePipelineFinishHook(hook);
 	}
 }

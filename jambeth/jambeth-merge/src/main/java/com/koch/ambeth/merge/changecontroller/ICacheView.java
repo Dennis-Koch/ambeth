@@ -21,15 +21,16 @@ limitations under the License.
  */
 
 import java.util.Collection;
+import java.util.Set;
 
-import com.koch.ambeth.merge.incremental.IMergeProcessFinishListenerExtendable;
+import com.koch.ambeth.merge.incremental.IMergeProcessFinishHookExtendable;
 import com.koch.ambeth.merge.model.IChangeContainer;
 
 /**
  * This is a utility class that provides access to all new objects that should be merged with the
  * database.
  */
-public interface ICacheView extends IMergeProcessFinishListenerExtendable {
+public interface ICacheView extends IMergeProcessFinishHookExtendable {
 
 	/**
 	 * Returns a list of new objects that have the given interface as type.
@@ -48,7 +49,7 @@ public interface ICacheView extends IMergeProcessFinishListenerExtendable {
 	<T> Collection<T> getOldObjectsOfClass(Class<T> clazz);
 
 	/**
-	 * Returns the current change container to any given new or old object describing the current
+	 * Returns the current change container to any given new/current object describing the current
 	 * transition step from "old" to "new". This is helpful if you need detailed information about the
 	 * transition without the potential overhead to evaluate manually the changes on the given "old"
 	 * and "new" objects.
@@ -56,11 +57,21 @@ public interface ICacheView extends IMergeProcessFinishListenerExtendable {
 	 * @param newOrOldObject The object to lookup its corresponding transitional step change
 	 * @return The transitional step change handle
 	 */
-	IChangeContainer getChangeContainer(Object newOrOldObject);
+	IChangeContainer getChangeContainer(Object newObject);
+
+	Set<String> getChangedMembers(Object newObject);
 
 	<V> V getCustomState(Object key);
 
 	<V> V setCustomState(Object key, Object value);
 
-	void queuePreFlush(IMergeStepPreFlushListener mergeStepPreFlushListener);
+	/**
+	 * Allows to register a custom hook which is executed before the flush phase of the current step.
+	 * The implementation of the hook may work with the passed {@link ICacheView}, enrich it in any
+	 * way and may even queue further hooks. All hooks will be processed in sequence before the "pre
+	 * flush step" phase is finished and the ordinary "flush step" phase is entered
+	 * 
+	 * @param mergeStepPreFlushHook
+	 */
+	void queuePreFlush(IMergeStepPreFlushHook mergeStepPreFlushHook);
 }

@@ -1,6 +1,6 @@
 package com.koch.ambeth.merge.incremental;
 
 @FunctionalInterface
-public interface IMergePipelineFinishListener {
+public interface IMergePipelineFinishHook {
 	void mergePipelineFinished(boolean success, IIncrementalMergeState incrementalMergeState);
 }

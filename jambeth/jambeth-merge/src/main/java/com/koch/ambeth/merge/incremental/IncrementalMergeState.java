@@ -26,7 +26,6 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.config.Property;
-import com.koch.ambeth.ioc.extendable.ExtendableContainer;
 import com.koch.ambeth.merge.ICUDResultHelper;
 import com.koch.ambeth.merge.cache.ICache;
 import com.koch.ambeth.merge.model.CreateOrUpdateContainerBuild;
@@ -36,9 +35,11 @@ import com.koch.ambeth.service.merge.model.IObjRef;
 import com.koch.ambeth.service.metadata.PrimitiveMember;
 import com.koch.ambeth.service.metadata.RelationMember;
 import com.koch.ambeth.util.IConversionHelper;
+import com.koch.ambeth.util.ParamChecker;
 import com.koch.ambeth.util.collections.HashMap;
 import com.koch.ambeth.util.collections.IMap;
 import com.koch.ambeth.util.collections.IdentityHashMap;
+import com.koch.ambeth.util.collections.IdentityLinkedSet;
 
 public class IncrementalMergeState implements IIncrementalMergeState {
 	public static class StateEntry {
@@ -111,7 +112,7 @@ public class IncrementalMergeState implements IIncrementalMergeState {
 		}
 	};
 
-	private ExtendableContainer<IMergePipelineFinishListener> mergeProcessFinishListeners;
+	private IdentityLinkedSet<IMergePipelineFinishHook> mergeProcessFinishHooks;
 
 	@Override
 	public ICache getStateCache() {
@@ -192,39 +193,47 @@ public class IncrementalMergeState implements IIncrementalMergeState {
 				cudResultHelper);
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
-	public Object getCustomState(Object key) {
+	public <T> T getCustomState(Object key) {
 		if (customStateMap == null) {
 			return null;
 		}
-		return customStateMap.get(key);
+		return (T) customStateMap.get(key);
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
-	public Object setCustomState(Object key, Object value) {
+	public <T> T setCustomState(Object key, Object value) {
 		if (customStateMap == null) {
 			customStateMap = new HashMap<>();
 		}
-		return customStateMap.put(key, value);
+		return (T) customStateMap.put(key, value);
 	}
 
 	@Override
-	public void registerMergeProcessFinishListener(IMergePipelineFinishListener extension) {
-		if (mergeProcessFinishListeners == null) {
-			mergeProcessFinishListeners = new ExtendableContainer<>(
-					IMergePipelineFinishListener.class, "mergeProcessFinishListener");
+	public void registerMergePipelineFinishHook(IMergePipelineFinishHook hook) {
+		ParamChecker.assertParamNotNull(hook, "hook");
+		if (mergeProcessFinishHooks == null) {
+			mergeProcessFinishHooks = new IdentityLinkedSet<>();
 		}
-		mergeProcessFinishListeners.register(extension);
+		mergeProcessFinishHooks.add(hook);
 	}
 
 	@Override
-	public void unregisterMergeProcessFinishListener(IMergePipelineFinishListener extension) {
-		mergeProcessFinishListeners.unregister(extension);
+	public void unregisterMergePipelineFinishHook(IMergePipelineFinishHook hook) {
+		ParamChecker.assertParamNotNull(hook, "hook");
+		if (mergeProcessFinishHooks == null) {
+			return;
+		}
+		mergeProcessFinishHooks.remove(hook);
 	}
 
 	public void notifyMergeProcessFinishListeners(boolean success) {
-		for (IMergePipelineFinishListener mergeProcessFinishListener : mergeProcessFinishListeners
-				.getExtensionsShared()) {
+		if (mergeProcessFinishHooks == null) {
+			return;
+		}
+		for (IMergePipelineFinishHook mergeProcessFinishListener : mergeProcessFinishHooks) {
 			mergeProcessFinishListener.mergePipelineFinished(success, this);
 		}
 	}

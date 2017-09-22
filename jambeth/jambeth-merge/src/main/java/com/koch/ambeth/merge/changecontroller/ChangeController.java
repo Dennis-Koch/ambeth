@@ -41,7 +41,7 @@ import com.koch.ambeth.merge.cache.ICacheFactory;
 import com.koch.ambeth.merge.cache.IDisposableCache;
 import com.koch.ambeth.merge.config.MergeConfigurationConstants;
 import com.koch.ambeth.merge.incremental.IIncrementalMergeState;
-import com.koch.ambeth.merge.incremental.IMergePipelineFinishListener;
+import com.koch.ambeth.merge.incremental.IMergePipelineFinishHook;
 import com.koch.ambeth.merge.model.ICUDResult;
 import com.koch.ambeth.merge.model.IChangeContainer;
 import com.koch.ambeth.merge.transfer.CreateContainer;
@@ -65,7 +65,7 @@ import com.koch.ambeth.util.state.IStateRollback;
  */
 public class ChangeController
 		implements IChangeController, IChangeControllerExtendable, IMergeListener {
-	public class MergeProcessFinishListener implements IMergePipelineFinishListener {
+	public class MergeProcessFinishListener implements IMergePipelineFinishHook {
 		@Override
 		public void mergePipelineFinished(boolean success,
 				IIncrementalMergeState incrementalMergeState) {
@@ -212,7 +212,7 @@ public class ChangeController
 				// register pipeline cleanup
 				if (incrementalMergeState.getCustomState(cleanupKey) == null) {
 					incrementalMergeState
-							.registerMergeProcessFinishListener(new MergeProcessFinishListener());
+							.registerMergePipelineFinishHook(new MergeProcessFinishListener());
 					incrementalMergeState.setCustomState(cleanupKey, Boolean.TRUE);
 				}
 			}
