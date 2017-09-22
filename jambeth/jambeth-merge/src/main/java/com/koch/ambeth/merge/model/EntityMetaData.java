@@ -23,6 +23,7 @@ limitations under the License.
  */
 
 import java.util.Arrays;
+import java.util.Optional;
 import java.util.Set;
 
 import com.koch.ambeth.merge.IEntityFactory;
@@ -90,6 +91,8 @@ public class EntityMetaData implements IEntityMetaData {
 	protected PrimitiveMember[] primitiveMembers = emptyPrimitiveMembers;
 
 	protected PrimitiveMember[] primitiveToManyMembers = emptyPrimitiveMembers;
+
+	protected PrimitiveMember[] primitiveOptionalMembers = emptyPrimitiveMembers;
 
 	protected PrimitiveMember[] alternateIdMembers = emptyPrimitiveMembers;
 
@@ -412,7 +415,8 @@ public class EntityMetaData implements IEntityMetaData {
 	@Override
 	public void postProcessNewEntity(Object newEntity) {
 		PrimitiveMember[] primitiveToManyMembers = this.primitiveToManyMembers;
-		if (primitiveToManyMembers.length > 0) {
+		PrimitiveMember[] primitiveOptionalMembers = this.primitiveOptionalMembers;
+		if (primitiveToManyMembers.length > 0 || primitiveOptionalMembers.length > 0) {
 			boolean oldInternalUpdate = cacheModification.isInternalUpdate();
 			if (!oldInternalUpdate) {
 				cacheModification.setInternalUpdate(true);
@@ -421,6 +425,9 @@ public class EntityMetaData implements IEntityMetaData {
 				for (PrimitiveMember primitiveMember : primitiveToManyMembers) {
 					primitiveMember.setValue(newEntity,
 							ListUtil.createObservableCollectionOfType(primitiveMember.getRealType()));
+				}
+				for (PrimitiveMember primitiveMember : primitiveOptionalMembers) {
+					primitiveMember.setValue(newEntity, Optional.empty());
 				}
 			}
 			finally {
@@ -469,12 +476,17 @@ public class EntityMetaData implements IEntityMetaData {
 			// Arrays.sort(primitiveMembers, typeInfoItemComparator);
 		}
 		ArrayList<PrimitiveMember> primitiveToManyMembers = new ArrayList<>();
+		ArrayList<PrimitiveMember> primitiveOptionalMembers = new ArrayList<>();
 		for (PrimitiveMember primitiveMember : getPrimitiveMembers()) {
 			if (primitiveMember.isToMany()) {
 				primitiveToManyMembers.add(primitiveMember);
 			}
+			else if (Optional.class.isAssignableFrom(primitiveMember.getRealType())) {
+				primitiveOptionalMembers.add(primitiveMember);
+			}
 		}
 		this.primitiveToManyMembers = primitiveToManyMembers.toArray(PrimitiveMember.class);
+		this.primitiveOptionalMembers = primitiveOptionalMembers.toArray(PrimitiveMember.class);
 
 		if (relationMembers == null) {
 			relationMembers = emptyRelationMembers;

@@ -22,12 +22,15 @@ limitations under the License.
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import com.koch.ambeth.model.AbstractEntity;
 
 public abstract class Employee extends AbstractEntity {
 	public static final String Name = "Name";
+
+	protected Optional<String> name2;
 
 	protected String name;
 
@@ -55,6 +58,14 @@ public abstract class Employee extends AbstractEntity {
 
 	public void setName(String name) {
 		this.name = name;
+	}
+
+	public Optional<String> getName2() {
+		return name2;
+	}
+
+	public void setName2(Optional<String> name2) {
+		this.name2 = name2;
 	}
 
 	public abstract List<String> getNicknames();

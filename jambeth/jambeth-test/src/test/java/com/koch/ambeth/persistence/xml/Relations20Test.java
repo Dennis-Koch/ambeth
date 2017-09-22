@@ -1,5 +1,9 @@
 package com.koch.ambeth.persistence.xml;
 
+import java.util.Optional;
+
+import org.junit.Assert;
+
 /*-
  * #%L
  * jambeth-test
@@ -23,6 +27,7 @@ limitations under the License.
 import org.junit.Test;
 
 import com.koch.ambeth.persistence.xml.model.Employee;
+import com.koch.ambeth.query.IQueryBuilder;
 import com.koch.ambeth.service.config.ServiceConfigurationConstants;
 import com.koch.ambeth.testutil.TestProperties;
 import com.koch.ambeth.util.collections.HashMap;
@@ -35,7 +40,25 @@ public class Relations20Test extends RelationsTest {
 		Employee employee = cache.getObject(Employee.class, 1);
 		employee.setAttributes(new HashMap<>());
 		employee.getAttributes().put("hallo", "welt");
-		employee.setName("name");
 		employeeService.save(employee);
+	}
+
+	@Test
+	public void testOptionalProperty() {
+		Employee newEmp = entityFactory.createEntity(Employee.class);
+		Assert.assertNotNull(newEmp.getName2());
+		Assert.assertFalse(newEmp.getName2().isPresent());
+
+		IQueryBuilder<Employee> qb = queryBuilderFactory.create(Employee.class);
+		Employee emp =
+				qb.build(qb.isEqualTo(qb.plan().getName2(), qb.value("John Doe2"))).retrieveSingle();
+		Assert.assertEquals("John Doe2", emp.getName2().get());
+
+		emp.setName2(Optional.of("John Doe3"));
+		employeeService.save(emp);
+
+		Assert.assertEquals("John Doe3", emp.getName2().get());
+
+
 	}
 }

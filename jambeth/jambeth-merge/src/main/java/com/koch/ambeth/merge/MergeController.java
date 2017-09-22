@@ -28,10 +28,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.config.Property;
+import com.koch.ambeth.ioc.extendable.ExtendableContainer;
 import com.koch.ambeth.merge.IDeepScanRecursion.EntityDelegate;
 import com.koch.ambeth.merge.IDeepScanRecursion.Proceed;
 import com.koch.ambeth.merge.cache.CacheDirective;
@@ -124,7 +126,8 @@ public class MergeController implements IMergeController, IMergeExtendable {
 			defaultValue = "false")
 	protected boolean alwaysUpdateVersionInChangedEntities;
 
-	protected final List<IMergeExtension> mergeExtensions = new ArrayList<>();
+	protected final ExtendableContainer<IMergeExtension> mergeExtensions =
+			new ExtendableContainer<>(IMergeExtension.class, "mergeExtension");
 
 	protected IList<IUpdateItem> addModification(Object obj, MergeHandle handle) {
 		IList<IUpdateItem> modItemList = handle.objToModDict.get(obj);
@@ -141,8 +144,16 @@ public class MergeController implements IMergeController, IMergeExtendable {
 				&& ((Collection<?>) value).isEmpty()) {
 			return;
 		}
-		for (int a = 0, size = mergeExtensions.size(); a < size; a++) {
-			IMergeExtension mergeExtension = mergeExtensions.get(a);
+		if (value instanceof Optional) {
+			Optional<?> optValue = (Optional<?>) value;
+			if (optValue.isPresent()) {
+				value = optValue.get();
+			}
+			else {
+				value = null;
+			}
+		}
+		for (IMergeExtension mergeExtension : mergeExtensions.getExtensionsShared()) {
 			if (mergeExtension.handlesType(targetValueType)) {
 				value = mergeExtension.extractPrimitiveValueToMerge(value);
 			}
@@ -314,6 +325,11 @@ public class MergeController implements IMergeController, IMergeExtendable {
 
 	protected boolean arePrimitivesEqual(IEntityMetaData metaData, Member primitiveMember,
 			Object objValue, Object cloneValue, MergeHandle handle) {
+		if (objValue == cloneValue) {
+			// object identity is the simple case. of course this branch here may happen only for
+			// immutable types
+			return true;
+		}
 		if (objValue != null && cloneValue != null) {
 			if (objValue.getClass().isArray() && cloneValue.getClass().isArray()) {
 				int objLength = Array.getLength(objValue);
@@ -329,6 +345,18 @@ public class MergeController implements IMergeController, IMergeExtendable {
 					}
 				}
 				return true;
+			}
+			else if (objValue instanceof Optional && cloneValue instanceof Optional) {
+				Optional<?> objOpt = (Optional<?>) objValue;
+				Optional<?> cloneOpt = (Optional<?>) cloneValue;
+				if (!objOpt.isPresent() && !cloneOpt.isPresent()) {
+					return true; // both have nothing
+				}
+				if (objOpt.isPresent() && cloneOpt.isPresent()) {
+					return arePrimitivesEqual(metaData, primitiveMember, objOpt.get(), cloneOpt.get(),
+							handle);
+				}
+				return false;
 			}
 			else if (objValue instanceof List && cloneValue instanceof List) {
 				List<?> objList = (List<?>) objValue;
@@ -511,8 +539,7 @@ public class MergeController implements IMergeController, IMergeExtendable {
 		if (left.equals(right)) {
 			return true;
 		}
-		for (int a = 0, size = mergeExtensions.size(); a < size; a++) {
-			IMergeExtension mergeExtension = mergeExtensions.get(a);
+		for (IMergeExtension mergeExtension : mergeExtensions.getExtensionsShared()) {
 			if (mergeExtension.handlesType(left.getClass())) {
 				return mergeExtension.equalsObjects(left, right);
 			}
@@ -891,13 +918,7 @@ public class MergeController implements IMergeController, IMergeExtendable {
 
 	@Override
 	public void registerMergeExtension(IMergeExtension mergeExtension) {
-		if (mergeExtension == null) {
-			throw new IllegalStateException("mergeExtension");
-		}
-		if (mergeExtensions.contains(mergeExtension)) {
-			throw new IllegalStateException("MergeExtension already registered: " + mergeExtension);
-		}
-		mergeExtensions.add(mergeExtension);
+		mergeExtensions.register(mergeExtension);
 	}
 
 	@Override
@@ -973,12 +994,6 @@ public class MergeController implements IMergeController, IMergeExtendable {
 
 	@Override
 	public void unregisterMergeExtension(IMergeExtension mergeExtension) {
-		if (mergeExtension == null) {
-			throw new IllegalStateException("mergeExtension");
-		}
-		if (!mergeExtensions.remove(mergeExtension)) {
-			throw new IllegalStateException(
-					"MergeExtension to remove is not registered: " + mergeExtension);
-		}
+		mergeExtensions.unregister(mergeExtension);
 	}
 }

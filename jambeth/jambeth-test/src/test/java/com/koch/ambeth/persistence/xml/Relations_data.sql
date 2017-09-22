@@ -1,6 +1,7 @@
 INSERT INTO "Employee" ("ID", "Name", "PRIMARY_ADDRESS_ID", "PRIMARY_PROJECT", "SECONDARY_PROJECT", "CAR_MAKE", "CAR_MODEL", "BOAT", "VERSION") VALUES ('1', 'Oscar Meyer', '11', '21', '22', 'BMW', 'Z1', '31', '1');
 INSERT INTO "Employee" ("ID", "Name", "PRIMARY_ADDRESS_ID", "SUPERVISOR", "PRIMARY_PROJECT", "CAR_MAKE", "CAR_MODEL", "BOAT", "VERSION") VALUES ('2', 'Steve Smith', '12', '1', '22', 'VW', 'Golf', '32', '1');
 INSERT INTO "Employee" ("ID", "Name", "PRIMARY_ADDRESS_ID", "SUPERVISOR", "PRIMARY_PROJECT", "SECONDARY_PROJECT", "VERSION") VALUES ('3', 'John Doe', '13', '2', '22', '21', '2');
+INSERT INTO "Employee" ("ID", "Name", "Name2", "PRIMARY_ADDRESS_ID", "SUPERVISOR", "PRIMARY_PROJECT", "SECONDARY_PROJECT", "VERSION") VALUES ('4', 'John Doe2', 'John Doe2', '17', '2', '22', '21', '2');
 
 INSERT INTO "ADDRESS" ("ID", "STREET", "CITY", "VERSION") VALUES ('11', 'Main "STREET"', 'Exampletown', '1');
 INSERT INTO "ADDRESS" ("ID", "STREET", "CITY", "VERSION") VALUES ('12', 'Second "STREET"', 'Exampletown', '1');
@@ -8,6 +9,7 @@ INSERT INTO "ADDRESS" ("ID", "STREET", "CITY", "VERSION") VALUES ('13', 'Main "S
 INSERT INTO "ADDRESS" ("ID", "RESIDENT", "STREET", "CITY", "VERSION") VALUES ('14', '1', 'Third "STREET"', 'Exampletown', '1');
 INSERT INTO "ADDRESS" ("ID", "RESIDENT", "STREET", "CITY", "VERSION") VALUES ('15', '1', 'Backroad', 'Nextown', '1');
 INSERT INTO "ADDRESS" ("ID", "STREET", "CITY", "VERSION") VALUES ('16', 'Oldroad', 'Nextown', '1');
+INSERT INTO "ADDRESS" ("ID", "STREET", "CITY", "VERSION") VALUES ('17', 'Oldroad', 'Nextown', '1');
 
 INSERT INTO "PROJECT" ("ID", "NAME", "VERSION") VALUES ('21', 'Project 1', '1');
 INSERT INTO "PROJECT" ("ID", "NAME", "VERSION") VALUES ('22', 'Project 2', '1');

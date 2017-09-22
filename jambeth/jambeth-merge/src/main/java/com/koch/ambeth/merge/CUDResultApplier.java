@@ -23,6 +23,7 @@ limitations under the License.
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 import com.koch.ambeth.ioc.IServiceContext;
 import com.koch.ambeth.ioc.annotation.Autowired;
@@ -45,7 +46,6 @@ import com.koch.ambeth.merge.transfer.CUDResult;
 import com.koch.ambeth.merge.transfer.CreateContainer;
 import com.koch.ambeth.merge.transfer.DeleteContainer;
 import com.koch.ambeth.merge.transfer.DirectObjRef;
-import com.koch.ambeth.merge.transfer.ObjRef;
 import com.koch.ambeth.merge.transfer.RelationUpdateItem;
 import com.koch.ambeth.merge.transfer.UpdateContainer;
 import com.koch.ambeth.merge.util.DirectValueHolderRef;
@@ -386,6 +386,9 @@ public class CUDResultApplier implements ICUDResultApplier {
 			String memberName = pui.getMemberName();
 			Object newValue = pui.getNewValue();
 			Member member = metadata.getMemberByName(memberName);
+			if (Optional.class.isAssignableFrom(member.getRealType())) {
+				newValue = Optional.ofNullable(newValue);
+			}
 			member.setValue(entity, newValue);
 		}
 	}
@@ -425,7 +428,8 @@ public class CUDResultApplier implements ICUDResultApplier {
 			if (checkBaseState && removedORIs != null) {
 				throw new IllegalArgumentException("Removing from empty member");
 			}
-			newORIs = addedORIs != null ? Arrays.copyOf(addedORIs, addedORIs.length) : ObjRef.EMPTY_ARRAY;
+			newORIs =
+					addedORIs != null ? Arrays.copyOf(addedORIs, addedORIs.length) : IObjRef.EMPTY_ARRAY;
 			for (int a = newORIs.length; a-- > 0;) {
 				newORIs[a] = cloneObjRef(newORIs[a], false);
 			}
@@ -452,7 +456,7 @@ public class CUDResultApplier implements ICUDResultApplier {
 				}
 			}
 			if (existingORIsSet.isEmpty()) {
-				newORIs = ObjRef.EMPTY_ARRAY;
+				newORIs = IObjRef.EMPTY_ARRAY;
 			}
 			else {
 				newORIs = existingORIsSet.toArray(IObjRef.class);

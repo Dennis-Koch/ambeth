@@ -26,6 +26,7 @@ import java.lang.reflect.TypeVariable;
 import java.lang.reflect.WildcardType;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Optional;
 
 public final class TypeInfoItemUtil {
 	public static Class<?> getElementTypeUsingReflection(Class<?> propertyType, Type genericType) {
@@ -49,7 +50,8 @@ public final class TypeInfoItemUtil {
 		if (propertyType.isArray()) {
 			return propertyType.getComponentType();
 		}
-		else if (Collection.class.isAssignableFrom(propertyType)) {
+		else if (Optional.class.isAssignableFrom(propertyType)
+				|| Collection.class.isAssignableFrom(propertyType)) {
 			if (!(genericType instanceof ParameterizedType)) {
 				if (genericType instanceof Class) {
 					return (Class<?>) genericType;

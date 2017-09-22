@@ -22,6 +22,7 @@ limitations under the License.
 
 import java.lang.reflect.Array;
 import java.util.Collection;
+import java.util.Optional;
 
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.extendable.ClassExtendableContainer;
@@ -134,7 +135,17 @@ public class ObjectCopier
 		if (objType.isArray()) {
 			return (T) cloneArray(source, ocState);
 		}
-		if (source instanceof Collection) {
+		if (Optional.class.isAssignableFrom(objType)) {
+			Object value = ((Optional<?>) source).get();
+			Object clonedValue = cloneRecursive(value, ocState);
+			if (value == clonedValue) {
+				return source; // same Optional can be returned
+			}
+			clone = Optional.of(clonedValue);
+			objectToCloneDict.put(source, clone);
+			return (T) clone;
+		}
+		if (Collection.class.isAssignableFrom(objType)) {
 			return (T) cloneCollection(source, ocState);
 		}
 		// Check whether the object will be copied by custom behavior

@@ -31,6 +31,7 @@ import java.util.EnumSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -1220,7 +1221,6 @@ public class RootCache extends AbstractCache<RootCacheValue>
 			Object primitive = null;
 
 			Class<?> memberType = primitiveMember.getRealType();
-
 			if (Collection.class.isAssignableFrom(memberType)) {
 				Collection existingCollection = (Collection) primitiveMember.getValue(obj, false);
 				if (existingCollection != null) {
@@ -1240,7 +1240,23 @@ public class RootCache extends AbstractCache<RootCacheValue>
 					primitive = existingCollection;
 				}
 			}
-			if (primitive == null) {
+			if (Optional.class.isAssignableFrom(memberType)) {
+				if (primitiveTemplate == null) {
+					// intended blank
+				}
+				else if (objectCopier != null) {
+					primitive = objectCopier.clone(primitiveTemplate);
+					primitive = conversionHelper.convertValueToType(memberType, primitive);
+				}
+				else {
+					primitive = createPrimitiveFromTemplate(memberType, primitiveTemplate);
+				}
+				if (primitive == null) {
+					primitive = Optional.empty();
+				}
+				primitiveMember.setValue(obj, primitive);
+			}
+			else if (primitive == null) {
 				if (primitiveTemplate == null) {
 					if (Collection.class.isAssignableFrom(memberType)) {
 						primitive = ListUtil.createObservableCollectionOfType(memberType, 0);
@@ -1403,6 +1419,9 @@ public class RootCache extends AbstractCache<RootCacheValue>
 				&& expectedType.isAssignableFrom(primitiveTemplate.getClass())) {
 			// The template itself matches with the expected type. All we have to do is clone the template
 			return copyByValue(primitiveTemplate);
+		}
+		else if (Optional.class.isAssignableFrom(expectedType)) {
+			return Optional.ofNullable(primitiveTemplate);
 		}
 		else if (Collection.class.isAssignableFrom(expectedType)) {
 			// Deep clone collections because they are not immutable like other primitive items

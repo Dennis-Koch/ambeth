@@ -26,6 +26,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 
 import com.koch.ambeth.cache.CacheKey;
 import com.koch.ambeth.cache.collections.ICacheMapEntryTypeProvider;
@@ -246,7 +247,8 @@ public class EntityLoader
 		loadContainerMapTL.set(null);
 		try {
 			acquireMaps(orisToLoad.size());
-			Tuple3KeyHashMap<Class<?>, Integer, Object, ILoadContainer> loadContainerMap = getLoadContainerMap();
+			Tuple3KeyHashMap<Class<?>, Integer, Object, ILoadContainer> loadContainerMap =
+					getLoadContainerMap();
 			for (int a = orisToLoad.size(); a-- > 0;) {
 				IObjRef oriToLoad = orisToLoad.get(a);
 				Class<?> type = oriToLoad.getRealType();
@@ -328,7 +330,7 @@ public class EntityLoader
 				for (int a = orelLoadItems.size(); a-- > 0;) {
 					OrelLoadItem orelLoadItem = orelLoadItems.get(a);
 					ObjRelationResult objRelResult = new ObjRelationResult();
-					objRelResult.setRelations(ObjRef.EMPTY_ARRAY);
+					objRelResult.setRelations(IObjRef.EMPTY_ARRAY);
 					objRelResult.setReference(orelLoadItem.getObjRel());
 					targetRelations.add(objRelResult);
 				}
@@ -354,7 +356,7 @@ public class EntityLoader
 				ObjRelationResult objRelResult = new ObjRelationResult();
 				objRelResult.setReference(orelLoadItem.getObjRel());
 
-				targetingIdsMap.put(id, new Object[] { objRelResult, null });
+				targetingIdsMap.put(id, new Object[] {objRelResult, null});
 			}
 
 			Class<?> idTypeOfTargetingObject = targetingIdMember.getRealType();
@@ -367,7 +369,8 @@ public class EntityLoader
 					toIdIndex = cursor.getToIdIndex();
 					ITableMetaData requestedTable = database.getTableByType(requestedType).getMetaData();
 					IFieldMetaData idField = toIdIndex == ObjRef.PRIMARY_KEY_INDEX
-							? requestedTable.getIdField() : requestedTable.getAlternateIdFields()[toIdIndex];
+							? requestedTable.getIdField()
+							: requestedTable.getAlternateIdFields()[toIdIndex];
 					idTypeOfRequestedObject = idField.getFieldType();
 				}
 				else {
@@ -412,7 +415,7 @@ public class EntityLoader
 				@SuppressWarnings("unchecked")
 				IList<IObjRef> resultingObjRefs = (IList<IObjRef>) objects[1];
 				if (resultingObjRefs == null) {
-					objRelResult.setRelations(ObjRef.EMPTY_ARRAY);
+					objRelResult.setRelations(IObjRef.EMPTY_ARRAY);
 					continue;
 				}
 				objRelResult.setRelations(resultingObjRefs.toArray(IObjRef.class));
@@ -423,7 +426,8 @@ public class EntityLoader
 	protected ILinkedMap<ObjRelationType, IList<OrelLoadItem>> bucketSortObjRelations(
 			IDatabaseMetaData database, List<IObjRelation> orisToLoad) {
 		ILinkedMap<ObjRelationType, IList<OrelLoadItem>> sortedIObjRefs = new LinkedHashMap<>();
-		ILinkedMap<Class<?>, ILinkedMap<Member, IList<Object>>> typeToMissingOris = new LinkedHashMap<>();
+		ILinkedMap<Class<?>, ILinkedMap<Member, IList<Object>>> typeToMissingOris =
+				new LinkedHashMap<>();
 		IMap<CacheKey, IList<IObjRef>> keyToEmptyOris = new HashMap<>();
 
 		for (int i = orisToLoad.size(); i-- > 0;) {
@@ -824,7 +828,8 @@ public class EntityLoader
 		int relationMemberCount = metaData.getRelationMembers().length;
 
 		Tuple3KeyHashMap<Class<?>, Integer, Object, IObjRef> objRefMap = getObjRefMap();
-		Tuple3KeyHashMap<Class<?>, Integer, Object, ILoadContainer> loadContainerMap = getLoadContainerMap();
+		Tuple3KeyHashMap<Class<?>, Integer, Object, ILoadContainer> loadContainerMap =
+				getLoadContainerMap();
 
 		int typesRelatingToThisCount = metaData.getTypesRelatingToThis().length;
 
@@ -857,7 +862,8 @@ public class EntityLoader
 
 				Object id = conversionHelper.convertValueToType(primIdType, item.getId());
 				Object version = versionField != null
-						? conversionHelper.convertValueToType(versionTypeOfObject, item.getVersion()) : null;
+						? conversionHelper.convertValueToType(versionTypeOfObject, item.getVersion())
+						: null;
 
 				if (id == null || versionField != null && version == null) {
 					throw new IllegalStateException(
@@ -913,8 +919,15 @@ public class EntityLoader
 						else {
 							// The column is only a primitive field
 							try {
+								Class<?> requestedType = expectedType;
+								if (Optional.class.isAssignableFrom(expectedType)) {
+									requestedType = fieldMember.getElementType();
+								}
 								primitiveValue = connectionDialect.convertFromFieldType(database, field,
-										expectedType, dbValue);
+										requestedType, dbValue);
+								if (Optional.class.isAssignableFrom(expectedType)) {
+									primitiveValue = Optional.ofNullable(primitiveValue);
+								}
 							}
 							catch (Throwable e) {
 								throw RuntimeExceptionUtil.mask(e, "Error occured while handling member: "
@@ -980,7 +993,7 @@ public class EntityLoader
 							continue;
 						}
 						if (dbValue == null) {
-							relations[dirLinkIndex.intValue()] = ObjRef.EMPTY_ARRAY;
+							relations[dirLinkIndex.intValue()] = IObjRef.EMPTY_ARRAY;
 							continue;
 						}
 						IDirectedLinkMetaData columnBasedDirectedLink = directedLinks[dirLinkIndex.intValue()]
@@ -1007,7 +1020,7 @@ public class EntityLoader
 							toOri = objRefFactory.createObjRef(toEntityType, toIdIndex, dbValue, null);
 							objRefMap.put(toEntityType, Integer.valueOf(toIdIndex), dbValue, toOri);
 						}
-						relations[dirLinkIndex.intValue()] = new IObjRef[] { toOri };
+						relations[dirLinkIndex.intValue()] = new IObjRef[] {toOri};
 						switch (columnBasedDirectedLink.getCascadeLoadMode()) {
 							case LAZY: {
 								if (supportsValueHolderContainer) {
@@ -1088,7 +1101,7 @@ public class EntityLoader
 					}
 				}
 				else {
-					relationArray = ObjRef.EMPTY_ARRAY;
+					relationArray = IObjRef.EMPTY_ARRAY;
 				}
 				relations[a] = relationArray;
 			}
@@ -1107,7 +1120,8 @@ public class EntityLoader
 		PrimitiveMember[] primitiveMembers = metaData.getPrimitiveMembers();
 		RelationMember[] relationMembers = metaData.getRelationMembers();
 
-		for (int primitiveIndex = 0, size = primitiveMembers.length; primitiveIndex < size; primitiveIndex++) {
+		for (int primitiveIndex = 0, size =
+				primitiveMembers.length; primitiveIndex < size; primitiveIndex++) {
 			PrimitiveMember primitiveMember = primitiveMembers[primitiveIndex];
 
 			if (primitiveMember.isTransient()) {
@@ -1175,7 +1189,8 @@ public class EntityLoader
 
 	protected LoadContainer unionLoadContainers(ITable table, Object id, Object version,
 			Object[] alternateIds) {
-		Tuple3KeyHashMap<Class<?>, Integer, Object, ILoadContainer> loadContainerMap = getLoadContainerMap();
+		Tuple3KeyHashMap<Class<?>, Integer, Object, ILoadContainer> loadContainerMap =
+				getLoadContainerMap();
 		ITableMetaData tableMD = table.getMetaData();
 		Class<?> type = tableMD.getEntityType();
 		Integer pkIdIndex = Integer.valueOf(ObjRef.PRIMARY_KEY_INDEX);

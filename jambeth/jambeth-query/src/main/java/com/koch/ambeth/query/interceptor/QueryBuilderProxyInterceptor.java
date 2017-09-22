@@ -2,6 +2,7 @@ package com.koch.ambeth.query.interceptor;
 
 import java.lang.reflect.Method;
 import java.util.Collection;
+import java.util.Optional;
 
 import com.koch.ambeth.service.merge.IEntityMetaDataProvider;
 import com.koch.ambeth.service.merge.model.IEntityMetaData;
@@ -105,7 +106,10 @@ public class QueryBuilderProxyInterceptor implements MethodInterceptor {
 					new QueryBuilderProxyInterceptor(targetMetaData, baseEntityType, propertyPath,
 							lastPropertyPathTL, propertyInfoProvider, entityMetaDataProvider, proxyFactory));
 		}
-		if (member.getElementType().equals(member.getRealType())) {
+		if (!member.isToMany()) {
+			if (Optional.class.isAssignableFrom(member.getRealType())) {
+				return Optional.ofNullable(childPlan);
+			}
 			// to-one relation
 			return childPlan;
 		}
