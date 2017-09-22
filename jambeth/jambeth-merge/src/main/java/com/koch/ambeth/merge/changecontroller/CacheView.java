@@ -30,7 +30,6 @@ import com.koch.ambeth.util.collections.HashMap;
 import com.koch.ambeth.util.collections.IMap;
 import com.koch.ambeth.util.collections.IdentityHashMap;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
-import com.koch.ambeth.util.threading.IBackgroundWorkerDelegate;
 import com.koch.ambeth.util.threading.IBackgroundWorkerParamDelegate;
 
 public class CacheView implements ICacheView {
@@ -51,7 +50,7 @@ public class CacheView implements ICacheView {
 
 	protected IdentityHashMap<Object, IChangeContainer> objectToChangeContainerMap;
 
-	protected ArrayList<IBackgroundWorkerDelegate> customRunnables;
+	protected ArrayList<IBackgroundWorkerParamDelegate<ICacheView>> customRunnables;
 
 	public CacheView(List<Object> newObjects, List<Object> oldObjects,
 			List<IChangeContainer> changes, IMap<Object, Object> customStateMap) {
@@ -152,7 +151,7 @@ public class CacheView implements ICacheView {
 	}
 
 	@Override
-	public void queueRunnable(IBackgroundWorkerDelegate runnable) {
+	public void queueRunnable(IBackgroundWorkerParamDelegate<ICacheView> runnable) {
 		if (customRunnables == null) {
 			customRunnables = new ArrayList<>();
 		}

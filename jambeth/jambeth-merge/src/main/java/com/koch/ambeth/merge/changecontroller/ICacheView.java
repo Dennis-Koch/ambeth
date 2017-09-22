@@ -23,7 +23,7 @@ limitations under the License.
 import java.util.Collection;
 
 import com.koch.ambeth.merge.model.IChangeContainer;
-import com.koch.ambeth.util.threading.IBackgroundWorkerDelegate;
+import com.koch.ambeth.util.threading.IBackgroundWorkerParamDelegate;
 
 /**
  * This is a utility class that provides access to all new objects that should be merged with the
@@ -62,5 +62,5 @@ public interface ICacheView {
 
 	void setCustomState(Object key, Object value);
 
-	void queueRunnable(IBackgroundWorkerDelegate runnable);
+	void queueRunnable(IBackgroundWorkerParamDelegate<ICacheView> runnable);
 }
