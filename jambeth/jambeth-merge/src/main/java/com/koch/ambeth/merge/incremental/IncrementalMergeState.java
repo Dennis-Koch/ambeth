@@ -70,9 +70,13 @@ public class IncrementalMergeState implements IIncrementalMergeState {
 
 	public final HashMap<IObjRef, StateEntry> objRefToStateMap = new HashMap<>();
 
-	private final HashMap<Class<?>, HashMap<String, Integer>> typeToMemberNameToIndexMap = new HashMap<>();
+	public final IMap<Object, Object> customStateMap = new HashMap<>();
 
-	private final HashMap<Class<?>, HashMap<String, Integer>> typeToPrimitiveMemberNameToIndexMap = new HashMap<>();
+	private final HashMap<Class<?>, HashMap<String, Integer>> typeToMemberNameToIndexMap =
+			new HashMap<>();
+
+	private final HashMap<Class<?>, HashMap<String, Integer>> typeToPrimitiveMemberNameToIndexMap =
+			new HashMap<>();
 
 	private final Lock writeLock = new ReentrantLock();
 

@@ -23,9 +23,11 @@ limitations under the License.
 import com.koch.ambeth.merge.cache.ICache;
 import com.koch.ambeth.merge.model.ICUDResult;
 import com.koch.ambeth.service.merge.model.IObjRef;
+import com.koch.ambeth.util.collections.IMap;
 
 public interface IMergeListener {
-	ICUDResult preMerge(ICUDResult cudResult, ICache cache);
+	ICUDResult preMerge(ICUDResult cudResult, ICache cache, IMap<Object, Object> customStateMap);
 
-	void postMerge(ICUDResult cudResult, IObjRef[] updatedObjRefs);
+	void postMerge(ICUDResult cudResult, IObjRef[] updatedObjRefs,
+			IMap<Object, Object> customStateMap);
 }

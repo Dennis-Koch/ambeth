@@ -342,7 +342,7 @@ public class MergeServiceRegistry implements IMergeService, IMergeServiceExtensi
 			}
 			for (IMergeListener mergeListener : mergeListeners.getExtensionsShared()) {
 				ICUDResult explAndImplCudResult = mergeListener.preMerge(cudResult,
-						incrementalState.getStateCache());
+						incrementalState.getStateCache(), incrementalState.customStateMap);
 				cudResult = mergeCudResult(cudResult, explAndImplCudResult, mergeListener,
 						hasAtLeastOneImplicitChange, incrementalState);
 			}
@@ -356,7 +356,7 @@ public class MergeServiceRegistry implements IMergeService, IMergeServiceExtensi
 
 	protected IOriCollection intern(String[] causingUuids, ICUDResult cudResult,
 			IMethodDescription methodDescription,
-			IList<MergeOperation> mergeOperationSequence, IncrementalMergeState state) {
+			IList<MergeOperation> mergeOperationSequence, IncrementalMergeState incrementalState) {
 		List<IChangeContainer> allChanges = cudResult.getAllChanges();
 		List<Object> originalRefs = cudResult.getOriginalRefs();
 		IdentityHashMap<IChangeContainer, Integer> changeToChangeIndexDict = new IdentityHashMap<>();
@@ -383,7 +383,7 @@ public class MergeServiceRegistry implements IMergeService, IMergeServiceExtensi
 					mergeServiceExtension.merge(msCudResult, causingUuids, methodDescription);
 
 			mergeController.applyChangesToOriginals(msCudResult, msOriCollection,
-					state != null ? state.getStateCache() : null);
+					incrementalState != null ? incrementalState.getStateCache() : null);
 
 			List<IObjRef> allChangeORIs = msOriCollection.getAllChangeORIs();
 
@@ -436,7 +436,7 @@ public class MergeServiceRegistry implements IMergeService, IMergeServiceExtensi
 			oriCollection.setAllChangedOn(allChangedOn);
 		}
 		for (IMergeListener mergeListener : mergeListeners.getExtensionsShared()) {
-			mergeListener.postMerge(cudResult, objRefs);
+			mergeListener.postMerge(cudResult, objRefs, incrementalState.customStateMap);
 		}
 		if (originalRefs != null) {
 			// Set each original ref to null in order to suppress a post-processing in a potentially

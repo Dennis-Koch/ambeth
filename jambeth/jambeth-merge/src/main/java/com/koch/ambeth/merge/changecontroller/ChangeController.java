@@ -46,6 +46,7 @@ import com.koch.ambeth.merge.transfer.CreateContainer;
 import com.koch.ambeth.service.merge.model.IObjRef;
 import com.koch.ambeth.util.ParamChecker;
 import com.koch.ambeth.util.collections.HashSet;
+import com.koch.ambeth.util.collections.IMap;
 import com.koch.ambeth.util.collections.ISet;
 import com.koch.ambeth.util.collections.IdentityLinkedSet;
 import com.koch.ambeth.util.collections.SmartCopyMap;
@@ -80,13 +81,16 @@ public class ChangeController
 	@Property(name = MergeConfigurationConstants.edblActive, defaultValue = "true")
 	protected boolean edblActive;
 
-	protected final ClassExtendableListContainer<IChangeControllerExtension<?>> extensions = new ClassExtendableListContainer<>(
-			"change controller extension", "entity");
+	protected final ClassExtendableListContainer<IChangeControllerExtension<?>> extensions =
+			new ClassExtendableListContainer<>(
+					"change controller extension", "entity");
 
-	protected final SmartCopyMap<Class<?>, IChangeControllerExtension<?>[]> typeToSortedExtensions = new SmartCopyMap<>();
+	protected final SmartCopyMap<Class<?>, IChangeControllerExtension<?>[]> typeToSortedExtensions =
+			new SmartCopyMap<>();
 
 	@Override
-	public ICUDResult preMerge(ICUDResult cudResult, ICache cache) {
+	public ICUDResult preMerge(ICUDResult cudResult, ICache cache,
+			IMap<Object, Object> customStateMap) {
 		if (!edblActive || (edblActiveTL.get() != null && Boolean.FALSE.equals(edblActiveTL.get()))) {
 			return cudResult;
 		}
@@ -103,7 +107,7 @@ public class ChangeController
 				boolean extensionCalled;
 				IStateRollback rollback = cacheContext.pushCache(cache);
 				try {
-					extensionCalled = processChanges(newObjects, oldObjects);
+					extensionCalled = processChanges(newObjects, oldObjects, changes, customStateMap);
 				}
 				finally {
 					rollback.rollback();
@@ -149,15 +153,18 @@ public class ChangeController
 	 *
 	 * @param newEntities
 	 * @param oldEntities
+	 * @param changes
 	 * @return true if any of the extensions have been called
 	 */
 	@SuppressWarnings("rawtypes")
-	protected boolean processChanges(List<Object> newEntities, List<Object> oldEntities) {
+	protected boolean processChanges(List<Object> newEntities, List<Object> oldEntities,
+			List<IChangeContainer> changes, IMap<Object, Object> customStateMap) {
 		int size = newEntities.size();
 		ParamChecker.assertTrue(size == oldEntities.size(),
 				"number of old and new objects should be equal");
-		CacheView views = new CacheView(newEntities, oldEntities);
-		IdentityLinkedSet<IChangeControllerExtension<?>> calledExtensionsSet = new IdentityLinkedSet<>();
+		CacheView views = new CacheView(newEntities, oldEntities, changes, customStateMap);
+		IdentityLinkedSet<IChangeControllerExtension<?>> calledExtensionsSet =
+				new IdentityLinkedSet<>();
 
 		try {
 			for (int index = 0; index < size; index++) {
@@ -193,18 +200,14 @@ public class ChangeController
 	 * there are any extensions registered for the given objects. If yes, the extensions are called
 	 * with the change.
 	 *
-	 * @param newEntity
-	 *          the new version of the entity
-	 * @param oldEntity
-	 *          the old version of the entity
-	 * @param toBeDeleted
-	 *          true, if the new entity is to be deleted
-	 * @param toBeCreated
-	 *          true, if the new entity is to be created
+	 * @param newEntity the new version of the entity
+	 * @param oldEntity the old version of the entity
+	 * @param toBeDeleted true, if the new entity is to be deleted
+	 * @param toBeCreated true, if the new entity is to be created
 	 * @param views
 	 * @param calledExtensionsSet
 	 */
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings({"rawtypes", "unchecked"})
 	protected void processChange(Object newEntity, Object oldEntity, boolean toBeDeleted,
 			boolean toBeCreated, ICacheView views,
 			ISet<IChangeControllerExtension<?>> calledExtensionsSet) {
@@ -247,7 +250,8 @@ public class ChangeController
 	}
 
 	@Override
-	public void postMerge(ICUDResult cudResult, IObjRef[] updatedObjRefs) {
+	public void postMerge(ICUDResult cudResult, IObjRef[] updatedObjRefs,
+			IMap<Object, Object> customStateMap) {
 		// intentionally left blank
 	}
 

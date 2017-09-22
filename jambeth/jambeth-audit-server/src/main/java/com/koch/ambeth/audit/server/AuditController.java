@@ -240,13 +240,15 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 	}
 
 	@Override
-	public ICUDResult preMerge(ICUDResult cudResult, ICache cache) {
+	public ICUDResult preMerge(ICUDResult cudResult, ICache cache,
+			IMap<Object, Object> customStateMap) {
 		// intended blank
 		return cudResult;
 	}
 
 	@Override
-	public void postMerge(ICUDResult cudResult, IObjRef[] updatedObjRefs) {
+	public void postMerge(ICUDResult cudResult, IObjRef[] updatedObjRefs,
+			IMap<Object, Object> customStateMap) {
 		if (Boolean.TRUE.equals(getAdditionalAuditInfo().ownAuditMergeActive)) {
 			// ignore this dataChange because it is our own Audit merge
 			return;

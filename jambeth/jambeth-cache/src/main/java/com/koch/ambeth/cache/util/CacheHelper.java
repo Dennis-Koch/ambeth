@@ -26,6 +26,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.Set;
 
 import com.koch.ambeth.cache.ICacheIntern;
@@ -748,9 +749,12 @@ public class CacheHelper
 	}
 
 	@Override
-	public Collection<?> createInstanceOfTargetExpectedType(Class<?> expectedType,
+	public Object createInstanceOfTargetExpectedType(Class<?> expectedType,
 			Class<?> elementType) {
 		// OneToMany or ManyToMany Relationship
+		if (Optional.class.isAssignableFrom(expectedType)) {
+			return Optional.empty();
+		}
 		if (!Iterable.class.isAssignableFrom(expectedType)) {
 			return null;
 		}
@@ -778,18 +782,22 @@ public class CacheHelper
 			Class<?> elementType) {
 		// OneToMany or ManyToMany Relationship
 		if (Collection.class.isAssignableFrom(expectedType)) {
-			Collection targetCollection = createInstanceOfTargetExpectedType(expectedType, elementType);
+			Collection targetCollection =
+					(Collection) createInstanceOfTargetExpectedType(expectedType, elementType);
 
 			if (resultList != null) {
 				((Collection<Object>) targetCollection).addAll(resultList);
 			}
 			return targetCollection;
 		}
+		Object item = null;
 		if (resultList != null && !resultList.isEmpty()) {
-			return resultList.get(0);
+			item = resultList.get(0);
 		}
-
-		return null;
+		if (Optional.class.isAssignableFrom(expectedType)) {
+			item = Optional.ofNullable(item);
+		}
+		return item;
 	}
 
 	@Override

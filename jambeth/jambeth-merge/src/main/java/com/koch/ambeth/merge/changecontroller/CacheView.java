@@ -21,11 +21,14 @@ limitations under the License.
  */
 
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 
+import com.koch.ambeth.merge.model.IChangeContainer;
 import com.koch.ambeth.util.ParamChecker;
 import com.koch.ambeth.util.collections.ArrayList;
+import com.koch.ambeth.util.collections.HashMap;
+import com.koch.ambeth.util.collections.IMap;
+import com.koch.ambeth.util.collections.IdentityHashMap;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.threading.IBackgroundWorkerDelegate;
 import com.koch.ambeth.util.threading.IBackgroundWorkerParamDelegate;
@@ -33,6 +36,10 @@ import com.koch.ambeth.util.threading.IBackgroundWorkerParamDelegate;
 public class CacheView implements ICacheView {
 	// objects contains all new objects
 	protected final List<Object> newObjects, oldObjects;
+
+	protected final List<IChangeContainer> changes;
+
+	protected final IMap<Object, Object> customStateMap;
 
 	// views contains a map from an interface to all objects whose class implements it. Entries are
 	// created lazily below.
@@ -42,13 +49,36 @@ public class CacheView implements ICacheView {
 	protected final HashMap<Class<?>, Collection<?>> oldViews =
 			new HashMap<>();
 
-	protected HashMap<Object, Object> customStateMap;
+	protected IdentityHashMap<Object, IChangeContainer> objectToChangeContainerMap;
 
 	protected ArrayList<IBackgroundWorkerDelegate> customRunnables;
 
-	public CacheView(List<Object> newObjects, List<Object> oldObjects) {
+	public CacheView(List<Object> newObjects, List<Object> oldObjects,
+			List<IChangeContainer> changes, IMap<Object, Object> customStateMap) {
 		this.newObjects = newObjects;
 		this.oldObjects = oldObjects;
+		this.changes = changes;
+		this.customStateMap = customStateMap;
+	}
+
+	@Override
+	public IChangeContainer getChangeContainer(Object newOrOldObject) {
+		if (objectToChangeContainerMap != null) {
+			return objectToChangeContainerMap.get(newOrOldObject);
+		}
+		objectToChangeContainerMap = new IdentityHashMap<>();
+		for (int a = newObjects.size(); a-- > 0;) {
+			Object newObject = newObjects.get(a);
+			Object oldObject = oldObjects.get(a);
+			IChangeContainer changeContainer = changes.get(a);
+			if (newObject != null) {
+				objectToChangeContainerMap.put(newObject, changeContainer);
+			}
+			if (oldObject != null) {
+				objectToChangeContainerMap.put(oldObject, changeContainer);
+			}
+		}
+		return objectToChangeContainerMap.get(newOrOldObject);
 	}
 
 	/**
@@ -113,17 +143,11 @@ public class CacheView implements ICacheView {
 
 	@Override
 	public Object getCustomState(Object key) {
-		if (customStateMap == null) {
-			return null;
-		}
 		return customStateMap.get(key);
 	}
 
 	@Override
 	public void setCustomState(Object key, Object value) {
-		if (customStateMap == null) {
-			customStateMap = new HashMap<>();
-		}
 		customStateMap.put(key, value);
 	}
 

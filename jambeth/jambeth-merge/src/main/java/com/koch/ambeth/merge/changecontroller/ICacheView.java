@@ -22,6 +22,7 @@ limitations under the License.
 
 import java.util.Collection;
 
+import com.koch.ambeth.merge.model.IChangeContainer;
 import com.koch.ambeth.util.threading.IBackgroundWorkerDelegate;
 
 /**
@@ -46,10 +47,20 @@ public interface ICacheView {
 	 */
 	<T> Collection<T> getOldObjectsOfClass(Class<T> clazz);
 
+	/**
+	 * Returns the current change container to any given new or old object describing the current
+	 * transition step from "old" to "new". This is helpful if you need detailed information about the
+	 * transition without the potential overhead to evaluate manually the changes on the given "old"
+	 * and "new" objects.
+	 *
+	 * @param newOrOldObject The object to lookup its corresponding transitional step change
+	 * @return The transitional step change handle
+	 */
+	IChangeContainer getChangeContainer(Object newOrOldObject);
+
 	Object getCustomState(Object key);
 
 	void setCustomState(Object key, Object value);
 
 	void queueRunnable(IBackgroundWorkerDelegate runnable);
-
 }
