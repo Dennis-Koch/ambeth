@@ -112,7 +112,7 @@ public class IncrementalMergeState implements IIncrementalMergeState {
 		}
 	};
 
-	private IdentityLinkedSet<IMergePipelineFinishHook> mergeProcessFinishHooks;
+	private IdentityLinkedSet<IMergePipelineFinishHook> mergePipelineFinishHooks;
 
 	@Override
 	public ICache getStateCache() {
@@ -214,27 +214,27 @@ public class IncrementalMergeState implements IIncrementalMergeState {
 	@Override
 	public void registerMergePipelineFinishHook(IMergePipelineFinishHook hook) {
 		ParamChecker.assertParamNotNull(hook, "hook");
-		if (mergeProcessFinishHooks == null) {
-			mergeProcessFinishHooks = new IdentityLinkedSet<>();
+		if (mergePipelineFinishHooks == null) {
+			mergePipelineFinishHooks = new IdentityLinkedSet<>();
 		}
-		mergeProcessFinishHooks.add(hook);
+		mergePipelineFinishHooks.add(hook);
 	}
 
 	@Override
 	public void unregisterMergePipelineFinishHook(IMergePipelineFinishHook hook) {
 		ParamChecker.assertParamNotNull(hook, "hook");
-		if (mergeProcessFinishHooks == null) {
+		if (mergePipelineFinishHooks == null) {
 			return;
 		}
-		mergeProcessFinishHooks.remove(hook);
+		mergePipelineFinishHooks.remove(hook);
 	}
 
-	public void notifyMergeProcessFinishListeners(boolean success) {
-		if (mergeProcessFinishHooks == null) {
+	public void notifyMergePipelineFinishHooks(boolean success) {
+		if (mergePipelineFinishHooks == null) {
 			return;
 		}
-		for (IMergePipelineFinishHook mergeProcessFinishListener : mergeProcessFinishHooks) {
-			mergeProcessFinishListener.mergePipelineFinished(success, this);
+		for (IMergePipelineFinishHook mergePipelineFinishHook : mergePipelineFinishHooks) {
+			mergePipelineFinishHook.mergePipelineFinished(success, this);
 		}
 	}
 }

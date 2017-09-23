@@ -288,13 +288,13 @@ public class MergeServiceRegistry implements IMergeService, IMergeServiceExtensi
 							OriCollection oriCollection = new OriCollection(
 									new ArrayList<IObjRef>(allChangedObjRefsResult));
 							if (state != null) {
-								state.notifyMergeProcessFinishListeners(true);
+								state.notifyMergePipelineFinishHooks(true);
 							}
 							return oriCollection;
 						}
 						catch (Throwable e) {
 							if (state != null) {
-								state.notifyMergeProcessFinishListeners(false);
+								state.notifyMergePipelineFinishHooks(false);
 							}
 							throw e;
 						}
