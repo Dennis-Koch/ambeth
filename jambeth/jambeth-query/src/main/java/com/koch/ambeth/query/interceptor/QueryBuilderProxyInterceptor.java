@@ -95,7 +95,11 @@ public class QueryBuilderProxyInterceptor implements MethodInterceptor {
 		String propertyPath = this.propertyPath != null ? this.propertyPath + '.' + propertyName
 				: propertyName;
 		lastPropertyPathTL.set(propertyPath);
-		if (Number.class.isAssignableFrom(elementType)) {
+		if (elementType.isEnum()) {
+			Object[] enumConstants = elementType.getEnumConstants();
+			childPlan = enumConstants.length > 0 ? enumConstants[0] : null;
+		}
+		else if (Number.class.isAssignableFrom(elementType)) {
 			childPlan = elementType.getConstructor(String.class).newInstance("0");
 		}
 		else if (String.class.isAssignableFrom(elementType)) {
