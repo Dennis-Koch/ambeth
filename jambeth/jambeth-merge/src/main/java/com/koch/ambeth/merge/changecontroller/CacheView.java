@@ -174,6 +174,16 @@ public class CacheView implements ICacheView {
 	}
 
 	@Override
+	public void addCustomStateItem(Object key, Object item) {
+		Collection<Object> list = getCustomState(key);
+		if (list == null) {
+			list = new ArrayList<>();
+			setCustomState(key, list);
+		}
+		list.add(item);
+	}
+
+	@Override
 	public void queuePreFlush(IMergeStepPreFlushHook mergeStepPreFlushHook) {
 		ParamChecker.assertParamNotNull(mergeStepPreFlushHook, "mergeStepPreFlushHook");
 		if (mergeStepPreFlushHooks == null) {

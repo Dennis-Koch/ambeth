@@ -66,11 +66,30 @@ public interface ICacheView extends IMergePipelineFinishHookExtendable {
 	<V> V setCustomState(Object key, Object value);
 
 	/**
+	 * Convenience method to add an item to a custom state key where the real value is a
+	 * {@link java.util.List}. This reduces boilerplate code to lookup the value manually, if not
+	 * exists create the list and add it and then adding the item to the list.<br>
+	 * <code><br>
+	 * Collection<Object> list = getCustomState(key);<br>
+	 * if (list == null) {<br>
+	 * &nbsp;list = new ArrayList<>();<br>
+	 * &nbsp;setCustomState(key, list);<br>
+	 * }<br>
+	 * list.add(item);</code><br>
+	 * <br>
+	 *
+	 * @param key The key checked with equals (not identity equals) within the custom state
+	 * @param item An item to be added to the implicit collection bound to the specified key. The
+	 *        collection is created on-demand
+	 */
+	void addCustomStateItem(Object key, Object item);
+
+	/**
 	 * Allows to register a custom hook which is executed before the flush phase of the current step.
 	 * The implementation of the hook may work with the passed {@link ICacheView}, enrich it in any
 	 * way and may even queue further hooks. All hooks will be processed in sequence before the "pre
 	 * flush step" phase is finished and the ordinary "flush step" phase is entered
-	 * 
+	 *
 	 * @param mergeStepPreFlushHook
 	 */
 	void queuePreFlush(IMergeStepPreFlushHook mergeStepPreFlushHook);
