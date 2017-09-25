@@ -75,9 +75,9 @@ public class AuditEntryReader implements IAuditEntryReader {
 
 		q_auditedEntity_withVersion = qb.build(qb.and(
 				//
-				qb.isEqualTo(entityType, qb.valueName(IAuditedEntityRef.EntityType)), //
-				qb.isEqualTo(entityId, qb.valueName(IAuditedEntityRef.EntityId)),
-				qb.isLessThanOrEqualTo(entityVersion, qb.valueName(IAuditedEntityRef.EntityVersion))));
+				qb.let(entityType).isEqualTo(qb.valueName(IAuditedEntityRef.EntityType)), //
+				qb.let(entityId).isEqualTo(qb.valueName(IAuditedEntityRef.EntityId)),
+				qb.let(entityVersion).isLessThanOrEqualTo(qb.valueName(IAuditedEntityRef.EntityVersion))));
 		return q_auditedEntity_withVersion;
 	}
 
@@ -92,8 +92,8 @@ public class AuditEntryReader implements IAuditEntryReader {
 		qb.orderBy(qb.property(IAuditedEntity.Entry + "." + IAuditEntry.Timestamp), OrderByType.ASC);
 
 		q_auditedEntity_noVersion = qb.build(qb.and(//
-				qb.isEqualTo(entityType, qb.valueName(IAuditedEntityRef.EntityType)), //
-				qb.isEqualTo(entityId, qb.valueName(IAuditedEntityRef.EntityId))));
+				qb.let(entityType).isEqualTo(qb.valueName(IAuditedEntityRef.EntityType)), //
+				qb.let(entityId).isEqualTo(qb.valueName(IAuditedEntityRef.EntityId))));
 		return q_auditedEntity_noVersion;
 	}
 
@@ -114,9 +114,9 @@ public class AuditEntryReader implements IAuditEntryReader {
 
 		q_auditEntry_withVersion = qb.build(qb.and(
 				//
-				qb.isEqualTo(entityType, qb.valueName(IAuditedEntityRef.EntityType)), //
-				qb.isEqualTo(entityId, qb.valueName(IAuditedEntityRef.EntityId)),
-				qb.isLessThanOrEqualTo(entityVersion, qb.valueName(IAuditedEntityRef.EntityVersion))));
+				qb.let(entityType).isEqualTo(qb.valueName(IAuditedEntityRef.EntityType)), //
+				qb.let(entityId).isEqualTo(qb.valueName(IAuditedEntityRef.EntityId)),
+				qb.let(entityVersion).isLessThanOrEqualTo(qb.valueName(IAuditedEntityRef.EntityVersion))));
 		return q_auditEntry_withVersion;
 	}
 
@@ -133,8 +133,8 @@ public class AuditEntryReader implements IAuditEntryReader {
 		qb.orderBy(qb.property(IAuditEntry.Timestamp), OrderByType.ASC);
 
 		q_auditEntry_noVersion = qb.build(qb.and(//
-				qb.isEqualTo(entityType, qb.valueName(IAuditedEntityRef.EntityType)), //
-				qb.isEqualTo(entityId, qb.valueName(IAuditedEntityRef.EntityId))));
+				qb.let(entityType).isEqualTo(qb.valueName(IAuditedEntityRef.EntityType)), //
+				qb.let(entityId).isEqualTo(qb.valueName(IAuditedEntityRef.EntityId))));
 		return q_auditEntry_noVersion;
 	}
 
@@ -148,7 +148,7 @@ public class AuditEntryReader implements IAuditEntryReader {
 		qb.orderBy(qb.property(IAuditEntry.Timestamp), OrderByType.ASC);
 
 		q_allUserActions = qb.build(qb.and(//
-				qb.isEqualTo(userIdentifier, qb.valueName(IAuditEntry.UserIdentifier))));
+				qb.let(userIdentifier).isEqualTo(qb.valueName(IAuditEntry.UserIdentifier))));
 		return q_allUserActions;
 	}
 
@@ -163,7 +163,7 @@ public class AuditEntryReader implements IAuditEntryReader {
 		qb.orderBy(qb.property(IAuditEntry.Timestamp), OrderByType.ASC);
 
 		q_auditEntry_entityType = qb.build(//
-				qb.isEqualTo(entityType, qb.valueName(IAuditedEntityRef.EntityType)));//
+				qb.let(entityType).isEqualTo(qb.valueName(IAuditedEntityRef.EntityType)));//
 		return q_auditEntry_entityType;
 	}
 
@@ -181,9 +181,9 @@ public class AuditEntryReader implements IAuditEntryReader {
 
 		q_auditEntry_entityType_InTimeSlot = qb.build(qb.and(
 				//
-				qb.isEqualTo(entityType, qb.valueName(IAuditedEntityRef.EntityType)),
-				qb.isGreaterThanOrEqualTo(auditEntryStart, qb.valueName(VALUE_NAME_START)),
-				qb.isLessThanOrEqualTo(auditEntryEnd, qb.valueName(VALUE_NAME_END))));
+				qb.let(entityType).isEqualTo(qb.valueName(IAuditedEntityRef.EntityType)),
+				qb.let(auditEntryStart).isGreaterThanOrEqualTo(qb.valueName(VALUE_NAME_START)),
+				qb.let(auditEntryEnd).isLessThanOrEqualTo(qb.valueName(VALUE_NAME_END))));
 		return q_auditEntry_entityType_InTimeSlot;
 	}
 

@@ -49,11 +49,11 @@ import com.koch.ambeth.persistence.api.database.ITransaction;
 import com.koch.ambeth.persistence.api.sql.ISqlBuilder;
 import com.koch.ambeth.persistence.filter.PagingQuery;
 import com.koch.ambeth.persistence.filter.QueryConstants;
-import com.koch.ambeth.query.IMultiValueOperand;
 import com.koch.ambeth.query.IOperand;
 import com.koch.ambeth.query.IOperator;
 import com.koch.ambeth.query.IQuery;
 import com.koch.ambeth.query.IQueryBuilder;
+import com.koch.ambeth.query.IQueryBuilderAfterLeftOperand;
 import com.koch.ambeth.query.IQueryBuilderExtension;
 import com.koch.ambeth.query.IQueryBuilderFactory;
 import com.koch.ambeth.query.IQueryBuilderIntern;
@@ -230,7 +230,8 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 	}
 
 	protected BasicTwoPlaceOperator createTwoPlaceOperator(
-			Class<? extends BasicTwoPlaceOperator> operatorType, Object leftOperand, Object rightOperand,
+			Class<? extends BasicTwoPlaceOperator> operatorType, IOperand leftOperand,
+			IOperand rightOperand,
 			Boolean caseSensitive) {
 		ParamChecker.assertParamNotNull(operatorType, "operatorType");
 		ParamChecker.assertParamNotNull(leftOperand, "leftOperand");
@@ -239,10 +240,11 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 		rightOperand = toOperand(rightOperand);
 		try {
 			IBeanRuntime<? extends BasicTwoPlaceOperator> operatorBC = beanContext
-					.registerBean(operatorType).propertyValue("LeftOperand", leftOperand)
-					.propertyValue("RightOperand", rightOperand);
+					.registerBean(operatorType)
+					.propertyValue(BasicTwoPlaceOperator.P_LEFT_OPERAND, leftOperand)
+					.propertyValue(BasicTwoPlaceOperator.P_RIGHT_OPERAND, rightOperand);
 			if (caseSensitive != null) {
-				operatorBC.propertyValue("CaseSensitive", caseSensitive);
+				operatorBC.propertyValue(BasicTwoPlaceOperator.P_CASE_SENSITIVE, caseSensitive);
 			}
 			return operatorBC.finish();
 		}
@@ -251,7 +253,7 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 		}
 	}
 
-	private IOperand toOperand(Object operandOrPropertyProxy) {
+	protected IOperand toOperand(Object operandOrPropertyProxy) {
 		if (operandOrPropertyProxy instanceof IOperand) {
 			return (IOperand) operandOrPropertyProxy;
 		}
@@ -293,6 +295,12 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 		}
 
 		return currentOperator;
+	}
+
+	@Override
+	public IQueryBuilderAfterLeftOperand let(Object leftOperand) {
+		ParamChecker.assertParamNotNull(leftOperand, "leftOperand");
+		return new SqlQueryBuilderAfterLeftOperand(this, toOperand(leftOperand));
 	}
 
 	@Override
@@ -650,131 +658,6 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 		}
 	}
 
-	@Override
-	public IOperator contains(Object leftOperand, Object rightOperand) {
-		return contains(leftOperand, rightOperand, null);
-	}
-
-	@Override
-	public IOperator contains(Object leftOperand, Object rightOperand, Boolean caseSensitive) {
-		return createTwoPlaceOperator(SqlContainsOperator.class, leftOperand, rightOperand,
-				caseSensitive);
-	}
-
-	@Override
-	public IOperator endsWith(Object leftOperand, Object rightOperand) {
-		return endsWith(leftOperand, rightOperand, null);
-	}
-
-	@Override
-	public IOperator endsWith(Object leftOperand, Object rightOperand, Boolean caseSensitive) {
-		return createTwoPlaceOperator(SqlEndsWithOperator.class, leftOperand, rightOperand,
-				caseSensitive);
-	}
-
-	@Override
-	public IOperator isContainedIn(Object leftOperand, Object rightOperand) {
-		return contains(rightOperand, leftOperand, null);
-	}
-
-	@Override
-	public IOperator isContainedIn(Object leftOperand, Object rightOperand, Boolean caseSensitive) {
-		return contains(rightOperand, leftOperand, caseSensitive);
-	}
-
-	@Override
-	public IOperator isIn(Object leftOperand, Object rightOperand) {
-		return isIn(leftOperand, rightOperand, null);
-	}
-
-	@Override
-	public IOperator isIn(Object leftOperand, Object rightOperand, Boolean caseSensitive) {
-		if (!(rightOperand instanceof IMultiValueOperand)
-				&& !(rightOperand instanceof SqlSubselectOperand)) {
-			throw new IllegalArgumentException("rightOperand must be an instance of "
-					+ IMultiValueOperand.class.getName() + " or a sub-query");
-		}
-		return createTwoPlaceOperator(SqlIsInOperator.class, leftOperand, rightOperand, caseSensitive);
-	}
-
-	@Override
-	public IOperator isEqualTo(Object leftOperand, Object rightOperand) {
-		return isEqualTo(leftOperand, rightOperand, null);
-	}
-
-	@Override
-	public IOperator isEqualTo(Object leftOperand, Object rightOperand, Boolean caseSensitive) {
-		return createTwoPlaceOperator(SqlIsEqualToOperator.class, leftOperand, rightOperand,
-				caseSensitive);
-	}
-
-	@Override
-	public IOperator isGreaterThan(Object leftOperand, Object rightOperand) {
-		return createTwoPlaceOperator(SqlIsGreaterThanOperator.class, leftOperand, rightOperand, null);
-	}
-
-	@Override
-	public IOperator isGreaterThanOrEqualTo(Object leftOperand, Object rightOperand) {
-		return createTwoPlaceOperator(SqlIsGreaterThanOrEqualToOperator.class, leftOperand,
-				rightOperand, null);
-	}
-
-	@Override
-	public IOperator isLessThan(Object leftOperand, Object rightOperand) {
-		return createTwoPlaceOperator(SqlIsLessThanOperator.class, leftOperand, rightOperand, null);
-	}
-
-	@Override
-	public IOperator isLessThanOrEqualTo(Object leftOperand, Object rightOperand) {
-		return createTwoPlaceOperator(SqlIsLessThanOrEqualToOperator.class, leftOperand, rightOperand,
-				null);
-	}
-
-	@Override
-	public IOperator isNotContainedIn(Object leftOperand, Object rightOperand) {
-		return notContains(rightOperand, leftOperand, null);
-	}
-
-	@Override
-	public IOperator isNotContainedIn(Object leftOperand, Object rightOperand,
-			Boolean caseSensitive) {
-		return notContains(rightOperand, leftOperand, caseSensitive);
-	}
-
-	@Override
-	public IOperator isNotIn(Object leftOperand, Object rightOperand) {
-		return isNotIn(leftOperand, rightOperand, null);
-	}
-
-	@Override
-	public IOperator isNotIn(Object leftOperand, Object rightOperand, Boolean caseSensitive) {
-		return createTwoPlaceOperator(SqlIsNotInOperator.class, leftOperand, rightOperand,
-				caseSensitive);
-	}
-
-	@Override
-	public IOperator isNotEqualTo(Object leftOperand, Object rightOperand) {
-		return isNotEqualTo(leftOperand, rightOperand, null);
-	}
-
-	@Override
-	public IOperator isNotEqualTo(Object leftOperand, Object rightOperand, Boolean caseSensitive) {
-		return createTwoPlaceOperator(SqlIsNotEqualToOperator.class, leftOperand, rightOperand,
-				caseSensitive);
-	}
-
-	@Override
-	public IOperator notContains(Object leftOperand, Object rightOperand) {
-		return notContains(leftOperand, rightOperand, null);
-	}
-
-	@Override
-	public IOperator notContains(Object leftOperand, Object rightOperand, Boolean caseSensitive) {
-		return createTwoPlaceOperator(SqlNotContainsOperator.class, leftOperand, rightOperand,
-				caseSensitive);
-	}
-
-	@Override
 	public IOperator isNull(IOperand operand) {
 		ParamChecker.assertParamNotNull(operand, "operand");
 		return getBeanContext().registerBean(SqlNullCheck.class)//
@@ -783,23 +666,12 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 				.finish();
 	}
 
-	@Override
 	public IOperator isNotNull(IOperand operand) {
 		ParamChecker.assertParamNotNull(operand, "operand");
 		return getBeanContext().registerBean(SqlNullCheck.class)//
 				.propertyValue("Operand", operand)//
 				.propertyValue("IsNull", Boolean.FALSE)//
 				.finish();
-	}
-
-	@Override
-	public IOperator like(Object leftOperand, Object rightOperand) {
-		return like(leftOperand, rightOperand, null);
-	}
-
-	@Override
-	public IOperator like(Object leftOperand, Object rightOperand, Boolean caseSensitive) {
-		return createTwoPlaceOperator(SqlLikeOperator.class, leftOperand, rightOperand, caseSensitive);
 	}
 
 	@Override
@@ -811,17 +683,6 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 	protected IOperand limitIntern(IOperand operand) {
 		ParamChecker.assertParamNotNull(operand, "operand");
 		return connectionDialect.getLimitOperand(operand, (IValueOperand) operand);
-	}
-
-	@Override
-	public IOperator notLike(Object leftOperand, Object rightOperand) {
-		return notLike(leftOperand, rightOperand, null);
-	}
-
-	@Override
-	public IOperator notLike(Object leftOperand, Object rightOperand, Boolean caseSensitive) {
-		return createTwoPlaceOperator(SqlNotLikeOperator.class, leftOperand, rightOperand,
-				caseSensitive);
 	}
 
 	@Override
@@ -839,17 +700,6 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
-	}
-
-	@Override
-	public IOperator startsWith(Object leftOperand, Object rightOperand) {
-		return startsWith(leftOperand, rightOperand, null);
-	}
-
-	@Override
-	public IOperator startsWith(Object leftOperand, Object rightOperand, Boolean caseSensitive) {
-		return createTwoPlaceOperator(SqlStartsWithOperator.class, leftOperand, rightOperand,
-				caseSensitive);
 	}
 
 	@Override
@@ -911,7 +761,7 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 			Integer label = Integer.valueOf(a + 1);
 			IOperand containsFunction = function("CONTAINS",
 					columnIntern(fulltextField.getName(), fulltextField, null), queryOperand, value(label));
-			IOperator gtOperator = isGreaterThan(containsFunction, value(Integer.valueOf(0)));
+			IOperator gtOperator = let(containsFunction).isGreaterThan(value(Integer.valueOf(0)));
 
 			if (orOperator == null) {
 				orOperator = gtOperator;
@@ -933,9 +783,10 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 						|| primitiveField.equals(updatedByField) || primitiveField.equals(createdByField)) {
 					continue;
 				}
-				IOperator containsOperator = contains(
-						columnIntern(primitiveField.getName(), primitiveField, null), queryOperand,
-						Boolean.FALSE);
+				IOperator containsOperator =
+						let(columnIntern(primitiveField.getName(), primitiveField, null)).contains(
+								queryOperand,
+								Boolean.FALSE);
 
 				if (orOperator == null) {
 					orOperator = containsOperator;
@@ -989,8 +840,7 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 		return self;
 	}
 
-	@Override
-	public IOperand overlaps(Object leftOperand, Object rightOperand) {
+	public IOperand overlaps(IOperand leftOperand, IOperand rightOperand) {
 		ParamChecker.assertParamNotNull(leftOperand, "leftOperand");
 		ParamChecker.assertParamNotNull(rightOperand, "rightOperand");
 		return beanContext.registerBean(OverlapsOperand.class).propertyValue("LeftOperand", leftOperand)
@@ -1007,7 +857,6 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 		return self;
 	}
 
-	@Override
 	public IOperand interval(IOperand lowerBoundary, IOperand upperBoundary) {
 		ParamChecker.assertParamNotNull(lowerBoundary, "lowerBoundary");
 		ParamChecker.assertParamNotNull(upperBoundary, "upperBoundary");
@@ -1122,7 +971,7 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 				joinClause = (SqlJoinOperator) childContextFactory.registerBean(SqlJoinOperator.class)
 						.propertyValue("JoinType", joinType)
 						.propertyValue("FullqualifiedEscapedTableName", fullqualifiedEscapedTableName)
-						.propertyValue("Clause", isEqualTo(columnBase, columnJoined))
+						.propertyValue("Clause", let(columnBase).isEqualTo(columnJoined))
 						.propertyValue("JoinedColumn", columnJoined).getInstance();
 				joinClause.setTableName(tableName);
 			}
@@ -1130,7 +979,7 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 				joinClause = getBeanContext().registerBean(SqlJoinOperator.class)
 						.propertyValue("JoinType", joinType).propertyValue("TableName", tableName)
 						.propertyValue("FullqualifiedEscapedTableName", fullqualifiedEscapedTableName)
-						.propertyValue("Clause", isEqualTo(columnBase, columnJoined))
+						.propertyValue("Clause", let(columnBase).isEqualTo(columnJoined))
 						.propertyValue("JoinedColumn", columnJoined).finish();
 			}
 			((SqlColumnOperand) columnJoined).setJoinClause(joinClause);
@@ -1243,16 +1092,19 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 					.registerBean(SimpleValueOperand.class)
 					.propertyValue("ParamName", QueryConstants.LIMIT_VALUE)
 					.propertyValue("TryOnly", Boolean.TRUE).finish();
-			IValueOperand[] limitOperands = { limitOperandForFramework, (IValueOperand) limitOperand };
+			IValueOperand[] limitOperands = {limitOperandForFramework, (IValueOperand) limitOperand};
 			final IOperand findFirstValueLimitOperand = limitIntern(
 					getBeanContext().registerBean(FindFirstValueOperand.class)
 							.propertyValue("operands", limitOperands).finish());
 			final IOperand[] groupByOperandArray = groupByOperands != null
-					? groupByOperands.toArray(new IOperand[groupByOperands.size()]) : emptyOperands;
+					? groupByOperands.toArray(new IOperand[groupByOperands.size()])
+					: emptyOperands;
 			final IOperand[] orderByOperandArray = orderByOperands != null
-					? orderByOperands.toArray(new IOperand[orderByOperands.size()]) : emptyOperands;
+					? orderByOperands.toArray(new IOperand[orderByOperands.size()])
+					: emptyOperands;
 			final IOperand[] selectArray = selectOperands != null
-					? selectOperands.toArray(new IOperand[selectOperands.size()]) : emptyOperands;
+					? selectOperands.toArray(new IOperand[selectOperands.size()])
+					: emptyOperands;
 			final IList<Class<?>> relatedEntityTypesList = relatedEntityTypes.toList();
 			final String queryDelegateName = "queryDelegate", pagingQueryName = "pagingQuery",
 					queryName = "query";

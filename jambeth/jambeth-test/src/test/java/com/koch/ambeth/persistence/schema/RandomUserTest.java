@@ -131,7 +131,7 @@ public class RandomUserTest extends AbstractInformationBusWithPersistenceTest {
 	@Test
 	public void testQueryA() throws Exception {
 		IQueryBuilder<ParentA> qb = qbf.create(ParentA.class);
-		IQuery<ParentA> query = qb.build(qb.isEqualTo(qb.property("Child.Id"), qb.value(11)));
+		IQuery<ParentA> query = qb.build(qb.let(qb.property("Child.Id")).isEqualTo(qb.value(11)));
 		List<ParentA> result = query.retrieve();
 		assertEquals(1, result.size());
 		ParentA actual = result.get(0);
@@ -142,7 +142,7 @@ public class RandomUserTest extends AbstractInformationBusWithPersistenceTest {
 	@Test
 	public void testQueryB() throws Exception {
 		IQueryBuilder<ParentB> qb = qbf.create(ParentB.class);
-		IQuery<ParentB> query = qb.build(qb.isEqualTo(qb.property("Child.Id"), qb.value(111)));
+		IQuery<ParentB> query = qb.build(qb.let(qb.property("Child.Id")).isEqualTo(qb.value(111)));
 		List<ParentB> result = query.retrieve();
 		assertEquals(1, result.size());
 		ParentB actual = result.get(0);

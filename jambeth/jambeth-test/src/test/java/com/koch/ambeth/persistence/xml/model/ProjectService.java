@@ -48,7 +48,7 @@ public class ProjectService implements IProjectService, IStartingBean {
 		{
 			IQueryBuilder<Project> qb = queryBuilderFactory.create(Project.class);
 			queryProjectByName = qb
-					.build(qb.isEqualTo(qb.property(Project.Name), qb.valueName(Project.Name)));
+					.build(qb.let(qb.property(Project.Name)).isEqualTo(qb.valueName(Project.Name)));
 		}
 	}
 

@@ -220,32 +220,36 @@ public class FilterToQueryBuilder implements IFilterToQueryBuilder {
 				break;
 			case CONTAINS:
 				value = convertWithContext(columnType.getValue(), valueString);
-				operand = queryBuilder.contains(leftOperand, queryBuilder.value(value), isCaseSensitive);
+				operand =
+						queryBuilder.let(leftOperand).contains(queryBuilder.value(value), isCaseSensitive);
 				break;
 			case DOES_NOT_CONTAIN:
 				value = convertWithContext(columnType.getValue(), valueString);
-				operand = queryBuilder.notContains(leftOperand, queryBuilder.value(value), isCaseSensitive);
+				operand =
+						queryBuilder.let(leftOperand).notContains(queryBuilder.value(value), isCaseSensitive);
 				break;
 			case ENDS_WITH:
 				value = convertWithContext(columnType.getValue(), valueString);
-				operand = queryBuilder.endsWith(leftOperand, queryBuilder.value(value), isCaseSensitive);
+				operand =
+						queryBuilder.let(leftOperand).endsWith(queryBuilder.value(value), isCaseSensitive);
 				break;
 			case IS_CONTAINED_IN:
 				value = convertWithContext(columnType.getValue(), valueString);
-				operand = queryBuilder.isContainedIn(leftOperand, queryBuilder.value(value),
+				operand = queryBuilder.let(leftOperand).isContainedIn(queryBuilder.value(value),
 						isCaseSensitive);
 				break;
 			case IS_EQUAL_TO:
 				value = convertWithContext(columnType.getValue(), valueString);
-				operand = queryBuilder.isEqualTo(leftOperand, queryBuilder.value(value), isCaseSensitive);
+				operand =
+						queryBuilder.let(leftOperand).isEqualTo(queryBuilder.value(value), isCaseSensitive);
 				break;
 			case IS_GREATER_THAN:
 				value = convertWithContext(columnType.getValue(), valueString);
-				operand = queryBuilder.isGreaterThan(leftOperand, queryBuilder.value(value));
+				operand = queryBuilder.let(leftOperand).isGreaterThan(queryBuilder.value(value));
 				break;
 			case IS_GREATER_THAN_OR_EQUAL_TO:
 				value = convertWithContext(columnType.getValue(), valueString);
-				operand = queryBuilder.isGreaterThanOrEqualTo(leftOperand, queryBuilder.value(value));
+				operand = queryBuilder.let(leftOperand).isGreaterThanOrEqualTo(queryBuilder.value(value));
 				break;
 			case IS_IN: {
 				Object[] convertedValues = new Object[values.size()];
@@ -253,26 +257,26 @@ public class FilterToQueryBuilder implements IFilterToQueryBuilder {
 					String item = values.get(i);
 					convertedValues[i] = conversionHelper.convertValueToType(columnType.getValue(), item);
 				}
-				operand = queryBuilder.isIn(leftOperand, queryBuilder.value(convertedValues),
+				operand = queryBuilder.let(leftOperand).isIn(queryBuilder.value(convertedValues),
 						isCaseSensitive);
 				break;
 			}
 			case IS_LESS_THAN:
 				value = convertWithContext(columnType.getValue(), valueString);
-				operand = queryBuilder.isLessThan(leftOperand, queryBuilder.value(value));
+				operand = queryBuilder.let(leftOperand).isLessThan(queryBuilder.value(value));
 				break;
 			case IS_LESS_THAN_OR_EQUAL_TO:
 				value = convertWithContext(columnType.getValue(), valueString);
-				operand = queryBuilder.isLessThanOrEqualTo(leftOperand, queryBuilder.value(value));
+				operand = queryBuilder.let(leftOperand).isLessThanOrEqualTo(queryBuilder.value(value));
 				break;
 			case IS_NOT_CONTAINED_IN:
 				value = convertWithContext(columnType.getValue(), valueString);
-				operand = queryBuilder.isNotContainedIn(leftOperand, queryBuilder.value(value),
+				operand = queryBuilder.let(leftOperand).isNotContainedIn(queryBuilder.value(value),
 						isCaseSensitive);
 				break;
 			case IS_NOT_EQUAL_TO:
 				value = convertWithContext(columnType.getValue(), valueString);
-				operand = queryBuilder.isNotEqualTo(leftOperand, queryBuilder.value(value),
+				operand = queryBuilder.let(leftOperand).isNotEqualTo(queryBuilder.value(value),
 						isCaseSensitive);
 				break;
 			case IS_NOT_IN: {
@@ -281,23 +285,24 @@ public class FilterToQueryBuilder implements IFilterToQueryBuilder {
 					String item = values.get(i);
 					convertedValues[i] = conversionHelper.convertValueToType(columnType.getValue(), item);
 				}
-				operand = queryBuilder.isNotIn(leftOperand, queryBuilder.value(convertedValues),
+				operand = queryBuilder.let(leftOperand).isNotIn(queryBuilder.value(convertedValues),
 						isCaseSensitive);
 				break;
 			}
 			case LIKE:
 				value = convertWithContext(columnType.getValue(), valueString);
-				operand = queryBuilder.like(leftOperand, queryBuilder.value(value), isCaseSensitive);
+				operand = queryBuilder.let(leftOperand).like(queryBuilder.value(value), isCaseSensitive);
 				break;
 			case STARTS_WITH:
 				value = convertWithContext(columnType.getValue(), valueString);
-				operand = queryBuilder.startsWith(leftOperand, queryBuilder.value(value), isCaseSensitive);
+				operand =
+						queryBuilder.let(leftOperand).startsWith(queryBuilder.value(value), isCaseSensitive);
 				break;
 			case IS_NOT_NULL:
-				operand = queryBuilder.isNotNull(leftOperand);
+				operand = queryBuilder.let(leftOperand).isNotNull();
 				break;
 			case IS_NULL:
-				operand = queryBuilder.isNull(leftOperand);
+				operand = queryBuilder.let(leftOperand).isNull();
 				break;
 			default:
 				throw new IllegalStateException(

@@ -48,15 +48,17 @@ public class QueryBehaviorService implements IStartingBean, IQueryBehaviorServic
 	@Override
 	public void afterStarted() throws Throwable {
 		IQueryBuilder<Material> getMaterialQB = queryBuilderFactory.create(Material.class);
-		getMaterialByIdQuery = getMaterialQB.build(getMaterialQB.isEqualTo(getMaterialQB.property("Id"),
-				getMaterialQB.valueName(QueryParamKey)));
+		getMaterialByIdQuery =
+				getMaterialQB.build(getMaterialQB.let(getMaterialQB.property("Id")).isEqualTo(
+						getMaterialQB.valueName(QueryParamKey)));
 
 		IQueryBuilder<Material> getAllMaterialsQB = queryBuilderFactory.create(Material.class);
 		getAllMaterialsQuery = getAllMaterialsQB.build();
 
 		IQueryBuilder<Material> getMaterialByNameQB = queryBuilderFactory.create(Material.class);
-		getMaterialByNameQuery = getMaterialByNameQB.build(getMaterialByNameQB.isEqualTo(
-				getMaterialByNameQB.property("Name"), getMaterialByNameQB.valueName(QueryParamKey)));
+		getMaterialByNameQuery = getMaterialByNameQB.build(getMaterialByNameQB.let(
+				getMaterialByNameQB.property("Name"))
+				.isEqualTo(getMaterialByNameQB.valueName(QueryParamKey)));
 	}
 
 	@Override

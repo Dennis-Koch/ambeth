@@ -76,7 +76,7 @@ public class EmbeddedTypeTest extends AbstractInformationBusWithPersistenceTest 
 
 		IQueryBuilder<ParentOfEmbeddedType> qb = queryBuilderFactory.create(ParentOfEmbeddedType.class);
 		IQuery<ParentOfEmbeddedType> query =
-				qb.build(qb.isEqualTo(qb.property("MyEmbeddedType.Name"), qb.valueName(param1)));
+				qb.build(qb.let(qb.property("MyEmbeddedType.Name")).isEqualTo(qb.valueName(param1)));
 
 		List<ParentOfEmbeddedType> parents = query.param(param1, "My Name Is").retrieve();
 		Assert.assertEquals(1, parents.size());

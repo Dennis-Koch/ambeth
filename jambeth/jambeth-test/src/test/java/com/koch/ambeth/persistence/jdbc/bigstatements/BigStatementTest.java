@@ -68,7 +68,7 @@ public class BigStatementTest extends AbstractInformationBusWithPersistenceTest 
 	public void testBigQuery100000() throws Exception {
 		String paramName = "paramName";
 		IQueryBuilder<Material> qb = queryBuilderFactory.create(Material.class);
-		IQuery<Material> query = qb.build(qb.isIn(qb.property("Id"), qb.valueName(paramName)));
+		IQuery<Material> query = qb.build(qb.let(qb.property("Id")).isIn(qb.valueName(paramName)));
 
 		ArrayList<Object> bigList = new ArrayList<>();
 		for (int a = 100000; a-- > 0;) {
@@ -94,7 +94,7 @@ public class BigStatementTest extends AbstractInformationBusWithPersistenceTest 
 	public void testBigQuery20000() throws Exception {
 		String paramName = "paramName";
 		IQueryBuilder<Material> qb = queryBuilderFactory.create(Material.class);
-		IQuery<Material> query = qb.build(qb.isIn(qb.property("Id"), qb.valueName(paramName)));
+		IQuery<Material> query = qb.build(qb.let(qb.property("Id")).isIn(qb.valueName(paramName)));
 
 		ArrayList<Object> bigList = new ArrayList<>();
 		for (int a = 20000; a-- > 0;) {

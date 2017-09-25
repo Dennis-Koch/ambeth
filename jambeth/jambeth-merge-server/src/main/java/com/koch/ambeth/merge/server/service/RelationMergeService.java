@@ -441,7 +441,7 @@ public class RelationMergeService implements IRelationMergeService, IEventListen
 						new ChildMember(propIndex, selectingMember,
 								selectingMetaData.getMemberByName(childMemberName),
 								selectingMetaData.getIdIndexByMemberName(childMemberName)));
-				IOperand inOperator = qb.isIn(prop, qb.valueName(propertyName));
+				IOperand inOperator = qb.let(prop).isIn(qb.valueName(propertyName));
 				if (operand == null) {
 					operand = inOperator;
 				}

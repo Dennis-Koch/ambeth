@@ -121,7 +121,7 @@ public class NoVersionTest extends AbstractInformationBusWithPersistenceTest {
 	@Test
 	public void testQuery() throws Exception {
 		IQueryBuilder<NoVersion> qb = queryBuilderFactory.create(NoVersion.class);
-		IQuery<NoVersion> query = qb.build(qb.isEqualTo(qb.property("Name"), qb.value("zwei")));
+		IQuery<NoVersion> query = qb.build(qb.let(qb.property("Name")).isEqualTo(qb.value("zwei")));
 		List<NoVersion> result = query.retrieve();
 		assertEquals(1, result.size());
 		NoVersion actual = result.get(0);

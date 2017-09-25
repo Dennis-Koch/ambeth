@@ -1,6 +1,7 @@
 package com.koch.ambeth.revert;
 
 import java.util.Collection;
+import java.util.Optional;
 
 import com.koch.ambeth.ioc.IInitializingModule;
 import com.koch.ambeth.ioc.config.IBeanConfiguration;
@@ -24,7 +25,7 @@ public class RevertChangesTestFrameworkModule implements IInitializingModule {
 			Address address = createEntity(Address.class);
 			address.setCity("DefaultCity");
 			address.setStreet("DefaultStreet");
-			employee.setPrimaryAddress(address);
+			employee.setPrimaryAddress(Optional.of(address));
 
 			Project project = createEntity(Project.class);
 			project.setName("MyProject");

@@ -95,8 +95,8 @@ public class ORIHelperValueHolderTest extends AbstractInformationBusWithPersiste
 
 		assertEquals(2, extractedORIList.size());
 
-		Address address1 = employee1.getPrimaryAddress();
-		Address address2 = employee2.getPrimaryAddress();
+		Address address1 = employee1.getPrimaryAddress().get();
+		Address address2 = employee2.getPrimaryAddress().get();
 
 		IObjRef ori1 = extractedORIList.get(0);
 		assertEquals(Address.class, ori1.getRealType());

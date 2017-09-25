@@ -535,7 +535,7 @@ public class EntityLoader
 			for (Entry<Member, IList<Object>> entry2 : givenMemberToValues) {
 				Member idMember = entry2.getKey();
 				IList<Object> values = entry2.getValue();
-				IOperator inOperator = qb.isIn(qb.property(idMember.getName()), qb.value(values));
+				IOperator inOperator = qb.let(qb.property(idMember.getName())).isIn(qb.value(values));
 				wheres[index++] = inOperator;
 			}
 

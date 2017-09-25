@@ -319,8 +319,8 @@ public class AuditEntryVerifier
 		int index = 0;
 		IOperator op = null;
 		for (int a = bucketSortObjRefs.size(); a-- > 0;) {
-			IOperator typeMatchOp = qb.isEqualTo(entityTypeProp, qb.valueName("param" + index++));
-			IOperator idMatchOp = qb.isIn(entityIdProp, qb.valueName("param" + index++));
+			IOperator typeMatchOp = qb.let(entityTypeProp).isEqualTo(qb.valueName("param" + index++));
+			IOperator idMatchOp = qb.let(entityIdProp).isIn(qb.valueName("param" + index++));
 			IOperator matchOp = qb.and(typeMatchOp, idMatchOp);
 
 			if (op == null) {

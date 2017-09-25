@@ -97,7 +97,11 @@ public class QueryBuilderProxyInterceptor implements MethodInterceptor {
 		lastPropertyPathTL.set(propertyPath);
 		if (elementType.isEnum()) {
 			Object[] enumConstants = elementType.getEnumConstants();
-			childPlan = enumConstants.length > 0 ? enumConstants[0] : null;
+			if (enumConstants.length == 0) {
+				throw new IllegalStateException("Can not query for an enum without any enum constants: '"
+						+ elementType.getName() + "'");
+			}
+			childPlan = enumConstants[0];
 		}
 		else if (Number.class.isAssignableFrom(elementType)) {
 			childPlan = elementType.getConstructor(String.class).newInstance("0");

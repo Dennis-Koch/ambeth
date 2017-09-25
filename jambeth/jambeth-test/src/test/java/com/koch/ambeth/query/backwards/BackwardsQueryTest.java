@@ -54,7 +54,7 @@ public class BackwardsQueryTest extends AbstractInformationBusWithPersistenceTes
 		// SELECT DISTINCT S_A."ID",S_A."VERSION",S_A."NAME" FROM "QUERY_ENTITY" S_A
 		// LEFT OUTER JOIN "QUERY_ENTITY" J_A ON (S_A."ID"=J_A."NEXT")
 		// WHERE (J_A."ID"=?)
-		IOperand rootOperand = qb.isEqualTo(qb.property("<Next"), qb.value(1));
+		IOperand rootOperand = qb.let(qb.property("<Next")).isEqualTo(qb.value(1));
 		IQuery<QueryEntity> query = qb.build(rootOperand);
 		assertNotNull(query);
 		QueryEntity entity = query.retrieveSingle();
@@ -68,7 +68,7 @@ public class BackwardsQueryTest extends AbstractInformationBusWithPersistenceTes
 		// LEFT OUTER JOIN "QUERY_ENTITY" J_A ON (S_A."NEXT"=J_A."ID")
 		// LEFT OUTER JOIN "JOIN_QUERY_ENTITY" J_B ON (J_A."JOIN_QUERY_ENTITY"=J_B."ID")
 		// WHERE (J_B."VALUE_FIELD"=?)
-		IOperand rootOperand = qb.isEqualTo(qb.property("Next <QueryEntity.Value"), qb.value(77));
+		IOperand rootOperand = qb.let(qb.property("Next <QueryEntity.Value")).isEqualTo(qb.value(77));
 		IQuery<QueryEntity> query = qb.build(rootOperand);
 		assertNotNull(query);
 		QueryEntity entity = query.retrieveSingle();
@@ -84,7 +84,7 @@ public class BackwardsQueryTest extends AbstractInformationBusWithPersistenceTes
 		// LEFT OUTER JOIN "LINK_TABLE_ENTITY" J_C ON (J_B."RIGHT_ID"=J_C."ID")
 		// WHERE (J_C."NAME"=?)
 		IOperand rootOperand =
-				qb.isEqualTo(qb.property("<QueryEntity <JoinQueryEntity Name"), qb.value("name21"));
+				qb.let(qb.property("<QueryEntity <JoinQueryEntity Name")).isEqualTo(qb.value("name21"));
 		IQuery<QueryEntity> query = qb.build(rootOperand);
 		assertNotNull(query);
 		QueryEntity entity = query.retrieveSingle();
@@ -102,7 +102,7 @@ public class BackwardsQueryTest extends AbstractInformationBusWithPersistenceTes
 		IQueryBuilder<LinkTableEntity> qb = queryBuilderFactory.create(LinkTableEntity.class);
 
 		IOperand rootOperand =
-				qb.isEqualTo(qb.property("<JoinQueryEntity#LinkTableEntity Version"), qb.value(3));
+				qb.let(qb.property("<JoinQueryEntity#LinkTableEntity Version")).isEqualTo(qb.value(3));
 		IQuery<LinkTableEntity> query = qb.build(rootOperand);
 		assertNotNull(query);
 
@@ -120,9 +120,10 @@ public class BackwardsQueryTest extends AbstractInformationBusWithPersistenceTes
 
 		IQueryBuilder<LinkTableEntity> qb = queryBuilderFactory.create(LinkTableEntity.class);
 
-		IOperand rootOperand = qb.isEqualTo(
-				qb.property("<com.koch.ambeth.query.backwards.JoinQueryEntity#LinkTableEntity.Version"),
-				qb.value(3));
+		IOperand rootOperand = qb.let(
+				qb.property("<com.koch.ambeth.query.backwards.JoinQueryEntity#LinkTableEntity.Version"))
+				.isEqualTo(
+						qb.value(3));
 		IQuery<LinkTableEntity> query = qb.build(rootOperand);
 		assertNotNull(query);
 
@@ -135,7 +136,7 @@ public class BackwardsQueryTest extends AbstractInformationBusWithPersistenceTes
 	public void testNotUniqueBackwardsPropertyQuery_missingEntity() throws Exception {
 		IQueryBuilder<LinkTableEntity> qb = queryBuilderFactory.create(LinkTableEntity.class);
 
-		IOperand rootOperand = qb.isEqualTo(qb.property("<LinkTableEntity.Version"), qb.value(1));
+		IOperand rootOperand = qb.let(qb.property("<LinkTableEntity.Version")).isEqualTo(qb.value(1));
 		IQuery<LinkTableEntity> query = qb.build(rootOperand);
 		assertNotNull(query);
 	}
@@ -151,9 +152,9 @@ public class BackwardsQueryTest extends AbstractInformationBusWithPersistenceTes
 		IQueryBuilder<LinkTableEntity> qb = queryBuilderFactory.create(LinkTableEntity.class);
 
 		IOperator operator1 =
-				qb.isEqualTo(qb.property("<JoinQueryEntity#LinkTableEntity Version"), qb.value(3));
+				qb.let(qb.property("<JoinQueryEntity#LinkTableEntity Version")).isEqualTo(qb.value(3));
 		IOperator operator2 =
-				qb.isEqualTo(qb.property("<QueryEntity#LinkTableEntity Name"), qb.value("name1"));
+				qb.let(qb.property("<QueryEntity#LinkTableEntity Name")).isEqualTo(qb.value("name1"));
 		IOperand rootOperand = qb.and(operator1, operator2);
 		IQuery<LinkTableEntity> query = qb.build(rootOperand);
 		assertNotNull(query);

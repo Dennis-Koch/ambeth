@@ -30,24 +30,15 @@ import com.koch.ambeth.query.IOperand;
 import com.koch.ambeth.query.IOperator;
 import com.koch.ambeth.query.IQuery;
 import com.koch.ambeth.query.IQueryBuilder;
+import com.koch.ambeth.query.IQueryBuilderAfterLeftOperand;
 import com.koch.ambeth.query.ISqlJoin;
 import com.koch.ambeth.query.ISubQuery;
 import com.koch.ambeth.query.OrderByType;
 import com.koch.ambeth.query.filter.IPagingQuery;
 import com.koch.ambeth.query.inmemory.bool.AndOperator;
 import com.koch.ambeth.query.inmemory.bool.FalseOperator;
-import com.koch.ambeth.query.inmemory.bool.IsNotNullOperator;
-import com.koch.ambeth.query.inmemory.bool.IsNullOperator;
 import com.koch.ambeth.query.inmemory.bool.OrOperator;
 import com.koch.ambeth.query.inmemory.bool.TrueOperator;
-import com.koch.ambeth.query.inmemory.ordinal.IsGreaterThanOperator;
-import com.koch.ambeth.query.inmemory.ordinal.IsGreaterThanOrEqualToOperator;
-import com.koch.ambeth.query.inmemory.ordinal.IsLessThanOperator;
-import com.koch.ambeth.query.inmemory.ordinal.IsLessThanOrEqualToOperator;
-import com.koch.ambeth.query.inmemory.text.EndsWithOperator;
-import com.koch.ambeth.query.inmemory.text.IsEqualToOperator;
-import com.koch.ambeth.query.inmemory.text.IsNotEqualToOperator;
-import com.koch.ambeth.query.inmemory.text.StartsWithOperator;
 import com.koch.ambeth.util.IParamHolder;
 import com.koch.ambeth.util.ParamChecker;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
@@ -87,7 +78,7 @@ public class InMemoryQueryBuilder<T> implements IQueryBuilder<T> {
 	}
 
 	protected IOperator createBinaryOperator(Class<? extends IOperator> operatorType,
-			Object leftOperand, Object rightOperand, Boolean caseSensitive) {
+			IOperand leftOperand, IOperand rightOperand, Boolean caseSensitive) {
 		ParamChecker.assertParamNotNull(operatorType, "operatorType");
 		ParamChecker.assertParamNotNull(leftOperand, "leftOperand");
 		ParamChecker.assertParamNotNull(rightOperand, "rightOperand");
@@ -129,6 +120,11 @@ public class InMemoryQueryBuilder<T> implements IQueryBuilder<T> {
 	}
 
 	@Override
+	public IQueryBuilderAfterLeftOperand let(Object leftOperand) {
+		throw new IllegalStateException("Not yet supported");
+	}
+
+	@Override
 	public IOperator or(IOperand leftOperand, IOperand rightOperand) {
 		return createManyPlaceOperator(OrOperator.class, leftOperand, rightOperand);
 	}
@@ -136,11 +132,6 @@ public class InMemoryQueryBuilder<T> implements IQueryBuilder<T> {
 	@Override
 	public IOperator or(IOperand... operands) {
 		return createManyPlaceOperator(OrOperator.class, operands);
-	}
-
-	@Override
-	public IOperand overlaps(Object leftOperand, Object rightOperand) {
-		return null;
 	}
 
 	@Override
@@ -175,6 +166,16 @@ public class InMemoryQueryBuilder<T> implements IQueryBuilder<T> {
 	}
 
 	@Override
+	public IOperand regexpLike(IOperand sourceString, IOperand pattern) {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public IOperand regexpLike(IOperand sourceString, IOperand pattern, IOperand matchParameter) {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
 	public IOperand column(String columnName) {
 		throw new UnsupportedOperationException();
 	}
@@ -185,28 +186,8 @@ public class InMemoryQueryBuilder<T> implements IQueryBuilder<T> {
 	}
 
 	@Override
-	public IOperator contains(Object leftOperand, Object rightOperand) {
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
-	public IOperator contains(Object leftOperand, Object rightOperand, Boolean caseSensitive) {
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
 	public IOperand difference(IOperand... operands) {
 		throw new UnsupportedOperationException();
-	}
-
-	@Override
-	public IOperator endsWith(Object leftOperand, Object rightOperand) {
-		return createBinaryOperator(EndsWithOperator.class, leftOperand, rightOperand, null);
-	}
-
-	@Override
-	public IOperator endsWith(Object leftOperand, Object rightOperand, Boolean caseSensitive) {
-		return createBinaryOperator(EndsWithOperator.class, leftOperand, rightOperand, caseSensitive);
 	}
 
 	@Override
@@ -220,151 +201,8 @@ public class InMemoryQueryBuilder<T> implements IQueryBuilder<T> {
 	}
 
 	@Override
-	public IOperator isContainedIn(Object leftOperand, Object rightOperand) {
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
-	public IOperator isContainedIn(Object leftOperand, Object rightOperand, Boolean caseSensitive) {
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
-	public IOperator isIn(Object leftOperand, Object rightOperand) {
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
-	public IOperator isIn(Object leftOperand, Object rightOperand, Boolean caseSensitive) {
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
-	public IOperator isEqualTo(Object leftOperand, Object rightOperand) {
-		return createBinaryOperator(IsEqualToOperator.class, leftOperand, rightOperand, null);
-	}
-
-	@Override
-	public IOperator isEqualTo(Object leftOperand, Object rightOperand, Boolean caseSensitive) {
-		return createBinaryOperator(IsEqualToOperator.class, leftOperand, rightOperand, caseSensitive);
-	}
-
-	@Override
-	public IOperator isGreaterThan(Object leftOperand, Object rightOperand) {
-		return createBinaryOperator(IsGreaterThanOperator.class, leftOperand, rightOperand, null);
-	}
-
-	@Override
-	public IOperator isGreaterThanOrEqualTo(Object leftOperand, Object rightOperand) {
-		return createBinaryOperator(IsGreaterThanOrEqualToOperator.class, leftOperand, rightOperand,
-				null);
-	}
-
-	@Override
-	public IOperator isLessThan(Object leftOperand, Object rightOperand) {
-		return createBinaryOperator(IsLessThanOperator.class, leftOperand, rightOperand, null);
-	}
-
-	@Override
-	public IOperator isLessThanOrEqualTo(Object leftOperand, Object rightOperand) {
-		return createBinaryOperator(IsLessThanOrEqualToOperator.class, leftOperand, rightOperand, null);
-	}
-
-	@Override
-	public IOperator isNotContainedIn(Object leftOperand, Object rightOperand) {
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
-	public IOperator isNotContainedIn(Object leftOperand, Object rightOperand,
-			Boolean caseSensitive) {
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
-	public IOperator isNotIn(Object leftOperand, Object rightOperand) {
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
-	public IOperator isNotIn(Object leftOperand, Object rightOperand, Boolean caseSensitive) {
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
-	public IOperator isNotEqualTo(Object leftOperand, Object rightOperand) {
-		return createBinaryOperator(IsNotEqualToOperator.class, leftOperand, rightOperand, null);
-	}
-
-	@Override
-	public IOperator isNotEqualTo(Object leftOperand, Object rightOperand, Boolean caseSensitive) {
-		return createBinaryOperator(IsNotEqualToOperator.class, leftOperand, rightOperand,
-				caseSensitive);
-	}
-
-	@Override
-	public IOperator notContains(Object leftOperand, Object rightOperand) {
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
-	public IOperator notContains(Object leftOperand, Object rightOperand, Boolean caseSensitive) {
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
-	public IOperator notLike(Object leftOperand, Object rightOperand) {
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
-	public IOperator notLike(Object leftOperand, Object rightOperand, Boolean caseSensitive) {
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
-	public IOperator isNull(IOperand operand) {
-		return createUnaryOperator(IsNullOperator.class, operand, null);
-	}
-
-	@Override
-	public IOperator isNotNull(IOperand operand) {
-		return createUnaryOperator(IsNotNullOperator.class, operand, null);
-	}
-
-	@Override
-	public IOperator like(Object leftOperand, Object rightOperand) {
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
-	public IOperator like(Object leftOperand, Object rightOperand, Boolean caseSensitive) {
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
-	public IOperand regexpLike(IOperand sourceString, IOperand pattern) {
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
-	public IOperand regexpLike(IOperand sourceString, IOperand pattern, IOperand matchParameter) {
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
 	public IQueryBuilder<T> limit(IOperand operand) {
 		throw new UnsupportedOperationException();
-	}
-
-	@Override
-	public IOperator startsWith(Object leftOperand, Object rightOperand) {
-		return createBinaryOperator(StartsWithOperator.class, leftOperand, rightOperand, null);
-	}
-
-	@Override
-	public IOperator startsWith(Object leftOperand, Object rightOperand, Boolean caseSensitive) {
-		return createBinaryOperator(StartsWithOperator.class, leftOperand, rightOperand, caseSensitive);
 	}
 
 	@Override
@@ -389,11 +227,6 @@ public class InMemoryQueryBuilder<T> implements IQueryBuilder<T> {
 
 	@Override
 	public IQueryBuilder<T> groupBy(IOperand... operand) {
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
-	public IOperand interval(IOperand lowerBoundary, IOperand upperBoundary) {
 		throw new UnsupportedOperationException();
 	}
 

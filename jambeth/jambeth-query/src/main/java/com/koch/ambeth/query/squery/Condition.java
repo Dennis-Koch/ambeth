@@ -39,122 +39,116 @@ public enum Condition {
 	IS_NULL {
 		@Override
 		public IOperand buildeOperand(IQueryBuilder<?> qb, String nestFieldName, Object value) {
-			return qb.isNull(qb.property(nestFieldName));
+			return qb.let(qb.property(nestFieldName)).isNull();
 		}
 	},
 	IS_NOT_NULL {
 		@Override
 		public IOperand buildeOperand(IQueryBuilder<?> qb, String nestFieldName, Object value) {
-			return qb.isNotNull(qb.property(nestFieldName));
+			return qb.let(qb.property(nestFieldName)).isNotNull();
 		}
 	},
 	EQ {
 		@Override
 		public IOperand buildeOperand(IQueryBuilder<?> qb, String nestFieldName, Object value) {
-			return qb.isEqualTo(qb.property(nestFieldName), qb.value(value));
+			return qb.let(qb.property(nestFieldName)).isEqualTo(qb.value(value));
 		}
 	},
 	NOT_EQ {
 		@Override
 		public IOperand buildeOperand(IQueryBuilder<?> qb, String nestFieldName, Object value) {
-			return qb.isNotEqualTo(qb.property(nestFieldName), qb.value(value));
+			return qb.let(qb.property(nestFieldName)).isNotEqualTo(qb.value(value));
 		}
 	},
 	GT {
 		@Override
 		public IOperand buildeOperand(IQueryBuilder<?> qb, String nestFieldName, Object value) {
-			return qb.isGreaterThan(qb.property(nestFieldName), qb.value(value));
+			return qb.let(qb.property(nestFieldName)).isGreaterThan(qb.value(value));
 		}
 	},
 	GE {
 		@Override
 		public IOperand buildeOperand(IQueryBuilder<?> qb, String nestFieldName, Object value) {
-			return qb.isGreaterThanOrEqualTo(qb.property(nestFieldName), qb.value(value));
+			return qb.let(qb.property(nestFieldName)).isGreaterThanOrEqualTo(qb.value(value));
 		}
 	},
 	LT {
 		@Override
 		public IOperand buildeOperand(IQueryBuilder<?> qb, String nestFieldName, Object value) {
-			return qb.isLessThan(qb.property(nestFieldName), qb.value(value));
+			return qb.let(qb.property(nestFieldName)).isLessThan(qb.value(value));
 		}
 	},
 	LE {
 		@Override
 		public IOperand buildeOperand(IQueryBuilder<?> qb, String nestFieldName, Object value) {
-			return qb.isLessThanOrEqualTo(qb.property(nestFieldName), qb.value(value));
+			return qb.let(qb.property(nestFieldName)).isLessThanOrEqualTo(qb.value(value));
 		}
 	},
 	LIKE {
 		@Override
 		public IOperand buildeOperand(IQueryBuilder<?> qb, String nestFieldName, Object value) {
-			return qb.like(qb.property(nestFieldName), qb.value(value), false);
+			return qb.let(qb.property(nestFieldName)).like(qb.value(value), false);
 		}
 	},
 	NOT_LIKE {
 		@Override
 		public IOperand buildeOperand(IQueryBuilder<?> qb, String nestFieldName, Object value) {
-			return qb.notLike(qb.property(nestFieldName), qb.value(value), false);
+			return qb.let(qb.property(nestFieldName)).notLike(qb.value(value), false);
 		}
 	},
 	START_WITH {
 		@Override
 		public IOperand buildeOperand(IQueryBuilder<?> qb, String nestFieldName, Object value) {
-			return qb.startsWith(qb.property(nestFieldName), qb.value(value), false);
+			return qb.let(qb.property(nestFieldName)).startsWith(qb.value(value), false);
 		}
 	},
 	END_WITH {
 		@Override
 		public IOperand buildeOperand(IQueryBuilder<?> qb, String nestFieldName, Object value) {
-			return qb.endsWith(qb.property(nestFieldName), qb.value(value), false);
+			return qb.let(qb.property(nestFieldName)).endsWith(qb.value(value), false);
 		}
 	},
 	CONTAINS {
 		@Override
 		public IOperand buildeOperand(IQueryBuilder<?> qb, String nestFieldName, Object value) {
-			return qb.contains(qb.property(nestFieldName), qb.value(value), false);
+			return qb.let(qb.property(nestFieldName)).contains(qb.value(value), false);
 		}
 	},
 	NOT_CONTAINS {
 		@Override
 		public IOperand buildeOperand(IQueryBuilder<?> qb, String nestFieldName, Object value) {
-			return qb.notContains(qb.property(nestFieldName), qb.value(value), false);
+			return qb.let(qb.property(nestFieldName)).notContains(qb.value(value), false);
 		}
 	},
 	CONTAINED_IN {
-
 		@Override
 		public IOperand buildeOperand(IQueryBuilder<?> qb, String nestFieldName, Object value) {
-			return qb.isContainedIn(qb.property(nestFieldName), qb.value(value), false);
+			return qb.let(qb.property(nestFieldName)).isContainedIn(qb.value(value), false);
 		}
-
 	},
 	NOT_CONTAINED_IN {
-
 		@Override
 		public IOperand buildeOperand(IQueryBuilder<?> qb, String nestFieldName, Object value) {
-			return qb.isNotContainedIn(qb.property(nestFieldName), qb.value(value), false);
+			return qb.let(qb.property(nestFieldName)).isNotContainedIn(qb.value(value), false);
 		}
-
 	},
 	IN {
-
 		@Override
 		public IOperand buildeOperand(IQueryBuilder<?> qb, String nestFieldName, Object value) {
-			return qb.isIn(qb.property(nestFieldName), qb.value(value), false);
+			return qb.let(qb.property(nestFieldName)).isIn(qb.value(value), false);
 		}
 	},
 	NOT_IN {
-
 		@Override
 		public IOperand buildeOperand(IQueryBuilder<?> qb, String nestFieldName, Object value) {
-			return qb.isNotIn(qb.property(nestFieldName), qb.value(value), false);
+			return qb.let(qb.property(nestFieldName)).isNotIn(qb.value(value), false);
 		}
 	},
 	REGEXP_LIKE {
 
 		@Override
 		public IOperand buildeOperand(IQueryBuilder<?> qb, String nestFieldName, Object value) {
-			return qb.regexpLike(qb.property(nestFieldName), qb.value(value));
+			return qb.let(qb.property(nestFieldName)).regexpLike(qb.value(value));
 		}
 	},
 	DATE_AT {
@@ -170,7 +164,7 @@ public enum Condition {
 		public IOperand buildeOperand(IQueryBuilder<?> qb, String nestFieldName, Object value) {
 			checkDateType(value, "DateGt");
 			Date maxTime = toMaxTime((Date) value);
-			return qb.isGreaterThan(qb.property(nestFieldName), qb.value(maxTime));
+			return qb.let(qb.property(nestFieldName)).isGreaterThan(qb.value(maxTime));
 		}
 	},
 	DATE_GE {
@@ -179,7 +173,7 @@ public enum Condition {
 		public IOperand buildeOperand(IQueryBuilder<?> qb, String nestFieldName, Object value) {
 			checkDateType(value, "DateGe");
 			Date minTime = toMinTime((Date) value);
-			return qb.isGreaterThanOrEqualTo(qb.property(nestFieldName), qb.value(minTime));
+			return qb.let(qb.property(nestFieldName)).isGreaterThanOrEqualTo(qb.value(minTime));
 		}
 	},
 	DATE_LT {
@@ -187,7 +181,7 @@ public enum Condition {
 		public IOperand buildeOperand(IQueryBuilder<?> qb, String nestFieldName, Object value) {
 			checkDateType(value, "DateLt");
 			Date minTime = toMinTime((Date) value);
-			return qb.isLessThan(qb.property(nestFieldName), qb.value(minTime));
+			return qb.let(qb.property(nestFieldName)).isLessThan(qb.value(minTime));
 		}
 
 	},
@@ -197,7 +191,7 @@ public enum Condition {
 		public IOperand buildeOperand(IQueryBuilder<?> qb, String nestFieldName, Object value) {
 			checkDateType(value, "DateLe");
 			Date maxTime = toMaxTime((Date) value);
-			return qb.isLessThanOrEqualTo(qb.property(nestFieldName), qb.value(maxTime));
+			return qb.let(qb.property(nestFieldName)).isLessThanOrEqualTo(qb.value(maxTime));
 		}
 	};
 

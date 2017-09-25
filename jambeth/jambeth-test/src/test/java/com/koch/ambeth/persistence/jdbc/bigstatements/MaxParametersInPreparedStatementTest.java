@@ -86,7 +86,7 @@ public class MaxParametersInPreparedStatementTest
 	public void test40000ParemetersInPreparedStatementTest() throws Exception {
 		String paramName = "paramName";
 		IQueryBuilder<Material> qb = queryBuilderFactory.create(Material.class);
-		IQuery<Material> query = qb.build(qb.isIn(qb.property("Id"), qb.valueName(paramName)));
+		IQuery<Material> query = qb.build(qb.let(qb.property("Id")).isIn(qb.valueName(paramName)));
 
 		ArrayList<Object> bigList = new ArrayList<>();
 		for (int a = 40000; a-- > 0;) {
@@ -124,7 +124,7 @@ public class MaxParametersInPreparedStatementTest
 		// load all objects
 		String paramName = "paramName";
 		qb = queryBuilderFactory.create(Material.class);
-		query = qb.build(qb.isIn(qb.property("Name"), qb.valueName(paramName)));
+		query = qb.build(qb.let(qb.property("Name")).isIn(qb.valueName(paramName)));
 
 		ArrayList<Object> bigList = new ArrayList<>();
 		for (int a = 4500; a-- > 0;) {

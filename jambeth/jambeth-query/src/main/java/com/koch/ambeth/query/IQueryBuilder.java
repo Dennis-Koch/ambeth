@@ -29,6 +29,14 @@ import com.koch.ambeth.util.IParamHolder;
 public interface IQueryBuilder<T> extends IDisposable {
 	Class<?> getEntityType();
 
+	/**
+	 * Fluent API to create operators for common unary and binary operators
+	 *
+	 * @param leftOperand The operand for unary operators or the left operand for binary operators
+	 * @return A fluent API handle to choose the operator and the optional right operand with
+	 */
+	IQueryBuilderAfterLeftOperand let(Object leftOperand);
+
 	IOperator and(IOperand leftOperand, IOperand rightOperand);
 
 	IOperator and(IOperand... operands);
@@ -47,8 +55,7 @@ public interface IQueryBuilder<T> extends IDisposable {
 	 * The property name may be a simple name (e.g. "Name") or imply a join by using a dot (e.g.
 	 * "User.Name").
 	 *
-	 * @param propertyName
-	 *          Name of the (cascaded) property.
+	 * @param propertyName Name of the (cascaded) property.
 	 * @return Operand to use in Statement
 	 */
 	IOperand property(String propertyName);
@@ -95,77 +102,13 @@ public interface IQueryBuilder<T> extends IDisposable {
 	@Deprecated
 	IOperand column(String columnName, ISqlJoin joinClause);
 
-	IOperator contains(Object leftOperand, Object rightOperand);
-
-	IOperator contains(Object leftOperand, Object rightOperand, Boolean caseSensitive);
-
 	IOperand difference(IOperand... diffOperands);
-
-	IOperator endsWith(Object leftOperand, Object rightOperand);
-
-	IOperator endsWith(Object leftOperand, Object rightOperand, Boolean caseSensitive);
 
 	IOperator fulltext(IOperand queryOperand);
 
 	IOperator fulltext(Class<?> entityType, IOperand queryOperand);
 
-	IOperator isContainedIn(Object leftOperand, Object rightOperand);
-
-	IOperator isContainedIn(Object leftOperand, Object rightOperand, Boolean caseSensitive);
-
-	IOperator isIn(Object leftOperand, Object rightOperand);
-
-	IOperator isIn(Object leftOperand, Object rightOperand, Boolean caseSensitive);
-
-	IOperator isEqualTo(Object leftOperand, Object rightOperand);
-
-	IOperator isEqualTo(Object leftOperand, Object rightOperand, Boolean caseSensitive);
-
-	IOperator isGreaterThan(Object leftOperand, Object rightOperand);
-
-	IOperator isGreaterThanOrEqualTo(Object leftOperand, Object rightOperand);
-
-	IOperator isLessThan(Object leftOperand, Object rightOperand);
-
-	IOperator isLessThanOrEqualTo(Object leftOperand, Object rightOperand);
-
-	IOperator isNotContainedIn(Object leftOperand, Object rightOperand);
-
-	IOperator isNotContainedIn(Object leftOperand, Object rightOperand, Boolean caseSensitive);
-
-	IOperator isNotIn(Object leftOperand, Object rightOperand);
-
-	IOperator isNotIn(Object leftOperand, Object rightOperand, Boolean caseSensitive);
-
-	IOperator isNotEqualTo(Object leftOperand, Object rightOperand);
-
-	IOperator isNotEqualTo(Object leftOperand, Object rightOperand, Boolean caseSensitive);
-
-	IOperator notContains(Object leftOperand, Object rightOperand);
-
-	IOperator notContains(Object leftOperand, Object rightOperand, Boolean caseSensitive);
-
-	IOperator notLike(Object leftOperand, Object rightOperand);
-
-	IOperator notLike(Object leftOperand, Object rightOperand, Boolean caseSensitive);
-
-	IOperator isNull(IOperand operand);
-
-	IOperator isNotNull(IOperand operand);
-
-	IOperator like(Object leftOperand, Object rightOperand);
-
-	IOperator like(Object leftOperand, Object rightOperand, Boolean caseSensitive);
-
-	IOperand regexpLike(IOperand sourceString, IOperand pattern);
-
-	IOperand regexpLike(IOperand sourceString, IOperand pattern, IOperand matchParameter);
-
 	IQueryBuilder<T> limit(IOperand operand);
-
-	IOperator startsWith(Object leftOperand, Object rightOperand);
-
-	IOperator startsWith(Object leftOperand, Object rightOperand, Boolean caseSensitive);
 
 	IOperand value(Object value);
 
@@ -177,11 +120,11 @@ public interface IQueryBuilder<T> extends IDisposable {
 
 	IQueryBuilder<T> groupBy(IOperand... operand);
 
-	IOperand interval(IOperand lowerBoundary, IOperand upperBoundary);
-
 	IQueryBuilder<T> orderBy(IOperand operand, OrderByType orderByType);
 
-	IOperand overlaps(Object leftOperand, Object rightOperand);
+	IOperand regexpLike(IOperand sourceString, IOperand pattern);
+
+	IOperand regexpLike(IOperand sourceString, IOperand pattern, IOperand matchParameter);
 
 	/**
 	 * Please use selectProperty() instead

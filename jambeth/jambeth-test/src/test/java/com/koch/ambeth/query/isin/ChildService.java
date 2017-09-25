@@ -39,7 +39,7 @@ public class ChildService implements IChildService {
 		qb.selectProperty("Parent.Id");
 		qb.selectProperty("Id");
 		qb.selectProperty("Version");
-		IQuery<Child> query = qb.build(qb.isEqualTo(qb.property("Parent.Id"), qb.value(parentId)));
+		IQuery<Child> query = qb.build(qb.let(qb.property("Parent.Id")).isEqualTo(qb.value(parentId)));
 		query.retrieveAsData().dispose();
 	}
 
@@ -49,7 +49,7 @@ public class ChildService implements IChildService {
 		qb.selectProperty("Parent.Id");
 		qb.selectProperty("Id");
 		qb.selectProperty("Version");
-		IQuery<Child> query = qb.build(qb.isIn(qb.property("Parent.Id"), qb.value(parentIds)));
+		IQuery<Child> query = qb.build(qb.let(qb.property("Parent.Id")).isIn(qb.value(parentIds)));
 		query.retrieveAsData().dispose();
 	}
 }

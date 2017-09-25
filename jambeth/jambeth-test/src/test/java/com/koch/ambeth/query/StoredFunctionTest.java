@@ -65,7 +65,7 @@ public class StoredFunctionTest extends AbstractInformationBusWithPersistenceTes
 		int value = 2;
 
 		IQuery<QueryEntity> query = qb.build(
-				qb.isEqualTo(qb.property(propertyName1), qb.function("getDoubled", qb.value(value))));
+				qb.let(qb.property(propertyName1)).isEqualTo(qb.function("getDoubled", qb.value(value))));
 
 		List<QueryEntity> actual = query.retrieve();
 
@@ -77,7 +77,7 @@ public class StoredFunctionTest extends AbstractInformationBusWithPersistenceTes
 	public void testMultipleParameters() throws Exception {
 		int value = 2;
 
-		IQuery<QueryEntity> query = qb.build(qb.isEqualTo(qb.property(propertyName1),
+		IQuery<QueryEntity> query = qb.build(qb.let(qb.property(propertyName1)).isEqualTo(
 				qb.function("multiParams", qb.property(propertyName2),
 						qb.value("BwQKSwe1RfgnSdDldsfnskQakDl0Q3CbHr2qwXSQin63x81MBm5ryiaE54ohMFSBTr"),
 						qb.value(value))));
@@ -93,9 +93,9 @@ public class StoredFunctionTest extends AbstractInformationBusWithPersistenceTes
 		int value = 2;
 
 		IQuery<QueryEntity> query =
-				qb.build(qb.isEqualTo(qb.function("multiParams", qb.property(propertyName2),
+				qb.build(qb.let(qb.function("multiParams", qb.property(propertyName2),
 						qb.value("BwQKSwe1RfgnSdDldsfnskQakDl0Q3CbHr2qwXSQin63x81MBm5ryiaE54ohMFSBTr"),
-						qb.value(value)), qb.value(4)));
+						qb.value(value))).isEqualTo(qb.value(4)));
 
 		List<QueryEntity> actual = query.retrieve();
 

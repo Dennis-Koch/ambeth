@@ -51,7 +51,7 @@ public abstract class PersonService implements IPersonService, ISquery<Person> {
 	 */
 	public List<Person> findByNoSquery(Integer minAge) {
 		IQueryBuilder<Person> qb = qbf.create(Person.class);
-		IOperator where = qb.isGreaterThanOrEqualTo(qb.property(Person.AGE), qb.value(minAge));
+		IOperator where = qb.let(qb.property(Person.AGE)).isGreaterThanOrEqualTo(qb.value(minAge));
 		return qb.build(where).retrieve();
 	}
 

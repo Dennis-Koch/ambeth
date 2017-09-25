@@ -83,7 +83,7 @@ public class EntityTypeBluePrintService implements IInitializingBean {
 		qAll = qb.build();
 
 		qb = qbf.create(EntityTypeBlueprint.class);
-		qByName = qb.build(qb.isEqualTo(qb.property(IEntityTypeBlueprint.NAME),
+		qByName = qb.build(qb.let(qb.property(IEntityTypeBlueprint.NAME)).isEqualTo(
 				qb.valueName(IEntityTypeBlueprint.NAME)));
 
 	}

@@ -341,7 +341,7 @@ public class ArrayTest extends AbstractInformationBusWithPersistenceTest {
 
 		IQueryBuilder<ArrayObject> queryBuilder = queryBuilderFactory.create(ArrayObject.class);
 		IQuery<ArrayObject> query =
-				queryBuilder.build(queryBuilder.isIn(queryBuilder.property("ArrayContentString"),
+				queryBuilder.build(queryBuilder.let(queryBuilder.property("ArrayContentString")).isIn(
 						queryBuilder.value(Arrays.<String>asList("bla", "hallo")), false));
 
 		IList<ArrayObject> result = query.retrieve();

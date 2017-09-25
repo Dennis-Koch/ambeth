@@ -45,9 +45,9 @@ public class QueryBuilderTest extends AbstractInformationBusWithPersistenceTest 
 		IQueryBuilder<Employee> queryBuilder = queryBuilderFactory.create(Employee.class);
 		String paramName = "myParam";
 
-		IQuery<Employee> query = queryBuilder.build(queryBuilder.isEqualTo(
-				queryBuilder.property("PrimaryProject.Employees.OtherAddresses.Street"),
-				queryBuilder.valueName(paramName), Boolean.FALSE));
+		IQuery<Employee> query = queryBuilder.build(queryBuilder.let(
+				queryBuilder.property("PrimaryProject.Employees.OtherAddresses.Street")).isEqualTo(
+						queryBuilder.valueName(paramName), Boolean.FALSE));
 		IList<Employee> employees = query.param(paramName, "TestStreet").retrieve();
 		Assert.assertNotNull(employees);
 	}

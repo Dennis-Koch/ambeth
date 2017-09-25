@@ -29,11 +29,13 @@ import static org.junit.Assert.assertTrue;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Consumer;
 
 import javax.persistence.OptimisticLockException;
 import javax.persistence.PersistenceException;
@@ -83,8 +85,9 @@ import com.koch.ambeth.xml.ioc.XmlModule;
 @SQLData("/com/koch/ambeth/persistence/xml/Relations_data.sql")
 @SQLStructure("/com/koch/ambeth/persistence/xml/Relations_structure.sql")
 @TestPropertiesList({
-		@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "com/koch/ambeth/persistence/xml/orm.xml"),
-		@TestProperties(name = CacheConfigurationConstants.ServiceResultCacheActive, value = "false") })
+		@TestProperties(name = ServiceConfigurationConstants.mappingFile,
+				value = "com/koch/ambeth/persistence/xml/orm.xml"),
+		@TestProperties(name = CacheConfigurationConstants.ServiceResultCacheActive, value = "false")})
 @TestFrameworkModule(XmlModule.class)
 @TestModule(TestServicesModule.class)
 public class RelationsTest extends AbstractInformationBusWithPersistenceTest {
@@ -133,22 +136,22 @@ public class RelationsTest extends AbstractInformationBusWithPersistenceTest {
 		Employee employee = employeeService.getByName("Oscar Meyer");
 
 		assertNotNull(employee.getPrimaryAddress());
-		assertEquals(11, employee.getPrimaryAddress().getId());
+		assertEquals(11, employee.getPrimaryAddress().get().getId());
 
 		Address address = cache.getObject(Address.class, 16);
 		assertNotNull(address);
-		employee.setPrimaryAddress(address);
+		employee.setPrimaryAddress(Optional.of(address));
 
 		employeeService.save(employee);
 
 		Employee actual = cache.getObject(Employee.class, employee.getId());
 
-		assertEquals(address.getId(), actual.getPrimaryAddress().getId());
+		assertEquals(address.getId(), actual.getPrimaryAddress().get().getId());
 
 		Address moved = entityFactory.createEntity(Address.class);
 		moved.setStreet("First Street");
 		moved.setCity("New Town");
-		employee.setPrimaryAddress(moved);
+		employee.setPrimaryAddress(Optional.of(moved));
 
 		employeeService.save(employee);
 	}
@@ -189,7 +192,7 @@ public class RelationsTest extends AbstractInformationBusWithPersistenceTest {
 		Address addr1 = entityFactory.createEntity(Address.class);
 		addr1.setStreet("First Street");
 		addr1.setCity("New Town");
-		employee.setPrimaryAddress(addr1);
+		employee.setPrimaryAddress(Optional.of(addr1));
 
 		Address addr2 = entityFactory.createEntity(Address.class);
 		addr2.setStreet("First Street");
@@ -291,7 +294,7 @@ public class RelationsTest extends AbstractInformationBusWithPersistenceTest {
 
 	@Test
 	public void testCascadedRetrieve() throws Throwable {
-		List<String> names = Arrays.asList(new String[] { "Steve Smith", "Oscar Meyer" });
+		List<String> names = Arrays.asList(new String[] {"Steve Smith", "Oscar Meyer"});
 
 		CacheInterceptor.pauseCache.set(Boolean.TRUE);
 		try {
@@ -316,7 +319,7 @@ public class RelationsTest extends AbstractInformationBusWithPersistenceTest {
 		Address addr1 = entityFactory.createEntity(Address.class);
 		addr1.setStreet("First Street");
 		addr1.setCity("New Town");
-		employee2.setPrimaryAddress(addr1);
+		employee2.setPrimaryAddress(Optional.of(addr1));
 
 		Employee employee3 = cache.getObject(Employee.class, 2);
 		employee3.setName(employee3.getName() + " jun.");
@@ -325,7 +328,7 @@ public class RelationsTest extends AbstractInformationBusWithPersistenceTest {
 		employee4.setName(employee4.getName() + " jun.");
 
 		List<Employee> employees = Arrays
-				.asList(new Employee[] { employee1, employee2, employee3, employee4 });
+				.asList(new Employee[] {employee1, employee2, employee3, employee4});
 
 		employeeService.save(employees);
 	}
@@ -372,7 +375,8 @@ public class RelationsTest extends AbstractInformationBusWithPersistenceTest {
 	public void testBidirectionalToOneRelation() {
 		Employee employee = cache.getObject(Employee.class, 1);
 		assertNotNull("An employee with a primary address is needed", employee.getPrimaryAddress());
-		Address primaryAddress = cache.getObject(Address.class, employee.getPrimaryAddress().getId());
+		Address primaryAddress =
+				cache.getObject(Address.class, employee.getPrimaryAddress().get().getId());
 
 		assertNotNull(primaryAddress.getResident());
 		assertProxyEquals(employee, primaryAddress.getResident());
@@ -563,7 +567,7 @@ public class RelationsTest extends AbstractInformationBusWithPersistenceTest {
 					for (Employee employee : employees) {
 						assertTrue(0 < employee.getId());
 						assertTrue(0 < employee.getVersion());
-						assertTrue(0 < employee.getPrimaryAddress().getId());
+						assertTrue(0 < employee.getPrimaryAddress().get().getId());
 					}
 				}
 				catch (Throwable e) {
@@ -621,10 +625,12 @@ public class RelationsTest extends AbstractInformationBusWithPersistenceTest {
 					for (Employee employee : employees) {
 						assertTrue(0 == employee.getId());
 						assertTrue(0 == employee.getVersion());
-						Address primaryAddress = employee.getPrimaryAddress();
-						if (primaryAddress != null) {
-							assertTrue(0 == primaryAddress.getId());
-						}
+						employee.getPrimaryAddress().ifPresent(new Consumer<Address>() {
+							@Override
+							public void accept(Address primaryAddress) {
+								assertTrue(0 == primaryAddress.getId());
+							}
+						});
 					}
 				}
 				catch (Throwable e) {

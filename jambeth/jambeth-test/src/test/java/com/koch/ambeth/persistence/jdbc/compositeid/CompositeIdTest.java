@@ -103,7 +103,7 @@ public class CompositeIdTest extends AbstractInformationBusWithPersistenceTest {
 	public void testQuery() throws Exception {
 		IQueryBuilder<CompositeIdEntity> qb = queryBuilderFactory.create(CompositeIdEntity.class);
 		IQuery<CompositeIdEntity> query =
-				qb.build(qb.isEqualTo(qb.property("Name"), qb.value("name_einszwo1")));
+				qb.build(qb.let(qb.property("Name")).isEqualTo(qb.value("name_einszwo1")));
 		List<CompositeIdEntity> result = query.retrieve();
 		assertEquals(1, result.size());
 		CompositeIdEntity actual = result.get(0);

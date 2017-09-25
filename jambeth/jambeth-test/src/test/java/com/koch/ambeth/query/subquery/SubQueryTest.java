@@ -76,10 +76,12 @@ public class SubQueryTest extends AbstractInformationBusWithPersistenceTest {
 		IOperand buidSub = qbSub.property("Buid");
 		IOperand versionB = qbSub.property("EntityB.Version");
 		ISubQuery<EntityA> subQuery = qbSub
-				.buildSubQuery(qbSub.or(qbSub.isIn(qbSub.property("EntityB.Buid"), qbSub.value("BUID 11")),
-						qbSub.isEqualTo(versionB, versionMain)));
+				.buildSubQuery(
+						qbSub.or(qbSub.let(qbSub.property("EntityB.Buid")).isIn(qbSub.value("BUID 11")),
+								qbSub.let(versionB).isEqualTo(versionMain)));
 
-		IQuery<EntityA> query = qb.build(qb.isIn(qb.property("Buid"), qb.subQuery(subQuery, buidSub)));
+		IQuery<EntityA> query =
+				qb.build(qb.let(qb.property("Buid")).isIn(qb.subQuery(subQuery, buidSub)));
 		assertNotNull(query);
 
 		IList<EntityA> entityAs = query.retrieve();
@@ -93,8 +95,9 @@ public class SubQueryTest extends AbstractInformationBusWithPersistenceTest {
 		IOperand buidSub = qbSub.property("Buid");
 		IOperand versionB = qbSub.property("EntityB.Version");
 		ISubQuery<EntityA> subQuery = qbSub
-				.buildSubQuery(qbSub.or(qbSub.isIn(qbSub.property("EntityB.Buid"), qbSub.value("BUID 11")),
-						qbSub.isEqualTo(versionB, versionMain)));
+				.buildSubQuery(
+						qbSub.or(qbSub.let(qbSub.property("EntityB.Buid")).isIn(qbSub.value("BUID 11")),
+								qbSub.let(versionB).isEqualTo(versionMain)));
 
 		IQuery<EntityA> query = qb.build(qb.function("EXISTS", qb.subQuery(subQuery, buidSub)));
 		assertNotNull(query);

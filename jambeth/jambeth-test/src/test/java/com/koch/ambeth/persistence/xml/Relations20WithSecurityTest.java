@@ -96,7 +96,7 @@ public class Relations20WithSecurityTest extends Relations20Test {
 		try {
 			IQueryBuilder<Employee> qb = queryBuilderFactory.create(Employee.class);
 			IQuery<Employee> query =
-					qb.build(qb.isIn(qb.property("AllProjects.Employees.Name"), qb.value(names)));
+					qb.build(qb.let(qb.property("AllProjects.Employees.Name")).isIn(qb.value(names)));
 			List<Employee> actual = query.retrieve();
 			assertEquals(1, actual.size());
 

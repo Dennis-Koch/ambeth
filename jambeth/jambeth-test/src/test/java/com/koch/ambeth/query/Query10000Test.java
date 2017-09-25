@@ -57,7 +57,8 @@ public class Query10000Test extends AbstractInformationBusWithPersistenceTest {
 	@Test
 	@TestProperties(name = PersistenceConfigurationConstants.FetchSize, value = "2000")
 	public void testRetrieveFetch2000() throws Exception {
-		IQuery<QueryEntity> query = qb.build(qb.like(qb.property("Name1"), qb.valueName(paramName1)));
+		IQuery<QueryEntity> query =
+				qb.build(qb.let(qb.property("Name1")).like(qb.valueName(paramName1)));
 		IList<QueryEntity> result = query.param(paramName1, "Q\\_%\\_Name%").retrieve();
 		Assert.assertEquals(10000, result.size());
 	}
@@ -73,8 +74,9 @@ public class Query10000Test extends AbstractInformationBusWithPersistenceTest {
 			names.add(result.get(a).getName1());
 		}
 		qb = queryBuilderFactory.create(QueryEntity.class);
-		IQuery<QueryEntity> query2 = qb.build(qb.and(qb.isIn(qb.property("Name1"), qb.value(names)),
-				qb.isEqualTo(qb.property("Version"), qb.value(3))));
+		IQuery<QueryEntity> query2 =
+				qb.build(qb.and(qb.let(qb.property("Name1")).isIn(qb.value(names)),
+						qb.let(qb.property("Version")).isEqualTo(qb.value(3))));
 		IList<QueryEntity> result2 = query2.retrieve();
 		Assert.assertEquals(5000, result2.size());
 	}

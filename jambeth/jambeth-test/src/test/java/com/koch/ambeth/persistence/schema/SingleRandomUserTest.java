@@ -116,7 +116,7 @@ public class SingleRandomUserTest extends AbstractInformationBusWithPersistenceT
 	@Test
 	public void testQuery() throws Exception {
 		IQueryBuilder<ParentA> qb = qbf.create(ParentA.class);
-		IQuery<ParentA> query = qb.build(qb.isEqualTo(qb.property("Child.Id"), qb.value(11)));
+		IQuery<ParentA> query = qb.build(qb.let(qb.property("Child.Id")).isEqualTo(qb.value(11)));
 		List<ParentA> result = query.retrieve();
 		assertEquals(1, result.size());
 		ParentA actual = result.get(0);

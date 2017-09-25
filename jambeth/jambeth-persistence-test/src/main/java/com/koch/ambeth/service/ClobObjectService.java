@@ -47,7 +47,7 @@ public class ClobObjectService implements IClobObjectService, IInitializingBean,
 	@Override
 	public void afterStarted() throws Throwable {
 		IQueryBuilder<ClobObject> qb = queryBuilderFactory.create(ClobObject.class);
-		getClobObjectsQuery = qb.build(qb.isIn(qb.property("Id"), qb.valueName(param)));
+		getClobObjectsQuery = qb.build(qb.let(qb.property("Id")).isIn(qb.valueName(param)));
 	}
 
 	public void setQueryBuilderFactory(IQueryBuilderFactory queryBuilderFactory) {

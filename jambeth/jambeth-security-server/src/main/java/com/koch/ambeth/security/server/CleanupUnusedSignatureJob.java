@@ -64,8 +64,10 @@ public class CleanupUnusedSignatureJob implements IJob, IStartingBean {
 	public void afterStarted() throws Throwable {
 		IQueryBuilder<ISignature> qb = queryBuilderFactory.create(ISignature.class);
 		q_signaturesWithoutUser = qb
-				.build(qb.and(qb.isNull(qb.property(ISignature.User)), qb.isNotIn(qb.property("Id"),
-						qb.property("<" + IAuditEntry.class.getName() + "#" + IAuditEntry.SignatureOfUser))));
+				.build(qb.and(qb.let(qb.property(ISignature.User)).isNull(),
+						qb.let(qb.property("Id")).isNotIn(
+								qb.property(
+										"<" + IAuditEntry.class.getName() + "#" + IAuditEntry.SignatureOfUser))));
 	}
 
 	@Override

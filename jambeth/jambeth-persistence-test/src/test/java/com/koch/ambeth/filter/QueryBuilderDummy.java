@@ -28,6 +28,7 @@ import com.koch.ambeth.query.IOperand;
 import com.koch.ambeth.query.IOperator;
 import com.koch.ambeth.query.IQuery;
 import com.koch.ambeth.query.IQueryBuilder;
+import com.koch.ambeth.query.IQueryBuilderAfterLeftOperand;
 import com.koch.ambeth.query.ISqlJoin;
 import com.koch.ambeth.query.ISubQuery;
 import com.koch.ambeth.query.OrderByType;
@@ -52,6 +53,188 @@ public class QueryBuilderDummy<T> implements IQueryBuilder<T> {
 	@Override
 	public IOperator and(IOperand... operands) {
 		return new OperandDummy("and", operands);
+	}
+
+	@Override
+	public IQueryBuilderAfterLeftOperand let(final Object leftOperand) {
+		return new IQueryBuilderAfterLeftOperand() {
+
+			@Override
+			public IOperand regexpLike(IOperand pattern, IOperand matchParameter) {
+				return null;
+			}
+
+			@Override
+			public IOperand regexpLike(IOperand pattern) {
+				return null;
+			}
+
+			@Override
+			public IOperand overlaps(Object rightOperand) {
+				return null;
+			}
+
+			@Override
+			public IOperator isNull() {
+				return null;
+			}
+
+			@Override
+			public IOperator isNotNull() {
+				return null;
+			}
+
+			@Override
+			public IOperator isEqualTo(Object rightOperand, Boolean caseSensitive) {
+				return new OperandDummy("isEqualTo",
+						Collections.singletonMap("caseSensitive", caseSensitive),
+						(IOperand) leftOperand, (IOperand) rightOperand);
+			}
+
+			@Override
+			public IOperand interval(Object rightOperand) {
+				return null;
+			}
+
+			@Override
+			public IOperator endsWith(Object rightOperand, Boolean caseSensitive) {
+				return new OperandDummy("endsWith",
+						Collections.singletonMap("caseSensitive", caseSensitive),
+						(IOperand) leftOperand, (IOperand) rightOperand);
+			}
+
+			@Override
+			public IOperator endsWith(Object rightOperand) {
+				return new OperandDummy("endsWith", (IOperand) leftOperand, (IOperand) rightOperand);
+			}
+
+			@Override
+			public IOperator contains(Object rightOperand, Boolean caseSensitive) {
+				return new OperandDummy("contains",
+						Collections.singletonMap("caseSensitive", caseSensitive),
+						(IOperand) leftOperand, (IOperand) rightOperand);
+			}
+
+			@Override
+			public IOperator contains(Object rightOperand) {
+				return new OperandDummy("contains", (IOperand) leftOperand, (IOperand) rightOperand);
+			}
+
+			@Override
+			public IOperator isContainedIn(Object rightOperand) {
+				return null;
+			}
+
+			@Override
+			public IOperator isContainedIn(Object rightOperand, Boolean caseSensitive) {
+				return null;
+			}
+
+			@Override
+			public IOperator isIn(Object rightOperand) {
+				return null;
+			}
+
+			@Override
+			public IOperator isIn(Object rightOperand, Boolean caseSensitive) {
+				return null;
+			}
+
+			@Override
+			public IOperator isEqualTo(Object rightOperand) {
+				return null;
+			}
+
+			@Override
+			public IOperator isGreaterThan(Object rightOperand) {
+				return null;
+			}
+
+			@Override
+			public IOperator isGreaterThanOrEqualTo(Object rightOperand) {
+				return null;
+			}
+
+			@Override
+			public IOperator isLessThan(Object rightOperand) {
+				return null;
+			}
+
+			@Override
+			public IOperator isLessThanOrEqualTo(Object rightOperand) {
+				return null;
+			}
+
+			@Override
+			public IOperator isNotContainedIn(Object rightOperand) {
+				return null;
+			}
+
+			@Override
+			public IOperator isNotContainedIn(Object rightOperand, Boolean caseSensitive) {
+				return null;
+			}
+
+			@Override
+			public IOperator isNotIn(Object rightOperand) {
+				return null;
+			}
+
+			@Override
+			public IOperator isNotIn(Object rightOperand, Boolean caseSensitive) {
+				return null;
+			}
+
+			@Override
+			public IOperator isNotEqualTo(Object rightOperand) {
+				return null;
+			}
+
+			@Override
+			public IOperator isNotEqualTo(Object rightOperand, Boolean caseSensitive) {
+				return null;
+			}
+
+			@Override
+			public IOperator notContains(Object rightOperand) {
+				return null;
+			}
+
+			@Override
+			public IOperator notContains(Object rightOperand, Boolean caseSensitive) {
+				return null;
+			}
+
+			@Override
+			public IOperator notLike(Object rightOperand) {
+				return null;
+			}
+
+			@Override
+			public IOperator notLike(Object rightOperand, Boolean caseSensitive) {
+				return null;
+			}
+
+			@Override
+			public IOperator like(Object rightOperand) {
+				return null;
+			}
+
+			@Override
+			public IOperator like(Object rightOperand, Boolean caseSensitive) {
+				return null;
+			}
+
+			@Override
+			public IOperator startsWith(Object rightOperand) {
+				return null;
+			}
+
+			@Override
+			public IOperator startsWith(Object rightOperand, Boolean caseSensitive) {
+				return null;
+			}
+		};
 	}
 
 	@Override
@@ -96,6 +279,16 @@ public class QueryBuilderDummy<T> implements IQueryBuilder<T> {
 	}
 
 	@Override
+	public IOperand regexpLike(IOperand sourceString, IOperand pattern) {
+		return null;
+	}
+
+	@Override
+	public IOperand regexpLike(IOperand sourceString, IOperand pattern, IOperand matchParameter) {
+		return null;
+	}
+
+	@Override
 	public IOperand column(String columnName) {
 		return null;
 	}
@@ -106,30 +299,8 @@ public class QueryBuilderDummy<T> implements IQueryBuilder<T> {
 	}
 
 	@Override
-	public IOperator contains(Object leftOperand, Object rightOperand) {
-		return new OperandDummy("contains", (IOperand) leftOperand, (IOperand) rightOperand);
-	}
-
-	@Override
-	public IOperator contains(Object leftOperand, Object rightOperand, Boolean caseSensitive) {
-		return new OperandDummy("contains", Collections.singletonMap("caseSensitive", caseSensitive),
-				(IOperand) leftOperand, (IOperand) rightOperand);
-	}
-
-	@Override
 	public IOperand difference(IOperand... operands) {
 		throw new UnsupportedOperationException();
-	}
-
-	@Override
-	public IOperator endsWith(Object leftOperand, Object rightOperand) {
-		return new OperandDummy("endsWith", (IOperand) leftOperand, (IOperand) rightOperand);
-	}
-
-	@Override
-	public IOperator endsWith(Object leftOperand, Object rightOperand, Boolean caseSensitive) {
-		return new OperandDummy("endsWith", Collections.singletonMap("caseSensitive", caseSensitive),
-				(IOperand) leftOperand, (IOperand) rightOperand);
 	}
 
 	@Override
@@ -143,154 +314,7 @@ public class QueryBuilderDummy<T> implements IQueryBuilder<T> {
 	}
 
 	@Override
-	public IOperand interval(IOperand lowerBoundary, IOperand upperBoundary) {
-		return null;
-	}
-
-	@Override
-	public IOperator isContainedIn(Object leftOperand, Object rightOperand) {
-		return null;
-	}
-
-	@Override
-	public IOperator isContainedIn(Object leftOperand, Object rightOperand, Boolean caseSensitive) {
-		return null;
-	}
-
-	@Override
-	public IOperator isIn(Object leftOperand, Object rightOperand) {
-		return null;
-	}
-
-	@Override
-	public IOperator isIn(Object leftOperand, Object rightOperand, Boolean caseSensitive) {
-		return null;
-	}
-
-	@Override
-	public IOperator isEqualTo(Object leftOperand, Object rightOperand) {
-		return null;
-	}
-
-	@Override
-	public IOperator isEqualTo(Object leftOperand, Object rightOperand, Boolean caseSensitive) {
-		return new OperandDummy("isEqualTo", Collections.singletonMap("caseSensitive", caseSensitive),
-				(IOperand) rightOperand, (IOperand) leftOperand);
-	}
-
-	@Override
-	public IOperator isGreaterThan(Object leftOperand, Object rightOperand) {
-		return null;
-	}
-
-	@Override
-	public IOperator isGreaterThanOrEqualTo(Object leftOperand, Object rightOperand) {
-		return null;
-	}
-
-	@Override
-	public IOperator isLessThan(Object leftOperand, Object rightOperand) {
-		return null;
-	}
-
-	@Override
-	public IOperator isLessThanOrEqualTo(Object leftOperand, Object rightOperand) {
-		return null;
-	}
-
-	@Override
-	public IOperator isNotContainedIn(Object leftOperand, Object rightOperand) {
-		return null;
-	}
-
-	@Override
-	public IOperator isNotContainedIn(Object leftOperand, Object rightOperand,
-			Boolean caseSensitive) {
-		return null;
-	}
-
-	@Override
-	public IOperator isNotIn(Object leftOperand, Object rightOperand) {
-		return null;
-	}
-
-	@Override
-	public IOperator isNotIn(Object leftOperand, Object rightOperand, Boolean caseSensitive) {
-		return null;
-	}
-
-	@Override
-	public IOperator isNotEqualTo(Object leftOperand, Object rightOperand) {
-		return null;
-	}
-
-	@Override
-	public IOperator isNotEqualTo(Object leftOperand, Object rightOperand, Boolean caseSensitive) {
-		return null;
-	}
-
-	@Override
-	public IOperator notContains(Object leftOperand, Object rightOperand) {
-		return null;
-	}
-
-	@Override
-	public IOperator notContains(Object leftOperand, Object rightOperand, Boolean caseSensitive) {
-		return null;
-	}
-
-	@Override
-	public IOperator notLike(Object leftOperand, Object rightOperand) {
-		return null;
-	}
-
-	@Override
-	public IOperator notLike(Object leftOperand, Object rightOperand, Boolean caseSensitive) {
-		return null;
-	}
-
-	@Override
-	public IOperator isNull(IOperand operand) {
-		return null;
-	}
-
-	@Override
-	public IOperator isNotNull(IOperand operand) {
-		return null;
-	}
-
-	@Override
-	public IOperator like(Object leftOperand, Object rightOperand) {
-		return null;
-	}
-
-	@Override
-	public IOperator like(Object leftOperand, Object rightOperand, Boolean caseSensitive) {
-		return null;
-	}
-
-	@Override
-	public IOperand regexpLike(IOperand sourceString, IOperand pattern) {
-		return null;
-	}
-
-	@Override
-	public IOperand regexpLike(IOperand sourceString, IOperand pattern, IOperand matchParameter) {
-		return null;
-	}
-
-	@Override
 	public IQueryBuilder<T> limit(IOperand operand) {
-		return null;
-	}
-
-	@Override
-	public IOperator startsWith(Object leftOperand, Object rightOperand) {
-		return null;
-	}
-
-	@Override
-	public IOperator startsWith(Object leftOperand, Object rightOperand, Boolean caseSensitive) {
 		return null;
 	}
 
@@ -321,11 +345,6 @@ public class QueryBuilderDummy<T> implements IQueryBuilder<T> {
 
 	@Override
 	public IQueryBuilder<T> orderBy(IOperand operand, OrderByType orderByType) {
-		return null;
-	}
-
-	@Override
-	public IOperand overlaps(Object leftOperand, Object rightOperand) {
 		return null;
 	}
 

@@ -58,7 +58,7 @@ public class EmployeeService implements IInitializingBean, IEmployeeService, ISt
 		{
 			IQueryBuilder<Employee> qb = queryBuilderFactory.create(Employee.class);
 			queryEmployeeByName = qb
-					.build(qb.isEqualTo(qb.property(Employee.Name), qb.valueName(Employee.Name)));
+					.build(qb.let(qb.property(Employee.Name)).isEqualTo(qb.valueName(Employee.Name)));
 		}
 		{
 			queryEmployeeAll = queryBuilderFactory.create(Employee.class).build();

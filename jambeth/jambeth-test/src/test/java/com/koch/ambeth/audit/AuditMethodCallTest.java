@@ -94,16 +94,18 @@ import com.koch.ambeth.util.collections.Tuple2KeyHashMap;
 import com.koch.ambeth.util.state.IStateRollback;
 import com.koch.ambeth.util.threading.IBackgroundWorkerDelegate;
 
-@TestFrameworkModule({ AuditModule.class, AuditMethodCallTestFrameworkModule.class })
+@TestFrameworkModule({AuditModule.class, AuditMethodCallTestFrameworkModule.class})
 @TestModule(AuditMethodCallTestModule.class)
 @TestPropertiesList({
-		@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "AuditMethodCall_orm.xml;security-orm.xml"),
+		@TestProperties(name = ServiceConfigurationConstants.mappingFile,
+				value = "AuditMethodCall_orm.xml;security-orm.xml"),
 		@TestProperties(name = AuditConfigurationConstants.AuditActive, value = "true"),
 		@TestProperties(name = "ambeth.log.level", value = "DEBUG"),
 		@TestProperties(name = SecurityServerConfigurationConstants.SignatureActive, value = "true"),
-		@TestProperties(name = AuditConfigurationConstants.VerifyEntitiesOnLoad, value = "VERIFY_SYNC") })
-@SQLStructureList({ @SQLStructure("security-structure.sql"), //
-		@SQLStructure("audit-structure.sql") })
+		@TestProperties(name = AuditConfigurationConstants.VerifyEntitiesOnLoad,
+				value = "VERIFY_SYNC")})
+@SQLStructureList({@SQLStructure("security-structure.sql"), //
+		@SQLStructure("audit-structure.sql")})
 public class AuditMethodCallTest extends AbstractInformationBusWithPersistenceTest {
 	public static class ABC implements IEntityPermissionRule<User> {
 		@Autowired
@@ -270,11 +272,11 @@ public class AuditMethodCallTest extends AbstractInformationBusWithPersistenceTe
 			qb.orderBy(timestamp, OrderByType.DESC);
 
 			query = qb.build(qb.and(//
-					qb.isEqualTo(changeType, qb.valueName(IAuditedEntity.ChangeType)), //
-					qb.isIn(entityType, qb.valueName(IAuditedEntityRef.EntityType)), //
-					qb.isGreaterThan(timestamp, qb.valueName(startTime)), //
-					qb.isLessThanOrEqualTo(timestamp, qb.valueName(endTime)), //
-					qb.isEqualTo(name, qb.valueName(IAuditedEntityPrimitiveProperty.Name))//
+					qb.let(changeType).isEqualTo(qb.valueName(IAuditedEntity.ChangeType)), //
+					qb.let(entityType).isIn(qb.valueName(IAuditedEntityRef.EntityType)), //
+					qb.let(timestamp).isGreaterThan(qb.valueName(startTime)), //
+					qb.let(timestamp).isLessThanOrEqualTo(qb.valueName(endTime)), //
+					qb.let(name).isEqualTo(qb.valueName(IAuditedEntityPrimitiveProperty.Name))//
 			));
 		}
 		transaction.runInTransaction(new IBackgroundWorkerDelegate() {
@@ -290,8 +292,7 @@ public class AuditMethodCallTest extends AbstractInformationBusWithPersistenceTe
 						.param(endTime, end)//
 						.retrieveAsData();
 				try {
-					while (cursor.moveNext()) {
-						IDataItem item = cursor.getCurrent();
+					for (IDataItem item : cursor) {
 						String lastValue = conversionHelper.convertValueToType(String.class,
 								item.getValue(fieldValueIndex));
 						String entityTypeName = conversionHelper.convertValueToType(String.class,
@@ -456,9 +457,10 @@ public class AuditMethodCallTest extends AbstractInformationBusWithPersistenceTe
 
 	@Test
 	@TestPropertiesList({
-			@TestProperties(name = AuditConfigurationConstants.VerifyEntitiesOnLoad, value = "VERIFY_ASYNC"),
+			@TestProperties(name = AuditConfigurationConstants.VerifyEntitiesOnLoad,
+					value = "VERIFY_ASYNC"),
 			@TestProperties(name = PersistenceConfigurationConstants.DatabasePoolMaxUsed, value = "2"),
-			@TestProperties(name = PersistenceConfigurationConstants.DatabasePoolMaxUnused, value = "2") })
+			@TestProperties(name = PersistenceConfigurationConstants.DatabasePoolMaxUnused, value = "2")})
 	public void verifyWithConcurrentUpdate() {
 		final char[] passwordOfUser = "abc".toCharArray();
 		final User user = entityFactory.createEntity(User.class);

@@ -137,6 +137,6 @@ public class PrefetchTest extends AbstractInformationBusWithPersistenceTest {
 
 	protected <T> IQuery<T> createQuery(Class<T> clazz) {
 		IQueryBuilder<T> qb = queryBuilderFactory.create(clazz);
-		return qb.build(qb.isEqualTo(qb.property("Id"), qb.valueName("Id")));
+		return qb.build(qb.let(qb.property("Id")).isEqualTo(qb.valueName("Id")));
 	}
 }

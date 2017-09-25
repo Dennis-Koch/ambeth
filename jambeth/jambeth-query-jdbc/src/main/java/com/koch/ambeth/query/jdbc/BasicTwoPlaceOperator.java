@@ -31,6 +31,12 @@ import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.IMap;
 
 public abstract class BasicTwoPlaceOperator implements IOperator, IInitializingBean {
+	public static final String P_CASE_SENSITIVE = "CaseSensitive";
+
+	public static final String P_LEFT_OPERAND = "LeftOperand";
+
+	public static final String P_RIGHT_OPERAND = "RightOperand";
+
 	@Override
 	public void afterPropertiesSet() throws Throwable {
 		// Intended blank

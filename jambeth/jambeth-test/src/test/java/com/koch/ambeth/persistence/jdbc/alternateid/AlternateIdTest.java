@@ -57,7 +57,8 @@ import com.koch.ambeth.util.state.IStateRollback;
 @SQLData("alternateid_data.sql")
 @SQLStructure("alternateid_structure.sql")
 @TestModule(AlternateIdModule.class)
-@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "com/koch/ambeth/persistence/jdbc/alternateid/alternateid_orm.xml")
+@TestProperties(name = ServiceConfigurationConstants.mappingFile,
+		value = "com/koch/ambeth/persistence/jdbc/alternateid/alternateid_orm.xml")
 public class AlternateIdTest extends AbstractInformationBusWithPersistenceTest {
 	public static class AlternateIdModule implements IInitializingModule {
 		@Override
@@ -232,7 +233,7 @@ public class AlternateIdTest extends AbstractInformationBusWithPersistenceTest {
 		try {
 			IQueryBuilder<AlternateIdEntity> qb = queryBuilderFactory.create(AlternateIdEntity.class);
 			IQuery<AlternateIdEntity> query = qb
-					.build(qb.isEqualTo(qb.property("Id"), qb.value(aeEntity.getId())));
+					.build(qb.let(qb.property("Id")).isEqualTo(qb.value(aeEntity.getId())));
 			IList<AlternateIdEntity> result = query.retrieve();
 			Assert.assertEquals(1, result.size());
 			AlternateIdEntity item = result.get(0);

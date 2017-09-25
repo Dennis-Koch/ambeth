@@ -34,7 +34,7 @@ public abstract class Employee extends AbstractEntity {
 
 	protected String name;
 
-	protected Address primaryAddress;
+	protected Optional<Address> primaryAddress = Optional.empty();
 
 	protected Employee supervisor;
 
@@ -70,11 +70,11 @@ public abstract class Employee extends AbstractEntity {
 
 	public abstract List<String> getNicknames();
 
-	public Address getPrimaryAddress() {
+	public Optional<Address> getPrimaryAddress() {
 		return primaryAddress;
 	}
 
-	public void setPrimaryAddress(Address primaryAddress) {
+	public void setPrimaryAddress(Optional<Address> primaryAddress) {
 		this.primaryAddress = primaryAddress;
 	}
 

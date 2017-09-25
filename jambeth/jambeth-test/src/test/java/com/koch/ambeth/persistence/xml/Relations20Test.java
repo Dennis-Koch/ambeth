@@ -26,6 +26,7 @@ limitations under the License.
 
 import org.junit.Test;
 
+import com.koch.ambeth.persistence.xml.model.Address;
 import com.koch.ambeth.persistence.xml.model.Employee;
 import com.koch.ambeth.query.IQueryBuilder;
 import com.koch.ambeth.service.config.ServiceConfigurationConstants;
@@ -51,9 +52,11 @@ public class Relations20Test extends RelationsTest {
 
 		IQueryBuilder<Employee> qb = queryBuilderFactory.create(Employee.class);
 		Employee emp =
-				qb.build(qb.isEqualTo(qb.plan().getName2(), qb.value("John Doe2"))).retrieveSingle();
+				qb.build(qb.let(qb.plan().getName2()).isEqualTo(qb.value("John Doe2")))
+						.retrieveSingle();
 		Assert.assertEquals("John Doe2", emp.getName2().get());
 
+		Optional<Address> primaryAddress = emp.getPrimaryAddress();
 		emp.setName2(Optional.of("John Doe3"));
 		employeeService.save(emp);
 

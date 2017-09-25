@@ -81,7 +81,7 @@ public class SqlInjectionTest extends AbstractInformationBusWithPersistenceTest 
 		material.setName(name);
 		materialService.updateMaterial(material);
 		IQueryBuilder<Material> qb = queryBuilderFactory.create(Material.class);
-		IQuery<Material> query = qb.build(qb.isEqualTo(qb.property("Name"), qb.value(name)));
+		IQuery<Material> query = qb.build(qb.let(qb.property("Name")).isEqualTo(qb.value(name)));
 		IList<Material> materials = query.retrieve();
 		Assert.assertTrue(materials.size() >= 1);
 	}
@@ -93,7 +93,7 @@ public class SqlInjectionTest extends AbstractInformationBusWithPersistenceTest 
 		material.setName(name);
 		materialService.updateMaterial(material);
 		IQueryBuilder<Material> qb = queryBuilderFactory.create(Material.class);
-		IQuery<Material> query = qb.build(qb.isEqualTo(qb.property("Name"), qb.value(name)));
+		IQuery<Material> query = qb.build(qb.let(qb.property("Name")).isEqualTo(qb.value(name)));
 		IList<Material> materials = query.retrieve();
 		Assert.assertTrue(materials.size() >= 1);
 	}
