@@ -89,7 +89,8 @@ public class DefaultQueryResultRetriever implements IQueryResultRetriever {
 
 				ArrayList<Object>[] idLists = new ArrayList[length];
 				Class<?> versionType = metaData.getVersionMember() != null
-						? metaData.getVersionMember().getRealType() : null;
+						? metaData.getVersionMember().getRealType()
+						: null;
 				Class<?>[] idTypes = new Class[length];
 				for (int a = length; a-- > 0;) {
 					idLists[a] = new ArrayList<>();
@@ -100,8 +101,7 @@ public class DefaultQueryResultRetriever implements IQueryResultRetriever {
 				if (size != 0) {
 					IVersionCursor versionCursor = query.retrieveAsVersions(currentNameToValueMap, true);
 					try {
-						while (versionCursor.moveNext()) {
-							IVersionItem versionItem = versionCursor.getCurrent();
+						for (IVersionItem versionItem : versionCursor) {
 							for (int idIndex = length; idIndex-- > 0;) {
 								Object id = conversionHelper.convertValueToType(idTypes[idIndex],
 										versionItem.getId((byte) (idIndex - 1)));

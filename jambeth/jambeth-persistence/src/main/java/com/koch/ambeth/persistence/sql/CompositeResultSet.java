@@ -1,5 +1,7 @@
 package com.koch.ambeth.persistence.sql;
 
+import java.util.Iterator;
+
 /*-
  * #%L
  * jambeth-persistence
@@ -23,12 +25,14 @@ limitations under the License.
 import java.util.List;
 
 import com.koch.ambeth.ioc.IInitializingBean;
-import com.koch.ambeth.util.IDisposable;
 import com.koch.ambeth.util.ParamChecker;
+import com.koch.ambeth.util.collections.IList;
 
-public class CompositeResultSet implements IResultSet, IInitializingBean, IDisposable {
-	protected List<IResultSetProvider> resultSetProviderStack;
+public class CompositeResultSet implements IInitializingBean, IResultSet, Iterator<Object[]> {
+	protected IList<IResultSetProvider> resultSetProviderStack;
 	protected IResultSet resultSet;
+
+	protected Iterator<Object[]> resultSetIter;
 
 	@Override
 	public void afterPropertiesSet() {
@@ -53,39 +57,52 @@ public class CompositeResultSet implements IResultSet, IInitializingBean, IDispo
 		return resultSetProviderStack;
 	}
 
-	public void setResultSetProviderStack(List<IResultSetProvider> resultSetProviderStack) {
+	public void setResultSetProviderStack(IList<IResultSetProvider> resultSetProviderStack) {
 		this.resultSetProviderStack = resultSetProviderStack;
 	}
 
-	@Override
-	public boolean moveNext() {
-		IResultSet resultSet = this.resultSet;
-		if (resultSet != null) {
-			if (resultSet.moveNext()) {
-				return true;
-			}
-			resultSet.dispose();
-			this.resultSet = null;
+	protected IResultSet resolveNextResultSet() {
+		IList<IResultSetProvider> resultSetProviderStack = this.resultSetProviderStack;
+		if (resultSetProviderStack == null) {
+			return null;
 		}
-		List<IResultSetProvider> resultSetProviderStack = this.resultSetProviderStack;
-		if (resultSetProviderStack != null) {
-			int providerIndex = resultSetProviderStack.size() - 1;
-			IResultSetProvider resultSetProvider = resultSetProviderStack.get(providerIndex);
-			resultSetProviderStack.remove(providerIndex);
-			if (providerIndex == 0) {
-				this.resultSetProviderStack = null;
-			}
-			this.resultSet = resultSetProvider.getResultSet();
-			return moveNext();
+		IResultSetProvider resultSetProvider = resultSetProviderStack.popLastElement();
+		if (resultSetProvider == null) {
+			this.resultSetProviderStack = null;
 		}
-		return false;
+		return resultSetProvider.getResultSet();
 	}
 
 	@Override
-	public Object[] getCurrent() {
-		if (resultSet != null) {
-			return resultSet.getCurrent();
+	public boolean hasNext() {
+		while (true) {
+			Iterator<Object[]> resultSetIter = this.resultSetIter;
+			if (resultSetIter != null) {
+				if (resultSetIter.hasNext()) {
+					return true;
+				}
+				resultSet.dispose();
+				resultSet = null;
+				this.resultSetIter = null;
+			}
+			resultSet = resolveNextResultSet();
+			if (resultSet == null) {
+				return false;
+			}
+			this.resultSetIter = resultSet.iterator();
+		}
+	}
+
+	@Override
+	public Object[] next() {
+		if (resultSetIter != null) {
+			return resultSetIter.next();
 		}
 		return null;
+	}
+
+	@Override
+	public Iterator<Object[]> iterator() {
+		return this;
 	}
 }

@@ -1,5 +1,7 @@
 package com.koch.ambeth.persistence;
 
+import java.util.Iterator;
+
 /*-
  * #%L
  * jambeth-persistence
@@ -22,9 +24,8 @@ limitations under the License.
 
 import com.koch.ambeth.query.persistence.IVersionCursor;
 import com.koch.ambeth.query.persistence.IVersionItem;
-import com.koch.ambeth.util.IDisposable;
 
-public class EmptyVersionCursor implements IDisposable, IVersionCursor {
+public class EmptyVersionCursor implements IVersionCursor, Iterator<IVersionItem> {
 	public static final IVersionCursor instance = new EmptyVersionCursor();
 
 	@Override
@@ -33,13 +34,18 @@ public class EmptyVersionCursor implements IDisposable, IVersionCursor {
 	}
 
 	@Override
-	public boolean moveNext() {
+	public boolean hasNext() {
 		return false;
 	}
 
 	@Override
-	public IVersionItem getCurrent() {
+	public IVersionItem next() {
 		return null;
+	}
+
+	@Override
+	public Iterator<IVersionItem> iterator() {
+		return this;
 	}
 
 	@Override

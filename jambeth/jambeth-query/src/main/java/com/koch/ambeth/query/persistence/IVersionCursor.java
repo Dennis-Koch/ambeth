@@ -22,10 +22,6 @@ limitations under the License.
 
 import com.koch.ambeth.util.IDisposable;
 
-public interface IVersionCursor extends IDisposable {
-	boolean moveNext();
-
-	IVersionItem getCurrent();
-
+public interface IVersionCursor extends IDisposable, Iterable<IVersionItem> {
 	int getAlternateIdCount();
 }

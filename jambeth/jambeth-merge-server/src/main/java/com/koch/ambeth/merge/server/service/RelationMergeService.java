@@ -518,9 +518,7 @@ public class RelationMergeService implements IRelationMergeService, IEventListen
 
 			IPreparedObjRefFactory preparedObjRefFactory =
 					objRefFactory.prepareObjRefFactory(metaData.getEntityType(), ObjRef.PRIMARY_KEY_INDEX);
-			while (cursor.moveNext()) {
-				IDataItem item = cursor.getCurrent();
-
+			for (IDataItem item : cursor) {
 				Object id = item.getValue(primaryIdIndex);
 				Object version = versionIndex >= 0 ? item.getValue(versionIndex) : null;
 
@@ -862,9 +860,7 @@ public class RelationMergeService implements IRelationMergeService, IEventListen
 			try {
 				IPreparedObjRefFactory preparedObjRefFactory =
 						objRefFactory.prepareObjRefFactory(relatedType, ObjRef.PRIMARY_KEY_INDEX);
-				while (cursor.moveNext()) {
-					IVersionItem versionItem = cursor.getCurrent();
-
+				for (IVersionItem versionItem : cursor) {
 					IObjRef objRef =
 							preparedObjRefFactory.createObjRef(versionItem.getId(), versionItem.getVersion());
 					relatingRefs.add(objRef);
@@ -889,7 +885,9 @@ public class RelationMergeService implements IRelationMergeService, IEventListen
 			}
 		}
 
-		if (!relatingRefs.isEmpty()) {
+		if (!relatingRefs.isEmpty())
+
+		{
 			IDirectedLink directedLink = becauseOfSelfRelation ? link : link.getReverseLink();
 			addLinkChangeContainer(changeContainers, directedLink, relatingRefs, references);
 		}
@@ -928,9 +926,7 @@ public class RelationMergeService implements IRelationMergeService, IEventListen
 			}
 			IPreparedObjRefFactory preparedObjRefFactory =
 					objRefFactory.prepareObjRefFactory(metaData.getEntityType(), ObjRef.PRIMARY_KEY_INDEX);
-			while (cursor.moveNext()) {
-				IDataItem item = cursor.getCurrent();
-
+			for (IDataItem item : cursor) {
 				Object id = item.getValue(primaryIdIndex);
 				Object version = versionIndex >= 0 ? item.getValue(versionIndex) : null;
 

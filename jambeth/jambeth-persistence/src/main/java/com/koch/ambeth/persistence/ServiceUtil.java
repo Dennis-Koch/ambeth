@@ -76,8 +76,7 @@ public class ServiceUtil implements IServiceUtil {
 			Class<?> versionTypeOfObject =
 					metaData.getVersionMember() != null ? metaData.getVersionMember().getRealType() : null;
 			ArrayList<IObjRef> objRefs = new ArrayList<>();
-			while (cursor.moveNext()) {
-				IVersionItem item = cursor.getCurrent();
+			for (IVersionItem item : cursor) {
 				Object id = conversionHelper.convertValueToType(idType, item.getId());
 				// INTENTIONALLY converting the id in 2 steps: first to the fieldType, then to the
 				// idTypeOfObject
@@ -127,8 +126,7 @@ public class ServiceUtil implements IServiceUtil {
 		Class<?> idTypeOfObject = metaData.getIdMember().getRealType();
 		ArrayList<IObjRef> objRefs = new ArrayList<>();
 		try {
-			while (cursor.moveNext()) {
-				ILinkCursorItem item = cursor.getCurrent();
+			for (ILinkCursorItem item : cursor) {
 				Object toId = conversionHelper.convertValueToType(idTypeOfObject, item.getToId());
 				objRefs.add(new ObjRef(entityType, ObjRef.PRIMARY_KEY_INDEX, toId, null));
 			}
@@ -149,8 +147,7 @@ public class ServiceUtil implements IServiceUtil {
 			ArrayList<IObjRef> objRefs = new ArrayList<>();
 			IPreparedObjRefFactory preparedObjRefFactory =
 					objRefFactory.prepareObjRefFactory(entityType, idIndex);
-			while (cursor.moveNext()) {
-				IVersionItem item = cursor.getCurrent();
+			for (IVersionItem item : cursor) {
 				objRefs.add(preparedObjRefFactory.createObjRef(item.getId(idIndex), item.getVersion()));
 			}
 			return objRefs;

@@ -1,5 +1,7 @@
 package com.koch.ambeth.persistence.sql;
 
+import java.util.Iterator;
+
 /*-
  * #%L
  * jambeth-persistence
@@ -22,11 +24,13 @@ limitations under the License.
 
 import com.koch.ambeth.persistence.api.ILinkCursor;
 import com.koch.ambeth.persistence.api.ILinkCursorItem;
-import com.koch.ambeth.util.IDisposable;
 import com.koch.ambeth.util.ParamChecker;
 
-public class ResultSetLinkCursor implements ILinkCursor, ILinkCursorItem, IDisposable {
+public class ResultSetLinkCursor
+		implements ILinkCursor, ILinkCursorItem, Iterator<ILinkCursorItem> {
 	protected IResultSet resultSet;
+
+	protected Iterator<Object[]> resultSetIter;
 
 	protected Object fromId, toId;
 
@@ -73,23 +77,31 @@ public class ResultSetLinkCursor implements ILinkCursor, ILinkCursorItem, IDispo
 	}
 
 	@Override
-	public boolean moveNext() {
-		if (resultSet.moveNext()) {
-			fromId = resultSet.getCurrent()[0];
-			toId = resultSet.getCurrent()[1];
-			return true;
+	public boolean hasNext() {
+		if (resultSetIter == null) {
+			resultSetIter = resultSet.iterator();
 		}
-		return false;
+		return resultSetIter.hasNext();
 	}
 
 	@Override
-	public ILinkCursorItem getCurrent() {
+	public ILinkCursorItem next() {
+		if (resultSetIter == null) {
+			resultSetIter = resultSet.iterator();
+		}
+		Object[] next = resultSetIter.next();
+		if (next == null) {
+			return null;
+		}
+		fromId = next[0];
+		toId = next[1];
 		return this;
 	}
 
 	@Override
 	public void dispose() {
 		if (resultSet != null) {
+			resultSetIter = null;
 			resultSet.dispose();
 			resultSet = null;
 		}
@@ -97,4 +109,8 @@ public class ResultSetLinkCursor implements ILinkCursor, ILinkCursorItem, IDispo
 		toId = null;
 	}
 
+	@Override
+	public Iterator<ILinkCursorItem> iterator() {
+		return this;
+	}
 }

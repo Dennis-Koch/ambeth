@@ -22,8 +22,5 @@ limitations under the License.
 
 import com.koch.ambeth.util.IDisposable;
 
-public interface IResultSet extends IDisposable {
-	boolean moveNext();
-
-	Object[] getCurrent();
+public interface IResultSet extends IDisposable, Iterable<Object[]> {
 }

@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.sql.Blob;
 import java.sql.Clob;
 import java.util.Arrays;
+import java.util.Iterator;
 
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.merge.proxy.IEntityMetaDataHolder;
@@ -135,13 +136,14 @@ public class LobInputSourceController implements ILobInputSourceController {
 		IDataCursor dataCursor = table.selectDataJoin(Arrays.asList("\"" + lobField.getName() + "\""),
 				null, "\"" + idField.getName() + "\"=?", null, null, Arrays.asList(persistedId));
 		try {
-			if (!dataCursor.moveNext()) {
+			Iterator<IDataItem> dataCursorIter = dataCursor.iterator();
+			if (!dataCursorIter.hasNext()) {
 				if (Clob.class.equals(lobField.getFieldType())) {
 					return new EmptyClobInputStream();
 				}
 				return new EmptyBlobInputStream();
 			}
-			IDataItem dataItem = dataCursor.getCurrent();
+			IDataItem dataItem = dataCursorIter.next();
 			if (Clob.class.equals(lobField.getFieldType())) {
 				Clob value = (Clob) connectionDialect.convertFromFieldType(database, lobField, Clob.class,
 						dataItem.getValue(0));

@@ -1,5 +1,7 @@
 package com.koch.ambeth.query.jdbc;
 
+import java.util.Iterator;
+
 /*-
  * #%L
  * jambeth-query-jdbc
@@ -45,6 +47,7 @@ import com.koch.ambeth.query.jdbc.sql.ITableAliasHolder;
 import com.koch.ambeth.query.persistence.IDataCursor;
 import com.koch.ambeth.query.persistence.IEntityCursor;
 import com.koch.ambeth.query.persistence.IVersionCursor;
+import com.koch.ambeth.query.persistence.IVersionItem;
 import com.koch.ambeth.service.merge.model.IObjRef;
 import com.koch.ambeth.util.IConversionHelper;
 import com.koch.ambeth.util.appendable.AppendableStringBuilder;
@@ -202,7 +205,8 @@ public class Query<T> implements IQuery<T>, IQueryIntern<T>, ISubQuery<T> {
 		String limitSql = sqlParts[3];
 
 		String tableAlias = (stringQuery.isJoinQuery() || containsSubQuery)
-				? tableAliasHolder.getTableAlias() : null;
+				? tableAliasHolder.getTableAlias()
+				: null;
 
 		Table table = (Table) this.database.getTableByType(this.entityType);
 
@@ -270,7 +274,7 @@ public class Query<T> implements IQuery<T>, IQueryIntern<T>, ISubQuery<T> {
 			tempSB.reset();
 			fillLimitSQL(additionalSelectColumnList, tempSB, nameToValueMap, joinQuery, parameters);
 			String limitSql = tempSB.length() > 0 ? tempSB.toString() : null;
-			String[] sqlParts = { joinSql, whereSql, orderBySql, limitSql };
+			String[] sqlParts = {joinSql, whereSql, orderBySql, limitSql};
 			return sqlParts;
 		}
 		finally {
@@ -437,7 +441,8 @@ public class Query<T> implements IQuery<T>, IQueryIntern<T>, ISubQuery<T> {
 		IVersionCursor versionCursor = (IVersionCursor) buildCursor(paramNameToValueMap,
 				RetrievalType.VERSION, 1, false);
 		try {
-			return !versionCursor.moveNext();
+			Iterator<IVersionItem> iter = versionCursor.iterator();
+			return !iter.hasNext();
 		}
 		finally {
 			versionCursor.dispose();

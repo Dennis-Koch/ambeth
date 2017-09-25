@@ -381,9 +381,7 @@ public class EntityLoader
 
 				IPreparedObjRefFactory preparedObjRefFactory = objRefFactory
 						.prepareObjRefFactory(requestedType, toIdIndex);
-				while (cursor.moveNext()) {
-					ILinkCursorItem item = cursor.getCurrent();
-
+				for (ILinkCursorItem item : cursor) {
 					Object fromId = conversionHelper.convertValueToType(idTypeOfTargetingObject,
 							item.getFromId());
 					Object toId = conversionHelper.convertValueToType(idTypeOfRequestedObject,
@@ -547,9 +545,7 @@ public class EntityLoader
 				Member idMember = metaData.getIdMember();
 				Member[] alternateIdMembers = metaData.getAlternateIdMembers();
 				lookupKey.setEntityType(entityType);
-				while (versionCursor.moveNext()) {
-					IVersionItem item = versionCursor.getCurrent();
-
+				for (IVersionItem item : versionCursor) {
 					Object[] ids = new Object[alternateIdMembers.length + 1];
 
 					lookupKey.setIdIndex(ObjRef.PRIMARY_KEY_INDEX);
@@ -783,8 +779,7 @@ public class EntityLoader
 		Class<?> versionTypeOfObject = tableMD.getVersionField().getMember().getElementType();
 		IVersionCursor cursor = table.selectVersion(givenIdMemberName, realNeededIds);
 		try {
-			while (cursor.moveNext()) {
-				IVersionItem item = cursor.getCurrent();
+			for (IVersionItem item : cursor) {
 				Object id = conversionHelper.convertValueToType(givenIdType, item.getId(idIndex));
 				Object version = conversionHelper.convertValueToType(versionTypeOfObject,
 						item.getVersion());
@@ -856,8 +851,7 @@ public class EntityLoader
 
 			boolean doInternId = this.doInternId;
 			boolean doInternVersion = this.doInternVersion;
-			while (cursor.moveNext()) {
-				ICursorItem item = cursor.getCurrent();
+			for (ICursorItem item : cursor) {
 				cursorCount++;
 
 				Object id = conversionHelper.convertValueToType(primIdType, item.getId());

@@ -1,5 +1,7 @@
 package com.koch.ambeth.persistence;
 
+import java.util.Iterator;
+
 /*-
  * #%L
  * jambeth-persistence
@@ -23,19 +25,13 @@ limitations under the License.
 import com.koch.ambeth.merge.transfer.ObjRef;
 import com.koch.ambeth.persistence.api.ILinkCursor;
 import com.koch.ambeth.persistence.api.ILinkCursorItem;
-import com.koch.ambeth.util.IDisposable;
 
-public class EmptyLinkCursor implements IDisposable, ILinkCursor {
+public class EmptyLinkCursor implements ILinkCursor, Iterator<ILinkCursorItem> {
 	public static final ILinkCursor instance = new EmptyLinkCursor();
 
 	@Override
 	public void dispose() {
 		// Intended blank
-	}
-
-	@Override
-	public boolean moveNext() {
-		return false;
 	}
 
 	@Override
@@ -49,8 +45,17 @@ public class EmptyLinkCursor implements IDisposable, ILinkCursor {
 	}
 
 	@Override
-	public ILinkCursorItem getCurrent() {
+	public boolean hasNext() {
+		return false;
+	}
+
+	@Override
+	public ILinkCursorItem next() {
 		return null;
 	}
 
+	@Override
+	public Iterator<ILinkCursorItem> iterator() {
+		return this;
+	}
 }

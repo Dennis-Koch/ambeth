@@ -1,5 +1,7 @@
 package com.koch.ambeth.persistence;
 
+import java.util.Iterator;
+
 /*-
  * #%L
  * jambeth-persistence
@@ -24,10 +26,9 @@ import com.koch.ambeth.persistence.api.ILinkCursor;
 import com.koch.ambeth.persistence.api.ILinkCursorItem;
 import com.koch.ambeth.util.collections.IList;
 
-public class LinkCursor extends BasicEnumerator<ILinkCursorItem>
-		implements ILinkCursor, ILinkCursorItem {
-	protected IList<LinkCursorItem> items;
-	protected int currentIndex = -1;
+public class LinkCursor implements ILinkCursor, ILinkCursorItem, Iterator<ILinkCursorItem> {
+	protected IList<? extends ILinkCursorItem> items;
+	protected int currentIndex;
 
 	protected byte fromIdIndex, toIdIndex;
 
@@ -49,32 +50,19 @@ public class LinkCursor extends BasicEnumerator<ILinkCursorItem>
 		this.toIdIndex = toIdIndex;
 	}
 
-	public void setItems(IList<LinkCursorItem> items) {
+	public void setItems(IList<? extends ILinkCursorItem> items) {
 		this.items = items;
 	}
 
 	@Override
-	public ILinkCursorItem getCurrent() {
-		if (currentIndex == -1) {
-			return null;
-		}
-		else {
-			return this;
-		}
+	public boolean hasNext() {
+		return items.size() > currentIndex;
 	}
 
 	@Override
-	public boolean moveNext() {
-		if (items.size() == currentIndex + 1) {
-			return false;
-		}
+	public ILinkCursorItem next() {
 		currentIndex++;
-		return true;
-	}
-
-	@Override
-	public void reset() {
-		currentIndex = -1;
+		return items.get(currentIndex);
 	}
 
 	@Override
@@ -92,4 +80,8 @@ public class LinkCursor extends BasicEnumerator<ILinkCursorItem>
 		return items.get(currentIndex).getToId();
 	}
 
+	@Override
+	public Iterator<ILinkCursorItem> iterator() {
+		return this;
+	}
 }

@@ -532,8 +532,7 @@ public class JdbcTable extends SqlTable {
 				metaData.getVersionField() != null ? metaData.getVersionField().getFieldType() : null;
 		IResultSet selectForUpdateRS = createSelectForUpdateStatementWithIn(persistedIdsForArray);
 		try {
-			while (selectForUpdateRS.moveNext()) {
-				Object[] current = selectForUpdateRS.getCurrent();
+			for (Object[] current : selectForUpdateRS) {
 				Object persistedId = conversionHelper.convertValueToType(idFieldType, current[0]);
 				Object givenPersistedVersion = persistedIdToVersionMap.remove(persistedId);
 				if (versionFieldType == null) {

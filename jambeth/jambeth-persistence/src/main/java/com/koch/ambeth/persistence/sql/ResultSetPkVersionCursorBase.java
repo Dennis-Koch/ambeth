@@ -23,57 +23,56 @@ limitations under the License.
  */
 
 import com.koch.ambeth.ioc.IInitializingBean;
-import com.koch.ambeth.query.persistence.IDataCursor;
-import com.koch.ambeth.query.persistence.IDataItem;
+import com.koch.ambeth.merge.transfer.ObjRef;
+import com.koch.ambeth.query.persistence.IVersionItem;
 import com.koch.ambeth.util.ParamChecker;
-import com.koch.ambeth.util.collections.IMap;
 
-public class ResultSetDataCursor
-		implements IDataCursor, IDataItem, IInitializingBean, Iterator<IDataItem> {
+public class ResultSetPkVersionCursorBase
+		implements IInitializingBean, IVersionItem {
 	protected IResultSet resultSet;
 
 	protected Iterator<Object[]> resultSetIter;
 
-	protected IMap<String, Integer> propertyToColIndexMap;
+	protected Object id, version;
 
-	protected Object[] data;
+	protected boolean containsVersion = true;
 
 	@Override
 	public void afterPropertiesSet() {
 		ParamChecker.assertNotNull(resultSet, "ResultSet");
-		ParamChecker.assertNotNull(propertyToColIndexMap, "PropertyToColIndexMap");
-		data = new Object[propertyToColIndexMap.size()];
 	}
 
-	public IResultSet getResultSet() {
-		return resultSet;
+	public void setContainsVersion(boolean containsVersion) {
+		this.containsVersion = containsVersion;
 	}
 
 	public void setResultSet(IResultSet resultSet) {
 		this.resultSet = resultSet;
 	}
 
-	public void setPropertyToColIndexMap(IMap<String, Integer> propertyToColIndexMap) {
-		this.propertyToColIndexMap = propertyToColIndexMap;
+	@Override
+	public Object getId() {
+		return id;
 	}
 
 	@Override
-	public int getFieldCount() {
-		return propertyToColIndexMap.size();
+	public Object getId(int idIndex) {
+		if (idIndex == ObjRef.PRIMARY_KEY_INDEX) {
+			return getId();
+		}
+		throw new UnsupportedOperationException("No alternate ids have been fetched");
 	}
 
 	@Override
-	public Object getValue(String propertyName) {
-		Integer index = propertyToColIndexMap.get(propertyName);
-		return data[index];
+	public Object getVersion() {
+		return version;
 	}
 
 	@Override
-	public Object getValue(int index) {
-		return data[index];
+	public int getAlternateIdCount() {
+		return 0;
 	}
 
-	@Override
 	public boolean hasNext() {
 		if (resultSetIter == null) {
 			resultSetIter = resultSet.iterator();
@@ -81,29 +80,30 @@ public class ResultSetDataCursor
 		return resultSetIter.hasNext();
 	}
 
-	@Override
-	public IDataItem next() {
+	public IVersionItem next() {
 		if (resultSetIter == null) {
 			resultSetIter = resultSet.iterator();
 		}
-		data = resultSetIter.next();
-		if (data == null) {
-			return null;
+		Iterator<Object[]> resultSetIter = this.resultSetIter;
+		Object[] current = resultSetIter.next();
+		if (current != null) {
+			id = current[0];
+			if (containsVersion) {
+				version = current[1];
+			}
+		}
+		else {
+			id = null;
+			version = null;
 		}
 		return this;
 	}
 
-	@Override
 	public void dispose() {
 		if (resultSet != null) {
+			resultSetIter = null;
 			resultSet.dispose();
 			resultSet = null;
 		}
-		propertyToColIndexMap = null;
-	}
-
-	@Override
-	public Iterator<IDataItem> iterator() {
-		return this;
 	}
 }

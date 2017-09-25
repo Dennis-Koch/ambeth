@@ -25,15 +25,15 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
+import java.util.Iterator;
 
 import com.koch.ambeth.ioc.IInitializingBean;
 import com.koch.ambeth.persistence.sql.IResultSet;
-import com.koch.ambeth.util.IDisposable;
 import com.koch.ambeth.util.ParamChecker;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.sensor.ISensor;
 
-public class JDBCResultSet implements IResultSet, IInitializingBean, IDisposable {
+public class JDBCResultSet implements IResultSet, Iterator<Object[]>, IInitializingBean {
 	public static final String SENSOR_NAME = "com.koch.ambeth.persistence.jdbc.JDBCResultSet";
 
 	protected ResultSet resultSet;
@@ -45,6 +45,8 @@ public class JDBCResultSet implements IResultSet, IInitializingBean, IDisposable
 	protected Object[] values;
 
 	protected boolean[] isClob;
+
+	private Boolean hasNext;
 
 	@Override
 	public void afterPropertiesSet() {
@@ -105,10 +107,14 @@ public class JDBCResultSet implements IResultSet, IInitializingBean, IDisposable
 	}
 
 	@Override
-	public boolean moveNext() {
+	public boolean hasNext() {
+		if (hasNext != null) {
+			return hasNext.booleanValue();
+		}
 		try {
 			ResultSet resultSet = this.resultSet;
 			if (resultSet == null) {
+				hasNext = Boolean.FALSE;
 				return false;
 			}
 			Object[] values = this.values;
@@ -116,6 +122,7 @@ public class JDBCResultSet implements IResultSet, IInitializingBean, IDisposable
 				for (int a = values.length; a-- > 0;) {
 					values[a] = null;
 				}
+				hasNext = Boolean.FALSE;
 				return false;
 			}
 			for (int a = values.length; a-- > 0;) {
@@ -126,15 +133,25 @@ public class JDBCResultSet implements IResultSet, IInitializingBean, IDisposable
 					values[a] = resultSet.getClob(a + 1);
 				}
 			}
+			hasNext = Boolean.TRUE;
 			return true;
 		}
-		catch (Exception e) {
+		catch (SQLException e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
 
 	@Override
-	public Object[] getCurrent() {
+	public Object[] next() {
+		if (!hasNext()) {
+			return null;
+		}
+		hasNext = null;
 		return values;
+	}
+
+	@Override
+	public Iterator<Object[]> iterator() {
+		return this;
 	}
 }

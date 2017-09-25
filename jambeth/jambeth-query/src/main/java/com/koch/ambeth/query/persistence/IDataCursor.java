@@ -22,10 +22,6 @@ limitations under the License.
 
 import com.koch.ambeth.util.IDisposable;
 
-public interface IDataCursor extends IDisposable {
-	boolean moveNext();
-
-	IDataItem getCurrent();
-
+public interface IDataCursor extends IDisposable, Iterable<IDataItem> {
 	int getFieldCount();
 }

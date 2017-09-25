@@ -1,5 +1,7 @@
 package com.koch.ambeth.persistence;
 
+import java.util.Iterator;
+
 /*-
  * #%L
  * jambeth-persistence
@@ -25,16 +27,16 @@ import com.koch.ambeth.query.persistence.IEntityCursor;
 import com.koch.ambeth.query.persistence.IVersionCursor;
 import com.koch.ambeth.query.persistence.IVersionItem;
 
-public class EntityCursor<T> extends BasicEnumerator<T> implements IEntityCursor<T> {
+public class EntityCursor<T> implements IEntityCursor<T>, Iterator<T> {
 	protected IVersionCursor cursor;
+
+	protected Iterator<IVersionItem> cursorIter;
 
 	protected Class<T> entityType;
 
 	protected ICache cache;
 
 	protected IServiceUtil serviceUtil;
-
-	protected T current;
 
 	public EntityCursor(IVersionCursor cursor, Class<T> entityType, ICache cache) {
 		this.cursor = cursor;
@@ -49,28 +51,26 @@ public class EntityCursor<T> extends BasicEnumerator<T> implements IEntityCursor
 	}
 
 	@Override
-	public T getCurrent() {
-		if (this.current == null) {
-			IVersionItem item = this.cursor.getCurrent();
-			if (item == null) {
-				return null;
-			}
-			else {
-				if (this.serviceUtil != null) {
-					this.current = this.serviceUtil.loadObject(this.entityType, item);
-				}
-				else {
-					this.current = this.cache.getObject(this.entityType, item);
-				}
-			}
+	public boolean hasNext() {
+		if (cursorIter == null) {
+			cursorIter = cursor.iterator();
 		}
-		return this.current;
+		return cursorIter.hasNext();
 	}
 
 	@Override
-	public boolean moveNext() {
-		this.current = null;
-		return this.cursor.moveNext();
+	public T next() {
+		if (cursorIter == null) {
+			cursorIter = cursor.iterator();
+		}
+		IVersionItem item = this.cursorIter.next();
+		if (item == null) {
+			return null;
+		}
+		if (this.serviceUtil != null) {
+			return this.serviceUtil.loadObject(this.entityType, item);
+		}
+		return this.cache.getObject(this.entityType, item);
 	}
 
 	@Override
@@ -80,6 +80,10 @@ public class EntityCursor<T> extends BasicEnumerator<T> implements IEntityCursor
 			cursor = null;
 		}
 		cache = null;
-		current = null;
+	}
+
+	@Override
+	public Iterator<T> iterator() {
+		return this;
 	}
 }

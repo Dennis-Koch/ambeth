@@ -1,5 +1,7 @@
 package com.koch.ambeth.persistence;
 
+import com.koch.ambeth.persistence.api.ILinkCursorItem;
+
 /*-
  * #%L
  * jambeth-persistence
@@ -20,10 +22,16 @@ limitations under the License.
  * #L%
  */
 
-public class LinkCursorItem {
+public class LinkCursorItem implements ILinkCursorItem {
 
 	protected Object fromId, toId;
 
+	public LinkCursorItem(Object fromId, Object toId) {
+		this.fromId = fromId;
+		this.toId = toId;
+	}
+
+	@Override
 	public Object getFromId() {
 		return fromId;
 	}
@@ -32,6 +40,7 @@ public class LinkCursorItem {
 		this.fromId = fromId;
 	}
 
+	@Override
 	public Object getToId() {
 		return toId;
 	}
@@ -39,5 +48,4 @@ public class LinkCursorItem {
 	public void setToId(Object toId) {
 		this.toId = toId;
 	}
-
 }

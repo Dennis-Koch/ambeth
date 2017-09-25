@@ -1204,8 +1204,7 @@ public class AuditEntryVerifier
 						IVersionCursor cursor = table.selectVersion(alternateIdMember.getName(),
 								alternateIdObjRefs);
 						try {
-							while (cursor.moveNext()) {
-								IVersionItem item = cursor.getCurrent();
+							for (IVersionItem item : cursor) {
 								Object id = conversionHelper.convertValueToType(idRealType, item.getId());
 								Object alternateId = conversionHelper.convertValueToType(alternateIdRealType,
 										item.getId(idIndex));

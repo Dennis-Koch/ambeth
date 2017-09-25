@@ -83,8 +83,7 @@ public class CacheServiceUtil extends ServiceUtil {
 			try {
 				IPreparedObjRefFactory preparedObjRefFactory = objRefFactory
 						.prepareObjRefFactory(entityType, cursor.getToIdIndex());
-				while (cursor.moveNext()) {
-					ILinkCursorItem item = cursor.getCurrent();
+				for (ILinkCursorItem item : cursor) {
 					objRefs.add(preparedObjRefFactory.createObjRef(item.getToId(), null));
 				}
 			}

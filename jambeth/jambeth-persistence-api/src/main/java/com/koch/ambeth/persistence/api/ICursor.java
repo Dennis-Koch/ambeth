@@ -22,7 +22,7 @@ limitations under the License.
 
 import com.koch.ambeth.util.IDisposable;
 
-public interface ICursor extends IDisposable {
+public interface ICursor extends IDisposable, Iterable<ICursorItem> {
 	IFieldMetaData[] getFields();
 
 	IFieldMetaData getFieldByMemberName(String memberName);
@@ -30,8 +30,4 @@ public interface ICursor extends IDisposable {
 	int getFieldIndexByMemberName(String memberName);
 
 	int getFieldIndexByName(String fieldName);
-
-	boolean moveNext();
-
-	ICursorItem getCurrent();
 }

@@ -159,9 +159,7 @@ public class AuditVerifierJob implements IJob, IStartingBean {
 		try {
 			int count = 0;
 			boolean verificationSuccess = true;
-			while (cursor.moveNext()) {
-				IVersionItem versionItem = cursor.getCurrent();
-
+			for (IVersionItem versionItem : cursor) {
 				count++;
 
 				// objRef WITHOUT version intentional: We do not want to get cache hits in the committed
@@ -185,7 +183,7 @@ public class AuditVerifierJob implements IJob, IStartingBean {
 		}
 	}
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@SuppressWarnings({"unchecked", "rawtypes"})
 	protected boolean verify(IList<IObjRef> objRefs) {
 		if (objRefs.isEmpty()) {
 			return true;

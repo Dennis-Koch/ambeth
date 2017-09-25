@@ -1,5 +1,7 @@
 package com.koch.ambeth.persistence.sql;
 
+import java.util.Iterator;
+
 /*-
  * #%L
  * jambeth-persistence
@@ -391,13 +393,14 @@ public class SqlTable extends Table {
 			IResultSet selectResult = sqlConnection.selectFields(fqTableName, selectSB, joinSql, whereSql,
 					orderBySql, limitSql, parameters, tableAlias);
 
-			ResultSetPkVersionCursor versionCursor = retrieveAlternateIds ? new ResultSetVersionCursor()
-					: new ResultSetPkVersionCursor();
+			ResultSetPkVersionCursorBase versionCursor =
+					retrieveAlternateIds ? new ResultSetVersionCursor()
+							: new ResultSetPkVersionCursor();
 			versionCursor.setContainsVersion(versionField != null);
 			versionCursor.setResultSet(selectResult);
 			versionCursor.afterPropertiesSet();
 
-			return versionCursor;
+			return (IVersionCursor) versionCursor;
 		}
 		finally {
 			objectCollector.dispose(selectSB);
@@ -410,10 +413,11 @@ public class SqlTable extends Table {
 		IResultSet resultSet = sqlConnection.selectFields(getMetaData().getFullqualifiedEscapedName(),
 				"COUNT(*)", joinSql, whereSql, null, null, parameters, tableAlias);
 		try {
-			if (!resultSet.moveNext()) {
+			Iterator<Object[]> resultSetIter = resultSet.iterator();
+			if (!resultSetIter.hasNext()) {
 				return 0;
 			}
-			Object[] countValues = resultSet.getCurrent();
+			Object[] countValues = resultSetIter.next();
 			return ((Number) countValues[0]).longValue();
 		}
 		finally {
@@ -488,13 +492,14 @@ public class SqlTable extends Table {
 			IResultSet selectResult = sqlConnection.selectFields(fqTableName, selectSB, joinSql, whereSql,
 					additionalSelectColumnList, orderBySql, limitSql, offset, length, parameters, tableAlias);
 
-			ResultSetPkVersionCursor versionCursor = retrieveAlternateIds ? new ResultSetVersionCursor()
-					: new ResultSetPkVersionCursor();
+			ResultSetPkVersionCursorBase versionCursor =
+					retrieveAlternateIds ? new ResultSetVersionCursor()
+							: new ResultSetPkVersionCursor();
 			versionCursor.setContainsVersion(versionField != null);
 			versionCursor.setResultSet(selectResult);
 			versionCursor.afterPropertiesSet();
 
-			return versionCursor;
+			return (IVersionCursor) versionCursor;
 		}
 		finally {
 			objectCollector.dispose(selectSB);

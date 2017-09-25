@@ -579,9 +579,7 @@ public class PermissionGroupUpdater implements IInitializingBean, IPermissionGro
 			IPreparedObjRefFactory prepareObjRefFactory = objRefFactory.prepareObjRefFactory(entityType,
 					ObjRef.PRIMARY_KEY_INDEX);
 			ArrayList<IObjRef> objRefs = new ArrayList<>();
-			while (versionCursor.moveNext()) {
-				IVersionItem item = versionCursor.getCurrent();
-
+			for (IVersionItem item : versionCursor) {
 				Object id = conversionHelper.convertValueToType(idType, item.getId());
 				objRefs.add(prepareObjRefFactory.createObjRef(id, item.getVersion()));
 			}
