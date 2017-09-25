@@ -23,14 +23,14 @@ limitations under the License.
 import java.util.Collection;
 import java.util.Set;
 
-import com.koch.ambeth.merge.incremental.IMergeProcessFinishHookExtendable;
+import com.koch.ambeth.merge.incremental.IMergePipelineFinishHookExtendable;
 import com.koch.ambeth.merge.model.IChangeContainer;
 
 /**
  * This is a utility class that provides access to all new objects that should be merged with the
  * database.
  */
-public interface ICacheView extends IMergeProcessFinishHookExtendable {
+public interface ICacheView extends IMergePipelineFinishHookExtendable {
 
 	/**
 	 * Returns a list of new objects that have the given interface as type.

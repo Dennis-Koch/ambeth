@@ -1,6 +1,6 @@
 package com.koch.ambeth.merge.incremental;
 
-public interface IMergeProcessFinishHookExtendable {
+public interface IMergePipelineFinishHookExtendable {
 
 	void registerMergePipelineFinishHook(IMergePipelineFinishHook hook);
 

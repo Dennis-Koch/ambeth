@@ -823,6 +823,14 @@ public class MergeController implements IMergeController, IMergeExtendable {
 	}
 
 	protected void mergeOrPersist(Object obj, MergeHandle handle) {
+		if (obj instanceof Optional) {
+			Optional<?> opt = (Optional<?>) obj;
+			if (!opt.isPresent()) {
+				return;
+			}
+			mergeOrPersist(opt.get(), handle);
+			return;
+		}
 		if (obj == null || !handle.alreadyProcessedSet.add(obj)) {
 			return;
 		}
