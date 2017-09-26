@@ -125,29 +125,43 @@ public class CacheProvider implements IInitializingBean, IThreadLocalCleanupBean
 			case PROTOTYPE: {
 				if (!securityActive || !securityActivation.isFilterActivated()) {
 					return cacheFactory.createPrivileged(CacheFactoryDirective.SubscribeTransactionalDCE,
-							false, null, "CacheProvider.PROTOTYPE");
+							false, null, "CacheProvider.PROTOTYPE.privileged");
 				}
 				return cacheFactory.create(CacheFactoryDirective.SubscribeTransactionalDCE, false, null,
 						"CacheProvider.PROTOTYPE");
 			}
 			case SINGLETON: {
-				lock.lock();
-				try {
-					if (!securityActive || !securityActivation.isFilterActivated()) {
-						if (privilegedSingletonCache == null) {
-							privilegedSingletonCache = cacheFactory.createPrivileged(
-									CacheFactoryDirective.SubscribeTransactionalDCE, true, null,
-									"CacheProvider.SINGLETON");
-						}
+				if (!securityActive || !securityActivation.isFilterActivated()) {
+					if (privilegedSingletonCache != null) {
 						return privilegedSingletonCache;
 					}
-					else {
-						if (singletonCache == null) {
-							singletonCache = cacheFactory.create(CacheFactoryDirective.SubscribeTransactionalDCE,
-									true, null, "CacheProvider.SINGLETON");
+					lock.lock();
+					try {
+						if (privilegedSingletonCache != null) {
+							// concurrent thread might have been faster
+							return privilegedSingletonCache;
 						}
+						privilegedSingletonCache = cacheFactory.createPrivileged(
+								CacheFactoryDirective.SubscribeTransactionalDCE, true, null,
+								"CacheProvider.SINGLETON.privileged");
+						return privilegedSingletonCache;
+					}
+					finally {
+						lock.unlock();
+					}
+				}
+				else if (singletonCache != null) {
+					return singletonCache;
+				}
+				lock.lock();
+				try {
+					if (singletonCache != null) {
+						// concurrent thread might have been faster
 						return singletonCache;
 					}
+					singletonCache = cacheFactory.create(CacheFactoryDirective.SubscribeTransactionalDCE,
+							true, null, "CacheProvider.SINGLETON");
+					return singletonCache;
 				}
 				finally {
 					lock.unlock();
@@ -158,7 +172,7 @@ public class CacheProvider implements IInitializingBean, IThreadLocalCleanupBean
 					IDisposableCache cache = privilegedCacheTL.get();
 					if (cache == null) {
 						cache = cacheFactory.createPrivileged(CacheFactoryDirective.SubscribeTransactionalDCE,
-								false, Boolean.FALSE, "CacheProvider.THREAD_LOCAL");
+								false, Boolean.FALSE, "CacheProvider.THREAD_LOCAL.privileged");
 						privilegedCacheTL.set(cache);
 					}
 					return cache;
@@ -176,5 +190,11 @@ public class CacheProvider implements IInitializingBean, IThreadLocalCleanupBean
 			default:
 				throw new IllegalStateException("Not supported type: " + cacheType);
 		}
+
+	}
+
+	@Override
+	public String toString() {
+		return "CacheProvider" + cacheType + " " + super.toString();
 	}
 }
