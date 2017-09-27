@@ -53,10 +53,10 @@ public class CacheMapEntryVisitor extends ClassGenerator {
 
 	protected final byte idIndex;
 
-	public CacheMapEntryVisitor(ClassVisitor cv, IEntityMetaData metaData, byte idIndex) {
+	public CacheMapEntryVisitor(ClassVisitor cv, IEntityMetaData metaData, int idIndex) {
 		super(cv);
 		this.metaData = metaData;
-		this.idIndex = idIndex;
+		this.idIndex = (byte) idIndex;
 	}
 
 	@Override

@@ -34,9 +34,9 @@ public class CacheMapEntryEnhancementHint
 
 	protected final Class<?> entityType;
 
-	protected final byte idIndex;
+	protected final int idIndex;
 
-	public CacheMapEntryEnhancementHint(Class<?> entityType, byte idIndex) {
+	public CacheMapEntryEnhancementHint(Class<?> entityType, int idIndex) {
 		this.entityType = entityType;
 		this.idIndex = idIndex;
 	}
@@ -45,7 +45,7 @@ public class CacheMapEntryEnhancementHint
 		return entityType;
 	}
 
-	public byte getIdIndex() {
+	public int getIdIndex() {
 		return idIndex;
 	}
 

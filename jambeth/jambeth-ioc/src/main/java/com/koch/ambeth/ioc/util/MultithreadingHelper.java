@@ -1,5 +1,8 @@
 package com.koch.ambeth.ioc.util;
 
+import java.util.List;
+import java.util.Map;
+
 /*-
  * #%L
  * jambeth-ioc
@@ -35,8 +38,6 @@ import com.koch.ambeth.ioc.threadlocal.IThreadLocalCleanupController;
 import com.koch.ambeth.util.IClassLoaderProvider;
 import com.koch.ambeth.util.ParamHolder;
 import com.koch.ambeth.util.collections.ArrayList;
-import com.koch.ambeth.util.collections.IList;
-import com.koch.ambeth.util.collections.IMap;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.threading.IBackgroundWorkerDelegate;
 import com.koch.ambeth.util.threading.IBackgroundWorkerParamDelegate;
@@ -96,7 +97,8 @@ public class MultithreadingHelper implements IMultithreadingHelper {
 	@Property(name = TIMEOUT, defaultValue = "30000")
 	protected long timeout;
 
-	@Property(name = IocConfigurationConstants.TransparentParallelizationActive, defaultValue = "true")
+	@Property(name = IocConfigurationConstants.TransparentParallelizationActive,
+			defaultValue = "true")
 	protected boolean transparentParallelizationActive;
 
 	@Override
@@ -163,7 +165,7 @@ public class MultithreadingHelper implements IMultithreadingHelper {
 	}
 
 	@Override
-	public <R, V> void invokeAndWait(IList<V> items,
+	public <R, V> void invokeAndWait(List<V> items,
 			IResultingBackgroundWorkerParamDelegate<R, V> itemHandler,
 			IAggregrateResultHandler<R, V> aggregateResultHandler) {
 		if (items.isEmpty()) {
@@ -194,8 +196,9 @@ public class MultithreadingHelper implements IMultithreadingHelper {
 		queueAndWait(items.size() - 1, parallelRunnable, mainRunnable, runnableHandle);
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
-	public <R, K, V> void invokeAndWait(IMap<K, V> items,
+	public <R, K, V> void invokeAndWait(Map<K, V> items,
 			IResultingBackgroundWorkerParamDelegate<R, Entry<K, V>> itemHandler,
 			IAggregrateResultHandler<R, Entry<K, V>> aggregateResultHandler) {
 		if (items.isEmpty()) {
@@ -203,10 +206,20 @@ public class MultithreadingHelper implements IMultithreadingHelper {
 		}
 		if (!isMultiThreadingAllowed() || items.size() == 1) {
 			try {
-				for (Entry<K, V> item : items) {
-					R result = itemHandler.invoke(item);
-					if (aggregateResultHandler != null) {
-						aggregateResultHandler.aggregateResult(result, item);
+				if (items instanceof Iterable) {
+					for (Entry<K, V> item : (Iterable<Entry<K, V>>) items) {
+						R result = itemHandler.invoke(item);
+						if (aggregateResultHandler != null) {
+							aggregateResultHandler.aggregateResult(result, item);
+						}
+					}
+				}
+				else {
+					for (Entry<K, V> item : items.entrySet()) {
+						R result = itemHandler.invoke(item);
+						if (aggregateResultHandler != null) {
+							aggregateResultHandler.aggregateResult(result, item);
+						}
 					}
 				}
 				return;
@@ -216,8 +229,15 @@ public class MultithreadingHelper implements IMultithreadingHelper {
 			}
 		}
 		ArrayList<Entry<K, V>> itemsList = new ArrayList<>(items.size());
-		for (Entry<K, V> item : items) {
-			itemsList.add(item);
+		if (items instanceof Iterable) {
+			for (Entry<K, V> item : (Iterable<Entry<K, V>>) items) {
+				itemsList.add(item);
+			}
+		}
+		else {
+			for (Entry<K, V> item : items.entrySet()) {
+				itemsList.add(item);
+			}
 		}
 		ResultingRunnableHandle<R, Entry<K, V>> runnableHandle = new ResultingRunnableHandle<>(
 				new CancellationCheckResultingBackgroundWorker<>(itemHandler), aggregateResultHandler,
@@ -230,7 +250,7 @@ public class MultithreadingHelper implements IMultithreadingHelper {
 	}
 
 	@Override
-	public <V> void invokeAndWait(IList<V> items, IBackgroundWorkerParamDelegate<V> itemHandler) {
+	public <V> void invokeAndWait(List<V> items, IBackgroundWorkerParamDelegate<V> itemHandler) {
 		if (items.isEmpty()) {
 			return;
 		}
@@ -256,16 +276,24 @@ public class MultithreadingHelper implements IMultithreadingHelper {
 		queueAndWait(items.size() - 1, parallelRunnable, mainRunnable, runnableHandle);
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
-	public <K, V> void invokeAndWait(IMap<K, V> items,
+	public <K, V> void invokeAndWait(Map<K, V> items,
 			IBackgroundWorkerParamDelegate<Entry<K, V>> itemHandler) {
 		if (items.isEmpty()) {
 			return;
 		}
 		if (!isMultiThreadingAllowed() || items.size() == 1) {
 			try {
-				for (Entry<K, V> item : items) {
-					itemHandler.invoke(item);
+				if (items instanceof Iterable) {
+					for (Entry<K, V> item : (Iterable<Entry<K, V>>) items) {
+						itemHandler.invoke(item);
+					}
+				}
+				else {
+					for (Entry<K, V> item : items.entrySet()) {
+						itemHandler.invoke(item);
+					}
 				}
 				return;
 			}
@@ -274,8 +302,15 @@ public class MultithreadingHelper implements IMultithreadingHelper {
 			}
 		}
 		ArrayList<Entry<K, V>> itemsList = new ArrayList<>(items.size());
-		for (Entry<K, V> item : items) {
-			itemsList.add(item);
+		if (items instanceof Iterable) {
+			for (Entry<K, V> item : (Iterable<Entry<K, V>>) items) {
+				itemsList.add(item);
+			}
+		}
+		else {
+			for (Entry<K, V> item : items.entrySet()) {
+				itemsList.add(item);
+			}
 		}
 		RunnableHandle<Entry<K, V>> runnableHandle = new RunnableHandle<>(
 				new CancellationCheckBackgroundWorker<>(itemHandler), itemsList,

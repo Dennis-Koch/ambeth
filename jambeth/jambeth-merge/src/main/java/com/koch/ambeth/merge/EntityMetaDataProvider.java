@@ -31,6 +31,7 @@ import com.koch.ambeth.ioc.extendable.ClassExtendableListContainer;
 import com.koch.ambeth.ioc.extendable.MapExtendableContainer;
 import com.koch.ambeth.ioc.util.ClassTupleExtendableContainer;
 import com.koch.ambeth.ioc.util.IImmutableTypeSet;
+import com.koch.ambeth.ioc.util.IMultithreadingHelper;
 import com.koch.ambeth.merge.IFimExtension.IDotNodeCallback;
 import com.koch.ambeth.merge.bytecode.EntityEnhancementHint;
 import com.koch.ambeth.merge.cache.ICacheModification;
@@ -66,6 +67,7 @@ import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.model.IEmbeddedType;
 import com.koch.ambeth.util.objectcollector.IThreadLocalObjectCollector;
 import com.koch.ambeth.util.proxy.IProxyFactory;
+import com.koch.ambeth.util.threading.IBackgroundWorkerParamDelegate;
 import com.koch.ambeth.util.typeinfo.IPropertyInfo;
 import com.koch.ambeth.util.typeinfo.IPropertyInfoProvider;
 import com.koch.ambeth.util.typeinfo.ITypeInfoItem;
@@ -100,6 +102,9 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 
 	@Autowired
 	protected IMemberTypeProvider memberTypeProvider;
+
+	@Autowired
+	protected IMultithreadingHelper multithreadingHelper;
 
 	@Autowired
 	protected IThreadLocalObjectCollector objectCollector;
@@ -790,7 +795,7 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 	}
 
 	@Override
-	public void refreshMembers(IEntityMetaData metaData) {
+	public void refreshMembers(final IEntityMetaData metaData) {
 		if (metaData.getEnhancedType() == null) {
 			((EntityMetaData) metaData).initialize(cacheModification, entityFactory);
 			IEntityInstantiationExtension eie = entityInstantiationExtensions
@@ -800,14 +805,27 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 			((EntityMetaData) metaData).setEnhancedType(
 					bytecodeEnhancer.getEnhancedType(baseType, EntityEnhancementHint.Instance));
 		}
-		RelationMember[] relationMembers = metaData.getRelationMembers();
-		for (int a = relationMembers.length; a-- > 0;) {
-			relationMembers[a] = (RelationMember) refreshMember(metaData, relationMembers[a]);
-		}
-		PrimitiveMember[] primitiveMembers = metaData.getPrimitiveMembers();
-		for (int a = primitiveMembers.length; a-- > 0;) {
-			primitiveMembers[a] = (PrimitiveMember) refreshMember(metaData, primitiveMembers[a]);
-		}
+		final RelationMember[] relationMembers = metaData.getRelationMembers();
+		final PrimitiveMember[] primitiveMembers = metaData.getPrimitiveMembers();
+		IList<Member> members = new ArrayList<>();
+		members.addAll(relationMembers);
+		members.addAll(primitiveMembers);
+		multithreadingHelper.invokeAndWait(members,
+				new IBackgroundWorkerParamDelegate<Member>() {
+					@Override
+					public void invoke(Member member) throws Exception {
+						if (metaData.isPrimitiveMember(member.getName())) {
+							int index = metaData.getIndexByPrimitive(member);
+							primitiveMembers[index] =
+									(PrimitiveMember) refreshMember(metaData, member);
+						}
+						else {
+							int index = metaData.getIndexByRelation(member);
+							relationMembers[index] =
+									(RelationMember) refreshMember(metaData, member);
+						}
+					}
+				});
 
 		HashMap<String, PrimitiveMember> nameToPrimitiveMember = new HashMap<>();
 		for (int a = primitiveMembers.length; a-- > 0;) {

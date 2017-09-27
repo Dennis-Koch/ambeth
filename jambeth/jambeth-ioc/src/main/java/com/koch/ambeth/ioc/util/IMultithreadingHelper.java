@@ -1,5 +1,8 @@
 package com.koch.ambeth.ioc.util;
 
+import java.util.List;
+import java.util.Map;
+
 /*-
  * #%L
  * jambeth-ioc
@@ -23,8 +26,6 @@ limitations under the License.
 import java.util.Map.Entry;
 
 import com.koch.ambeth.ioc.IServiceContext;
-import com.koch.ambeth.util.collections.IList;
-import com.koch.ambeth.util.collections.IMap;
 import com.koch.ambeth.util.threading.IBackgroundWorkerParamDelegate;
 import com.koch.ambeth.util.threading.IResultingBackgroundWorkerParamDelegate;
 
@@ -48,17 +49,17 @@ public interface IMultithreadingHelper {
 	 *        exclusive lock in the scope of the current workers (potentially forked threads and the
 	 *        current threads).
 	 */
-	<R, V> void invokeAndWait(IList<V> items,
+	<R, V> void invokeAndWait(List<V> items,
 			IResultingBackgroundWorkerParamDelegate<R, V> itemHandler,
 			IAggregrateResultHandler<R, V> aggregateResultHandler);
 
-	<R, K, V> void invokeAndWait(IMap<K, V> items,
+	<R, K, V> void invokeAndWait(Map<K, V> items,
 			IResultingBackgroundWorkerParamDelegate<R, Entry<K, V>> itemHandler,
 			IAggregrateResultHandler<R, Entry<K, V>> aggregateResultHandler);
 
-	<V> void invokeAndWait(IList<V> items, IBackgroundWorkerParamDelegate<V> itemHandler);
+	<V> void invokeAndWait(List<V> items, IBackgroundWorkerParamDelegate<V> itemHandler);
 
-	<K, V> void invokeAndWait(IMap<K, V> items,
+	<K, V> void invokeAndWait(Map<K, V> items,
 			IBackgroundWorkerParamDelegate<Entry<K, V>> itemHandler);
 
 	void invokeInParallel(IServiceContext serviceContext, Runnable runnable, int workerCount);

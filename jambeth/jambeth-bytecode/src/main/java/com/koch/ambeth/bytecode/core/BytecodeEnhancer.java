@@ -34,6 +34,7 @@ import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.regex.Pattern;
@@ -76,11 +77,12 @@ public class BytecodeEnhancer
 	public static class ValueType extends SmartCopyMap<IEnhancementHint, Reference<Class<?>>> {
 		private volatile int changeCount = 0;
 
-		public void addChangeCount() {
+		public synchronized int addChangeCount() {
 			changeCount++;
+			return changeCount;
 		}
 
-		public int getChangeCount() {
+		public synchronized int getChangeCount() {
 			return changeCount;
 		}
 	}
@@ -103,6 +105,8 @@ public class BytecodeEnhancer
 	@Property(name = BytecodeConfigurationConstants.EnhancementTraceDirectory, mandatory = false)
 	protected String traceDir;
 
+	protected final HashSet<String> enhancementsInProgress = new HashSet<>();
+
 	protected final WeakSmartCopyMap<Class<?>, ValueType> typeToExtendedType =
 			new WeakSmartCopyMap<>();
 
@@ -112,6 +116,8 @@ public class BytecodeEnhancer
 	protected final HashSet<Class<?>> supportedEnhancements = new HashSet<>(0.5f);
 
 	protected final Lock writeLock = new ReentrantLock();
+
+	protected final Condition enhancementCond = writeLock.newCondition();
 
 	protected final IExtendableContainer<IBytecodeBehavior> bytecodeBehaviorExtensions =
 			new ExtendableContainer<>(
@@ -249,8 +255,20 @@ public class BytecodeEnhancer
 		if (extendedType != null) {
 			return extendedType;
 		}
+		String originalNewTypeNamePrefix = newTypeNamePrefix;
 		Lock writeLock = this.writeLock;
 		writeLock.lock();
+		try {
+			while (!enhancementsInProgress.add(originalNewTypeNamePrefix)) {
+				enhancementCond.await();
+			}
+		}
+		catch (InterruptedException e) {
+			throw RuntimeExceptionUtil.mask(e);
+		}
+		finally {
+			writeLock.unlock();
+		}
 		try {
 			// Concurrent thread may have been faster
 			extendedType = getEnhancedTypeIntern(typeToEnhance, hint, clpClassLoader);
@@ -270,8 +288,7 @@ public class BytecodeEnhancer
 				typeToExtendedType.put(typeToEnhance, valueType);
 			}
 			else {
-				valueType.addChangeCount();
-				newTypeNamePrefix += "_O" + valueType.getChangeCount();
+				newTypeNamePrefix += "_O" + valueType.addChangeCount();
 			}
 			ArrayList<IBytecodeBehavior> pendingBehaviors = new ArrayList<>();
 
@@ -345,7 +362,14 @@ public class BytecodeEnhancer
 			return enhancedType;
 		}
 		finally {
-			writeLock.unlock();
+			writeLock.lock();
+			try {
+				enhancementsInProgress.remove(originalNewTypeNamePrefix);
+				enhancementCond.signalAll();
+			}
+			finally {
+				writeLock.unlock();
+			}
 		}
 	}
 

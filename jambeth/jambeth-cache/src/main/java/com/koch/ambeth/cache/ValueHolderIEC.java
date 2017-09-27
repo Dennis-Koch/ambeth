@@ -1,5 +1,7 @@
 package com.koch.ambeth.cache;
 
+import java.util.Arrays;
+
 /*-
  * #%L
  * jambeth-cache
@@ -24,12 +26,12 @@ import com.koch.ambeth.ioc.IInitializingBean;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.bytecode.IBytecodeEnhancer;
 import com.koch.ambeth.ioc.proxy.ICgLibUtil;
+import com.koch.ambeth.ioc.util.IMultithreadingHelper;
 import com.koch.ambeth.merge.IProxyHelper;
 import com.koch.ambeth.merge.cache.ValueHolderState;
 import com.koch.ambeth.merge.metadata.IMemberTypeProvider;
 import com.koch.ambeth.merge.proxy.IEntityMetaDataHolder;
 import com.koch.ambeth.merge.proxy.IObjRefContainer;
-import com.koch.ambeth.merge.transfer.ObjRef;
 import com.koch.ambeth.repackaged.com.esotericsoftware.reflectasm.FieldAccess;
 import com.koch.ambeth.repackaged.com.esotericsoftware.reflectasm.MethodAccess;
 import com.koch.ambeth.service.merge.IEntityMetaDataProvider;
@@ -38,8 +40,10 @@ import com.koch.ambeth.service.merge.model.IObjRef;
 import com.koch.ambeth.service.metadata.IEmbeddedMember;
 import com.koch.ambeth.service.metadata.Member;
 import com.koch.ambeth.service.metadata.RelationMember;
+import com.koch.ambeth.util.collections.IdentityHashMap;
 import com.koch.ambeth.util.collections.SmartCopyMap;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
+import com.koch.ambeth.util.threading.IBackgroundWorkerParamDelegate;
 import com.koch.ambeth.util.typeinfo.IPropertyInfoProvider;
 
 public class ValueHolderIEC extends SmartCopyMap<Class<?>, Class<?>>
@@ -47,14 +51,30 @@ public class ValueHolderIEC extends SmartCopyMap<Class<?>, Class<?>>
 	public static class ValueHolderContainerEntry {
 		protected final ValueHolderEntry[] entries;
 
-		public ValueHolderContainerEntry(Class<?> targetType, RelationMember[] members,
-				IBytecodeEnhancer bytecodeEnhancer, IPropertyInfoProvider propertyInfoProvider,
-				IMemberTypeProvider memberTypeProvider) {
+		public ValueHolderContainerEntry(final Class<?> targetType, RelationMember[] members,
+				final IBytecodeEnhancer bytecodeEnhancer, final IPropertyInfoProvider propertyInfoProvider,
+				final IMemberTypeProvider memberTypeProvider, IMultithreadingHelper multithreadingHelper) {
 			entries = new ValueHolderEntry[members.length];
 			try {
-				FieldAccess targetFieldAccess = FieldAccess.get(targetType);
-				MethodAccess targetMethodAccess = MethodAccess.get(targetType);
+				final FieldAccess targetFieldAccess = FieldAccess.get(targetType);
+				final MethodAccess targetMethodAccess = MethodAccess.get(targetType);
 
+				final IdentityHashMap<RelationMember, Integer> memberToIndexMap = new IdentityHashMap<>();
+				for (int a = members.length; a-- > 0;) {
+					memberToIndexMap.put(members[a], a);
+				}
+
+				multithreadingHelper.invokeAndWait(Arrays.asList(members),
+						new IBackgroundWorkerParamDelegate<RelationMember>() {
+							@Override
+							public void invoke(RelationMember member) throws Exception {
+								ValueHolderEntry vhEntry = new ValueHolderEntry(targetType, member,
+										targetMethodAccess,
+										targetFieldAccess, bytecodeEnhancer, propertyInfoProvider, memberTypeProvider);
+								int relationIndex = memberToIndexMap.get(member).intValue();
+								entries[relationIndex] = vhEntry;
+							}
+						});
 				for (int relationIndex = members.length; relationIndex-- > 0;) {
 					RelationMember member = members[relationIndex];
 					ValueHolderEntry vhEntry = new ValueHolderEntry(targetType, member, targetMethodAccess,
@@ -167,7 +187,7 @@ public class ValueHolderIEC extends SmartCopyMap<Class<?>, Class<?>>
 		@Override
 		public void setObjRefs(Object obj, IObjRef[] objRefs) {
 			if (objRefs != null && objRefs.length == 0) {
-				objRefs = ObjRef.EMPTY_ARRAY;
+				objRefs = IObjRef.EMPTY_ARRAY;
 			}
 			this.objRefs.setValue(obj, objRefs);
 		}
@@ -296,6 +316,9 @@ public class ValueHolderIEC extends SmartCopyMap<Class<?>, Class<?>>
 	protected IMemberTypeProvider memberTypeProvider;
 
 	@Autowired
+	protected IMultithreadingHelper multithreadingHelper;
+
+	@Autowired
 	protected IPropertyInfoProvider propertyInfoProvider;
 
 	protected final SmartCopyMap<Class<?>, ValueHolderContainerEntry> typeToVhcEntryMap =
@@ -318,7 +341,7 @@ public class ValueHolderIEC extends SmartCopyMap<Class<?>, Class<?>>
 		if (vhcEntry == null) {
 			IEntityMetaData metaData = entityMetaDataProvider.getMetaData(targetType);
 			vhcEntry = new ValueHolderContainerEntry(targetType, metaData.getRelationMembers(),
-					bytecodeEnhancer, propertyInfoProvider, memberTypeProvider);
+					bytecodeEnhancer, propertyInfoProvider, memberTypeProvider, multithreadingHelper);
 			typeToVhcEntryMap.put(targetType, vhcEntry);
 		}
 		return vhcEntry;
