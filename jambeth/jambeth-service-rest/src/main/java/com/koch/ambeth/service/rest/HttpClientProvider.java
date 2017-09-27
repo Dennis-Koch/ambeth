@@ -1,14 +1,21 @@
 package com.koch.ambeth.service.rest;
 
+import javax.net.ssl.SSLContext;
+
 import org.apache.http.HttpHost;
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 
 import com.koch.ambeth.ioc.IDisposableBean;
+import com.koch.ambeth.ioc.annotation.Autowired;
+import com.koch.ambeth.service.ISSLContextFactory;
 import com.koch.ambeth.util.collections.Tuple3KeyHashMap;
 
 public class HttpClientProvider implements IHttpClientProvider, IDisposableBean {
+
+	@Autowired
+	protected ISSLContextFactory sslContextFactory;
 
 	protected CloseableHttpClient httpClient;
 
@@ -35,7 +42,14 @@ public class HttpClientProvider implements IHttpClientProvider, IDisposableBean 
 				if (disposed) {
 					throw new IllegalStateException("Bean already disposed");
 				}
-				httpClient = HttpClientBuilder.create().build();
+				HttpClientBuilder hcb = HttpClientBuilder.create();
+				if (sslContextFactory != null) {
+					SSLContext sslContext = sslContextFactory.createSSLContext();
+					if (sslContext != null) {
+						hcb = hcb.setSSLContext(sslContext);
+					}
+				}
+				httpClient = hcb.build();
 			}
 			return httpClient;
 		}
