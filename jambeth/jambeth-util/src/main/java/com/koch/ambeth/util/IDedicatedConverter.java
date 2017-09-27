@@ -31,5 +31,5 @@ public interface IDedicatedConverter {
 	 * @return Value converted to expectedType
 	 */
 	Object convertValueToType(Class<?> expectedType, Class<?> sourceType, Object value,
-			Object additionalInformation) throws Throwable;
+			Object additionalInformation) throws Exception;
 }

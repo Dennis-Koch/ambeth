@@ -150,9 +150,6 @@ public class EntityLoader
 	protected IServiceContext beanContext;
 
 	@Autowired
-	protected ICacheMapEntryTypeProvider cacheMapEntryTypeProvider;
-
-	@Autowired
 	protected ICompositeIdFactory compositeIdFactory;
 
 	@Autowired
@@ -181,9 +178,6 @@ public class EntityLoader
 
 	@Autowired
 	protected IObjRefFactory objRefFactory;
-
-	@Autowired
-	protected IPersistenceHelper persistenceHelper;
 
 	@Autowired
 	protected IQueryBuilderFactory queryBuilderFactory;

@@ -31,7 +31,7 @@ public class FileToPathConverter implements IDedicatedConverter {
 
 	@Override
 	public Object convertValueToType(Class<?> expectedType, Class<?> sourceType, Object value,
-			Object additionalInformation) throws Throwable {
+			Object additionalInformation) throws Exception {
 		if (Path.class.equals(expectedType)) {
 			return ((File) value).toPath();
 		}

@@ -26,6 +26,13 @@ import java.math.BigInteger;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.DayOfWeek;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.Month;
+import java.time.MonthDay;
+import java.time.Period;
+import java.time.Year;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -38,6 +45,7 @@ import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.threadlocal.IThreadLocalCleanupBean;
 import com.koch.ambeth.util.IClassCache;
 import com.koch.ambeth.util.IConversionHelper;
+import com.koch.ambeth.util.IDedicatedConverter;
 import com.koch.ambeth.util.collections.HashMap;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.format.ISO8601DateFormat;
@@ -86,6 +94,9 @@ public class ConversionHelper extends IConversionHelper implements IThreadLocalC
 	@Autowired
 	protected IClassCache classCache;
 
+	protected final HashMap<Class<?>, IDedicatedConverter> expectedTypeToDefaultMap =
+			new HashMap<>(0.5f);
+
 	public ConversionHelper() {
 		try {
 			enumValueOf = Enum.class.getMethod("valueOf", Class.class, String.class);
@@ -93,6 +104,528 @@ public class ConversionHelper extends IConversionHelper implements IThreadLocalC
 		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
+		register(BigInteger.class, new IDedicatedConverter() {
+			@Override
+			public Object convertValueToType(Class<?> expectedType, Class<?> sourceType, Object value,
+					Object additionalInformation) throws Exception {
+				if (BigDecimal.class.isAssignableFrom(sourceType)) {
+					return ((BigDecimal) value).toBigInteger();
+				}
+				else if (Number.class.isAssignableFrom(sourceType)) {
+					return BigInteger.valueOf(((Number) value).longValue());
+				}
+				else if (String.class.isAssignableFrom(sourceType)) {
+					return new BigInteger((String) value);
+				}
+				else if (Boolean.class.isAssignableFrom(sourceType)) {
+					return BigInteger.valueOf((Boolean) value ? 1 : 0);
+				}
+				return throwNotSupported(expectedType, sourceType, value, additionalInformation);
+			}
+		});
+		register(BigDecimal.class, new IDedicatedConverter() {
+			@Override
+			public Object convertValueToType(Class<?> expectedType, Class<?> sourceType, Object value,
+					Object additionalInformation) throws Exception {
+				if (Double.class.isAssignableFrom(sourceType) || Float.class.isAssignableFrom(sourceType)) {
+					return BigDecimal.valueOf(((Number) value).doubleValue()).stripTrailingZeros();
+				}
+				else if (BigInteger.class.isAssignableFrom(sourceType)) {
+					return new BigDecimal((BigInteger) value);
+				}
+				else if (Number.class.isAssignableFrom(sourceType)) {
+					return BigDecimal.valueOf(((Number) value).longValue());
+				}
+				else if (String.class.isAssignableFrom(sourceType)) {
+					return new BigDecimal((String) value);
+				}
+				else if (Boolean.class.isAssignableFrom(sourceType)) {
+					return BigDecimal.valueOf((Boolean) value ? 1 : 0);
+				}
+				return throwNotSupported(expectedType, sourceType, value, additionalInformation);
+			}
+		});
+		register(Double.class, Double.TYPE, Number.class, new IDedicatedConverter() {
+			@Override
+			public Object convertValueToType(Class<?> expectedType, Class<?> sourceType, Object value,
+					Object additionalInformation) throws Exception {
+				if (Double.class.equals(sourceType)) {
+					return value;
+				}
+				else if (Number.class.isAssignableFrom(sourceType)) {
+					return Double.valueOf(((Number) value).doubleValue());
+				}
+				else if (Date.class.isAssignableFrom(sourceType)) {
+					return Double.valueOf(((Date) value).getTime());
+				}
+				else if (Instant.class.isAssignableFrom(sourceType)) {
+					return Double.valueOf(((Instant) value).toEpochMilli());
+				}
+				else if (String.class.isAssignableFrom(sourceType)) {
+					return Double.valueOf((String) value);
+				}
+				else if (Boolean.class.isAssignableFrom(sourceType)) {
+					return (Boolean) value ? Double.valueOf(1) : Double.valueOf(0);
+				}
+				return throwNotSupported(expectedType, sourceType, value, additionalInformation);
+			}
+		});
+		register(Long.class, Long.TYPE, new IDedicatedConverter() {
+			@Override
+			public Object convertValueToType(Class<?> expectedType, Class<?> sourceType, Object value,
+					Object additionalInformation) throws Exception {
+				if (Long.class.equals(sourceType)) {
+					return value;
+				}
+				else if (Number.class.isAssignableFrom(sourceType)) {
+					return Long.valueOf(((Number) value).longValue());
+				}
+				else if (Date.class.isAssignableFrom(sourceType)) {
+					return Long.valueOf(((Date) value).getTime());
+				}
+				else if (Instant.class.isAssignableFrom(sourceType)) {
+					return Long.valueOf(((Instant) value).toEpochMilli());
+				}
+				else if (String.class.isAssignableFrom(sourceType)) {
+					return Long.valueOf((long) Double.parseDouble((String) value));
+				}
+				else if (Boolean.class.isAssignableFrom(sourceType)) {
+					return (Boolean) value ? Long.valueOf(1) : Long.valueOf(0);
+				}
+				return throwNotSupported(expectedType, sourceType, value, additionalInformation);
+			}
+		});
+		register(Integer.class, Integer.TYPE, new IDedicatedConverter() {
+			@Override
+			public Object convertValueToType(Class<?> expectedType, Class<?> sourceType, Object value,
+					Object additionalInformation) throws Exception {
+				if (Integer.class.equals(sourceType)) {
+					return value;
+				}
+				else if (Number.class.isAssignableFrom(sourceType)) {
+					return Integer.valueOf(((Number) value).intValue());
+				}
+				else if (Date.class.isAssignableFrom(sourceType)) {
+					return Integer.valueOf((int) ((Date) value).getTime());
+				}
+				else if (Instant.class.isAssignableFrom(sourceType)) {
+					return Integer.valueOf((int) ((Instant) value).toEpochMilli());
+				}
+				else if (String.class.isAssignableFrom(sourceType)) {
+					return Integer.valueOf((int) Double.parseDouble((String) value));
+				}
+				else if (Boolean.class.isAssignableFrom(sourceType)) {
+					return (Boolean) value ? Integer.valueOf(1) : Integer.valueOf(0);
+				}
+				return throwNotSupported(expectedType, sourceType, value, additionalInformation);
+			}
+		});
+		register(Float.class, Float.TYPE, new IDedicatedConverter() {
+			@Override
+			public Object convertValueToType(Class<?> expectedType, Class<?> sourceType, Object value,
+					Object additionalInformation) throws Exception {
+				if (Float.class.equals(sourceType)) {
+					return value;
+				}
+				else if (Number.class.isAssignableFrom(sourceType)) {
+					return Float.valueOf(((Number) value).floatValue());
+				}
+				else if (Date.class.isAssignableFrom(sourceType)) {
+					return Float.valueOf(((Date) value).getTime());
+				}
+				else if (Instant.class.isAssignableFrom(sourceType)) {
+					return Float.valueOf(((Instant) value).toEpochMilli());
+				}
+				else if (String.class.isAssignableFrom(sourceType)) {
+					return Float.valueOf((float) Double.parseDouble((String) value));
+				}
+				else if (Boolean.class.isAssignableFrom(sourceType)) {
+					return (Boolean) value ? Float.valueOf(1) : Float.valueOf(0);
+				}
+				return throwNotSupported(expectedType, sourceType, value, additionalInformation);
+			}
+		});
+		register(Short.class, Short.TYPE, new IDedicatedConverter() {
+			@Override
+			public Object convertValueToType(Class<?> expectedType, Class<?> sourceType, Object value,
+					Object additionalInformation) throws Exception {
+				if (Short.class.equals(sourceType)) {
+					return value;
+				}
+				else if (Number.class.isAssignableFrom(sourceType)) {
+					return Short.valueOf(((Number) value).shortValue());
+				}
+				else if (Date.class.isAssignableFrom(sourceType)) {
+					return Short.valueOf((short) ((Date) value).getTime());
+				}
+				else if (Instant.class.isAssignableFrom(sourceType)) {
+					return Short.valueOf((short) ((Instant) value).toEpochMilli());
+				}
+				else if (String.class.isAssignableFrom(sourceType)) {
+					return Short.valueOf((short) Double.parseDouble((String) value));
+				}
+				else if (Boolean.class.isAssignableFrom(sourceType)) {
+					return (Boolean) value ? Short.valueOf((short) 1) : Short.valueOf((short) 0);
+				}
+				return throwNotSupported(expectedType, sourceType, value, additionalInformation);
+			}
+		});
+		register(Byte.class, Byte.TYPE, new IDedicatedConverter() {
+			@Override
+			public Object convertValueToType(Class<?> expectedType, Class<?> sourceType, Object value,
+					Object additionalInformation) throws Exception {
+				if (Byte.class.equals(sourceType)) {
+					return value;
+				}
+				else if (Number.class.isAssignableFrom(sourceType)) {
+					return Byte.valueOf(((Number) value).byteValue());
+				}
+				else if (Date.class.isAssignableFrom(sourceType)) {
+					return Byte.valueOf((byte) ((Date) value).getTime());
+				}
+				else if (Instant.class.isAssignableFrom(sourceType)) {
+					return Byte.valueOf((byte) ((Instant) value).toEpochMilli());
+				}
+				else if (String.class.isAssignableFrom(sourceType)) {
+					return Byte.valueOf((byte) Double.parseDouble((String) value));
+				}
+				else if (Boolean.class.isAssignableFrom(sourceType)) {
+					return (Boolean) value ? Byte.valueOf((byte) 1) : Byte.valueOf((byte) 0);
+				}
+				return throwNotSupported(expectedType, sourceType, value, additionalInformation);
+			}
+		});
+		register(Boolean.class, Boolean.TYPE, new IDedicatedConverter() {
+			@Override
+			public Object convertValueToType(Class<?> expectedType, Class<?> sourceType, Object value,
+					Object additionalInformation) throws Exception {
+				if (Boolean.class.equals(sourceType)) {
+					return value;
+				}
+				else if (Number.class.isAssignableFrom(sourceType)) {
+					return Boolean.valueOf(((Number) value).byteValue() != 0);
+				}
+				else if (Date.class.isAssignableFrom(sourceType)) {
+					return Boolean.valueOf((byte) ((Date) value).getTime() != 0);
+				}
+				else if (Instant.class.isAssignableFrom(sourceType)) {
+					return Boolean.valueOf((byte) ((Instant) value).toEpochMilli() != 0);
+				}
+				else if (String.class.isAssignableFrom(sourceType)) {
+					return Boolean.valueOf((String) value);
+				}
+				return throwNotSupported(expectedType, sourceType, value, additionalInformation);
+			}
+		});
+		register(Character.class, Character.TYPE, new IDedicatedConverter() {
+			@Override
+			public Object convertValueToType(Class<?> expectedType, Class<?> sourceType, Object value,
+					Object additionalInformation) throws Exception {
+				if (Character.class.equals(sourceType)) {
+					return value;
+				}
+				else if (Number.class.isAssignableFrom(sourceType)) {
+					return Character.valueOf((char) ((Number) value).intValue());
+				}
+				else if (String.class.isAssignableFrom(sourceType)) {
+					String stringValue = (String) value;
+					if (stringValue.length() > 0) {
+						return Character.valueOf(stringValue.charAt(0));
+					}
+					return null;
+				}
+				else if (Boolean.class.isAssignableFrom(sourceType)) {
+					return (Boolean) value ? Character.valueOf((char) 1) : Character.valueOf((char) 0);
+				}
+				return throwNotSupported(expectedType, sourceType, value, additionalInformation);
+			}
+		});
+		register(Date.class, new IDedicatedConverter() {
+			@Override
+			public Object convertValueToType(Class<?> expectedType, Class<?> sourceType, Object value,
+					Object additionalInformation) throws Exception {
+				if (java.sql.Date.class.isAssignableFrom(sourceType)) {
+					return new Date(((java.sql.Date) value).getTime());
+				}
+				else if (Instant.class.isAssignableFrom(sourceType)) {
+					return new Date(((Instant) value).toEpochMilli());
+				}
+				else if (XMLGregorianCalendar.class.isAssignableFrom(sourceType)) {
+					return ((XMLGregorianCalendar) value).toGregorianCalendar().getTime();
+				}
+				else if (GregorianCalendar.class.isAssignableFrom(sourceType)) {
+					return ((GregorianCalendar) value).getTime();
+				}
+				else if (String.class.isAssignableFrom(sourceType)) {
+					try {
+						return getISO_8601_DateFormat().parse((String) value);
+					}
+					catch (ParseException e) {
+						throw RuntimeExceptionUtil.mask(e);
+					}
+				}
+				else if (Number.class.isAssignableFrom(sourceType)) {
+					return new Date(((Number) value).longValue());
+				}
+				return throwNotSupported(expectedType, sourceType, value, additionalInformation);
+			}
+		});
+		register(Instant.class, new IDedicatedConverter() {
+			@Override
+			public Object convertValueToType(Class<?> expectedType, Class<?> sourceType, Object value,
+					Object additionalInformation) throws Exception {
+				if (java.util.Date.class.isAssignableFrom(sourceType)) {
+					return Instant.ofEpochMilli(((java.util.Date) value).getTime());
+				}
+				else if (XMLGregorianCalendar.class.isAssignableFrom(sourceType)) {
+					return Instant
+							.ofEpochMilli(((XMLGregorianCalendar) value).toGregorianCalendar().getTimeInMillis());
+				}
+				else if (GregorianCalendar.class.isAssignableFrom(sourceType)) {
+					return Instant.ofEpochMilli(((GregorianCalendar) value).getTimeInMillis());
+				}
+				else if (CharSequence.class.isAssignableFrom(sourceType)) {
+					return Instant.parse((CharSequence) value);
+				}
+				else if (Number.class.isAssignableFrom(sourceType)) {
+					return Instant.ofEpochMilli(((Number) value).longValue());
+				}
+				return throwNotSupported(expectedType, sourceType, value, additionalInformation);
+			}
+		});
+		register(DayOfWeek.class, new IDedicatedConverter() {
+			@Override
+			public Object convertValueToType(Class<?> expectedType, Class<?> sourceType, Object value,
+					Object additionalInformation) throws Exception {
+				if (Number.class.isAssignableFrom(sourceType)) {
+					return DayOfWeek.of(((Number) value).intValue());
+				}
+				else if (CharSequence.class.isAssignableFrom(sourceType)) {
+					return DayOfWeek.valueOf(((CharSequence) value).toString());
+				}
+				return throwNotSupported(expectedType, sourceType, value, additionalInformation);
+			}
+		});
+		register(Duration.class, new IDedicatedConverter() {
+			@Override
+			public Object convertValueToType(Class<?> expectedType, Class<?> sourceType, Object value,
+					Object additionalInformation) throws Exception {
+				if (Number.class.isAssignableFrom(sourceType)) {
+					return Duration.ofMillis(((Number) value).longValue());
+				}
+				else if (CharSequence.class.isAssignableFrom(sourceType)) {
+					return Duration.parse((CharSequence) value);
+				}
+				return throwNotSupported(expectedType, sourceType, value, additionalInformation);
+			}
+		});
+		register(Month.class, new IDedicatedConverter() {
+			@Override
+			public Object convertValueToType(Class<?> expectedType, Class<?> sourceType, Object value,
+					Object additionalInformation) throws Exception {
+				if (Number.class.isAssignableFrom(sourceType)) {
+					return Month.of(((Number) value).intValue());
+				}
+				else if (CharSequence.class.isAssignableFrom(sourceType)) {
+					return Month.valueOf(((CharSequence) value).toString());
+				}
+				return throwNotSupported(expectedType, sourceType, value, additionalInformation);
+			}
+		});
+		register(MonthDay.class, new IDedicatedConverter() {
+			@Override
+			public Object convertValueToType(Class<?> expectedType, Class<?> sourceType, Object value,
+					Object additionalInformation) throws Exception {
+				if (CharSequence.class.isAssignableFrom(sourceType)) {
+					return MonthDay.parse(((CharSequence) value).toString());
+				}
+				return throwNotSupported(expectedType, sourceType, value, additionalInformation);
+			}
+		});
+		register(Period.class, new IDedicatedConverter() {
+			@Override
+			public Object convertValueToType(Class<?> expectedType, Class<?> sourceType, Object value,
+					Object additionalInformation) throws Exception {
+				if (CharSequence.class.isAssignableFrom(sourceType)) {
+					return Period.parse((CharSequence) value);
+				}
+				return throwNotSupported(expectedType, sourceType, value, additionalInformation);
+			}
+		});
+		register(Year.class, new IDedicatedConverter() {
+			@Override
+			public Object convertValueToType(Class<?> expectedType, Class<?> sourceType, Object value,
+					Object additionalInformation) throws Exception {
+				if (Number.class.isAssignableFrom(sourceType)) {
+					return Year.of(((Number) value).intValue());
+				}
+				else if (CharSequence.class.isAssignableFrom(sourceType)) {
+					return Year.parse((CharSequence) value);
+				}
+				return throwNotSupported(expectedType, sourceType, value, additionalInformation);
+			}
+		});
+		register(XMLGregorianCalendar.class, new IDedicatedConverter() {
+			@Override
+			public Object convertValueToType(Class<?> expectedType, Class<?> sourceType, Object value,
+					Object additionalInformation) throws Exception {
+				if (Date.class.isAssignableFrom(sourceType)) {
+					GregorianCalendar c = new GregorianCalendar();
+					c.setTime((Date) value);
+					try {
+						XMLGregorianCalendar xmlcal = DatatypeFactory.newInstance().newXMLGregorianCalendar(c);
+						return xmlcal;
+					}
+					catch (DatatypeConfigurationException e) {
+						throw RuntimeExceptionUtil.mask(e);
+					}
+				}
+				return throwNotSupported(expectedType, sourceType, value, additionalInformation);
+			}
+		});
+		register(Calendar.class, GregorianCalendar.class, new IDedicatedConverter() {
+			@Override
+			public Object convertValueToType(Class<?> expectedType, Class<?> sourceType, Object value,
+					Object additionalInformation) throws Exception {
+				if (String.class.isAssignableFrom(sourceType)) {
+					try {
+						GregorianCalendar calendar = new GregorianCalendar();
+						calendar.setTime(getISO_8601_DateFormat().parse((String) value));
+						return calendar;
+					}
+					catch (ParseException e) {
+						throw RuntimeExceptionUtil.mask(e);
+					}
+				}
+				else if (Date.class.isAssignableFrom(sourceType)) {
+					GregorianCalendar c = new GregorianCalendar();
+					c.setTime((Date) value);
+					return c;
+				}
+				return throwNotSupported(expectedType, sourceType, value, additionalInformation);
+			}
+		});
+		register(java.sql.Date.class, new IDedicatedConverter() {
+			@Override
+			public Object convertValueToType(Class<?> expectedType, Class<?> sourceType, Object value,
+					Object additionalInformation) throws Exception {
+				if (Date.class.isAssignableFrom(sourceType)) {
+					return new java.sql.Date(((Date) value).getTime());
+				}
+				else if (Date.class.isAssignableFrom(sourceType)) {
+					return new java.sql.Date(((Instant) value).toEpochMilli());
+				}
+				else if (String.class.isAssignableFrom(sourceType)) {
+					Date date;
+					try {
+						date = getISO_8601_DateFormat().parse((String) value);
+					}
+					catch (ParseException e) {
+						throw RuntimeExceptionUtil.mask(e);
+					}
+					return new java.sql.Date(date.getTime());
+				}
+				else if (Number.class.isAssignableFrom(sourceType)) {
+					return new java.sql.Date(((Number) value).longValue());
+				}
+				return throwNotSupported(expectedType, sourceType, value, additionalInformation);
+			}
+		});
+		register(java.sql.Timestamp.class, new IDedicatedConverter() {
+			@Override
+			public Object convertValueToType(Class<?> expectedType, Class<?> sourceType, Object value,
+					Object additionalInformation) throws Exception {
+				if (Number.class.isAssignableFrom(sourceType)) {
+					return new java.sql.Timestamp(((Number) value).longValue());
+				}
+				else if (java.util.Date.class.isAssignableFrom(sourceType)) {
+					return new java.sql.Timestamp(((java.util.Date) value).getTime());
+				}
+				else if (Instant.class.isAssignableFrom(sourceType)) {
+					return new java.sql.Timestamp(((Instant) value).toEpochMilli());
+				}
+				else if (java.util.Calendar.class.isAssignableFrom(sourceType)) {
+					return new java.sql.Timestamp(((java.util.Calendar) value).getTimeInMillis());
+				}
+				return throwNotSupported(expectedType, sourceType, value, additionalInformation);
+			}
+		});
+		register(Class.class, new IDedicatedConverter() {
+			@Override
+			public Object convertValueToType(Class<?> expectedType, Class<?> sourceType, Object value,
+					Object additionalInformation) throws Exception {
+				if (String.class.isAssignableFrom(sourceType)) {
+					String sValue = (String) value;
+					int lengthFromEnd = 0;
+					for (int a = sValue.length(); a-- > 0;) {
+						char oneChar = sValue.charAt(a);
+						if (oneChar == '[') {
+							break;
+						}
+						lengthFromEnd++;
+						if (lengthFromEnd > 1) {
+							// not a primitive array
+							lengthFromEnd = -1;
+							break;
+						}
+					}
+					try {
+						if (primitiveNameToTypeMap.containsKey(sValue)) {
+							return primitiveNameToTypeMap.get(sValue);
+						}
+						return classCache.forName(sValue);
+					}
+					catch (Exception e) {
+						throw RuntimeExceptionUtil.mask(e);
+					}
+				}
+				return throwNotSupported(expectedType, sourceType, value, additionalInformation);
+			}
+		});
+		register(CharSequence.class, String.class, new IDedicatedConverter() {
+			@Override
+			public Object convertValueToType(Class<?> expectedType, Class<?> sourceType, Object value,
+					Object additionalInformation) throws Exception {
+				if (Class.class.isAssignableFrom(sourceType)) {
+					return ((Class<?>) value).getName();
+				}
+				if (additionalInformation instanceof XmlHint) {
+					if (Date.class.isAssignableFrom(sourceType)) {
+						return getISO_8601_DateFormat().format(value);
+					}
+				}
+				if (Calendar.class.isAssignableFrom(sourceType)) {
+					return getISO_8601_DateFormat().format(((Calendar) value).getTime());
+				}
+				return value.toString();
+			}
+		});
+		register(char[].class, new IDedicatedConverter() {
+			@Override
+			public Object convertValueToType(Class<?> expectedType, Class<?> sourceType, Object value,
+					Object additionalInformation) throws Exception {
+				if (CharSequence.class.isAssignableFrom(sourceType)) {
+					return value.toString().toCharArray();
+				}
+				return throwNotSupported(expectedType, sourceType, value, additionalInformation);
+			}
+		});
+	}
+
+	protected void register(Class<?> oneType, IDedicatedConverter converter) {
+		expectedTypeToDefaultMap.put(oneType, converter);
+	}
+
+	protected void register(Class<?> oneType, Class<?> otherType, IDedicatedConverter converter) {
+		expectedTypeToDefaultMap.put(oneType, converter);
+		expectedTypeToDefaultMap.put(otherType, converter);
+	}
+
+	protected void register(Class<?> oneType, Class<?> otherType, Class<?> thirdType,
+			IDedicatedConverter converter) {
+		expectedTypeToDefaultMap.put(oneType, converter);
+		expectedTypeToDefaultMap.put(otherType, converter);
+		expectedTypeToDefaultMap.put(thirdType, converter);
 	}
 
 	public void setClassCache(IClassCache classCache) {
@@ -131,259 +664,25 @@ public class ConversionHelper extends IConversionHelper implements IThreadLocalC
 		if (expectedType == null || value == null) {
 			return value;
 		}
-		Class<?> type = value.getClass();
-		if (expectedType.isAssignableFrom(type)) {
+		Class<?> sourceType = value.getClass();
+		if (expectedType.isAssignableFrom(sourceType)) {
 			return value;
 		}
-		if (BigInteger.class.equals(expectedType)) {
-			if (BigDecimal.class.isAssignableFrom(type)) {
-				return ((BigDecimal) value).toBigInteger();
+		IDedicatedConverter defaultConverter = expectedTypeToDefaultMap.get(expectedType);
+		if (defaultConverter != null) {
+			try {
+				return defaultConverter.convertValueToType(expectedType, sourceType, value,
+						additionalInformation);
 			}
-			else if (Number.class.isAssignableFrom(type)) {
-				return BigInteger.valueOf(((Number) value).longValue());
+			catch (Error e) {
+				throw e;
 			}
-			else if (String.class.isAssignableFrom(type)) {
-				return new BigInteger((String) value);
-			}
-			else if (Boolean.class.isAssignableFrom(type)) {
-				return BigInteger.valueOf((Boolean) value ? 1 : 0);
-			}
-		}
-		else if (Long.class.equals(expectedType) || Long.TYPE.equals(expectedType)) {
-			if (Long.class.equals(type)) {
-				return value;
-			}
-			else if (Number.class.isAssignableFrom(type)) {
-				return Long.valueOf(((Number) value).longValue());
-			}
-			else if (Date.class.isAssignableFrom(type)) {
-				return Long.valueOf(((Date) value).getTime());
-			}
-			else if (String.class.isAssignableFrom(type)) {
-				return Long.valueOf((long) Double.parseDouble((String) value));
-			}
-			else if (Boolean.class.isAssignableFrom(type)) {
-				return (Boolean) value ? Long.valueOf(1) : Long.valueOf(0);
+			catch (Throwable e) {
+				throw RuntimeExceptionUtil.mask(e);
 			}
 		}
-		else if (BigDecimal.class.equals(expectedType)) {
-			if (Double.class.isAssignableFrom(type) || Float.class.isAssignableFrom(type)) {
-				return BigDecimal.valueOf(((Number) value).doubleValue()).stripTrailingZeros();
-			}
-			else if (BigInteger.class.isAssignableFrom(type)) {
-				return new BigDecimal((BigInteger) value);
-			}
-			else if (Number.class.isAssignableFrom(type)) {
-				return BigDecimal.valueOf(((Number) value).longValue());
-			}
-			else if (String.class.isAssignableFrom(type)) {
-				return new BigDecimal((String) value);
-			}
-			else if (Boolean.class.isAssignableFrom(type)) {
-				return BigDecimal.valueOf((Boolean) value ? 1 : 0);
-			}
-		}
-		else if (Double.class.equals(expectedType) || Double.TYPE.equals(expectedType)
-				|| Number.class.equals(expectedType)) {
-			if (Double.class.equals(type)) {
-				return value;
-			}
-			else if (Number.class.isAssignableFrom(type)) {
-				return Double.valueOf(((Number) value).doubleValue());
-			}
-			else if (Date.class.isAssignableFrom(type)) {
-				return Double.valueOf(((Date) value).getTime());
-			}
-			else if (String.class.isAssignableFrom(type)) {
-				return Double.valueOf((String) value);
-			}
-			else if (Boolean.class.isAssignableFrom(type)) {
-				return (Boolean) value ? Double.valueOf(1) : Double.valueOf(0);
-			}
-		}
-		else if (Integer.class.equals(expectedType) || Integer.TYPE.equals(expectedType)) {
-			if (Integer.class.equals(type)) {
-				return value;
-			}
-			else if (Number.class.isAssignableFrom(type)) {
-				return Integer.valueOf(((Number) value).intValue());
-			}
-			else if (Date.class.isAssignableFrom(type)) {
-				return Integer.valueOf((int) ((Date) value).getTime());
-			}
-			else if (String.class.isAssignableFrom(type)) {
-				return Integer.valueOf((int) Double.parseDouble((String) value));
-			}
-			else if (Boolean.class.isAssignableFrom(type)) {
-				return (Boolean) value ? Integer.valueOf(1) : Integer.valueOf(0);
-			}
-		}
-		else if (Float.class.equals(expectedType) || Float.TYPE.equals(expectedType)) {
-			if (Float.class.equals(type)) {
-				return value;
-			}
-			else if (Number.class.isAssignableFrom(type)) {
-				return Float.valueOf(((Number) value).floatValue());
-			}
-			else if (Date.class.isAssignableFrom(type)) {
-				return Float.valueOf(((Date) value).getTime());
-			}
-			else if (String.class.isAssignableFrom(type)) {
-				return Float.valueOf((float) Double.parseDouble((String) value));
-			}
-			else if (Boolean.class.isAssignableFrom(type)) {
-				return (Boolean) value ? Float.valueOf(1) : Float.valueOf(0);
-			}
-		}
-		else if (Short.class.equals(expectedType) || Short.TYPE.equals(expectedType)) {
-			if (Short.class.equals(type)) {
-				return value;
-			}
-			else if (Number.class.isAssignableFrom(type)) {
-				return Short.valueOf(((Number) value).shortValue());
-			}
-			else if (Date.class.isAssignableFrom(type)) {
-				return Short.valueOf((short) ((Date) value).getTime());
-			}
-			else if (String.class.isAssignableFrom(type)) {
-				return Short.valueOf((short) Double.parseDouble((String) value));
-			}
-			else if (Boolean.class.isAssignableFrom(type)) {
-				return (Boolean) value ? Short.valueOf((short) 1) : Short.valueOf((short) 0);
-			}
-		}
-		else if (Byte.class.equals(expectedType) || Byte.TYPE.equals(expectedType)) {
-			if (Byte.class.equals(type)) {
-				return value;
-			}
-			else if (Number.class.isAssignableFrom(type)) {
-				return Byte.valueOf(((Number) value).byteValue());
-			}
-			else if (Date.class.isAssignableFrom(type)) {
-				return Byte.valueOf((byte) ((Date) value).getTime());
-			}
-			else if (String.class.isAssignableFrom(type)) {
-				return Byte.valueOf((byte) Double.parseDouble((String) value));
-			}
-			else if (Boolean.class.isAssignableFrom(type)) {
-				return (Boolean) value ? Byte.valueOf((byte) 1) : Byte.valueOf((byte) 0);
-			}
-		}
-		else if (Boolean.class.equals(expectedType) || Boolean.TYPE.equals(expectedType)) {
-			if (Boolean.class.equals(type)) {
-				return value;
-			}
-			else if (Number.class.isAssignableFrom(type)) {
-				return Boolean.valueOf(((Number) value).byteValue() != 0);
-			}
-			else if (Date.class.isAssignableFrom(type)) {
-				return Boolean.valueOf((byte) ((Date) value).getTime() != 0);
-			}
-			else if (String.class.isAssignableFrom(type)) {
-				return Boolean.valueOf((String) value);
-			}
-		}
-		else if (Character.class.equals(expectedType) || Character.TYPE.equals(expectedType)) {
-			if (Character.class.equals(type)) {
-				return value;
-			}
-			else if (Number.class.isAssignableFrom(type)) {
-				return Character.valueOf((char) ((Number) value).intValue());
-			}
-			else if (String.class.isAssignableFrom(type)) {
-				String stringValue = (String) value;
-				if (stringValue.length() > 0) {
-					return Character.valueOf(stringValue.charAt(0));
-				}
-				return null;
-			}
-			else if (Boolean.class.isAssignableFrom(type)) {
-				return (Boolean) value ? Character.valueOf((char) 1) : Character.valueOf((char) 0);
-			}
-		}
-		else if (Date.class.equals(expectedType)) {
-			if (java.sql.Date.class.isAssignableFrom(type)) {
-				return new Date(((java.sql.Date) value).getTime());
-			}
-			else if (XMLGregorianCalendar.class.isAssignableFrom(type)) {
-				return ((XMLGregorianCalendar) value).toGregorianCalendar().getTime();
-			}
-			else if (GregorianCalendar.class.isAssignableFrom(type)) {
-				return ((GregorianCalendar) value).getTime();
-			}
-			else if (String.class.isAssignableFrom(type)) {
-				try {
-					return getISO_8601_DateFormat().parse((String) value);
-				}
-				catch (ParseException e) {
-					throw RuntimeExceptionUtil.mask(e);
-				}
-			}
-			else if (Number.class.isAssignableFrom(type)) {
-				return new Date(((Number) value).longValue());
-			}
-		}
-		else if (XMLGregorianCalendar.class.equals(expectedType)) {
-			if (Date.class.isAssignableFrom(type)) {
-				GregorianCalendar c = new GregorianCalendar();
-				c.setTime((Date) value);
-				try {
-					XMLGregorianCalendar xmlcal = DatatypeFactory.newInstance().newXMLGregorianCalendar(c);
-					return xmlcal;
-				}
-				catch (DatatypeConfigurationException e) {
-					throw RuntimeExceptionUtil.mask(e);
-				}
-			}
-		}
-		else if (Calendar.class.equals(expectedType) || GregorianCalendar.class.equals(expectedType)) {
-			if (String.class.isAssignableFrom(type)) {
-				try {
-					GregorianCalendar calendar = new GregorianCalendar();
-					calendar.setTime(getISO_8601_DateFormat().parse((String) value));
-					return calendar;
-				}
-				catch (ParseException e) {
-					throw RuntimeExceptionUtil.mask(e);
-				}
-			}
-			else if (Date.class.isAssignableFrom(type)) {
-				GregorianCalendar c = new GregorianCalendar();
-				c.setTime((Date) value);
-				return c;
-			}
-		}
-		else if (java.sql.Date.class.equals(expectedType)) {
-			if (Date.class.isAssignableFrom(type)) {
-				return new java.sql.Date(((Date) value).getTime());
-			}
-			else if (String.class.isAssignableFrom(type)) {
-				Date date;
-				try {
-					date = getISO_8601_DateFormat().parse((String) value);
-				}
-				catch (ParseException e) {
-					throw RuntimeExceptionUtil.mask(e);
-				}
-				return new java.sql.Date(date.getTime());
-			}
-			else if (Number.class.isAssignableFrom(type)) {
-				return new java.sql.Date(((Number) value).longValue());
-			}
-		}
-		else if (java.sql.Timestamp.class.equals(expectedType)) {
-			if (Number.class.isAssignableFrom(type)) {
-				return new java.sql.Timestamp(((Number) value).longValue());
-			}
-			else if (java.util.Date.class.isAssignableFrom(type)) {
-				return new java.sql.Timestamp(((java.util.Date) value).getTime());
-			}
-			else if (java.util.Calendar.class.isAssignableFrom(type)) {
-				return new java.sql.Timestamp(((java.util.Calendar) value).getTimeInMillis());
-			}
-		}
-		else if (expectedType.isEnum()) {
-			if (String.class.isAssignableFrom(type)) {
+		if (expectedType.isEnum()) {
+			if (String.class.isAssignableFrom(sourceType)) {
 				try {
 					return enumValueOf.invoke(null, expectedType, value);
 				}
@@ -391,7 +690,7 @@ public class ConversionHelper extends IConversionHelper implements IThreadLocalC
 					throw RuntimeExceptionUtil.mask(e);
 				}
 			}
-			else if (Enum.class.isAssignableFrom(type)) {
+			else if (Enum.class.isAssignableFrom(sourceType)) {
 				try {
 					return convertValueToTypeIntern(expectedType, ((Enum<?>) value).name(),
 							additionalInformation);
@@ -401,52 +700,11 @@ public class ConversionHelper extends IConversionHelper implements IThreadLocalC
 				}
 			}
 		}
-		else if (Class.class.isAssignableFrom(expectedType)) {
-			if (String.class.isAssignableFrom(type)) {
-				String sValue = (String) value;
-				int lengthFromEnd = 0;
-				for (int a = sValue.length(); a-- > 0;) {
-					char oneChar = sValue.charAt(a);
-					if (oneChar == '[') {
-						break;
-					}
-					lengthFromEnd++;
-					if (lengthFromEnd > 1) {
-						// not a primitive array
-						lengthFromEnd = -1;
-						break;
-					}
-				}
-				try {
-					if (primitiveNameToTypeMap.containsKey(sValue)) {
-						return primitiveNameToTypeMap.get(sValue);
-					}
-					return classCache.forName(sValue);
-				}
-				catch (Exception e) {
-					throw RuntimeExceptionUtil.mask(e);
-				}
-			}
-		}
-		else if (CharSequence.class.isAssignableFrom(expectedType)) {
-			if (Class.class.isAssignableFrom(type)) {
-				return ((Class<?>) value).getName();
-			}
-			if (additionalInformation instanceof XmlHint) {
-				if (Date.class.isAssignableFrom(type)) {
-					return getISO_8601_DateFormat().format(value);
-				}
-			}
-			if (Calendar.class.isAssignableFrom(type)) {
-				return getISO_8601_DateFormat().format(((Calendar) value).getTime());
-			}
-			return value.toString();
-		}
-		else if (char[].class.equals(expectedType)) {
-			if (CharSequence.class.isAssignableFrom(type)) {
-				return value.toString().toCharArray();
-			}
-		}
+		return throwNotSupported(expectedType, sourceType, value, additionalInformation);
+	}
+
+	protected Object throwNotSupported(Class<?> expectedType, Class<?> sourceType, Object value,
+			Object additionalInformation) {
 		throw new IllegalArgumentException(
 				"Cannot convert from '" + value.getClass() + "' to '" + expectedType + "'");
 	}

@@ -30,7 +30,7 @@ public class StringToFileConverter implements IDedicatedConverter {
 
 	@Override
 	public Object convertValueToType(Class<?> expectedType, Class<?> sourceType, Object value,
-			Object additionalInformation) throws Throwable {
+			Object additionalInformation) throws Exception {
 		if (File[].class.equals(expectedType)) {
 			String[] split = fileDelimiterPattern.split((String) value);
 			File[] files = new File[split.length];

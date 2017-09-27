@@ -28,7 +28,7 @@ import com.koch.ambeth.util.IDedicatedConverter;
 public class StringToPathConverter implements IDedicatedConverter {
 	@Override
 	public Object convertValueToType(Class<?> expectedType, Class<?> sourceType, Object value,
-			Object additionalInformation) throws Throwable {
+			Object additionalInformation) throws Exception {
 		if (Path[].class.equals(expectedType)) {
 			String[] split = StringToFileConverter.fileDelimiterPattern.split((String) value);
 			Path[] files = new Path[split.length];

@@ -37,7 +37,7 @@ public class StringToCharacterInputSourceConverter implements IDedicatedConverte
 
 	@Override
 	public Object convertValueToType(Class<?> expectedType, Class<?> sourceType, Object value,
-			Object additionalInformation) throws Throwable {
+			Object additionalInformation) throws Exception {
 		long oid = conversionHelper.convertValueToType(Number.class, value).longValue();
 		return new PostgresCharacterInputSource(oid, connection.unwrap(PGConnection.class));
 	}

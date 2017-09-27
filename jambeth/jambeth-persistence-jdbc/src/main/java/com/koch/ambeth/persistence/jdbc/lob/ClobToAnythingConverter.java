@@ -30,7 +30,7 @@ public class ClobToAnythingConverter implements IDedicatedConverter {
 
 	@Override
 	public Object convertValueToType(Class<?> expectedType, Class<?> sourceType, Object value,
-			Object additionalInformation) throws Throwable {
+			Object additionalInformation) throws Exception {
 		String stringValue = conversionHelper.convertValueToType(String.class, value);
 		return conversionHelper.convertValueToType(expectedType, stringValue);
 	}
