@@ -27,11 +27,11 @@ import com.koch.ambeth.ioc.factory.IBeanContextFactory;
 import com.koch.ambeth.service.ISSLContextFactory;
 import com.koch.ambeth.service.remote.IClientServiceFactory;
 import com.koch.ambeth.service.rest.AuthenticationHolder;
-import com.koch.ambeth.service.rest.SSLContextFactory;
 import com.koch.ambeth.service.rest.HttpClientProvider;
 import com.koch.ambeth.service.rest.IAuthenticationHolder;
 import com.koch.ambeth.service.rest.IHttpClientProvider;
 import com.koch.ambeth.service.rest.RESTClientServiceFactory;
+import com.koch.ambeth.service.rest.SSLContextFactory;
 import com.koch.ambeth.service.rest.config.RESTConfigurationConstants;
 
 public class ServiceRESTModule implements IInitializingModule {
@@ -44,7 +44,7 @@ public class ServiceRESTModule implements IInitializingModule {
 	@Property(name = RESTConfigurationConstants.AuthenticationHolderType, mandatory = false)
 	protected Class<?> authenticationHolderType;
 
-	@Property(name = RESTConfigurationConstants.AuthenticationHolderType, mandatory = false)
+	@Property(name = RESTConfigurationConstants.SslContextFactoryType, mandatory = false)
 	protected Class<?> sslContextFactoryType;
 
 	@Override

@@ -36,6 +36,8 @@ public final class RESTConfigurationConstants {
 
 	public static final String SslKeyStorePassword = "rest.https.keystore.password";
 
+	public static final String SslContextFactoryType = "rest.https.sslcontextfactorytype";
+
 	private RESTConfigurationConstants() {
 		// Intended blank
 	}
