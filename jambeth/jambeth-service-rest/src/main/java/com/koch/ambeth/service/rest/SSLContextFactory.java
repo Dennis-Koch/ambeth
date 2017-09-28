@@ -1,5 +1,6 @@
 package com.koch.ambeth.service.rest;
 
+import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -21,22 +22,20 @@ public class SSLContextFactory implements ISSLContextFactory, IInitializingBean 
 	@LogInstance
 	private ILogger log;
 
-	@Property(name = RESTConfigurationConstants.SslKeyStorePassword, defaultValue = "developer")
-	protected char[] storePassword;
+	@Property(name = RESTConfigurationConstants.SslKeyStorePassword, mandatory = false)
+	protected char[] keyStorePassword;
 
-	@Property(name = RESTConfigurationConstants.SslKeyStoreFile,
-			defaultValue = "configuration/publicKey.store")
+	@Property(name = RESTConfigurationConstants.SslKeyStoreFile, mandatory = false)
 	protected Path keyStoreFile;
 
 	@Override
 	public void afterPropertiesSet() throws Throwable {
-		keyStoreFile = keyStoreFile.toAbsolutePath().normalize();
-		if (!Files.exists(keyStoreFile) || Files.isDirectory(keyStoreFile)) {
-			if (log.isDebugEnabled()) {
-				log.debug("Keystore file '" + keyStoreFile
+		if (keyStoreFile != null) {
+			keyStoreFile = keyStoreFile.toAbsolutePath().normalize();
+			if (!Files.exists(keyStoreFile) || Files.isDirectory(keyStoreFile)) {
+				throw new FileNotFoundException("Keystore file '" + keyStoreFile
 						+ "' not found. Please configure property '" + "ssl.keystore.file" + "' correctly");
 			}
-			keyStoreFile = null;
 		}
 	}
 
@@ -47,7 +46,7 @@ public class SSLContextFactory implements ISSLContextFactory, IInitializingBean 
 			if (store == null) {
 				return null;
 			}
-			return SSLContexts.custom().loadKeyMaterial(store, null).build();
+			return SSLContexts.custom().loadTrustMaterial(store, null).build();
 		}
 		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
@@ -55,15 +54,18 @@ public class SSLContextFactory implements ISSLContextFactory, IInitializingBean 
 	}
 
 	protected KeyStore readStore() {
+		if (keyStoreFile == null) {
+			return null;
+		}
 		try (InputStream keyStoreStream = Files.newInputStream(keyStoreFile)) {
 			KeyStore keyStore = KeyStore.getInstance("JKS"); // or "PKCS12"
-			keyStore.load(keyStoreStream, storePassword);
+			keyStore.load(keyStoreStream, keyStorePassword);
 			return keyStore;
 		}
 		catch (Exception e) {
 			try (InputStream keyStoreStream = Files.newInputStream(keyStoreFile)) {
 				KeyStore keyStore = KeyStore.getInstance("PKCS12");
-				keyStore.load(keyStoreStream, storePassword);
+				keyStore.load(keyStoreStream, keyStorePassword);
 				return keyStore;
 			}
 			catch (Exception e2) {
