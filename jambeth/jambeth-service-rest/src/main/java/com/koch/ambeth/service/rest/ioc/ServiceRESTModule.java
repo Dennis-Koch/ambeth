@@ -24,8 +24,10 @@ import com.koch.ambeth.ioc.IInitializingModule;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.config.Property;
 import com.koch.ambeth.ioc.factory.IBeanContextFactory;
+import com.koch.ambeth.service.ISSLContextFactory;
 import com.koch.ambeth.service.remote.IClientServiceFactory;
 import com.koch.ambeth.service.rest.AuthenticationHolder;
+import com.koch.ambeth.service.rest.SSLContextFactory;
 import com.koch.ambeth.service.rest.HttpClientProvider;
 import com.koch.ambeth.service.rest.IAuthenticationHolder;
 import com.koch.ambeth.service.rest.IHttpClientProvider;
@@ -36,8 +38,14 @@ public class ServiceRESTModule implements IInitializingModule {
 	@Autowired(optional = true)
 	protected IAuthenticationHolder authenticationHolder;
 
+	@Autowired(optional = true)
+	protected ISSLContextFactory sslContextFactory;
+
 	@Property(name = RESTConfigurationConstants.AuthenticationHolderType, mandatory = false)
 	protected Class<?> authenticationHolderType;
+
+	@Property(name = RESTConfigurationConstants.AuthenticationHolderType, mandatory = false)
+	protected Class<?> sslContextFactoryType;
 
 	@Override
 	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
@@ -56,5 +64,12 @@ public class ServiceRESTModule implements IInitializingModule {
 		beanContextFactory.registerBean(HttpClientProvider.class)
 				.autowireable(IHttpClientProvider.class);
 
+		if (sslContextFactory == null) {
+			if (sslContextFactoryType == null) {
+				sslContextFactoryType = SSLContextFactory.class;
+			}
+			beanContextFactory.registerBean(sslContextFactoryType)
+					.autowireable(ISSLContextFactory.class);
+		}
 	}
 }

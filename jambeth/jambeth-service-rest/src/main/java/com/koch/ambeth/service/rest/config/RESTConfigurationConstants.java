@@ -32,6 +32,10 @@ public final class RESTConfigurationConstants {
 
 	public static final String AuthenticationHolderType = "rest.http.authholdertype";
 
+	public static final String SslKeyStoreFile = "rest.https.keystore.file";
+
+	public static final String SslKeyStorePassword = "rest.https.keystore.password";
+
 	private RESTConfigurationConstants() {
 		// Intended blank
 	}
