@@ -136,7 +136,11 @@ public class ObjectCopier
 			return (T) cloneArray(source, ocState);
 		}
 		if (Optional.class.isAssignableFrom(objType)) {
-			Object value = ((Optional<?>) source).get();
+			Optional<?> opt = (Optional<?>) source;
+			if (!opt.isPresent()) {
+				return source; // it is an empty optional
+			}
+			Object value = opt.get();
 			Object clonedValue = cloneRecursive(value, ocState);
 			if (value == clonedValue) {
 				return source; // same Optional can be returned
