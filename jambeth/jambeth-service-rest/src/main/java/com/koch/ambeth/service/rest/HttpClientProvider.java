@@ -14,7 +14,7 @@ import com.koch.ambeth.util.collections.Tuple3KeyHashMap;
 
 public class HttpClientProvider implements IHttpClientProvider, IDisposableBean {
 
-	@Autowired
+	@Autowired(optional = true)
 	protected ISSLContextFactory sslContextFactory;
 
 	protected CloseableHttpClient httpClient;
