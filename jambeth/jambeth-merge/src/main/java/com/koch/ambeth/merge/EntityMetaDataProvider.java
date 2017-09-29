@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 
 import javax.persistence.PostLoad;
@@ -129,6 +130,8 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 
 	protected Class<?>[] businessObjectSaveOrder;
 
+	protected Lock alreadyLoadingLock = new ReentrantLock();
+
 	protected final DefaultExtendableContainer<IFimExtension> federatedInformationModelExtensions =
 			new DefaultExtendableContainer<>(
 					IFimExtension.class, "federatedInformationModelExtension");
@@ -208,6 +211,10 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 					continue;
 				}
 				pendingToRefreshMetaDatasTL.get().register(missingMetaDataItem, entityType);
+				Class<?> requestedEntityType = entityTypes.get(a);
+				if (requestedEntityType != entityType) {
+					pendingToRefreshMetaDatasTL.get().register(missingMetaDataItem, requestedEntityType);
+				}
 			}
 			for (int a = loadedMetaData.size(); a-- > 0;) {
 				IEntityMetaData missingMetaDataItem = loadedMetaData.get(a);
@@ -437,6 +444,102 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 	protected IList<IEntityMetaData> getMetaData(List<Class<?>> entityTypes,
 			boolean askRemoteOnMiss) {
 		ArrayList<IEntityMetaData> result = new ArrayList<>(entityTypes.size());
+		IList<Class<?>> missingEntityTypes =
+				checkMissingEntityTypes(entityTypes, askRemoteOnMiss, result);
+		if (missingEntityTypes == null || remoteEntityMetaDataProvider == null) {
+			return result;
+		}
+		alreadyLoadingLock.lock();
+		try {
+			// check again: concurrent thread might have been faster
+			result = new ArrayList<>(entityTypes.size());
+			missingEntityTypes =
+					checkMissingEntityTypes(entityTypes, askRemoteOnMiss, result);
+			if (missingEntityTypes == null || remoteEntityMetaDataProvider == null) {
+				return result;
+			}
+			boolean handlePendingMetaData = false;
+			try {
+				ClassExtendableContainer<IEntityMetaData> pendingToRefreshMetaDatas =
+						pendingToRefreshMetaDatasTL
+								.get();
+				if (pendingToRefreshMetaDatas == null) {
+					pendingToRefreshMetaDatas = new ClassExtendableContainer<>("metaData", "entityType");
+					pendingToRefreshMetaDatasTL.set(pendingToRefreshMetaDatas);
+					handlePendingMetaData = true;
+				}
+				while (missingEntityTypes != null && !missingEntityTypes.isEmpty()) {
+					IList<IEntityMetaData> loadedMetaData = remoteEntityMetaDataProvider
+							.getMetaData(missingEntityTypes);
+
+					IList<Class<?>> cascadeMissingEntityTypes = addLoadedMetaData(missingEntityTypes,
+							loadedMetaData);
+
+					if (cascadeMissingEntityTypes != null && !cascadeMissingEntityTypes.isEmpty()) {
+						missingEntityTypes = cascadeMissingEntityTypes;
+					}
+					else {
+						missingEntityTypes.clear();
+					}
+				}
+				if (handlePendingMetaData) {
+					ILinkedMap<Class<?>, IEntityMetaData> extensions = pendingToRefreshMetaDatas
+							.getExtensions();
+					for (Entry<Class<?>, IEntityMetaData> entry : extensions) {
+						IEntityMetaData metaData = entry.getValue();
+						if (metaData == alreadyHandled) {
+							continue;
+						}
+						refreshMembers(metaData);
+					}
+					Lock writeLock = getWriteLock();
+					writeLock.lock();
+					try {
+						for (Entry<Class<?>, IEntityMetaData> entry : pendingToRefreshMetaDatas
+								.getExtensions()) {
+							Class<?> entityType = entry.getKey();
+							IEntityMetaData existingMetaData = getExtensionHardKeyGlobalOnly(entityType);
+							if (existingMetaData != null && existingMetaData != alreadyHandled) {
+								// existing entry is already a valid non-null entry
+								continue;
+							}
+							IEntityMetaData ownMetaData = entry.getValue();
+							if (existingMetaData == ownMetaData) {
+								// existing entry is already a null-entry and our entry is a null-entry,
+								// too - so
+								// nothing to do
+								continue;
+							}
+							if (existingMetaData == alreadyHandled) {
+								unregister(alreadyHandled, entityType);
+							}
+							try {
+								register(ownMetaData, entityType);
+							}
+							catch (RuntimeException ignored) {
+								// key may already exist
+							}
+						}
+					}
+					finally {
+						writeLock.unlock();
+					}
+				}
+			}
+			finally {
+				if (handlePendingMetaData) {
+					pendingToRefreshMetaDatasTL.remove();
+				}
+			}
+			return getMetaData(entityTypes, false);
+		}
+		finally {
+			alreadyLoadingLock.unlock();
+		}
+	}
+
+	private IList<Class<?>> checkMissingEntityTypes(List<Class<?>> entityTypes,
+			boolean askRemoteOnMiss, ArrayList<IEntityMetaData> result) {
 		IList<Class<?>> missingEntityTypes = null;
 		for (int a = entityTypes.size(); a-- > 0;) {
 			Class<?> entityType = entityTypes.get(a);
@@ -462,77 +565,7 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 			}
 			result.add(metaDataItem);
 		}
-		if (missingEntityTypes == null || remoteEntityMetaDataProvider == null) {
-			return result;
-		}
-		boolean handlePendingMetaData = false;
-		try {
-			ClassExtendableContainer<IEntityMetaData> pendingToRefreshMetaDatas =
-					pendingToRefreshMetaDatasTL
-							.get();
-			if (pendingToRefreshMetaDatas == null) {
-				pendingToRefreshMetaDatas = new ClassExtendableContainer<>("metaData", "entityType");
-				pendingToRefreshMetaDatasTL.set(pendingToRefreshMetaDatas);
-				handlePendingMetaData = true;
-			}
-			while (missingEntityTypes != null && !missingEntityTypes.isEmpty()) {
-				IList<IEntityMetaData> loadedMetaData = remoteEntityMetaDataProvider
-						.getMetaData(missingEntityTypes);
-
-				IList<Class<?>> cascadeMissingEntityTypes = addLoadedMetaData(missingEntityTypes,
-						loadedMetaData);
-
-				if (cascadeMissingEntityTypes != null && !cascadeMissingEntityTypes.isEmpty()) {
-					missingEntityTypes = cascadeMissingEntityTypes;
-				}
-				else {
-					missingEntityTypes.clear();
-				}
-			}
-			if (handlePendingMetaData) {
-				ILinkedMap<Class<?>, IEntityMetaData> extensions = pendingToRefreshMetaDatas
-						.getExtensions();
-				for (Entry<Class<?>, IEntityMetaData> entry : extensions) {
-					IEntityMetaData metaData = entry.getValue();
-					if (metaData == alreadyHandled) {
-						continue;
-					}
-					refreshMembers(metaData);
-				}
-				Lock writeLock = getWriteLock();
-				writeLock.lock();
-				try {
-					for (Entry<Class<?>, IEntityMetaData> entry : pendingToRefreshMetaDatas.getExtensions()) {
-						Class<?> entityType = entry.getKey();
-						IEntityMetaData existingMetaData = getExtensionHardKeyGlobalOnly(entityType);
-						if (existingMetaData != null && existingMetaData != alreadyHandled) {
-							// existing entry is already a valid non-null entry
-							continue;
-						}
-						IEntityMetaData ownMetaData = entry.getValue();
-						if (existingMetaData == ownMetaData) {
-							// existing entry is already a null-entry and our entry is a null-entry,
-							// too - so
-							// nothing to do
-							continue;
-						}
-						if (existingMetaData == alreadyHandled) {
-							unregister(alreadyHandled, entityType);
-						}
-						register(ownMetaData, entityType);
-					}
-				}
-				finally {
-					writeLock.unlock();
-				}
-			}
-		}
-		finally {
-			if (handlePendingMetaData) {
-				pendingToRefreshMetaDatasTL.remove();
-			}
-		}
-		return getMetaData(entityTypes, false);
+		return missingEntityTypes;
 	}
 
 	protected String getNodeName(Object handle, IMap<Object, String> handleToNodeIdMap) {

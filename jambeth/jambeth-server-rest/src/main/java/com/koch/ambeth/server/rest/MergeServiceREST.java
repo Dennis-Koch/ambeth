@@ -48,6 +48,7 @@ import com.koch.ambeth.service.merge.IEntityMetaDataProvider;
 import com.koch.ambeth.service.merge.model.IEntityMetaData;
 import com.koch.ambeth.service.rest.Constants;
 import com.koch.ambeth.util.IConversionHelper;
+import com.koch.ambeth.util.collections.IdentityLinkedMap;
 import com.koch.ambeth.util.model.IMethodDescription;
 import com.koch.ambeth.util.state.IStateRollback;
 
@@ -129,14 +130,21 @@ public class MergeServiceREST extends AbstractServiceREST {
 		IStateRollback rollback = preServiceCall(request, response);
 		try {
 			Object[] args = getArguments(is, request);
+			IConversionHelper conversionHelper = getService(IConversionHelper.class);
 			List<IEntityMetaData> result = getService(IEntityMetaDataProvider.class)
 					.getMetaData((List<Class<?>>) args[0]);
+
+			IdentityLinkedMap<IEntityMetaData, EntityMetaDataTransfer> emdTransferMap =
+					IdentityLinkedMap.create(result.size());
 
 			ArrayList<EntityMetaDataTransfer> emdTransfer = new ArrayList<>(result.size());
 			for (int a = 0, size = result.size(); a < size; a++) {
 				IEntityMetaData source = result.get(a);
-				EntityMetaDataTransfer target = getService(IConversionHelper.class)
-						.convertValueToType(EntityMetaDataTransfer.class, source);
+				EntityMetaDataTransfer target = emdTransferMap.get(source);
+				if (target == null) {
+					target = conversionHelper.convertValueToType(EntityMetaDataTransfer.class, source);
+					emdTransferMap.put(source, target);
+				}
 				emdTransfer.add(target);
 			}
 			return createResult(emdTransfer, request, response);

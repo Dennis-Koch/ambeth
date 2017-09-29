@@ -73,6 +73,7 @@ import com.koch.ambeth.util.ParamChecker;
 import com.koch.ambeth.util.codec.Base64;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.IdentityHashSet;
+import com.koch.ambeth.util.collections.IdentityLinkedMap;
 import com.koch.ambeth.util.config.IProperties;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.io.FastByteArrayOutputStream;
@@ -469,13 +470,23 @@ public class RESTClientInterceptor extends AbstractSimpleInterceptor
 		if (Collection.class.isAssignableFrom(expectedType)) {
 			Collection targetCollection = ListUtil.createCollectionOfType(expectedType);
 
+			IdentityLinkedMap<Object, Object> alreadyConvertedMap = new IdentityLinkedMap<>();
+
 			Class<?> itemType = TypeInfoItemUtil.getElementTypeUsingReflection(expectedType, genericType);
 
 			if (result instanceof Iterable) {
 				for (Object item : (Iterable<?>) result) {
-					Object convertedItem = conversionHelper.convertValueToType(itemType, item);
+					Object convertedItem = alreadyConvertedMap.get(item);
+					if (convertedItem == null && !alreadyConvertedMap.containsKey(item)) {
+						convertedItem = conversionHelper.convertValueToType(itemType, item);
+						alreadyConvertedMap.put(item, convertedItem);
+					}
 					targetCollection.add(convertedItem);
 				}
+			}
+			else {
+				Object convertedItem = conversionHelper.convertValueToType(itemType, result);
+				targetCollection.add(convertedItem);
 			}
 			return targetCollection;
 		}
@@ -486,10 +497,23 @@ public class RESTClientInterceptor extends AbstractSimpleInterceptor
 					list.add(item);
 				}
 			}
+			else {
+				list.add(result);
+			}
+
+			IdentityLinkedMap<Object, Object> alreadyConvertedMap = new IdentityLinkedMap<>();
+
+			Class<?> itemType = TypeInfoItemUtil.getElementTypeUsingReflection(expectedType, genericType);
 
 			Object array = Array.newInstance(expectedType.getComponentType(), list.size());
 			for (int a = 0, size = list.size(); a < size; a++) {
-				Array.set(array, a, list.get(a));
+				Object item = list.get(a);
+				Object convertedItem = alreadyConvertedMap.get(item);
+				if (convertedItem == null && !alreadyConvertedMap.containsKey(item)) {
+					convertedItem = conversionHelper.convertValueToType(itemType, item);
+					alreadyConvertedMap.put(item, convertedItem);
+				}
+				Array.set(array, a, convertedItem);
 			}
 			return array;
 		}
