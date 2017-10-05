@@ -23,6 +23,7 @@ limitations under the License.
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.lang.reflect.Constructor;
+import java.util.Optional;
 
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Label;
@@ -111,6 +112,9 @@ public class NotifyPropertyChangedClassVisitor extends ClassGenerator {
 	protected static final MethodInstance m_removePropertyChangeListener =
 			new MethodInstance(null, templateType, void.class, "removePropertyChangeListener",
 					PropertyChangeSupport.class, PropertyChangeListener.class);
+
+	public static final MethodInstance m_optionalIdentityEquals = new MethodInstance(null,
+			templateType, boolean.class, "optionalIdentityEquals", Optional.class, Optional.class);
 
 	public static final MethodInstance template_m_firePropertyChange =
 			new MethodInstance(null, Opcodes.ACC_PROTECTED, void.class, "firePropertyChange", null,
@@ -210,14 +214,16 @@ public class NotifyPropertyChangedClassVisitor extends ClassGenerator {
 				if (propInfo == null) {
 					continue;
 				}
-				implementPropertyChangeOnProperty(propInfo, m_firePropertyChange, p_propertyChangeSupport);
+				implementPropertyChangeOnProperty(propInfo, m_firePropertyChange, p_propertyChangeTemplate,
+						p_propertyChangeSupport);
 			}
 		}
 		else {
 			for (String propertyName : properties) {
 				PropertyInstance propInfo =
 						PropertyInstance.findByTemplate(propertyName, (Type) null, false);
-				implementPropertyChangeOnProperty(propInfo, m_firePropertyChange, p_propertyChangeSupport);
+				implementPropertyChangeOnProperty(propInfo, m_firePropertyChange, p_propertyChangeTemplate,
+						p_propertyChangeSupport);
 			}
 		}
 		super.visitEnd();
@@ -262,7 +268,8 @@ public class NotifyPropertyChangedClassVisitor extends ClassGenerator {
 	}
 
 	protected void implementPropertyChangeOnProperty(final PropertyInstance propertyInfo,
-			MethodInstance m_firePropertyChange, PropertyInstance p_propertyChangeSupport) {
+			MethodInstance m_firePropertyChange, PropertyInstance p_propertyChangeTemplate,
+			PropertyInstance p_propertyChangeSupport) {
 		// add property change detection and notification
 		if (propertyInfo.getGetter() == null || propertyInfo.getSetter() == null) {
 			return;
@@ -295,6 +302,8 @@ public class NotifyPropertyChangedClassVisitor extends ClassGenerator {
 
 		MethodInstance m_getSuper = EnhancerUtil.getSuperGetter(propertyInfo);
 		boolean relationProperty = m_getSuper.getName().endsWith(ValueHolderIEC.getNoInitSuffix());
+		boolean optionalProperty =
+				Optional.class.getName().equals(propertyInfo.getPropertyType().getClassName());
 
 		// initialize flag with false
 		mg.push(false);
@@ -318,7 +327,6 @@ public class NotifyPropertyChangedClassVisitor extends ClassGenerator {
 			mg.storeLocal(loc_valueChanged);
 			mg.mark(l_noSpecialHandling);
 		}
-
 		// check if value should be checked to decide for a PCE
 		mg.loadLocal(loc_valueChanged);
 		mg.ifZCmp(GeneratorAdapter.NE, l_noOldValue);
@@ -344,6 +352,15 @@ public class NotifyPropertyChangedClassVisitor extends ClassGenerator {
 		mg.loadLocal(loc_oldValue);
 		mg.loadArg(0);
 		mg.ifCmp(propertyType, GeneratorAdapter.EQ, l_finish);
+
+		if (optionalProperty) {
+			// propertyChangeSupport
+			mg.callThisGetter(p_propertyChangeTemplate);
+			mg.loadLocal(loc_oldValue);
+			mg.loadArg(0);
+			mg.invokeVirtual(m_optionalIdentityEquals);
+			mg.ifZCmp(GeneratorAdapter.NE, l_finish);
+		}
 
 		mg.mark(l_noChangeCheck);
 		// call firePropertyChange on this
