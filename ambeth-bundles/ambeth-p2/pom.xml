@@ -51,7 +51,6 @@
 			<!-- FIRST create a local File-URL out of the local m2 repository to consume it with tycho -->
 			<plugin>
 				<artifactId>maven-antrun-plugin</artifactId>
-				<version>1.8</version>
 				<executions>
 					<execution>
 						<phase>generate-sources</phase>
@@ -65,7 +64,54 @@
 							<goal>run</goal>
 						</goals>
 					</execution>
+					<execution>
+						<id>copy and unpack assembly</id>
+						<phase>install</phase>
+						<configuration>
+							<exportAntProperties>true</exportAntProperties>
+							<target>
+								<!-- extract feature jars -->
+								<delete dir="${local.p2.dir}" />
+								<copy todir="${local.p2.dir}" verbose="true">
+									<fileset dir="${target.repo.dir}"/>
+								</copy>
+								<ac:for param="filename" xmlns:ac="antlib:net.sf.antcontrib">
+									<path>
+										<fileset dir="${local.p2.dir}">
+											<include name="**/content.jar" />
+											<include name="**/artifacts.jar" />
+										</fileset>
+									</path>
+									<sequential>
+										<dirname property="@{filename}" file="@{filename}" />
+										<unzip src="@{filename}" dest="${@{filename}}" />
+									</sequential>
+								</ac:for>
+							</target>
+						</configuration>
+						<goals>
+							<goal>run</goal>
+						</goals>
+					</execution>
 				</executions>
+				<dependencies>
+					<dependency>
+						<groupId>ant-contrib</groupId>
+						<artifactId>ant-contrib</artifactId>
+						<version>1.0b3</version>
+						<exclusions>
+							<exclusion>
+								<groupId>ant</groupId>
+								<artifactId>ant</artifactId>
+							</exclusion>
+						</exclusions>
+					</dependency>
+					<dependency>
+						<groupId>org.apache.ant</groupId>
+						<artifactId>ant-nodeps</artifactId>
+						<version>1.8.1</version>
+					</dependency>
+				</dependencies>
 			</plugin>
 			<plugin>
 				<groupId>${tycho.extras.groupid}</groupId>
@@ -126,60 +172,7 @@
 						</configuration>
 					</execution>
 				</executions>
-			</plugin>
-			<plugin>
-				<artifactId>maven-antrun-plugin</artifactId>
-				<version>1.8</version>
-				<executions>
-					<execution>
-						<id>copy and unpack assembly</id>
-						<phase>install</phase>
-						<configuration>
-							<exportAntProperties>true</exportAntProperties>
-							<target>
-								<!-- extract feature jars -->
-								<delete dir="${local.p2.dir}" />
-								<copy todir="${local.p2.dir}" verbose="true">
-									<fileset dir="${target.repo.dir}"/>
-								</copy>
-								<ac:for param="filename" xmlns:ac="antlib:net.sf.antcontrib">
-									<path>
-										<fileset dir="${local.p2.dir}">
-											<include name="**/content.jar" />
-											<include name="**/artifacts.jar" />
-										</fileset>
-									</path>
-									<sequential>
-										<dirname property="@{filename}" file="@{filename}" />
-										<unzip src="@{filename}" dest="${@{filename}}" />
-									</sequential>
-								</ac:for>
-							</target>
-						</configuration>
-						<goals>
-							<goal>run</goal>
-						</goals>
-					</execution>
-				</executions>
-				<dependencies>
-					<dependency>
-						<groupId>ant-contrib</groupId>
-						<artifactId>ant-contrib</artifactId>
-						<version>1.0b3</version>
-						<exclusions>
-							<exclusion>
-								<groupId>ant</groupId>
-								<artifactId>ant</artifactId>
-							</exclusion>
-						</exclusions>
-					</dependency>
-					<dependency>
-						<groupId>org.apache.ant</groupId>
-						<artifactId>ant-nodeps</artifactId>
-						<version>1.8.1</version>
-					</dependency>
-				</dependencies>
-			</plugin>
+			</plugin>			
 		</plugins>
 	</build>
 	
