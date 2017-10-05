@@ -5,7 +5,9 @@ timestamps {
     node ('JAMA'){
 
 	    try {
-	        // Mark the code checkout 'stage'....
+			stage ('Clean') {
+	       		step([$class: 'WsCleanup'])
+			}
 	        stage ('Checkout') {
 		        checkout scm
 			}
