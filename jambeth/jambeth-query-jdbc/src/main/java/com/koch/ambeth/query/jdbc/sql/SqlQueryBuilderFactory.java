@@ -52,8 +52,9 @@ public class SqlQueryBuilderFactory
 	@Autowired
 	protected ILightweightTransaction transaction;
 
-	protected final DefaultExtendableContainer<IQueryBuilderExtension> queryBuilderExtensions = new DefaultExtendableContainer<>(
-			IQueryBuilderExtension.class, "queryBuilderExtension");
+	protected final DefaultExtendableContainer<IQueryBuilderExtension> queryBuilderExtensions =
+			new DefaultExtendableContainer<>(
+					IQueryBuilderExtension.class, "queryBuilderExtension");
 
 	@SuppressWarnings("rawtypes")
 	protected IGarbageProxyConstructor<IQueryBuilder> queryBuilderGPC;
@@ -93,7 +94,6 @@ public class SqlQueryBuilderFactory
 		IQueryBuilder<T> sqlQueryBuilder = beanContext.registerBean(SqlQueryBuilder.class)//
 				.propertyValue(SqlQueryBuilder.P_ENTITY_TYPE, realEntityType)//
 				.propertyValue(SqlQueryBuilder.P_META_DATA, metaData)//
-				.propertyValue(SqlQueryBuilder.P_DISPOSE_CONTEXT_ON_DISPOSE, Boolean.FALSE)//
 				.propertyValue(SqlQueryBuilder.P_QUERY_BUILDER_EXTENSIONS, queryBuilderExtensions)//
 				.finish();
 

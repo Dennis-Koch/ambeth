@@ -25,12 +25,10 @@ import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.regex.Pattern;
 
 import com.koch.ambeth.filter.IFilterDescriptor;
@@ -38,6 +36,8 @@ import com.koch.ambeth.filter.IPagingRequest;
 import com.koch.ambeth.filter.IPagingResponse;
 import com.koch.ambeth.filter.ISortDescriptor;
 import com.koch.ambeth.ioc.annotation.Autowired;
+import com.koch.ambeth.ioc.config.Property;
+import com.koch.ambeth.ioc.typeinfo.TypeInfoItemUtil;
 import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.ILightweightTransaction;
@@ -47,19 +47,19 @@ import com.koch.ambeth.merge.transfer.ObjRef;
 import com.koch.ambeth.query.IQueryBuilderFactory;
 import com.koch.ambeth.query.filter.IFilterToQueryBuilder;
 import com.koch.ambeth.query.filter.IPagingQuery;
-import com.koch.ambeth.query.squery.GenericTypeUtils;
-import com.koch.ambeth.query.squery.ISquery;
 import com.koch.ambeth.query.squery.QueryBuilderBean;
 import com.koch.ambeth.query.squery.QueryUtils;
 import com.koch.ambeth.service.merge.IEntityMetaDataProvider;
 import com.koch.ambeth.service.merge.model.IEntityMetaData;
 import com.koch.ambeth.service.merge.model.IObjRef;
+import com.koch.ambeth.service.proxy.IMethodLevelBehavior;
 import com.koch.ambeth.util.IConversionHelper;
 import com.koch.ambeth.util.ParamChecker;
 import com.koch.ambeth.util.annotation.AnnotationCache;
 import com.koch.ambeth.util.annotation.Find;
 import com.koch.ambeth.util.annotation.NoProxy;
 import com.koch.ambeth.util.annotation.QueryResultType;
+import com.koch.ambeth.util.annotation.SmartQuery;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.proxy.CascadedInterceptor;
 import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
@@ -67,6 +67,8 @@ import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
 import net.sf.cglib.proxy.MethodProxy;
 
 public class QueryInterceptor extends CascadedInterceptor {
+	public static final String P_BEHAVIOUR = "Behaviour";
+
 	protected static final AnnotationCache<Find> findCache = new AnnotationCache<Find>(Find.class) {
 		@Override
 		protected boolean annotationEquals(Find left, Find right) {
@@ -83,11 +85,6 @@ public class QueryInterceptor extends CascadedInterceptor {
 	};
 
 	private static final Pattern PATTERN_QUERY_METHOD = Pattern.compile("(retrieve|read|find|get).*");
-
-	/**
-	 * WriteLock for {@link QueryInterceptor#methodMapQueryBuilderBean}
-	 */
-	protected final Lock writeLock = new ReentrantLock();
 
 	@LogInstance
 	private ILogger log;
@@ -113,12 +110,11 @@ public class QueryInterceptor extends CascadedInterceptor {
 	@Autowired
 	protected ILightweightTransaction transaction;
 
-	/**
-	 * this map not need ConcurrentHashMap, because {@link QueryInterceptor#retriveQueryBuilderBean}
-	 * make thread safe and speed not influenced, never access from other place where not use
-	 * {@link QueryInterceptor#readLock} and {@link QueryInterceptor#writeLock}
-	 */
-	protected final Map<Method, QueryBuilderBean<?>> methodMapQueryBuilderBean = new HashMap<>();
+	@Property
+	protected IMethodLevelBehavior<SmartQuery> behaviour;
+
+	protected final ConcurrentMap<Method, QueryBuilderBean<?>> methodMapQueryBuilderBean =
+			new ConcurrentHashMap<>(16, 0.5f);
 
 	@Override
 	protected Object interceptIntern(Object obj, Method method, Object[] args, MethodProxy proxy)
@@ -141,9 +137,10 @@ public class QueryInterceptor extends CascadedInterceptor {
 
 	protected Object intercept(Object obj, Method method, Object[] args, MethodProxy proxy,
 			String lowerCaseMethodName, Boolean isAsyncBegin) throws Throwable {
-		if (getTarget() instanceof ISquery && Modifier.isAbstract(method.getModifiers())
+		SmartQuery behaviourOfMethod = behaviour.getBehaviourOfMethod(method);
+		if (behaviourOfMethod != null && Modifier.isAbstract(method.getModifiers())
 				&& QueryUtils.canBuildQuery(method.getName())) {
-			QueryBuilderBean<?> queryBuilderBean = getOrCreateQueryBuilderBean(method);
+			QueryBuilderBean<?> queryBuilderBean = getOrCreateQueryBuilderBean(method, behaviourOfMethod);
 			try {
 				return queryBuilderBean.createQueryBuilder(queryBuilderFactory, conversionHelper, args,
 						method.getReturnType());
@@ -267,40 +264,46 @@ public class QueryInterceptor extends CascadedInterceptor {
 	/**
 	 * get QueryBuilderBean, this object may be from cache or will just be created ad-hoc
 	 *
-	 * @param obj
-	 *          intercepted object
-	 * @param method
-	 *          intercepted method
+	 * @param obj intercepted object
+	 * @param method intercepted method
 	 * @return QueryBuilderBean instance for Squery
 	 */
-	private QueryBuilderBean<?> getOrCreateQueryBuilderBean(Method method) {
+	private QueryBuilderBean<?> getOrCreateQueryBuilderBean(Method method,
+			SmartQuery behaviourOfMethod) {
 		ParamChecker.assertNotNull(method, "method");
 
-		QueryBuilderBean<?> queryBuilderBean;
-		writeLock.lock();
-		try {
-			queryBuilderBean = methodMapQueryBuilderBean.get(method);
-			if (queryBuilderBean != null) {
-				return queryBuilderBean;
+		QueryBuilderBean<?> queryBuilderBean = methodMapQueryBuilderBean.get(method);
+		if (queryBuilderBean != null) {
+			return queryBuilderBean;
+		}
+		Class<?> entityType;
+		if (method.getReturnType() == IPagingResponse.class) {
+			ParameterizedType castedType = (ParameterizedType) method.getGenericReturnType();
+			Type[] actualTypeArguments = castedType.getActualTypeArguments();
+			entityType = TypeInfoItemUtil.getElementTypeUsingReflection(null, actualTypeArguments[0]);
+		}
+		else {
+			entityType = TypeInfoItemUtil.getElementTypeUsingReflection(method.getReturnType(),
+					method.getGenericReturnType());
+		}
+		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(entityType, true);
+		if (metaData == null) {
+			Class<?> annotationEntityType = behaviourOfMethod.entityType();
+			if (annotationEntityType == Object.class) {
+				throw new IllegalArgumentException(
+						"Could not resolve an applicable entity type for method '" + method
+								+ "'. Please check the signature and/or consider to use the @"
+								+ SmartQuery.class.getSimpleName()
+								+ " annotation with an explicitly defined entity type for this method");
 			}
+			entityType = annotationEntityType;
 		}
-		finally {
-			writeLock.unlock();
-		}
-		Class<?> entityType = (Class<?>) GenericTypeUtils.getGenericParam(getTarget(),
-				ISquery.class)[0];
 		queryBuilderBean = QueryUtils.buildQuery(method.getName(), entityType);
-		// double check to make thread safe and not influence the speed
-		writeLock.lock();
-		try {
-			QueryBuilderBean<?> existingQueryBuilderBean = methodMapQueryBuilderBean.get(method);
-			if (existingQueryBuilderBean != null) {
-				return existingQueryBuilderBean;
-			}
-			methodMapQueryBuilderBean.put(method, queryBuilderBean);
-		}
-		finally {
-			writeLock.unlock();
+		QueryBuilderBean<?> existingQueryBuilderBean =
+				methodMapQueryBuilderBean.putIfAbsent(method, queryBuilderBean);
+		if (existingQueryBuilderBean != null) {
+			// concurrent thread was faster
+			return existingQueryBuilderBean;
 		}
 		return queryBuilderBean;
 	}

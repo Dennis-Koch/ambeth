@@ -25,10 +25,9 @@ import java.util.List;
 import javax.persistence.criteria.JoinType;
 
 import com.koch.ambeth.event.IEventDispatcher;
+import com.koch.ambeth.ioc.IServiceContext;
 import com.koch.ambeth.ioc.annotation.Autowired;
-import com.koch.ambeth.ioc.config.IBeanConfiguration;
 import com.koch.ambeth.ioc.config.Property;
-import com.koch.ambeth.ioc.factory.IBeanContextFactory;
 import com.koch.ambeth.merge.config.MergeConfigurationConstants;
 import com.koch.ambeth.merge.security.ISecurityActivation;
 import com.koch.ambeth.persistence.api.IDatabaseMetaData;
@@ -65,7 +64,7 @@ public class SecurityQueryBuilderExtension implements IQueryBuilderExtension {
 	protected boolean securityActive;
 
 	@Override
-	public IBeanConfiguration applyOnWhereClause(IBeanContextFactory queryBeanContextFactory,
+	public IOperand applyOnWhereClause(IServiceContext queryBeanContext,
 			IQueryBuilderIntern<?> queryBuilder, IOperand whereClause, IList<ISqlJoin> joinClauses,
 			QueryType queryType) {
 		if (!securityActive || (whereClause instanceof SqlPermissionOperand)) {
@@ -81,7 +80,7 @@ public class SecurityQueryBuilderExtension implements IQueryBuilderExtension {
 		{
 			ITableMetaData tableOfEntity = databaseMetaData.getTableByType(queryBuilder.getEntityType());
 			ISqlJoin join = createJoin(tableOfEntity.getName(), queryBuilder, readPermissionValueColumns,
-					readPermissionUserIdColumns, queryBeanContextFactory, null);
+					readPermissionUserIdColumns, queryBeanContext, null);
 			if (join != null) {
 				permissionGroupJoins.add(join);
 				joinClauses.add(join);
@@ -92,7 +91,7 @@ public class SecurityQueryBuilderExtension implements IQueryBuilderExtension {
 			String tableNameOfJoin = entityJoin.getTableName();
 
 			ISqlJoin join = createJoin(tableNameOfJoin, queryBuilder, readPermissionValueColumns,
-					readPermissionUserIdColumns, queryBeanContextFactory, entityJoin);
+					readPermissionUserIdColumns, queryBeanContext, entityJoin);
 			if (join != null) {
 				permissionGroupJoins.add(join);
 				joinClauses.add(join);
@@ -101,18 +100,19 @@ public class SecurityQueryBuilderExtension implements IQueryBuilderExtension {
 		if (permissionGroupJoins.isEmpty()) {
 			return null;
 		}
-		return queryBeanContextFactory.registerBean(SqlPermissionOperand.class)//
+		return queryBeanContext.registerBean(SqlPermissionOperand.class)//
 				.propertyValue("Operand", whereClause)//
 				.propertyValue("UserIdCriteriaOperand", userIdCriteriaOperand)//
 				.propertyValue("ValueCriteriaOperand", valueCriteriaOperand)//
 				.propertyValue("PermissionGroupJoins", permissionGroupJoins.toArray(ISqlJoin.class))//
 				.propertyValue("ReadPermissionOperands", readPermissionValueColumns.toArray(IOperand.class))//
-				.propertyValue("UserIdOperands", readPermissionUserIdColumns.toArray(IOperand.class));
+				.propertyValue("UserIdOperands", readPermissionUserIdColumns.toArray(IOperand.class))
+				.finish();
 	}
 
 	protected ISqlJoin createJoin(String tableNameOfJoin, IQueryBuilderIntern<?> queryBuilder,
 			List<IOperand> readPermissionValueColumns, List<IOperand> readPermissionUserIdColumns,
-			IBeanContextFactory queryBeanContextFactory, ISqlJoin baseJoin) {
+			IServiceContext queryBeanContext, ISqlJoin baseJoin) {
 		IPermissionGroup permissionGroup = databaseMetaData.getPermissionGroupOfTable(tableNameOfJoin);
 		if (permissionGroup == null) {
 			// this join is a either link-table join which has (currently) no permission group
@@ -126,7 +126,7 @@ public class SecurityQueryBuilderExtension implements IQueryBuilderExtension {
 		IOperand readPermissionIdColumn = queryBuilder
 				.column(permissionGroup.getPermissionGroupField().getName(), baseJoin, false);
 		ISqlJoin join = queryBuilder.joinIntern(tableName, columnOperand, readPermissionIdColumn,
-				JoinType.LEFT, queryBeanContextFactory);
+				JoinType.LEFT);
 		readPermissionValueColumns
 				.add(queryBuilder.column(permissionGroup.getReadPermissionField().getName(), join, false));
 		readPermissionUserIdColumns

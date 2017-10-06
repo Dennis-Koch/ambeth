@@ -1,8 +1,8 @@
-package com.koch.ambeth.query.squery;
+package com.koch.ambeth.util.annotation;
 
 /*-
  * #%L
- * jambeth-query
+ * jambeth-util
  * %%
  * Copyright (C) 2017 Koch Softwaredevelopment
  * %%
@@ -20,11 +20,13 @@ limitations under the License.
  * #L%
  */
 
-/**
- * any bean implement this interface, will have Squery feature, it's mean you can define method
- * like: findBy... no need supply implement
- *
- * @param <T> entity type
- */
-public interface ISquery<T> {
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ElementType.TYPE, ElementType.METHOD})
+public @interface SmartQuery {
+	Class<?> entityType() default Object.class;
 }

@@ -1,5 +1,7 @@
 package com.koch.ambeth.query.jdbc;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.Iterator;
 
 /*-
@@ -24,7 +26,6 @@ limitations under the License.
 
 import java.util.List;
 
-import com.koch.ambeth.ioc.IServiceContext;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.config.Property;
 import com.koch.ambeth.merge.config.MergeConfigurationConstants;
@@ -50,6 +51,7 @@ import com.koch.ambeth.query.persistence.IVersionCursor;
 import com.koch.ambeth.query.persistence.IVersionItem;
 import com.koch.ambeth.service.merge.model.IObjRef;
 import com.koch.ambeth.util.IConversionHelper;
+import com.koch.ambeth.util.ReflectUtil;
 import com.koch.ambeth.util.appendable.AppendableStringBuilder;
 import com.koch.ambeth.util.appendable.IAppendable;
 import com.koch.ambeth.util.collections.ArrayList;
@@ -58,13 +60,11 @@ import com.koch.ambeth.util.collections.EmptyMap;
 import com.koch.ambeth.util.collections.HashMap;
 import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.IMap;
+import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.objectcollector.IThreadLocalObjectCollector;
 
 @PersistenceContext
 public class Query<T> implements IQuery<T>, IQueryIntern<T>, ISubQuery<T> {
-	@Autowired
-	protected IServiceContext beanContext;
-
 	@Autowired
 	protected IConversionHelper conversionHelper;
 
@@ -120,12 +120,6 @@ public class Query<T> implements IQuery<T>, IQueryIntern<T>, ISubQuery<T> {
 	protected IQueryBuilderExtension[] queryBuilderExtensions;
 
 	protected IQueryKey queryKey;
-
-	@Override
-	public void dispose() {
-		beanContext.dispose();
-		beanContext = null;
-	}
 
 	@Override
 	public Class<T> getEntityType() {
@@ -463,5 +457,21 @@ public class Query<T> implements IQuery<T>, IQueryIntern<T>, ISubQuery<T> {
 	@Override
 	public void setMainTableAlias(String alias) {
 		tableAliasHolder.setTableAlias(alias);
+	}
+
+	@Override
+	public void dispose() {
+		for (Field field : ReflectUtil.getDeclaredFieldsInHierarchy(getClass())) {
+			int modifiers = field.getModifiers();
+			if (Modifier.isFinal(modifiers) || Modifier.isStatic(modifiers)) {
+				continue;
+			}
+			try {
+				field.set(this, null);
+			}
+			catch (IllegalArgumentException | IllegalAccessException e) {
+				throw RuntimeExceptionUtil.mask(e);
+			}
+		}
 	}
 }

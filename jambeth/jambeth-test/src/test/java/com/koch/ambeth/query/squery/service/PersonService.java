@@ -27,13 +27,14 @@ import com.koch.ambeth.merge.proxy.MergeContext;
 import com.koch.ambeth.query.IOperator;
 import com.koch.ambeth.query.IQueryBuilder;
 import com.koch.ambeth.query.IQueryBuilderFactory;
-import com.koch.ambeth.query.squery.ISquery;
 import com.koch.ambeth.query.squery.model.Person;
 import com.koch.ambeth.service.proxy.Service;
+import com.koch.ambeth.util.annotation.SmartQuery;
 
 @Service(IPersonService.class)
 @MergeContext
-public abstract class PersonService implements IPersonService, ISquery<Person> {
+@SmartQuery(entityType = Person.class)
+public abstract class PersonService implements IPersonService {
 	public static final String CONCRETE_METHOD_RETURN_VALUE = "this method will not be intercepted";
 
 	@Autowired
