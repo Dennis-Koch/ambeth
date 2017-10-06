@@ -13,7 +13,7 @@ timestamps {
 			def deployOrVerify = 'install';
 			def deployOrVerifyLabelPrefix = 'Verify';
 			def profile = ' -P default';
-			def localRepo = ' -Dmaven.repo.local=${env.WORKSPACE}/.m2';
+			def localRepo = ' -Dmaven.repo.local=$WORKSPACE/.m2';
 			if (env.BRANCH_NAME == 'master' || env.BRANCH_NAME == 'develop') {
 				deployOrVerify = 'deploy';
 				deployOrVerifyLabelPrefix = 'Deploy';
