@@ -58,7 +58,7 @@ public final class FieldAnalyzer {
 	 * @param fieldExpression
 	 * @return separated nest field by dot
 	 */
-	public String buildNestField(String fieldExpression) {
+	public String buildNestedField(String fieldExpression) {
 		String result = prepareFieldName(fieldExpression, clazz);
 		if (result == null) {
 			throw new InvalidateSqueryNameException(fieldExpression, clazz);
@@ -161,7 +161,7 @@ public final class FieldAnalyzer {
 		Matcher matcher = PATTERN_DIRECTION.matcher(orderByStr);
 		while (matcher.find()) {
 			String fieldName = matcher.group(1);
-			String nestFieldName = buildNestField(fieldName);
+			String nestFieldName = buildNestedField(fieldName);
 			String dirStr = matcher.group(3);
 			SortDirection direction =
 					"Desc".equals(dirStr) ? SortDirection.DESCENDING : SortDirection.ASCENDING;

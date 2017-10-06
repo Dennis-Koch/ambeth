@@ -52,12 +52,12 @@ public class QueryUtils {
 
 	public static <T> QueryBuilderBean<T> buildQuery(String queryStr, Class<T> entityType) {
 		FieldAnalyzer fieldExtracter = new FieldAnalyzer(entityType);
-		List<OperationBean> queryBeans = extractQeryBean(queryStr, fieldExtracter);
+		List<OperationBean> queryBeans = extractQueryBean(queryStr, fieldExtracter);
 		List<ISortDescriptor> sorts = fieldExtracter.buildSort(queryStr);
 		return new QueryBuilderBean<>(queryBeans, entityType, sorts, queryStr);
 	}
 
-	private static List<OperationBean> extractQeryBean(String queryStr,
+	private static List<OperationBean> extractQueryBean(String queryStr,
 			FieldAnalyzer fieldExtracter) {
 		queryStr = PATTERN_START_BY.matcher(queryStr).replaceFirst("");
 		queryStr = PATTERN_ORDER_BY.matcher(queryStr).replaceFirst("");
@@ -68,7 +68,7 @@ public class QueryUtils {
 		Matcher matcher = PATTERN_EXTRACT_CONDITION.matcher(queryStr);
 		while (matcher.find()) {
 			String fieldName = matcher.group(2);
-			String nestedFieldName = fieldExtracter.buildNestField(fieldName);
+			String nestedFieldName = fieldExtracter.buildNestedField(fieldName);
 			Condition operation = Condition.build(matcher.group(3));
 			String relation = matcher.group(5);
 			result.add(new OperationBean(nestedFieldName, operation, relation));

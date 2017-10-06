@@ -1,5 +1,8 @@
 package com.koch.ambeth.query.jdbc;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
+
 /*-
  * #%L
  * jambeth-query-jdbc
@@ -22,7 +25,6 @@ limitations under the License.
 
 import java.util.List;
 
-import com.koch.ambeth.ioc.IServiceContext;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.persistence.api.IDatabase;
 import com.koch.ambeth.persistence.api.database.ITransaction;
@@ -34,14 +36,13 @@ import com.koch.ambeth.query.persistence.IDataCursor;
 import com.koch.ambeth.query.persistence.IEntityCursor;
 import com.koch.ambeth.query.persistence.IVersionCursor;
 import com.koch.ambeth.service.merge.model.IObjRef;
+import com.koch.ambeth.util.ReflectUtil;
 import com.koch.ambeth.util.collections.ILinkedMap;
 import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.IMap;
+import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
 public class QueryDelegate<T> implements IQuery<T>, IQueryIntern<T> {
-	@Autowired
-	protected IServiceContext beanContext;
-
 	@Autowired
 	protected ITransaction transaction;
 
@@ -55,8 +56,23 @@ public class QueryDelegate<T> implements IQuery<T>, IQueryIntern<T> {
 	protected IQuery<T> transactionalQuery;
 
 	@Override
-	public void dispose() {
-		beanContext.dispose();
+	public synchronized void dispose() {
+		if (query == null) {
+			return;
+		}
+		query.dispose();
+		for (Field field : ReflectUtil.getDeclaredFieldsInHierarchy(getClass())) {
+			int modifiers = field.getModifiers();
+			if (Modifier.isFinal(modifiers) || Modifier.isStatic(modifiers)) {
+				continue;
+			}
+			try {
+				field.set(this, null);
+			}
+			catch (IllegalArgumentException | IllegalAccessException e) {
+				throw RuntimeExceptionUtil.mask(e);
+			}
+		}
 	}
 
 	@Override

@@ -61,6 +61,9 @@ import com.koch.ambeth.util.collections.HashSet;
 				value = "com/koch/ambeth/query/squery/PersonQuery_orm.xml"),
 		@TestProperties(
 				name = "ambeth.log.level.com.koch.ambeth.persistence.jdbc.connection.LogPreparedStatementInterceptor",
+				value = "DEBUG"),
+		@TestProperties(
+				name = "ambeth.log.level.*",
 				value = "DEBUG")})
 public class SqueryTest extends AbstractInformationBusWithPersistenceTest {
 	@Autowired
@@ -221,17 +224,19 @@ public class SqueryTest extends AbstractInformationBusWithPersistenceTest {
 		IPagingResponse<Person> page =
 				personService.findByNameStartWith(PERSION_NAME_START, request, sort);
 		List<Person> allStartList = personService.findByNameStartWithSortByNameDesc(PERSION_NAME_START);
-		assertEquals(page.getNumber(), pageNumber);
+		assertEquals(pageNumber, page.getNumber());
 		List<Person> result = page.getResult();
 		for (int i = 0; i < result.size(); i++) {
-			assertEquals(result.get(i).getId(), allStartList.get((pageSize * pageNumber) + i).getId());
+			assertEquals(result.get(i).getId(),
+					allStartList.get((pageSize * (pageNumber - 1)) + i).getId());
 		}
 
 		int minAge = 13;
 		List<Person> pageList = personService.findByAgeGe(minAge, request, sort);
 		List<Person> ageGeList = personService.findByAgeGeSortByNameDesc(minAge);
 		for (int i = 0; i < pageList.size(); i++) {
-			assertEquals(pageList.get(i).getId(), ageGeList.get((pageSize * pageNumber) + i).getId());
+			assertEquals(pageList.get(i).getId(),
+					ageGeList.get((pageSize * (pageNumber - 1)) + i).getId());
 			assertTrue(pageList.get(i).getAge() >= minAge);
 		}
 	}

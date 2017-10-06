@@ -137,4 +137,16 @@ public interface IBeanRuntime<V> {
 	 * @return IBeanRuntime to add things to the bean or finish the registration.
 	 */
 	IBeanRuntime<V> ignoreProperties(String... propertyNames);
+
+	/**
+	 * Consider carefully using the method: Its purpose is to allow a raw access to the instantiated
+	 * bean BEFORE its properties are initialized and before any post processors (AOP) has been
+	 * applied
+	 * 
+	 * @return The raw bean instance. If called before {@link #finish()} it is not guaranteed what the
+	 *         state of this returned instance is. It is strongly recommended to just use it as an
+	 *         "object pointer" for more complex configuration scenarios till the IoC lifecycle is in
+	 *         an initialized state
+	 */
+	V getInstance();
 }

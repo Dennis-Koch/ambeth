@@ -22,12 +22,13 @@ limitations under the License.
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 import com.koch.ambeth.ioc.IServiceContext;
 import com.koch.ambeth.ioc.factory.IBeanContextFactory;
 import com.koch.ambeth.util.ReflectUtil;
 import com.koch.ambeth.util.annotation.AnnotationCache;
-import com.koch.ambeth.util.collections.SmartCopyMap;
 
 public class MethodLevelBehavior<T> implements IMethodLevelBehavior<T> {
 	private static final IMethodLevelBehavior<Object> noBehavior = new NoBehavior();
@@ -61,15 +62,15 @@ public class MethodLevelBehavior<T> implements IMethodLevelBehavior<T> {
 	}
 
 	@SuppressWarnings("rawtypes")
-	private static final SmartCopyMap<BehaviorKey, IMethodLevelBehavior> beanTypeToBehavior = new SmartCopyMap<>(
-			0.5f);
+	private static final ConcurrentMap<BehaviorKey, IMethodLevelBehavior> beanTypeToBehavior =
+			new ConcurrentHashMap<>(16, 0.5f);
 
+	@SuppressWarnings("unchecked")
 	public static <A extends Annotation, T> IMethodLevelBehavior<T> create(Class<?> beanType,
 			AnnotationCache<A> annotationCache, Class<T> behaviourType,
 			IBehaviorTypeExtractor<A, T> behaviourTypeExtractor, IBeanContextFactory beanContextFactory,
 			IServiceContext beanContext) {
 		BehaviorKey key = new BehaviorKey(beanType, behaviourType);
-		@SuppressWarnings("unchecked")
 		IMethodLevelBehavior<T> behavior = beanTypeToBehavior.get(key);
 		if (behavior != null) {
 			if (behavior == noBehavior) {
@@ -79,7 +80,10 @@ public class MethodLevelBehavior<T> implements IMethodLevelBehavior<T> {
 		}
 		A annotation = annotationCache.getAnnotation(beanType);
 		if (annotation == null) {
-			beanTypeToBehavior.put(key, noBehavior);
+			behavior = beanTypeToBehavior.putIfAbsent(key, noBehavior);
+			if (behavior != null && behavior != noBehavior) {
+				return behavior;
+			}
 			return null;
 		}
 		T defaultBehaviour = behaviourTypeExtractor.extractBehaviorType(annotation, beanType);
@@ -108,8 +112,14 @@ public class MethodLevelBehavior<T> implements IMethodLevelBehavior<T> {
 		else {
 			behavior = new MethodLevelBehavior<>(defaultBehaviour, methodLevelBehaviour);
 		}
-		beanTypeToBehavior.put(key, behavior);
-		return behavior;
+		IMethodLevelBehavior<T> existingBehavior = beanTypeToBehavior.putIfAbsent(key, behavior);
+		if (existingBehavior == null) {
+			return behavior;
+		}
+		if (existingBehavior == noBehavior) {
+			return null;
+		}
+		return existingBehavior;
 	}
 
 	protected final T defaultBehaviour;
