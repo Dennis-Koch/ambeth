@@ -92,7 +92,7 @@ public interface IMergeProcessStarted {
 	 * @return The fluent-API handle for the current merge process instance on the stack. Call
 	 *         {@link #finish()} to execute the configured merge
 	 */
-	IMergeProcessContent onLocalDiff(ProceedWithMergeHook hook);
+	IMergeProcessStarted onLocalDiff(ProceedWithMergeHook hook);
 
 	/**
 	 * A custom callback called after the Merge Process finished its operation. This is specifically
@@ -105,7 +105,7 @@ public interface IMergeProcessStarted {
 	 * @return The fluent-API handle for the current merge process instance on the stack. Call
 	 *         {@link #finish()} to execute the configured merge
 	 */
-	IMergeProcessContent onSuccess(MergeFinishedCallback callback);
+	IMergeProcessStarted onSuccess(MergeFinishedCallback callback);
 
 	/**
 	 * Gives the Merge Process a hint whether newly created entity instances should not be added to
@@ -126,5 +126,5 @@ public interface IMergeProcessStarted {
 	 * @return The fluent-API handle for the current merge process instance on the stack. Call
 	 *         {@link #finish()} to execute the configured merge
 	 */
-	IMergeProcessContent suppressNewEntitiesAddedToCache();
+	IMergeProcessStarted suppressNewEntitiesAddedToCache();
 }

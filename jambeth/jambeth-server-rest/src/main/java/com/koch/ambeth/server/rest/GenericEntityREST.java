@@ -517,7 +517,7 @@ public class GenericEntityREST extends AbstractServiceREST {
 						"Instance to delete must be an entity: '" + Arrays.toString(path) + "'");
 			}
 			IMergeProcess mergeProcess = getService(IMergeProcess.class);
-			mergeProcess.start().delete(lastStep.value).finish();
+			mergeProcess.begin().delete(lastStep.value).finish();
 
 			throw new NoContentException("Resource deleted");
 		}

@@ -316,7 +316,7 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil,
 				encryptSalt(password, decryptedSalt, newLoginSaltPassword);
 				changedPasswords.add(password);
 			}
-			mergeProcess.start().merge(changedPasswords).onSuccess(new MergeFinishedCallback() {
+			mergeProcess.begin().merge(changedPasswords).onSuccess(new MergeFinishedCallback() {
 				@Override
 				public void invoke(boolean success) {
 					if (success) {

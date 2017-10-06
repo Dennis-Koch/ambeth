@@ -34,7 +34,7 @@ public class BiDirectionalRelations20Test extends AbstractInformationBusWithPers
 	@After
 	public void clearGroups() {
 		if (!createdGroups.isEmpty()) {
-			mergeProcess.start().delete(createdGroups).finish();
+			mergeProcess.begin().delete(createdGroups).finish();
 			createdGroups.clear();
 		}
 	}
