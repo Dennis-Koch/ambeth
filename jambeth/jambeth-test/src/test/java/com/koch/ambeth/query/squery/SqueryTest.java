@@ -61,9 +61,6 @@ import com.koch.ambeth.util.collections.HashSet;
 				value = "com/koch/ambeth/query/squery/PersonQuery_orm.xml"),
 		@TestProperties(
 				name = "ambeth.log.level.com.koch.ambeth.persistence.jdbc.connection.LogPreparedStatementInterceptor",
-				value = "DEBUG"),
-		@TestProperties(
-				name = "ambeth.log.level.*",
 				value = "DEBUG")})
 public class SqueryTest extends AbstractInformationBusWithPersistenceTest {
 	@Autowired
