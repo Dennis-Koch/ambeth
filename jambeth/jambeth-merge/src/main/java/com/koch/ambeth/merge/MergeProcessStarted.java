@@ -89,8 +89,10 @@ public class MergeProcessStarted
 
 	@Override
 	public void finish() {
-		mergeProcess.process(mergeList, deleteList, hooks != null ? this : null,
-				callbacks != null ? this : null, addNewEntitiesToCache);
+		if (mergeList != null || deleteList != null) {
+			mergeProcess.process(mergeList, deleteList, hooks != null ? this : null,
+					callbacks != null ? this : null, addNewEntitiesToCache);
+		}
 		mergeProcess = null;
 	}
 
