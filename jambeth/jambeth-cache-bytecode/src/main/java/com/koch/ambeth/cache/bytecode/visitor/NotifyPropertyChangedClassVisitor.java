@@ -354,7 +354,7 @@ public class NotifyPropertyChangedClassVisitor extends ClassGenerator {
 		mg.ifCmp(propertyType, GeneratorAdapter.EQ, l_finish);
 
 		if (optionalProperty) {
-			// propertyChangeSupport
+			// call PropertyChangeMixin.optionalIdentityEquals(Optional,Optional)
 			mg.callThisGetter(p_propertyChangeTemplate);
 			mg.loadLocal(loc_oldValue);
 			mg.loadArg(0);
