@@ -5,10 +5,10 @@ import com.koch.ambeth.merge.service.IMergeService;
 
 public interface IMergeProcessStarted {
 	/**
-	 * Most simplictic overload of the Merge Process methods. It just expects any structure referring
-	 * to entities. Structure means here: A single entity instance, a collection of entities (anything
-	 * derived from {@link Iterable} or an array). You can also indirectly pass entities you want to
-	 * delete with this method by using the {@link com.koch.ambeth.util.model.IDataObject} cast.<br>
+	 * It just expects any structure referring to entities that need to be merged. Structure means
+	 * here: A single entity instance, a collection of entities (anything derived from
+	 * {@link Iterable} or an array). You can also indirectly pass entities you want to delete with
+	 * this method by using the {@link com.koch.ambeth.util.model.IDataObject} cast.<br>
 	 * <br>
 	 * Usage example:<br>
 	 * <code>
@@ -16,16 +16,18 @@ public interface IMergeProcessStarted {
 	 * myEntity).setToBeDeleted(true); mergeProcess.process(myEntity);
 	 * </code>
 	 *
-	 * @param objectsToMerge The entities you want to merge - including any transitive relationship.
-	 *        May also be null or an empty collection/array which would just result in a no-op.
+	 * @param objectsToMerge The entities you want to merge - by default this means implicitly a deep
+	 *        merge as long as on each traversal step the dirty state of the given entities is
+	 *        verified). May also be null or an empty collection/array which would just result in a
+	 *        no-op.
 	 */
 	IMergeProcessContent merge(Object objectsToMerge);
 
 	/**
-	 * Most simplictic overload of the Merge Process methods. It just expects any structure referring
-	 * to entities. Structure means here: A single entity instance, a collection of entities (anything
-	 * derived from {@link Iterable} or an array). You can also indirectly pass entities you want to
-	 * delete with this method by using the {@link com.koch.ambeth.util.model.IDataObject} cast.<br>
+	 * It just expects any structure referring to entities that need to be merged. Structure means
+	 * here: A single entity instance, a collection of entities (anything derived from
+	 * {@link Iterable} or an array). You can also indirectly pass entities you want to delete with
+	 * this method by using the {@link com.koch.ambeth.util.model.IDataObject} cast.<br>
 	 * <br>
 	 * Usage example:<br>
 	 * <code>
@@ -127,4 +129,20 @@ public interface IMergeProcessStarted {
 	 *         {@link #finish()} to execute the configured merge
 	 */
 	IMergeProcessStarted suppressNewEntitiesAddedToCache();
+
+	/**
+	 * Gives the Merge Process the hint to consider all to-be-merged entities with a shallow merge
+	 * behavior: That is the behavior where only the explicitly passed entities are analyzed for
+	 * changes. The default is a deep-merge where each passed entity is working as a root where all
+	 * initialized relations are also checked for their own cascaded dirty flag. This algorithm
+	 * proceeds recursively as long as this flag is active on each path step. This can result in an
+	 * arbitrary large implicit change on the model transition on a deep transitive path which is what
+	 * might be intended or not depending on the application usecase. E.g. If you just want to process
+	 * a narrow-scoped diff generated for an explicitly known set of entities. On such a scenario the
+	 * use of {@link #shallow()} often goes together with {@link #onLocalDiff(ProceedWithMergeHook)}.
+	 *
+	 * @return The fluent-API handle for the current merge process instance on the stack. Call
+	 *         {@link #finish()} to execute the configured merge
+	 */
+	IMergeProcessStarted shallow();
 }

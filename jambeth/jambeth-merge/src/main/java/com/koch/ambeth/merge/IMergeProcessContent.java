@@ -14,4 +14,7 @@ public interface IMergeProcessContent extends IMergeProcessStarted {
 
 	@Override
 	IMergeProcessContent suppressNewEntitiesAddedToCache();
+
+	@Override
+	IMergeProcessContent shallow();
 }

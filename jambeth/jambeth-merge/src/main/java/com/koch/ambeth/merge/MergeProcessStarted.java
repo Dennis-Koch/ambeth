@@ -16,6 +16,8 @@ public class MergeProcessStarted
 
 	boolean addNewEntitiesToCache = true;
 
+	boolean deepMerge = true;
+
 	private MergeProcess mergeProcess;
 
 	public MergeProcessStarted(MergeProcess mergeProcess) {
@@ -84,14 +86,21 @@ public class MergeProcessStarted
 
 	@Override
 	public IMergeProcessContent suppressNewEntitiesAddedToCache() {
+		addNewEntitiesToCache = false;
+		return this;
+	}
+
+	@Override
+	public IMergeProcessContent shallow() {
+		deepMerge = false;
 		return this;
 	}
 
 	@Override
 	public void finish() {
 		if (mergeList != null || deleteList != null) {
-			mergeProcess.process(mergeList, deleteList, hooks != null ? this : null,
-					callbacks != null ? this : null, addNewEntitiesToCache);
+			mergeProcess.processIntern(mergeList, deleteList, hooks != null ? this : null,
+					callbacks != null ? this : null, addNewEntitiesToCache, deepMerge);
 		}
 		mergeProcess = null;
 	}

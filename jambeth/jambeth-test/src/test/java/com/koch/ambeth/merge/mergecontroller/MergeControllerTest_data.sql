@@ -1,26 +1,7 @@
----
--- #%L
--- jambeth-test
--- %%
--- Copyright (C) 2017 Koch Softwaredevelopment
--- %%
--- Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
+INSERT INTO PARENT (ID, NAME, CHILD, VERSION) VALUES ('1', 'Parent Name', '11', '1');
+INSERT INTO PARENT (ID, NAME, VERSION) VALUES ('2', 'Parent 2 Name', '1');
 
-     http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
--- #L%
----
-INSERT INTO "PARENT" (ID, NAME, CHILD, VERSION) VALUES ('1', 'Parent Name', '11', '1');
-INSERT INTO "PARENT" (ID, NAME, VERSION) VALUES ('2', 'Parent 2 Name', '1');
-
-INSERT INTO "CHILD" (ID, NAME, VERSION) VALUES ('11', 'Child Name', '1');
-INSERT INTO "CHILD" (ID, NAME, VERSION) VALUES ('12', 'Child 2 Name', '1');
-INSERT INTO "CHILD" (ID, NAME, PARENT, VERSION) VALUES ('13', 'Child 3 Name', '1', '1');
-INSERT INTO "CHILD" (ID, NAME, PARENT2, VERSION) VALUES ('14', 'Child 4 Name', '1', '1');
+INSERT INTO CHILD (ID, NAME, VERSION) VALUES ('11', 'Child Name', '1');
+INSERT INTO CHILD (ID, NAME, VERSION) VALUES ('12', 'Child 2 Name', '1');
+INSERT INTO CHILD (ID, NAME, PARENT, VERSION) VALUES ('13', 'Child 3 Name', '1', '1');
+INSERT INTO CHILD (ID, NAME, PARENT2, VERSION) VALUES ('14', 'Child 4 Name', '1', '1');

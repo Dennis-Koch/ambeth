@@ -38,10 +38,10 @@ public interface IMergeProcess {
 	IMergeProcessStarted begin();
 
 	/**
-	 * Most simplictic overload of the Merge Process methods. It just expects any structure referring
-	 * to entities. Structure means here: A single entity instance, a collection of entities (anything
-	 * derived from {@link Iterable} or an array). You can also indirectly pass entities you want to
-	 * delete with this method by using the {@link com.koch.ambeth.util.model.IDataObject} cast.<br>
+	 * It just expects any structure referring to entities that need to be merged. Structure means
+	 * here: A single entity instance, a collection of entities (anything derived from
+	 * {@link Iterable} or an array). You can also indirectly pass entities you want to delete with
+	 * this method by using the {@link com.koch.ambeth.util.model.IDataObject} cast.<br>
 	 * <br>
 	 * Usage example:<br>
 	 * <br>
@@ -61,10 +61,10 @@ public interface IMergeProcess {
 	void process(Object objectsToMerge);
 
 	/**
-	 * Most simplictic overload of the Merge Process methods. It just expects any structure referring
-	 * to entities. Structure means here: A single entity instance, a collection of entities (anything
-	 * derived from {@link Iterable} or an array). You can also indirectly pass entities you want to
-	 * delete with this method by using the {@link com.koch.ambeth.util.model.IDataObject} cast.<br>
+	 * It just expects any structure referring to entities that need to be merged. Structure means
+	 * here: A single entity instance, a collection of entities (anything derived from
+	 * {@link Iterable} or an array). You can also indirectly pass entities you want to delete with
+	 * this method by using the {@link com.koch.ambeth.util.model.IDataObject} cast.<br>
 	 * <br>
 	 * Usage example:<br>
 	 * <br>

@@ -42,8 +42,10 @@ import com.koch.ambeth.ioc.bytecode.IBytecodeEnhancer;
 import com.koch.ambeth.ioc.util.IMultithreadingHelper;
 import com.koch.ambeth.merge.IMergeController;
 import com.koch.ambeth.merge.IMergeProcess;
+import com.koch.ambeth.merge.ProceedWithMergeHook;
 import com.koch.ambeth.merge.bytecode.EntityEnhancementHint;
 import com.koch.ambeth.merge.cache.ICache;
+import com.koch.ambeth.merge.model.ICUDResult;
 import com.koch.ambeth.service.cache.ClearAllCachesEvent;
 import com.koch.ambeth.service.config.ServiceConfigurationConstants;
 import com.koch.ambeth.service.merge.IEntityMetaDataProvider;
@@ -75,6 +77,9 @@ public class MergeControllerClientTest extends AbstractInformationBusWithPersist
 
 	@Autowired
 	protected IMergeController mergeController;
+
+	@Autowired
+	protected IMergeProcess mergeProcess;
 
 	@Autowired
 	protected IMultithreadingHelper multithreadingHelper;
@@ -334,5 +339,34 @@ public class MergeControllerClientTest extends AbstractInformationBusWithPersist
 			Assert.assertTrue(originalGenericReturnType instanceof ParameterizedType);
 			Assert.assertTrue(genericReturnType instanceof ParameterizedType);
 		}
+	}
+
+	@Test
+	public void testShallowMerge() {
+		Parent parent = cache.getObject(Parent.class, 1);
+		Child child = parent.getChild();
+
+		assertNotNull(child);
+		parent.setName("abc");
+		child.setName("def");
+
+		Assert.assertTrue(((IDataObject) parent).isToBeUpdated());
+		Assert.assertTrue(((IDataObject) child).isToBeUpdated());
+
+		mergeProcess.begin().shallow().merge(parent).onLocalDiff(new ProceedWithMergeHook() {
+			@Override
+			public boolean checkToProceed(ICUDResult result) {
+				Assert.assertEquals(1, result.getAllChanges().size());
+				return false;
+			}
+		}).finish();
+
+		mergeProcess.begin().merge(parent).onLocalDiff(new ProceedWithMergeHook() {
+			@Override
+			public boolean checkToProceed(ICUDResult result) {
+				Assert.assertEquals(2, result.getAllChanges().size());
+				return false;
+			}
+		}).finish();
 	}
 }

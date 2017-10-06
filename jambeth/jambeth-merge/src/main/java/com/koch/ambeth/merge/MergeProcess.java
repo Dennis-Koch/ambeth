@@ -184,9 +184,11 @@ public class MergeProcess implements IMergeProcess {
 	protected void mergePhase1(final Object objectToMerge, final Object objectToDelete,
 			final ProceedWithMergeHook proceedHook,
 			final MergeFinishedCallback mergeFinishedCallback,
-			final boolean addNewEntitiesToCache) {
+			final boolean addNewEntitiesToCache,
+			final boolean deepMerge) {
 		final MergeHandle mergeHandle = beanContext.registerBean(MergeHandle.class)//
 				.ignoreProperties("Cache", "PrivilegedCache")//
+				.propertyValue("DeepMerge", deepMerge)//
 				.finish();
 		final ICUDResult cudResult = mergeController.mergeDeep(objectToMerge, mergeHandle);
 		if (guiThreadHelper.isInGuiThread()) {
@@ -255,31 +257,32 @@ public class MergeProcess implements IMergeProcess {
 
 	@Override
 	public void process(Object objectsToMerge) {
-		process(objectsToMerge, null, null, null, true);
+		processIntern(objectsToMerge, null, null, null, true, true);
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
 	public <T> void process(T objectsToMerge1, T... objectsToMerge2) {
-		process(new Object[] {objectsToMerge1, objectsToMerge2}, null, null, null, true);
+		processIntern(new Object[] {objectsToMerge1, objectsToMerge2}, null, null, null, true, true);
 	}
 
-	protected void process(final Object objectToMerge, final Object objectToDelete,
+	protected void processIntern(final Object objectToMerge, final Object objectToDelete,
 			final ProceedWithMergeHook proceedHook,
 			final MergeFinishedCallback mergeFinishedCallback,
-			final boolean addNewEntitiesToCache) {
+			final boolean addNewEntitiesToCache,
+			final boolean deepMerge) {
 		if (guiThreadHelper.isInGuiThread()) {
 			guiThreadHelper.invokeOutOfGui(new IBackgroundWorkerDelegate() {
 				@Override
 				public void invoke() throws Exception {
 					mergePhase1(objectToMerge, objectToDelete, proceedHook, mergeFinishedCallback,
-							addNewEntitiesToCache);
+							addNewEntitiesToCache, deepMerge);
 				}
 			});
 		}
 		else {
 			mergePhase1(objectToMerge, objectToDelete, proceedHook, mergeFinishedCallback,
-					addNewEntitiesToCache);
+					addNewEntitiesToCache, deepMerge);
 		}
 	}
 
