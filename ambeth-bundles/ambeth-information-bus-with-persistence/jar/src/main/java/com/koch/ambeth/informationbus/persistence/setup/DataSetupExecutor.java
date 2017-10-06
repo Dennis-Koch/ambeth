@@ -111,7 +111,7 @@ public class DataSetupExecutor implements IStartingBean {
 								public Object invoke() throws Exception {
 									if (!dataSet.isEmpty()) {
 										log.info("Merging created test data");
-										mergeProcess.process(dataSet, null, null, null);
+										mergeProcess.process(dataSet);
 										log.info("Merging of created test data finished");
 									}
 									return null;

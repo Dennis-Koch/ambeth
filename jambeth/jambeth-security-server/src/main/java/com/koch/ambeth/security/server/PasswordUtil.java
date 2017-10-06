@@ -288,9 +288,8 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil,
 		// password should be rehashed, but it is the same clearTextPassword so we do NOT recalculate
 		// its changeAfter date
 		fillPassword(clearTextPassword, clearTextPassword, existingPassword, null, false);
-		mergeProcess.process(existingPassword.getUser(), null, null, null); // important to merge the
-																																				// user because of the
-																																				// relation to signature
+		// important to merge the user because of the relation to signature
+		mergeProcess.process(existingPassword.getUser());
 	}
 
 	@Override
@@ -317,7 +316,7 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil,
 				encryptSalt(password, decryptedSalt, newLoginSaltPassword);
 				changedPasswords.add(password);
 			}
-			mergeProcess.process(changedPasswords, null, null, new MergeFinishedCallback() {
+			mergeProcess.start().merge(changedPasswords).onSuccess(new MergeFinishedCallback() {
 				@Override
 				public void invoke(boolean success) {
 					if (success) {
@@ -330,7 +329,7 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil,
 						log.error("Reencryption of all salts failed");
 					}
 				}
-			});
+			}).finish();
 		}
 		finally {
 			saltReencryptionLock.unlock();

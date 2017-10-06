@@ -33,7 +33,8 @@ import com.koch.ambeth.util.ParamChecker;
 
 @TestModule({})
 @SQLStructure("structure.sql")
-@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "com/koch/ambeth/persistence/jdbc/interf/orm.xml")
+@TestProperties(name = ServiceConfigurationConstants.mappingFile,
+		value = "com/koch/ambeth/persistence/jdbc/interf/orm.xml")
 public class InterfaceEntityTest extends AbstractInformationBusWithPersistenceTest {
 	protected IMergeProcess mergeProcess;
 
@@ -52,7 +53,7 @@ public class InterfaceEntityTest extends AbstractInformationBusWithPersistenceTe
 		ITestEntity entity = entityFactory.createEntity(ITestEntity.class);
 		entity.setName(name);
 
-		mergeProcess.process(entity, null, null, null);
+		mergeProcess.process(entity);
 		return entity;
 	}
 
@@ -71,7 +72,7 @@ public class InterfaceEntityTest extends AbstractInformationBusWithPersistenceTe
 		ITestEntity entity = createEntity(myName);
 
 		entity.setName(myName + "x");
-		mergeProcess.process(entity, null, null, null);
+		mergeProcess.process(entity);
 		Assert.assertEquals("Wrong version!", (short) 2, entity.getVersion());
 	}
 }

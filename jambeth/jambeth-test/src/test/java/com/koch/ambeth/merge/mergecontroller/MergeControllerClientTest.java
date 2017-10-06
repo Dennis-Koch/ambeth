@@ -133,7 +133,7 @@ public class MergeControllerClientTest extends AbstractInformationBusWithPersist
 				}
 
 				parent.setName(parent.getName() + "p");
-				beanContext.getService(IMergeProcess.class).process(parent, null, null, null);
+				beanContext.getService(IMergeProcess.class).process(parent);
 			}
 		};
 		Runnable childModifierRunnable = new Runnable() {
@@ -144,7 +144,7 @@ public class MergeControllerClientTest extends AbstractInformationBusWithPersist
 
 					Child child = cache.getObject(Child.class, childId);
 					child.setName(child.getName() + "c");
-					beanContext.getService(IMergeProcess.class).process(child, null, null, null);
+					beanContext.getService(IMergeProcess.class).process(child);
 					childUpdatedCondition.await();
 				}
 				catch (Exception e) {
@@ -179,7 +179,7 @@ public class MergeControllerClientTest extends AbstractInformationBusWithPersist
 				}
 
 				parent.setName(parent.getName() + "p");
-				beanContext.getService(IMergeProcess.class).process(parent, null, null, null);
+				beanContext.getService(IMergeProcess.class).process(parent);
 			}
 		};
 		Runnable childModifierRunnable = new Runnable() {
@@ -190,7 +190,7 @@ public class MergeControllerClientTest extends AbstractInformationBusWithPersist
 
 					Child child = cache.getObject(Child.class, childId);
 					child.setName(child.getName() + "c");
-					beanContext.getService(IMergeProcess.class).process(child, null, null, null);
+					beanContext.getService(IMergeProcess.class).process(child);
 					childUpdatedCondition.await();
 				}
 				catch (Exception e) {

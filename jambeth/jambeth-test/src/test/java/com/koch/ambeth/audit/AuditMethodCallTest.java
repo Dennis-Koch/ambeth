@@ -216,7 +216,7 @@ public class AuditMethodCallTest extends AbstractInformationBusWithPersistenceTe
 
 				IStateRollback revert = auditController.pushAuthorizedUser(user, passwordOfUser, true);
 				try {
-					mergeProcess.process(user, null, null, null);
+					mergeProcess.process(user);
 				}
 				finally {
 					revert.rollback();
@@ -228,7 +228,7 @@ public class AuditMethodCallTest extends AbstractInformationBusWithPersistenceTe
 				for (int a = users.length; a-- > 0;) {
 					users[a].setName(users[a].getName() + "x");
 				}
-				mergeProcess.process(users, null, null, null);
+				mergeProcess.process(users);
 			}
 			finally {
 				revert.rollback();
@@ -238,7 +238,7 @@ public class AuditMethodCallTest extends AbstractInformationBusWithPersistenceTe
 				for (int a = users.length; a-- > 0;) {
 					users[a].setName(users[a].getName() + "x");
 				}
-				mergeProcess.process(users, null, null, null);
+				mergeProcess.process(users);
 			}
 			finally {
 				revert.rollback();
@@ -323,7 +323,7 @@ public class AuditMethodCallTest extends AbstractInformationBusWithPersistenceTe
 
 		IStateRollback revert = auditController.pushAuthorizedUser(user, passwordOfUser, true);
 		try {
-			mergeProcess.process(user, null, null, null);
+			mergeProcess.process(user);
 		}
 		finally {
 			revert.rollback();
@@ -355,7 +355,7 @@ public class AuditMethodCallTest extends AbstractInformationBusWithPersistenceTe
 
 			IStateRollback revert = auditController.pushAuthorizedUser(user, passwordOfUser, true);
 			try {
-				mergeProcess.process(user, null, null, null);
+				mergeProcess.process(user);
 			}
 			finally {
 				revert.rollback();
@@ -384,7 +384,7 @@ public class AuditMethodCallTest extends AbstractInformationBusWithPersistenceTe
 
 		passwordUtil.assignNewPassword(passwordOfUser, user, null);
 
-		mergeProcess.process(user, null, null, null);
+		mergeProcess.process(user);
 	}
 
 	@Test
@@ -405,7 +405,7 @@ public class AuditMethodCallTest extends AbstractInformationBusWithPersistenceTe
 				transaction.runInTransaction(new IBackgroundWorkerDelegate() {
 					@Override
 					public void invoke() throws Exception {
-						mergeProcess.process(user, null, null, null);
+						mergeProcess.process(user);
 					}
 				});
 			}
@@ -478,14 +478,14 @@ public class AuditMethodCallTest extends AbstractInformationBusWithPersistenceTe
 				transaction.runInTransaction(new IBackgroundWorkerDelegate() {
 					@Override
 					public void invoke() throws Exception {
-						mergeProcess.process(user, null, null, null);
+						mergeProcess.process(user);
 					}
 				});
 				transaction.runInTransaction(new IBackgroundWorkerDelegate() {
 					@Override
 					public void invoke() throws Exception {
 						user.setName(user.getName() + 1);
-						mergeProcess.process(user, null, null, null);
+						mergeProcess.process(user);
 					}
 				});
 			}

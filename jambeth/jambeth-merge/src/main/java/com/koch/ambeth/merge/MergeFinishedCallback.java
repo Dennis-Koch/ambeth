@@ -24,6 +24,7 @@ limitations under the License.
  * Gets called by the Merge Process as soon as the (potentially asynchronous) merge operation is
  * finished.
  */
+@FunctionalInterface
 public interface MergeFinishedCallback {
 	/**
 	 *

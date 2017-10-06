@@ -258,19 +258,13 @@ public class MergeProcess implements IMergeProcess {
 		process(objectsToMerge, null, null, null, true);
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
-	public void process(Object objectsToMerge, Object objectsToDelete) {
-		process(objectsToMerge, objectsToDelete, null, null, true);
+	public <T> void process(T objectsToMerge1, T... objectsToMerge2) {
+		process(new Object[] {objectsToMerge1, objectsToMerge2}, null, null, null, true);
 	}
 
-	@Override
-	public void process(Object objectToMerge, Object objectToDelete,
-			ProceedWithMergeHook proceedHook, MergeFinishedCallback mergeFinishedCallback) {
-		process(objectToMerge, objectToDelete, proceedHook, mergeFinishedCallback, true);
-	}
-
-	@Override
-	public void process(final Object objectToMerge, final Object objectToDelete,
+	protected void process(final Object objectToMerge, final Object objectToDelete,
 			final ProceedWithMergeHook proceedHook,
 			final MergeFinishedCallback mergeFinishedCallback,
 			final boolean addNewEntitiesToCache) {
@@ -495,5 +489,10 @@ public class MergeProcess implements IMergeProcess {
 				}
 			}
 		}
+	}
+
+	@Override
+	public IMergeProcessStarted begin() {
+		return new MergeProcessStarted(this);
 	}
 }

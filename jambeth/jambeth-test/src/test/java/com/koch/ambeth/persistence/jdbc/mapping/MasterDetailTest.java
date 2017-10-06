@@ -85,7 +85,7 @@ public class MasterDetailTest extends AbstractInformationBusWithPersistenceTest 
 		assertNotNull(masterBO);
 		assertEquals(masterVO.getDetails().getDetails().size(), masterBO.getDetails().size());
 
-		mergeProcess.process(masterBO, null, null, null);
+		mergeProcess.process(masterBO);
 	}
 
 	@Test
@@ -110,7 +110,7 @@ public class MasterDetailTest extends AbstractInformationBusWithPersistenceTest 
 		Master masterBO_orig = entityFactory.createEntity(Master.class);
 		masterBO_orig.setDetails(detailBOs);
 
-		mergeProcess.process(masterBO_orig, null, null, null);
+		mergeProcess.process(masterBO_orig);
 
 		MasterVO masterVO1 = new MasterVO();
 		masterVO1.setId(masterBO_orig.getId());
@@ -138,6 +138,6 @@ public class MasterDetailTest extends AbstractInformationBusWithPersistenceTest 
 		assertEquals(masterVO1.getDetails().getDetails().size(), masterBOs.get(0).getDetails().size());
 		assertEquals(masterVO2.getDetails().getDetails().size(), masterBOs.get(1).getDetails().size());
 
-		mergeProcess.process(masterBOs, null, null, null);
+		mergeProcess.process(masterBOs);
 	}
 }

@@ -222,7 +222,7 @@ public class AlternateIdTest extends AbstractInformationBusWithPersistenceTest {
 		IStateRollback rollback = cacheContext.pushCache(cache);
 		try {
 			IMergeProcess mergeProcess = beanContext.getService(IMergeProcess.class);
-			mergeProcess.process(aeEntity, null, null, null);
+			mergeProcess.process(aeEntity);
 		}
 		finally {
 			rollback.rollback();

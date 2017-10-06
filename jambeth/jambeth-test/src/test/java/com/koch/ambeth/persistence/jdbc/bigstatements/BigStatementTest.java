@@ -165,6 +165,6 @@ public class BigStatementTest extends AbstractInformationBusWithPersistenceTest 
 		for (Material material : materials) {
 			material.setName(material.getName() + "2");
 		}
-		beanContext.getService(IMergeProcess.class).process(materials, null, null, null);
+		beanContext.getService(IMergeProcess.class).process(materials);
 	}
 }

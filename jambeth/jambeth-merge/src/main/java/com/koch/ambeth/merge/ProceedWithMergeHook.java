@@ -27,6 +27,7 @@ import com.koch.ambeth.merge.service.IMergeService;
  * Allows to intercept the Merge Process after the initial transition of "old state" to "new state"
  * has been resolved in the entity graph.
  */
+@FunctionalInterface
 public interface ProceedWithMergeHook {
 	/**
 	 *

@@ -369,7 +369,7 @@ public class GenericEntityREST extends AbstractServiceREST {
 				IMapperService mapperService = mapperServiceFactory.create();
 				try {
 					Object businessObject = mapperService.mapToBusinessObject(valueObject);
-					mergeProcess.process(businessObject, null, null, null);
+					mergeProcess.process(businessObject);
 
 					valueObject = mapperService.mapToValueObject(businessObject, config.getValueType());
 					return createResult(valueObject, request, response);
@@ -381,7 +381,7 @@ public class GenericEntityREST extends AbstractServiceREST {
 			else {
 				parentStep.boMember.setValue(entity,
 						conversionHelper.convertValueToType(parentStep.boMember.getRealType(), valueObject));
-				mergeProcess.process(entity, null, null, null);
+				mergeProcess.process(entity);
 
 				IMapperService mapperService = mapperServiceFactory.create();
 				try {
@@ -472,10 +472,10 @@ public class GenericEntityREST extends AbstractServiceREST {
 					else {
 						boMember.setValue(parentStep.value, businessObject);
 					}
-					mergeProcess.process(parentStep.value, null, null, null);
+					mergeProcess.process(parentStep.value);
 				}
 				else {
-					mergeProcess.process(businessObject, null, null, null);
+					mergeProcess.process(businessObject);
 				}
 
 				valueObject = mapperService.mapToValueObject(businessObject,
@@ -517,7 +517,7 @@ public class GenericEntityREST extends AbstractServiceREST {
 						"Instance to delete must be an entity: '" + Arrays.toString(path) + "'");
 			}
 			IMergeProcess mergeProcess = getService(IMergeProcess.class);
-			mergeProcess.process(null, lastStep.value, null, null);
+			mergeProcess.start().delete(lastStep.value).finish();
 
 			throw new NoContentException("Resource deleted");
 		}

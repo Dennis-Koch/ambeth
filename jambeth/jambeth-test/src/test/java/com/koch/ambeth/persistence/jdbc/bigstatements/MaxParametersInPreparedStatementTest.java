@@ -110,7 +110,7 @@ public class MaxParametersInPreparedStatementTest
 		}
 
 		// insert
-		beanContext.getService(IMergeProcess.class).process(materials, null, null, null);
+		beanContext.getService(IMergeProcess.class).process(materials);
 
 		IQueryBuilder<Material> qb = queryBuilderFactory.create(Material.class);
 		IQuery<Material> query = qb.build(qb.all());

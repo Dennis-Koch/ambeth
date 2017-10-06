@@ -106,7 +106,8 @@ public class MergeInterceptor extends AbstractInterceptor {
 		Object argumentToDelete = getArgumentToDelete(arguments, method.getParameterTypes());
 		ProceedWithMergeHook proceedHook = getProceedHook(arguments);
 		MergeFinishedCallback finishedCallback = getFinishedCallback(arguments);
-		mergeProcess.process(argumentToMerge, argumentToDelete, proceedHook, finishedCallback);
+		mergeProcess.begin().merge(argumentToMerge).delete(argumentToDelete).onLocalDiff(proceedHook)
+				.onSuccess(finishedCallback).finish();
 		if (!void.class.equals(method.getReturnType())) {
 			return argumentToMerge;
 		}
@@ -135,7 +136,8 @@ public class MergeInterceptor extends AbstractInterceptor {
 			}
 		}
 		Object argumentToDelete = arguments[0];
-		mergeProcess.process(null, argumentToDelete, proceedHook, finishedCallback);
+		mergeProcess.begin().delete(argumentToDelete).onLocalDiff(proceedHook)
+				.onSuccess(finishedCallback).finish();
 		if (!void.class.equals(method.getReturnType())) {
 			return argumentToDelete;
 		}
@@ -177,7 +179,8 @@ public class MergeInterceptor extends AbstractInterceptor {
 		Class<?> idType = idMember.getRealType();
 		ArrayList<IObjRef> objRefs = new ArrayList<>();
 		buildObjRefs(entityType, idIndex, idType, ids, objRefs);
-		mergeProcess.process(null, objRefs, proceedHook, finishedCallback);
+		mergeProcess.begin().delete(objRefs).onLocalDiff(proceedHook).onSuccess(finishedCallback)
+				.finish();
 	}
 
 	protected void buildObjRefs(Class<?> entityType, byte idIndex, Class<?> idType, Object ids,
@@ -238,21 +241,6 @@ public class MergeInterceptor extends AbstractInterceptor {
 		}
 		return member;
 	}
-
-	// /// <summary>
-	// /// Filter method parameters that should not be serialized
-	// /// </summary>
-	// /// <param name="methodDescription">The method description to filter</param>
-	// protected virtual void FilterParameters(MethodDescription methodDescription)
-	// {
-	// List<Type> paramTypes = new List<Type>();
-	// foreach(Type type in methodDescription.ParamTypes) {
-	// if (!type.IsAssignableFrom(typeof(ProceedWithMergeHook))) {
-	// paramTypes.Add(type);
-	// }
-	// }
-	// methodDescription.ParamTypes = paramTypes.ToArray();
-	// }
 
 	protected Object getArgumentToDelete(Object[] args, Class<?>[] parameters) {
 		if (parameters == null || parameters.length < 2) {
