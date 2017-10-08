@@ -321,6 +321,7 @@ public class JdbcTransaction
 				IDatabase database = databaseProvider.tryGetInstance();
 				database.setSessionId(-1);
 			}
+			tli.lazyMode = false;
 			long openTime = tli.openTime;
 			{
 				Boolean oldReadOnly = tli.isReadOnly;
@@ -411,6 +412,7 @@ public class JdbcTransaction
 			tli.databaseMap = null;
 			Boolean readOnly = tli.isReadOnly;
 			tli.isReadOnly = null;
+			tli.lazyMode = false;
 			if (!Boolean.TRUE.equals(tli.ignoreReleaseDatabase)) {
 				ILinkedMap<Object, IConnectionHolder> persistenceUnitToConnectionHolderMap =
 						connectionHolderRegistry
@@ -483,55 +485,29 @@ public class JdbcTransaction
 	}
 
 	@Override
-	public void processAndCommit(DatabaseCallback databaseCallback) {
-		processAndCommit(databaseCallback, false, false);
+	public void processAndCommit(final DatabaseCallback databaseCallback) {
+		processAndCommit(new ResultingDatabaseCallback<Object>() {
+			@Override
+			public Object callback(ILinkedMap<Object, IDatabase> persistenceUnitToDatabaseMap)
+					throws Exception {
+				databaseCallback.callback(persistenceUnitToDatabaseMap);
+				return null;
+			}
+		});
 	}
 
 	@Override
-	public void processAndCommit(DatabaseCallback databaseCallback, boolean expectOwnDatabaseSession,
+	public void processAndCommit(final DatabaseCallback databaseCallback,
+			boolean expectOwnDatabaseSession,
 			boolean readOnly) {
-		readOnly = false;
-		ThreadLocalItem tli = getEnsureTLI();
-		if (isActive()) {
-			if (expectOwnDatabaseSession) {
-				throw new IllegalStateException("Transaction already active");
+		processAndCommit(new ResultingDatabaseCallback<Object>() {
+			@Override
+			public Object callback(ILinkedMap<Object, IDatabase> persistenceUnitToDatabaseMap)
+					throws Exception {
+				databaseCallback.callback(persistenceUnitToDatabaseMap);
+				return null;
 			}
-			ILinkedMap<Object, IDatabase> databaseMap = Boolean.TRUE.equals(tli.beginInProgress) ? null
-					: tli.databaseMap;
-			try {
-				databaseCallback.callback(databaseMap);
-			}
-			catch (Exception e) {
-				throw RuntimeExceptionUtil.mask(e);
-			}
-			return;
-		}
-		boolean success = false;
-		Exception recoverableException = null;
-		try {
-			begin(readOnly);
-			ILinkedMap<Object, IDatabase> databaseMap = tli.databaseMap;
-			databaseCallback.callback(databaseMap);
-			if (readOnly) {
-				rollback(false);
-			}
-			else {
-				commit();
-			}
-			success = true;
-		}
-		catch (OptimisticLockException e) {
-			recoverableException = e;
-			throw e;
-		}
-		catch (Exception e) {
-			throw RuntimeExceptionUtil.mask(e);
-		}
-		finally {
-			if (!success) {
-				rollback(recoverableException == null);
-			}
-		}
+		}, expectOwnDatabaseSession, readOnly);
 	}
 
 	@Override
