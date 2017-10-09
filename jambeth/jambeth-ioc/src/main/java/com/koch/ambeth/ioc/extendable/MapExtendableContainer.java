@@ -177,14 +177,19 @@ public class MapExtendableContainer<K, V> extends SmartCopyMap<K, Object>
 				else {
 					@SuppressWarnings("unchecked")
 					ArrayList<V> values = (ArrayList<V>) get(key);
-					values = new ArrayList<>(values);
-					ParamChecker.assertNotNull(values, message);
-					ParamChecker.assertTrue(values.remove(extension), message);
-					if (values.isEmpty()) {
+					ArrayList<V> clone = new ArrayList<>(values.size() - 1);
+					for (int a = 0, size = values.size(); a < size; a++) {
+						V item = values.get(a);
+						if (!extension.equals(item)) {
+							clone.add(item);
+						}
+					}
+					ParamChecker.assertTrue(clone.size() == values.size() - 1, message);
+					if (clone.isEmpty()) {
 						remove(key);
 					}
 					else {
-						put(key, values);
+						put(key, clone);
 					}
 				}
 			}

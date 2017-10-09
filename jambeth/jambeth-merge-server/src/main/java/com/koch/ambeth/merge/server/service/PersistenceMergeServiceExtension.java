@@ -57,6 +57,7 @@ import com.koch.ambeth.merge.model.IRelationUpdateItem;
 import com.koch.ambeth.merge.model.RelationUpdateItemBuild;
 import com.koch.ambeth.merge.proxy.IEntityMetaDataHolder;
 import com.koch.ambeth.merge.proxy.PersistenceContext;
+import com.koch.ambeth.merge.proxy.PersistenceContextType;
 import com.koch.ambeth.merge.security.ISecurityActivation;
 import com.koch.ambeth.merge.server.change.CreateCommand;
 import com.koch.ambeth.merge.server.change.DeleteCommand;
@@ -119,7 +120,7 @@ import com.koch.ambeth.util.threading.IBackgroundWorkerDelegate;
 import com.koch.ambeth.util.threading.IBackgroundWorkerParamDelegate;
 
 @SecurityContext(SecurityContextType.AUTHENTICATED)
-@PersistenceContext
+@PersistenceContext(PersistenceContextType.REQUIRED)
 public class PersistenceMergeServiceExtension implements IMergeServiceExtension {
 	public class ReverseRelationRunnable implements IBackgroundWorkerDelegate {
 		private final RelationMember reverseMember;

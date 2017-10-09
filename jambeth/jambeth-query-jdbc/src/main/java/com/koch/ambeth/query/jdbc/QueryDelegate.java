@@ -63,7 +63,8 @@ public class QueryDelegate<T> implements IQuery<T>, IQueryIntern<T> {
 		query.dispose();
 		for (Field field : ReflectUtil.getDeclaredFieldsInHierarchy(getClass())) {
 			int modifiers = field.getModifiers();
-			if (Modifier.isFinal(modifiers) || Modifier.isStatic(modifiers)) {
+			if (Modifier.isFinal(modifiers) || Modifier.isStatic(modifiers)
+					|| field.getType().isPrimitive()) {
 				continue;
 			}
 			try {

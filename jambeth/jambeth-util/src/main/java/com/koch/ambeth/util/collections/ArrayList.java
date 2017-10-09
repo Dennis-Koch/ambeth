@@ -158,7 +158,7 @@ public class ArrayList<V> implements IList<V>, Externalizable, IPrintable, Clone
 		else {
 			for (int a = 0; a < size; a++) {
 				final Object item = array[a];
-				if (value.equals(item)) {
+				if (Objects.equals(value, item)) {
 					removeAtIndex(a);
 					return true;
 				}
@@ -180,7 +180,7 @@ public class ArrayList<V> implements IList<V>, Externalizable, IPrintable, Clone
 		else {
 			for (int a = 0; a < size; a++) {
 				final Object item = array[a];
-				if (value.equals(item)) {
+				if (Objects.equals(value, item)) {
 					return true;
 				}
 			}
@@ -419,7 +419,7 @@ public class ArrayList<V> implements IList<V>, Externalizable, IPrintable, Clone
 					return a;
 				}
 			}
-			else if (o.equals(item)) {
+			else if (Objects.equals(o, item)) {
 				return a;
 			}
 		}
