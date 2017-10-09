@@ -34,12 +34,14 @@ import java.util.concurrent.CyclicBarrier;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.koch.ambeth.datachange.model.IDataChange;
 import com.koch.ambeth.event.IEventDispatcher;
 import com.koch.ambeth.informationbus.persistence.setup.SQLData;
 import com.koch.ambeth.informationbus.persistence.setup.SQLStructure;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.bytecode.IBytecodeEnhancer;
 import com.koch.ambeth.ioc.util.IMultithreadingHelper;
+import com.koch.ambeth.merge.DataChangeReceivedCallback;
 import com.koch.ambeth.merge.IMergeController;
 import com.koch.ambeth.merge.IMergeProcess;
 import com.koch.ambeth.merge.ProceedWithMergeHook;
@@ -53,6 +55,7 @@ import com.koch.ambeth.testutil.AbstractInformationBusWithPersistenceTest;
 import com.koch.ambeth.testutil.TestModule;
 import com.koch.ambeth.testutil.TestProperties;
 import com.koch.ambeth.testutil.TestPropertiesList;
+import com.koch.ambeth.util.ParamHolder;
 import com.koch.ambeth.util.ReflectUtil;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.model.IDataObject;
@@ -368,5 +371,28 @@ public class MergeControllerClientTest extends AbstractInformationBusWithPersist
 				return false;
 			}
 		}).finish();
+	}
+
+	@Test
+	public void testDataChangeCallbackMerge() {
+		Parent parent = cache.getObject(Parent.class, 1);
+		Child child = parent.getChild();
+
+		assertNotNull(child);
+		parent.setName("abc");
+		child.setName("def");
+
+		Assert.assertTrue(((IDataObject) parent).isToBeUpdated());
+		Assert.assertTrue(((IDataObject) child).isToBeUpdated());
+
+		final ParamHolder<IDataChange> dataChangePH = new ParamHolder<>();
+		mergeProcess.begin().merge(parent).onDataChange(new DataChangeReceivedCallback() {
+			@Override
+			public void handleDataChange(IDataChange dataChange) {
+				dataChangePH.setValue(dataChange);
+			}
+		}).finish();
+		Assert.assertNotNull(dataChangePH.getValue());
+
 	}
 }

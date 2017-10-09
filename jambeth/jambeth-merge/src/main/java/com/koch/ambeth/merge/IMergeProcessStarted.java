@@ -97,6 +97,20 @@ public interface IMergeProcessStarted {
 	IMergeProcessStarted onLocalDiff(ProceedWithMergeHook hook);
 
 	/**
+	 * A custom callback called after the Merge Process finished its operation and the corresponding
+	 * potentially async DCE (DataChangeEvent) has been received. This is specifically helpful in
+	 * usecases where you want to do a very specialized reaction after a specific merge. Note that
+	 * this callback is always called before an {@link MergeFinishedCallback} registered via
+	 * {@link #onSuccess(MergeFinishedCallback)}.
+	 *
+	 * @param callback The invoked callback after the DCE is received containing the outcome of the
+	 *        current merge process execution
+	 * @return The fluent-API handle for the current merge process instance on the stack. Call
+	 *         {@link #finish()} to execute the configured merge
+	 */
+	IMergeProcessStarted onDataChange(DataChangeReceivedCallback callback);
+
+	/**
 	 * A custom callback called after the Merge Process finished its operation. This is specifically
 	 * helpful in client deployment scenarios with an active UI thread: In those cases the Merge
 	 * Process is an asynchronous operation (to not block the UI thread on-the-run). Then this

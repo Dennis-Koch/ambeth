@@ -2,15 +2,19 @@ package com.koch.ambeth.merge;
 
 import java.util.ArrayList;
 
+import com.koch.ambeth.datachange.model.IDataChange;
 import com.koch.ambeth.merge.model.ICUDResult;
 
 public class MergeProcessStarted
-		implements IMergeProcessContent, ProceedWithMergeHook, MergeFinishedCallback {
+		implements IMergeProcessContent, ProceedWithMergeHook, MergeFinishedCallback,
+		DataChangeReceivedCallback {
 	ArrayList<Object> mergeList;
 
 	ArrayList<Object> deleteList;
 
 	ArrayList<ProceedWithMergeHook> hooks;
+
+	ArrayList<DataChangeReceivedCallback> dataChangeCallbacks;
 
 	ArrayList<MergeFinishedCallback> callbacks;
 
@@ -73,6 +77,18 @@ public class MergeProcessStarted
 	}
 
 	@Override
+	public IMergeProcessContent onDataChange(DataChangeReceivedCallback callback) {
+		if (callback == null) {
+			return this;
+		}
+		if (dataChangeCallbacks == null) {
+			dataChangeCallbacks = new ArrayList<>();
+		}
+		dataChangeCallbacks.add(callback);
+		return this;
+	}
+
+	@Override
 	public IMergeProcessContent onSuccess(MergeFinishedCallback callback) {
 		if (callback == null) {
 			return this;
@@ -99,8 +115,11 @@ public class MergeProcessStarted
 	@Override
 	public void finish() {
 		if (mergeList != null || deleteList != null) {
-			mergeProcess.processIntern(mergeList, deleteList, hooks != null ? this : null,
-					callbacks != null ? this : null, addNewEntitiesToCache, deepMerge);
+			mergeProcess.processIntern(mergeList, deleteList, //
+					hooks != null ? this : null, //
+					dataChangeCallbacks != null ? this : null, //
+					callbacks != null ? this : null,
+					addNewEntitiesToCache, deepMerge);
 		}
 		mergeProcess = null;
 	}
@@ -113,6 +132,13 @@ public class MergeProcessStarted
 			}
 		}
 		return true;
+	}
+
+	@Override
+	public void handleDataChange(IDataChange dataChange) {
+		for (DataChangeReceivedCallback callback : dataChangeCallbacks) {
+			callback.handleDataChange(dataChange);
+		}
 	}
 
 	@Override

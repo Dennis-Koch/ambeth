@@ -10,6 +10,9 @@ public interface IMergeProcessContent extends IMergeProcessStarted {
 	IMergeProcessContent onLocalDiff(ProceedWithMergeHook hook);
 
 	@Override
+	IMergeProcessContent onDataChange(DataChangeReceivedCallback callback);
+
+	@Override
 	IMergeProcessContent onSuccess(MergeFinishedCallback callback);
 
 	@Override
