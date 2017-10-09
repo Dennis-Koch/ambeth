@@ -48,6 +48,8 @@ import com.koch.ambeth.merge.compositeid.ICompositeIdFactory;
 import com.koch.ambeth.merge.metadata.IObjRefFactory;
 import com.koch.ambeth.merge.metadata.IPreparedObjRefFactory;
 import com.koch.ambeth.merge.proxy.IObjRefContainer;
+import com.koch.ambeth.merge.proxy.PersistenceContext;
+import com.koch.ambeth.merge.proxy.PersistenceContextType;
 import com.koch.ambeth.merge.transfer.ObjRef;
 import com.koch.ambeth.persistence.api.ICursor;
 import com.koch.ambeth.persistence.api.ICursorItem;
@@ -91,6 +93,7 @@ import com.koch.ambeth.util.collections.Tuple3KeyHashMap;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.threading.IResultingBackgroundWorkerParamDelegate;
 
+@PersistenceContext(PersistenceContextType.REQUIRED)
 public class EntityLoader
 		implements IEntityLoader, ILoadContainerProvider, IStartingBean, IThreadLocalCleanupBean {
 	public static class EntityLoaderForkProcessor implements IForkProcessor {

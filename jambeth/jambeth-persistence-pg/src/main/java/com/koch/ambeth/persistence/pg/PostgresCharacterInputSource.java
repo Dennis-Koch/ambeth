@@ -42,22 +42,13 @@ public class PostgresCharacterInputSource
 
 	@Override
 	public IInputStream deriveInputStream() {
-		try {
-			System.out.println();
-			return null;
-			// return new PostgresCharacterInputStream(new PostgresClob(connection, oid));
-		}
-		catch (Exception e) {
-			throw RuntimeExceptionUtil.mask(e);
-		}
+		return deriveCharacterInputStream();
 	}
 
 	@Override
 	public ICharacterInputStream deriveCharacterInputStream() {
 		try {
-			System.out.println();
-			return null;
-			// return new PostgresCharacterInputStream(new PostgresClob(connection, oid));
+			return new PostgresCharacterInputStream(new PostgresClob(connection, oid));
 		}
 		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);

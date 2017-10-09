@@ -1,30 +1,5 @@
 package com.koch.ambeth.audit;
 
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.Statement;
-
-/*-
- * #%L
- * jambeth-test
- * %%
- * Copyright (C) 2017 Koch Softwaredevelopment
- * %%
- * Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-     http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
- * #L%
- */
-
-import java.util.Arrays;
 import java.util.List;
 
 import org.junit.Assert;
@@ -32,7 +7,6 @@ import org.junit.Test;
 
 import com.koch.ambeth.audit.AuditMethodCallTest.AuditMethodCallTestFrameworkModule;
 import com.koch.ambeth.audit.AuditMethodCallTest.AuditMethodCallTestModule;
-import com.koch.ambeth.audit.model.AuditedEntityChangeType;
 import com.koch.ambeth.audit.model.IAuditEntry;
 import com.koch.ambeth.audit.model.IAuditedEntity;
 import com.koch.ambeth.audit.model.IAuditedEntityPrimitiveProperty;
@@ -61,13 +35,6 @@ import com.koch.ambeth.merge.cache.ICache;
 import com.koch.ambeth.merge.security.ISecurityScopeProvider;
 import com.koch.ambeth.merge.util.IPrefetchConfig;
 import com.koch.ambeth.persistence.config.PersistenceConfigurationConstants;
-import com.koch.ambeth.persistence.jdbc.JdbcUtil;
-import com.koch.ambeth.query.IOperand;
-import com.koch.ambeth.query.IQuery;
-import com.koch.ambeth.query.IQueryBuilder;
-import com.koch.ambeth.query.OrderByType;
-import com.koch.ambeth.query.persistence.IDataCursor;
-import com.koch.ambeth.query.persistence.IDataItem;
 import com.koch.ambeth.security.IAuthorization;
 import com.koch.ambeth.security.ISecurityContextHolder;
 import com.koch.ambeth.security.TestUserResolver;
@@ -90,7 +57,6 @@ import com.koch.ambeth.testutil.TestFrameworkModule;
 import com.koch.ambeth.testutil.TestModule;
 import com.koch.ambeth.testutil.TestProperties;
 import com.koch.ambeth.testutil.TestPropertiesList;
-import com.koch.ambeth.util.collections.Tuple2KeyHashMap;
 import com.koch.ambeth.util.state.IStateRollback;
 import com.koch.ambeth.util.threading.IBackgroundWorkerDelegate;
 
@@ -200,115 +166,115 @@ public class AuditMethodCallTest extends AbstractInformationBusWithPersistenceTe
 		Assert.assertEquals("5", testAuditService.auditedServiceCall(new Integer(5)));
 	}
 
-	@Test
-	@TestProperties(name = SecurityServerConfigurationConstants.SignatureActive, value = "false")
-	public void myTest2() {
-		auditController.pushAuditReason("junit test");
-		try {
-			char[] passwordOfUser = "abc".toCharArray();
-			User[] users = new User[2];
-			for (int a = users.length; a-- > 0;) {
-				User user = entityFactory.createEntity(User.class);
-				user.setName("MyName" + a);
-				user.setSID("mySid" + a);
-
-				passwordUtil.assignNewPassword(passwordOfUser, user, null);
-
-				IStateRollback revert = auditController.pushAuthorizedUser(user, passwordOfUser, true);
-				try {
-					mergeProcess.process(user, null, null, null);
-				}
-				finally {
-					revert.rollback();
-				}
-				users[a] = user;
-			}
-			IStateRollback revert = auditController.pushAuthorizedUser(users[0], passwordOfUser, true);
-			try {
-				for (int a = users.length; a-- > 0;) {
-					users[a].setName(users[a].getName() + "x");
-				}
-				mergeProcess.process(users, null, null, null);
-			}
-			finally {
-				revert.rollback();
-			}
-			revert = auditController.pushAuthorizedUser(users[1], passwordOfUser, true);
-			try {
-				for (int a = users.length; a-- > 0;) {
-					users[a].setName(users[a].getName() + "x");
-				}
-				mergeProcess.process(users, null, null, null);
-			}
-			finally {
-				revert.rollback();
-			}
-		}
-		finally {
-			auditController.popAuditReason();
-		}
-		final String startTime = "startTime", endTime = "endTime";
-		final int fieldValueIndex, entityTypeIndex, entityIdIndex;
-		final IQuery<IAuditedEntityPrimitiveProperty> query;
-		{
-			IQueryBuilder<IAuditedEntityPrimitiveProperty> qb = queryBuilderFactory
-					.create(IAuditedEntityPrimitiveProperty.class);
-			IOperand name = qb.property(IAuditedEntityPrimitiveProperty.Name);
-
-			IOperand entityType = qb.property(IAuditedEntityPrimitiveProperty.Entity + "."
-					+ IAuditedEntity.Ref + "." + IAuditedEntityRef.EntityType);
-			IOperand entityId = qb.property(IAuditedEntityPrimitiveProperty.Entity + "."
-					+ IAuditedEntity.Ref + "." + IAuditedEntityRef.EntityId);
-			IOperand changeType = qb
-					.property(IAuditedEntityPrimitiveProperty.Entity + "." + IAuditedEntity.ChangeType);
-			IOperand timestamp = qb.property(IAuditedEntityPrimitiveProperty.Entity + "."
-					+ IAuditedEntity.Entry + "." + IAuditEntry.Timestamp);
-
-			fieldValueIndex = qb
-					.select(qb.function("to_char", qb.property(IAuditedEntityPrimitiveProperty.NewValue)));
-			entityTypeIndex = qb.select(entityType);
-			entityIdIndex = qb.select(entityId);
-
-			qb.orderBy(timestamp, OrderByType.DESC);
-
-			query = qb.build(qb.and(//
-					qb.let(changeType).isEqualTo(qb.valueName(IAuditedEntity.ChangeType)), //
-					qb.let(entityType).isIn(qb.valueName(IAuditedEntityRef.EntityType)), //
-					qb.let(timestamp).isGreaterThan(qb.valueName(startTime)), //
-					qb.let(timestamp).isLessThanOrEqualTo(qb.valueName(endTime)), //
-					qb.let(name).isEqualTo(qb.valueName(IAuditedEntityPrimitiveProperty.Name))//
-			));
-		}
-		transaction.runInTransaction(new IBackgroundWorkerDelegate() {
-			@Override
-			public void invoke() throws Exception {
-				long start = System.currentTimeMillis() - 10000;
-				long end = System.currentTimeMillis();
-				Tuple2KeyHashMap<String, String, String> map = new Tuple2KeyHashMap<>();
-				IDataCursor cursor = query.param(IAuditedEntityPrimitiveProperty.Name, "Name")//
-						.param(IAuditedEntity.ChangeType, AuditedEntityChangeType.UPDATE)//
-						.param(IAuditedEntityRef.EntityType, Arrays.asList(User.class.getName()))//
-						.param(startTime, start)//
-						.param(endTime, end)//
-						.retrieveAsData();
-				try {
-					for (IDataItem item : cursor) {
-						String lastValue = conversionHelper.convertValueToType(String.class,
-								item.getValue(fieldValueIndex));
-						String entityTypeName = conversionHelper.convertValueToType(String.class,
-								item.getValue(entityTypeIndex));
-						String entityId = conversionHelper.convertValueToType(String.class,
-								item.getValue(entityIdIndex));
-
-						map.putIfNotExists(entityTypeName, entityId, lastValue);
-					}
-				}
-				finally {
-					cursor.dispose();
-				}
-			}
-		});
-	}
+	// @Test
+	// @TestProperties(name = SecurityServerConfigurationConstants.SignatureActive, value = "false")
+	// public void myTest2() {
+	// auditController.pushAuditReason("junit test");
+	// try {
+	// char[] passwordOfUser = "abc".toCharArray();
+	// User[] users = new User[2];
+	// for (int a = users.length; a-- > 0;) {
+	// User user = entityFactory.createEntity(User.class);
+	// user.setName("MyName" + a);
+	// user.setSID("mySid" + a);
+	//
+	// passwordUtil.assignNewPassword(passwordOfUser, user, null);
+	//
+	// IStateRollback revert = auditController.pushAuthorizedUser(user, passwordOfUser, true);
+	// try {
+	// mergeProcess.process(user, null, null, null);
+	// }
+	// finally {
+	// revert.rollback();
+	// }
+	// users[a] = user;
+	// }
+	// IStateRollback revert = auditController.pushAuthorizedUser(users[0], passwordOfUser, true);
+	// try {
+	// for (int a = users.length; a-- > 0;) {
+	// users[a].setName(users[a].getName() + "x");
+	// }
+	// mergeProcess.process(users, null, null, null);
+	// }
+	// finally {
+	// revert.rollback();
+	// }
+	// revert = auditController.pushAuthorizedUser(users[1], passwordOfUser, true);
+	// try {
+	// for (int a = users.length; a-- > 0;) {
+	// users[a].setName(users[a].getName() + "x");
+	// }
+	// mergeProcess.process(users, null, null, null);
+	// }
+	// finally {
+	// revert.rollback();
+	// }
+	// }
+	// finally {
+	// auditController.popAuditReason();
+	// }
+	// final String startTime = "startTime", endTime = "endTime";
+	// final int fieldValueIndex, entityTypeIndex, entityIdIndex;
+	// final IQuery<IAuditedEntityPrimitiveProperty> query;
+	// {
+	// IQueryBuilder<IAuditedEntityPrimitiveProperty> qb = queryBuilderFactory
+	// .create(IAuditedEntityPrimitiveProperty.class);
+	// IOperand name = qb.property(IAuditedEntityPrimitiveProperty.Name);
+	//
+	// IOperand entityType = qb.property(IAuditedEntityPrimitiveProperty.Entity + "."
+	// + IAuditedEntity.Ref + "." + IAuditedEntityRef.EntityType);
+	// IOperand entityId = qb.property(IAuditedEntityPrimitiveProperty.Entity + "."
+	// + IAuditedEntity.Ref + "." + IAuditedEntityRef.EntityId);
+	// IOperand changeType = qb
+	// .property(IAuditedEntityPrimitiveProperty.Entity + "." + IAuditedEntity.ChangeType);
+	// IOperand timestamp = qb.property(IAuditedEntityPrimitiveProperty.Entity + "."
+	// + IAuditedEntity.Entry + "." + IAuditEntry.Timestamp);
+	//
+	// fieldValueIndex = qb
+	// .select(qb.function("to_char", qb.property(IAuditedEntityPrimitiveProperty.NewValue)));
+	// entityTypeIndex = qb.select(entityType);
+	// entityIdIndex = qb.select(entityId);
+	//
+	// qb.orderBy(timestamp, OrderByType.DESC);
+	//
+	// query = qb.build(qb.and(//
+	// qb.let(changeType).isEqualTo(qb.valueName(IAuditedEntity.ChangeType)), //
+	// qb.let(entityType).isIn(qb.valueName(IAuditedEntityRef.EntityType)), //
+	// qb.let(timestamp).isGreaterThan(qb.valueName(startTime)), //
+	// qb.let(timestamp).isLessThanOrEqualTo(qb.valueName(endTime)), //
+	// qb.let(name).isEqualTo(qb.valueName(IAuditedEntityPrimitiveProperty.Name))//
+	// ));
+	// }
+	// transaction.runInTransaction(new IBackgroundWorkerDelegate() {
+	// @Override
+	// public void invoke() throws Exception {
+	// long start = System.currentTimeMillis() - 10000;
+	// long end = System.currentTimeMillis();
+	// Tuple2KeyHashMap<String, String, String> map = new Tuple2KeyHashMap<>();
+	// IDataCursor cursor = query.param(IAuditedEntityPrimitiveProperty.Name, "Name")//
+	// .param(IAuditedEntity.ChangeType, AuditedEntityChangeType.UPDATE)//
+	// .param(IAuditedEntityRef.EntityType, Arrays.asList(User.class.getName()))//
+	// .param(startTime, start)//
+	// .param(endTime, end)//
+	// .retrieveAsData();
+	// try {
+	// for (IDataItem item : cursor) {
+	// String lastValue = conversionHelper.convertValueToType(String.class,
+	// item.getValue(fieldValueIndex));
+	// String entityTypeName = conversionHelper.convertValueToType(String.class,
+	// item.getValue(entityTypeIndex));
+	// String entityId = conversionHelper.convertValueToType(String.class,
+	// item.getValue(entityIdIndex));
+	//
+	// map.putIfNotExists(entityTypeName, entityId, lastValue);
+	// }
+	// }
+	// finally {
+	// cursor.dispose();
+	// }
+	// }
+	// });
+	// }
 
 	@Test
 	public void auditedEntity() {
@@ -333,46 +299,46 @@ public class AuditMethodCallTest extends AbstractInformationBusWithPersistenceTe
 		Assert.assertTrue(user.getId() > 0);
 	}
 
-	@Test
-	public void lobLeakTestOracle() throws Exception {
-		char[] passwordOfUser = "abc".toCharArray();
-		User user = entityFactory.createEntity(User.class);
-		user.setName("MyName");
-		user.setSID("mySid");
-
-		Statement stm = null;
-		ResultSet rs = null;
-		Connection connection = connectionFactory.create();
-		try {
-			stm = connection.createStatement();
-			rs = stm.executeQuery("SELECT count(*) FROM V$TEMPSEG_USAGE");
-			rs.next();
-			Assert.assertEquals(0, rs.getLong(1));
-
-			auditController.pushAuditReason("junit test");
-
-			passwordUtil.assignNewPassword(passwordOfUser, user, null);
-
-			IStateRollback revert = auditController.pushAuthorizedUser(user, passwordOfUser, true);
-			try {
-				mergeProcess.process(user, null, null, null);
-			}
-			finally {
-				revert.rollback();
-			}
-			auditController.popAuditReason();
-			((IThreadLocalCleanupBean) auditController).cleanupThreadLocal();
-
-			rs.close();
-			rs = stm.executeQuery("SELECT count(*) FROM V$TEMPSEG_USAGE");
-			rs.next();
-			Assert.assertEquals("There seems to be a temporary segment leak", 0, rs.getLong(1));
-		}
-		finally {
-			JdbcUtil.close(stm, rs);
-			JdbcUtil.close(connection);
-		}
-	}
+	// @Test
+	// public void lobLeakTestOracle() throws Exception {
+	// char[] passwordOfUser = "abc".toCharArray();
+	// User user = entityFactory.createEntity(User.class);
+	// user.setName("MyName");
+	// user.setSID("mySid");
+	//
+	// Statement stm = null;
+	// ResultSet rs = null;
+	// Connection connection = connectionFactory.create();
+	// try {
+	// stm = connection.createStatement();
+	// rs = stm.executeQuery("SELECT count(*) FROM V$TEMPSEG_USAGE");
+	// rs.next();
+	// Assert.assertEquals(0, rs.getLong(1));
+	//
+	// auditController.pushAuditReason("junit test");
+	//
+	// passwordUtil.assignNewPassword(passwordOfUser, user, null);
+	//
+	// IStateRollback revert = auditController.pushAuthorizedUser(user, passwordOfUser, true);
+	// try {
+	// mergeProcess.process(user, null, null, null);
+	// }
+	// finally {
+	// revert.rollback();
+	// }
+	// auditController.popAuditReason();
+	// ((IThreadLocalCleanupBean) auditController).cleanupThreadLocal();
+	//
+	// rs.close();
+	// rs = stm.executeQuery("SELECT count(*) FROM V$TEMPSEG_USAGE");
+	// rs.next();
+	// Assert.assertEquals("There seems to be a temporary segment leak", 0, rs.getLong(1));
+	// }
+	// finally {
+	// JdbcUtil.close(stm, rs);
+	// JdbcUtil.close(connection);
+	// }
+	// }
 
 	@Test(expected = AuditReasonMissingException.class)
 	@TestProperties(name = SecurityServerConfigurationConstants.SignatureActive, value = "false")
