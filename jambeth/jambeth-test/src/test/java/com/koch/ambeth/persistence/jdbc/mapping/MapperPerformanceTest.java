@@ -123,7 +123,7 @@ public class MapperPerformanceTest extends AbstractInformationBusWithPersistence
 				objects.add(material);
 			}
 		}
-		beanContext.getService(IMergeProcess.class).process(objects, null, null, null);
+		beanContext.getService(IMergeProcess.class).process(objects);
 		beanContext.getService(IEventDispatcher.class).dispatchEvent(ClearAllCachesEvent.getInstance());
 		for (int a = objects.size(); a-- > 0;) {
 			Material material = objects.get(a);

@@ -34,16 +34,20 @@ import java.util.concurrent.CyclicBarrier;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.koch.ambeth.datachange.model.IDataChange;
 import com.koch.ambeth.event.IEventDispatcher;
 import com.koch.ambeth.informationbus.persistence.setup.SQLData;
 import com.koch.ambeth.informationbus.persistence.setup.SQLStructure;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.bytecode.IBytecodeEnhancer;
 import com.koch.ambeth.ioc.util.IMultithreadingHelper;
+import com.koch.ambeth.merge.DataChangeReceivedCallback;
 import com.koch.ambeth.merge.IMergeController;
 import com.koch.ambeth.merge.IMergeProcess;
+import com.koch.ambeth.merge.ProceedWithMergeHook;
 import com.koch.ambeth.merge.bytecode.EntityEnhancementHint;
 import com.koch.ambeth.merge.cache.ICache;
+import com.koch.ambeth.merge.model.ICUDResult;
 import com.koch.ambeth.service.cache.ClearAllCachesEvent;
 import com.koch.ambeth.service.config.ServiceConfigurationConstants;
 import com.koch.ambeth.service.merge.IEntityMetaDataProvider;
@@ -51,6 +55,7 @@ import com.koch.ambeth.testutil.AbstractInformationBusWithPersistenceTest;
 import com.koch.ambeth.testutil.TestModule;
 import com.koch.ambeth.testutil.TestProperties;
 import com.koch.ambeth.testutil.TestPropertiesList;
+import com.koch.ambeth.util.ParamHolder;
 import com.koch.ambeth.util.ReflectUtil;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.model.IDataObject;
@@ -75,6 +80,9 @@ public class MergeControllerClientTest extends AbstractInformationBusWithPersist
 
 	@Autowired
 	protected IMergeController mergeController;
+
+	@Autowired
+	protected IMergeProcess mergeProcess;
 
 	@Autowired
 	protected IMultithreadingHelper multithreadingHelper;
@@ -133,7 +141,7 @@ public class MergeControllerClientTest extends AbstractInformationBusWithPersist
 				}
 
 				parent.setName(parent.getName() + "p");
-				beanContext.getService(IMergeProcess.class).process(parent, null, null, null);
+				beanContext.getService(IMergeProcess.class).process(parent);
 			}
 		};
 		Runnable childModifierRunnable = new Runnable() {
@@ -144,7 +152,7 @@ public class MergeControllerClientTest extends AbstractInformationBusWithPersist
 
 					Child child = cache.getObject(Child.class, childId);
 					child.setName(child.getName() + "c");
-					beanContext.getService(IMergeProcess.class).process(child, null, null, null);
+					beanContext.getService(IMergeProcess.class).process(child);
 					childUpdatedCondition.await();
 				}
 				catch (Exception e) {
@@ -179,7 +187,7 @@ public class MergeControllerClientTest extends AbstractInformationBusWithPersist
 				}
 
 				parent.setName(parent.getName() + "p");
-				beanContext.getService(IMergeProcess.class).process(parent, null, null, null);
+				beanContext.getService(IMergeProcess.class).process(parent);
 			}
 		};
 		Runnable childModifierRunnable = new Runnable() {
@@ -190,7 +198,7 @@ public class MergeControllerClientTest extends AbstractInformationBusWithPersist
 
 					Child child = cache.getObject(Child.class, childId);
 					child.setName(child.getName() + "c");
-					beanContext.getService(IMergeProcess.class).process(child, null, null, null);
+					beanContext.getService(IMergeProcess.class).process(child);
 					childUpdatedCondition.await();
 				}
 				catch (Exception e) {
@@ -334,5 +342,57 @@ public class MergeControllerClientTest extends AbstractInformationBusWithPersist
 			Assert.assertTrue(originalGenericReturnType instanceof ParameterizedType);
 			Assert.assertTrue(genericReturnType instanceof ParameterizedType);
 		}
+	}
+
+	@Test
+	public void testShallowMerge() {
+		Parent parent = cache.getObject(Parent.class, 1);
+		Child child = parent.getChild();
+
+		assertNotNull(child);
+		parent.setName("abc");
+		child.setName("def");
+
+		Assert.assertTrue(((IDataObject) parent).isToBeUpdated());
+		Assert.assertTrue(((IDataObject) child).isToBeUpdated());
+
+		mergeProcess.begin().shallow().merge(parent).onLocalDiff(new ProceedWithMergeHook() {
+			@Override
+			public boolean checkToProceed(ICUDResult result) {
+				Assert.assertEquals(1, result.getAllChanges().size());
+				return false;
+			}
+		}).finish();
+
+		mergeProcess.begin().merge(parent).onLocalDiff(new ProceedWithMergeHook() {
+			@Override
+			public boolean checkToProceed(ICUDResult result) {
+				Assert.assertEquals(2, result.getAllChanges().size());
+				return false;
+			}
+		}).finish();
+	}
+
+	@Test
+	public void testDataChangeCallbackMerge() {
+		Parent parent = cache.getObject(Parent.class, 1);
+		Child child = parent.getChild();
+
+		assertNotNull(child);
+		parent.setName("abc");
+		child.setName("def");
+
+		Assert.assertTrue(((IDataObject) parent).isToBeUpdated());
+		Assert.assertTrue(((IDataObject) child).isToBeUpdated());
+
+		final ParamHolder<IDataChange> dataChangePH = new ParamHolder<>();
+		mergeProcess.begin().merge(parent).onDataChange(new DataChangeReceivedCallback() {
+			@Override
+			public void handleDataChange(IDataChange dataChange) {
+				dataChangePH.setValue(dataChange);
+			}
+		}).finish();
+		Assert.assertNotNull(dataChangePH.getValue());
+
 	}
 }

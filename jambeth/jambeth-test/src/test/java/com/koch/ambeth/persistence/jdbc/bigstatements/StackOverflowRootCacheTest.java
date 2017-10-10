@@ -94,7 +94,7 @@ public class StackOverflowRootCacheTest extends AbstractInformationBusWithPersis
 			material.setUnit(unit);
 			bigList.add(material);
 		}
-		mergeProcess.process(bigList, null, null, null, true);
+		mergeProcess.process(bigList);
 
 	}
 }

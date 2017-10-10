@@ -183,14 +183,18 @@ public class MergeProcess implements IMergeProcess {
 
 	protected void mergePhase1(final Object objectToMerge, final Object objectToDelete,
 			final ProceedWithMergeHook proceedHook,
+			final DataChangeReceivedCallback dataChangeReceivedCallback,
 			final MergeFinishedCallback mergeFinishedCallback,
-			final boolean addNewEntitiesToCache) {
+			final boolean addNewEntitiesToCache,
+			final boolean deepMerge) {
 		final MergeHandle mergeHandle = beanContext.registerBean(MergeHandle.class)//
 				.ignoreProperties("Cache", "PrivilegedCache")//
+				.propertyValue("DeepMerge", deepMerge)//
 				.finish();
 		final ICUDResult cudResult = mergeController.mergeDeep(objectToMerge, mergeHandle);
 		if (guiThreadHelper.isInGuiThread()) {
 			mergePhase2(objectToMerge, objectToDelete, mergeHandle, cudResult, proceedHook,
+					dataChangeReceivedCallback,
 					mergeFinishedCallback, addNewEntitiesToCache);
 		}
 		else {
@@ -198,6 +202,7 @@ public class MergeProcess implements IMergeProcess {
 				@Override
 				public void invoke() throws Exception {
 					mergePhase2(objectToMerge, objectToDelete, mergeHandle, cudResult, proceedHook,
+							dataChangeReceivedCallback,
 							mergeFinishedCallback, addNewEntitiesToCache);
 				}
 			});
@@ -207,6 +212,7 @@ public class MergeProcess implements IMergeProcess {
 	protected void mergePhase2(final Object objectToMerge, Object objectToDelete,
 			MergeHandle mergeHandle, final ICUDResult cudResult,
 			final ProceedWithMergeHook proceedHook,
+			final DataChangeReceivedCallback dataChangeReceivedCallback,
 			final MergeFinishedCallback mergeFinishedCallback,
 			final boolean addNewEntitiesToCache) {
 		final ArrayList<Object> unpersistedObjectsToDelete = new ArrayList<>();
@@ -226,23 +232,27 @@ public class MergeProcess implements IMergeProcess {
 				@Override
 				public void invoke() throws Exception {
 					mergePhase3(objectToMerge, unpersistedObjectsToDelete, cudResult, proceedHook,
+							dataChangeReceivedCallback,
 							mergeFinishedCallback, addNewEntitiesToCache);
 				}
 			});
 		}
 		else {
 			mergePhase3(objectToMerge, unpersistedObjectsToDelete, cudResult, proceedHook,
+					dataChangeReceivedCallback,
 					mergeFinishedCallback, addNewEntitiesToCache);
 		}
 	}
 
 	protected void mergePhase3(Object objectToMerge, IList<Object> unpersistedObjectsToDelete,
 			ICUDResult cudResult, ProceedWithMergeHook proceedHook,
+			DataChangeReceivedCallback dataChangeReceivedCallback,
 			MergeFinishedCallback mergeFinishedCallback, boolean addNewEntitiesToCache) {
 		// Take over callback stored threadlocally from foreign calling thread to current thread
 		boolean success = false;
 		try {
 			processCUDResult(objectToMerge, cudResult, unpersistedObjectsToDelete, proceedHook,
+					dataChangeReceivedCallback,
 					addNewEntitiesToCache);
 			success = true;
 		}
@@ -255,43 +265,43 @@ public class MergeProcess implements IMergeProcess {
 
 	@Override
 	public void process(Object objectsToMerge) {
-		process(objectsToMerge, null, null, null, true);
+		processIntern(objectsToMerge, null, null, null, null, true, true);
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
-	public void process(Object objectsToMerge, Object objectsToDelete) {
-		process(objectsToMerge, objectsToDelete, null, null, true);
+	public <T> void process(T objectsToMerge1, T... objectsToMerge2) {
+		processIntern(new Object[] {objectsToMerge1, objectsToMerge2}, null, null, null, null, true,
+				true);
 	}
 
-	@Override
-	public void process(Object objectToMerge, Object objectToDelete,
-			ProceedWithMergeHook proceedHook, MergeFinishedCallback mergeFinishedCallback) {
-		process(objectToMerge, objectToDelete, proceedHook, mergeFinishedCallback, true);
-	}
-
-	@Override
-	public void process(final Object objectToMerge, final Object objectToDelete,
+	protected void processIntern(final Object objectToMerge, final Object objectToDelete,
 			final ProceedWithMergeHook proceedHook,
+			final DataChangeReceivedCallback dataChangeReceivedCallback,
 			final MergeFinishedCallback mergeFinishedCallback,
-			final boolean addNewEntitiesToCache) {
+			final boolean addNewEntitiesToCache,
+			final boolean deepMerge) {
 		if (guiThreadHelper.isInGuiThread()) {
 			guiThreadHelper.invokeOutOfGui(new IBackgroundWorkerDelegate() {
 				@Override
 				public void invoke() throws Exception {
-					mergePhase1(objectToMerge, objectToDelete, proceedHook, mergeFinishedCallback,
-							addNewEntitiesToCache);
+					mergePhase1(objectToMerge, objectToDelete, proceedHook, dataChangeReceivedCallback,
+							mergeFinishedCallback,
+							addNewEntitiesToCache, deepMerge);
 				}
 			});
 		}
 		else {
-			mergePhase1(objectToMerge, objectToDelete, proceedHook, mergeFinishedCallback,
-					addNewEntitiesToCache);
+			mergePhase1(objectToMerge, objectToDelete, proceedHook, dataChangeReceivedCallback,
+					mergeFinishedCallback,
+					addNewEntitiesToCache, deepMerge);
 		}
 	}
 
 	protected void processCUDResult(Object objectToMerge, final ICUDResult cudResult,
 			IList<Object> unpersistedObjectsToDelete, ProceedWithMergeHook proceedHook,
-			boolean addNewEntitiesToCache) {
+			DataChangeReceivedCallback dataChangeReceivedCallback, boolean addNewEntitiesToCache) {
+		IDataChange dataChange = null;
 		if (cudResult.getAllChanges().isEmpty()) {
 			if (log.isInfoEnabled()) {
 				log.info("Service call skipped early because there is nothing to merge");
@@ -308,8 +318,13 @@ public class MergeProcess implements IMergeProcess {
 			final CountDownLatch latch;
 			final ParamHolder<IDataChange> foreignThreadDCE = new ParamHolder<>();
 			final IEventListener listenOnce;
-			if (isNetworkClientMode) {
-				latch = new CountDownLatch(1);
+			if (isNetworkClientMode || dataChangeReceivedCallback != null) {
+				if (isNetworkClientMode) {
+					latch = new CountDownLatch(1);
+				}
+				else {
+					latch = null;
+				}
 				listenOnce = new IEventListener() {
 					@Override
 					public void handleEvent(Object eventObject, long dispatchTime, long sequenceId)
@@ -324,7 +339,9 @@ public class MergeProcess implements IMergeProcess {
 							if (uuid.equals(causingUUID)) {
 								eventListenerExtendable.unregisterEventListener(this, IDataChange.class);
 								foreignThreadDCE.setValue(dataChange);
-								latch.countDown();
+								if (latch != null) {
+									latch.countDown();
+								}
 								return;
 							}
 						}
@@ -383,8 +400,12 @@ public class MergeProcess implements IMergeProcess {
 				catch (InterruptedException e) {
 					throw RuntimeExceptionUtil.mask(e);
 				}
-				IDataChange dataChange = foreignThreadDCE.getValue();
-				eventDispatcher.dispatchEvent(dataChange);
+			}
+			if (foreignThreadDCE != null) {
+				dataChange = foreignThreadDCE.getValue();
+				if (dataChange != null) {
+					eventDispatcher.dispatchEvent(dataChange);
+				}
 			}
 		}
 		if (unpersistedObjectsToDelete != null && !unpersistedObjectsToDelete.isEmpty()) {
@@ -393,17 +414,21 @@ public class MergeProcess implements IMergeProcess {
 			// "cancelled". The DCE notifies all models which contain identity references to the
 			// related objects to erase their existence in all controls. They are not relevant in
 			// the previous server merge process
-			DataChangeEvent dataChange =
+			DataChangeEvent deleteDataChange =
 					DataChangeEvent.create(0, 0, unpersistedObjectsToDelete.size());
-			dataChange.setLocalSource(true);
-			List<IDataChangeEntry> deletes = dataChange.getDeletes();
+			deleteDataChange.setLocalSource(true);
+			List<IDataChangeEntry> deletes = deleteDataChange.getDeletes();
 			for (int a = unpersistedObjectsToDelete.size(); a-- > 0;) {
 				Object unpersistedObject = unpersistedObjectsToDelete.get(a);
 				deletes.add(new DirectDataChangeEntry(unpersistedObject));
 			}
-			eventDispatcher.dispatchEvent(dataChange);
+			eventDispatcher.dispatchEvent(deleteDataChange);
 		}
 		revertChangesHelper.revertChanges(objectToMerge);
+
+		if (dataChange != null && dataChangeReceivedCallback != null) {
+			dataChangeReceivedCallback.handleDataChange(dataChange);
+		}
 	}
 
 	protected void removeUnpersistedDeletedObjectsFromCudResult(List<IChangeContainer> allChanges,
@@ -495,5 +520,10 @@ public class MergeProcess implements IMergeProcess {
 				}
 			}
 		}
+	}
+
+	@Override
+	public IMergeProcessStarted begin() {
+		return new MergeProcessStarted(this);
 	}
 }

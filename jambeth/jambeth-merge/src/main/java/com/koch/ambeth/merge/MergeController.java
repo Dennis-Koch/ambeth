@@ -614,7 +614,9 @@ public class MergeController implements IMergeController, IMergeExtendable {
 			}
 			return memberModified;
 		}
-		mergeOrPersist(objValue, handle);
+		if (handle.isDeepMerge()) {
+			mergeOrPersist(objValue, handle);
+		}
 		return !equalsReferenceOrId(objValue, cloneValue, handle, metaData);
 	}
 

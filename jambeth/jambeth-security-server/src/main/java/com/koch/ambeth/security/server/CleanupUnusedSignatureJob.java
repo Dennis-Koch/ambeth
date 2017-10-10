@@ -93,6 +93,6 @@ public class CleanupUnusedSignatureJob implements IJob, IStartingBean {
 	@Override
 	public void execute(IJobContext context) throws Exception {
 		IList<ISignature> retrieve = q_signaturesWithoutUser.retrieve();
-		mergeProcess.process(retrieve, null, null, null);
+		mergeProcess.process(retrieve);
 	}
 }

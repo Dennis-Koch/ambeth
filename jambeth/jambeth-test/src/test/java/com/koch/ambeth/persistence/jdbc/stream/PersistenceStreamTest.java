@@ -146,7 +146,7 @@ public class PersistenceStreamTest extends AbstractInformationBusWithPersistence
 			}
 		});
 		entity.setClob(new ReaderToCharacterInputSource(new StringReader(clobValue)));
-		mergeProcess.process(entity, null, null, null);
+		mergeProcess.process(entity);
 	}
 
 	@Test

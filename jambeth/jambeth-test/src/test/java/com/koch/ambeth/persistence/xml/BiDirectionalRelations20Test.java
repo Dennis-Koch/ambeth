@@ -1,27 +1,5 @@
 package com.koch.ambeth.persistence.xml;
 
-/*-
- * #%L
- * jambeth-test
- * %%
- * Copyright (C) 2017 Koch Softwaredevelopment
- * %%
- * Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-     http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
- * #L%
- */
-
-import java.util.Arrays;
-
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
@@ -56,7 +34,7 @@ public class BiDirectionalRelations20Test extends AbstractInformationBusWithPers
 	@After
 	public void clearGroups() {
 		if (!createdGroups.isEmpty()) {
-			mergeProcess.process(null, createdGroups, null, null);
+			mergeProcess.begin().delete(createdGroups).finish();
 			createdGroups.clear();
 		}
 	}
@@ -75,7 +53,7 @@ public class BiDirectionalRelations20Test extends AbstractInformationBusWithPers
 
 		g1.getChildGroups().add(g2);
 
-		mergeProcess.process(Arrays.asList(g1, g2), null, null, null);
+		mergeProcess.process(g1, g2);
 
 		checkSimpleChildSave(g1, g2);
 	}
@@ -85,10 +63,10 @@ public class BiDirectionalRelations20Test extends AbstractInformationBusWithPers
 		Group g1 = createGroup("g1Name");
 		Group g2 = createGroup("g2Name");
 
-		mergeProcess.process(Arrays.asList(g1, g2), null, null, null);
+		mergeProcess.process(g1, g2);
 
 		g1.getChildGroups().add(g2);
-		mergeProcess.process(g1, null, null, null);
+		mergeProcess.process(g1);
 
 		checkSimpleChildSave(g1, g2);
 	}
@@ -103,7 +81,7 @@ public class BiDirectionalRelations20Test extends AbstractInformationBusWithPers
 		g1.getChildGroups().add(g3);
 		g2.getChildGroups().add(g3);
 
-		mergeProcess.process(Arrays.asList(g1, g2, g3), null, null, null);
+		mergeProcess.process(g1, g2, g3);
 
 		checkTripleChildSave(g1, g2, g3);
 	}
@@ -114,12 +92,12 @@ public class BiDirectionalRelations20Test extends AbstractInformationBusWithPers
 		Group g2 = createGroup("g2Name");
 		Group g3 = createGroup("g3Name");
 
-		mergeProcess.process(Arrays.asList(g1, g2, g3), null, null, null);
+		mergeProcess.process(g1, g2, g3);
 
 		g1.getChildGroups().add(g2);
 		g1.getChildGroups().add(g3);
 		g2.getChildGroups().add(g3);
-		mergeProcess.process(Arrays.asList(g1, g2), null, null, null);
+		mergeProcess.process(g1, g2);
 
 		checkTripleChildSave(g1, g2, g3);
 	}

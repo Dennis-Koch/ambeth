@@ -331,7 +331,7 @@ public class QueryTest extends AbstractInformationBusWithPersistenceTest {
 	protected long updateQueryEntity1() {
 		QueryEntity queryEntity1 = cache.getObject(QueryEntity.class, 1);
 		queryEntity1.setContent(2.);
-		mergeProcess.process(queryEntity1, null, null, null);
+		mergeProcess.process(queryEntity1);
 
 		long updatedOn = queryEntity1.getUpdatedOn();
 		return updatedOn;
@@ -402,7 +402,7 @@ public class QueryTest extends AbstractInformationBusWithPersistenceTest {
 				QueryEntity changedQueryEntity = beanContext.getService(ICache.class)
 						.getObject(QueryEntity.class, 2);
 				changedQueryEntity.setName1(name1Value);
-				beanContext.getService(IMergeProcess.class).process(changedQueryEntity, null, null, null);
+				beanContext.getService(IMergeProcess.class).process(changedQueryEntity);
 
 				List<QueryEntity> allAfterUpdate = query.retrieve();
 				assertSimilar(expectedAfterUpdate, allAfterUpdate);
@@ -510,7 +510,7 @@ public class QueryTest extends AbstractInformationBusWithPersistenceTest {
 				QueryEntity changedQueryEntity = beanContext.getService(ICache.class)
 						.getObject(QueryEntity.class, 2);
 				changedQueryEntity.setName1(name1Value);
-				beanContext.getService(IMergeProcess.class).process(changedQueryEntity, null, null, null);
+				beanContext.getService(IMergeProcess.class).process(changedQueryEntity);
 
 				IPagingResponse<QueryEntity> allAfterUpdate = query.retrieve(pr);
 				assertSimilar(expectedAfterUpdate, allAfterUpdate.getResult());
@@ -747,7 +747,7 @@ public class QueryTest extends AbstractInformationBusWithPersistenceTest {
 			queryEntity.setName2("Name22_" + a);
 			entities.add(queryEntity);
 		}
-		beanContext.getService(IMergeProcess.class).process(entities, null, null, null);
+		beanContext.getService(IMergeProcess.class).process(entities);
 		List<Object> values = new ArrayList<>(count);
 		for (int a = entities.size(); a-- > 0;) {
 			values.add(entities.get(a).getId());
