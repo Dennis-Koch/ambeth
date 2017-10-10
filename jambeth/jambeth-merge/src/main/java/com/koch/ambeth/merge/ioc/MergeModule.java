@@ -75,6 +75,7 @@ import com.koch.ambeth.merge.metadata.ObjRefObjectCopierExtension;
 import com.koch.ambeth.merge.mixin.CompositeIdMixin;
 import com.koch.ambeth.merge.mixin.EmbeddedMemberMixin;
 import com.koch.ambeth.merge.mixin.ObjRefMixin;
+import com.koch.ambeth.merge.mixin.ObjRefTypeMixin;
 import com.koch.ambeth.merge.model.EntityMetaData;
 import com.koch.ambeth.merge.objrefstore.IObjRefStoreEntryProvider;
 import com.koch.ambeth.merge.objrefstore.ObjRefStoreEntryProvider;
@@ -141,6 +142,7 @@ public class MergeModule implements IInitializingModule {
 
 		beanContextFactory.registerAutowireableBean(CompositeIdMixin.class, CompositeIdMixin.class);
 		beanContextFactory.registerAutowireableBean(ObjRefMixin.class, ObjRefMixin.class);
+		beanContextFactory.registerBean(ObjRefTypeMixin.class).autowireable(ObjRefTypeMixin.class);
 
 		beanContextFactory.registerBean(SecurityScopeProvider.class).autowireable(
 				ISecurityScopeProvider.class, ISecurityScopeChangeListenerExtendable.class);
