@@ -24,6 +24,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Optional;
 
 import com.koch.ambeth.cache.config.CacheConfigurationConstants;
 import com.koch.ambeth.cache.databinding.ICollectionChangeExtension;
@@ -314,6 +315,18 @@ public class PropertyChangeMixin
 				.getExtensionsShared()) {
 			propertyChangeItemListener.handleAddedItem(obj, property, addedItem, isParentChildProperty);
 		}
+	}
+
+	public boolean optionalIdentityEquals(Optional<?> left, Optional<?> right) {
+		if (left == right) {
+			return true;
+		}
+		if (left == null || right == null) {
+			return false;
+		}
+		Object leftValue = left.isPresent() ? left.get() : null;
+		Object rightValue = right.isPresent() ? right.get() : null;
+		return leftValue == rightValue;
 	}
 
 	// / <summary>
