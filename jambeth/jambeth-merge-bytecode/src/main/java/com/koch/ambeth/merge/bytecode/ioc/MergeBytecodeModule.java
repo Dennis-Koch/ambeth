@@ -34,6 +34,7 @@ import com.koch.ambeth.merge.bytecode.behavior.DelegateBehavior;
 import com.koch.ambeth.merge.bytecode.behavior.EntityMetaDataMemberBehavior;
 import com.koch.ambeth.merge.bytecode.behavior.ObjRefBehavior;
 import com.koch.ambeth.merge.bytecode.behavior.ObjRefStoreBehavior;
+import com.koch.ambeth.merge.bytecode.behavior.ObjRefTypeBehavior;
 import com.koch.ambeth.merge.bytecode.compositeid.CompositeIdBehavior;
 import com.koch.ambeth.merge.bytecode.compositeid.CompositeIdFactory;
 import com.koch.ambeth.merge.compositeid.ICompositeIdFactory;
@@ -55,6 +56,7 @@ public class MergeBytecodeModule implements IInitializingModule {
 
 		BytecodeModule.addDefaultBytecodeBehavior(beanContextFactory, ObjRefBehavior.class);
 		BytecodeModule.addDefaultBytecodeBehavior(beanContextFactory, ObjRefStoreBehavior.class);
+		BytecodeModule.addDefaultBytecodeBehavior(beanContextFactory, ObjRefTypeBehavior.class);
 
 		// small trick: we need the DelegateBehavior as a very-early-registered extension to the
 		// BytecodeEnhancer
