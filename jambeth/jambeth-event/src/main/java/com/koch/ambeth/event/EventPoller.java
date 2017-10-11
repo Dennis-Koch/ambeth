@@ -105,30 +105,35 @@ public class EventPoller implements IEventPoller, IOfflineListener, IStartingBea
 
 					IParamHolder<Boolean> errorOccured = new ParamHolder<>();
 					while (!stopRequested && stackIterationId == iterationId) {
-						synchronized (writeLock) {
-							while (pauseRequested && !stopRequested) {
-								if (stopRequested) {
-									break;
+						try {
+							synchronized (writeLock) {
+								while (pauseRequested && !stopRequested) {
+									if (stopRequested) {
+										break;
+									}
 								}
 							}
-						}
-						currentEventSequence = tryPolling(currentServerSession, currentEventSequence,
-								errorOccured);
-						if (stopRequested) {
-							break;
-						}
-						if (errorOccured.getValue().booleanValue()) {
-							long sleepTime = Math.max(5000, pollSleepInterval);
-							if (log.isDebugEnabled()) {
-								log.debug("Error occured. Sleeping for at least " + sleepTime + "ms");
+							currentEventSequence = tryPolling(currentServerSession, currentEventSequence,
+									errorOccured);
+							if (stopRequested) {
+								break;
 							}
-							Thread.sleep(Math.max(5000, pollSleepInterval));
-						}
-						else if (pollSleepInterval > 0) {
-							if (log.isDebugEnabled()) {
-								log.debug("Sleeping for at least " + pollSleepInterval + "ms");
+							if (errorOccured.getValue().booleanValue()) {
+								long sleepTime = Math.max(5000, pollSleepInterval);
+								if (log.isDebugEnabled()) {
+									log.debug("Error occured. Sleeping for at least " + sleepTime + "ms");
+								}
+								Thread.sleep(Math.max(5000, pollSleepInterval));
 							}
-							Thread.sleep(pollSleepInterval);
+							else if (pollSleepInterval > 0) {
+								if (log.isDebugEnabled()) {
+									log.debug("Sleeping for at least " + pollSleepInterval + "ms");
+								}
+								Thread.sleep(pollSleepInterval);
+							}
+						}
+						catch (InterruptedException ignored) {
+							Thread.interrupted();
 						}
 					}
 				}

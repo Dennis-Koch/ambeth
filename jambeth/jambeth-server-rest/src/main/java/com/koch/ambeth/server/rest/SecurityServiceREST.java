@@ -90,6 +90,40 @@ public class SecurityServiceREST extends AbstractServiceREST {
 	}
 
 	@GET
+	@Path("isAuthenticated")
+	public StreamingOutput isAuthenticated(@Context HttpServletRequest request,
+			@Context HttpServletResponse response) {
+		IStateRollback rollback = preServiceCall(request, response);
+		try {
+			boolean authenticated = getService(ICurrentUserProvider.class).getCurrentUser() != null;
+			return createResult(authenticated, request, response);
+		}
+		catch (Throwable e) {
+			return createExceptionResult(e, request, response);
+		}
+		finally {
+			rollback.rollback();
+		}
+	}
+
+	@GET
+	@Path("getHeartbeatInterval")
+	public StreamingOutput getHeartbeatInterval(@Context HttpServletRequest request,
+			@Context HttpServletResponse response) {
+		IStateRollback rollback = preServiceCall(request, response);
+		try {
+			long heartbeatInterval = 60000; // TODO: provide bean or configuration of this
+			return createResult(heartbeatInterval, request, response);
+		}
+		catch (Throwable e) {
+			return createExceptionResult(e, request, response);
+		}
+		finally {
+			rollback.rollback();
+		}
+	}
+
+	@GET
 	@Path("getCurrentUser")
 	public StreamingOutput getCurrentUser(@Context HttpServletRequest request,
 			@Context HttpServletResponse response) {

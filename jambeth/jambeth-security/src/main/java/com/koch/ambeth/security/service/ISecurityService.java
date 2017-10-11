@@ -33,6 +33,10 @@ public interface ISecurityService {
 
 	boolean isSecured();
 
+	boolean isAuthenticated();
+
+	long getHeartbeatInterval();
+
 	IUser getCurrentUser();
 
 	boolean currentUserHasActionPermission(String permission);
