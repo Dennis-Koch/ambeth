@@ -45,11 +45,13 @@ import com.koch.ambeth.merge.cache.ICacheFactory;
 import com.koch.ambeth.merge.cache.ICacheModification;
 import com.koch.ambeth.merge.cache.IDisposableCache;
 import com.koch.ambeth.merge.cache.ValueHolderState;
+import com.koch.ambeth.merge.model.IDirectObjRef;
 import com.koch.ambeth.merge.proxy.IObjRefContainer;
 import com.koch.ambeth.service.config.ServiceConfigurationConstants;
 import com.koch.ambeth.service.merge.IEntityMetaDataProvider;
 import com.koch.ambeth.service.merge.model.IEntityMetaData;
 import com.koch.ambeth.service.merge.model.IObjRef;
+import com.koch.ambeth.service.merge.model.IObjRefType;
 import com.koch.ambeth.testutil.AbstractInformationBusTest;
 import com.koch.ambeth.testutil.TestFrameworkModule;
 import com.koch.ambeth.testutil.TestProperties;
@@ -57,6 +59,7 @@ import com.koch.ambeth.testutil.TestPropertiesList;
 import com.koch.ambeth.testutil.TestRebuildContext;
 import com.koch.ambeth.util.ReflectUtil;
 import com.koch.ambeth.util.collections.HashMap;
+import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.IMap;
 import com.koch.ambeth.util.collections.ObservableArrayList;
 import com.koch.ambeth.util.model.IDataObject;
@@ -351,6 +354,24 @@ public class ValueHolderContainerTest extends AbstractInformationBusTest {
 		obj.getEmbMat().getEmbMat2().setName2("Name2");
 		Assert.assertTrue(((IDataObject) obj).isToBeUpdated());
 		((IDataObject) obj).setToBeUpdated(false);
+	}
+
+	@Test
+	public void test_ObjRefType() {
+		Material obj = entityFactory.createEntity(Material.class);
+
+		Assert.assertTrue(obj instanceof IObjRefType);
+
+		IObjRef objRef = ((IObjRefType) obj).getObjRef();
+		Assert.assertTrue(objRef instanceof IDirectObjRef);
+		Assert.assertSame(((IDirectObjRef) objRef).getDirect(), obj);
+
+		IList<IObjRef> allObjRefs = ((IObjRefType) obj).getAllObjRefs();
+		Assert.assertEquals(0, allObjRefs.size());
+
+		IObjRef explicitPrimaryObjRef = ((IObjRefType) obj).getObjRef("Id");
+		Assert.assertTrue(explicitPrimaryObjRef instanceof IDirectObjRef);
+		Assert.assertSame(((IDirectObjRef) explicitPrimaryObjRef).getDirect(), obj);
 	}
 
 	@Test
