@@ -27,8 +27,8 @@ import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.merge.IObjRefHelper;
 import com.koch.ambeth.merge.transfer.CreateContainer;
 import com.koch.ambeth.merge.transfer.UpdateContainer;
-import com.koch.ambeth.service.metadata.Member;
 import com.koch.ambeth.util.collections.HashMap;
+import com.koch.ambeth.util.typeinfo.ITypeInfoItem;
 
 public class CommandBuilder implements ICommandBuilder {
 	@Autowired
@@ -78,7 +78,7 @@ public class CommandBuilder implements ICommandBuilder {
 			@Override
 			public IObjectCommand createCommand(ICommandTypeRegistry commandTypeRegistry,
 					IObjectFuture objectFuture, Object parent, Object[] optionals) {
-				return new ObjectSetterCommand(objectFuture, parent, (Member) optionals[0]);
+				return new ObjectSetterCommand(objectFuture, parent, (ITypeInfoItem) optionals[0]);
 			}
 		});
 	}

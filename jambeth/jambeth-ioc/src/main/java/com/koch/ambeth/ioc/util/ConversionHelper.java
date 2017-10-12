@@ -23,6 +23,7 @@ limitations under the License.
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.net.InetAddress;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -589,6 +590,9 @@ public class ConversionHelper extends IConversionHelper implements IThreadLocalC
 				if (Class.class.isAssignableFrom(sourceType)) {
 					return ((Class<?>) value).getName();
 				}
+				else if (InetAddress.class.isAssignableFrom(sourceType)) {
+					return ((InetAddress) value).getHostAddress();
+				}
 				if (additionalInformation instanceof XmlHint) {
 					if (Date.class.isAssignableFrom(sourceType)) {
 						return getISO_8601_DateFormat().format(value);
@@ -606,6 +610,16 @@ public class ConversionHelper extends IConversionHelper implements IThreadLocalC
 					Object additionalInformation) throws Exception {
 				if (CharSequence.class.isAssignableFrom(sourceType)) {
 					return value.toString().toCharArray();
+				}
+				return throwNotSupported(expectedType, sourceType, value, additionalInformation);
+			}
+		});
+		register(InetAddress.class, new IDedicatedConverter() {
+			@Override
+			public Object convertValueToType(Class<?> expectedType, Class<?> sourceType, Object value,
+					Object additionalInformation) throws Exception {
+				if (CharSequence.class.isAssignableFrom(sourceType)) {
+					return InetAddress.getByName(value.toString());
 				}
 				return throwNotSupported(expectedType, sourceType, value, additionalInformation);
 			}

@@ -121,7 +121,8 @@ public class ObjectTypeHandler extends AbstractHandler implements ITypeBasedHand
 			}
 			if (memberValue instanceof IObjectFuture) {
 				IObjectFuture objectFuture = (IObjectFuture) memberValue;
-				IObjectCommand command = commandBuilder.build(commandTypeRegistry, objectFuture, obj);
+				IObjectCommand command =
+						commandBuilder.build(commandTypeRegistry, objectFuture, obj, member);
 				reader.addObjectCommand(command);
 			}
 			else {

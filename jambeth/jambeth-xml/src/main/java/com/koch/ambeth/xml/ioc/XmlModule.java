@@ -20,7 +20,9 @@ limitations under the License.
  * #L%
  */
 
+import java.net.InetAddress;
 import java.nio.ByteBuffer;
+import java.time.Instant;
 
 import com.koch.ambeth.ioc.IInitializingModule;
 import com.koch.ambeth.ioc.annotation.FrameworkModule;
@@ -67,6 +69,8 @@ import com.koch.ambeth.xml.simple.SimpleXmlController;
 import com.koch.ambeth.xml.simple.SimpleXmlReader;
 import com.koch.ambeth.xml.simple.SimpleXmlWriter;
 import com.koch.ambeth.xml.typehandler.AbstractHandler;
+import com.koch.ambeth.xml.typehandler.InetAddressTypeHandler;
+import com.koch.ambeth.xml.typehandler.InstantTypeHandler;
 import com.koch.ambeth.xml.typehandler.NumberTypeHandler;
 import com.koch.ambeth.xml.typehandler.ObjectTypeHandler;
 
@@ -119,6 +123,17 @@ public class XmlModule implements IInitializingModule {
 				beanContextFactory.registerBean(ObjectTypeHandler.class).parent("abstractElementHandler");
 		beanContextFactory.link(objectElementHandlerBC)
 				.to(CYCLIC_XML_HANDLER, ITypeBasedHandlerExtendable.class).with(Object.class);
+
+		IBeanConfiguration instantTypeHandlerBC =
+				beanContextFactory.registerBean(InstantTypeHandler.class).parent("abstractElementHandler");
+		beanContextFactory.link(instantTypeHandlerBC)
+				.to(CYCLIC_XML_HANDLER, ITypeBasedHandlerExtendable.class).with(Instant.class);
+
+		IBeanConfiguration inetAddressTypeHandlerBC =
+				beanContextFactory.registerBean(InetAddressTypeHandler.class)
+						.parent("abstractElementHandler");
+		beanContextFactory.link(inetAddressTypeHandlerBC)
+				.to(CYCLIC_XML_HANDLER, ITypeBasedHandlerExtendable.class).with(InetAddress.class);
 
 		IBeanConfiguration objRefElementHandlerBC = beanContextFactory
 				.registerBean(ObjRefElementHandler.class).parent("abstractElementHandler");

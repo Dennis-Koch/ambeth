@@ -23,6 +23,9 @@ limitations under the License.
 import java.io.File;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.net.Inet4Address;
+import java.net.Inet6Address;
+import java.net.InetAddress;
 import java.net.URI;
 import java.net.URL;
 import java.nio.charset.Charset;
@@ -92,6 +95,10 @@ public class ImmutableTypeSet extends IImmutableTypeSet implements IImmutableTyp
 		staticImmutableTypeSet.add(YearMonth.class);
 		staticImmutableTypeSet.add(ZonedDateTime.class);
 		staticImmutableTypeSet.add(ZoneOffset.class);
+
+		staticImmutableTypeSet.add(InetAddress.class);
+		staticImmutableTypeSet.add(Inet4Address.class);
+		staticImmutableTypeSet.add(Inet6Address.class);
 	}
 
 	private final ClassExtendableContainer<Class<?>> immutableSuperTypes =
