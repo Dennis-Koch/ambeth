@@ -106,7 +106,7 @@ public class AmbethServletAspect {
 				securityContext.setAuthentication(authentication);
 			}
 			else {
-				reuseValidSessionAuthentication(securityContextHolder, httpRequest, log);
+				reuseValidSessionAuthentication(securityContextHolder, beanContext, httpRequest, log);
 			}
 			rollback = new AbstractStateRollback(rollback) {
 				@Override
@@ -118,13 +118,13 @@ public class AmbethServletAspect {
 		boolean success = false;
 		try {
 			// set the current http session
-			final IHttpSessionProvider httpSessionProvider = beanContext
+			IHttpSessionProvider httpSessionProvider = beanContext
 					.getService(IHttpSessionProvider.class, false);
 			if (httpSessionProvider != null) {
-				rollback = httpSessionProvider.pushCurrentHttpSession(session, rollback);
+				rollback = httpSessionProvider.pushCurrentHttpSession(session, httpRequest, rollback);
 			}
 			// set the current security scope
-			final ISecurityScopeProvider securityScopeProvider = beanContext
+			ISecurityScopeProvider securityScopeProvider = beanContext
 					.getService(ISecurityScopeProvider.class);
 			rollback = securityScopeProvider.pushSecurityScopes(StringSecurityScope.DEFAULT_SCOPE,
 					rollback);
@@ -157,7 +157,7 @@ public class AmbethServletAspect {
 	}
 
 	protected void reuseValidSessionAuthentication(ISecurityContextHolder securityContextHolder,
-			HttpServletRequest request, ILogger log) {
+			IServiceContext beanContext, HttpServletRequest request, ILogger log) {
 		HttpSession session = request.getSession();
 		IAuthentication authentication = (IAuthentication) session
 				.getAttribute(ATTRIBUTE_AUTHENTICATION_HANDLE);
@@ -168,7 +168,7 @@ public class AmbethServletAspect {
 		ISecurityContext securityContext = securityContextHolder.getCreateContext();
 		securityContext.setAuthentication(authentication);
 
-		Number servletAuthorizationTimeToLive = getProperty(request.getServletContext(), Number.class,
+		Number servletAuthorizationTimeToLive = getProperty(beanContext, Number.class,
 				WebServiceConfigurationConstants.SessionAuthorizationTimeToLive);
 		if (servletAuthorizationTimeToLive == null || servletAuthorizationTimeToLive.longValue() <= 0) {
 			session.removeAttribute(ATTRIBUTE_AUTHORIZATION_HANDLE);
@@ -249,19 +249,11 @@ public class AmbethServletAspect {
 	// requestInitialized => authorizationChanged => sessionDestroyed => requestDestroyed =>
 	// authorizationChanged
 
-	protected <T> T getProperty(ServletContext servletContext, Class<T> propertyType,
+	protected <T> T getProperty(IServiceContext beanContext, Class<T> propertyType,
 			String propertyName) {
-		Object value = getService(servletContext, IProperties.class).get(propertyName);
-		return getService(servletContext, IConversionHelper.class).convertValueToType(propertyType,
+		Object value = beanContext.getService(IProperties.class).get(propertyName);
+		return beanContext.getService(IConversionHelper.class).convertValueToType(propertyType,
 				value);
-	}
-
-	protected <T> T getService(ServletContext servletContext, Class<T> serviceType) {
-		return getServiceContext(servletContext).getService(serviceType);
-	}
-
-	protected <T> T getService(ServletContext servletContext, String beanName, Class<T> serviceType) {
-		return getServiceContext(servletContext).getService(beanName, serviceType);
 	}
 
 	/**

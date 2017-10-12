@@ -950,9 +950,9 @@ public class RootCache extends AbstractCache<RootCacheValue>
 
 	protected boolean isFilteringNecessary(ICacheIntern targetCache) {
 		return privilegeProvider != null && securityActive
-				&& (isPrivileged() && targetCache != null && !targetCache.isPrivileged())
-				|| (targetCache == null && securityActivation != null
-						&& securityActivation.isFilterActivated());
+				&& ((isPrivileged() && targetCache != null && !targetCache.isPrivileged())
+						|| (targetCache == null && securityActivation != null
+								&& securityActivation.isFilterActivated()));
 	}
 
 	protected IList<Object> createResult(List<IObjRef> objRefsToGet,

@@ -1,5 +1,7 @@
 package com.koch.ambeth.merge.changecontroller;
 
+import java.time.Instant;
+
 /*-
  * #%L
  * jambeth-merge
@@ -54,6 +56,8 @@ public class CacheView implements ICacheView {
 	protected final HashMap<Class<?>, Collection<?>> oldViews =
 			new HashMap<>();
 
+	protected final Instant now = Instant.now();
+
 	protected IdentityHashMap<Object, IChangeContainer> objectToChangeContainerMap;
 
 	protected ArrayList<IMergeStepPreFlushHook> mergeStepPreFlushHooks;
@@ -64,6 +68,11 @@ public class CacheView implements ICacheView {
 		this.oldObjects = oldObjects;
 		this.changes = changes;
 		this.incrementalMergeState = incrementalMergeState;
+	}
+
+	@Override
+	public Instant now() {
+		return now;
 	}
 
 	@Override

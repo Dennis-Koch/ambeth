@@ -1,5 +1,7 @@
 package com.koch.ambeth.merge.changecontroller;
 
+import java.time.Instant;
+
 /*-
  * #%L
  * jambeth-merge
@@ -31,6 +33,15 @@ import com.koch.ambeth.merge.model.IChangeContainer;
  * database.
  */
 public interface ICacheView extends IMergePipelineFinishHookExtendable {
+
+	/**
+	 * The time of start of the incremental merge process. The use of this method is that you can
+	 * assign one consistent timestamp on a "transactional" base whereas the direct use of
+	 * {@link Instant#now()} might give you slightly increasing results during a multi-step process.
+	 *
+	 * @return The time of start of the incremental merge process
+	 */
+	Instant now();
 
 	/**
 	 * Returns a list of new objects that have the given interface as type.

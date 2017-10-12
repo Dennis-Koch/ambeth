@@ -950,6 +950,10 @@ public class MergeController implements IMergeController, IMergeExtendable {
 								objRefFactory.createObjRef(metaData.getEntityType(), ObjRef.PRIMARY_KEY_INDEX, id,
 										null);
 						ICache cache = ((IObjRefContainer) entity).get__Cache();
+						if (cache == null && securityActivation.isFilterActivated()) {
+							throw new SecurityException(
+									"Entity '" + objRef + "' seems to be not readable by current user");
+						}
 						isEntityFromPrivilegedCache = cache.isPrivileged();
 					}
 					if (!(entity instanceof IDataObject) || ((IDataObject) entity).hasPendingChanges()) {

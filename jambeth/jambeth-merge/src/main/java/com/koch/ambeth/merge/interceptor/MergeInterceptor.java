@@ -45,6 +45,7 @@ import com.koch.ambeth.service.model.IServiceDescription;
 import com.koch.ambeth.service.proxy.IMethodLevelBehavior;
 import com.koch.ambeth.service.proxy.ServiceClient;
 import com.koch.ambeth.util.IConversionHelper;
+import com.koch.ambeth.util.annotation.Process;
 import com.koch.ambeth.util.annotation.Remove;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.proxy.AbstractInterceptor;
@@ -150,7 +151,7 @@ public class MergeInterceptor extends AbstractInterceptor {
 		Boolean oldProcessServiceActive = processServiceActive.get();
 		if (Boolean.TRUE.equals(oldProcessServiceActive) || processService == null
 				|| (!method.getDeclaringClass().isAnnotationPresent(ServiceClient.class)
-						&& !(annotation instanceof com.koch.ambeth.util.annotation.Process))) {
+						&& !(annotation instanceof Process))) {
 			return super.interceptApplication(obj, method, args, proxy, annotation, isAsyncBegin);
 		}
 		ISecurityScope[] securityScopes = securityScopeProvider.getSecurityScopes();
