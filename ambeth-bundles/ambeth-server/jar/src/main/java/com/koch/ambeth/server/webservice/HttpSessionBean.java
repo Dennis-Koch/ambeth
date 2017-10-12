@@ -22,6 +22,7 @@ limitations under the License.
 
 import java.lang.reflect.Method;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
 import com.koch.ambeth.ioc.IFactoryBean;
@@ -42,7 +43,7 @@ public class HttpSessionBean
 	protected IProxyFactory proxyFactory;
 
 	@Forkable
-	protected final ThreadLocal<HttpSession> httpSessionStackTL = new ThreadLocal<>();
+	protected final ThreadLocal<Object[]> httpSessionStackTL = new ThreadLocal<>();
 
 	protected Object obj;
 
@@ -56,25 +57,38 @@ public class HttpSessionBean
 		if (obj != null) {
 			return obj;
 		}
-		obj = proxyFactory.createProxy(HttpSession.class, new Class<?>[] { IHttpSessionProvider.class },
+		obj = proxyFactory.createProxy(HttpSession.class, new Class<?>[] {IHttpSessionProvider.class},
 				this);
 		return obj;
 	}
 
 	@Override
 	public HttpSession getCurrentHttpSession() {
-		return httpSessionStackTL.get();
+		Object[] entry = httpSessionStackTL.get();
+		if (entry != null) {
+			return (HttpSession) entry[0];
+		}
+		return null;
+	}
+
+	@Override
+	public HttpServletRequest getCurrentHttpRequest() {
+		Object[] entry = httpSessionStackTL.get();
+		if (entry != null) {
+			return (HttpServletRequest) entry[1];
+		}
+		return null;
 	}
 
 	@Override
 	public IStateRollback pushCurrentHttpSession(HttpSession httpSession,
-			IStateRollback... rollbacks) {
-		final HttpSession oldHttpSession = getCurrentHttpSession();
-		httpSessionStackTL.set(httpSession);
+			HttpServletRequest httpServletRequest, IStateRollback... rollbacks) {
+		final Object[] oldEntry = httpSessionStackTL.get();
+		httpSessionStackTL.set(new Object[] {httpSession, httpServletRequest});
 		return new AbstractStateRollback(rollbacks) {
 			@Override
 			protected void rollbackIntern() throws Exception {
-				httpSessionStackTL.set(oldHttpSession);
+				httpSessionStackTL.set(oldEntry);
 			}
 		};
 	}

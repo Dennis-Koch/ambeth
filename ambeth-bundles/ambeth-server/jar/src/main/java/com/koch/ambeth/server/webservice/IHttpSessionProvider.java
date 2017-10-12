@@ -1,5 +1,7 @@
 package com.koch.ambeth.server.webservice;
 
+import javax.servlet.http.HttpServletRequest;
+
 /*-
  * #%L
  * jambeth-server
@@ -27,5 +29,8 @@ import com.koch.ambeth.util.state.IStateRollback;
 public interface IHttpSessionProvider {
 	HttpSession getCurrentHttpSession();
 
-	IStateRollback pushCurrentHttpSession(HttpSession httpSession, IStateRollback... rollbacks);
+	HttpServletRequest getCurrentHttpRequest();
+
+	IStateRollback pushCurrentHttpSession(HttpSession httpSession,
+			HttpServletRequest httpServletRequest, IStateRollback... rollbacks);
 }
