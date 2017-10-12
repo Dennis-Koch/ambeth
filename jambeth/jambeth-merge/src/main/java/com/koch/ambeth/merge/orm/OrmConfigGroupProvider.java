@@ -31,6 +31,7 @@ import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.service.cache.ClearAllCachesEvent;
 import com.koch.ambeth.util.collections.HashMap;
 import com.koch.ambeth.util.collections.LinkedHashSet;
+import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.xml.IXmlConfigUtil;
 
 public class OrmConfigGroupProvider implements IOrmConfigGroupProvider {
@@ -78,22 +79,28 @@ public class OrmConfigGroupProvider implements IOrmConfigGroupProvider {
 			return ormConfigGroup;
 		}
 		Document[] docs = xmlConfigUtil.readXmlFiles(xmlFileNames);
-		IOrmConfigGroup newOrmConfigGroup = getOrmConfigGroup(docs, defaultOrmEntityTypeProvider);
-		writeLock.lock();
 		try {
-			ormConfigGroupR = xmlFileNamesConfigGroupMap.get(xmlFileNames);
-			if (ormConfigGroupR != null) {
-				ormConfigGroup = ormConfigGroupR.get();
+			IOrmConfigGroup newOrmConfigGroup = getOrmConfigGroup(docs, defaultOrmEntityTypeProvider);
+			writeLock.lock();
+			try {
+				ormConfigGroupR = xmlFileNamesConfigGroupMap.get(xmlFileNames);
+				if (ormConfigGroupR != null) {
+					ormConfigGroup = ormConfigGroupR.get();
+				}
+				if (ormConfigGroup == null) {
+					xmlFileNamesConfigGroupMap.put(xmlFileNames,
+							new WeakReference<>(newOrmConfigGroup));
+					ormConfigGroup = newOrmConfigGroup;
+				}
+				return ormConfigGroup;
 			}
-			if (ormConfigGroup == null) {
-				xmlFileNamesConfigGroupMap.put(xmlFileNames,
-						new WeakReference<>(newOrmConfigGroup));
-				ormConfigGroup = newOrmConfigGroup;
+			finally {
+				writeLock.unlock();
 			}
-			return ormConfigGroup;
 		}
-		finally {
-			writeLock.unlock();
+		catch (Throwable e) {
+			throw RuntimeExceptionUtil.mask(e,
+					"Error occured while trying to process the files '" + xmlFileNames + "'");
 		}
 	}
 
