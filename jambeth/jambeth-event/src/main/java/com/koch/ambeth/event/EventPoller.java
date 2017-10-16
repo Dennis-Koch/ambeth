@@ -88,6 +88,7 @@ public class EventPoller implements IEventPoller, IOfflineListener, IStartingBea
 			stopRequested = true;
 			pauseRequested = false;
 			iterationId++;
+			writeLock.notifyAll();
 			if (thread != null) {
 				thread.interrupt();
 			}
@@ -100,18 +101,25 @@ public class EventPoller implements IEventPoller, IOfflineListener, IStartingBea
 			@Override
 			public void run() {
 				try {
-					long currentServerSession = eventService.getCurrentServerSession();
-					long currentEventSequence = eventService.getCurrentEventSequence();
+					Long currentServerSession = null;
+					Long currentEventSequence = null;
 
 					IParamHolder<Boolean> errorOccured = new ParamHolder<>();
-					while (!stopRequested && stackIterationId == iterationId) {
+					loop: while (!stopRequested && stackIterationId == iterationId) {
 						try {
 							synchronized (writeLock) {
-								while (pauseRequested && !stopRequested) {
+								while (pauseRequested) {
 									if (stopRequested) {
-										break;
+										break loop;
 									}
+									writeLock.wait();
 								}
+							}
+							if (currentServerSession == null) {
+								currentServerSession = eventService.getCurrentServerSession();
+							}
+							if (currentEventSequence == null) {
+								currentEventSequence = eventService.getCurrentEventSequence();
 							}
 							currentEventSequence = tryPolling(currentServerSession, currentEventSequence,
 									errorOccured);
@@ -161,7 +169,7 @@ public class EventPoller implements IEventPoller, IOfflineListener, IStartingBea
 			errorOccured.setValue(Boolean.FALSE);
 		}
 		catch (Exception e) {
-			if (stopRequested) {
+			if (pauseRequested || stopRequested) {
 				return -1;
 			}
 			if (log.isErrorEnabled()) {
@@ -227,6 +235,7 @@ public class EventPoller implements IEventPoller, IOfflineListener, IStartingBea
 				log.info("Polling resumed");
 			}
 			pauseRequested = false;
+			writeLock.notifyAll();
 		}
 	}
 

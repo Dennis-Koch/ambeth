@@ -527,9 +527,9 @@ public class RESTClientInterceptor extends AbstractSimpleInterceptor
 		if (userName == null && password == null) {
 			return;
 		}
-		String authInfo = userName + ":" + password; // userName + ":" +
-																									// Encryption.Encrypt(.password;//TODO
-																									// Encryption.encrypt(password);
+		String authInfo = userName.trim() + ":" + password; // userName + ":" +
+		// Encryption.Encrypt(.password;//TODO
+		// Encryption.encrypt(password);
 		authInfo = Base64.encodeBytes(authInfo.getBytes("UTF-8"));
 		request.setHeader("Authorization", "Basic " + authInfo);
 	}
