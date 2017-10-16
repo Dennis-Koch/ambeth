@@ -9,7 +9,11 @@ public interface IPasswordUtil {
 
 	void assignNewPassword(char[] clearTextPassword, IUser user, char[] oldClearTextPassword);
 
+	void assignNewPassword(IPassword password, IUser user);
+
 	char[] assignNewRandomPassword(IUser user, char[] oldClearTextPassword);
+
+	byte[] createRandomPassword();
 
 	byte[] hashClearTextPassword(char[] clearTextPassword, IPassword password);
 
@@ -18,6 +22,9 @@ public interface IPasswordUtil {
 	void rehashPassword(char[] clearTextPassword, IPassword existingPassword);
 
 	void reencryptAllSalts(char[] newLoginSaltPassword);
+
+	void encryptPassword(char[] newClearTextPassword, IPassword password,
+			boolean assignNewChangeAfter);
 
 	IStateRollback pushSuppressPasswordValidation(IStateRollback... rollbacks);
 

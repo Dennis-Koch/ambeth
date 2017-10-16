@@ -435,7 +435,13 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil,
 		}
 		IPassword newEmptyPassword = entityFactory.createEntity(IPassword.class);
 		fillPassword(clearTextPassword, oldClearTextPassword, newEmptyPassword, user, true);
-		setNewPasswordIntern(user, newEmptyPassword);
+		assignNewPassword(newEmptyPassword, user);
+	}
+
+	@Override
+	public byte[] createRandomPassword() {
+		// we use the secure salt implementation as our random "clearTextPassword"
+		return secureRandom.acquireRandomBytes(generatedPasswordLength);
 	}
 
 	@Override
@@ -444,9 +450,7 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil,
 		List<IPassword> passwordHistory = buildPasswordHistory(user);
 		char[] newClearTextPassword = null;
 		while (true) {
-			// we use the secure salt implementation as our random "clearTextPassword"
-			newClearTextPassword = Base64
-					.encodeBytes(secureRandom.acquireRandomBytes(generatedPasswordLength)).toCharArray();
+			newClearTextPassword = Base64.encodeBytes(createRandomPassword()).toCharArray();
 
 			if (!isPasswordUsedInHistory(newClearTextPassword, passwordHistory)) {
 				break;
@@ -454,12 +458,13 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil,
 		}
 		IPassword newEmptyPassword = entityFactory.createEntity(IPassword.class);
 		fillPassword(newClearTextPassword, oldClearTextPassword, newEmptyPassword, user, true);
-		setNewPasswordIntern(user, newEmptyPassword);
+		assignNewPassword(newEmptyPassword, user);
 		return newClearTextPassword;
 	}
 
 	@SuppressWarnings({"rawtypes", "unchecked"})
-	protected void setNewPasswordIntern(IUser user, IPassword password) {
+	@Override
+	public void assignNewPassword(IPassword password, IUser user) {
 		IPassword existingPassword = user.getPassword();
 		user.setPassword(password);
 		IEntityMetaData passwordMetaData = ((IEntityMetaDataHolder) password).get__EntityMetaData();
@@ -540,8 +545,9 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil,
 		}
 	}
 
-	protected void fillPassword(char[] newClearTextPassword, char[] oldClearTextPassword,
-			IPassword password, IUser user, boolean assignNewChangeAfter) {
+	@Override
+	public void encryptPassword(char[] newClearTextPassword, IPassword password,
+			boolean assignNewChangeAfter) {
 		if (assignNewChangeAfter) {
 			Calendar changeAfter = Calendar.getInstance();
 			changeAfter.add(Calendar.DAY_OF_MONTH, generatedPasswordLifetimeInDays);
@@ -560,9 +566,15 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil,
 		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
+	}
+
+	protected void fillPassword(char[] newClearTextPassword, char[] oldClearTextPassword,
+			IPassword password, IUser user, boolean assignNewChangeAfter) {
+		encryptPassword(newClearTextPassword, password, assignNewChangeAfter);
 		if (user == null) {
 			return;
 		}
+		String sid = userIdentifierProvider.getSID(user);
 		if (oldClearTextPassword == null) {
 			if (userIdentifierProvider == null) {
 				throw new IllegalStateException(
@@ -570,7 +582,6 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil,
 								+ " found to create a new signature due to password change");
 			}
 			String currentSid = authenticatedUserHolder.getAuthenticatedSID();
-			String sid = userIdentifierProvider.getSID(user);
 			if (currentSid != null && currentSid.equals(sid)) {
 				IAuthentication authentication = securityContextHolder.getContext().getAuthentication();
 				oldClearTextPassword = authentication.getPassword();
@@ -605,17 +616,13 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil,
 		}
 		ISecurityContext context = securityContextHolder.getContext();
 		IAuthorization authorization = context != null ? context.getAuthorization() : null;
-		if (authorization != null) {
+		if (authorization != null && authorization.getSID().equals(sid)) {
 			// check whether we changed our own current authentication and refresh this information
 			// this is due to the fact that the usage of the newly generated signature with the newly
-			// assigned password
-			// can only be decrypted if the current authentication contains this newly assigned password
-			// from now on
-			String sid = userIdentifierProvider.getSID(user);
-			if (authorization.getSID().equals(sid)) {
-				context.setAuthentication(new DefaultAuthentication(
-						context.getAuthentication().getUserName(), newClearTextPassword, PasswordType.PLAIN));
-			}
+			// assigned password can only be decrypted if the current authentication contains this newly
+			// assigned password from now on
+			context.setAuthentication(new DefaultAuthentication(
+					context.getAuthentication().getUserName(), newClearTextPassword, PasswordType.PLAIN));
 		}
 	}
 

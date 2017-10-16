@@ -9,11 +9,12 @@ import com.koch.ambeth.security.IAuthentication;
 import com.koch.ambeth.security.IAuthenticationManager;
 import com.koch.ambeth.security.IAuthenticationResult;
 import com.koch.ambeth.security.IAuthorization;
+import com.koch.ambeth.security.IAuthorizationExceptionFactory;
 import com.koch.ambeth.security.IAuthorizationManager;
+import com.koch.ambeth.security.IAuthorizationProcess;
 import com.koch.ambeth.security.ISecurityContext;
 import com.koch.ambeth.security.ISecurityContextHolder;
 import com.koch.ambeth.security.ISidHelper;
-import com.koch.ambeth.security.events.AuthorizationMissingEvent;
 import com.koch.ambeth.security.exceptions.AuthenticationMissingException;
 import com.koch.ambeth.security.exceptions.InvalidUserException;
 import com.koch.ambeth.security.exceptions.PasswordChangeRequiredException;
@@ -21,8 +22,6 @@ import com.koch.ambeth.service.model.ISecurityScope;
 
 public class AuthorizationProcess implements IAuthorizationProcess {
 	private static final ThreadLocal<Boolean> ignoreInvalidUserTL = new ThreadLocal<>();
-
-	public static final String HANDLE_AUTHORIZATION_MSSING = "handleAuthorizationMissing";
 
 	public static boolean setIgnoreInvalidUser(boolean value) {
 		Boolean oldValue = ignoreInvalidUserTL.get();
@@ -107,6 +106,41 @@ public class AuthorizationProcess implements IAuthorizationProcess {
 		}
 	}
 
+	@Override
+	public boolean tryAuthorization() {
+		if (!securityActivation.isSecured()) {
+			return true;
+		}
+		ISecurityContext securityContext = securityContextHolder.getContext();
+		if (securityContext == null) {
+			return false;
+		}
+		IAuthentication authentication = securityContext.getAuthentication();
+		IAuthorization previousAuthorization = securityContext.getAuthorization();
+		ISecurityScope[] previousSecurityScopes = null;
+		boolean success = false;
+		try {
+			IAuthorization authorization = previousAuthorization != null ? previousAuthorization
+					: createAuthorization(authentication);
+			if (authorization == null
+					|| (!Boolean.TRUE.equals(ignoreInvalidUserTL.get()) && !authorization.isValid())) {
+				return false;
+			}
+			securityContext.setAuthorization(authorization);
+			return true;
+		}
+		finally {
+			if (!success) {
+				if (securityContext != null) {
+					securityContext.setAuthorization(previousAuthorization);
+				}
+				if (previousSecurityScopes != null) {
+					securityScopeProvider.setSecurityScopes(previousSecurityScopes);
+				}
+			}
+		}
+	}
+
 	protected IAuthorization createAuthorization(IAuthentication authentication) {
 		IAuthorization authorization = null;
 
@@ -130,9 +164,5 @@ public class AuthorizationProcess implements IAuthorizationProcess {
 			databaseSid = null;
 		}
 		return authorization;
-	}
-
-	public void handleAuthorizationMissing(AuthorizationMissingEvent evnt) {
-		ensureAuthorization();
 	}
 }

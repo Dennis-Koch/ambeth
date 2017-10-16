@@ -30,12 +30,11 @@ import com.koch.ambeth.merge.IMergeSecurityManager;
 import com.koch.ambeth.merge.config.MergeConfigurationConstants;
 import com.koch.ambeth.security.IActionPermission;
 import com.koch.ambeth.security.IAuthenticationManager;
+import com.koch.ambeth.security.IAuthorizationProcess;
 import com.koch.ambeth.security.ISecurityManager;
 import com.koch.ambeth.security.IServiceFilterExtendable;
-import com.koch.ambeth.security.events.AuthorizationMissingEvent;
 import com.koch.ambeth.security.server.AuthorizationProcess;
 import com.koch.ambeth.security.server.DefaultServiceFilter;
-import com.koch.ambeth.security.server.IAuthorizationProcess;
 import com.koch.ambeth.security.server.IPBEncryptor;
 import com.koch.ambeth.security.server.IPasswordUtil;
 import com.koch.ambeth.security.server.IPasswordValidationExtendable;
@@ -65,26 +64,27 @@ public class SecurityServerModule implements IInitializingModule {
 	@Property(name = MergeConfigurationConstants.SecurityActive, defaultValue = "false")
 	protected boolean isSecurityActive;
 
-	@Property(name = SecurityServerConfigurationConstants.AuthenticationManagerType, mandatory = false)
+	@Property(name = SecurityServerConfigurationConstants.AuthenticationManagerType,
+			mandatory = false)
 	protected Class<?> authenticationManagerType;
 
 	@Override
 	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
 		beanContextFactory.registerBean(PasswordUtil.class).autowireable(IPasswordUtil.class,
 				IPasswordValidationExtendable.class);
+
 		beanContextFactory.registerBean(PBEncryptor.class).autowireable(IPBEncryptor.class);
+
 		beanContextFactory.registerBean(SignatureUtil.class).autowireable(ISignatureUtil.class);
+
 		beanContextFactory.registerBean(PersistedPrivateKeyProvider.class)
 				.autowireable(IPrivateKeyProvider.class);
 
 		beanContextFactory.registerBean(OnDemandSecureRandom.class).autowireable(ISecureRandom.class);
 
 		if (isSecurityActive) {
-			IBeanConfiguration authorizationProcess = beanContextFactory
-					.registerBean(AuthorizationProcess.class).autowireable(IAuthorizationProcess.class);
-			beanContextFactory
-					.link(authorizationProcess, AuthorizationProcess.HANDLE_AUTHORIZATION_MSSING)
-					.to(IEventListenerExtendable.class).with(AuthorizationMissingEvent.class);
+			beanContextFactory.registerBean(AuthorizationProcess.class)
+					.autowireable(IAuthorizationProcess.class);
 
 			beanContextFactory.registerBean(SecurityPostProcessor.class);
 
