@@ -205,6 +205,9 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 		try {
 			for (int a = loadedMetaData.size(); a-- > 0;) {
 				IEntityMetaData missingMetaDataItem = loadedMetaData.get(a);
+				if (missingMetaDataItem == null) {
+					continue;
+				}
 				Class<?> entityType = missingMetaDataItem.getEntityType();
 				IEntityMetaData existingMetaData = getExtensionHardKey(entityType);
 				if (existingMetaData != null && existingMetaData != alreadyHandled) {
@@ -218,6 +221,9 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 			}
 			for (int a = loadedMetaData.size(); a-- > 0;) {
 				IEntityMetaData missingMetaDataItem = loadedMetaData.get(a);
+				if (missingMetaDataItem == null) {
+					continue;
+				}
 				for (RelationMember relationMember : missingMetaDataItem.getRelationMembers()) {
 					Class<?> relationMemberType = relationMember.getElementType();
 					if (!containsKey(relationMemberType)) {
