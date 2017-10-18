@@ -237,7 +237,8 @@ public class AmbethServletAspect {
 		}
 		PasswordType passwordTypeEnum = passwordType != null ? PasswordType.valueOf(passwordType)
 				: PasswordType.PLAIN;
-		return new DefaultAuthentication(userName, userPass != null ? userPass.toCharArray() : null,
+		return new DefaultAuthentication(userName.trim(),
+				userPass != null ? userPass.toCharArray() : null,
 				passwordTypeEnum);
 	}
 

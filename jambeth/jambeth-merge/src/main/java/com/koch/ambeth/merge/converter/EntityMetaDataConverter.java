@@ -25,6 +25,8 @@ import java.util.Map;
 import java.util.regex.Pattern;
 
 import com.koch.ambeth.ioc.annotation.Autowired;
+import com.koch.ambeth.log.ILogger;
+import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.IEntityFactory;
 import com.koch.ambeth.merge.IProxyHelper;
 import com.koch.ambeth.merge.cache.ICacheModification;
@@ -44,6 +46,9 @@ public class EntityMetaDataConverter implements IDedicatedConverter {
 	private static final String[] EMPTY_STRINGS = new String[0];
 
 	protected static final Pattern memberPathSplitPattern = Pattern.compile("\\.");
+
+	@LogInstance
+	private ILogger log;
 
 	@Autowired
 	protected ICacheModification cacheModification;
@@ -103,6 +108,14 @@ public class EntityMetaDataConverter implements IDedicatedConverter {
 
 			EntityMetaData target = new EntityMetaData();
 			Class<?> entityType = source.getEntityType();
+
+			if (entityType == null) {
+				// entity class is not known in the current class loader
+				if (log.isDebugEnabled()) {
+					log.debug("Received metadata for an unknown entity type");
+				}
+				return null;
+			}
 			Class<?> realType = proxyHelper.getRealType(entityType);
 			target.setEntityType(entityType);
 			target.setRealType(realType);

@@ -325,6 +325,9 @@ public class ValueHolderIEC extends SmartCopyMap<Class<?>, Class<?>>
 
 	@Override
 	public Class<?> getRealType(Class<?> type) {
+		if (type == null) {
+			return null;
+		}
 		Class<?> realType = get(type);
 		if (realType != null) {
 			return realType;

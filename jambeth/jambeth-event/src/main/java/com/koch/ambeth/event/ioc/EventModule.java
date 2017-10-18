@@ -27,6 +27,7 @@ import com.koch.ambeth.event.IEventBatcherExtendable;
 import com.koch.ambeth.event.IEventDispatcher;
 import com.koch.ambeth.event.IEventListener;
 import com.koch.ambeth.event.IEventListenerExtendable;
+import com.koch.ambeth.event.IEventPoller;
 import com.koch.ambeth.event.IEventQueue;
 import com.koch.ambeth.event.IEventTargetExtractorExtendable;
 import com.koch.ambeth.event.IEventTargetListenerExtendable;
@@ -34,6 +35,7 @@ import com.koch.ambeth.event.config.EventConfigurationConstants;
 import com.koch.ambeth.event.service.IEventService;
 import com.koch.ambeth.ioc.IInitializingModule;
 import com.koch.ambeth.ioc.annotation.FrameworkModule;
+import com.koch.ambeth.ioc.config.IBeanConfiguration;
 import com.koch.ambeth.ioc.config.Property;
 import com.koch.ambeth.ioc.factory.IBeanContextFactory;
 import com.koch.ambeth.log.ILogger;
@@ -70,8 +72,9 @@ public class EventModule implements IInitializingModule {
 					.autowireable(IEventService.class);
 
 			if (isPollingActive) {
-				beanContextFactory.registerBean("eventPoller", EventPoller.class);
-				beanContextFactory.link("eventPoller").to(IOfflineListenerExtendable.class);
+				IBeanConfiguration eventPoller =
+						beanContextFactory.registerBean(EventPoller.class).autowireable(IEventPoller.class);
+				beanContextFactory.link(eventPoller).to(IOfflineListenerExtendable.class);
 			}
 			else {
 				if (log.isInfoEnabled()) {

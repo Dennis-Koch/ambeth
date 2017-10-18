@@ -1,6 +1,8 @@
 package com.koch.ambeth.security.server;
 
 import com.koch.ambeth.ioc.annotation.Autowired;
+import com.koch.ambeth.ioc.config.IocConfigurationConstants;
+import com.koch.ambeth.ioc.config.Property;
 import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.security.ISecurityActivation;
@@ -19,6 +21,7 @@ import com.koch.ambeth.security.exceptions.AuthenticationMissingException;
 import com.koch.ambeth.security.exceptions.InvalidUserException;
 import com.koch.ambeth.security.exceptions.PasswordChangeRequiredException;
 import com.koch.ambeth.service.model.ISecurityScope;
+import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
 public class AuthorizationProcess implements IAuthorizationProcess {
 	private static final ThreadLocal<Boolean> ignoreInvalidUserTL = new ThreadLocal<>();
@@ -58,51 +61,67 @@ public class AuthorizationProcess implements IAuthorizationProcess {
 	@Autowired
 	protected IAuthorizationManager authorizationManager;
 
+	@Property(name = IocConfigurationConstants.DebugModeActive, defaultValue = "false")
+	protected boolean debugModeActive;
+
 	@Override
 	public void ensureAuthorization() {
 		if (!securityActivation.isSecured()) {
 			return;
 		}
-		ISecurityContext securityContext = securityContextHolder.getContext();
-		if (securityContext == null) {
-			throw new AuthenticationMissingException();
-		}
-		IAuthentication authentication = securityContext.getAuthentication();
-		IAuthorization previousAuthorization = securityContext.getAuthorization();
-		ISecurityScope[] previousSecurityScopes = null;
-		boolean success = false;
 		try {
-			IAuthorization authorization = previousAuthorization != null ? previousAuthorization
-					: createAuthorization(authentication);
-			if (authorization == null
-					|| (!Boolean.TRUE.equals(ignoreInvalidUserTL.get()) && !authorization.isValid())) {
-				if (authorizationExceptionFactory != null) {
-					RuntimeException authorizationException = authorizationExceptionFactory
-							.createAuthorizationException(authentication, authorization);
-					if (authorizationException != null) {
-						throw authorizationException;
+			ISecurityContext securityContext = securityContextHolder.getContext();
+			if (securityContext == null) {
+				throw new AuthenticationMissingException();
+			}
+			IAuthentication authentication = securityContext.getAuthentication();
+			IAuthorization previousAuthorization = securityContext.getAuthorization();
+			ISecurityScope[] previousSecurityScopes = null;
+			boolean success = false;
+			try {
+				IAuthorization authorization = previousAuthorization != null ? previousAuthorization
+						: createAuthorization(authentication);
+				if (authorization == null
+						|| (!Boolean.TRUE.equals(ignoreInvalidUserTL.get()) && !authorization.isValid())) {
+					if (authorizationExceptionFactory != null) {
+						RuntimeException authorizationException = authorizationExceptionFactory
+								.createAuthorizationException(authentication, authorization);
+						if (authorizationException != null) {
+							throw authorizationException;
+						}
+					}
+					String userName = authentication != null ? authentication.getUserName() : null;
+					String sid = authorization != null ? authorization.getSID() : null;
+
+					if (userName == null && sid == null) {
+						throw new AuthenticationMissingException();
+					}
+					throw new InvalidUserException(
+							"User '" + (sid != null ? sid : userName) + "' is not a valid user.");
+				}
+				if (authorization.isValid()
+						&& authorization.getAuthenticationResult().isChangePasswordRequired()) {
+					throw new PasswordChangeRequiredException();
+				}
+				securityContext.setAuthorization(authorization);
+				success = true;
+			}
+			finally {
+				if (!success) {
+					if (securityContext != null) {
+						securityContext.setAuthorization(previousAuthorization);
+					}
+					if (previousSecurityScopes != null) {
+						securityScopeProvider.setSecurityScopes(previousSecurityScopes);
 					}
 				}
-				String userName = authentication != null ? authentication.getUserName() : null;
-				String sid = authorization != null ? authorization.getSID() : null;
-
-				if (userName == null && sid == null) {
-					throw new AuthenticationMissingException();
-				}
-				throw new InvalidUserException(sid != null ? sid : userName);
 			}
-			securityContext.setAuthorization(authorization);
-			success = true;
 		}
-		finally {
-			if (!success) {
-				if (securityContext != null) {
-					securityContext.setAuthorization(previousAuthorization);
-				}
-				if (previousSecurityScopes != null) {
-					securityScopeProvider.setSecurityScopes(previousSecurityScopes);
-				}
+		catch (RuntimeException e) {
+			if (!debugModeActive) {
+				e.setStackTrace(RuntimeExceptionUtil.EMPTY_STACK_TRACE);
 			}
+			throw e;
 		}
 	}
 
@@ -142,27 +161,15 @@ public class AuthorizationProcess implements IAuthorizationProcess {
 	}
 
 	protected IAuthorization createAuthorization(IAuthentication authentication) {
-		IAuthorization authorization = null;
-
-		String sid = null;
-		final String databaseSid;
-		if (authentication != null) {
-			IAuthenticationResult authenticationResult = authenticationManager
-					.authenticate(authentication);
-
-			if (authenticationResult.isChangePasswordRequired()) {
-				throw new PasswordChangeRequiredException();
-			}
-			sid = authenticationResult.getSID();
-			databaseSid = sidHelper != null ? sidHelper.convertOperatingSystemSidToFrameworkSid(sid)
-					: sid;
-
-			authorization = authorizationManager.authorize(databaseSid,
-					securityScopeProvider.getSecurityScopes(), authenticationResult);
+		if (authentication == null) {
+			return null;
 		}
-		else {
-			databaseSid = null;
-		}
-		return authorization;
+		IAuthenticationResult authenticationResult = authenticationManager
+				.authenticate(authentication);
+		String sid = authenticationResult.getSID();
+		String databaseSid = sidHelper != null ? sidHelper.convertOperatingSystemSidToFrameworkSid(sid)
+				: sid;
+		return authorizationManager.authorize(databaseSid, securityScopeProvider.getSecurityScopes(),
+				authenticationResult);
 	}
 }
