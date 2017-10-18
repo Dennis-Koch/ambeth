@@ -23,6 +23,7 @@ limitations under the License.
 import java.net.InetAddress;
 import java.nio.ByteBuffer;
 import java.time.Instant;
+import java.util.regex.Pattern;
 
 import com.koch.ambeth.ioc.IInitializingModule;
 import com.koch.ambeth.ioc.annotation.FrameworkModule;
@@ -73,6 +74,7 @@ import com.koch.ambeth.xml.typehandler.InetAddressTypeHandler;
 import com.koch.ambeth.xml.typehandler.InstantTypeHandler;
 import com.koch.ambeth.xml.typehandler.NumberTypeHandler;
 import com.koch.ambeth.xml.typehandler.ObjectTypeHandler;
+import com.koch.ambeth.xml.typehandler.PatternTypeHandler;
 
 @FrameworkModule
 public class XmlModule implements IInitializingModule {
@@ -128,6 +130,11 @@ public class XmlModule implements IInitializingModule {
 				beanContextFactory.registerBean(InstantTypeHandler.class).parent("abstractElementHandler");
 		beanContextFactory.link(instantTypeHandlerBC)
 				.to(CYCLIC_XML_HANDLER, ITypeBasedHandlerExtendable.class).with(Instant.class);
+
+		IBeanConfiguration patternTypeHandlerBC =
+				beanContextFactory.registerBean(PatternTypeHandler.class).parent("abstractElementHandler");
+		beanContextFactory.link(patternTypeHandlerBC)
+				.to(CYCLIC_XML_HANDLER, ITypeBasedHandlerExtendable.class).with(Pattern.class);
 
 		IBeanConfiguration inetAddressTypeHandlerBC =
 				beanContextFactory.registerBean(InetAddressTypeHandler.class)
