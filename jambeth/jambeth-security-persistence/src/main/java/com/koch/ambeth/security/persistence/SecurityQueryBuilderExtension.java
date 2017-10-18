@@ -24,7 +24,6 @@ import java.util.List;
 
 import javax.persistence.criteria.JoinType;
 
-import com.koch.ambeth.event.IEventDispatcher;
 import com.koch.ambeth.ioc.IServiceContext;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.config.Property;
@@ -40,19 +39,19 @@ import com.koch.ambeth.query.ISqlJoin;
 import com.koch.ambeth.query.QueryType;
 import com.koch.ambeth.security.IAuthentication;
 import com.koch.ambeth.security.IAuthorization;
+import com.koch.ambeth.security.IAuthorizationProcess;
 import com.koch.ambeth.security.ISecurityContext;
 import com.koch.ambeth.security.ISecurityContextHolder;
-import com.koch.ambeth.security.events.AuthorizationMissingEvent;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.IMap;
 
 public class SecurityQueryBuilderExtension implements IQueryBuilderExtension {
-	@Autowired
-	protected IDatabaseMetaData databaseMetaData;
+	@Autowired(optional = true)
+	protected IAuthorizationProcess authorizationProcess;
 
 	@Autowired
-	protected IEventDispatcher eventDispatcher;
+	protected IDatabaseMetaData databaseMetaData;
 
 	@Autowired
 	protected ISecurityActivation securityActivation;
@@ -159,8 +158,10 @@ public class SecurityQueryBuilderExtension implements IQueryBuilderExtension {
 				throw new IllegalStateException(
 						"Security activated but no authentication available at all");
 			}
-			eventDispatcher.dispatchEvent(AuthorizationMissingEvent.getInstance());
-			authorization = context.getAuthorization();
+			if (authorizationProcess != null) {
+				authorizationProcess.ensureAuthorization();
+				authorization = context.getAuthorization();
+			}
 			if (authorization == null) {
 				throw new IllegalStateException(
 						"Should never happen. Security activated but no verified authentication active");

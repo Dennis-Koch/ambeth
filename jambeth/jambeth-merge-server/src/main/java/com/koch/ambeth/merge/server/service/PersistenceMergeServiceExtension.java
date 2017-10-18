@@ -89,8 +89,6 @@ import com.koch.ambeth.persistence.api.IPrimaryKeyProvider;
 import com.koch.ambeth.persistence.api.ITable;
 import com.koch.ambeth.persistence.api.ITableMetaData;
 import com.koch.ambeth.persistence.parallel.IModifyingDatabase;
-import com.koch.ambeth.security.SecurityContext;
-import com.koch.ambeth.security.SecurityContextType;
 import com.koch.ambeth.service.merge.IEntityMetaDataProvider;
 import com.koch.ambeth.service.merge.IValueObjectConfig;
 import com.koch.ambeth.service.merge.model.IEntityMetaData;
@@ -119,7 +117,6 @@ import com.koch.ambeth.util.state.IStateRollback;
 import com.koch.ambeth.util.threading.IBackgroundWorkerDelegate;
 import com.koch.ambeth.util.threading.IBackgroundWorkerParamDelegate;
 
-@SecurityContext(SecurityContextType.AUTHENTICATED)
 @PersistenceContext(PersistenceContextType.REQUIRED)
 public class PersistenceMergeServiceExtension implements IMergeServiceExtension {
 	public class ReverseRelationRunnable implements IBackgroundWorkerDelegate {

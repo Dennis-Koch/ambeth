@@ -2,8 +2,6 @@ package com.koch.ambeth.security;
 
 import java.lang.reflect.Method;
 
-import com.koch.ambeth.event.IEventDispatcher;
-
 /*-
  * #%L
  * jambeth-security
@@ -33,7 +31,6 @@ import com.koch.ambeth.ioc.threadlocal.IThreadLocalCleanupBean;
 import com.koch.ambeth.merge.config.MergeConfigurationConstants;
 import com.koch.ambeth.merge.security.ILightweightSecurityContext;
 import com.koch.ambeth.merge.security.ISecurityActivation;
-import com.koch.ambeth.security.events.AuthorizationMissingEvent;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.state.AbstractStateRollback;
 import com.koch.ambeth.util.state.IStateRollback;
@@ -72,10 +69,10 @@ public class SecurityContextHolder implements IAuthorizationChangeListenerExtend
 	protected IAuthenticatedUserHolder authenticatedUserHolder;
 
 	@Autowired(optional = true)
-	protected ISecurityContextProvider securityContextProvider;
+	protected IAuthorizationProcess authorizationProcess;
 
-	@Autowired
-	protected IEventDispatcher eventDispatcher;
+	@Autowired(optional = true)
+	protected ISecurityContextProvider securityContextProvider;
 
 	@Autowired
 	protected ISecurityActivation securityActivation;
@@ -305,9 +302,11 @@ public class SecurityContextHolder implements IAuthorizationChangeListenerExtend
 			}
 			return null;
 		}
-		eventDispatcher.dispatchEvent(AuthorizationMissingEvent.getInstance());
-		securityContext = getContext();
-		authorization = securityContext != null ? securityContext.getAuthorization() : null;
+		if (authorizationProcess != null) {
+			authorizationProcess.ensureAuthorization();
+			securityContext = getContext();
+			authorization = securityContext != null ? securityContext.getAuthorization() : null;
+		}
 		if (authorization == null || !authorization.isValid()) {
 			throw new SecurityException("Authorization invalid");
 		}

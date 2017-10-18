@@ -32,6 +32,7 @@ import com.koch.ambeth.merge.security.ISecurityScopeProvider;
 import com.koch.ambeth.security.DefaultAuthentication;
 import com.koch.ambeth.security.IAuthentication;
 import com.koch.ambeth.security.IAuthorization;
+import com.koch.ambeth.security.IAuthorizationProcess;
 import com.koch.ambeth.security.ISecurityContext;
 import com.koch.ambeth.security.ISecurityContextHolder;
 import com.koch.ambeth.security.ISecurityManager;
