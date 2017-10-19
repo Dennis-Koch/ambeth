@@ -39,6 +39,8 @@ import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.config.Property;
 import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
+import com.koch.ambeth.merge.IDeepScanRecursion.EntityDelegate;
+import com.koch.ambeth.merge.IDeepScanRecursion.Proceed;
 import com.koch.ambeth.merge.cache.ICache;
 import com.koch.ambeth.merge.cache.ICacheFactory;
 import com.koch.ambeth.merge.model.ICUDResult;
@@ -88,6 +90,9 @@ public class MergeProcess implements IMergeProcess {
 
 	@Autowired
 	protected ICacheFactory cacheFactory;
+
+	@Autowired
+	protected IDeepScanRecursion deepScanRecursion;
 
 	@Autowired
 	protected IEventDispatcher eventDispatcher;
@@ -219,9 +224,18 @@ public class MergeProcess implements IMergeProcess {
 		removeUnpersistedDeletedObjectsFromCudResult(cudResult.getAllChanges(),
 				cudResult.getOriginalRefs(), unpersistedObjectsToDelete);
 		if (objectToDelete != null) {
-			IList<IObjRef> oriList = oriHelper.extractObjRefList(objectToDelete, mergeHandle);
+			final ArrayList<Object> extractedObjectToDelete = new ArrayList<>();
+			deepScanRecursion.handleDeep(objectToDelete, new EntityDelegate() {
+				@Override
+				public boolean visitEntity(Object entity, Proceed proceed) {
+					extractedObjectToDelete.add(entity);
+					return true;
+				}
+			});
 
-			appendDeleteContainers(objectToDelete, oriList, cudResult.getAllChanges(),
+			IList<IObjRef> oriList = oriHelper.extractObjRefList(extractedObjectToDelete, mergeHandle);
+
+			appendDeleteContainers(extractedObjectToDelete, oriList, cudResult.getAllChanges(),
 					cudResult.getOriginalRefs(), unpersistedObjectsToDelete);
 		}
 
