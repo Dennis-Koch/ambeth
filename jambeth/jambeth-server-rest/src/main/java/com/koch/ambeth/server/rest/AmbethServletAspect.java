@@ -47,7 +47,7 @@ public class AmbethServletAspect {
 	protected static final Pattern basicPattern = Pattern.compile("Basic *(.+) *",
 			Pattern.CASE_INSENSITIVE);
 
-	protected static final Pattern pattern = Pattern.compile("(.+) *\\: *(.*)?");
+	protected static final Pattern pattern = Pattern.compile(" *(.+) *\\:(.*)?");
 
 	protected IServiceContext beanContext;
 
@@ -90,33 +90,32 @@ public class AmbethServletAspect {
 				AmbethServletAspect.class);
 
 		IStateRollback rollback = NoOpStateRollback.instance;
-		final ISecurityContextHolder securityContextHolder = beanContext
-				.getService(ISecurityContextHolder.class, false);
-		if (securityContextHolder == null) {
-			if (log.isInfoEnabled()) {
-				ILoggerHistory loggerHistory = beanContext.getService(ILoggerHistory.class);
-				loggerHistory.infoOnce(log, this,
-						"No security context holder available. Skip creating security Context!");
-			}
-		}
-		else {
-			if (authentication != null) {
-				session.setAttribute(ATTRIBUTE_AUTHENTICATION_HANDLE, authentication);
-				ISecurityContext securityContext = securityContextHolder.getCreateContext();
-				securityContext.setAuthentication(authentication);
-			}
-			else {
-				reuseValidSessionAuthentication(securityContextHolder, beanContext, httpRequest, log);
-			}
-			rollback = new AbstractStateRollback(rollback) {
-				@Override
-				protected void rollbackIntern() throws Exception {
-					securityContextHolder.clearContext();
-				}
-			};
-		}
 		boolean success = false;
 		try {
+			final ISecurityContextHolder securityContextHolder = beanContext
+					.getService(ISecurityContextHolder.class, false);
+			if (securityContextHolder == null) {
+				if (log.isInfoEnabled()) {
+					ILoggerHistory loggerHistory = beanContext.getService(ILoggerHistory.class);
+					loggerHistory.infoOnce(log, this,
+							"No security context holder available. Skip creating security context!");
+				}
+			}
+			else {
+				if (authentication != null) {
+					ISecurityContext securityContext = securityContextHolder.getCreateContext();
+					securityContext.setAuthentication(authentication);
+				}
+				else {
+					reuseValidSessionAuthentication(securityContextHolder, beanContext, httpRequest, log);
+				}
+				rollback = new AbstractStateRollback(rollback) {
+					@Override
+					protected void rollbackIntern() throws Exception {
+						securityContextHolder.clearContext();
+					}
+				};
+			}
 			// set the current http session
 			IHttpSessionProvider httpSessionProvider = beanContext
 					.getService(IHttpSessionProvider.class, false);
