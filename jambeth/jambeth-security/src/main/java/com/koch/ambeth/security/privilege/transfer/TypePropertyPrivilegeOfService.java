@@ -76,9 +76,9 @@ public final class TypePropertyPrivilegeOfService
 
 	public static ITypePropertyPrivilegeOfService createFromSerialized(String value) {
 		Boolean read = read3Valued(value, 0, 'R');
-		Boolean create = read3Valued(value, 0, 'C');
-		Boolean update = read3Valued(value, 0, 'U');
-		Boolean delete = read3Valued(value, 0, 'D');
+		Boolean create = read3Valued(value, 2, 'C');
+		Boolean update = read3Valued(value, 4, 'U');
+		Boolean delete = read3Valued(value, 6, 'D');
 		return create(create, read, update, delete);
 	}
 

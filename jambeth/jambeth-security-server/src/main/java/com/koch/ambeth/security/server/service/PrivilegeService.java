@@ -541,7 +541,7 @@ public class PrivilegeService implements IPrivilegeService, IEntityPermissionRul
 		if (authorizationProcess == null) {
 			return null;
 		}
-		authorizationProcess.ensureAuthorization();
+		authorizationProcess.tryAuthorization();
 		securityContext = securityContextHolder.getContext();
 		return securityContext != null ? securityContext.getAuthorization() : null;
 	}

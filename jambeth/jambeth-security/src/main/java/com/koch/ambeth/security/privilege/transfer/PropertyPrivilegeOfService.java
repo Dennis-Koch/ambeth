@@ -68,6 +68,29 @@ public final class PropertyPrivilegeOfService implements IPropertyPrivilegeOfSer
 		return array[index];
 	}
 
+	public static IPropertyPrivilegeOfService createFromSerialized(String value) {
+		boolean read = read2Valued(value, 0, 'R');
+		boolean create = read2Valued(value, 2, 'C');
+		boolean update = read2Valued(value, 4, 'U');
+		boolean delete = read2Valued(value, 6, 'D');
+		return create(create, read, update, delete);
+	}
+
+	private static boolean read2Valued(String value, int index, char c) {
+		if (value.length() <= index + 1 || value.charAt(index + 1) != c) {
+			throw new IllegalArgumentException(
+					"Expected '" + c + "' at index " + index + " in serialized content '" + value + "'");
+		}
+		if (value.charAt(index) == '+') {
+			return Boolean.TRUE;
+		}
+		if (value.charAt(index) == '-') {
+			return Boolean.FALSE;
+		}
+		throw new IllegalArgumentException("Expected either '+' or '-' at index " + index
+				+ " in serialized content '" + value + "'");
+	}
+
 	private final boolean create;
 	private final boolean read;
 	private final boolean update;
@@ -131,5 +154,9 @@ public final class PropertyPrivilegeOfService implements IPropertyPrivilegeOfSer
 		sb.append(isCreateAllowed() ? "+C" : "-C");
 		sb.append(isUpdateAllowed() ? "+U" : "-U");
 		sb.append(isDeleteAllowed() ? "+D" : "-D");
+	}
+
+	public String toSerializedString() {
+		return toString();
 	}
 }
