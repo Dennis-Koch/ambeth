@@ -21,6 +21,7 @@ limitations under the License.
  */
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.koch.ambeth.event.config.EventConfigurationConstants;
 import com.koch.ambeth.event.events.EventSessionChanged;
@@ -35,10 +36,10 @@ import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.service.IOfflineListener;
 import com.koch.ambeth.util.IClassLoaderProvider;
-import com.koch.ambeth.util.IParamHolder;
-import com.koch.ambeth.util.ParamHolder;
+import com.koch.ambeth.util.collections.specialized.PropertyChangeSupport;
 
-public class EventPoller implements IEventPoller, IOfflineListener, IStartingBean, IDisposableBean {
+public class EventPoller extends PropertyChangeSupport
+		implements IEventPoller, IOfflineListener, IStartingBean, IDisposableBean {
 	@LogInstance
 	private ILogger log;
 
@@ -66,9 +67,11 @@ public class EventPoller implements IEventPoller, IOfflineListener, IStartingBea
 
 	protected volatile boolean pauseRequested = false;
 
-	protected int iterationId = 1;
+	protected volatile int iterationId = 1;
 
-	private Thread thread;
+	private volatile Thread thread;
+
+	private volatile boolean connected;
 
 	@Override
 	public void afterStarted() throws Throwable {
@@ -89,6 +92,7 @@ public class EventPoller implements IEventPoller, IOfflineListener, IStartingBea
 			pauseRequested = false;
 			iterationId++;
 			writeLock.notifyAll();
+			Thread thread = this.thread;
 			if (thread != null) {
 				thread.interrupt();
 			}
@@ -100,11 +104,14 @@ public class EventPoller implements IEventPoller, IOfflineListener, IStartingBea
 		thread = new Thread(new Runnable() {
 			@Override
 			public void run() {
+				if (thread == Thread.currentThread()) {
+					firePropertyChange(this, P_ACTIVE, false, true);
+				}
 				try {
-					Long currentServerSession = null;
-					Long currentEventSequence = null;
+					long currentServerSession = 0;
+					long currentEventSequence = 0;
 
-					IParamHolder<Boolean> errorOccured = new ParamHolder<>();
+					AtomicBoolean errorOccured = new AtomicBoolean();
 					loop: while (!stopRequested && stackIterationId == iterationId) {
 						try {
 							synchronized (writeLock) {
@@ -115,18 +122,23 @@ public class EventPoller implements IEventPoller, IOfflineListener, IStartingBea
 									writeLock.wait();
 								}
 							}
-							if (currentServerSession == null) {
+							if (currentServerSession == 0) {
 								currentServerSession = eventService.getCurrentServerSession();
+								if (thread == Thread.currentThread()) {
+									setConnected(true);
+								}
 							}
-							if (currentEventSequence == null) {
+							if (currentEventSequence == 0) {
 								currentEventSequence = eventService.getCurrentEventSequence();
+								setConnected(true);
 							}
 							currentEventSequence = tryPolling(currentServerSession, currentEventSequence,
 									errorOccured);
 							if (stopRequested) {
 								break;
 							}
-							if (errorOccured.getValue().booleanValue()) {
+							if (errorOccured.get()) {
+								setConnected(false);
 								long sleepTime = Math.max(5000, pollSleepInterval);
 								if (log.isDebugEnabled()) {
 									log.debug("Error occured. Sleeping for at least " + sleepTime + "ms");
@@ -152,6 +164,12 @@ public class EventPoller implements IEventPoller, IOfflineListener, IStartingBea
 						}
 					}
 				}
+				finally {
+					if (thread == Thread.currentThread()) {
+						setConnected(false);
+						firePropertyChange(this, P_ACTIVE, true, false);
+					}
+				}
 			}
 		});
 		thread.setContextClassLoader(classLoaderProvider.getClassLoader());
@@ -161,12 +179,12 @@ public class EventPoller implements IEventPoller, IOfflineListener, IStartingBea
 	}
 
 	protected long tryPolling(long currentServerSession, long currentEventSequence,
-			IParamHolder<Boolean> errorOccured) {
-		errorOccured.setValue(Boolean.TRUE);
+			AtomicBoolean errorOccured) {
+		errorOccured.set(true);
 		List<IEventItem> events = null;
 		try {
 			events = eventService.pollEvents(currentServerSession, currentEventSequence, maxWaitInterval);
-			errorOccured.setValue(Boolean.FALSE);
+			errorOccured.set(false);
 		}
 		catch (Exception e) {
 			if (pauseRequested || stopRequested) {
@@ -267,5 +285,25 @@ public class EventPoller implements IEventPoller, IOfflineListener, IStartingBea
 	@Override
 	public void endOffline() {
 		startPolling();
+	}
+
+	@Override
+	public boolean isActive() {
+		Thread thread = this.thread;
+		return thread != null && thread.isAlive();
+	}
+
+	@Override
+	public boolean isConnected() {
+		return connected;
+	}
+
+	protected void setConnected(boolean connected) {
+		boolean oldConnected = this.connected;
+		if (oldConnected == connected) {
+			return;
+		}
+		this.connected = connected;
+		firePropertyChange(this, P_CONNECTED, oldConnected, connected);
 	}
 }

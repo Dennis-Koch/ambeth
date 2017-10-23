@@ -1,5 +1,9 @@
 package com.koch.ambeth.event;
 
+import java.beans.Introspector;
+
+import com.koch.ambeth.util.model.INotifyPropertyChanged;
+
 /*-
  * #%L
  * jambeth-event
@@ -20,7 +24,15 @@ limitations under the License.
  * #L%
  */
 
-public interface IEventPoller {
+public interface IEventPoller extends INotifyPropertyChanged {
+	String P_ACTIVE = Introspector.decapitalize("Active");
+
+	String P_CONNECTED = Introspector.decapitalize("Connected");
+
+	boolean isActive();
+
+	boolean isConnected();
+
 	void pausePolling();
 
 	void resumePolling();
