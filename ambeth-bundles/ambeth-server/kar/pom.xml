@@ -149,6 +149,11 @@
 
 		<dependency>
 			<groupId>com.koch.ambeth</groupId>
+			<artifactId>jambeth-security-xml</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>com.koch.ambeth</groupId>
 			<artifactId>jambeth-sensor</artifactId>
 		</dependency>
 
