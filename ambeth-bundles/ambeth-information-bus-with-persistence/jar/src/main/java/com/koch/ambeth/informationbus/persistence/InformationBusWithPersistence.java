@@ -36,8 +36,10 @@ import com.koch.ambeth.query.jdbc.ioc.QueryJdbcModule;
 import com.koch.ambeth.security.persistence.ioc.SecurityQueryModule;
 import com.koch.ambeth.security.server.ioc.PrivilegeServerModule;
 import com.koch.ambeth.security.server.ioc.SecurityServerModule;
+import com.koch.ambeth.security.xml.SecurityXmlModule;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
+import com.koch.ambeth.xml.ioc.XmlModule;
 
 @SuppressWarnings("unchecked")
 public class InformationBusWithPersistence implements IBundleModule {
@@ -45,7 +47,8 @@ public class InformationBusWithPersistence implements IBundleModule {
 			DialectSelectorModule.class, EventServerModule.class, FilterPersistenceModule.class,
 			MergeServerModule.class, PersistenceJdbcModule.class, PersistenceModule.class,
 			PrivilegeServerModule.class, QueryModule.class, QueryJdbcModule.class,
-			SecurityQueryModule.class, SecurityServerModule.class};
+			SecurityQueryModule.class, SecurityServerModule.class, SecurityXmlModule.class,
+			XmlModule.class};
 
 	private static final Class<?>[] parentBundles = {InformationBus.class};
 

@@ -26,6 +26,11 @@
 		</dependency>
 
 		<dependency>
+			<groupId>com.koch.ambeth</groupId>
+			<artifactId>jambeth-security-xml</artifactId>
+		</dependency>
+
+		<dependency>
 			<groupId>javax.servlet</groupId>
 			<artifactId>javax.servlet-api</artifactId>
 		</dependency>

@@ -103,6 +103,7 @@
 						<source>com.koch.ambeth:jambeth-security-bytecode:jar:${project.version}</source>
 						<source>com.koch.ambeth:jambeth-security-persistence:jar:${project.version}</source>
 						<source>com.koch.ambeth:jambeth-security-server:jar:${project.version}</source>
+						<source>com.koch.ambeth:jambeth-security-xml:jar:${project.version}</source>
 						<source>com.koch.ambeth:jambeth-sensor:jar:${project.version}</source>
 						<source>com.koch.ambeth:jambeth-service:jar:${project.version}</source>
 						<source>com.koch.ambeth:jambeth-service-rest:jar:${project.version}</source>

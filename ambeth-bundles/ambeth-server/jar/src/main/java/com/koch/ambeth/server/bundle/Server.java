@@ -25,6 +25,7 @@ import com.koch.ambeth.informationbus.InformationBus;
 import com.koch.ambeth.ioc.IInitializingModule;
 import com.koch.ambeth.security.server.ioc.PrivilegeServerModule;
 import com.koch.ambeth.security.server.ioc.SecurityServerModule;
+import com.koch.ambeth.security.xml.SecurityXmlModule;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.xml.ioc.XmlModule;
@@ -32,7 +33,8 @@ import com.koch.ambeth.xml.ioc.XmlModule;
 @SuppressWarnings("unchecked")
 public class Server implements IBundleModule {
 	private static final Class<?>[] bundleModules =
-			{PrivilegeServerModule.class, SecurityServerModule.class, XmlModule.class};
+			{PrivilegeServerModule.class, SecurityServerModule.class, SecurityXmlModule.class,
+					XmlModule.class};
 
 	private static final Class<?>[] parentBundles = {InformationBus.class};
 
