@@ -28,4 +28,6 @@ public interface ICheckPasswordResult {
 	boolean isChangePasswordRequired();
 
 	boolean isRehashPasswordRecommended();
+
+	boolean isAccountingActive();
 }

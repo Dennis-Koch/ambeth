@@ -58,11 +58,12 @@ public class CacheDataChangeModule implements IInitializingModule {
 		beanContextFactory.link(serviceResultCacheDCL).to(IEventListenerExtendable.class)
 				.with(IDataChange.class);
 
-		beanContextFactory.registerBean(CacheModule.CACHE_DATA_CHANGE_LISTENER,
-				CacheDataChangeListener.class);
+		IBeanConfiguration cacheDataChangeListener =
+				beanContextFactory.registerBean(CacheModule.CACHE_DATA_CHANGE_LISTENER,
+						CacheDataChangeListener.class);
 
-		beanContextFactory.link(CacheModule.CACHE_DATA_CHANGE_LISTENER)
-				.to(IEventTargetListenerExtendable.class).with(IDataChange.class);
+		beanContextFactory.link(cacheDataChangeListener).to(IEventTargetListenerExtendable.class)
+				.with(IDataChange.class);
 
 		IBeanConfiguration dataChangeEventBatcher =
 				beanContextFactory.registerBean(DataChangeEventBatcher.class);

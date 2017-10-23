@@ -21,6 +21,7 @@ limitations under the License.
  */
 
 import com.koch.ambeth.datachange.model.IDataChange;
+import com.koch.ambeth.datachange.model.IPostDataChange;
 import com.koch.ambeth.event.IEventListener;
 import com.koch.ambeth.ioc.IDisposableBean;
 
@@ -52,11 +53,13 @@ public class UnfilteredDataChangeListener
 	}
 
 	@Override
-	public void handleEvent(Object eventObject, long dispatchTime, long sequenceId) {
-		if (!(eventObject instanceof IDataChange)) {
-			return;
+	public final void handleEvent(Object eventObject, long dispatchTime, long sequenceId) {
+		if (eventObject instanceof IPostDataChange) {
+			eventObject = ((IPostDataChange) eventObject).getDataChange();
 		}
-		dataChanged((IDataChange) eventObject, dispatchTime, sequenceId);
+		if (eventObject instanceof IDataChange) {
+			dataChanged((IDataChange) eventObject, dispatchTime, sequenceId);
+		}
 	}
 
 	@Override

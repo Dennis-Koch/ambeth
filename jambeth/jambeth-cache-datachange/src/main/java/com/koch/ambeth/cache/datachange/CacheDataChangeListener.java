@@ -36,6 +36,7 @@ import com.koch.ambeth.cache.transfer.ObjRelation;
 import com.koch.ambeth.datachange.model.DirectDataChangeEntry;
 import com.koch.ambeth.datachange.model.IDataChange;
 import com.koch.ambeth.datachange.model.IDataChangeEntry;
+import com.koch.ambeth.datachange.model.PostDataChange;
 import com.koch.ambeth.datachange.transfer.DataChangeEvent;
 import com.koch.ambeth.event.IEventDispatcher;
 import com.koch.ambeth.event.IEventListener;
@@ -143,12 +144,14 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
 							@Override
 							public void invoke(IProcessResumeItem processResumeItem) throws Exception {
 								dataChangedIntern(dataChange, pausedEventTargets, processResumeItem, rootNode);
+								eventDispatcher.dispatchEvent(new PostDataChange(dataChange));
 							}
 						}, null);
 				return;
 			}
 		}
 		dataChangedIntern(dataChange, pausedEventTargets, null, rootNode);
+		eventDispatcher.dispatchEvent(new PostDataChange(dataChange));
 	}
 
 	protected IdentityHashSet<Object> buildCollisionSet(CacheDependencyNode node) {

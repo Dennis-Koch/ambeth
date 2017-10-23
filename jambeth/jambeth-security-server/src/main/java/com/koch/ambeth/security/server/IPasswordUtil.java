@@ -29,4 +29,6 @@ public interface IPasswordUtil {
 	IStateRollback pushSuppressPasswordValidation(IStateRollback... rollbacks);
 
 	IStateRollback pushSuppressPasswordChangeRequired(IStateRollback... rollbacks);
+
+	IStateRollback pushSuppressAccounting(IStateRollback... rollbacks);
 }

@@ -213,6 +213,9 @@ public class EventServiceREST extends AbstractServiceREST implements IEventListe
 	@Override
 	public void handleEvent(Object eventObject, long dispatchTime, long sequenceId) throws Exception {
 		List<IBackgroundWorkerDelegate> clients = consumePendingRequests(true);
+		if (clients.isEmpty()) {
+			return;
+		}
 		executor.execute(new NotifyRequestsRunnable(clients));
 	}
 

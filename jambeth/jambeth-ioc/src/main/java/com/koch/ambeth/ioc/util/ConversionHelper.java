@@ -503,6 +503,11 @@ public class ConversionHelper extends IConversionHelper implements IThreadLocalC
 					c.setTime((Date) value);
 					return c;
 				}
+				else if (Number.class.isAssignableFrom(sourceType)) {
+					GregorianCalendar c = new GregorianCalendar();
+					c.setTimeInMillis(((Number) value).longValue());
+					return c;
+				}
 				return throwNotSupported(expectedType, sourceType, value, additionalInformation);
 			}
 		});

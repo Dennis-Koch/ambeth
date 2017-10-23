@@ -26,15 +26,15 @@ public class AuthenticationResult implements IAuthenticationResult {
 
 	private final boolean changePasswordRecommended, changePasswordRequired;
 
-	private final boolean rehashPasswordRecommended;
+	private final boolean rehashPasswordRecommended, accountingActive;
 
 	public AuthenticationResult(String sid, boolean changePasswordRecommended,
-			boolean changePasswordRequired,
-			boolean rehashPasswordRecommended) {
+			boolean changePasswordRequired, boolean rehashPasswordRecommended, boolean accountingActive) {
 		this.sid = sid;
 		this.changePasswordRecommended = changePasswordRecommended;
 		this.changePasswordRequired = changePasswordRequired;
 		this.rehashPasswordRecommended = rehashPasswordRecommended;
+		this.accountingActive = accountingActive;
 	}
 
 	@Override
@@ -55,5 +55,10 @@ public class AuthenticationResult implements IAuthenticationResult {
 	@Override
 	public boolean isRehashPasswordRecommended() {
 		return rehashPasswordRecommended;
+	}
+
+	@Override
+	public boolean isAccountingActive() {
+		return accountingActive;
 	}
 }

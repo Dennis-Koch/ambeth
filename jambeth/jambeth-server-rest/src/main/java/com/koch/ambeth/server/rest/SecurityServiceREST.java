@@ -170,6 +170,7 @@ public class SecurityServiceREST extends AbstractServiceREST {
 
 			IPasswordUtil passwordUtil = getService(IPasswordUtil.class);
 			rollback = passwordUtil.pushSuppressPasswordChangeRequired(rollback);
+			rollback = passwordUtil.pushSuppressAccounting(rollback);
 			IUser currentUser = getService(ICurrentUserProvider.class).getCurrentUser();
 			passwordUtil.validatePassword(newCleartextPassword, currentUser);
 			return createResult(true, request, response);

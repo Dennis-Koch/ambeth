@@ -1,10 +1,12 @@
 package com.koch.ambeth.security.server;
 
+import com.koch.ambeth.event.IEventDispatcher;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.config.IocConfigurationConstants;
 import com.koch.ambeth.ioc.config.Property;
 import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
+import com.koch.ambeth.merge.ILightweightTransaction;
 import com.koch.ambeth.merge.security.ISecurityActivation;
 import com.koch.ambeth.merge.security.ISecurityScopeProvider;
 import com.koch.ambeth.security.IAuthentication;
@@ -17,6 +19,7 @@ import com.koch.ambeth.security.IAuthorizationProcess;
 import com.koch.ambeth.security.ISecurityContext;
 import com.koch.ambeth.security.ISecurityContextHolder;
 import com.koch.ambeth.security.ISidHelper;
+import com.koch.ambeth.security.events.UserAuthenticatedEvent;
 import com.koch.ambeth.security.exceptions.AuthenticationMissingException;
 import com.koch.ambeth.security.exceptions.InvalidUserException;
 import com.koch.ambeth.security.exceptions.PasswordChangeRequiredException;
@@ -47,6 +50,12 @@ public class AuthorizationProcess implements IAuthorizationProcess {
 	protected IAuthorizationExceptionFactory authorizationExceptionFactory;
 
 	@Autowired
+	protected IAuthorizationManager authorizationManager;
+
+	@Autowired
+	protected IEventDispatcher eventDispatcher;
+
+	@Autowired
 	protected ISecurityActivation securityActivation;
 
 	@Autowired
@@ -58,8 +67,8 @@ public class AuthorizationProcess implements IAuthorizationProcess {
 	@Autowired(optional = true)
 	protected ISidHelper sidHelper;
 
-	@Autowired
-	protected IAuthorizationManager authorizationManager;
+	@Autowired(optional = true)
+	protected ILightweightTransaction transaction;
 
 	@Property(name = IocConfigurationConstants.DebugModeActive, defaultValue = "false")
 	protected boolean debugModeActive;
@@ -105,6 +114,7 @@ public class AuthorizationProcess implements IAuthorizationProcess {
 				}
 				securityContext.setAuthorization(authorization);
 				success = true;
+				eventDispatcher.dispatchEvent(new UserAuthenticatedEvent(authorization));
 			}
 			finally {
 				if (!success) {
@@ -146,6 +156,8 @@ public class AuthorizationProcess implements IAuthorizationProcess {
 				return false;
 			}
 			securityContext.setAuthorization(authorization);
+			success = true;
+			eventDispatcher.dispatchEvent(new UserAuthenticatedEvent(authorization));
 			return true;
 		}
 		finally {
@@ -160,15 +172,15 @@ public class AuthorizationProcess implements IAuthorizationProcess {
 		}
 	}
 
-	protected IAuthorization createAuthorization(IAuthentication authentication) {
+	protected IAuthorization createAuthorization(final IAuthentication authentication) {
 		if (authentication == null) {
 			return null;
 		}
-		IAuthenticationResult authenticationResult = authenticationManager
-				.authenticate(authentication);
+		IAuthenticationResult authenticationResult = authenticationManager.authenticate(authentication);
 		String sid = authenticationResult.getSID();
 		String databaseSid = sidHelper != null ? sidHelper.convertOperatingSystemSidToFrameworkSid(sid)
 				: sid;
+
 		return authorizationManager.authorize(databaseSid, securityScopeProvider.getSecurityScopes(),
 				authenticationResult);
 	}

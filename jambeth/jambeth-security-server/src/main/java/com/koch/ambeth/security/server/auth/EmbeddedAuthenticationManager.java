@@ -99,7 +99,8 @@ public class EmbeddedAuthenticationManager extends AbstractAuthenticationManager
 			}
 			String sid = userIdentifierProvider.getSID(user);
 			return new AuthenticationResult(sid, checkPasswordResult.isChangePasswordRecommended(),
-					checkPasswordResult.isChangePasswordRequired(), rehashRecommended);
+					checkPasswordResult.isChangePasswordRequired(), rehashRecommended,
+					checkPasswordResult.isAccountingActive());
 		}
 		catch (Exception e) {
 			throw RuntimeExceptionUtil.mask(e);

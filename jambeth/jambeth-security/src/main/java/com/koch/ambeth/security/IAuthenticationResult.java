@@ -1,5 +1,7 @@
 package com.koch.ambeth.security;
 
+import com.koch.ambeth.util.IImmutableType;
+
 /*-
  * #%L
  * jambeth-security
@@ -25,7 +27,7 @@ limitations under the License.
  * This result is used as a further information to execute the authorization step with the
  * {@link IAuthorizationManager}.
  */
-public interface IAuthenticationResult {
+public interface IAuthenticationResult extends IImmutableType {
 	String getSID();
 
 	boolean isChangePasswordRecommended();
@@ -33,4 +35,6 @@ public interface IAuthenticationResult {
 	boolean isChangePasswordRequired();
 
 	boolean isRehashPasswordRecommended();
+
+	boolean isAccountingActive();
 }

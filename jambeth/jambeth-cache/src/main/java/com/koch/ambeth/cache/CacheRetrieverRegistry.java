@@ -266,6 +266,9 @@ public class CacheRetrieverRegistry implements ICacheRetriever, ICacheRetrieverE
 					@Override
 					public void aggregateResult(List<ILoadContainer> resultOfFork,
 							Entry<ICacheRetriever, IList<IObjRef>> itemOfFork) {
+						if (resultOfFork == null) {
+							return;
+						}
 						for (int a = 0, size = resultOfFork.size(); a < size; a++) {
 							ILoadContainer partItem = resultOfFork.get(a);
 							result.add(partItem);

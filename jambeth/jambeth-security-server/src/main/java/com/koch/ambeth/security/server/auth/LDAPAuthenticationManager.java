@@ -121,7 +121,7 @@ public class LDAPAuthenticationManager extends AbstractAuthenticationManager {
 		Map<String, Object> map = result.get(0);
 		Object nameValue = map.get(userPrincipalName);
 		final String sid = (String) nameValue;
-		return new AuthenticationResult(sid, false, false, false);
+		return new AuthenticationResult(sid, false, false, false, true);
 	}
 
 	@Override

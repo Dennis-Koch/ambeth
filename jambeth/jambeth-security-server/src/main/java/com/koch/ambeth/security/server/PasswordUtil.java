@@ -171,6 +171,8 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil,
 
 	protected final ThreadLocal<Boolean> suppressPasswordChangeRequiredTL = new ThreadLocal<>();
 
+	protected final ThreadLocal<Boolean> suppressAccountingTL = new ThreadLocal<>();
+
 	@Override
 	public void afterPropertiesSet() throws Throwable {
 		ParamChecker.assertTrue(iterationCount > 0,
@@ -247,6 +249,21 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil,
 		};
 	}
 
+	@Override
+	public IStateRollback pushSuppressAccounting(IStateRollback... rollbacks) {
+		final Boolean oldValue = suppressAccountingTL.get();
+		if (Boolean.TRUE.equals(oldValue)) {
+			return NoOpStateRollback.createNoOpRollback(rollbacks);
+		}
+		suppressAccountingTL.set(Boolean.TRUE);
+		return new AbstractStateRollback(rollbacks) {
+			@Override
+			protected void rollbackIntern() throws Exception {
+				suppressAccountingTL.set(oldValue);
+			}
+		};
+	}
+
 	protected RuntimeException createIllegalPasswordException(String message) {
 		PasswordConstraintException e = new PasswordConstraintException(
 				message);
@@ -266,14 +283,16 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil,
 				log.info("The given hash of the current authentication is: '" + givenPasswordString
 						+ "'. Expected hash: '" + expectedPasswordString + "'");
 			}
-			return new CheckPasswordResult(false, false, false, false);
+			return new CheckPasswordResult(false, false, false, false, false);
 		}
 		// password is correct. now check if we should rehash the password on-the-fly to ensure
 		// long-term security
 		boolean changeRecommended = isChangeRecommended(password);
 		boolean changeRequired = isChangeRequired(password);
 		boolean rehashRecommended = isRehashRecommended(password);
-		return new CheckPasswordResult(true, changeRecommended, changeRequired, rehashRecommended);
+		boolean accountingActive = isAccountingActive(password);
+		return new CheckPasswordResult(true, changeRecommended, changeRequired, rehashRecommended,
+				accountingActive);
 	}
 
 	@Override
@@ -352,6 +371,10 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil,
 		}
 		Calendar changeAfter = password.getChangeAfter();
 		return changeAfter != null && Calendar.getInstance().after(changeAfter);
+	}
+
+	protected boolean isAccountingActive(IPassword password) {
+		return !Boolean.TRUE.equals(suppressAccountingTL.get());
 	}
 
 	protected boolean isRehashRecommended(IPassword password) {
