@@ -52,6 +52,8 @@ import com.koch.ambeth.merge.util.IPrefetchHandle;
 import com.koch.ambeth.merge.util.IPrefetchHelper;
 import com.koch.ambeth.merge.util.IPrefetchState;
 import com.koch.ambeth.security.IAuthorization;
+import com.koch.ambeth.security.IAuthorizationProcess;
+import com.koch.ambeth.security.ISecurityContext;
 import com.koch.ambeth.security.ISecurityContextHolder;
 import com.koch.ambeth.security.SecurityContext;
 import com.koch.ambeth.security.SecurityContextType;
@@ -134,6 +136,9 @@ public class PrivilegeService implements IPrivilegeService, IEntityPermissionRul
 	protected final ClassExtendableListContainer<IEntityTypePermissionRule> entityTypePermissionRules =
 			new ClassExtendableListContainer<>(
 					"entityTypePermissionRule", "entityType");
+
+	@Autowired(optional = true)
+	protected IAuthorizationProcess authorizationProcess;
 
 	@Autowired
 	protected ICache cache;
@@ -283,6 +288,7 @@ public class PrivilegeService implements IPrivilegeService, IEntityPermissionRul
 		try {
 			IStateRollback rollback = cacheContext.pushCache(cacheProviderForSecurityChecks);
 			try {
+				getAuthorization();
 				rollback = securityActivation.pushWithoutSecurity(rollback);
 				return getPrivilegesIntern(objRefs, securityScopes);
 			}
@@ -305,6 +311,7 @@ public class PrivilegeService implements IPrivilegeService, IEntityPermissionRul
 		try {
 			IStateRollback rollback = cacheContext.pushCache(cacheProviderForSecurityChecks);
 			try {
+				getAuthorization();
 				rollback = securityActivation.pushWithoutSecurity(rollback);
 				return getPrivilegesOfTypesIntern(entityTypes, securityScopes);
 			}
@@ -419,7 +426,7 @@ public class PrivilegeService implements IPrivilegeService, IEntityPermissionRul
 		}
 		ArrayList<IPrivilegeOfService> privilegeResults = new ArrayList<>();
 
-		IAuthorization authorization = securityContextHolder.getCreateContext().getAuthorization();
+		IAuthorization authorization = getAuthorization();
 		EntityPermissionEvaluation pe = new EntityPermissionEvaluation(securityScopes,
 				isDefaultCreatePrivilege, isDefaultReadPrivilege, isDefaultUpdatePrivilege,
 				isDefaultDeletePrivilege, isDefaultExecutePrivilege, isDefaultCreatePropertyPrivilege,
@@ -524,11 +531,26 @@ public class PrivilegeService implements IPrivilegeService, IEntityPermissionRul
 		log.debug(sb);
 	}
 
+	protected IAuthorization getAuthorization() {
+		ISecurityContext securityContext = securityContextHolder.getContext();
+		IAuthorization authorization =
+				securityContext != null ? securityContext.getAuthorization() : null;
+		if (authorization != null) {
+			return authorization;
+		}
+		if (authorizationProcess == null) {
+			return null;
+		}
+		authorizationProcess.ensureAuthorization();
+		securityContext = securityContextHolder.getContext();
+		return securityContext != null ? securityContext.getAuthorization() : null;
+	}
+
 	List<ITypePrivilegeOfService> getPrivilegesOfTypesIntern(Class<?>[] entityTypes,
 			ISecurityScope[] securityScopes) {
 		ArrayList<ITypePrivilegeOfService> privilegeResults = new ArrayList<>();
 
-		IAuthorization authorization = securityContextHolder.getCreateContext().getAuthorization();
+		IAuthorization authorization = getAuthorization();
 		EntityPermissionEvaluation pe = new EntityPermissionEvaluation(securityScopes,
 				isDefaultCreatePrivilege, isDefaultReadPrivilege, isDefaultUpdatePrivilege,
 				isDefaultDeletePrivilege, isDefaultExecutePrivilege, isDefaultCreatePropertyPrivilege,

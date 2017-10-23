@@ -72,6 +72,7 @@
 		<module>jambeth-security-job</module>
 		<module>jambeth-security-persistence</module>
 		<module>jambeth-security-server</module>
+		<module>jambeth-security-xml</module>
 		<module>jambeth-sensor</module>
 		<module>jambeth-server-helloworld</module>
 		<module>jambeth-server-rest</module>
@@ -455,6 +456,12 @@
 			<dependency>
 				<groupId>com.koch.ambeth</groupId>
 				<artifactId>jambeth-security-server</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>com.koch.ambeth</groupId>
+				<artifactId>jambeth-security-xml</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 

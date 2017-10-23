@@ -434,9 +434,6 @@ public class PrivilegeProvider
 			ISecurityScope[] securityScopes) {
 		ISecurityContext context = securityContextHolder.getContext();
 		IAuthorization authorization = context != null ? context.getAuthorization() : null;
-		if (authorization == null) {
-			throw new SecurityException("User must be authorized to be able to check for privileges");
-		}
 		if (securityScopes.length == 0) {
 			throw new IllegalArgumentException(
 					"No " + ISecurityScope.class.getSimpleName() + " provided to check privileges against");
@@ -458,7 +455,7 @@ public class PrivilegeProvider
 			throw new SecurityException("No bean of type " + IPrivilegeService.class.getName()
 					+ " could be injected. Privilege functionality is deactivated. The current operation is not supported");
 		}
-		String userSID = authorization.getSID();
+		String userSID = authorization != null ? authorization.getSID() : null;
 		List<ITypePrivilegeOfService> privilegeResults = privilegeService
 				.getPrivilegesOfTypes(missingEntityTypes.toArray(Class.class), securityScopes);
 		writeLock.lock();
@@ -543,7 +540,7 @@ public class PrivilegeProvider
 			ISecurityScope[] securityScopes, List<Class<?>> missingEntityTypes,
 			IAuthorization authorization) {
 		ITypePrivilege[] result = new ITypePrivilege[entityTypes.size()];
-		String userSID = authorization.getSID();
+		String userSID = authorization != null ? authorization.getSID() : null;
 
 		for (int index = entityTypes.size(); index-- > 0;) {
 			Class<?> entityType = entityTypes.get(index);
@@ -576,7 +573,7 @@ public class PrivilegeProvider
 			}
 			result[index] = mergedTypePrivilege;
 		}
-		return new TypePrivilegeResult(authorization.getSID(), result);
+		return new TypePrivilegeResult(userSID, result);
 	}
 
 	public void handleClearAllCaches(ClearAllCachesEvent evnt) {

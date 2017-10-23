@@ -45,6 +45,23 @@ public abstract class AbstractPrivilege
 		return value ? 1 << startingBit : 0;
 	}
 
+	public static Boolean parse3ValueFlag(char value, char trueChar, char falseChar) {
+		if (value == trueChar) {
+			return Boolean.TRUE;
+		}
+		if (value == falseChar) {
+			return Boolean.FALSE;
+		}
+		return null;
+	}
+
+	public static boolean parseFlag(char value, char trueChar, char falseChar) {
+		if (value == trueChar) {
+			return true;
+		}
+		return false;
+	}
+
 	public static char upperOrLower(boolean flag, char oneChar) {
 		if (flag) {
 			return Character.toUpperCase(oneChar);

@@ -74,6 +74,32 @@ public final class TypePropertyPrivilegeOfService
 		return array[index];
 	}
 
+	public static ITypePropertyPrivilegeOfService createFromSerialized(String value) {
+		Boolean read = read3Valued(value, 0, 'R');
+		Boolean create = read3Valued(value, 0, 'C');
+		Boolean update = read3Valued(value, 0, 'U');
+		Boolean delete = read3Valued(value, 0, 'D');
+		return create(create, read, update, delete);
+	}
+
+	private static Boolean read3Valued(String value, int index, char c) {
+		if (value.length() <= index + 1 || value.charAt(index + 1) != c) {
+			throw new IllegalArgumentException(
+					"Expected '" + c + "' at index " + index + " in serialized content '" + value + "'");
+		}
+		if (value.charAt(index) == '+') {
+			return Boolean.TRUE;
+		}
+		if (value.charAt(index) == '-') {
+			return Boolean.FALSE;
+		}
+		if (value.charAt(index) == 'n') {
+			return null;
+		}
+		throw new IllegalArgumentException("Expected either '+', '-' or 'n' at index " + index
+				+ " in serialized content '" + value + "'");
+	}
+
 	private final Boolean create;
 	private final Boolean read;
 	private final Boolean update;
@@ -140,5 +166,9 @@ public final class TypePropertyPrivilegeOfService
 		sb.append(isCreateAllowed() != null ? isCreateAllowed() ? "+C" : "-C" : "nC");
 		sb.append(isUpdateAllowed() != null ? isUpdateAllowed() ? "+U" : "-U" : "nU");
 		sb.append(isDeleteAllowed() != null ? isDeleteAllowed() ? "+D" : "-D" : "nD");
+	}
+
+	public String toSerializedString() {
+		return toString();
 	}
 }
