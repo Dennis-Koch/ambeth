@@ -401,6 +401,8 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil,
 
 	@Override
 	public void validatePassword(char[] clearTextPassword, IUser user) {
+		ParamChecker.assertNotNull(clearTextPassword, "clearTextPassword");
+		ParamChecker.assertNotNull(user, "user");
 		StringBuilder validationErrorSB = null;
 		for (IPasswordValidationExtension extension : extensions.getExtensionsShared()) {
 			CharSequence validationError = extension.validatePassword(clearTextPassword);

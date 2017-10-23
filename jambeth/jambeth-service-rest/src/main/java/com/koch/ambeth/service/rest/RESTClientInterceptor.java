@@ -27,6 +27,8 @@ limitations under the License.
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
 import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Array;
@@ -36,6 +38,10 @@ import java.lang.reflect.Type;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.Collection;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
@@ -44,10 +50,13 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
 
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.config.RequestConfig.Builder;
 import org.apache.http.client.entity.EntityBuilder;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.methods.RequestBuilder;
@@ -66,6 +75,7 @@ import com.koch.ambeth.service.remote.IRemoteInterceptor;
 import com.koch.ambeth.service.remote.IRemoteTargetProvider;
 import com.koch.ambeth.service.rest.config.RESTConfigurationConstants;
 import com.koch.ambeth.service.transfer.AmbethServiceException;
+import com.koch.ambeth.util.CloseUtil;
 import com.koch.ambeth.util.IClassCache;
 import com.koch.ambeth.util.IConversionHelper;
 import com.koch.ambeth.util.ListUtil;
@@ -80,7 +90,6 @@ import com.koch.ambeth.util.io.FastByteArrayOutputStream;
 import com.koch.ambeth.util.proxy.AbstractSimpleInterceptor;
 import com.koch.ambeth.util.threading.IGuiThreadHelper;
 import com.koch.ambeth.xml.ICyclicXMLHandler;
-import com.koch.ambeth.xml.XmlTypeNotFoundException;
 import com.koch.ambeth.xml.ioc.XmlModule;
 
 import net.sf.cglib.proxy.MethodProxy;
@@ -89,6 +98,19 @@ public class RESTClientInterceptor extends AbstractSimpleInterceptor
 		implements IRemoteInterceptor, IInitializingBean, IOfflineListener, IDisposableBean,
 		PropertyChangeListener {
 	public static final String DEFLATE_MIME_TYPE = "application/octet-stream";
+
+	private static final ExecutorService executorService =
+			Executors.newCachedThreadPool(new ThreadFactory() {
+				private final AtomicInteger id = new AtomicInteger();
+
+				@Override
+				public Thread newThread(Runnable r) {
+					Thread thread = new Thread(r);
+					thread.setDaemon(true);
+					thread.setName(RESTClientInterceptor.class.getName() + "-" + id.incrementAndGet());
+					return thread;
+				}
+			});
 
 	@LogInstance
 	private ILogger log;
@@ -148,10 +170,16 @@ public class RESTClientInterceptor extends AbstractSimpleInterceptor
 
 	protected final PropertyChangeListener weakPCL = new WeakPropertyChangeListener(this);
 
+	protected RequestConfig requestConfig;
+
 	@Override
 	public void afterPropertiesSet() {
 		ParamChecker.assertNotNull(serviceName, IRemoteTargetProvider.SERVICE_NAME_PROP);
 		props.addPropertyChangeListener(weakPCL);
+
+		Builder setConnectionRequestTimeout =
+				RequestConfig.custom().setConnectionRequestTimeout(5000).setContentCompressionEnabled(true);
+		requestConfig = setConnectionRequestTimeout.build();
 	}
 
 	@Override
@@ -255,8 +283,6 @@ public class RESTClientInterceptor extends AbstractSimpleInterceptor
 			HttpHost httpHost = httpClientProvider.getHttpHost(url.getHost(), url.getPort(),
 					url.getProtocol());
 
-			Object result = null;
-
 			RequestBuilder rb;
 			if (args.length > 0) {
 				rb = RequestBuilder.post();
@@ -277,6 +303,8 @@ public class RESTClientInterceptor extends AbstractSimpleInterceptor
 			else {
 				rb = RequestBuilder.get();
 			}
+			rb.setConfig(requestConfig);
+
 			rb.setHeader("Accept", Constants.AMBETH_MEDIA_TYPE);
 			if (httpAcceptEncodingZipped) {
 				rb.setHeader("Accept-Encoding", "gzip");
@@ -295,19 +323,7 @@ public class RESTClientInterceptor extends AbstractSimpleInterceptor
 				throw new IllegalStateException(
 						"Response (" + responseCode + ") when calling '" + url + "'");
 			}
-			FastByteArrayOutputStream memoryStream = new FastByteArrayOutputStream();
-			response.getEntity().writeTo(memoryStream);
-			if (log.isDebugEnabled()) {
-				log.debug(url + " " + localRequestId + " <= "
-						+ new String(memoryStream.getRawByteArray(), 0, memoryStream.size(), "UTF-8"));
-			}
-			try {
-				result = cyclicXmlHandler.readFromStream(
-						new ByteArrayInputStream(memoryStream.getRawByteArray(), 0, memoryStream.size()));
-			}
-			catch (XmlTypeNotFoundException e) {
-				throw e;
-			}
+			Object result = readResult(url, localRequestId, response.getEntity());
 			if (result instanceof AmbethServiceException) {
 				Exception exception = parseServiceException((AmbethServiceException) result);
 				RuntimeExceptionUtil.fillInClientStackTraceIfPossible(exception);
@@ -333,6 +349,36 @@ public class RESTClientInterceptor extends AbstractSimpleInterceptor
 				}
 			}
 		}
+	}
+
+	private Object readResult(URL url, Object localRequestId, final HttpEntity entity)
+			throws IOException {
+		if (log.isDebugEnabled()) {
+			FastByteArrayOutputStream memoryStream = new FastByteArrayOutputStream();
+			entity.writeTo(memoryStream);
+			log.debug(url + " " + localRequestId + " <= "
+					+ new String(memoryStream.getRawByteArray(), 0, memoryStream.size(), "UTF-8"));
+			return cyclicXmlHandler.readFromStream(
+					new ByteArrayInputStream(memoryStream.getRawByteArray(), 0, memoryStream.size()));
+		}
+		// with a piped approach we can completely build the retrieved object model without having an
+		// intermediate representation of the complete byte-stream content in memory
+		final PipedOutputStream pos = new PipedOutputStream();
+		executorService.execute(new Runnable() {
+			@Override
+			public void run() {
+				try {
+					entity.writeTo(pos);
+				}
+				catch (IOException e) {
+					log.error(e);
+				}
+				finally {
+					CloseUtil.close(pos);
+				}
+			}
+		});
+		return cyclicXmlHandler.readFromStream(new PipedInputStream(pos));
 	}
 
 	@SuppressWarnings("unchecked")
