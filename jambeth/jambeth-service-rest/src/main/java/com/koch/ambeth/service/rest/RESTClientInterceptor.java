@@ -41,6 +41,7 @@ import java.util.Collection;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.Condition;
@@ -364,21 +365,30 @@ public class RESTClientInterceptor extends AbstractSimpleInterceptor
 		// with a piped approach we can completely build the retrieved object model without having an
 		// intermediate representation of the complete byte-stream content in memory
 		final PipedOutputStream pos = new PipedOutputStream();
-		executorService.execute(new Runnable() {
-			@Override
-			public void run() {
-				try {
-					entity.writeTo(pos);
+		final AtomicBoolean reading = new AtomicBoolean(true);
+		try {
+			executorService.execute(new Runnable() {
+				@Override
+				public void run() {
+					try {
+						entity.writeTo(pos);
+					}
+					catch (Throwable e) {
+						// write exception only if the piped input stream is still reading
+						if (reading.get()) {
+							log.error(e);
+						}
+					}
+					finally {
+						CloseUtil.close(pos);
+					}
 				}
-				catch (IOException e) {
-					log.error(e);
-				}
-				finally {
-					CloseUtil.close(pos);
-				}
-			}
-		});
-		return cyclicXmlHandler.readFromStream(new PipedInputStream(pos));
+			});
+			return cyclicXmlHandler.readFromStream(new PipedInputStream(pos));
+		}
+		finally {
+			reading.set(false);
+		}
 	}
 
 	@SuppressWarnings("unchecked")
