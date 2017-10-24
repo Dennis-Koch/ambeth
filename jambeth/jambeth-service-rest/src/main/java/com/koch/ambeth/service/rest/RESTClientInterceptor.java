@@ -365,6 +365,7 @@ public class RESTClientInterceptor extends AbstractSimpleInterceptor
 		// with a piped approach we can completely build the retrieved object model without having an
 		// intermediate representation of the complete byte-stream content in memory
 		final PipedOutputStream pos = new PipedOutputStream();
+		InputStream pis = new PipedInputStream(pos);
 		final AtomicBoolean reading = new AtomicBoolean(true);
 		try {
 			executorService.execute(new Runnable() {
@@ -384,7 +385,7 @@ public class RESTClientInterceptor extends AbstractSimpleInterceptor
 					}
 				}
 			});
-			return cyclicXmlHandler.readFromStream(new PipedInputStream(pos));
+			return cyclicXmlHandler.readFromStream(pis);
 		}
 		finally {
 			reading.set(false);
