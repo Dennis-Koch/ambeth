@@ -34,10 +34,6 @@ import com.koch.ambeth.util.StringBuilderUtil;
 @XmlRootElement(name = "ObjRef", namespace = "http://schema.kochdev.com/Ambeth")
 @XmlAccessorType(XmlAccessType.FIELD)
 public class ObjRef implements IObjRef, IPrintable {
-	public static final byte PRIMARY_KEY_INDEX = -1;
-
-	public static final byte UNDEFINED_KEY_INDEX = Byte.MIN_VALUE;
-
 	public static final Comparator<IObjRef> comparator = new Comparator<IObjRef>() {
 		@Override
 		public int compare(IObjRef o1, IObjRef o2) {
@@ -55,7 +51,7 @@ public class ObjRef implements IObjRef, IPrintable {
 	};
 
 	@XmlElement(required = true)
-	protected byte idNameIndex = ObjRef.PRIMARY_KEY_INDEX;
+	protected byte idNameIndex = IObjRef.PRIMARY_KEY_INDEX;
 
 	@XmlElement(required = true)
 	protected Object id;
@@ -71,7 +67,7 @@ public class ObjRef implements IObjRef, IPrintable {
 	}
 
 	public ObjRef(Class<?> realType, Object id, Object version) {
-		this(realType, ObjRef.PRIMARY_KEY_INDEX, id, version);
+		this(realType, IObjRef.PRIMARY_KEY_INDEX, id, version);
 	}
 
 	public ObjRef(Class<?> realType, byte idNameIndex, Object id, Object version) {
@@ -174,16 +170,14 @@ public class ObjRef implements IObjRef, IPrintable {
 
 	@Override
 	public String toString() {
-		StringBuilder sb = new StringBuilder();
-		toString(sb);
-		return sb.toString();
+		return StringBuilderUtil.printPrintable(this);
 	}
 
 	@Override
 	public void toString(StringBuilder sb) {
 		sb.append("ObjRef ");
 		byte idIndex = getIdNameIndex();
-		if (idIndex == ObjRef.PRIMARY_KEY_INDEX) {
+		if (idIndex == IObjRef.PRIMARY_KEY_INDEX) {
 			sb.append("PK=");
 		}
 		else {

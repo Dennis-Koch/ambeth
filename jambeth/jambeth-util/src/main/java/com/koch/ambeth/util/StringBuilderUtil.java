@@ -169,6 +169,12 @@ public final class StringBuilderUtil {
 		}
 	}
 
+	public static final String printPrintable(IPrintable printable) {
+		StringBuilder sb = new StringBuilder();
+		appendPrintable(sb, printable);
+		return sb.toString();
+	}
+
 	public static final void appendPrintable(StringBuilder sb, Object printable) {
 		if (printable == null) {
 			sb.append("null");

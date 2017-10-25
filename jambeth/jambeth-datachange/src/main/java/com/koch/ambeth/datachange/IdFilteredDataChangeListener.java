@@ -22,6 +22,7 @@ limitations under the License.
 
 import com.koch.ambeth.datachange.model.IDataChange;
 import com.koch.ambeth.event.IEventListener;
+import com.koch.ambeth.service.merge.model.IObjRef;
 
 public class IdFilteredDataChangeListener extends UnfilteredDataChangeListener {
 	public static IDataChangeListener create(IDataChangeListener dataChangeListener,
@@ -55,7 +56,7 @@ public class IdFilteredDataChangeListener extends UnfilteredDataChangeListener {
 		if (dataChange.isEmpty()) {
 			return;
 		}
-		dataChange = dataChange.derive(interestedIds);
+		dataChange = dataChange.derive(IObjRef.PRIMARY_KEY_INDEX, interestedIds);
 		if (dataChange.isEmpty()) {
 			return;
 		}

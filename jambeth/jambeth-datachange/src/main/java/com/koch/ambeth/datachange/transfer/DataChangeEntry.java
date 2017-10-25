@@ -51,9 +51,9 @@ public class DataChangeEntry implements IDataChangeEntry, IPrintable {
 		// Intended blank
 	}
 
-	public DataChangeEntry(Class<?> entityType, byte idNameIndex, Object id, Object version) {
+	public DataChangeEntry(Class<?> entityType, int idNameIndex, Object id, Object version) {
 		this.entityType = entityType;
-		this.idNameIndex = idNameIndex;
+		this.idNameIndex = (byte) idNameIndex;
 		this.id = id;
 		this.version = version;
 	}
@@ -106,16 +106,14 @@ public class DataChangeEntry implements IDataChangeEntry, IPrintable {
 
 	@Override
 	public String toString() {
-		StringBuilder sb = new StringBuilder();
-		toString(sb);
-		return sb.toString();
+		return StringBuilderUtil.printPrintable(this);
 	}
 
 	@Override
 	public void toString(StringBuilder sb) {
 		sb.append("EntityType=").append(getEntityType().getName()).append(" IdIndex=")
-				.append(getIdNameIndex()).append(" Id='");
+				.append(getIdNameIndex()).append(" Id=");
 		StringBuilderUtil.appendPrintable(sb, getId());
-		sb.append("' Version='").append(getVersion()).append('\'');
+		sb.append(" Version=").append(getVersion());
 	}
 }

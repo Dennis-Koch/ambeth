@@ -3,8 +3,10 @@ package com.koch.ambeth.datachange.model;
 import java.util.Objects;
 
 import com.koch.ambeth.util.IImmutableType;
+import com.koch.ambeth.util.IPrintable;
+import com.koch.ambeth.util.StringBuilderUtil;
 
-public class PostDataChange implements IPostDataChange, IImmutableType {
+public class PostDataChange implements IPostDataChange, IImmutableType, IPrintable {
 	private final IDataChange dataChange;
 
 	public PostDataChange(IDataChange dataChange) {
@@ -19,6 +21,11 @@ public class PostDataChange implements IPostDataChange, IImmutableType {
 
 	@Override
 	public String toString() {
-		return getDataChange().toString();
+		return StringBuilderUtil.printPrintable(this);
+	}
+
+	@Override
+	public void toString(StringBuilder sb) {
+		StringBuilderUtil.appendPrintable(sb, getDataChange());
 	}
 }

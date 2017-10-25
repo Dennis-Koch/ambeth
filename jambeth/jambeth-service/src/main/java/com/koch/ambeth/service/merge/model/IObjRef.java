@@ -32,6 +32,10 @@ import com.koch.ambeth.util.annotation.XmlType;
  */
 @XmlType
 public interface IObjRef extends IDTOType {
+	public static final byte PRIMARY_KEY_INDEX = -1;
+
+	public static final byte UNDEFINED_KEY_INDEX = Byte.MIN_VALUE;
+
 	public static final IObjRef[] EMPTY_ARRAY = new IObjRef[0];
 
 	public static final IObjRef[][] EMPTY_ARRAY_ARRAY = new IObjRef[0][0];

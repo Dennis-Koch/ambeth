@@ -32,11 +32,14 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import com.koch.ambeth.datachange.model.IDataChange;
 import com.koch.ambeth.datachange.model.IDataChangeEntry;
+import com.koch.ambeth.ioc.extendable.ClassExtendableContainer;
+import com.koch.ambeth.util.IPrintable;
+import com.koch.ambeth.util.StringBuilderUtil;
 import com.koch.ambeth.util.collections.HashSet;
 
 @XmlRootElement(name = "DataChangeEvent", namespace = "http://schema.kochdev.com/Ambeth")
 @XmlAccessorType(XmlAccessType.FIELD)
-public class DataChangeEvent implements IDataChange {
+public class DataChangeEvent implements IDataChange, IPrintable {
 	public static DataChangeEvent create(int insertCount, int updateCount, int deleteCount) {
 		DataChangeEvent dce = new DataChangeEvent();
 		dce.setLocalSource(true);
@@ -201,23 +204,28 @@ public class DataChangeEvent implements IDataChange {
 	}
 
 	@Override
-	public IDataChange derive(Object... interestedEntityIds) {
+	public IDataChange derive(int idIndex, Object... interestedEntityIds) {
 		Set<Object> interestedEntityIdsSet = interestedEntityIds.length == 0
 				? Collections.<Object>emptySet()
 				: new HashSet<>(interestedEntityIds);
 
-		List<IDataChangeEntry> derivedInserts = buildDerivedIds(inserts, interestedEntityIdsSet);
-		List<IDataChangeEntry> derivedUpdates = buildDerivedIds(updates, interestedEntityIdsSet);
-		List<IDataChangeEntry> derivedDeletes = buildDerivedIds(deletes, interestedEntityIdsSet);
+		List<IDataChangeEntry> derivedInserts =
+				buildDerivedIds(inserts, idIndex, interestedEntityIdsSet);
+		List<IDataChangeEntry> derivedUpdates =
+				buildDerivedIds(updates, idIndex, interestedEntityIdsSet);
+		List<IDataChangeEntry> derivedDeletes =
+				buildDerivedIds(deletes, idIndex, interestedEntityIdsSet);
 
 		return new DataChangeEvent(derivedInserts, derivedUpdates, derivedDeletes, changeTime,
 				isLocalSource);
 	}
 
 	protected IDataChange deriveIntern(Class<?>[] entityTypes, boolean reverse) {
-		Set<Class<?>> entityTypesSet = entityTypes.length == 0 ? Collections.<Class<?>>emptySet()
-				: new HashSet<>(entityTypes);
-
+		ClassExtendableContainer<Boolean> entityTypesSet =
+				new ClassExtendableContainer<>("isDefined", "entityType");
+		for (Class<?> entityType : entityTypes) {
+			entityTypesSet.register(Boolean.TRUE, entityType);
+		}
 		List<IDataChangeEntry> derivedInserts = buildDerivedTypes(inserts, entityTypesSet, reverse);
 		List<IDataChangeEntry> derivedUpdates = buildDerivedTypes(updates, entityTypesSet, reverse);
 		List<IDataChangeEntry> derivedDeletes = buildDerivedTypes(deletes, entityTypesSet, reverse);
@@ -227,24 +235,16 @@ public class DataChangeEvent implements IDataChange {
 	}
 
 	protected List<IDataChangeEntry> buildDerivedTypes(List<IDataChangeEntry> sourceEntries,
-			Set<Class<?>> entityTypes, boolean reverse) {
+			ClassExtendableContainer<Boolean> entityTypes, boolean reverse) {
 		List<IDataChangeEntry> targetEntries = null;
 		for (int a = 0, size = sourceEntries.size(); a < size; a++) {
 			IDataChangeEntry entry = sourceEntries.get(a);
-			Class<?> currentType = entry.getEntityType();
-			while (currentType != null) {
-				boolean include = entityTypes.contains(currentType) ^ reverse;
-				if (include) {
-					if (targetEntries == null) {
-						targetEntries = new ArrayList<>(size - a); // Max potential match-count
-					}
-					targetEntries.add(entry);
-					break;
+			boolean isToDerive = Boolean.TRUE.equals(entityTypes.getExtension(entry.getEntityType()));
+			if (isToDerive ^ reverse) {
+				if (targetEntries == null) {
+					targetEntries = new ArrayList<>(size - a); // Max potential match-count
 				}
-				currentType = currentType.getSuperclass();
-				if (reverse && currentType == Object.class) {
-					break;
-				}
+				targetEntries.add(entry);
 			}
 		}
 		if (targetEntries == null) {
@@ -254,10 +254,13 @@ public class DataChangeEvent implements IDataChange {
 	}
 
 	protected List<IDataChangeEntry> buildDerivedIds(List<IDataChangeEntry> sourceEntries,
-			Set<Object> interestedEntityIds) {
+			int idIndex, Set<Object> interestedEntityIds) {
 		List<IDataChangeEntry> targetEntries = null;
 		for (int a = 0, size = sourceEntries.size(); a < size; a++) {
 			IDataChangeEntry entry = sourceEntries.get(a);
+			if (entry.getIdNameIndex() != idIndex) {
+				continue;
+			}
 			if (interestedEntityIds.contains(entry.getId())) {
 				if (targetEntries == null) {
 					targetEntries = new ArrayList<>(size - a); // Max potential match-count
@@ -269,5 +272,16 @@ public class DataChangeEvent implements IDataChange {
 			targetEntries = Collections.emptyList();
 		}
 		return targetEntries;
+	}
+
+	@Override
+	public String toString() {
+		return StringBuilderUtil.printPrintable(this);
+	}
+
+	@Override
+	public void toString(StringBuilder sb) {
+		sb.append("DCE (I:").append(getInserts().size()).append(" U:").append(getUpdates().size())
+				.append(" D:").append(getDeletes().size());
 	}
 }
