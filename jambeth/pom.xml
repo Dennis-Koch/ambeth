@@ -730,21 +730,6 @@
 										<ignore></ignore>
 									</action>
 								</pluginExecution>
-								<pluginExecution>
-									<pluginExecutionFilter>
-										<groupId>org.apache.maven.plugins</groupId>
-										<artifactId>maven-antrun-plugin</artifactId>
-										<versionRange>[1.8,)</versionRange>
-										<goals>
-											<goal>run</goal>
-										</goals>
-									</pluginExecutionFilter>
-									<action>
-										<execute>
-											<runOnConfiguration>true</runOnConfiguration>
-										</execute>
-									</action>
-								</pluginExecution>
 							</pluginExecutions>
 						</lifecycleMappingMetadata>
 					</configuration>
@@ -887,58 +872,6 @@
 				<groupId>pl.project13.maven</groupId>
 				<artifactId>git-commit-id-plugin</artifactId>
 			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-antrun-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>copy META-INF and OSGI-INF</id>
-						<phase>package</phase>
-						<configuration>
-							<target>
-								<ac:if xmlns:ac="antlib:net.sf.antcontrib">
-									<and>
-										<not>
-											<available file="${project.basedir}/build.properties" />
-										</not>
-										<available file="${project.basedir}/bnd.bnd" />
-									</and>
-									<ac:then>
-										<copy todir="${project.basedir}/META-INF" verbose="true" failonerror="false">
-											<fileset dir="${project.build.outputDirectory}/META-INF"
-												includes="MANIFEST.MF" />
-										</copy>
-										<copy todir="${project.basedir}/OSGI-INF" verbose="true" failonerror="false">
-											<fileset dir="${project.build.outputDirectory}/OSGI-INF" />
-										</copy>
-									</ac:then>
-								</ac:if>
-							</target>
-						</configuration>
-						<goals>
-							<goal>run</goal>
-						</goals>
-					</execution>
-				</executions>
-				<dependencies>
-					<dependency>
-						<groupId>ant-contrib</groupId>
-						<artifactId>ant-contrib</artifactId>
-						<version>1.0b3</version>
-						<exclusions>
-							<exclusion>
-								<groupId>ant</groupId>
-								<artifactId>ant</artifactId>
-							</exclusion>
-						</exclusions>
-					</dependency>
-					<dependency>
-						<groupId>org.apache.ant</groupId>
-						<artifactId>ant-nodeps</artifactId>
-						<version>1.8.1</version>
-					</dependency>
-				</dependencies>
-			</plugin>
 		</plugins>
 	</build>
 
@@ -957,6 +890,130 @@
 				<deploy.env>test</deploy.env>
 				<local.server.port>8089</local.server.port>
 			</properties>
+		</profile>
+		<profile>
+			<id>windows</id>
+			<activation>
+				<file>
+					<missing>${basedir}/build.properties</missing>
+					<exists>${basedir}/bnd.bnd</exists>
+				</file>
+				<os>
+					<family>windows</family>
+				</os>
+				<property>
+					<name>!env.JENKINS_HOME</name>
+				</property>
+			</activation>
+			<build>
+				<plugins>
+					<plugin>
+						<artifactId>exec-maven-plugin</artifactId>
+						<groupId>org.codehaus.mojo</groupId>
+						<executions>
+							<execution>
+								<id>Create META-INF symlink</id>
+								<phase>package</phase>
+								<goals>
+									<goal>exec</goal>
+								</goals>
+								<configuration>
+									<executable>cmd</executable>
+									<successCodes>
+										<successCode>0</successCode>
+										<successCode>1</successCode>
+									</successCodes>
+									<arguments>
+										<argument>/C</argument>
+										<argument>mklink /D /j "${project.basedir}/META-INF" "${project.build.outputDirectory}/META-INF"</argument>
+									</arguments>
+								</configuration>
+							</execution>
+							<execution>
+								<id>Create OSGI-INF symlink</id>
+								<phase>package</phase>
+								<goals>
+									<goal>exec</goal>
+								</goals>
+								<configuration>
+									<executable>cmd</executable>
+									<successCodes>
+										<successCode>0</successCode>
+										<successCode>1</successCode>
+									</successCodes>
+									<arguments>
+										<argument>/C</argument>
+										<argument>mklink /D /j "${project.basedir}/OSGI-INF" "${project.build.outputDirectory}/OSGI-INF"</argument>
+									</arguments>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+		<profile>
+			<id>unix</id>
+			<activation>
+				<file>
+					<missing>${basedir}/build.properties</missing>
+					<exists>${basedir}/bnd.bnd</exists>
+				</file>
+				<os>
+					<family>unix</family>
+				</os>
+				<property>
+					<name>!env.JENKINS_HOME</name>
+				</property>
+			</activation>
+			<build>
+				<plugins>
+					<plugin>
+						<artifactId>exec-maven-plugin</artifactId>
+						<groupId>org.codehaus.mojo</groupId>
+						<executions>
+							<execution>
+								<id>Create META-INF symlink</id>
+								<phase>package</phase>
+								<goals>
+									<goal>exec</goal>
+								</goals>
+								<configuration>
+									<executable>ln</executable>
+									<successCodes>
+										<successCode>0</successCode>
+										<successCode>1</successCode>
+									</successCodes>
+									<arguments>
+										<argument>-fnsv</argument>
+										<argument>${project.build.outputDirectory}/META-INF</argument>
+										<argument>${project.basedir}/META-INF</argument>
+									</arguments>
+								</configuration>
+							</execution>
+							<execution>
+								<id>Create OSGI-INF symlink</id>
+								<phase>package</phase>
+								<goals>
+									<goal>exec</goal>
+								</goals>
+								<configuration>
+									<executable>ln</executable>
+									<successCodes>
+										<successCode>0</successCode>
+										<successCode>1</successCode>
+									</successCodes>
+									<arguments>
+										<argument>-fnsv</argument>
+										<argument>${project.build.outputDirectory}/OSGI-INF</argument>
+										<argument>${project.basedir}/OSGI-INF</argument>
+									</arguments>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
 		</profile>
 	</profiles>
 </project>
