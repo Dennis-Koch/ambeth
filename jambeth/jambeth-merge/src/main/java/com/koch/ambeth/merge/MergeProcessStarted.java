@@ -115,7 +115,7 @@ public class MergeProcessStarted
 	@Override
 	public void finish() {
 		if (mergeList != null || deleteList != null) {
-			mergeProcess.processIntern(mergeList, deleteList, //
+			mergeProcess.ensureMergeOutOfGui(mergeList, deleteList, //
 					hooks != null ? this : null, //
 					dataChangeCallbacks != null ? this : null, //
 					callbacks != null ? this : null,

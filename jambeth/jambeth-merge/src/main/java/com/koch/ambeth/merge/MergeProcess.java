@@ -186,7 +186,7 @@ public class MergeProcess implements IMergeProcess {
 		}
 	}
 
-	protected void mergePhase1(final Object objectToMerge, final Object objectToDelete,
+	protected void mergeOutOfGui(final Object objectToMerge, final Object objectToDelete,
 			final ProceedWithMergeHook proceedHook,
 			final DataChangeReceivedCallback dataChangeReceivedCallback,
 			final MergeFinishedCallback mergeFinishedCallback,
@@ -197,29 +197,6 @@ public class MergeProcess implements IMergeProcess {
 				.propertyValue("DeepMerge", deepMerge)//
 				.finish();
 		final ICUDResult cudResult = mergeController.mergeDeep(objectToMerge, mergeHandle);
-		if (guiThreadHelper.isInGuiThread()) {
-			mergePhase2(objectToMerge, objectToDelete, mergeHandle, cudResult, proceedHook,
-					dataChangeReceivedCallback,
-					mergeFinishedCallback, addNewEntitiesToCache);
-		}
-		else {
-			guiThreadHelper.invokeInGui(new IBackgroundWorkerDelegate() {
-				@Override
-				public void invoke() throws Exception {
-					mergePhase2(objectToMerge, objectToDelete, mergeHandle, cudResult, proceedHook,
-							dataChangeReceivedCallback,
-							mergeFinishedCallback, addNewEntitiesToCache);
-				}
-			});
-		}
-	}
-
-	protected void mergePhase2(final Object objectToMerge, Object objectToDelete,
-			MergeHandle mergeHandle, final ICUDResult cudResult,
-			final ProceedWithMergeHook proceedHook,
-			final DataChangeReceivedCallback dataChangeReceivedCallback,
-			final MergeFinishedCallback mergeFinishedCallback,
-			final boolean addNewEntitiesToCache) {
 		final ArrayList<Object> unpersistedObjectsToDelete = new ArrayList<>();
 		removeUnpersistedDeletedObjectsFromCudResult(cudResult.getAllChanges(),
 				cudResult.getOriginalRefs(), unpersistedObjectsToDelete);
@@ -232,37 +209,11 @@ public class MergeProcess implements IMergeProcess {
 					return true;
 				}
 			});
-
 			IList<IObjRef> oriList = oriHelper.extractObjRefList(extractedObjectToDelete, mergeHandle);
 
 			appendDeleteContainers(extractedObjectToDelete, oriList, cudResult.getAllChanges(),
 					cudResult.getOriginalRefs(), unpersistedObjectsToDelete);
 		}
-
-		// Store the MergeFinishedCallback from this thread on the stack and set the property null
-		// (for following calls):
-		if (guiThreadHelper.isInGuiThread()) {
-			guiThreadHelper.invokeOutOfGui(new IBackgroundWorkerDelegate() {
-				@Override
-				public void invoke() throws Exception {
-					mergePhase3(objectToMerge, unpersistedObjectsToDelete, cudResult, proceedHook,
-							dataChangeReceivedCallback,
-							mergeFinishedCallback, addNewEntitiesToCache);
-				}
-			});
-		}
-		else {
-			mergePhase3(objectToMerge, unpersistedObjectsToDelete, cudResult, proceedHook,
-					dataChangeReceivedCallback,
-					mergeFinishedCallback, addNewEntitiesToCache);
-		}
-	}
-
-	protected void mergePhase3(Object objectToMerge, IList<Object> unpersistedObjectsToDelete,
-			ICUDResult cudResult, ProceedWithMergeHook proceedHook,
-			DataChangeReceivedCallback dataChangeReceivedCallback,
-			MergeFinishedCallback mergeFinishedCallback, boolean addNewEntitiesToCache) {
-		// Take over callback stored threadlocally from foreign calling thread to current thread
 		boolean success = false;
 		try {
 			processCUDResult(objectToMerge, cudResult, unpersistedObjectsToDelete, proceedHook,
@@ -279,34 +230,33 @@ public class MergeProcess implements IMergeProcess {
 
 	@Override
 	public void process(Object objectsToMerge) {
-		processIntern(objectsToMerge, null, null, null, null, true, true);
+		ensureMergeOutOfGui(objectsToMerge, null, null, null, null, true, true);
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
 	public <T> void process(T objectsToMerge1, T... objectsToMerge2) {
-		processIntern(new Object[] {objectsToMerge1, objectsToMerge2}, null, null, null, null, true,
-				true);
+		ensureMergeOutOfGui(new Object[] {objectsToMerge1, objectsToMerge2}, null, null, null, null,
+				true, true);
 	}
 
-	protected void processIntern(final Object objectToMerge, final Object objectToDelete,
+	protected void ensureMergeOutOfGui(final Object objectToMerge, final Object objectToDelete,
 			final ProceedWithMergeHook proceedHook,
 			final DataChangeReceivedCallback dataChangeReceivedCallback,
-			final MergeFinishedCallback mergeFinishedCallback,
-			final boolean addNewEntitiesToCache,
+			final MergeFinishedCallback mergeFinishedCallback, final boolean addNewEntitiesToCache,
 			final boolean deepMerge) {
 		if (guiThreadHelper.isInGuiThread()) {
 			guiThreadHelper.invokeOutOfGui(new IBackgroundWorkerDelegate() {
 				@Override
 				public void invoke() throws Exception {
-					mergePhase1(objectToMerge, objectToDelete, proceedHook, dataChangeReceivedCallback,
+					mergeOutOfGui(objectToMerge, objectToDelete, proceedHook, dataChangeReceivedCallback,
 							mergeFinishedCallback,
 							addNewEntitiesToCache, deepMerge);
 				}
 			});
 		}
 		else {
-			mergePhase1(objectToMerge, objectToDelete, proceedHook, dataChangeReceivedCallback,
+			mergeOutOfGui(objectToMerge, objectToDelete, proceedHook, dataChangeReceivedCallback,
 					mergeFinishedCallback,
 					addNewEntitiesToCache, deepMerge);
 		}
