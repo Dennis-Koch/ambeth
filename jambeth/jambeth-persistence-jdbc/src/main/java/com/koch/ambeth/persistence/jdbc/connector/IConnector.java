@@ -24,6 +24,8 @@ import com.koch.ambeth.ioc.factory.IBeanContextFactory;
 import com.koch.ambeth.log.config.Properties;
 
 public interface IConnector {
+    boolean supports(String databaseProtocol);
+
 	void handleProperties(Properties props, String databaseProtocol);
 
 	void handleProd(IBeanContextFactory beanContextFactory, String databaseProtocol);

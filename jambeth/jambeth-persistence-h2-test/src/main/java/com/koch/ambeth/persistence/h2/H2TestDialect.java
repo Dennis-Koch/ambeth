@@ -33,6 +33,7 @@ import com.koch.ambeth.util.collections.EmptyList;
 import com.koch.ambeth.util.collections.HashSet;
 import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
+import lombok.SneakyThrows;
 
 public class H2TestDialect extends AbstractConnectionTestDialect {
 	@Override
@@ -64,8 +65,9 @@ public class H2TestDialect extends AbstractConnectionTestDialect {
 		}
 	}
 
+	@SneakyThrows
 	protected void createAliasIfNecessary(String aliasName, String functionName,
-			Set<String> functionAliases, Statement stm) throws SQLException {
+			Set<String> functionAliases, Statement stm) {
 		if (functionAliases.contains(aliasName)) {
 			return;
 		}
@@ -73,8 +75,9 @@ public class H2TestDialect extends AbstractConnectionTestDialect {
 				+ connectionDialect.toDefaultCase(functionName) + "\"");
 	}
 
+	@SneakyThrows
 	@Override
-	public boolean isEmptySchema(Connection connection) throws SQLException {
+	public boolean isEmptySchema(Connection connection) {
 		Statement stm = null;
 		ResultSet rs = null;
 		try {
@@ -95,7 +98,7 @@ public class H2TestDialect extends AbstractConnectionTestDialect {
 
 	@Override
 	public String[] createOptimisticLockTrigger(Connection connection, String tableName)
-			throws SQLException {
+			{
 		String forTriggerName = "TR_" + tableName + "_OL";
 		return new String[] { "CREATE TRIGGER " + escapeName(null, forTriggerName) + " AFTER UPDATE ON "
 				+ escapeName(null, tableName) + " FOR EACH ROW CALL \""
@@ -103,12 +106,12 @@ public class H2TestDialect extends AbstractConnectionTestDialect {
 	}
 
 	@Override
-	public String[] createPermissionGroup(Connection conn, String tableName) throws SQLException {
+	public String[] createPermissionGroup(Connection conn, String tableName) {
 		return new String[0];
 	}
 
 	@Override
-	protected IList<String> queryForAllTables(Connection connection) throws SQLException {
+	protected IList<String> queryForAllTables(Connection connection) {
 		return connectionDialect.queryDefault(connection, "table_nam",
 				"SELECT tab.table_name AS table_nam FROM INFORMATION_SCHEMA.TABLES AS tab LEFT OUTER JOIN INFORMATION_SCHEMA.TRIGGERS AS tr ON tr.table_name=tab.table_name AND tr.table_schema=tab.table_schema WHERE tab.table_type<>'SYSTEM TABLE' and (tr.java_class IS NULL OR tr.java_class<>'"
 						+ OptimisticLockTrigger.class.getName()
@@ -117,18 +120,18 @@ public class H2TestDialect extends AbstractConnectionTestDialect {
 
 	@Override
 	protected IList<String> queryForAllPermissionGroupNeedingTables(Connection connection)
-			throws SQLException {
+			{
 		return EmptyList.<String>getInstance();
 	}
 
 	@Override
 	protected IList<String> queryForAllPotentialPermissionGroups(Connection connection)
-			throws SQLException {
+			{
 		return EmptyList.<String>getInstance();
 	}
 
 	@Override
-	protected IList<String> queryForAllTriggers(Connection connection) throws SQLException {
+	protected IList<String> queryForAllTriggers(Connection connection) {
 		return EmptyList.<String>getInstance();
 	}
 
@@ -199,7 +202,7 @@ public class H2TestDialect extends AbstractConnectionTestDialect {
 	}
 
 	@Override
-	public void preStructureRebuild(Connection connection) throws SQLException {
+	public void preStructureRebuild(Connection connection) {
 		super.preStructureRebuild(connection);
 
 		// Statement stm = connection.createStatement();

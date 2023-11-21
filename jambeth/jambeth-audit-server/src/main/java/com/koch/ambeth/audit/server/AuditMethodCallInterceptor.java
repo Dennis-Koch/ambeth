@@ -31,9 +31,8 @@ import com.koch.ambeth.security.audit.model.AuditedArg;
 import com.koch.ambeth.service.proxy.IMethodLevelBehavior;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.proxy.CascadedInterceptor;
+import com.koch.ambeth.util.proxy.MethodProxy;
 import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
-
-import net.sf.cglib.proxy.MethodProxy;
 
 public class AuditMethodCallInterceptor extends CascadedInterceptor {
 	public static final String P_METHOD_LEVEL_BEHAVIOUR = "MethodLevelBehaviour";

@@ -22,8 +22,10 @@ limitations under the License.
 
 import java.lang.reflect.Method;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
+import com.koch.ambeth.util.proxy.MethodInterceptor;
+import com.koch.ambeth.util.proxy.MethodProxy;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 
 import com.koch.ambeth.ioc.IFactoryBean;
 import com.koch.ambeth.ioc.annotation.Autowired;
@@ -33,9 +35,6 @@ import com.koch.ambeth.util.proxy.AbstractSimpleInterceptor;
 import com.koch.ambeth.util.proxy.IProxyFactory;
 import com.koch.ambeth.util.state.AbstractStateRollback;
 import com.koch.ambeth.util.state.IStateRollback;
-
-import net.sf.cglib.proxy.MethodInterceptor;
-import net.sf.cglib.proxy.MethodProxy;
 
 public class HttpSessionBean
 		implements IFactoryBean, MethodInterceptor, IHttpSessionProvider, IThreadLocalCleanupBean {

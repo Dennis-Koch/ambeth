@@ -73,6 +73,7 @@ import com.koch.ambeth.util.config.IProperties;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.objectcollector.IThreadLocalObjectCollector;
 import com.koch.ambeth.util.state.IStateRollback;
+import lombok.SneakyThrows;
 
 public abstract class AbstractConnectionDialect
 		implements IConnectionDialect, IInitializingBean, IDisposableBean {
@@ -190,28 +191,33 @@ public abstract class AbstractConnectionDialect
 				.finish();
 	}
 
+	@SneakyThrows
 	@Override
-	public Blob createBlob(Connection connection) throws SQLException {
+	public Blob createBlob(Connection connection) {
 		return connection.createBlob();
 	}
 
+	@SneakyThrows
 	@Override
-	public void releaseBlob(Blob blob) throws SQLException {
+	public void releaseBlob(Blob blob) {
 		blob.free();
 	}
 
+	@SneakyThrows
 	@Override
-	public Clob createClob(Connection connection) throws SQLException {
+	public Clob createClob(Connection connection) {
 		return connection.createClob();
 	}
 
+	@SneakyThrows
 	@Override
-	public void releaseClob(Clob clob) throws SQLException {
+	public void releaseClob(Clob clob) {
 		clob.free();
 	}
 
 	@Override
-	public void releaseArray(Array array) throws SQLException {
+	@SneakyThrows
+	public void releaseArray(Array array) {
 		array.free();
 	}
 
@@ -378,7 +384,7 @@ public abstract class AbstractConnectionDialect
 	}
 
 	protected ConnectionKeyValue preProcessConnectionIntern(Connection connection,
-			String[] schemaNames, boolean forcePreProcessing) throws SQLException {
+			String[] schemaNames, boolean forcePreProcessing) {
 		return new ConnectionKeyValue(new String[0], new String[0]);
 	}
 
@@ -450,8 +456,9 @@ public abstract class AbstractConnectionDialect
 		return false;
 	}
 
+	@SneakyThrows
 	@Override
-	public void commit(Connection connection) throws SQLException {
+	public void commit(Connection connection) {
 		Boolean active = transactionState != null
 				? transactionState.isExternalTransactionManagerActive() : null;
 		if (active == null) {
@@ -466,8 +473,9 @@ public abstract class AbstractConnectionDialect
 		}
 	}
 
+	@SneakyThrows
 	@Override
-	public void rollback(Connection connection) throws SQLException {
+	public void rollback(Connection connection) {
 		Boolean active = transactionState != null
 				? transactionState.isExternalTransactionManagerActive() : null;
 		if (active == null) {
@@ -493,9 +501,10 @@ public abstract class AbstractConnectionDialect
 		}
 	}
 
-	protected void printResultSet(ResultSet rs) throws SQLException {
-		ResultSetMetaData metaData = rs.getMetaData();
-		int columnCount = metaData.getColumnCount();
+	@SneakyThrows
+	protected void printResultSet(ResultSet rs) {
+		var metaData = rs.getMetaData();
+		var columnCount = metaData.getColumnCount();
 		for (int a = 0, size = columnCount; a < size; a++) {
 			System.out.print(metaData.getColumnLabel(a + 1));
 			System.out.print("\t\t");
@@ -510,9 +519,10 @@ public abstract class AbstractConnectionDialect
 		}
 	}
 
+	@SneakyThrows
 	protected ConnectionKeyValue scanForUndeferredDeferrableConstraints(Connection connection,
-			String[] schemaNames) throws SQLException {
-		try (Statement stm = connection.createStatement()) {
+			String[] schemaNames) {
+		try (var stm = connection.createStatement()) {
 			ArrayList<String> disableConstraintsSQL = new ArrayList<>();
 			ArrayList<String> enableConstraintsSQL = new ArrayList<>();
 			String sql = buildDeferrableForeignKeyConstraintsSelectSQL(schemaNames);
@@ -598,9 +608,10 @@ public abstract class AbstractConnectionDialect
 		return left + replacement + right;
 	}
 
+	@SneakyThrows
 	@Override
 	public IList<String> queryDefault(Connection connection, String resultColumnName, String sql,
-			Object... args) throws SQLException {
+			Object... args) {
 		Statement stmt = null;
 		ResultSet rs = null;
 		try {

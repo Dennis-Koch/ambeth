@@ -201,10 +201,10 @@ public abstract class MethodAccess {
 							for (int i = 0; i < n; i++) {
 								mv.visitLabel(labels[i]);
 								if (i == 0) {
-									mv.visitFrame(Opcodes.F_APPEND, 1, new Object[] {classNameInternal}, 0, null);
+									mv.visitFrame(Opcodes.F_NEW, 1, new Object[] {classNameInternal}, 0, null);
 								}
 								else {
-									mv.visitFrame(Opcodes.F_SAME, 0, null, 0, null);
+									mv.visitFrame(Opcodes.F_NEW, 0, null, 0, null);
 								}
 								mv.visitVarInsn(ALOAD, 4);
 
@@ -317,7 +317,7 @@ public abstract class MethodAccess {
 							}
 
 							mv.visitLabel(defaultLabel);
-							mv.visitFrame(Opcodes.F_SAME, 0, null, 0, null);
+							mv.visitFrame(Opcodes.F_NEW, 0, null, 0, null);
 						}
 						mv.visitTypeInsn(NEW, "java/lang/IllegalArgumentException");
 						mv.visitInsn(DUP);

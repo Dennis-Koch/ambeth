@@ -795,7 +795,9 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 			if (!(e instanceof BeanContextInitException)) {
 				BeanContextInitException beanContextInitException = new BeanContextInitException(
 						sb.toString(), e);
-				beanContextInitException.setStackTrace(RuntimeExceptionUtil.EMPTY_STACK_TRACE);
+				if (e != null) {
+					beanContextInitException.setStackTrace(RuntimeExceptionUtil.EMPTY_STACK_TRACE);
+				}
 				return beanContextInitException;
 			}
 			sb.insert(0, SystemUtil.lineSeparator());

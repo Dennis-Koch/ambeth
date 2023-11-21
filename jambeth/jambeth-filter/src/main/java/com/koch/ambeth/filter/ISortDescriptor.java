@@ -20,7 +20,7 @@ limitations under the License.
  * #L%
  */
 
-import javax.xml.bind.annotation.XmlType;
+import jakarta.xml.bind.annotation.XmlType;
 
 import com.koch.ambeth.service.metadata.IDTOType;
 

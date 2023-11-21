@@ -45,12 +45,14 @@ import com.koch.ambeth.persistence.jdbc.AbstractConnectionTestDialect;
 import com.koch.ambeth.persistence.jdbc.JdbcUtil;
 import com.koch.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationConstants;
 import com.koch.ambeth.persistence.pg.RandomUserScript.RandomUserModule;
+import com.koch.ambeth.security.SecurityContextUserName;
 import com.koch.ambeth.util.appendable.AppendableStringBuilder;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.HashSet;
 import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.config.IProperties;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
+import lombok.SneakyThrows;
 
 public class PostgresTestDialect extends AbstractConnectionTestDialect {
 	public static final String ROOT_DATABASE_USER = "ambeth.root.database.user";
@@ -87,7 +89,7 @@ public class PostgresTestDialect extends AbstractConnectionTestDialect {
 
 	@Override
 	public boolean createTestUserIfSupported(Throwable reason, String userName, String userPassword,
-			IProperties testProps) throws SQLException {
+			IProperties testProps) {
 		if (!(reason instanceof SQLException)) {
 			return false;
 		}
@@ -123,7 +125,7 @@ public class PostgresTestDialect extends AbstractConnectionTestDialect {
 
 	@Override
 	public void dropCreatedTestUser(String userName, String userPassword, IProperties testProps)
-			throws SQLException {
+			{
 		Properties createUserProps = new Properties(testProps);
 		createUserProps.put(RandomUserScript.SCRIPT_IS_CREATE, "false");
 		createUserProps.put(RandomUserScript.SCRIPT_USER_NAME, userName);
@@ -140,14 +142,15 @@ public class PostgresTestDialect extends AbstractConnectionTestDialect {
 		}
 	}
 
+	@SneakyThrows
 	@Override
-	public void preStructureRebuild(Connection connection) throws SQLException {
+	public void preStructureRebuild(Connection connection) {
 		super.preStructureRebuild(connection);
 
 		Statement stm = null;
 		try {
 			stm = connection.createStatement();
-			for (String schemaName : schemaNames) {
+			for (var schemaName : schemaNames) {
 				stm.execute("CREATE SCHEMA IF NOT EXISTS \"" + schemaName + "\"");
 				// stm.execute("CREATE DOMAIN \"" + schemaName + "\".lo AS oid");
 				try {
@@ -174,8 +177,9 @@ public class PostgresTestDialect extends AbstractConnectionTestDialect {
 		// intended blank
 	}
 
+	@SneakyThrows
 	@Override
-	public boolean isEmptySchema(Connection connection) throws SQLException {
+	public boolean isEmptySchema(Connection connection) {
 		Statement stmt = null;
 		ResultSet rs = null;
 		try {
@@ -194,7 +198,7 @@ public class PostgresTestDialect extends AbstractConnectionTestDialect {
 
 	@Override
 	public String[] createAdditionalTriggers(Connection connection, String fqTableName)
-			throws SQLException {
+			{
 		IList<IColumnEntry> allFieldsOfTable = connectionDialect.getAllFieldsOfTable(connection,
 				fqTableName);
 		ArrayList<String> sql = new ArrayList<>();
@@ -231,9 +235,10 @@ public class PostgresTestDialect extends AbstractConnectionTestDialect {
 		return sql.toArray(String.class);
 	}
 
+	@SneakyThrows
 	@Override
 	public String[] createOptimisticLockTrigger(Connection connection, String fqTableName)
-			throws SQLException {
+			{
 		if (PostgresDialect.BIN_TABLE_NAME.matcher(fqTableName).matches()
 				|| PostgresDialect.IDX_TABLE_NAME.matcher(fqTableName).matches()) {
 			return new String[0];
@@ -328,21 +333,21 @@ public class PostgresTestDialect extends AbstractConnectionTestDialect {
 	}
 
 	@Override
-	protected IList<String> queryForAllTables(Connection connection) throws SQLException {
+	protected IList<String> queryForAllTables(Connection connection) {
 		return connectionDialect.queryDefault(connection, "FULL_NAME",
 				"SELECT DISTINCT n.nspname || '.' || c.relname AS FULL_NAME FROM pg_trigger t JOIN pg_class c ON t.tgrelid=c.oid JOIN pg_namespace n ON c.relnamespace=n.oid WHERE n.nspname='"
 						+ schemaNames[0] + "'");
 	}
 
 	@Override
-	protected IList<String> queryForAllTriggers(Connection connection) throws SQLException {
+	protected IList<String> queryForAllTriggers(Connection connection) {
 		return connectionDialect.queryDefault(connection, "TRIGGER_NAME",
 				"SELECT t.tgname AS TRIGGER_NAME FROM pg_trigger t");
 	}
 
 	@Override
 	protected IList<String> queryForAllPermissionGroupNeedingTables(Connection connection)
-			throws SQLException {
+			{
 		return connectionDialect.queryDefault(connection, "TNAME",
 				"SELECT c.table_name AS TNAME FROM information_schema.columns c WHERE LOWER(c.column_name)=LOWER('"
 						+ PermissionGroup.permGroupIdNameOfData + "') AND LOWER(table_schema)=LOWER('"
@@ -351,14 +356,15 @@ public class PostgresTestDialect extends AbstractConnectionTestDialect {
 
 	@Override
 	protected IList<String> queryForAllPotentialPermissionGroups(Connection connection)
-			throws SQLException {
+			{
 		return connectionDialect.queryDefault(connection, "PERM_GROUP_NAME",
 				"SELECT t.table_name AS PERM_GROUP_NAME FROM information_schema.tables t");
 	}
 
+	@SneakyThrows
 	@Override
 	public String[] createPermissionGroup(Connection connection, String tableName)
-			throws SQLException {
+			{
 		int maxProcedureNameLength = connection.getMetaData().getMaxProcedureNameLength();
 		String permissionGroupName = ormPatternMatcher.buildPermissionGroupFromTableName(tableName,
 				maxProcedureNameLength);

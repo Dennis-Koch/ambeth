@@ -22,7 +22,7 @@ limitations under the License.
 
 import java.io.IOException;
 
-import javax.servlet.ServletContext;
+import jakarta.servlet.ServletContext;
 
 import org.junit.Assert;
 import org.junit.BeforeClass;

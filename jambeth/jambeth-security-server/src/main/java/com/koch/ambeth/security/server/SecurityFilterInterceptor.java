@@ -44,8 +44,7 @@ import com.koch.ambeth.service.proxy.IMethodLevelBehavior;
 import com.koch.ambeth.util.IConversionHelper;
 import com.koch.ambeth.util.config.IProperties;
 import com.koch.ambeth.util.proxy.CascadedInterceptor;
-
-import net.sf.cglib.proxy.MethodProxy;
+import com.koch.ambeth.util.proxy.MethodProxy;
 
 public class SecurityFilterInterceptor extends CascadedInterceptor {
 	public static class SecurityMethodMode {

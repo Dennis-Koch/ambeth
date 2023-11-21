@@ -9,7 +9,7 @@
 		<groupId>com.koch.ambeth</groupId>
 		<artifactId>jambeth-bundles</artifactId>
 		<version>3.1.0-SNAPSHOT</version>
-		<relativePath>../..</relativePath>
+		<relativePath>../../pom.xml</relativePath>
 	</parent>
 
 	<dependencies>
@@ -249,8 +249,8 @@
 		</dependency>
 
 		<dependency>
-			<groupId>javax.servlet</groupId>
-			<artifactId>javax.servlet-api</artifactId>
+			<groupId>jakarta.servlet</groupId>
+			<artifactId>jakarta.servlet-api</artifactId>
 		</dependency>
 
 		<dependency>
@@ -284,15 +284,15 @@
 		</dependency>
 
 		<dependency>
-			<groupId>cglib</groupId>
-			<artifactId>cglib</artifactId>
+			<groupId>net.bytebuddy</groupId>
+			<artifactId>byte-buddy</artifactId>
 		</dependency>
-
+<!--
 		<dependency>
 			<groupId>org.ow2.asm</groupId>
 			<artifactId>asm-all</artifactId>
 		</dependency>
-
+-->
 		<dependency>
 			<groupId>it.sauronsoftware.cron4j</groupId>
 			<artifactId>cron4j</artifactId>
@@ -325,7 +325,7 @@
 			<plugin>
 				<groupId>org.apache.karaf.tooling</groupId>
 				<artifactId>karaf-maven-plugin</artifactId>
-				<version>4.1.0</version>
+				<version>4.4.4</version>
 				<extensions>true</extensions>
 				<configuration>
 					<startLevel>81</startLevel>
@@ -333,14 +333,16 @@
 					<includeTransitiveDependency>false</includeTransitiveDependency>
 				</configuration>
 			</plugin>
+			<!--
 			<plugin>
 				<groupId>com.bruker.horizon</groupId>
 				<artifactId>kar2tycho-maven-plugin</artifactId>
 				<configuration>
-					<artifacts>
+					<artifacts>-->
 						<!-- The following bundles are needed for the eclipse RCP client, 
 								but should not be included into the karaf feature -->
 						<!-- groupId:artifactId:version -->
+			<!--
 						<artifact>
 							<id>com.koch.ambeth:jambeth-eclipse-databinding:jar:${project.version}</id>
 							<transitive>false</transitive>
@@ -398,6 +400,7 @@
 					</sources>
 				</configuration>
 			</plugin>
+			-->
 		</plugins>
 	</build>
 </project>

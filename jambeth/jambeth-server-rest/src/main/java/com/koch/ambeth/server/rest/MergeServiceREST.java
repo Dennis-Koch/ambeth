@@ -27,17 +27,17 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.StreamingOutput;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.StreamingOutput;
 
 import com.koch.ambeth.dot.IDotUtil;
 import com.koch.ambeth.merge.model.ICUDResult;
@@ -64,9 +64,9 @@ public class MergeServiceREST extends AbstractServiceREST {
 	@Path("createMetaDataDOT")
 	public StreamingOutput createMetaDataDOT(@Context HttpServletRequest request,
 			@Context HttpServletResponse response) {
-		IStateRollback rollback = preServiceCall(request, response);
+		var rollback = preServiceCall(request, response);
 		try {
-			String dot = getMergeService().createMetaDataDOT();
+			var dot = getMergeService().createMetaDataDOT();
 			return createResult(dot, request, response);
 		}
 		catch (Throwable e) {
@@ -82,11 +82,11 @@ public class MergeServiceREST extends AbstractServiceREST {
 	@Produces("image/png")
 	public StreamingOutput fim(@Context HttpServletRequest request,
 			@Context final HttpServletResponse response) {
-		IStateRollback rollback = preServiceCall(request, response);
+		var rollback = preServiceCall(request, response);
 		try {
-			IDotUtil dotUtil = getService(IDotUtil.class);
-			String dot = getMergeService().createMetaDataDOT();
-			final byte[] pngBytes = dotUtil.writeDotAsPngBytes(dot);
+			var dotUtil = getService(IDotUtil.class);
+			var dot = getMergeService().createMetaDataDOT();
+			var pngBytes = dotUtil.writeDotAsPngBytes(dot);
 			return new StreamingOutput() {
 				@Override
 				public void write(OutputStream output) throws IOException, WebApplicationException {
@@ -107,10 +107,10 @@ public class MergeServiceREST extends AbstractServiceREST {
 	@Path("merge")
 	public StreamingOutput merge(InputStream is, @Context HttpServletRequest request,
 			@Context HttpServletResponse response) {
-		IStateRollback rollback = preServiceCall(request, response);
+		var rollback = preServiceCall(request, response);
 		try {
-			Object[] args = getArguments(is, request);
-			IOriCollection result = getMergeService().merge((ICUDResult) args[0], (String[]) args[1],
+			var args = getArguments(is, request);
+			var result = getMergeService().merge((ICUDResult) args[0], (String[]) args[1],
 					(IMethodDescription) args[2]);
 			return createResult(result, request, response);
 		}
@@ -127,20 +127,19 @@ public class MergeServiceREST extends AbstractServiceREST {
 	@Path("getMetaData")
 	public StreamingOutput getMetaData(InputStream is, @Context HttpServletRequest request,
 			@Context HttpServletResponse response) {
-		IStateRollback rollback = preServiceCall(request, response);
+		var rollback = preServiceCall(request, response);
 		try {
-			Object[] args = getArguments(is, request);
-			IConversionHelper conversionHelper = getService(IConversionHelper.class);
-			List<IEntityMetaData> result = getService(IEntityMetaDataProvider.class)
+			var args = getArguments(is, request);
+			var conversionHelper = getService(IConversionHelper.class);
+			var result = getService(IEntityMetaDataProvider.class)
 					.getMetaData((List<Class<?>>) args[0]);
 
-			IdentityLinkedMap<IEntityMetaData, EntityMetaDataTransfer> emdTransferMap =
-					IdentityLinkedMap.create(result.size());
+			var emdTransferMap= IdentityLinkedMap.<IEntityMetaData, EntityMetaDataTransfer>create(result.size());
 
-			ArrayList<EntityMetaDataTransfer> emdTransfer = new ArrayList<>(result.size());
+			var emdTransfer = new ArrayList<EntityMetaDataTransfer>(result.size());
 			for (int a = 0, size = result.size(); a < size; a++) {
-				IEntityMetaData source = result.get(a);
-				EntityMetaDataTransfer target = emdTransferMap.get(source);
+				var source = result.get(a);
+				var target = emdTransferMap.get(source);
 				if (target == null) {
 					target = conversionHelper.convertValueToType(EntityMetaDataTransfer.class, source);
 					emdTransferMap.put(source, target);

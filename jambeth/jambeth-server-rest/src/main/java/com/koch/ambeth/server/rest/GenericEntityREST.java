@@ -26,19 +26,19 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.BadRequestException;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.NotFoundException;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.NoContentException;
-import javax.ws.rs.core.StreamingOutput;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.ws.rs.BadRequestException;
+import jakarta.ws.rs.DELETE;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.NotFoundException;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.PUT;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.NoContentException;
+import jakarta.ws.rs.core.StreamingOutput;
 
 import com.koch.ambeth.mapping.IMapperService;
 import com.koch.ambeth.mapping.IMapperServiceFactory;
@@ -62,9 +62,9 @@ import com.koch.ambeth.util.typeinfo.ITypeInfoProvider;
 // @Produces({ MediaType.TEXT_PLAIN })
 public class GenericEntityREST extends AbstractServiceREST {
 	@Override
-	protected void writeContent(OutputStream os, Object result) {
+	protected void writeContent(String contentType, OutputStream os, Object result) {
 		// TODO: write JSON
-		super.writeContent(os, result);
+		super.writeContent(contentType, os, result);
 	}
 
 	@Override

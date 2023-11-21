@@ -24,14 +24,14 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.StreamingOutput;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.StreamingOutput;
 
 import com.koch.ambeth.filter.IFilterDescriptor;
 import com.koch.ambeth.filter.IPagingRequest;
@@ -55,9 +55,9 @@ import com.koch.ambeth.util.threading.IBackgroundWorkerParamDelegate;
 // @Produces({ MediaType.TEXT_PLAIN })
 public class GenericQueryREST extends AbstractServiceREST {
 	@Override
-	protected void writeContent(OutputStream os, Object result) {
+	protected void writeContent(String contentType, OutputStream os, Object result) {
 		// TODO: write JSON
-		super.writeContent(os, result);
+		super.writeContent(contentType, os, result);
 	}
 
 	@Override
@@ -70,9 +70,9 @@ public class GenericQueryREST extends AbstractServiceREST {
 	@Path("filter")
 	public StreamingOutput filter(InputStream is, @Context HttpServletRequest request,
 			final @Context HttpServletResponse response) {
-		final IStateRollback rollback = preServiceCall(request, response);
+		var rollback = preServiceCall(request, response);
 		try {
-			final Object[] args = getArguments(is, request);
+			var args = getArguments(is, request);
 			// we need to maintain our own explicit 1st level cache: during serialization of
 			// the StreamingOutput we need a (still) valid cache handle
 			// the transparently maintained 1st level cache of the framework bound to the current thread
@@ -84,14 +84,14 @@ public class GenericQueryREST extends AbstractServiceREST {
 			// ICacheContext cacheContext = getService(ICacheContext.class);
 			// final IDisposableCache cache = getService(ICacheFactory.class)
 			// .create(CacheFactoryDirective.NoDCE, "genericFilter");
-			boolean success = false;
+			var success = false;
 			try {
 				// IStateRollback syncRollback = cacheContext.pushCache(cache);
 				// try {
-				IGenericQueryService genericQueryService = getService(IGenericQueryService.class);
-				IPagingResponse<?> result = genericQueryService.filter((IFilterDescriptor<?>) args[0],
+				var genericQueryService = getService(IGenericQueryService.class);
+				var result = genericQueryService.filter((IFilterDescriptor<?>) args[0],
 						(ISortDescriptor[]) args[1], (IPagingRequest) args[2]);
-				StreamingOutput streamingOutput = createResult(result, request, response,
+				var streamingOutput = createResult(result, request, response,
 						new IBackgroundWorkerParamDelegate<Throwable>() {
 							@Override
 							public void invoke(Throwable e) throws Exception {
@@ -126,18 +126,18 @@ public class GenericQueryREST extends AbstractServiceREST {
 	@Path("{subResources:.*}")
 	public StreamingOutput get(@Context HttpServletRequest request,
 			@Context HttpServletResponse response) {
-		IStateRollback rollback = preServiceCall(request, response);
+		var rollback = preServiceCall(request, response);
 		try {
-			String contextPath = request.getPathInfo();
-			String[] path = contextPath.split("/");
+			var contextPath = request.getPathInfo();
+			var path = contextPath.split("/");
 
-			IEntityMetaDataProvider entityMetaDataProvider = getService(IEntityMetaDataProvider.class);
+			var entityMetaDataProvider = getService(IEntityMetaDataProvider.class);
 
-			String valueObjectTypeName = path[2];
+			var valueObjectTypeName = path[2];
 
-			String query = path[3];
+			var query = path[3];
 
-			IValueObjectConfig config = entityMetaDataProvider.getValueObjectConfig(valueObjectTypeName);
+			var config = entityMetaDataProvider.getValueObjectConfig(valueObjectTypeName);
 			Class<?> entityType;
 			if (config != null) {
 				entityType = config.getEntityType();
@@ -145,23 +145,23 @@ public class GenericQueryREST extends AbstractServiceREST {
 			else {
 				entityType = getService(IClassCache.class).loadClass(valueObjectTypeName);
 			}
-			IConversionHelper conversionHelper = getService(IConversionHelper.class);
-			IQueryBuilderFactory queryBuilderFactory = getService(IQueryBuilderFactory.class);
+			var conversionHelper = getService(IConversionHelper.class);
+			var queryBuilderFactory = getService(IQueryBuilderFactory.class);
 
-			QueryBuilderBean<?> queryBuilderBean = QueryUtils.buildQuery(query, entityType);
+			var queryBuilderBean = QueryUtils.buildQuery(query, entityType);
 
-			Object result = queryBuilderBean.createQueryBuilder(queryBuilderFactory, conversionHelper,
+			var result = queryBuilderBean.createQueryBuilder(queryBuilderFactory, conversionHelper,
 					new Object[0], Object.class);
 
 			if (config == null) {
 				return createResult(result, request, response);
 			}
-			IMapperServiceFactory mapperServiceFactory = getService(IMapperServiceFactory.class);
+			var mapperServiceFactory = getService(IMapperServiceFactory.class);
 
-			IMapperService mapperService = mapperServiceFactory.create();
+			var mapperService = mapperServiceFactory.create();
 			try {
 
-				Object valueObject = result instanceof List
+				var valueObject = result instanceof List
 						? mapperService.mapToValueObjectList((List<?>) result, config.getValueType())
 						: mapperService.mapToValueObject(result, config.getValueType());
 				return createResult(valueObject, request, response);

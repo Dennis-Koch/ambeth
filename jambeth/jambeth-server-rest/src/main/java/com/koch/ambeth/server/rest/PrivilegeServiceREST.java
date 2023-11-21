@@ -23,14 +23,14 @@ limitations under the License.
 import java.io.InputStream;
 import java.util.List;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.StreamingOutput;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.StreamingOutput;
 
 import com.koch.ambeth.security.privilege.transfer.IPrivilegeOfService;
 import com.koch.ambeth.security.privilege.transfer.ITypePrivilegeOfService;
@@ -52,10 +52,10 @@ public class PrivilegeServiceREST extends AbstractServiceREST {
 	@Path("getPrivileges")
 	public StreamingOutput getPrivileges(InputStream is, @Context HttpServletRequest request,
 			@Context HttpServletResponse response) {
-		IStateRollback rollback = preServiceCall(request, response);
+		var rollback = preServiceCall(request, response);
 		try {
-			Object[] args = getArguments(is, request);
-			List<IPrivilegeOfService> result = getPrivilegeService().getPrivileges((IObjRef[]) args[0],
+			var args = getArguments(is, request);
+			var result = getPrivilegeService().getPrivileges((IObjRef[]) args[0],
 					(ISecurityScope[]) args[1]);
 			return createResult(result, request, response);
 		}
@@ -71,11 +71,10 @@ public class PrivilegeServiceREST extends AbstractServiceREST {
 	@Path("getPrivilegesOfTypes")
 	public StreamingOutput getPrivilegesOfTypes(InputStream is, @Context HttpServletRequest request,
 			@Context HttpServletResponse response) {
-		IStateRollback rollback = preServiceCall(request, response);
+		var rollback = preServiceCall(request, response);
 		try {
-			Object[] args = getArguments(is, request);
-			List<ITypePrivilegeOfService> result =
-					getPrivilegeService().getPrivilegesOfTypes((Class<?>[]) args[0],
+			var args = getArguments(is, request);
+			var result = getPrivilegeService().getPrivilegesOfTypes((Class<?>[]) args[0],
 							(ISecurityScope[]) args[1]);
 			return createResult(result, request, response);
 		}

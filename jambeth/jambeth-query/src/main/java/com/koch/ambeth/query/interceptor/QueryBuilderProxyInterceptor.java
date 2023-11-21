@@ -10,10 +10,9 @@ import com.koch.ambeth.service.metadata.Member;
 import com.koch.ambeth.util.ListUtil;
 import com.koch.ambeth.util.proxy.AbstractSimpleInterceptor;
 import com.koch.ambeth.util.proxy.IProxyFactory;
+import com.koch.ambeth.util.proxy.MethodInterceptor;
+import com.koch.ambeth.util.proxy.MethodProxy;
 import com.koch.ambeth.util.typeinfo.IPropertyInfoProvider;
-
-import net.sf.cglib.proxy.MethodInterceptor;
-import net.sf.cglib.proxy.MethodProxy;
 
 public class QueryBuilderProxyInterceptor implements MethodInterceptor {
 	private static final Class<?>[] INTERFACES = new Class<?>[] {IPropertyPath.class};

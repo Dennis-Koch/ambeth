@@ -51,9 +51,7 @@ import com.koch.ambeth.util.collections.IdentityWeakSmartCopyMap;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.proxy.AbstractSimpleInterceptor;
 import com.koch.ambeth.util.proxy.IProxyFactory;
-
-import net.sf.cglib.proxy.MethodInterceptor;
-import net.sf.cglib.proxy.MethodProxy;
+import com.koch.ambeth.util.proxy.MethodProxy;
 
 public class LogConnectionInterceptor extends AbstractSimpleInterceptor
 		implements IPreparedConnectionHolder {
@@ -166,7 +164,7 @@ public class LogConnectionInterceptor extends AbstractSimpleInterceptor
 				PreparedStatement pstm = (PreparedStatement) proxy.invoke(connection, args);
 
 				pstm.setFetchSize(fetchSize);
-				MethodInterceptor logPstmInterceptor = beanContext
+				var logPstmInterceptor = beanContext
 						.registerBean(LogPreparedStatementInterceptor.class)//
 						.propertyValue("PreparedStatement", pstm)//
 						.propertyValue("Statement", pstm)//
@@ -183,7 +181,7 @@ public class LogConnectionInterceptor extends AbstractSimpleInterceptor
 				Statement stm = (Statement) proxy.invoke(connection, args);
 
 				stm.setFetchSize(fetchSize);
-				MethodInterceptor logStmInterceptor = beanContext
+				var logStmInterceptor = beanContext
 						.registerBean(LogStatementInterceptor.class)//
 						.propertyValue("Statement", stm)//
 						.propertyValue("Connection", obj)//

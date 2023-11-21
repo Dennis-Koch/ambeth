@@ -20,7 +20,7 @@ limitations under the License.
  * #L%
  */
 
-import javax.servlet.ServletContext;
+import jakarta.servlet.ServletContext;
 
 import com.koch.ambeth.core.Ambeth;
 import com.koch.ambeth.core.config.CoreConfigurationConstants;

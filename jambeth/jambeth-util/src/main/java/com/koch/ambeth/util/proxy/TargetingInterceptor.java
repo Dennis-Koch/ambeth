@@ -25,8 +25,6 @@ import java.lang.reflect.Method;
 import com.koch.ambeth.util.IDisposable;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
-import net.sf.cglib.proxy.MethodProxy;
-
 public class TargetingInterceptor extends AbstractSimpleInterceptor {
 	public static final String TARGET_PROVIDER_PROP = "TargetProvider";
 

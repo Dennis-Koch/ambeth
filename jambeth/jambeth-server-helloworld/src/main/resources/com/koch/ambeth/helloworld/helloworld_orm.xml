@@ -26,7 +26,7 @@ limitations under the License.
 	</link-mappings>
 
 	<entity-mappings>
-		<entity class="com.koch.ambeth.helloworld.transfer.TestEntity">
+		<entity class="com.koch.ambeth.server.helloworld.transfer.TestEntity">
 			<attributes>
 				<basic name="EmbeddedObject.Name" column="NAME" />
 				<basic name="EmbeddedObject.Value" column="VALUE" />
@@ -34,10 +34,10 @@ limitations under the License.
 			</attributes>
 		</entity>
 
-		<entity class="com.koch.ambeth.helloworld.transfer.TestEntity2">
+		<entity class="com.koch.ambeth.server.helloworld.transfer.TestEntity2">
 		</entity>
 
-		<entity class="com.koch.ambeth.helloworld.transfer.TestEntity3">
+		<entity class="com.koch.ambeth.server.helloworld.transfer.TestEntity3">
 		</entity>
 
 	</entity-mappings>

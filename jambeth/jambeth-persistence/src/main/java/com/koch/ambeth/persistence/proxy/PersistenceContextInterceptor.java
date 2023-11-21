@@ -37,10 +37,9 @@ import com.koch.ambeth.util.collections.HashMap;
 import com.koch.ambeth.util.collections.ILinkedMap;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.proxy.CascadedInterceptor;
+import com.koch.ambeth.util.proxy.MethodInterceptor;
+import com.koch.ambeth.util.proxy.MethodProxy;
 import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
-
-import net.sf.cglib.proxy.MethodInterceptor;
-import net.sf.cglib.proxy.MethodProxy;
 
 public class PersistenceContextInterceptor extends CascadedInterceptor {
 	public static final String P_METHOD_LEVEL_BEHAVIOUR = "MethodLevelBehaviour";

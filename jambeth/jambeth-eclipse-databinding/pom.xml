@@ -16,9 +16,9 @@
 			<artifactId>jambeth-cache-bytecode</artifactId>
 		</dependency>
 		<dependency>
-		    <groupId>org.eclipse.core.databinding</groupId>
-		    <artifactId>observable</artifactId>
-		    <version>1.6.100.v20170515-1119</version>
+			<groupId>org.eclipse.platform</groupId>
+			<artifactId>org.eclipse.core.databinding.observable</artifactId>
+			<version>1.13.100</version>
 		</dependency>
 	</dependencies>
 </project>

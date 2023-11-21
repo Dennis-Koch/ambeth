@@ -41,7 +41,7 @@ public class ConstructorInstance extends MethodInstance {
 
 	public static final String getSignature(java.lang.reflect.Constructor<?> method) {
 		try {
-			java.lang.reflect.Method getSignature = method.getClass().getDeclaredMethod("getSignature");
+			var getSignature = method.getClass().getDeclaredMethod("getSignature");
 			getSignature.setAccessible(true);
 			return (String) getSignature.invoke(method);
 		}

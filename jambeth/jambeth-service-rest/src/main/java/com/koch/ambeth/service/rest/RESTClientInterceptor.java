@@ -1,9 +1,5 @@
 package com.koch.ambeth.service.rest;
 
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-import java.io.BufferedReader;
-
 /*-
  * #%L
  * jambeth-service-rest
@@ -24,6 +20,9 @@ limitations under the License.
  * #L%
  */
 
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -51,6 +50,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
 
+import com.koch.ambeth.util.proxy.MethodProxy;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
@@ -92,8 +92,6 @@ import com.koch.ambeth.util.proxy.AbstractSimpleInterceptor;
 import com.koch.ambeth.util.threading.IGuiThreadHelper;
 import com.koch.ambeth.xml.ICyclicXMLHandler;
 import com.koch.ambeth.xml.ioc.XmlModule;
-
-import net.sf.cglib.proxy.MethodProxy;
 
 public class RESTClientInterceptor extends AbstractSimpleInterceptor
 		implements IRemoteInterceptor, IInitializingBean, IOfflineListener, IDisposableBean,
@@ -265,8 +263,6 @@ public class RESTClientInterceptor extends AbstractSimpleInterceptor
 		boolean enrichException = true;
 		URL url = null;
 		try {
-			long m1 = System.currentTimeMillis();
-
 			long localRequestId = requestCounter.incrementAndGet();
 			try {
 				url = restClientServiceUrlBuilder != null

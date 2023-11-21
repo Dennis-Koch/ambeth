@@ -41,7 +41,7 @@ public class EntityPropertyExpressionResolver implements IEntityPropertyExpressi
 		final Object fEntity = entity;
 		Properties propertiesForEntity = new Properties() {
 			@Override
-			public Object get(String key, IProperties initiallyCalledProps) {
+			public <T> T get(String key, IProperties initiallyCalledProps) {
 				if (initiallyCalledProps == null) {
 					initiallyCalledProps = this;
 				}

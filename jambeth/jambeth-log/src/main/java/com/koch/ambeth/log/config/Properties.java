@@ -23,10 +23,7 @@ limitations under the License.
  * #L%
  */
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
 import java.nio.charset.Charset;
@@ -40,6 +37,7 @@ import java.util.regex.Pattern;
 import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LoggerFactory;
 import com.koch.ambeth.log.io.FileUtil;
+import com.koch.ambeth.util.NullPrintStream;
 import com.koch.ambeth.util.collections.HashSet;
 import com.koch.ambeth.util.collections.ISet;
 import com.koch.ambeth.util.collections.LinkedHashMap;
@@ -47,6 +45,7 @@ import com.koch.ambeth.util.collections.LinkedHashSet;
 import com.koch.ambeth.util.collections.specialized.PropertyChangeSupport;
 import com.koch.ambeth.util.config.IProperties;
 import com.koch.ambeth.util.config.UtilConfigurationConstants;
+import com.koch.ambeth.util.state.IStateRollback;
 import com.koch.ambeth.util.threading.SensitiveThreadLocal;
 
 public class Properties implements IProperties, Iterable<Entry<String, Object>> {
@@ -125,6 +124,18 @@ public class Properties implements IProperties, Iterable<Entry<String, Object>> 
 		loadBootstrapPropertyFile(Properties.getApplication());
 	}
 
+	public static IStateRollback pushSystemOutStream(PrintStream printStream) {
+		PrintStream oldPrintStream = System.out;
+		System.setOut(printStream);
+		return () -> System.setOut(oldPrintStream);
+	}
+
+	public static IStateRollback pushSystemErrStream(PrintStream printStream) {
+		PrintStream oldPrintStream = System.err;
+		System.setErr(printStream);
+		return () -> System.setErr(oldPrintStream);
+	}
+
 	public static void loadBootstrapPropertyFile(Properties props) {
 		System.out.println("Ambeth is looking for environment property '"
 				+ UtilConfigurationConstants.BootstrapPropertyFile + "'...");
@@ -150,11 +161,11 @@ public class Properties implements IProperties, Iterable<Entry<String, Object>> 
 	}
 
 	public static String[] deriveArgsFromProperties(IProperties props) {
-		ISet<String> keys = props.collectAllPropertyKeys();
-		String[] derivedArgs = new String[keys.size()];
-		int index = 0;
+		var keys = props.collectAllPropertyKeys();
+		var derivedArgs = new String[keys.size()];
+		var index = 0;
 		for (String propertyKey : keys) {
-			Object propertyValue = props.get(propertyKey);
+			var propertyValue = props.get(propertyKey);
 			derivedArgs[index] = propertyKey + '=' + propertyValue;
 			index++;
 		}
@@ -163,10 +174,8 @@ public class Properties implements IProperties, Iterable<Entry<String, Object>> 
 
 	// Intentionally not a SensitiveThreadLocal. It can not contain a memory leak, because the HashSet
 	// is cleared after each usage
-	protected final ThreadLocal<HashSet<String>> cyclicKeyCheckTL =
-			new SensitiveThreadLocal<>();
-	protected final ThreadLocal<HashSet<String>> unknownListTL =
-			new SensitiveThreadLocal<>();
+	protected final ThreadLocal<HashSet<String>> cyclicKeyCheckTL = new SensitiveThreadLocal<>();
+	protected final ThreadLocal<HashSet<String>> unknownListTL = new SensitiveThreadLocal<>();
 
 	protected volatile PropertyChangeSupport pcs;
 
@@ -203,49 +212,50 @@ public class Properties implements IProperties, Iterable<Entry<String, Object>> 
 	}
 
 	@Override
-	public Object get(String key) {
+	public <T> T get(String key) {
 		return get(key, this);
 	}
 
 	@Override
-	public Object get(String key, IProperties initiallyCalledProps) {
+	public <T> T get(String key, IProperties initiallyCalledProps) {
 		if (initiallyCalledProps == null) {
 			initiallyCalledProps = this;
 		}
-		Object propertyValue = dictionary.get(key);
+		var propertyValue = dictionary.get(key);
 		if (propertyValue == null && parent != null) {
 			return parent.get(key, initiallyCalledProps);
 		}
-		if (!(propertyValue instanceof String)) {
-			return propertyValue;
+		if (!(propertyValue instanceof CharSequence)) {
+			return (T) propertyValue;
 		}
-		return initiallyCalledProps.resolvePropertyParts((String) propertyValue);
+		return (T) initiallyCalledProps.resolvePropertyParts((CharSequence) propertyValue);
 	}
 
 	@Override
-	public String resolvePropertyParts(String value) {
+	public String resolvePropertyParts(CharSequence value) {
 		if (value == null) {
 			return null;
 		}
+		var sValue = value.toString();
 
-		ThreadLocal<HashSet<String>> unknownListTL = this.unknownListTL;
-		HashSet<String> unknownList = unknownListTL.get();
-		boolean createdUnkownList = false;
-		boolean unkown = false;
+		var unknownListTL = this.unknownListTL;
+		var unknownList = unknownListTL.get();
+		var createdUnkownList = false;
+		var unkown = false;
 
 		try {
-			String currStringValue = value;
+			var currStringValue = sValue;
 
 			while (true) {
 				if (!currStringValue.contains("${")) {
 					return currStringValue;
 				}
-				Matcher matcher = dynamicRegex.matcher(currStringValue);
+				var matcher = dynamicRegex.matcher(currStringValue);
 
 				String leftFromVariable;
 				String variableName;
 				String rightFromVariable;
-				String additionalRightFromVariable = "";
+				var additionalRightFromVariable = "";
 
 				do {
 					if (!matcher.matches()) {
@@ -267,8 +277,8 @@ public class Properties implements IProperties, Iterable<Entry<String, Object>> 
 				}
 				while (unkown);
 
-				ThreadLocal<HashSet<String>> cyclicKeyCheckTL = this.cyclicKeyCheckTL;
-				HashSet<String> cyclicKeyCheck = cyclicKeyCheckTL.get();
+				var cyclicKeyCheckTL = this.cyclicKeyCheckTL;
+				var cyclicKeyCheck = cyclicKeyCheckTL.get();
 				boolean created = false, added = false;
 				if (cyclicKeyCheck == null) {
 					cyclicKeyCheck = new HashSet<>();
@@ -283,7 +293,7 @@ public class Properties implements IProperties, Iterable<Entry<String, Object>> 
 					}
 					added = true;
 
-					String resolvedVariable = getString(variableName);
+					var resolvedVariable = getString(variableName);
 					if (resolvedVariable == null) {
 						if (leftFromVariable.length() == 0 && rightFromVariable.length() == 0) {
 							return "${" + variableName + "}";
@@ -320,9 +330,9 @@ public class Properties implements IProperties, Iterable<Entry<String, Object>> 
 	}
 
 	public void fillWithCommandLineArgs(String[] args) {
-		StringBuilder sb = new StringBuilder();
+		var sb = new StringBuilder();
 		for (int a = args.length; a-- > 0;) {
-			String arg = args[a];
+			var arg = args[a];
 			if (sb.length() > 0) {
 				sb.append('\n');
 			}
@@ -345,7 +355,7 @@ public class Properties implements IProperties, Iterable<Entry<String, Object>> 
 
 	@Override
 	public String getString(String key) {
-		Object value = get(key);
+		var value = get(key);
 		if (value == null) {
 			return null;
 		}
@@ -354,7 +364,7 @@ public class Properties implements IProperties, Iterable<Entry<String, Object>> 
 
 	@Override
 	public String getString(String key, String defaultValue) {
-		Object value = get(key);
+		var value = get(key);
 		if (value != null && value instanceof String) {
 			return (String) value;
 		}
@@ -372,7 +382,7 @@ public class Properties implements IProperties, Iterable<Entry<String, Object>> 
 
 	@Override
 	public ISet<String> collectAllPropertyKeys() {
-		LinkedHashSet<String> allPropertiesSet = new LinkedHashSet<>();
+		var allPropertiesSet = new LinkedHashSet<String>();
 		collectAllPropertyKeys(allPropertiesSet);
 		return allPropertiesSet;
 	}
@@ -382,14 +392,14 @@ public class Properties implements IProperties, Iterable<Entry<String, Object>> 
 		if (parent != null) {
 			parent.collectAllPropertyKeys(allPropertiesSet);
 		}
-		for (Entry<String, Object> entry : dictionary) {
+		for (var entry : dictionary) {
 			allPropertiesSet.add(entry.getKey());
 		}
 	}
 
 	public void load(IProperties sourceProperties) {
-		ISet<String> propertyKeys = sourceProperties.collectAllPropertyKeys();
-		for (String key : propertyKeys) {
+		var propertyKeys = sourceProperties.collectAllPropertyKeys();
+		for (var key : propertyKeys) {
 			Object value = sourceProperties.get(key);
 
 			put(key, value);
@@ -397,11 +407,11 @@ public class Properties implements IProperties, Iterable<Entry<String, Object>> 
 	}
 
 	public void load(java.util.Properties sourceProperties) {
-		Iterator<Entry<Object, Object>> iter = sourceProperties.entrySet().iterator();
+		var iter = sourceProperties.entrySet().iterator();
 		while (iter.hasNext()) {
-			Entry<Object, Object> entry = iter.next();
-			Object key = entry.getKey();
-			Object value = entry.getValue();
+			var entry = iter.next();
+			var key = entry.getKey();
+			var value = entry.getValue();
 
 			put((String) key, value);
 		}
@@ -446,18 +456,18 @@ public class Properties implements IProperties, Iterable<Entry<String, Object>> 
 	}
 
 	public void load(String filepathSrc, boolean overwriteParentExisting) {
-		String[] filepaths = FileUtil.splitConfigFileNames(filepathSrc);
+		var filepaths = FileUtil.splitConfigFileNames(filepathSrc);
 
-		InputStream[] fileStreams = FileUtil.openFileStreams(filepaths);
+		var fileStreams = FileUtil.openFileStreams(filepaths);
 
-		for (InputStream stream : fileStreams) {
+		for (var stream : fileStreams) {
 			load(stream, overwriteParentExisting);
 		}
 	}
 
 	private void load(InputStreamReader inputStreamReader, boolean overwriteParentExisting) {
-		StringBuilder fileData = new StringBuilder();
-		String text = "";
+		var fileData = new StringBuilder();
+		var text = "";
 		BufferedReader br = null;
 		try {
 			br = new BufferedReader(inputStreamReader);
@@ -501,19 +511,19 @@ public class Properties implements IProperties, Iterable<Entry<String, Object>> 
 
 	protected void handleContent(String content, boolean overwriteParentExisting) {
 		content = content.replace("\r", "");
-		String[] records = content.split("\n");
-		for (String record : records) {
+		var records = content.split("\n");
+		for (var record : records) {
 			if (Properties.commentRegex.matcher(record).matches()) {
 				continue;
 			}
-			Matcher matcher = Properties.propertyRegex.matcher(record);
+			var matcher = Properties.propertyRegex.matcher(record);
 			if (!matcher.matches()) {
 				continue;
 			}
-			String key = matcher.group(1);
+			var key = matcher.group(1);
 			Object value;
 			if (matcher.groupCount() > 2) {
-				String stringValue = matcher.group(2);
+				var stringValue = matcher.group(2);
 				if (stringValue == null || stringValue.isEmpty()) {
 					stringValue = matcher.group(3);
 				}
@@ -536,9 +546,9 @@ public class Properties implements IProperties, Iterable<Entry<String, Object>> 
 	}
 
 	protected void putProperty(String key, Object value) {
-		Object oldValue = dictionary.put(key, value);
+		var oldValue = dictionary.put(key, value);
 		if (pcs != null && !Objects.equals(oldValue, value)) {
-			ILogger logger = LoggerFactory.getLogger(getClass(), this);
+			var logger = LoggerFactory.getLogger(getClass(), this);
 			if (logger.isInfoEnabled()) {
 				logger.info("Updated property '" + key + "' to value '" + value + "'");
 			}

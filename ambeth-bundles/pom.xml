@@ -30,7 +30,9 @@
 		<module>ambeth-information-bus-test</module>
 		<module>ambeth-information-bus-with-persistence</module>
 		<module>ambeth-information-bus-with-persistence-test</module>
+		<!--
 		<module>ambeth-p2</module>
+		-->
 		<module>ambeth-server</module>
 		<module>ambeth-server-test</module>
 		<module>ambeth-server-with-persistence</module>
@@ -76,7 +78,7 @@
 			<plugins>
 				<plugin>
 					<artifactId>maven-assembly-plugin</artifactId>
-					<version>2.4</version>
+					<version>3.6.0</version>
 					<configuration>
 						<appendAssemblyId>false</appendAssemblyId>
 					</configuration>
@@ -200,6 +202,7 @@
 						</execution>
 					</executions>
 				</plugin>
+				<!--
 				<plugin>
 					<groupId>com.bruker.horizon</groupId>
 					<artifactId>kar2tycho-maven-plugin</artifactId>
@@ -214,6 +217,7 @@
 						</execution>
 					</executions>
 				</plugin>
+				-->
 				<plugin>
 					<groupId>pl.project13.maven</groupId>
 					<artifactId>git-commit-id-plugin</artifactId>

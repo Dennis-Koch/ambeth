@@ -32,6 +32,7 @@ import java.util.Set;
 import javax.persistence.OptimisticLockException;
 import javax.persistence.PersistenceException;
 
+import lombok.SneakyThrows;
 import org.h2.Driver;
 
 import com.koch.ambeth.ioc.annotation.Autowired;
@@ -70,7 +71,7 @@ public class H2Dialect extends AbstractConnectionDialect {
 
 	@Override
 	protected ConnectionKeyValue preProcessConnectionIntern(Connection connection,
-			String[] schemaNames, boolean forcePreProcessing) throws SQLException {
+			String[] schemaNames, boolean forcePreProcessing) {
 		Statement stm = null;
 		ResultSet rs = null;
 		try {
@@ -110,17 +111,19 @@ public class H2Dialect extends AbstractConnectionDialect {
 		}
 	}
 
+	@SneakyThrows
 	protected void createAliasIfNecessary(String aliasName, String functionName,
-			Set<String> functionAliases, Statement stm) throws SQLException {
+			Set<String> functionAliases, Statement stm) {
 		if (functionAliases.contains(aliasName)) {
 			return;
 		}
 		stm.execute("CREATE ALIAS \"" + toDefaultCase(aliasName) + "\" FOR \"" + functionName + "\"");
 	}
 
+	@SneakyThrows
 	@Override
 	public IList<IMap<String, String>> getExportedKeys(Connection connection, String[] schemaNames)
-			throws SQLException {
+			{
 		Statement stm = null;
 		ResultSet rs = null;
 		try {
@@ -152,7 +155,7 @@ public class H2Dialect extends AbstractConnectionDialect {
 
 	@Override
 	public ILinkedMap<String, IList<String>> getFulltextIndexes(Connection connection,
-			String schemaName) throws SQLException {
+			String schemaName) {
 		return EmptyMap.emptyMap();
 	}
 
@@ -162,7 +165,7 @@ public class H2Dialect extends AbstractConnectionDialect {
 	}
 
 	@Override
-	public void releaseSavepoint(Savepoint savepoint, Connection connection) throws SQLException {
+	public void releaseSavepoint(Savepoint savepoint, Connection connection) {
 		throw new UnsupportedOperationException();
 	}
 
@@ -182,9 +185,10 @@ public class H2Dialect extends AbstractConnectionDialect {
 		return null;
 	}
 
+	@SneakyThrows
 	@Override
 	public ResultSet getIndexInfo(Connection connection, String schemaName, String tableName,
-			boolean unique) throws SQLException {
+			boolean unique) {
 		return connection.getMetaData().getIndexInfo(null, schemaName, tableName, unique, true);
 	}
 
@@ -201,7 +205,7 @@ public class H2Dialect extends AbstractConnectionDialect {
 
 	@Override
 	public List<String> getAllFullqualifiedSequences(Connection connection, String... schemaNames)
-			throws SQLException {
+			{
 		if (schemaNames.length == 0) {
 			schemaNames = this.schemaNames;
 		}
@@ -212,7 +216,7 @@ public class H2Dialect extends AbstractConnectionDialect {
 
 	@Override
 	public List<String> getAllFullqualifiedTableNames(Connection connection, String... schemaNames)
-			throws SQLException {
+			{
 		if (schemaNames.length == 0) {
 			schemaNames = this.schemaNames;
 		}
@@ -221,9 +225,10 @@ public class H2Dialect extends AbstractConnectionDialect {
 				(Object) schemaNames);
 	}
 
+	@SneakyThrows
 	@Override
 	public List<String> getAllFullqualifiedViews(Connection connection, String... schemaNames)
-			throws SQLException {
+			{
 		if (schemaNames.length == 0) {
 			schemaNames = this.schemaNames;
 		}
@@ -247,9 +252,10 @@ public class H2Dialect extends AbstractConnectionDialect {
 		}
 	}
 
+	@SneakyThrows
 	@Override
 	public IList<IColumnEntry> getAllFieldsOfTable(Connection connection, String fqTableName)
-			throws SQLException {
+			{
 		String[] names = sqlBuilder.getSchemaAndTableName(fqTableName);
 		ResultSet tableColumnsRS = connection.getMetaData().getColumns(null, names[0], names[1], null);
 		try {

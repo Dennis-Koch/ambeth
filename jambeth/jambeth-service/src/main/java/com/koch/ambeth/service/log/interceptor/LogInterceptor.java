@@ -35,9 +35,8 @@ import com.koch.ambeth.service.log.LogServiceUtil;
 import com.koch.ambeth.util.config.IProperties;
 import com.koch.ambeth.util.objectcollector.IThreadLocalObjectCollector;
 import com.koch.ambeth.util.proxy.CascadedInterceptor;
+import com.koch.ambeth.util.proxy.MethodProxy;
 import com.koch.ambeth.util.threading.SensitiveThreadLocal;
-
-import net.sf.cglib.proxy.MethodProxy;
 
 public class LogInterceptor extends CascadedInterceptor {
 	public static class IntContainer {
@@ -77,18 +76,18 @@ public class LogInterceptor extends CascadedInterceptor {
 	@SuppressWarnings("rawtypes")
 	protected Object interceptIntern(Object obj, Method method, Object[] args, MethodProxy proxy)
 			throws Throwable {
-		Class<?> declaringClass = method.getDeclaringClass();
+		var declaringClass = method.getDeclaringClass();
 		if (Object.class.equals(declaringClass)) {
 			return invokeTarget(obj, method, args, proxy);
 		}
-		IThreadLocalObjectCollector current = objectCollector.getCurrent();
-		StringBuilder sb = objectCollector.create(StringBuilder.class);
-		IntContainer stackValueContainer = stackValueTL.get();
+		var current = objectCollector.getCurrent();
+		var sb = objectCollector.create(StringBuilder.class);
+		var stackValueContainer = stackValueTL.get();
 		stackValueContainer.stackLevel++;
 		try {
-			long startTicks = 0;
-			ILogger loggerOfMethod = loggerCache.getCachedLogger(properties, declaringClass);
-			boolean debugEnabled = log.isDebugEnabled() && loggerOfMethod.isDebugEnabled();
+			var startTicks = 0L;
+			var loggerOfMethod = loggerCache.getCachedLogger(properties, declaringClass);
+			var debugEnabled = log.isDebugEnabled() && loggerOfMethod.isDebugEnabled();
 			if (debugEnabled) {
 				if (!isClientLogger) {
 					sb.append("Start:     ");
@@ -96,7 +95,7 @@ public class LogInterceptor extends CascadedInterceptor {
 				else {
 					sb.append("Start(S):  ");
 				}
-				int level = stackValueContainer.stackLevel;
+				var level = stackValueContainer.stackLevel;
 				while (level-- > 1) {
 					sb.append(".");
 				}
@@ -106,14 +105,14 @@ public class LogInterceptor extends CascadedInterceptor {
 
 				startTicks = System.currentTimeMillis();
 			}
-			Object returnValue = invokeTarget(obj, method, args, proxy);
+			var returnValue = invokeTarget(obj, method, args, proxy);
 			if (debugEnabled) {
-				long endTicks = System.currentTimeMillis();
+				var endTicks = System.currentTimeMillis();
 
-				int resultCount = returnValue instanceof Collection ? ((Collection) returnValue).size()
+				var resultCount = returnValue instanceof Collection ? ((Collection) returnValue).size()
 						: returnValue != null ? 1 : -1;
-				String resultString = resultCount >= 0 ? "" + resultCount : "no";
-				String itemsString = void.class.equals(method.getReturnType()) ? ""
+				var resultString = resultCount >= 0 ? "" + resultCount : "no";
+				var itemsString = void.class.equals(method.getReturnType()) ? ""
 						: " with " + resultString + (resultCount != 1 ? " items" : " item");
 
 				if (isClientLogger) {
@@ -122,7 +121,7 @@ public class LogInterceptor extends CascadedInterceptor {
 				else {
 					sb.append("Finish(S): ");
 				}
-				int level = stackValueContainer.stackLevel;
+				var level = stackValueContainer.stackLevel;
 				while (level-- > 1) {
 					sb.append(".");
 				}

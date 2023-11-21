@@ -29,7 +29,7 @@ import com.koch.ambeth.util.collections.HashSet;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.proxy.AbstractSimpleInterceptor;
 
-import net.sf.cglib.proxy.MethodProxy;
+import com.koch.ambeth.util.proxy.MethodProxy;
 
 public class QueryBuilderInterceptor extends AbstractSimpleInterceptor {
 	protected static final Method disposeMethod;
@@ -44,10 +44,7 @@ public class QueryBuilderInterceptor extends AbstractSimpleInterceptor {
 			cleanupMethods.add(IQueryBuilder.class.getMethod("build", IOperand.class, ISqlJoin[].class));
 			cleanupMethods.add(disposeMethod);
 		}
-		catch (SecurityException e) {
-			throw RuntimeExceptionUtil.mask(e);
-		}
-		catch (NoSuchMethodException e) {
+		catch (NoSuchMethodException | SecurityException e) {
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}

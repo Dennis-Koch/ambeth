@@ -51,9 +51,8 @@ public class BlueprintEntityMetaDataReader extends AbstractEntityMetaDataReader
 	@Override
 	public void afterStarted() throws Throwable {
 		if (blueprintOrmProvider != null && blueprintDatabaseMapper != null) {
-			Document[] ormDocuments = blueprintOrmProvider.getOrmDocuments();
-			IOrmConfigGroup ormConfigGroup =
-					ormConfigGroupProvider.getOrmConfigGroup(ormDocuments, entityTypeProvider);
+			var ormDocuments = blueprintOrmProvider.getOrmDocuments();
+			var ormConfigGroup = ormConfigGroupProvider.getOrmConfigGroup(ormDocuments, entityTypeProvider);
 			readConfig(ormConfigGroup);
 			blueprintDatabaseMapper.mapFields(ormConfigGroup);
 		}
@@ -62,9 +61,8 @@ public class BlueprintEntityMetaDataReader extends AbstractEntityMetaDataReader
 	@Override
 	public void addEntityBlueprintOrm(IEntityTypeBlueprint entityTypeBlueprint) {
 		if (blueprintOrmProvider != null && blueprintDatabaseMapper != null) {
-			Document ormDocument = blueprintOrmProvider.getOrmDocument(entityTypeBlueprint);
-			IOrmConfigGroup ormConfigGroup = ormConfigGroupProvider
-					.getOrmConfigGroup(new Document[] {ormDocument}, entityTypeProvider);
+			var ormDocument = blueprintOrmProvider.getOrmDocument(entityTypeBlueprint);
+			var ormConfigGroup = ormConfigGroupProvider.getOrmConfigGroup(new Document[] {ormDocument}, entityTypeProvider);
 			readConfig(ormConfigGroup);
 			blueprintDatabaseMapper.mapFields(ormConfigGroup);
 		}

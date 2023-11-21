@@ -28,17 +28,17 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import javax.servlet.AsyncContext;
-import javax.servlet.ServletOutputStream;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.StreamingOutput;
+import jakarta.servlet.AsyncContext;
+import jakarta.servlet.ServletOutputStream;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.StreamingOutput;
 
 import com.koch.ambeth.event.IEventListener;
 import com.koch.ambeth.event.IEventListenerExtendable;
@@ -91,7 +91,7 @@ public class EventServiceREST extends AbstractServiceREST implements IEventListe
 		@Override
 		public void run() {
 			for (int a = 0, size = clients.size(); a < size; a++) {
-				IBackgroundWorkerDelegate runnable = clients.get(a);
+				var runnable = clients.get(a);
 				try {
 					runnable.invoke();
 				}
@@ -173,7 +173,7 @@ public class EventServiceREST extends AbstractServiceREST implements IEventListe
 	public void setBeanContext(IServiceContext beanContext) {
 		writeLock.lock();
 		try {
-			ILinkContainer link = this.link;
+			var link = this.link;
 			if (link != null) {
 				this.link = null;
 				link.unlink();
@@ -196,10 +196,10 @@ public class EventServiceREST extends AbstractServiceREST implements IEventListe
 				return EmptyList.getInstance();
 			}
 			clients = new ArrayList<>(consumeAll ? fastList.size() : 10);
-			long currTime = System.currentTimeMillis();
-			Entry pointer = fastList.getFirstElem();
+			var currTime = System.currentTimeMillis();
+			var pointer = fastList.getFirstElem();
 			while (pointer != null) {
-				Entry next = pointer.getNext();
+				var next = pointer.getNext();
 				if (consumeAll || pointer.waitUntil <= currTime) {
 					fastList.remove(pointer);
 					clients.add(pointer.runnable);
@@ -212,7 +212,7 @@ public class EventServiceREST extends AbstractServiceREST implements IEventListe
 
 	@Override
 	public void handleEvent(Object eventObject, long dispatchTime, long sequenceId) throws Exception {
-		List<IBackgroundWorkerDelegate> clients = consumePendingRequests(true);
+		var clients = consumePendingRequests(true);
 		if (clients.isEmpty()) {
 			return;
 		}
@@ -223,10 +223,10 @@ public class EventServiceREST extends AbstractServiceREST implements IEventListe
 	@Path("pollEvents")
 	public StreamingOutput pollEvents(InputStream is, @Context HttpServletRequest request,
 			@Context HttpServletResponse response) {
-		IStateRollback rollback = preServiceCall(request, response);
+		var rollback = preServiceCall(request, response);
 		try {
-			Object[] args = getArguments(is, request);
-			List<IEventItem> result = getEventService().pollEvents(((Long) args[0]).longValue(),
+			var args = getArguments(is, request);
+			var result = getEventService().pollEvents(((Long) args[0]).longValue(),
 					((Long) args[1]).longValue(), ((Long) args[2]).longValue());
 			return createResult(result, request, response);
 		}
@@ -242,39 +242,39 @@ public class EventServiceREST extends AbstractServiceREST implements IEventListe
 	@Path("pollEventsAsync")
 	public void pollEventsAsync(InputStream is, @Context HttpServletRequest request,
 			@Context HttpServletResponse response) {
-		IStateRollback rollback = preServiceCall(request, response);
+		var rollback = preServiceCall(request, response);
 		try {
-			Object[] args = getArguments(is, request);
-			final long serverSession = ((Long) args[0]).longValue();
-			final long eventSequenceSince = ((Long) args[1]).longValue();
-			long requestedMaximumWaitTime = ((Long) args[2]).longValue();
-			final long waitUntil = System.currentTimeMillis() + requestedMaximumWaitTime;
-			final AsyncContext asyncContext = request.startAsync(request, response);
+			var args = getArguments(is, request);
+			var serverSession = ((Long) args[0]).longValue();
+			var eventSequenceSince = ((Long) args[1]).longValue();
+			var requestedMaximumWaitTime = ((Long) args[2]).longValue();
+			var waitUntil = System.currentTimeMillis() + requestedMaximumWaitTime;
+			var asyncContext = request.startAsync(request, response);
 			synchronized (fastList) {
 				fastList.pushFirst(
 						new Entry(asyncContext, waitUntil, new IBackgroundWorkerDelegate() {
 							@Override
 							public void invoke() throws Exception {
-								HttpServletRequest asyncRequest = (HttpServletRequest) asyncContext.getRequest();
-								HttpServletResponse asyncResponse =
+								var asyncRequest = (HttpServletRequest) asyncContext.getRequest();
+								var asyncResponse =
 										(HttpServletResponse) asyncContext.getResponse();
-								IStateRollback rollback2 = preServiceCall(asyncRequest, asyncResponse);
+								var rollback2 = preServiceCall(asyncRequest, asyncResponse);
 								try {
-									List<IEventItem> result = getEventService().pollEvents(serverSession,
+									var result = getEventService().pollEvents(serverSession,
 											eventSequenceSince, waitUntil - System.currentTimeMillis());
 
-									StreamingOutput output = createResult(result, asyncRequest, asyncResponse);
+									var output = createResult(result, asyncRequest, asyncResponse);
 
-									ServletOutputStream sos = asyncResponse.getOutputStream();
+									var sos = asyncResponse.getOutputStream();
 									output.write(new FlushSuppressingOutputStream(sos));
 									sos.flush();
 									sos.close();
 								}
 								catch (Throwable e) {
 									try {
-										StreamingOutput output = createExceptionResult(e, asyncRequest, asyncResponse);
+										var output = createExceptionResult(e, asyncRequest, asyncResponse);
 
-										ServletOutputStream sos = asyncResponse.getOutputStream();
+										var sos = asyncResponse.getOutputStream();
 										output.write(new FlushSuppressingOutputStream(sos));
 										sos.flush();
 										sos.close();
@@ -301,9 +301,9 @@ public class EventServiceREST extends AbstractServiceREST implements IEventListe
 	@Path("getCurrentEventSequence")
 	public StreamingOutput getCurrentEventSequence(@Context HttpServletRequest request,
 			@Context HttpServletResponse response) {
-		IStateRollback rollback = preServiceCall(request, response);
+		var rollback = preServiceCall(request, response);
 		try {
-			long result = getEventService().getCurrentEventSequence();
+			var result = getEventService().getCurrentEventSequence();
 			return createResult(result, request, response);
 		}
 		catch (Throwable e) {
@@ -318,9 +318,9 @@ public class EventServiceREST extends AbstractServiceREST implements IEventListe
 	@Path("getCurrentServerSession")
 	public StreamingOutput getCurrentServerSession(@Context HttpServletRequest request,
 			@Context HttpServletResponse response) {
-		IStateRollback rollback = preServiceCall(request, response);
+		var rollback = preServiceCall(request, response);
 		try {
-			long result = getEventService().getCurrentServerSession();
+			var result = getEventService().getCurrentServerSession();
 			return createResult(result, request, response);
 		}
 		catch (Throwable e) {

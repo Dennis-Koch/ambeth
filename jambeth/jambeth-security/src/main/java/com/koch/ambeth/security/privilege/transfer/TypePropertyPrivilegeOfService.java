@@ -20,9 +20,9 @@ limitations under the License.
  * #L%
  */
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlRootElement;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlRootElement;
 
 import com.koch.ambeth.security.privilege.model.impl.TypePropertyPrivilegeImpl;
 import com.koch.ambeth.util.IPrintable;

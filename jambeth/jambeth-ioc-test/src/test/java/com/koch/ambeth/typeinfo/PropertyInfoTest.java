@@ -47,13 +47,13 @@ import com.koch.ambeth.util.typeinfo.IPropertyInfoProvider;
 public class PropertyInfoTest extends AbstractIocTest {
 	static final String[] propNames =
 			{"Annotations", "BackingField", "DeclaringType", "ElementType", "EntityType", "Getter",
-					"Modifiers", "Name", "PropertyType", "Readable", "Setter", "Writable"};
+					"Modifiers", "Name", "NameForJavaBeans", "PropertyType", "Readable", "Setter", "Writable"};
 
 	static final String[] iocPropNames = {"ElementType"};
 
 	static final String[] propNamesASM2 =
 			{"Annotations", "BackingField", "DeclaringType", "ElementType", "EntityType", "Getter",
-					"Modifiers", "Name", "PropertyType", "Readable", "Setter", "Writable", "Accessor"};
+					"Modifiers", "Name", "NameForJavaBeans", "PropertyType", "Readable", "Setter", "Writable", "Accessor"};
 
 	private IMap<String, IPropertyInfo> fixture;
 
@@ -406,12 +406,11 @@ public class PropertyInfoTest extends AbstractIocTest {
 	 * @return
 	 */
 	public static void isPropertyMapOK(String[] propNames, Map<String, IPropertyInfo> actual) {
-		assertEquals("Wrong number of properties!", propNames.length, actual.size());
-
 		List<String> propNameList = Arrays.asList(propNames);
 		for (String name : actual.keySet()) {
 			assertTrue("Unknown property: " + name, propNameList.contains(name));
 		}
+		assertEquals("Wrong number of properties!", propNames.length, actual.size());
 
 		isPropertyArrayOK(propNames, actual.values().toArray(new MethodPropertyInfo[propNames.length]));
 	}

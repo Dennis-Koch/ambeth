@@ -49,6 +49,7 @@ import com.koch.ambeth.util.collections.HashSet;
 import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.config.IProperties;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
+import lombok.SneakyThrows;
 
 public class MSSqlTestDialect extends AbstractConnectionTestDialect implements IInitializingBean {
 	public static final String ROOT_DATABASE_USER = "ambeth.root.database.user";
@@ -81,7 +82,7 @@ public class MSSqlTestDialect extends AbstractConnectionTestDialect implements I
 
 	@Override
 	public boolean createTestUserIfSupported(Throwable reason, String userName, String userPassword,
-			IProperties testProps) throws SQLException {
+			IProperties testProps) {
 		if (!(reason instanceof SQLException)) {
 			return false;
 		}
@@ -109,7 +110,7 @@ public class MSSqlTestDialect extends AbstractConnectionTestDialect implements I
 
 	@Override
 	public void dropCreatedTestUser(String userName, String userPassword, IProperties testProps)
-			throws SQLException {
+			{
 		Properties createUserProps = new Properties(testProps);
 		createUserProps.put(RandomUserScript.SCRIPT_IS_CREATE, "false");
 		createUserProps.put(RandomUserScript.SCRIPT_USER_NAME, userName);
@@ -132,8 +133,9 @@ public class MSSqlTestDialect extends AbstractConnectionTestDialect implements I
 		// intended blank
 	}
 
+	@SneakyThrows
 	@Override
-	public boolean isEmptySchema(Connection connection) throws SQLException {
+	public boolean isEmptySchema(Connection connection) {
 		Statement stmt = null;
 		ResultSet rs = null;
 		try {
@@ -146,9 +148,10 @@ public class MSSqlTestDialect extends AbstractConnectionTestDialect implements I
 		}
 	}
 
+	@SneakyThrows
 	@Override
 	public String[] createOptimisticLockTrigger(Connection connection, String fullyQualifiedTableName)
-			throws SQLException {
+			{
 		if (MSSqlDialect.BIN_TABLE_NAME.matcher(fullyQualifiedTableName).matches()
 				|| MSSqlDialect.IDX_TABLE_NAME.matcher(fullyQualifiedTableName).matches()) {
 			return new String[0];
@@ -202,9 +205,10 @@ public class MSSqlTestDialect extends AbstractConnectionTestDialect implements I
 		return new String[] { sb.toString() };
 	}
 
+	@SneakyThrows
 	@Override
 	public List<String> getTablesWithoutOptimisticLockTrigger(Connection connection)
-			throws SQLException {
+			{
 		Statement stmt = null;
 		ResultSet rs = null;
 		try {
@@ -293,30 +297,31 @@ public class MSSqlTestDialect extends AbstractConnectionTestDialect implements I
 
 	@Override
 	protected IList<String> queryForAllPermissionGroupNeedingTables(Connection connection)
-			throws SQLException {
+			{
 		throw new UnsupportedOperationException("Not yet implemented");
 	}
 
 	@Override
 	protected IList<String> queryForAllPotentialPermissionGroups(Connection connection)
-			throws SQLException {
+			{
 		throw new UnsupportedOperationException("Not yet implemented");
 	}
 
 	@Override
-	protected IList<String> queryForAllTables(Connection connection) throws SQLException {
+	protected IList<String> queryForAllTables(Connection connection) {
 		throw new UnsupportedOperationException("Not yet implemented");
 	}
 
 	@Override
 	protected com.koch.ambeth.util.collections.IList<String> queryForAllTriggers(
-			Connection connection) throws SQLException {
+			Connection connection) {
 		throw new UnsupportedOperationException("Not yet implemented");
 	}
 
+	@SneakyThrows
 	@Override
 	public String[] createPermissionGroup(Connection connection, String tableName)
-			throws SQLException {
+			{
 		int maxProcedureNameLength = connection.getMetaData().getMaxProcedureNameLength();
 		String permissionGroupName = ormPatternMatcher.buildPermissionGroupFromTableName(tableName,
 				maxProcedureNameLength);

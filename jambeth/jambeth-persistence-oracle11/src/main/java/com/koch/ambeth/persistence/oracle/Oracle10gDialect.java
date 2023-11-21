@@ -60,6 +60,7 @@ import com.koch.ambeth.util.collections.LinkedHashMap;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.objectcollector.IThreadLocalObjectCollector;
 
+import lombok.SneakyThrows;
 import oracle.jdbc.OracleConnection;
 import oracle.jdbc.driver.OracleDriver;
 
@@ -158,9 +159,10 @@ public class Oracle10gDialect extends AbstractConnectionDialect {
 	}
 
 	@SuppressWarnings("resource")
+	@SneakyThrows
 	@Override
 	public IList<IMap<String, String>> getExportedKeys(Connection connection, String[] schemaNames)
-			throws SQLException {
+			{
 		ArrayList<IMap<String, String>> allForeignKeys = new ArrayList<>();
 		Statement stm = null;
 		ResultSet allForeignKeysRS = null;
@@ -210,9 +212,10 @@ public class Oracle10gDialect extends AbstractConnectionDialect {
 		return allForeignKeys;
 	}
 
+	@SneakyThrows
 	@Override
 	public ILinkedMap<String, IList<String>> getFulltextIndexes(Connection connection,
-			String schemaName) throws SQLException {
+			String schemaName) {
 		LinkedHashMap<String, IList<String>> fulltextIndexes = new LinkedHashMap<>();
 		Statement stmt = connection.createStatement();
 		ResultSet fulltextIndexesRS = null;
@@ -247,7 +250,7 @@ public class Oracle10gDialect extends AbstractConnectionDialect {
 	}
 
 	@Override
-	public void releaseSavepoint(Savepoint savepoint, Connection connection) throws SQLException {
+	public void releaseSavepoint(Savepoint savepoint, Connection connection) {
 		// noop: releaseSavepoint(Savepoint savepoint) is not supported by Oracle10g
 	}
 
@@ -280,9 +283,10 @@ public class Oracle10gDialect extends AbstractConnectionDialect {
 		return ex;
 	}
 
+	@SneakyThrows
 	@Override
 	public ResultSet getIndexInfo(Connection connection, String schemaName, String tableName,
-			boolean unique) throws SQLException {
+			boolean unique) {
 		IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
 		StringBuilder sql = tlObjectCollector.create(StringBuilder.class);
 		try {
@@ -323,7 +327,7 @@ public class Oracle10gDialect extends AbstractConnectionDialect {
 
 	@Override
 	public List<String> getAllFullqualifiedSequences(Connection connection, String... schemaNames)
-			throws SQLException {
+			{
 		List<String> allSequenceNames = new ArrayList<>();
 
 		Statement stmt = null;
@@ -352,9 +356,10 @@ public class Oracle10gDialect extends AbstractConnectionDialect {
 		return allSequenceNames;
 	}
 
+	@SneakyThrows
 	@Override
 	public List<String> getAllFullqualifiedTableNames(Connection connection, String... schemaNames)
-			throws SQLException {
+			{
 		List<String> allTableNames = new ArrayList<>();
 
 		Statement stmt = null;
@@ -379,9 +384,10 @@ public class Oracle10gDialect extends AbstractConnectionDialect {
 		return allTableNames;
 	}
 
+	@SneakyThrows
 	@Override
 	public List<String> getAllFullqualifiedViews(Connection connection, String... schemaNames)
-			throws SQLException {
+			{
 		List<String> allViewNames = new ArrayList<>();
 
 		Statement stmt = null;
@@ -407,9 +413,10 @@ public class Oracle10gDialect extends AbstractConnectionDialect {
 		return allViewNames;
 	}
 
+	@SneakyThrows
 	@Override
 	public IList<IColumnEntry> getAllFieldsOfTable(Connection connection, String fqTableName)
-			throws SQLException {
+			{
 		String[] names = sqlBuilder.getSchemaAndTableName(fqTableName);
 		ResultSet tableColumnsRS = connection.getMetaData().getColumns(null, names[0], names[1], null);
 		try {

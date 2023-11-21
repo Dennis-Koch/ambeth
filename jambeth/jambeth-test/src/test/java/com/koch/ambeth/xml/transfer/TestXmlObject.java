@@ -20,7 +20,7 @@ limitations under the License.
  * #L%
  */
 
-import javax.xml.bind.annotation.XmlTransient;
+import jakarta.xml.bind.annotation.XmlTransient;
 
 import com.koch.ambeth.util.annotation.XmlType;
 

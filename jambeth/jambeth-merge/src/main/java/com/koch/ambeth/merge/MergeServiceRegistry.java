@@ -63,14 +63,13 @@ import com.koch.ambeth.util.collections.IMap;
 import com.koch.ambeth.util.collections.IdentityHashMap;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.model.IMethodDescription;
+import com.koch.ambeth.util.proxy.Factory;
 import com.koch.ambeth.util.proxy.ICascadedInterceptor;
+import com.koch.ambeth.util.proxy.MethodInterceptor;
 import com.koch.ambeth.util.state.IStateRollback;
 import com.koch.ambeth.util.state.NoOpStateRollback;
 import com.koch.ambeth.util.threading.IGuiThreadHelper;
 import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
-
-import net.sf.cglib.proxy.Factory;
-import net.sf.cglib.proxy.MethodInterceptor;
 
 public class MergeServiceRegistry implements IMergeService, IMergeServiceExtensionExtendable,
 		IMergeListenerExtendable, IMergeTimeProvider, IThreadLocalCleanupBean {
@@ -471,10 +470,10 @@ public class MergeServiceRegistry implements IMergeService, IMergeServiceExtensi
 		if (log.isDebugEnabled()) {
 			Object currHandle = implyingHandle;
 			if (currHandle instanceof Factory) {
-				MethodInterceptor interceptor = (MethodInterceptor) ((Factory) currHandle)
+				var interceptor = (MethodInterceptor) ((Factory) currHandle)
 						.getCallbacks()[0];
 				while (interceptor instanceof ICascadedInterceptor) {
-					Object target = ((ICascadedInterceptor) interceptor).getTarget();
+					var target = ((ICascadedInterceptor) interceptor).getTarget();
 					if (target instanceof MethodInterceptor) {
 						interceptor = ((MethodInterceptor) target);
 						continue;

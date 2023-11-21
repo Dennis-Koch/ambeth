@@ -41,6 +41,7 @@ import com.koch.ambeth.persistence.util.IAlreadyLinkedCache;
 import com.koch.ambeth.util.collections.IdentityHashMap;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.state.IStateRollback;
+import lombok.SneakyThrows;
 
 public class JDBCDatabaseWrapper extends Database {
 	@LogInstance
@@ -162,8 +163,11 @@ public class JDBCDatabaseWrapper extends Database {
 		try {
 			connectionDialect.commit(connection);
 		}
-		catch (SQLException e) {
-			throw connectionDialect.createPersistenceException(e, null);
+		catch (Exception e) {
+			if (e instanceof SQLException) {
+				throw connectionDialect.createPersistenceException((SQLException) e, null);
+			}
+			throw e;
 		}
 	}
 
@@ -173,8 +177,11 @@ public class JDBCDatabaseWrapper extends Database {
 		try {
 			connectionDialect.rollback(connection);
 		}
-		catch (SQLException e) {
-			throw connectionDialect.createPersistenceException(e, null);
+		catch (Exception e) {
+			if (e instanceof SQLException) {
+				throw connectionDialect.createPersistenceException((SQLException) e, null);
+			}
+			throw e;
 		}
 	}
 
@@ -185,7 +192,10 @@ public class JDBCDatabaseWrapper extends Database {
 			rollback(savepoint);
 		}
 		catch (Exception e) {
-			throw RuntimeExceptionUtil.mask(e);
+			if (e instanceof SQLException) {
+				throw connectionDialect.createPersistenceException((SQLException) e, null);
+			}
+			throw e;
 		}
 	}
 
@@ -226,8 +236,11 @@ public class JDBCDatabaseWrapper extends Database {
 		try {
 			connectionDialect.releaseSavepoint(((JdbcSavepoint) savepoint).getSavepoint(), connection);
 		}
-		catch (SQLException e) {
-			throw RuntimeExceptionUtil.mask(e);
+		catch (Exception e) {
+			if (e instanceof SQLException) {
+				throw connectionDialect.createPersistenceException((SQLException) e, null);
+			}
+			throw e;
 		}
 	}
 

@@ -22,15 +22,15 @@ limitations under the License.
 
 import java.io.InputStream;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.StreamingOutput;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.StreamingOutput;
 
 import com.koch.ambeth.merge.IMergeProcess;
 import com.koch.ambeth.merge.security.ISecurityActivation;
@@ -57,10 +57,10 @@ public class SecurityServiceREST extends AbstractServiceREST {
 	@Path("callServiceInSecurityScope")
 	public StreamingOutput callServiceInSecurityScope(InputStream is,
 			@Context HttpServletRequest request, @Context HttpServletResponse response) {
-		IStateRollback rollback = preServiceCall(request, response);
+		var rollback = preServiceCall(request, response);
 		try {
-			Object[] args = getArguments(is, request);
-			Object result = getSecurityService().callServiceInSecurityScope((ISecurityScope[]) args[0],
+			var args = getArguments(is, request);
+			var result = getSecurityService().callServiceInSecurityScope((ISecurityScope[]) args[0],
 					(IServiceDescription) args[1]);
 			return createResult(result, request, response);
 		}
@@ -76,9 +76,9 @@ public class SecurityServiceREST extends AbstractServiceREST {
 	@Path("isSecured")
 	public StreamingOutput isSecured(@Context HttpServletRequest request,
 			@Context HttpServletResponse response) {
-		IStateRollback rollback = preServiceCall(request, response);
+		var rollback = preServiceCall(request, response);
 		try {
-			boolean result = getService(ISecurityActivation.class).isSecured();
+			var result = getService(ISecurityActivation.class).isSecured();
 			return createResult(result, request, response);
 		}
 		catch (Throwable e) {
@@ -93,9 +93,9 @@ public class SecurityServiceREST extends AbstractServiceREST {
 	@Path("isAuthenticated")
 	public StreamingOutput isAuthenticated(@Context HttpServletRequest request,
 			@Context HttpServletResponse response) {
-		IStateRollback rollback = preServiceCall(request, response);
+		var rollback = preServiceCall(request, response);
 		try {
-			boolean authenticated = getService(ICurrentUserProvider.class).getCurrentUser() != null;
+			var authenticated = getService(ICurrentUserProvider.class).getCurrentUser() != null;
 			return createResult(authenticated, request, response);
 		}
 		catch (Throwable e) {
@@ -110,9 +110,9 @@ public class SecurityServiceREST extends AbstractServiceREST {
 	@Path("getHeartbeatInterval")
 	public StreamingOutput getHeartbeatInterval(@Context HttpServletRequest request,
 			@Context HttpServletResponse response) {
-		IStateRollback rollback = preServiceCall(request, response);
+		var rollback = preServiceCall(request, response);
 		try {
-			long heartbeatInterval = 60000; // TODO: provide bean or configuration of this
+			var heartbeatInterval = 60000; // TODO: provide bean or configuration of this
 			return createResult(heartbeatInterval, request, response);
 		}
 		catch (Throwable e) {
@@ -127,9 +127,9 @@ public class SecurityServiceREST extends AbstractServiceREST {
 	@Path("getCurrentUser")
 	public StreamingOutput getCurrentUser(@Context HttpServletRequest request,
 			@Context HttpServletResponse response) {
-		IStateRollback rollback = preServiceCall(request, response);
+		var rollback = preServiceCall(request, response);
 		try {
-			IUser result = getService(ICurrentUserProvider.class).getCurrentUser();
+			var result = getService(ICurrentUserProvider.class).getCurrentUser();
 			return createResult(result, request, response);
 		}
 		catch (Throwable e) {
@@ -144,11 +144,10 @@ public class SecurityServiceREST extends AbstractServiceREST {
 	@Path("currentUserHasActionPermission")
 	public StreamingOutput hasActionPermission(InputStream is, @Context HttpServletRequest request,
 			@Context HttpServletResponse response) {
-		IStateRollback rollback = preServiceCall(request, response);
+		var rollback = preServiceCall(request, response);
 		try {
-			Object[] args = getArguments(is, request);
-			boolean result =
-					getService(ICurrentUserProvider.class).currentUserHasActionPermission((String) args[0]);
+			var args = getArguments(is, request);
+			var result = getService(ICurrentUserProvider.class).currentUserHasActionPermission((String) args[0]);
 			return createResult(result, request, response);
 		}
 		catch (Throwable e) {
@@ -163,15 +162,15 @@ public class SecurityServiceREST extends AbstractServiceREST {
 	@Path("validatePassword")
 	public StreamingOutput validatePassword(InputStream is, @Context HttpServletRequest request,
 			@Context HttpServletResponse response) {
-		IStateRollback rollback = preServiceCall(request, response);
+		var rollback = preServiceCall(request, response);
 		try {
-			Object[] args = getArguments(is, request);
-			char[] newCleartextPassword = (char[]) args[0];
+			var args = getArguments(is, request);
+			var newCleartextPassword = (char[]) args[0];
 
-			IPasswordUtil passwordUtil = getService(IPasswordUtil.class);
+			var passwordUtil = getService(IPasswordUtil.class);
 			rollback = passwordUtil.pushSuppressPasswordChangeRequired(rollback);
 			rollback = passwordUtil.pushSuppressAccounting(rollback);
-			IUser currentUser = getService(ICurrentUserProvider.class).getCurrentUser();
+			var currentUser = getService(ICurrentUserProvider.class).getCurrentUser();
 			passwordUtil.validatePassword(newCleartextPassword, currentUser);
 			return createResult(true, request, response);
 		}
@@ -187,18 +186,18 @@ public class SecurityServiceREST extends AbstractServiceREST {
 	@Path("changePassword")
 	public StreamingOutput changePassword(InputStream is, @Context HttpServletRequest request,
 			@Context HttpServletResponse response) {
-		IStateRollback rollback = preServiceCall(request, response);
+		var rollback = preServiceCall(request, response);
 		try {
-			Object[] args = getArguments(is, request);
-			char[] newCleartextPassword = (char[]) args[0];
+			var args = getArguments(is, request);
+			var newCleartextPassword = (char[]) args[0];
 
-			ISecurityContext securityContext = getService(ISecurityContextHolder.class).getContext();
+			var securityContext = getService(ISecurityContextHolder.class).getContext();
 			if (securityContext == null || securityContext.getAuthentication() == null) {
 				throw new SecurityException("No authenticaton provided");
 			}
-			IPasswordUtil passwordUtil = getService(IPasswordUtil.class);
+			var passwordUtil = getService(IPasswordUtil.class);
 			rollback = passwordUtil.pushSuppressPasswordChangeRequired(rollback);
-			IUser currentUser = getService(ICurrentUserProvider.class).getCurrentUser();
+			var currentUser = getService(ICurrentUserProvider.class).getCurrentUser();
 			passwordUtil.assignNewPassword(newCleartextPassword, currentUser,
 					securityContext.getAuthentication().getPassword());
 

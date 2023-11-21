@@ -167,23 +167,18 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper
 
 	@Override
 	public void mapFields(Connection connection, String[] schemaNames, IDatabaseMetaData database) {
-		try {
-			allFullqualifiedSequences = new HashSet<String>(
-					connectionDialect.getAllFullqualifiedSequences(connection, schemaNames)) {
-				@Override
-				protected boolean equalKeys(String key, ISetEntry<String> entry) {
-					return key.equalsIgnoreCase(entry.getKey());
-				}
+		allFullqualifiedSequences = new HashSet<String>(
+				connectionDialect.getAllFullqualifiedSequences(connection, schemaNames)) {
+			@Override
+			protected boolean equalKeys(String key, ISetEntry<String> entry) {
+				return key.equalsIgnoreCase(entry.getKey());
+			}
 
-				@Override
-				protected int extractHash(String key) {
-					return key.toLowerCase().hashCode();
-				}
-			};
-		}
-		catch (SQLException e) {
-			throw RuntimeExceptionUtil.mask(e);
-		}
+			@Override
+			protected int extractHash(String key) {
+				return key.toLowerCase().hashCode();
+			}
+		};
 		handleExternalEntities();
 		mapFieldsIntern(database, ormConfigGroups.getExtensionsShared());
 		super.mapFields(connection, schemaNames, database);

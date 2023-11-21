@@ -35,9 +35,7 @@ import com.koch.ambeth.util.ReflectUtil;
 import com.koch.ambeth.util.collections.HashMap;
 import com.koch.ambeth.util.proxy.AbstractSimpleInterceptor;
 import com.koch.ambeth.util.proxy.IProxyFactory;
-
-import net.sf.cglib.proxy.MethodProxy;
-import net.sf.cglib.reflect.FastClass;
+import com.koch.ambeth.util.proxy.MethodProxy;
 
 public class ExtendableBean extends AbstractSimpleInterceptor
 		implements IFactoryBean, IInitializingBean {
@@ -114,33 +112,33 @@ public class ExtendableBean extends AbstractSimpleInterceptor
 		else {
 			addRemoveMethods = extendableRegistry.getAddRemoveMethods(extendableType);
 		}
-		Method addMethod = addRemoveMethods[0];
-		Method removeMethod = addRemoveMethods[1];
+		var addMethod = addRemoveMethods[0];
+		var removeMethod = addRemoveMethods[1];
 
-		Class[] parameterTypes = addMethod.getParameterTypes();
-		Class extensionType = parameterTypes[0];
+		var parameterTypes = addMethod.getParameterTypes();
+		var extensionType = parameterTypes[0];
 
 		if (parameterTypes.length == 1) {
 			extendableContainer = new DefaultExtendableContainer<>(extensionType, "message");
 
-			Method registerMethod = extendableContainer.getClass().getMethod("register", classObjectArgs);
-			Method unregisterMethod = extendableContainer.getClass().getMethod("unregister",
+			var registerMethod = extendableContainer.getClass().getMethod("register", classObjectArgs);
+			var unregisterMethod = extendableContainer.getClass().getMethod("unregister",
 					classObjectArgs);
-			Method getAllMethod = extendableContainer.getClass().getMethod("getExtensions");
-			Method[] methodsOfProviderType = ReflectUtil.getMethods(providerType);
+			var getAllMethod = extendableContainer.getClass().getMethod("getExtensions");
+			var methodsOfProviderType = ReflectUtil.getMethods(providerType);
 
 			methodMap.put(addMethod, registerMethod);
 			methodMap.put(removeMethod, unregisterMethod);
 
 			for (int a = methodsOfProviderType.length; a-- > 0;) {
-				Method methodOfProviderType = methodsOfProviderType[a];
+				var methodOfProviderType = methodsOfProviderType[a];
 				if (methodOfProviderType.getParameterTypes().length == 0) {
 					methodMap.put(methodOfProviderType, getAllMethod);
 				}
 			}
 		}
 		else if (parameterTypes.length == 2) {
-			Class<?> keyType = parameterTypes[1];
+			var keyType = parameterTypes[1];
 			if (Class.class.equals(keyType)) {
 				extendableContainer = new ClassExtendableContainer<>("message", "keyMessage",
 						allowMultiValue);
@@ -150,21 +148,20 @@ public class ExtendableBean extends AbstractSimpleInterceptor
 				extendableContainer = new MapExtendableContainer<>("message", "keyMessage",
 						allowMultiValue);
 			}
-			AccessorClassLoader classLoader = AccessorClassLoader.get(extendableContainer.getClass());
-			FastClass fastClass = FastClass.create(classLoader, extendableContainer.getClass());
-			Method registerMethod = extendableContainer.getClass().getMethod("register", Object.class,
+			var classLoader = AccessorClassLoader.get(extendableContainer.getClass());
+			var registerMethod = extendableContainer.getClass().getMethod("register", Object.class,
 					keyType);
-			Method unregisterMethod = extendableContainer.getClass().getMethod("unregister", Object.class,
+			var unregisterMethod = extendableContainer.getClass().getMethod("unregister", Object.class,
 					keyType);
-			Method getOneMethod = extendableContainer.getClass().getMethod("getExtension", keyType);
-			Method getAllMethod = extendableContainer.getClass().getMethod("getExtensions");
-			Method[] methodsOfProviderType = providerType.getMethods();
+			var getOneMethod = extendableContainer.getClass().getMethod("getExtension", keyType);
+			var getAllMethod = extendableContainer.getClass().getMethod("getExtensions");
+			var methodsOfProviderType = providerType.getMethods();
 
 			methodMap.put(addMethod, registerMethod);
 			methodMap.put(removeMethod, unregisterMethod);
 
 			for (int a = methodsOfProviderType.length; a-- > 0;) {
-				Method methodOfProviderType = methodsOfProviderType[a];
+				var methodOfProviderType = methodsOfProviderType[a];
 				if (methodOfProviderType.getParameterTypes().length == 1) {
 					methodMap.put(methodOfProviderType, getOneMethod);
 					providerTypeGetOne = methodOfProviderType;
@@ -211,11 +208,11 @@ public class ExtendableBean extends AbstractSimpleInterceptor
 	@Override
 	protected Object interceptIntern(Object obj, Method method, Object[] args, MethodProxy proxy)
 			throws Throwable {
-		Method mappedMethod = methodMap.get(method);
+		var mappedMethod = methodMap.get(method);
 		if (mappedMethod == null) {
 			return proxy.invoke(extendableContainer, args);
 		}
-		Object value = mappedMethod.invoke(extendableContainer, args);
+		var value = mappedMethod.invoke(extendableContainer, args);
 		if (value == null && method.equals(providerTypeGetOne)) {
 			value = defaultBean;
 		}

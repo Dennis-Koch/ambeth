@@ -21,10 +21,10 @@ limitations under the License.
  */
 
 import com.koch.ambeth.ioc.IServiceContext;
+import com.koch.ambeth.util.proxy.MethodInterceptor;
 
-import net.sf.cglib.proxy.MethodInterceptor;
 
 public interface IClientServiceInterceptorBuilder {
 	MethodInterceptor createInterceptor(IServiceContext sourceBeanContext,
-			Class<?> syncLocalInterface, Class<?> syncRemoteInterface, Class<?> asyncRemoteInterface);
+										Class<?> syncLocalInterface, Class<?> syncRemoteInterface, Class<?> asyncRemoteInterface);
 }

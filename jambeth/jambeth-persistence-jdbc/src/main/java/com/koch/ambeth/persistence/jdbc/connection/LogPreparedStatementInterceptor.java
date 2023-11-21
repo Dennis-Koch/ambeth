@@ -36,7 +36,7 @@ import com.koch.ambeth.util.collections.HashSet;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.objectcollector.IThreadLocalObjectCollector;
 
-import net.sf.cglib.proxy.MethodProxy;
+import com.koch.ambeth.util.proxy.MethodProxy;
 
 public class LogPreparedStatementInterceptor extends LogStatementInterceptor implements ISqlValue {
 	public static final Method executeUpdateMethod, executeQueryMethod;

@@ -46,11 +46,9 @@ import com.koch.ambeth.util.ParamChecker;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.HashMap;
 import com.koch.ambeth.util.objectcollector.IThreadLocalObjectCollector;
+import com.koch.ambeth.util.proxy.Factory;
 import com.koch.ambeth.util.proxy.ICascadedInterceptor;
 import com.koch.ambeth.util.state.IStateRollback;
-
-import net.sf.cglib.proxy.Callback;
-import net.sf.cglib.proxy.Factory;
 
 public class Database implements IDatabase, IInitializingBean, IStartingBean, IDisposableBean {
 	@LogInstance
@@ -165,10 +163,10 @@ public class Database implements IDatabase, IInitializingBean, IStartingBean, ID
 
 	@Override
 	public void flushAndRelease() {
-		ThreadLocal<IDatabase> databaseLocal = databaseProvider.getDatabaseLocal();
-		IDatabase currentDatabase = databaseLocal.get();
+		var databaseLocal = databaseProvider.getDatabaseLocal();
+		var currentDatabase = databaseLocal.get();
 		if (currentDatabase instanceof Factory) {
-			Callback interceptor = ((Factory) currentDatabase).getCallback(0);
+			var interceptor = ((Factory) currentDatabase).getCallback(0);
 
 			currentDatabase = (IDatabase) ((ICascadedInterceptor) interceptor).getTarget();
 		}
@@ -188,10 +186,10 @@ public class Database implements IDatabase, IInitializingBean, IStartingBean, ID
 
 	@Override
 	public void release(boolean errorOccured) {
-		ThreadLocal<IDatabase> databaseLocal = databaseProvider.getDatabaseLocal();
-		IDatabase currentDatabase = databaseLocal.get();
+		var databaseLocal = databaseProvider.getDatabaseLocal();
+		var currentDatabase = databaseLocal.get();
 		if (currentDatabase instanceof Factory) {
-			Callback interceptor = ((Factory) currentDatabase).getCallback(0);
+			var interceptor = ((Factory) currentDatabase).getCallback(0);
 
 			currentDatabase = (IDatabase) ((ICascadedInterceptor) interceptor).getTarget();
 		}
@@ -214,10 +212,10 @@ public class Database implements IDatabase, IInitializingBean, IStartingBean, ID
 
 	@Override
 	public void destroy() throws Throwable {
-		ThreadLocal<IDatabase> databaseLocal = databaseProvider.getDatabaseLocal();
-		IDatabase currentDatabase = databaseLocal.get();
+		var databaseLocal = databaseProvider.getDatabaseLocal();
+		var currentDatabase = databaseLocal.get();
 		if (currentDatabase instanceof Factory) {
-			Callback interceptor = ((Factory) currentDatabase).getCallback(0);
+			var interceptor = ((Factory) currentDatabase).getCallback(0);
 
 			currentDatabase = (IDatabase) ((ICascadedInterceptor) interceptor).getTarget();
 		}
@@ -281,16 +279,16 @@ public class Database implements IDatabase, IInitializingBean, IStartingBean, ID
 
 	@Override
 	public List<ILink> getLinksByTables(ITable table1, ITable table2) {
-		TablesMapKey tablesMapKey = new TablesMapKey(table1.getMetaData(), table2.getMetaData());
+		var tablesMapKey = new TablesMapKey(table1.getMetaData(), table2.getMetaData());
 		return tablesToLinkDict.get(tablesMapKey);
 	}
 
 	@Override
 	public ITable getTableByType(Class<?> entityType) {
 		ParamChecker.assertParamNotNull(entityType, "entityType");
-		ITable table = typeToTableDict.get(entityType);
+		var table = typeToTableDict.get(entityType);
 		if (table == null) {
-			ITableMetaData tableMetadata = metaData.getTableByType(entityType);
+			var tableMetadata = metaData.getTableByType(entityType);
 			if (tableMetadata != null) {
 				table = nameToTableDict.get(tableMetadata.getName());
 			}

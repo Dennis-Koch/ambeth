@@ -20,7 +20,7 @@ limitations under the License.
  * #L%
  */
 
-import javax.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MediaType;
 
 public interface Constants {
 	public static final String AMBETH_MEDIA_TYPE = MediaType.APPLICATION_XML + "+ambeth";

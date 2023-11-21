@@ -37,13 +37,7 @@ import com.koch.ambeth.util.collections.IMap;
 import com.koch.ambeth.util.collections.LinkedHashMap;
 import com.koch.ambeth.util.exception.MaskingRuntimeException;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
-import com.koch.ambeth.util.proxy.DelegateInterceptor;
-import com.koch.ambeth.util.proxy.ICascadedInterceptor;
-import com.koch.ambeth.util.proxy.IProxyFactory;
-
-import net.sf.cglib.proxy.Callback;
-import net.sf.cglib.proxy.Factory;
-import net.sf.cglib.proxy.MethodInterceptor;
+import com.koch.ambeth.util.proxy.*;
 
 public class LinkContainer extends AbstractLinkContainer {
 	/**
@@ -161,16 +155,16 @@ public class LinkContainer extends AbstractLinkContainer {
 		if (listenerMethodName == null) {
 			return listener;
 		}
-		Class<?> parameterType = addMethod.getParameterTypes()[0];
+		var parameterType = addMethod.getParameterTypes()[0];
 		if (listener instanceof Factory) {
-			Callback[] callbacks = ((Factory) listener).getCallbacks();
+			var callbacks = ((Factory) listener).getCallbacks();
 			if (callbacks != null && callbacks.length == 1) {
-				Callback callback = callbacks[0];
+				var callback = callbacks[0];
 				if (callback instanceof ICascadedInterceptor) {
-					ICascadedInterceptor cascadedInterceptor = (ICascadedInterceptor) callback;
+					var cascadedInterceptor = (ICascadedInterceptor) callback;
 					Object target = cascadedInterceptor;
 					while (target instanceof ICascadedInterceptor) {
-						Object targetOfTarget = ((ICascadedInterceptor) target).getTarget();
+						var targetOfTarget = ((ICascadedInterceptor) target).getTarget();
 						if (targetOfTarget != null) {
 							target = targetOfTarget;
 						}
@@ -185,14 +179,14 @@ public class LinkContainer extends AbstractLinkContainer {
 				}
 			}
 		}
-		Class<?> listenerType = listener.getClass();
+		var listenerType = listener.getClass();
 
 		Object delegateInstance = null;
 		if (bytecodeEnhancer != null && accessorTypeProvider != null) {
 			try {
-				Class<?> delegateType = bytecodeEnhancer.getEnhancedType(Object.class,
+				var delegateType = bytecodeEnhancer.getEnhancedType(Object.class,
 						new DelegateEnhancementHint(listenerType, listenerMethodName, parameterType));
-				IDelegateConstructor constructor = accessorTypeProvider
+				var constructor = accessorTypeProvider
 						.getConstructorType(IDelegateConstructor.class, delegateType);
 				delegateInstance = constructor.createInstance(listener);
 			}
@@ -205,9 +199,9 @@ public class LinkContainer extends AbstractLinkContainer {
 			}
 		}
 		if (delegateInstance == null) {
-			IMap<Method, Method> mappedMethods = buildDelegateMethodMap(listenerType, listenerMethodName,
+			var mappedMethods = buildDelegateMethodMap(listenerType, listenerMethodName,
 					parameterType);
-			MethodInterceptor interceptor = new DelegateInterceptor(listener, mappedMethods);
+			var interceptor = new DelegateInterceptor(listener, mappedMethods);
 			delegateInstance = proxyFactory.createProxy(parameterType, listenerType.getInterfaces(),
 					interceptor);
 		}

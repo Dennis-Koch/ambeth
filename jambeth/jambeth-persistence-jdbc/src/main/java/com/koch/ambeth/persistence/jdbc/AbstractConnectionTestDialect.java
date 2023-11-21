@@ -36,6 +36,7 @@ import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.HashSet;
 import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.config.IProperties;
+import lombok.SneakyThrows;
 
 public abstract class AbstractConnectionTestDialect
 		implements IConnectionTestDialect, IInitializingBean {
@@ -88,7 +89,7 @@ public abstract class AbstractConnectionTestDialect
 
 	@Override
 	public boolean createTestUserIfSupported(Throwable reason, String userName, String userPassword,
-			IProperties testProps) throws SQLException {
+			IProperties testProps) {
 		return false;
 	}
 
@@ -99,7 +100,7 @@ public abstract class AbstractConnectionTestDialect
 	}
 
 	@Override
-	public void preStructureRebuild(Connection connection) throws SQLException {
+	public void preStructureRebuild(Connection connection) {
 		// intended blank
 	}
 
@@ -107,11 +108,10 @@ public abstract class AbstractConnectionTestDialect
 	 * An SQL query. there must be column name "FULL_NAME" referred to the found table name
 	 *
 	 * @param connection
-	 * @param stmt
 	 *
 	 * @return
 	 */
-	protected abstract IList<String> queryForAllTables(Connection connection) throws SQLException;
+	protected abstract IList<String> queryForAllTables(Connection connection);
 
 	/**
 	 * An SQL query. there must be column name "TRIGGER_NAME" referred to the found trigger name
@@ -120,15 +120,15 @@ public abstract class AbstractConnectionTestDialect
 	 *
 	 * @return
 	 */
-	protected abstract IList<String> queryForAllTriggers(Connection connection) throws SQLException;
+	protected abstract IList<String> queryForAllTriggers(Connection connection);
 
 	protected boolean isTableNameToIgnore(String tableName) {
 		return false;
 	}
 
+	@SneakyThrows
 	@Override
-	public List<String> getTablesWithoutOptimisticLockTrigger(Connection connection)
-			throws SQLException {
+	public List<String> getTablesWithoutOptimisticLockTrigger(Connection connection) {
 		HashSet<String> existingOptimisticLockTriggers = new HashSet<>();
 		ArrayList<String> tableNamesWhichNeedOptimisticLockTrigger = new ArrayList<>();
 		for (String tableName : queryForAllTables(connection)) {
@@ -160,8 +160,7 @@ public abstract class AbstractConnectionTestDialect
 		return tableNamesWhichNeedOptimisticLockTrigger;
 	}
 
-	protected abstract IList<String> queryForAllPermissionGroupNeedingTables(Connection connection)
-			throws SQLException;
+	protected abstract IList<String> queryForAllPermissionGroupNeedingTables(Connection connection);
 
 	/**
 	 * Result column must be "PERM_GROUP_NAME"
@@ -170,11 +169,11 @@ public abstract class AbstractConnectionTestDialect
 	 *
 	 * @return
 	 */
-	protected abstract IList<String> queryForAllPotentialPermissionGroups(Connection connection)
-			throws SQLException;
+	protected abstract IList<String> queryForAllPotentialPermissionGroups(Connection connection);
 
+	@SneakyThrows
 	@Override
-	public List<String> getTablesWithoutPermissionGroup(Connection connection) throws SQLException {
+	public List<String> getTablesWithoutPermissionGroup(Connection connection) {
 		HashSet<String> existingPermissionGroups = new HashSet<>();
 		ArrayList<String> tableNamesWhichNeedPermissionGroup = new ArrayList<>();
 		for (String tableName : queryForAllPermissionGroupNeedingTables(connection)) {
@@ -212,8 +211,7 @@ public abstract class AbstractConnectionTestDialect
 	}
 
 	@Override
-	public String[] createAdditionalTriggers(Connection connection, String tableName)
-			throws SQLException {
+	public String[] createAdditionalTriggers(Connection connection, String tableName) {
 		return new String[0];
 	}
 }

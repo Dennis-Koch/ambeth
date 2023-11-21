@@ -20,10 +20,10 @@ limitations under the License.
  * #L%
  */
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlRootElement;
 
 import com.koch.ambeth.merge.model.ICreateOrUpdateContainer;
 import com.koch.ambeth.merge.model.IPrimitiveUpdateItem;

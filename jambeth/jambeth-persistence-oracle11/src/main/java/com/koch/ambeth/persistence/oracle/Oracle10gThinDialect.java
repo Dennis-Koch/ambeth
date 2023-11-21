@@ -32,6 +32,7 @@ import com.koch.ambeth.persistence.jdbc.JdbcUtil;
 import com.koch.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationConstants;
 import com.koch.ambeth.util.exception.MaskingRuntimeException;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
+import lombok.SneakyThrows;
 
 public class Oracle10gThinDialect extends Oracle10gDialect {
 	@Property(name = PersistenceJdbcConfigurationConstants.DatabaseAutoCleanupRecycleBin, defaultValue = "false")
@@ -59,13 +60,15 @@ public class Oracle10gThinDialect extends Oracle10gDialect {
 		}
 	}
 
+	@SneakyThrows
 	@Override
-	public void commit(Connection connection) throws SQLException {
+	public void commit(Connection connection) {
 		connection.commit();
 	}
 
+	@SneakyThrows
 	@Override
-	public void rollback(Connection connection) throws SQLException {
+	public void rollback(Connection connection) {
 		try {
 			connection.rollback();
 		}
@@ -89,9 +92,10 @@ public class Oracle10gThinDialect extends Oracle10gDialect {
 		}
 	}
 
+	@SneakyThrows
 	@Override
 	public ResultSet getIndexInfo(Connection connection, String schemaName, String tableName,
-			boolean unique) throws SQLException {
+			boolean unique) {
 		return connection.getMetaData().getIndexInfo(null, schemaName, tableName, unique, true);
 	}
 }

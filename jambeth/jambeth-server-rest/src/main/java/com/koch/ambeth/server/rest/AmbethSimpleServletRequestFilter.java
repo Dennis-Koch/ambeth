@@ -22,14 +22,14 @@ limitations under the License.
 
 import java.io.IOException;
 
-import javax.servlet.Filter;
-import javax.servlet.FilterChain;
-import javax.servlet.FilterConfig;
-import javax.servlet.ServletContext;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.ws.rs.ext.Provider;
+import jakarta.servlet.Filter;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.FilterConfig;
+import jakarta.servlet.ServletContext;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
+import jakarta.ws.rs.ext.Provider;
 
 import com.koch.ambeth.ioc.IServiceContext;
 import com.koch.ambeth.ioc.threadlocal.IThreadLocalCleanupController;
@@ -57,8 +57,8 @@ public class AmbethSimpleServletRequestFilter implements Filter {
 	 * This method always clear thread local variables after a hhtp request was handled. Override
 	 * {@link #doFilterIntern(ServletRequest, ServletResponse, FilterChain)} when deriving this class.
 	 *
-	 * @see javax.servlet.Filter#doFilter(javax.servlet.ServletRequest, javax.servlet.ServletResponse,
-	 *      javax.servlet.FilterChain)
+	 * @see jakarta.servlet.Filter#doFilter(jakarta.servlet.ServletRequest, jakarta.servlet.ServletResponse,
+	 *      jakarta.servlet.FilterChain)
 	 */
 	@Override
 	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)

@@ -30,22 +30,22 @@ import com.koch.ambeth.util.model.INotifyPropertyChanged;
 public interface IProperties extends INotifyPropertyChanged {
 	IProperties getParent();
 
-	Object get(String key);
+	<T> T get(String key);
 
-	Object get(String key, IProperties initiallyCalledProps);
+	<T> T get(String key, IProperties initiallyCalledProps);
 
 	/**
 	 * Resolve all known properties within a given value string. This will also be done recursively
 	 * for properties which contain other properties.<br>
 	 * Unknown variables will stay in the original string without further modification (to later put a
 	 * string and resolve it)<br>
-	 * Examples: {@link PropertyResolverTest}<br>
+	 * Examples: {@link com.koch.ambeth.config.PropertyResolverTest}<br>
 	 * "exampleString with var ${exampleVar} more content ${${recursivelyResolvedVar}} etc..."
 	 *
 	 * @param value
 	 * @return
 	 */
-	String resolvePropertyParts(String value);
+	String resolvePropertyParts(CharSequence value);
 
 	String getString(String key);
 

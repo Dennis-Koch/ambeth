@@ -38,10 +38,9 @@ import com.koch.ambeth.util.collections.LinkedHashMap;
 import com.koch.ambeth.util.collections.LinkedHashSet;
 import com.koch.ambeth.util.proxy.AbstractSimpleInterceptor;
 import com.koch.ambeth.util.proxy.IProxyFactory;
+import com.koch.ambeth.util.proxy.MethodInterceptor;
+import com.koch.ambeth.util.proxy.MethodProxy;
 import com.koch.ambeth.util.typeinfo.IPropertyInfoProvider;
-
-import net.sf.cglib.proxy.MethodInterceptor;
-import net.sf.cglib.proxy.MethodProxy;
 
 public class PrefetchConfig implements IPrefetchConfig {
 	public class PrefetchConfigInterceptor implements MethodInterceptor {
@@ -119,7 +118,7 @@ public class PrefetchConfig implements IPrefetchConfig {
 	@Override
 	public IPrefetchConfig add(Class<?> entityType, String propertyPath) {
 		entityType = entityMetaDataProvider.getMetaData(entityType).getEntityType();
-		ArrayList<String> membersToInitialize = entityTypeToPrefetchPaths.get(entityType);
+		var membersToInitialize = entityTypeToPrefetchPaths.get(entityType);
 		if (membersToInitialize == null) {
 			membersToInitialize = new ArrayList<>();
 			entityTypeToPrefetchPaths.put(entityType, membersToInitialize);
@@ -131,7 +130,7 @@ public class PrefetchConfig implements IPrefetchConfig {
 	@Override
 	public IPrefetchConfig add(Class<?> entityType, String... propertyPaths) {
 		entityType = entityMetaDataProvider.getMetaData(entityType).getEntityType();
-		ArrayList<String> membersToInitialize = entityTypeToPrefetchPaths.get(entityType);
+		var membersToInitialize = entityTypeToPrefetchPaths.get(entityType);
 		if (membersToInitialize == null) {
 			membersToInitialize = new ArrayList<>();
 			entityTypeToPrefetchPaths.put(entityType, membersToInitialize);
@@ -142,18 +141,18 @@ public class PrefetchConfig implements IPrefetchConfig {
 
 	@Override
 	public IPrefetchHandle build() {
-		LinkedHashMap<Class<?>, PrefetchPath[]> entityTypeToPrefetchSteps = LinkedHashMap
-				.create(entityTypeToPrefetchPaths.size());
-		for (Entry<Class<?>, ArrayList<String>> entry : entityTypeToPrefetchPaths) {
-			Class<?> entityType = entry.getKey();
-			ArrayList<String> membersToInitialize = entry.getValue();
+		var entityTypeToPrefetchSteps = LinkedHashMap
+				.<Class<?>, PrefetchPath[]>create(entityTypeToPrefetchPaths.size());
+		for (var entry : entityTypeToPrefetchPaths) {
+			var entityType = entry.getKey();
+			var membersToInitialize = entry.getValue();
 			entityTypeToPrefetchSteps.put(entityType, buildCachePath(entityType, membersToInitialize));
 		}
 		return new PrefetchHandle(entityTypeToPrefetchSteps, cachePathHelper);
 	}
 
 	protected PrefetchPath[] buildCachePath(Class<?> entityType, List<String> membersToInitialize) {
-		LinkedHashSet<AppendableCachePath> cachePaths = new LinkedHashSet<>();
+		var cachePaths = new LinkedHashSet<AppendableCachePath>();
 		for (int a = membersToInitialize.size(); a-- > 0;) {
 			String memberName = membersToInitialize.get(a);
 			cachePathHelper.buildCachePath(entityType, memberName, cachePaths);

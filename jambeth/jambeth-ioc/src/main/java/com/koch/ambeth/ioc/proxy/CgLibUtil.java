@@ -30,8 +30,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import com.koch.ambeth.ioc.IDisposableBean;
 import com.koch.ambeth.util.collections.HashSet;
 import com.koch.ambeth.util.collections.ISet;
-
-import net.sf.cglib.proxy.Enhancer;
+import com.koch.ambeth.util.proxy.Factory;
 
 public class CgLibUtil implements ICgLibUtil, IDisposableBean {
 	public static class ClassReference extends WeakReference<Class<?>> {
@@ -78,7 +77,7 @@ public class CgLibUtil implements ICgLibUtil, IDisposableBean {
 			if (enhanced == null) {
 
 				enhanced =
-						Boolean.valueOf(Enhancer.isEnhanced(enhancedClass) || Proxy.isProxyClass(enhancedClass)
+						Boolean.valueOf(Factory.class.isAssignableFrom(enhancedClass) || Proxy.isProxyClass(enhancedClass)
 						// || ProxyObject.class.isAssignableFrom(enhancedClass)
 						);
 				typeToEnhancedMap.put(className, enhanced);

@@ -46,6 +46,7 @@ import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.config.IProperties;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
+import lombok.SneakyThrows;
 
 public class SQLiteTestDialect extends AbstractConnectionTestDialect {
 	public static final String ROOT_DATABASE_USER = "ambeth.root.database.user";
@@ -64,9 +65,10 @@ public class SQLiteTestDialect extends AbstractConnectionTestDialect {
 	@Autowired
 	protected ISqlBuilder sqlBuilder;
 
+	@SneakyThrows
 	@Override
 	public boolean createTestUserIfSupported(Throwable reason, String userName, String userPassword,
-			IProperties testProps) throws SQLException {
+			IProperties testProps) {
 		if (!(reason instanceof SQLException)) {
 			return false;
 		}
@@ -100,7 +102,7 @@ public class SQLiteTestDialect extends AbstractConnectionTestDialect {
 
 	@Override
 	public void dropCreatedTestUser(String userName, String userPassword, IProperties testProps)
-			throws SQLException {
+			{
 		Properties createUserProps = new Properties(testProps);
 		createUserProps.put(RandomUserScript.SCRIPT_IS_CREATE, "false");
 		createUserProps.put(RandomUserScript.SCRIPT_USER_NAME, userName);
@@ -123,8 +125,9 @@ public class SQLiteTestDialect extends AbstractConnectionTestDialect {
 		// intended blank
 	}
 
+	@SneakyThrows
 	@Override
-	public boolean isEmptySchema(Connection connection) throws SQLException {
+	public boolean isEmptySchema(Connection connection) {
 		DatabaseMetaData metaData = connection.getMetaData();
 		ResultSet tables = metaData.getTables(null, null, null, null);
 		try {
@@ -135,9 +138,10 @@ public class SQLiteTestDialect extends AbstractConnectionTestDialect {
 		}
 	}
 
+	@SneakyThrows
 	@Override
 	public String[] createOptimisticLockTrigger(Connection connection, String fqTableName)
-			throws SQLException {
+			{
 		String[] names = sqlBuilder.getSchemaAndTableName(fqTableName);
 		ArrayList<String> tableColumns = new ArrayList<>();
 		ResultSet tableColumnsRS = connection.getMetaData().getColumns(null, names[0], names[1], null);
@@ -184,20 +188,21 @@ public class SQLiteTestDialect extends AbstractConnectionTestDialect {
 	}
 
 	@Override
-	protected IList<String> queryForAllTables(Connection connection) throws SQLException {
+	protected IList<String> queryForAllTables(Connection connection) {
 		return connectionDialect.queryDefault(connection, "FULL_NAME",
 				"SELECT tbl_name AS FULL_NAME FROM sqlite_master where type='table'");
 	}
 
 	@Override
-	protected IList<String> queryForAllTriggers(Connection connection) throws SQLException {
+	protected IList<String> queryForAllTriggers(Connection connection) {
 		return connectionDialect.queryDefault(connection, "FULL_NAME",
 				"SELECT tbl_name AS FULL_NAME FROM sqlite_master where type='trigger'");
 	}
 
+	@SneakyThrows
 	@Override
 	protected IList<String> queryForAllPermissionGroupNeedingTables(Connection connection)
-			throws SQLException {
+			{
 		Statement stmt = null;
 		ResultSet rs = null;
 		try {
@@ -232,14 +237,14 @@ public class SQLiteTestDialect extends AbstractConnectionTestDialect {
 
 	@Override
 	protected IList<String> queryForAllPotentialPermissionGroups(Connection connection)
-			throws SQLException {
+			{
 		return connectionDialect.queryDefault(connection, "FULL_NAME",
 				"SELECT tbl_name AS FULL_NAME FROM sqlite_master where type='table'");
 	}
 
 	@Override
 	public String[] createPermissionGroup(Connection connection, String tableName)
-			throws SQLException {
+			{
 		// TODO
 		throw new UnsupportedOperationException("Not yet implemented");
 		// int maxProcedureNameLength = connection.getMetaData().getMaxProcedureNameLength();

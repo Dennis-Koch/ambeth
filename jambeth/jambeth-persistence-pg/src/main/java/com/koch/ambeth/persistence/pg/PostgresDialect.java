@@ -45,6 +45,7 @@ import javax.persistence.OptimisticLockException;
 import javax.persistence.PersistenceException;
 import javax.persistence.PessimisticLockException;
 
+import lombok.SneakyThrows;
 import org.postgresql.Driver;
 import org.postgresql.PGConnection;
 import org.postgresql.core.BaseConnection;
@@ -264,15 +265,17 @@ public class PostgresDialect extends AbstractConnectionDialect {
 		return Integer.MAX_VALUE;
 	}
 
+	@SneakyThrows
 	@Override
-	public Blob createBlob(Connection connection) throws SQLException {
+	public Blob createBlob(Connection connection) {
 		PGConnection pgConnection = connection.unwrap(PGConnection.class);
 		long oid = pgConnection.getLargeObjectAPI().createLO();
 		return new PostgresBlob(pgConnection, oid);
 	}
 
+	@SneakyThrows
 	@Override
-	public Clob createClob(Connection connection) throws SQLException {
+	public Clob createClob(Connection connection) {
 		PGConnection pgConnection = connection.unwrap(PGConnection.class);
 		long oid = pgConnection.getLargeObjectAPI().createLO();
 		return new PostgresClob(pgConnection, oid);
@@ -340,7 +343,7 @@ public class PostgresDialect extends AbstractConnectionDialect {
 
 	@Override
 	protected ConnectionKeyValue preProcessConnectionIntern(Connection connection,
-			String[] schemaNames, boolean forcePreProcessing) throws SQLException {
+			String[] schemaNames, boolean forcePreProcessing) {
 		Statement stm = null;
 		try {
 			stm = connection.createStatement();
@@ -387,9 +390,10 @@ public class PostgresDialect extends AbstractConnectionDialect {
 		return sb.toString();
 	}
 
+	@SneakyThrows
 	@Override
 	public IList<IMap<String, String>> getExportedKeys(Connection connection, String[] schemaNames)
-			throws SQLException {
+			{
 		ArrayList<IMap<String, String>> allForeignKeys = new ArrayList<>();
 		PreparedStatement pstm = null;
 		ResultSet allForeignKeysRS = null;
@@ -436,7 +440,7 @@ public class PostgresDialect extends AbstractConnectionDialect {
 
 	@Override
 	public ILinkedMap<String, IList<String>> getFulltextIndexes(Connection connection,
-			String schemaName) throws SQLException {
+			String schemaName) {
 		LinkedHashMap<String, IList<String>> fulltextIndexes = new LinkedHashMap<>();
 		// NOT YET IMPLEMENTED
 		return fulltextIndexes;
@@ -449,7 +453,7 @@ public class PostgresDialect extends AbstractConnectionDialect {
 	}
 
 	@Override
-	public void releaseSavepoint(Savepoint savepoint, Connection connection) throws SQLException {
+	public void releaseSavepoint(Savepoint savepoint, Connection connection) {
 	}
 
 	@Override
@@ -502,9 +506,10 @@ public class PostgresDialect extends AbstractConnectionDialect {
 		return ex;
 	}
 
+	@SneakyThrows
 	@Override
 	public ResultSet getIndexInfo(Connection connection, String schemaName, String tableName,
-			boolean unique) throws SQLException {
+			boolean unique) {
 		return connection.getMetaData().getIndexInfo(null, schemaName, tableName, unique, true);
 	}
 
@@ -530,7 +535,7 @@ public class PostgresDialect extends AbstractConnectionDialect {
 
 	@Override
 	public List<String> getAllFullqualifiedSequences(Connection connection, String... schemaNames)
-			throws SQLException {
+			{
 		List<String> allSequenceNames = new ArrayList<>();
 
 		Statement stmt = null;
@@ -555,9 +560,10 @@ public class PostgresDialect extends AbstractConnectionDialect {
 		return allSequenceNames;
 	}
 
+	@SneakyThrows
 	@Override
 	public List<String> getAllFullqualifiedTableNames(Connection connection, String... schemaNames)
-			throws SQLException {
+			{
 		List<String> allTableNames = new ArrayList<>();
 
 		Statement stmt = null;
@@ -579,9 +585,10 @@ public class PostgresDialect extends AbstractConnectionDialect {
 		return allTableNames;
 	}
 
+	@SneakyThrows
 	@Override
 	public List<String> getAllFullqualifiedViews(Connection connection, String... schemaNames)
-			throws SQLException {
+			{
 		List<String> allViewNames = new ArrayList<>();
 
 		Statement stmt = null;
@@ -621,9 +628,10 @@ public class PostgresDialect extends AbstractConnectionDialect {
 		return 3;
 	}
 
+	@SneakyThrows
 	@Override
 	public IList<IColumnEntry> getAllFieldsOfTable(Connection connection, String fqTableName)
-			throws SQLException {
+			{
 		String[] names = sqlBuilder.getSchemaAndTableName(fqTableName);
 		ResultSet tableColumnsRS = connection.getMetaData().getColumns(null, names[0], names[1], null);
 		try {

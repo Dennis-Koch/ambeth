@@ -36,11 +36,10 @@ import com.koch.ambeth.ioc.factory.IBeanContextFactory;
 import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.util.ReflectUtil;
+import com.koch.ambeth.util.proxy.Callback;
+import com.koch.ambeth.util.proxy.Factory;
 import com.koch.ambeth.util.proxy.ICascadedInterceptor;
 import com.koch.ambeth.util.proxy.IProxyFactory;
-
-import net.sf.cglib.proxy.Callback;
-import net.sf.cglib.proxy.Factory;
 
 public abstract class AbstractCascadePostProcessor
 		implements IBeanPostProcessor, IInitializingBean, IOrderedBeanProcessor {
@@ -68,16 +67,16 @@ public abstract class AbstractCascadePostProcessor
 			Set<Class<?>> requestedTypes) {
 		Factory factory = null;
 		ICascadedInterceptor cascadedInterceptor = null;
-		Object proxiedTargetBean = targetBean;
+		var proxiedTargetBean = targetBean;
 		if (targetBean instanceof Factory) {
 			factory = (Factory) targetBean;
-			Callback callback = factory.getCallback(0);
+			var callback = factory.getCallback(0);
 			if (callback instanceof ICascadedInterceptor) {
 				cascadedInterceptor = (ICascadedInterceptor) callback;
 				proxiedTargetBean = cascadedInterceptor.getTarget();
 			}
 		}
-		ICascadedInterceptor interceptor = handleServiceIntern(beanContextFactory, beanContext,
+		var interceptor = handleServiceIntern(beanContextFactory, beanContext,
 				beanConfiguration, beanType, requestedTypes);
 		if (interceptor == null) {
 			return targetBean;
@@ -87,7 +86,7 @@ public abstract class AbstractCascadePostProcessor
 					+ getClass().getName());
 		}
 		if (cascadedInterceptor == null) {
-			ICascadedInterceptor lastInterceptor = interceptor;
+			var lastInterceptor = interceptor;
 			while (lastInterceptor.getTarget() instanceof ICascadedInterceptor) {
 				lastInterceptor = (ICascadedInterceptor) lastInterceptor.getTarget();
 			}
@@ -122,16 +121,16 @@ public abstract class AbstractCascadePostProcessor
 	}
 
 	public IMethodLevelBehavior<Annotation> createInterceptorModeBehavior(Class<?> beanType) {
-		MethodLevelHashMap<Annotation> methodToAnnotationMap = new MethodLevelHashMap<>();
-		Method[] methods = ReflectUtil.getMethods(beanType);
+		var methodToAnnotationMap = new MethodLevelHashMap<Annotation>();
+		var methods = ReflectUtil.getMethods(beanType);
 		for (Method method : methods) {
-			Annotation annotation = lookForAnnotation(method);
+			var annotation = lookForAnnotation(method);
 			if (annotation != null) {
 				methodToAnnotationMap.put(method.getName(), method.getParameterTypes(), annotation);
 				continue;
 			}
 			for (Class<?> currInterface : beanType.getInterfaces()) {
-				Method methodOnInterface = ReflectUtil.getDeclaredMethod(true, currInterface, null,
+				var methodOnInterface = ReflectUtil.getDeclaredMethod(true, currInterface, null,
 						method.getName(), method.getParameterTypes());
 				if (methodOnInterface == null) {
 					continue;

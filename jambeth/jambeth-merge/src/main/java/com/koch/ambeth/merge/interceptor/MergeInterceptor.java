@@ -49,8 +49,7 @@ import com.koch.ambeth.util.annotation.Process;
 import com.koch.ambeth.util.annotation.Remove;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.proxy.AbstractInterceptor;
-
-import net.sf.cglib.proxy.MethodProxy;
+import com.koch.ambeth.util.proxy.MethodProxy;
 
 public class MergeInterceptor extends AbstractInterceptor {
 	// Intentionally no SensitiveThreadLocal

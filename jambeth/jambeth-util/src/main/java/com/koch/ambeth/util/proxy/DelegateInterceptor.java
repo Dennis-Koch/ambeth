@@ -28,8 +28,6 @@ import com.koch.ambeth.util.collections.HashMap;
 import com.koch.ambeth.util.collections.IMap;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
-import net.sf.cglib.proxy.MethodProxy;
-
 public class DelegateInterceptor extends AbstractSimpleInterceptor {
 	protected final Object target;
 

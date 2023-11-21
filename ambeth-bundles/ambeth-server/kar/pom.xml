@@ -198,8 +198,8 @@
 		</dependency>
 
 		<dependency>
-			<groupId>javax.servlet</groupId>
-			<artifactId>javax.servlet-api</artifactId>
+			<groupId>jakarta.servlet</groupId>
+			<artifactId>jakarta.servlet-api</artifactId>
 		</dependency>
 		
 		<dependency>
@@ -234,7 +234,7 @@
 			<plugin>
 				<groupId>org.apache.karaf.tooling</groupId>
 				<artifactId>karaf-maven-plugin</artifactId>
-				<version>4.1.0</version>
+				<version>4.4.4</version>
 				<extensions>true</extensions>
 				<configuration>
 					<startLevel>81</startLevel>
@@ -242,14 +242,16 @@
 					<includeTransitiveDependency>false</includeTransitiveDependency>
 				</configuration>
 			</plugin>
+			<!--
 			<plugin>
 				<groupId>com.bruker.horizon</groupId>
 				<artifactId>kar2tycho-maven-plugin</artifactId>
 				<configuration>
-					<artifacts>
-						<!-- The following bundles are needed for the eclipse RCP client, 
+					<artifacts>-->
+						<!-- The following bundles are needed for the eclipse RCP client,
 								but should not be included into the karaf feature -->
 						<!-- groupId:artifactId:version -->
+			<!--
 						<artifact>
 							<id>com.koch.ambeth:jambeth-eclipse-databinding:jar:${project.version}</id>
 							<transitive>false</transitive>
@@ -297,6 +299,7 @@
 					</sources>
 				</configuration>
 			</plugin>
+-->
 		</plugins>
 	</build>
 </project>

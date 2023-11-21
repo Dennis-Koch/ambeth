@@ -52,9 +52,8 @@ import com.koch.ambeth.util.annotation.Find;
 import com.koch.ambeth.util.annotation.QueryResultType;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.IList;
+import com.koch.ambeth.util.proxy.MethodProxy;
 import com.koch.ambeth.util.threading.SensitiveThreadLocal;
-
-import net.sf.cglib.proxy.MethodProxy;
 
 public class CacheInterceptor extends MergeInterceptor {
 	public static final ThreadLocal<Boolean> pauseCache = new SensitiveThreadLocal<>();

@@ -12,15 +12,15 @@
 
 	<dependencies>
 		<dependency>
-			<groupId>javax.servlet</groupId>
-			<artifactId>javax.servlet-api</artifactId>
+			<groupId>jakarta.servlet</groupId>
+			<artifactId>jakarta.servlet-api</artifactId>
 			<scope>test</scope>
 		</dependency>
 
 		<dependency>
-		    <groupId>org.eclipse.core.databinding</groupId>
-		    <artifactId>observable</artifactId>
-		    <version>1.6.100.v20170515-1119</version>
+			<groupId>org.eclipse.platform</groupId>
+			<artifactId>org.eclipse.core.databinding.observable</artifactId>
+			<version>1.13.100</version>
 		</dependency>
 
 		<dependency>
@@ -181,7 +181,6 @@
 	<build>
 		<plugins>
 			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
 				<configuration>
 					<testExcludes>

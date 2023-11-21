@@ -24,23 +24,30 @@ import com.koch.ambeth.ioc.IInitializingModule;
 import com.koch.ambeth.ioc.config.Property;
 import com.koch.ambeth.ioc.factory.IBeanContextFactory;
 import com.koch.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationConstants;
+import com.koch.ambeth.persistence.jdbc.connector.IConnector;
+
+import java.util.ServiceLoader;
 
 public class DialectSelectorSchemaModule implements IInitializingModule {
 	public static ITestConnector loadTestConnector(String databaseProtocol) {
-		// String connectorName = databaseProtocol.toUpperCase().replace(':', '_');
-		ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+        var serviceLoader = ServiceLoader.load(ITestConnector.class);
+        var connector = serviceLoader.stream().map(ServiceLoader.Provider::get).filter(conn -> conn.supports(databaseProtocol)).findFirst().orElse(null);
 
-		String connectorName = databaseProtocol.toLowerCase().replace(':', '.') + '.'
+
+		// String connectorName = databaseProtocol.toUpperCase().replace(':', '_');
+		var classLoader = Thread.currentThread().getContextClassLoader();
+
+		var connectorName = databaseProtocol.toLowerCase().replace(':', '.') + '.'
 				+ databaseProtocol.toUpperCase().replace(':', '_');
-		String fqConnectorName = DialectSelectorSchemaModule.class.getPackage().getName() + "."
+		var fqConnectorName = DialectSelectorSchemaModule.class.getPackage().getName() + "."
 				+ connectorName;
 		try {
-			Class<?> connectorType = classLoader.loadClass(fqConnectorName);
+			var connectorType = classLoader.loadClass(fqConnectorName);
 			return (ITestConnector) connectorType.newInstance();
 		}
 		catch (Throwable e) {
 			try {
-				Class<?> connectorType = DialectSelectorSchemaModule.class.getClassLoader()
+				var connectorType = DialectSelectorSchemaModule.class.getClassLoader()
 						.loadClass(fqConnectorName);
 				return (ITestConnector) connectorType.newInstance();
 			}

@@ -37,7 +37,7 @@ import org.apache.mina.core.service.IoConnector;
 import org.apache.mina.core.service.IoHandlerAdapter;
 import org.apache.mina.core.session.IdleStatusChecker;
 import org.apache.mina.core.session.IoSession;
-import org.apache.mina.transport.serial.jssc.JSSCSerialConnector;
+import org.apache.mina.transport.serial.SerialConnector;
 import org.apache.mina.transport.socket.nio.NioSocketConnector;
 
 import com.koch.ambeth.ioc.IInitializingBean;
@@ -77,12 +77,12 @@ public class MinaClient implements IInitializingBean, IMinaClient {
 			MinaCommunicationParameter communicationParameter, IoHandlerAdapter clientHandler,
 			IoFilter ioFilter) {
 		// Check prerequisites
-		if (StringUtils.isBlank(serialPortName) && nioPort == null) {
-			throw new IllegalArgumentException("nioPort or serialPortName must be set!");
+		if (nioPort == null) {
+			throw new IllegalArgumentException("nioPort must be set!");
 		}
-		if (!StringUtils.isBlank(serialPortName) && communicationParameter == null) {
+		if (!StringUtils.isBlank(serialPortName)) {
 			throw new IllegalArgumentException(
-					"communicationParameter must be set if serialPortName is set!");
+					"serialPortName must not be set! use nioPort instead");
 		}
 		if (nioPort != null && communicationParameter != null) {
 			throw new IllegalArgumentException(
@@ -90,18 +90,9 @@ public class MinaClient implements IInitializingBean, IMinaClient {
 		}
 
 		// Connect to the server
-		final IoConnector connector;
-		final SocketAddress portAddress;
-		communicationParameter = communicationParameter;
 		minaClientHandler = clientHandler;
-		if (!StringUtils.isBlank(serialPortName)) {
-			connector = new JSSCSerialConnector(idleStatusChecker);
-			portAddress = communicationParameter.getSerialAddress(serialPortName);
-		}
-		else {
-			connector = new NioSocketConnector();
-			portAddress = new InetSocketAddress(nioPort);
-		}
+		var connector = new NioSocketConnector();
+		var portAddress = new InetSocketAddress(nioPort);
 		connector.getFilterChain().addLast("codec", ioFilter);
 
 		connector.setHandler(minaClientHandler);

@@ -27,7 +27,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.servlet.ServletContext;
+import jakarta.servlet.ServletContext;
 
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.util.collections.ArrayList;

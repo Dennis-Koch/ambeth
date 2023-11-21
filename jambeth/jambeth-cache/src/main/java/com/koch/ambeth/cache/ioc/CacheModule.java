@@ -98,8 +98,7 @@ import com.koch.ambeth.service.config.ServiceConfigurationConstants;
 import com.koch.ambeth.service.remote.ClientServiceBean;
 import com.koch.ambeth.util.ParamChecker;
 import com.koch.ambeth.util.proxy.IProxyFactory;
-
-import net.sf.cglib.proxy.MethodInterceptor;
+import com.koch.ambeth.util.proxy.MethodInterceptor;
 
 @FrameworkModule
 public class CacheModule implements IInitializingModule {

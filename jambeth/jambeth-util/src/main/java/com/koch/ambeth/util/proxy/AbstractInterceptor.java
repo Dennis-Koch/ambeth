@@ -28,8 +28,7 @@ import com.koch.ambeth.util.annotation.Merge;
 import com.koch.ambeth.util.annotation.NoProxy;
 import com.koch.ambeth.util.annotation.Process;
 import com.koch.ambeth.util.annotation.Remove;
-
-import net.sf.cglib.proxy.MethodProxy;
+import net.bytebuddy.ByteBuddy;
 
 public abstract class AbstractInterceptor extends CascadedInterceptor {
 	protected abstract Annotation getMethodLevelBehavior(Method method);
@@ -37,6 +36,7 @@ public abstract class AbstractInterceptor extends CascadedInterceptor {
 	@Override
 	protected Object interceptIntern(Object obj, Method method, Object[] args, MethodProxy proxy)
 			throws Throwable {
+
 		Annotation annotation = getMethodLevelBehavior(method);
 		if (annotation instanceof NoProxy) {
 			return invokeTarget(obj, method, args, proxy);

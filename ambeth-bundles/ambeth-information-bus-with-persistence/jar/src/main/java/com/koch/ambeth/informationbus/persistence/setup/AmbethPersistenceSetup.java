@@ -455,8 +455,8 @@ public class AmbethPersistenceSetup implements Closeable {
 		try {
 			conn = getOrCreateSchemaContext().getService(IConnectionFactory.class).create();
 		}
-		catch (MaskingRuntimeException e) {
-			Throwable cause = e.getCause();
+		catch (Throwable e) {
+			Throwable cause = e;
 			while (cause instanceof MaskingRuntimeException) {
 				cause = cause.getCause();
 			}
@@ -468,12 +468,7 @@ public class AmbethPersistenceSetup implements Closeable {
 			if (!testUserHasBeenCreated) {
 				throw e;
 			}
-			try {
-				conn = getOrCreateSchemaContext().getService(IConnectionFactory.class).create();
-			}
-			catch (Throwable t) {
-				throw RuntimeExceptionUtil.mask(e);
-			}
+			conn = getOrCreateSchemaContext().getService(IConnectionFactory.class).create();
 		}
 		connection = conn;
 		return connection;
@@ -1292,7 +1287,8 @@ public class AmbethPersistenceSetup implements Closeable {
 		}
 	}
 
-	public void applyProperties(IProperties props) {
+	public AmbethPersistenceSetup withProperties(IProperties props) {
 		this.props.load(props);
+		return this;
 	}
 }

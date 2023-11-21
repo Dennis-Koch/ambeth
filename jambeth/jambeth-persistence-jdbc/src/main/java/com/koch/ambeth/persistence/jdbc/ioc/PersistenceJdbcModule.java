@@ -89,9 +89,8 @@ import com.koch.ambeth.stream.chars.ICharacterInputSource;
 import com.koch.ambeth.util.IClassCache;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.proxy.IProxyFactory;
+import com.koch.ambeth.util.proxy.MethodInterceptor;
 import com.koch.ambeth.util.typeinfo.INoEntityTypeExtendable;
-
-import net.sf.cglib.proxy.MethodInterceptor;
 
 @FrameworkModule
 public class PersistenceJdbcModule implements IInitializingModule, IPropertyLoadingBean {

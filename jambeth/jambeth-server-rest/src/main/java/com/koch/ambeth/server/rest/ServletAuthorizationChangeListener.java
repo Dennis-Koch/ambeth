@@ -20,7 +20,7 @@ limitations under the License.
  * #L%
  */
 
-import javax.servlet.http.HttpSession;
+import jakarta.servlet.http.HttpSession;
 
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.security.IAuthentication;
@@ -42,11 +42,10 @@ public class ServletAuthorizationChangeListener implements IAuthorizationChangeL
 		if (authorization == null || httpSessionProvider == null) {
 			return;
 		}
-		HttpSession httpSession = httpSessionProvider.getCurrentHttpSession();
+		var httpSession = httpSessionProvider.getCurrentHttpSession();
 		if (httpSession != null) {
-			ISecurityContext securityContext = securityContextHolder.getContext();
-			IAuthentication authentication =
-					securityContext != null ? securityContext.getAuthentication() : null;
+			var securityContext = securityContextHolder.getContext();
+			var authentication = securityContext != null ? securityContext.getAuthentication() : null;
 			httpSession.setAttribute(AmbethServletAspect.ATTRIBUTE_AUTHENTICATION_HANDLE, authentication);
 			httpSession.setAttribute(AmbethServletAspect.ATTRIBUTE_AUTHORIZATION_HANDLE, authorization);
 		}

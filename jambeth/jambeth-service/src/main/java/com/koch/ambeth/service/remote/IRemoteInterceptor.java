@@ -20,7 +20,7 @@ limitations under the License.
  * #L%
  */
 
-import net.sf.cglib.proxy.MethodInterceptor;
+import com.koch.ambeth.util.proxy.MethodInterceptor;
 
 public interface IRemoteInterceptor extends MethodInterceptor {
 	Object getRemoteSourceIdentifier();

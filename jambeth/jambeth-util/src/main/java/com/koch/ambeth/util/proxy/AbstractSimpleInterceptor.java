@@ -24,9 +24,6 @@ import java.lang.reflect.Method;
 
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
-import net.sf.cglib.proxy.MethodInterceptor;
-import net.sf.cglib.proxy.MethodProxy;
-
 public abstract class AbstractSimpleInterceptor implements MethodInterceptor {
 	public static final Method finalizeMethod;
 

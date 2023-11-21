@@ -49,6 +49,7 @@ import java.util.zip.ZipInputStream;
 
 import javax.persistence.PersistenceException;
 
+import lombok.SneakyThrows;
 import org.junit.runner.notification.RunNotifier;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.InitializationError;
@@ -459,23 +460,23 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 	protected void extendPropertiesInstance(FrameworkMethod frameworkMethod, Properties props) {
 		super.extendPropertiesInstance(frameworkMethod, props);
 
-		String testForkSuffix = props.getString(UtilConfigurationConstants.ForkName);
+		var testForkSuffix = props.getString(UtilConfigurationConstants.ForkName);
 		if (testForkSuffix != null) {
-			String databaseUser = props.getString(PersistenceJdbcConfigurationConstants.DatabaseUser);
+			var databaseUser = props.getString(PersistenceJdbcConfigurationConstants.DatabaseUser);
 			props.putString(PersistenceJdbcConfigurationConstants.DatabaseUser,
 					databaseUser + "_" + testForkSuffix);
 		}
 		DialectSelectorModule.fillProperties(props);
 
 		try {
-			Connection schemaConnection = connection != null && !connection.isClosed() ? connection
+			var schemaConnection = connection != null && !connection.isClosed() ? connection
 					: null;
 			if (schemaConnection == null
 					|| !schemaConnection.isWrapperFor(IPreparedConnectionHolder.class)) {
 				return;
 			}
 			schemaConnection.unwrap(IPreparedConnectionHolder.class).setPreparedConnection(true);
-			ArrayList<Connection> preparedConnections = new ArrayList<>(1);
+			var preparedConnections = new ArrayList<Connection>(1);
 			preparedConnections.add(schemaConnection);
 			props.put(PersistenceJdbcConfigurationConstants.PreparedConnectionInstances,
 					preparedConnections);
@@ -500,9 +501,9 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 
 	private String[] getConfiguredExternalTableNames(final Class<?> type) {
 		String[] configuredSynonymNames;
-		List<IAnnotationInfo<?>> annotations = findAnnotations(type, SQLTableSynonyms.class);
+		var annotations = findAnnotations(type, SQLTableSynonyms.class);
 		if (annotations.size() == 1) {
-			IAnnotationInfo<?> annoInfo = annotations.get(0);
+			var annoInfo = annotations.get(0);
 			SQLTableSynonyms anno = (SQLTableSynonyms) annoInfo.getAnnotation();
 			configuredSynonymNames = anno.value();
 		}
@@ -513,7 +514,8 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 		return configuredSynonymNames;
 	}
 
-	private Connection getConnection() throws SQLException {
+	@SneakyThrows
+	private Connection getConnection() {
 		if (connection != null && !connection.isClosed()) {
 			return connection;
 		}
@@ -522,11 +524,11 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 			conn = getOrCreateSchemaContext().getService(IConnectionFactory.class).create();
 		}
 		catch (MaskingRuntimeException e) {
-			Throwable cause = e.getCause();
+			var cause = e.getCause();
 			while (cause instanceof MaskingRuntimeException) {
 				cause = cause.getCause();
 			}
-			IProperties testProps = getOrCreateSchemaContext().getService(IProperties.class);
+			var testProps = getOrCreateSchemaContext().getService(IProperties.class);
 			testUserHasBeenCreated = getOrCreateSchemaContext().getService(IConnectionTestDialect.class)
 					.createTestUserIfSupported(cause,
 							testProps.getString(PersistenceJdbcConfigurationConstants.DatabaseUser),
@@ -534,12 +536,7 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 			if (!testUserHasBeenCreated) {
 				throw e;
 			}
-			try {
-				conn = getOrCreateSchemaContext().getService(IConnectionFactory.class).create();
-			}
-			catch (Throwable t) {
-				throw RuntimeExceptionUtil.mask(e);
-			}
+			conn = getOrCreateSchemaContext().getService(IConnectionFactory.class).create();
 		}
 		connection = conn;
 		return connection;
@@ -547,21 +544,21 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 
 	protected ISchemaRunnable[] getDataRunnables(final Class<?> callingClass, final Class<?> type,
 			final FrameworkMethod frameworkMethod) {
-		List<ISchemaRunnable> schemaRunnables = new ArrayList<>();
+		var schemaRunnables = new ArrayList<ISchemaRunnable>();
 
-		List<IAnnotationInfo<?>> annotations = findAnnotations(type,
+		var annotations = findAnnotations(type,
 				frameworkMethod != null ? frameworkMethod.getMethod() : null, SQLDataList.class,
 				SQLData.class);
 
-		IServiceContext schemaContext = getOrCreateSchemaContext();
-		final IConnectionDialect connectionDialect = schemaContext.getService(IConnectionDialect.class);
-		IProperties properties = schemaContext.getService(IProperties.class);
+		var schemaContext = getOrCreateSchemaContext();
+		var connectionDialect = schemaContext.getService(IConnectionDialect.class);
+		var properties = schemaContext.getService(IProperties.class);
 
-		final IList<String> sqlCommands = new ArrayList<>();
-		final IMap<String, String> sqlToSourceMap = new HashMap<>();
+		var sqlCommands = new ArrayList<String>();
+		var sqlToSourceMap = new HashMap<String, String>();
 
 		for (IAnnotationInfo<?> schemaItem : annotations) {
-			Annotation annotation = schemaItem.getAnnotation();
+			var annotation = schemaItem.getAnnotation();
 			if (annotation instanceof SQLDataList) {
 				SQLDataList sqlDataList = (SQLDataList) annotation;
 
@@ -611,11 +608,11 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 	}
 
 	private String[] getSchemaNames() {
-		IServiceContext schemaContext = getOrCreateSchemaContext();
-		IProperties properties = schemaContext.getService(IProperties.class);
-		String schemaProperty = (String) properties
+		var schemaContext = getOrCreateSchemaContext();
+		var properties = schemaContext.getService(IProperties.class);
+		var schemaProperty = (String) properties
 				.get(PersistenceJdbcConfigurationConstants.DatabaseSchemaName);
-		String[] schemaNames = schemaContext.getService(IConnectionDialect.class)
+		var schemaNames = schemaContext.getService(IConnectionDialect.class)
 				.toDefaultCase(schemaProperty).split("[:;]");
 		return schemaNames;
 	}
@@ -629,13 +626,13 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 			final boolean doExecuteStrict) {
 		try {
 			if (schemaRunnableType != null && !ISchemaRunnable.class.equals(schemaRunnableType)) {
-				ISchemaRunnable schemaRunnable = schemaContext.registerBean(schemaRunnableType).finish();
+				var schemaRunnable = schemaContext.registerBean(schemaRunnableType).finish();
 				schemaRunnables.add(schemaRunnable);
 			}
 			if (valueProviderType != null && !ISchemaFileProvider.class.equals(valueProviderType)) {
-				ISchemaFileProvider valueProvider = schemaContext.registerBean(valueProviderType).finish();
-				String[] additionalSchemaFiles = valueProvider.getSchemaFiles();
-				LinkedHashSet<String> set = new LinkedHashSet<>(schemaFiles);
+				var valueProvider = schemaContext.registerBean(valueProviderType).finish();
+				var additionalSchemaFiles = valueProvider.getSchemaFiles();
+				var set = new LinkedHashSet<>(schemaFiles);
 				set.addAll(additionalSchemaFiles);
 				schemaFiles = set.toArray(String.class);
 			}
@@ -643,7 +640,7 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 				if (schemaFile == null || schemaFile.length() == 0) {
 					continue;
 				}
-				List<String> sql = readSqlFile(schemaFile, callingClass, properties, log);
+				var sql = readSqlFile(schemaFile, callingClass, properties, log);
 				allSQL.addAll(sql);
 				for (String oneSql : sql) {
 					sqlToSourceMap.put(oneSql, schemaFile);
@@ -657,19 +654,19 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 
 	protected ISchemaRunnable[] getStructureRunnables(final Class<?> callingClass,
 			final Class<?> type, final IList<String> sqlExecutionOrder) {
-		List<ISchemaRunnable> schemaRunnables = new ArrayList<>();
+		var schemaRunnables = new ArrayList<ISchemaRunnable>();
 
-		List<IAnnotationInfo<?>> annotations = findAnnotations(type, SQLStructureList.class,
+		var annotations = findAnnotations(type, SQLStructureList.class,
 				SQLStructure.class);
 
-		IServiceContext schemaContext = getOrCreateSchemaContext();
-		final IConnectionDialect connectionDialect = schemaContext.getService(IConnectionDialect.class);
-		IProperties properties = schemaContext.getService(IProperties.class);
-		final IList<String> sqlCommands = new ArrayList<>();
+		var schemaContext = getOrCreateSchemaContext();
+		var connectionDialect = schemaContext.getService(IConnectionDialect.class);
+		var properties = schemaContext.getService(IProperties.class);
+		var sqlCommands = new ArrayList<String>();
 
-		final IMap<String, String> sqlToSourceMap = new HashMap<>();
+		var sqlToSourceMap = new HashMap<String, String>();
 		for (IAnnotationInfo<?> schemaItem : annotations) {
-			Annotation annotation = schemaItem.getAnnotation();
+			var annotation = schemaItem.getAnnotation();
 			if (annotation instanceof SQLStructureList) {
 				SQLStructureList sqlStructureList = (SQLStructureList) annotation;
 
@@ -703,17 +700,17 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 	private static void handleSqlCommand(String command, final Statement stmt,
 			final Map<String, Object> defaultOptions, IConnectionDialect connectionDialect)
 			throws SQLException {
-		Map<String, Object> options = defaultOptions;
-		Matcher optionLine = AmbethInformationBusWithPersistenceRunner.optionLine
+		var options = defaultOptions;
+		var optionLine = AmbethInformationBusWithPersistenceRunner.optionLine
 				.matcher(command.trim());
 		if (optionLine.find()) {
 			options = new HashMap<>(defaultOptions);
-			String optionString = optionLine.group(1).replace(" ", "");
-			String[] preSqls = optionSeparator.split(optionString);
+			var optionString = optionLine.group(1).replace(" ", "");
+			var preSqls = optionSeparator.split(optionString);
 			command = lineSeparator.split(command, 2)[1];
 			Object value;
 			for (int i = preSqls.length; i-- > 0;) {
-				Matcher keyValue = optionPattern.matcher(preSqls[i]);
+				var keyValue = optionPattern.matcher(preSqls[i]);
 				value = null;
 				if (keyValue.find()) {
 					if ("loop".equals(keyValue.group(1))) {
@@ -750,11 +747,11 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 	 *         default value).
 	 */
 	private boolean isDataRebuildDemanded() {
-		boolean result = true; // default value if no annotation is found
-		List<IAnnotationInfo<?>> sqlDataRebuilds = findAnnotations(getTestClass().getJavaClass(),
+		var result = true; // default value if no annotation is found
+		var sqlDataRebuilds = findAnnotations(getTestClass().getJavaClass(),
 				SQLDataRebuild.class);
 		if (!sqlDataRebuilds.isEmpty()) {
-			IAnnotationInfo<?> topDataRebuild = sqlDataRebuilds.get(sqlDataRebuilds.size() - 1);
+			var topDataRebuild = sqlDataRebuilds.get(sqlDataRebuilds.size() - 1);
 			result = ((SQLDataRebuild) topDataRebuild.getAnnotation()).value();
 		}
 		return result;
@@ -765,11 +762,11 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 	 *         test class annotation or returns the default value).
 	 */
 	private boolean isTruncateOnClassDemanded() {
-		boolean result = true; // default value
-		List<IAnnotationInfo<?>> sqlDataRebuilds = findAnnotations(getTestClass().getJavaClass(),
+		var result = true; // default value
+		var sqlDataRebuilds = findAnnotations(getTestClass().getJavaClass(),
 				SQLDataRebuild.class);
 		if (!sqlDataRebuilds.isEmpty()) {
-			IAnnotationInfo<?> topDataRebuild = sqlDataRebuilds.get(sqlDataRebuilds.size() - 1);
+			var topDataRebuild = sqlDataRebuilds.get(sqlDataRebuilds.size() - 1);
 			if (topDataRebuild.getAnnotation() instanceof SQLDataRebuild) {
 				result = ((SQLDataRebuild) topDataRebuild.getAnnotation()).truncateOnClass();
 			}
@@ -778,7 +775,7 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 	}
 
 	protected void logMeasurement(final String name, final Object value) {
-		String elementName = name.replaceAll(" ", "_").replaceAll("\\.", "_").replaceAll("\\(", ":")
+		var elementName = name.replaceAll(" ", "_").replaceAll("\\.", "_").replaceAll("\\(", ":")
 				.replaceAll("\\)", ":");
 		xmlWriter.writeOpenElement(elementName);
 		xmlWriter.writeEscapedXml(value.toString());
@@ -787,20 +784,20 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 
 	@Override
 	protected org.junit.runners.model.Statement methodBlock(final FrameworkMethod frameworkMethod) {
-		final org.junit.runners.model.Statement statement = super.methodBlock(frameworkMethod);
+		var statement = super.methodBlock(frameworkMethod);
 		return new org.junit.runners.model.Statement() {
 			@Override
 			public void evaluate() throws Throwable {
-				boolean doContextRebuild = false;
-				Method method = frameworkMethod.getMethod();
-				boolean doStructureRebuild = !isStructureRebuildAlreadyHandled && hasStructureAnnotation();
-				boolean methodTriggersContextRebuild = method.isAnnotationPresent(TestModule.class)
+				var doContextRebuild = false;
+				var method = frameworkMethod.getMethod();
+				var doStructureRebuild = !isStructureRebuildAlreadyHandled && hasStructureAnnotation();
+				var methodTriggersContextRebuild = method.isAnnotationPresent(TestModule.class)
 						|| method.isAnnotationPresent(TestProperties.class)
 						|| method.isAnnotationPresent(TestPropertiesList.class);
 				doContextRebuild = beanContext == null || beanContext.isDisposed() || doStructureRebuild
 						|| methodTriggersContextRebuild || lastMethodTriggersContextRebuild;
 				lastMethodTriggersContextRebuild = methodTriggersContextRebuild;
-				boolean doDataRebuild = isDataRebuildDemanded();
+				var doDataRebuild = isDataRebuildDemanded();
 				if (!doDataRebuild) // handle the special cases for SQLDataRebuild=false
 				{
 					// If SQL data on class level -> run data SQL before the first test method
@@ -809,7 +806,7 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 								SQLData.class).isEmpty();
 					}
 				}
-				boolean doAddAdditionalMethodData = false; // Flag if SQL method data should be
+				var doAddAdditionalMethodData = false; // Flag if SQL method data should be
 				// inserted
 				// (without deleting
 				// existing database entries)
@@ -852,13 +849,12 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 	@Override
 	protected org.junit.runners.model.Statement methodInvoker(final FrameworkMethod method,
 			Object test) {
-		final org.junit.runners.model.Statement parentStatement =
-				AmbethInformationBusWithPersistenceRunner.super.methodInvoker(
+		var parentStatement = AmbethInformationBusWithPersistenceRunner.super.methodInvoker(
 						method, test);
-		final org.junit.runners.model.Statement statement = new org.junit.runners.model.Statement() {
+		var statement = new org.junit.runners.model.Statement() {
 			@Override
 			public void evaluate() throws Throwable {
-				IDataSetup dataSetup = beanContext.getParent().getService(IDataSetup.class, false);
+				var dataSetup = beanContext.getParent().getService(IDataSetup.class, false);
 				if (dataSetup != null) {
 					dataSetup.refreshEntityReferences();
 				}
@@ -872,23 +868,22 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 					beanContext.getService(DataSetupExecutor.class).rebuildData();
 					isRebuildDataForThisTestRecommended = false;
 				}
-				boolean securityActive = Boolean.parseBoolean(beanContext.getService(IProperties.class)
+				var securityActive = Boolean.parseBoolean(beanContext.getService(IProperties.class)
 						.getString(MergeConfigurationConstants.SecurityActive, "false"));
 				if (!securityActive) {
 					statement.evaluate();
 					return;
 				}
 
-				ChangeControllerState changeControllerState = method
-						.getAnnotation(ChangeControllerState.class);
+				var changeControllerState = method.getAnnotation(ChangeControllerState.class);
 
-				boolean changeControllerActiveTest = false;
-				final IChangeController changeController = beanContext.getService(IChangeController.class,
+				var changeControllerActiveTest = false;
+				var changeController = beanContext.getService(IChangeController.class,
 						false);
 				if (changeControllerState != null) {
 					if (changeController != null) {
-						IConversionHelper conversionHelper = beanContext.getService(IConversionHelper.class);
-						Boolean active = conversionHelper.convertValueToType(Boolean.class,
+						var conversionHelper = beanContext.getService(IConversionHelper.class);
+						var active = conversionHelper.convertValueToType(Boolean.class,
 								changeControllerState.active());
 						if (Boolean.TRUE.equals(active)) {
 							changeControllerActiveTest = true;
@@ -896,21 +891,20 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 					}
 
 				}
-				final boolean changeControllerActive = changeControllerActiveTest;
+				var changeControllerActive = changeControllerActiveTest;
 
-				TestAuthentication authentication = method.getAnnotation(TestAuthentication.class);
+				var authentication = method.getAnnotation(TestAuthentication.class);
 				if (authentication == null) {
-					Class<?> testClass = getTestClass().getJavaClass();
+					var testClass = getTestClass().getJavaClass();
 					authentication = testClass.getAnnotation(TestAuthentication.class);
 				}
 				if (authentication == null) {
 					statement.evaluate();
 					return;
 				}
-				final ISecurityScope scope = new StringSecurityScope(authentication.scope());
+				var scope = new StringSecurityScope(authentication.scope());
 
-				IMethodLevelBehavior<SecurityMethodMode> behaviour =
-						new IMethodLevelBehavior<SecurityMethodMode>() {
+				var behaviour = new IMethodLevelBehavior<SecurityMethodMode>() {
 							private final SecurityMethodMode mode = new SecurityMethodMode(
 									SecurityContextType.AUTHENTICATED, -1, -1, null, -1, scope);
 
@@ -925,17 +919,17 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 							}
 						};
 
-				SecurityFilterInterceptor interceptor = beanContext
+				var interceptor = beanContext
 						.registerBean(SecurityFilterInterceptor.class)
 						.propertyValue(SecurityFilterInterceptor.P_METHOD_LEVEL_BEHAVIOUR, behaviour)
 						.propertyValue("Target", statement).finish();
-				org.junit.runners.model.Statement stmt = (org.junit.runners.model.Statement) beanContext
+				var stmt = (org.junit.runners.model.Statement) beanContext
 						.getService(IProxyFactory.class)
 						.createProxy(new Class<?>[] {org.junit.runners.model.Statement.class}, interceptor);
-				final org.junit.runners.model.Statement fStatement = stmt;
-				ISecurityContextHolder securityContextHolder = beanContext
+				var fStatement = stmt;
+				var securityContextHolder = beanContext
 						.getService(ISecurityContextHolder.class);
-				IStateRollback rollback = securityContextHolder
+				var rollback = securityContextHolder
 						.pushAuthentication(new DefaultAuthentication(authentication.name(),
 								authentication.password().toCharArray(), PasswordType.PLAIN));
 				try {
@@ -954,7 +948,7 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 	protected static BufferedReader openSqlAsFile(String fileName, AnnotatedElement callingClass,
 			ILogger log) throws IOException, FileNotFoundException {
 		File sqlFile = null;
-		File tempFile = new File(fileName);
+		var tempFile = new File(fileName);
 		if (tempFile.canRead()) {
 			sqlFile = tempFile;
 		}
@@ -972,12 +966,12 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 			else {
 				throw new IllegalStateException("Value not supported: " + callingClass);
 			}
-			String relativePath = fileName.startsWith("/") ? "." + fileName
+			var relativePath = fileName.startsWith("/") ? "." + fileName
 					: callingNamespace.replace(".", File.separator) + File.separator + fileName;
-			String forwardPath = relativePath.replace('\\', '/');
-			String[] classPaths = pathSeparator.split(System.getProperty("java.class.path"));
+			var forwardPath = relativePath.replace('\\', '/');
+			var classPaths = pathSeparator.split(System.getProperty("java.class.path"));
 			for (int i = 0; i < classPaths.length; i++) {
-				File classpathEntry = new File(classPaths[i]);
+				var classpathEntry = new File(classPaths[i]);
 				if (classpathEntry.isDirectory()) {
 					tempFile = new File(classPaths[i], relativePath);
 					if (tempFile.canRead()) {
@@ -986,12 +980,12 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 					}
 				}
 				else if (classpathEntry.isFile()) {
-					boolean keepOpen = false;
-					ZipInputStream jis = new ZipInputStream(new FileInputStream(classpathEntry));
+					var keepOpen = false;
+					var jis = new ZipInputStream(new FileInputStream(classpathEntry));
 					try {
 						ZipEntry jarEntry;
 						while ((jarEntry = jis.getNextEntry()) != null) {
-							String jarEntryName = jarEntry.getName();
+							var jarEntryName = jarEntry.getName();
 							if (jarEntryName.equals(forwardPath)) {
 								keepOpen = true;
 								return new BufferedReader(new InputStreamReader(jis, Charset.forName("UTF-8")));
@@ -1006,8 +1000,8 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 				}
 			}
 			if (sqlFile == null) {
-				Pattern fileSuffixPattern = Pattern.compile(".+\\.(?:[^\\.]*)");
-				Matcher matcher = fileSuffixPattern.matcher(relativePath);
+				var fileSuffixPattern = Pattern.compile(".+\\.(?:[^\\.]*)");
+				var matcher = fileSuffixPattern.matcher(relativePath);
 				if (!matcher.matches()) {
 					relativePath += ".sql";
 					for (int i = 0; i < classPaths.length; i++) {
@@ -1025,7 +1019,7 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 			}
 			if (sqlFile == null) {
 				if (log.isWarnEnabled()) {
-					String error = "Cannot find '" + relativePath + "' in class path:" + nl;
+					var error = "Cannot find '" + relativePath + "' in class path:" + nl;
 					Arrays.sort(classPaths);
 					for (int i = 0; i < classPaths.length; i++) {
 						error += "\t" + classPaths[i] + nl;
@@ -1048,8 +1042,8 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 			final AnnotatedElement callingClass, IProperties properties, ILogger log) throws IOException {
 		BufferedReader br = null;
 		try {
-			String lookupName = fileName.startsWith("/") ? fileName.substring(1) : fileName;
-			InputStream sqlStream = FileUtil.openFileStream(lookupName, log);
+			var lookupName = fileName.startsWith("/") ? fileName.substring(1) : fileName;
+			var sqlStream = FileUtil.openFileStream(lookupName, log);
 			if (sqlStream != null) {
 				br = new BufferedReader(new InputStreamReader(sqlStream));
 				log = null;
@@ -1068,8 +1062,8 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 		if (br == null) {
 			throw new FileNotFoundException(fileName);
 		}
-		StringBuilder sb = new StringBuilder();
-		ArrayList<String> sql = new ArrayList<>();
+		var sb = new StringBuilder();
+		var sql = new ArrayList<String>();
 		try {
 			String line = null;
 			Pattern endToLookFor = null;
@@ -1100,7 +1094,7 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 				}
 
 				if (endToLookFor == null) {
-					for (Pattern[] command : sqlCommands) {
+					for (var command : sqlCommands) {
 						if (command[0].matcher(line).matches()) {
 							endToLookFor = command[1];
 							break;
@@ -1108,7 +1102,7 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 					}
 				}
 				if (endToLookFor == null) {
-					for (Pattern[] command : sqlIgnoredCommands) {
+					for (var command : sqlIgnoredCommands) {
 						if (command[0].matcher(line).matches()) {
 							endToLookFor = command[1];
 							ignoreThisCommand = true;
@@ -1117,7 +1111,7 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 					}
 				}
 				if (endToLookFor != null) {
-					for (Pattern part : ignoreIfContains) {
+					for (var part : ignoreIfContains) {
 						if (part.matcher(line).matches()) {
 							ignoreThisCommand = true;
 							break;
@@ -1127,15 +1121,15 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 
 				if (endToLookFor != null && endToLookFor.matcher(line).matches()) {
 					if (!ignoreThisCommand) {
-						Matcher lineEnd = endToLookFor.matcher(line);
+						var lineEnd = endToLookFor.matcher(line);
 						int toCut = 1; // Trailing space
 						if (lineEnd.find() && lineEnd.groupCount() == 1) {
 							toCut += lineEnd.group(1).length();
 						}
 						sb.setLength(sb.length() - toCut);
-						String commandRaw = sb.toString();
+						var commandRaw = sb.toString();
 						commandRaw = properties.resolvePropertyParts(commandRaw);
-						String commandRep = whitespaces.matcher(commandRaw).replaceAll(" ");
+						var commandRep = whitespaces.matcher(commandRaw).replaceAll(" ");
 						sql.add(commandRep);
 					}
 					sb.setLength(0);
@@ -1157,7 +1151,7 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 			return;
 		}
 		if (isRebuildDataForThisTestRecommended) {
-			Boolean oldValue = DataSetupExecutor.setAutoRebuildData(Boolean.TRUE);
+			var oldValue = DataSetupExecutor.setAutoRebuildData(Boolean.TRUE);
 			try {
 				super.rebuildContext(frameworkMethod);
 			}
@@ -1195,25 +1189,20 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 				.autowireable(IMeasurement.class);
 	}
 
+	@SneakyThrows
 	public void rebuildData() {
 		rebuildData(null);
 	}
 
-	protected void rebuildData(final FrameworkMethod frameworkMethod) {
-		try {
-			Class<?> callingClass = getTestClass().getJavaClass();
-			Connection conn = getConnection();
+	protected void rebuildData(final FrameworkMethod frameworkMethod) throws SQLException {
+		var callingClass = getTestClass().getJavaClass();
+		var conn = getConnection();
 
-			truncateAllTablesBySchema(conn, getSchemaNames());
-			truncateAllTablesExplicitlyGiven(conn, getConfiguredExternalTableNames(callingClass));
+		truncateAllTablesBySchema(conn, getSchemaNames());
+		truncateAllTablesExplicitlyGiven(conn, getConfiguredExternalTableNames(callingClass));
 
-			ISchemaRunnable[] dataRunnables = getDataRunnables(callingClass, callingClass,
-					frameworkMethod);
-			executeWithDeferredConstraints(dataRunnables);
-		}
-		catch (Exception e) {
-			throw RuntimeExceptionUtil.mask(e);
-		}
+		var dataRunnables = getDataRunnables(callingClass, callingClass, frameworkMethod);
+		executeWithDeferredConstraints(dataRunnables);
 	}
 
 	public void rebuildSchemaContext() {
@@ -1223,13 +1212,12 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 		}
 		Properties.resetApplication();
 
-		PrintStream oldPrintStream = System.out;
-		System.setOut(NullPrintStream.INSTANCE);
+		var rollback = Properties.pushSystemOutStream(NullPrintStream.INSTANCE);
 		try {
 			Properties.loadBootstrapPropertyFile();
 		}
 		finally {
-			System.setOut(oldPrintStream);
+			rollback.rollback();
 		}
 
 		Properties baseProps = new Properties(Properties.getApplication());
@@ -1251,52 +1239,48 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 		}
 	}
 
+	@SneakyThrows
 	public void rebuildStructure() {
-		Class<?> callingClass = getTestClass().getJavaClass();
+		var callingClass = getTestClass().getJavaClass();
+		var connection = getConnection();
+
+		var oldAutoCommit = connection.getAutoCommit();
+		if (!oldAutoCommit) {
+			connection.setAutoCommit(true);
+		}
 		try {
-			Connection connection = getConnection();
+			ensureSchemaEmpty(connection);
 
-			boolean oldAutoCommit = connection.getAutoCommit();
+			var schemaContext = getOrCreateSchemaContext();
+			schemaContext.getService(IConnectionTestDialect.class).preStructureRebuild(connection);
+
+			var sqlExecutionOrder = new ArrayList<String>();
+
+			var structureRunnables = getStructureRunnables(callingClass, callingClass,
+					sqlExecutionOrder);
+			for (var structRunnable : structureRunnables) {
+				structRunnable.executeSchemaSql(connection);
+			}
+			var connectionDialect = schemaContext.getService(IConnectionDialect.class);
+			var connectionTestDialect = schemaContext
+					.getService(IConnectionTestDialect.class);
+
+			ensureExistanceOfNeededDatabaseObjects(connection, sqlExecutionOrder, connectionDialect,
+					connectionTestDialect, getLog(), doExecuteStrict);
+			AmbethInformationBusWithPersistenceRunner.sqlExecutionOrder = sqlExecutionOrder
+					.toArray(String.class);
+		}
+		finally {
 			if (!oldAutoCommit) {
-				connection.setAutoCommit(true);
-			}
-			try {
-				ensureSchemaEmpty(connection);
-
-				IServiceContext schemaContext = getOrCreateSchemaContext();
-				schemaContext.getService(IConnectionTestDialect.class).preStructureRebuild(connection);
-
-				ArrayList<String> sqlExecutionOrder = new ArrayList<>();
-
-				ISchemaRunnable[] structureRunnables = getStructureRunnables(callingClass, callingClass,
-						sqlExecutionOrder);
-				for (ISchemaRunnable structRunnable : structureRunnables) {
-					structRunnable.executeSchemaSql(connection);
+				try {
+					connection.setAutoCommit(false);
 				}
-				IConnectionDialect connectionDialect = schemaContext.getService(IConnectionDialect.class);
-				IConnectionTestDialect connectionTestDialect = schemaContext
-						.getService(IConnectionTestDialect.class);
-
-				ensureExistanceOfNeededDatabaseObjects(connection, sqlExecutionOrder, connectionDialect,
-						connectionTestDialect, getLog(), doExecuteStrict);
-				AmbethInformationBusWithPersistenceRunner.sqlExecutionOrder = sqlExecutionOrder
-						.toArray(String.class);
-			}
-			finally {
-				if (!oldAutoCommit) {
-					try {
-						connection.setAutoCommit(false);
-					}
-					catch (SQLException e) {
-						// Intended blank
-					}
+				catch (SQLException e) {
+					// Intended blank
 				}
 			}
-			isStructureRebuildAlreadyHandled = true;
 		}
-		catch (Exception e) {
-			throw RuntimeExceptionUtil.mask(e);
-		}
+		isStructureRebuildAlreadyHandled = true;
 	}
 
 	@Override
@@ -1315,9 +1299,9 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 				getConfiguredExternalTableNames(getTestClass().getJavaClass()));
 
 		if (schemaNames != null) {
-			boolean truncateOnClassDemanded = isTruncateOnClassDemanded();
+			var truncateOnClassDemanded = isTruncateOnClassDemanded();
 			for (int i = schemaNames.length; i-- > 1;) {
-				String schemaName = schemaNames[i];
+				var schemaName = schemaNames[i];
 				if (skipEmptyCheck || !checkAdditionalSchemaEmpty(conn, schemaName)) {
 					if (truncateOnClassDemanded) {
 						truncateAllTablesBySchema(conn, schemaName);
@@ -1336,16 +1320,16 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 	 */
 	protected void truncateAllTablesBySchema(final Connection conn, final String... schemaNames)
 			throws SQLException {
-		final IConnectionDialect connectionDialect = getOrCreateSchemaContext()
+		var connectionDialect = getOrCreateSchemaContext()
 				.getService(IConnectionDialect.class);
-		List<String> allTableNames = connectionDialect.getAllFullqualifiedTableNames(conn, schemaNames);
+		var allTableNames = connectionDialect.getAllFullqualifiedTableNames(conn, schemaNames);
 		if (allTableNames.isEmpty()) {
 			return;
 		}
-		final List<String> sql = new ArrayList<>();
+		var sql = new ArrayList<String>();
 
 		for (int i = allTableNames.size(); i-- > 0;) {
-			String tableName = allTableNames.get(i);
+			var tableName = allTableNames.get(i);
 			sql.add(connectionDialect.buildClearTableSQL(tableName));
 		}
 		executeWithDeferredConstraints(new ISchemaRunnable() {
@@ -1371,11 +1355,11 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 		if (explicitTableNames == null || explicitTableNames.length == 0) {
 			return;
 		}
-		final IConnectionDialect connectionDialect = getOrCreateSchemaContext()
+		var connectionDialect = getOrCreateSchemaContext()
 				.getService(IConnectionDialect.class);
-		final List<String> sql = new ArrayList<>();
+		var sql = new ArrayList<String>();
 		for (int i = explicitTableNames.length; i-- > 0;) {
-			String tableName = explicitTableNames[i];
+			var tableName = explicitTableNames[i];
 			sql.add(connectionDialect.buildClearTableSQL(tableName));
 		}
 		executeWithDeferredConstraints(new ISchemaRunnable() {
@@ -1405,7 +1389,7 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 	@Override
 	protected org.junit.runners.model.Statement withAfterClasses(
 			final org.junit.runners.model.Statement statement) {
-		final org.junit.runners.model.Statement resultStatement = super.withAfterClasses(statement);
+		var resultStatement = super.withAfterClasses(statement);
 		return new org.junit.runners.model.Statement() {
 			@Override
 			public void evaluate() throws Throwable {
@@ -1416,12 +1400,12 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 						// have to
 						// delete the
 						// test data
-						Connection conn = getConnection();
+						var conn = getConnection();
 
 						if (testUserHasBeenCreated) {
 							JdbcUtil.close(connection);
 							connection = null;
-							IProperties testProps = getOrCreateSchemaContext().getService(IProperties.class);
+							var testProps = getOrCreateSchemaContext().getService(IProperties.class);
 							getOrCreateSchemaContext().getService(IConnectionTestDialect.class)
 									.dropCreatedTestUser(
 											testProps.getString(PersistenceJdbcConfigurationConstants.DatabaseUser),
@@ -1430,7 +1414,7 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 							testUserHasBeenCreated = false;
 						}
 						else {
-							String[] schemaNames = getSchemaNames();
+							var schemaNames = getSchemaNames();
 							truncateMainSchema(conn, schemaNames[0]);
 							truncateAdditionalSchemas(conn, schemaNames, true);
 						}
@@ -1457,5 +1441,4 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 		checkOS();
 		return super.withBeforeClasses(statement);
 	}
-
 }

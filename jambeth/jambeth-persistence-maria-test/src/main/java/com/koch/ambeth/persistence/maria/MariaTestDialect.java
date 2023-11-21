@@ -45,6 +45,7 @@ import com.koch.ambeth.util.collections.HashSet;
 import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.config.IProperties;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
+import lombok.SneakyThrows;
 
 public class MariaTestDialect extends AbstractConnectionTestDialect {
 	public static final String ROOT_DATABASE_USER = "ambeth.root.database.user";
@@ -75,7 +76,7 @@ public class MariaTestDialect extends AbstractConnectionTestDialect {
 
 	@Override
 	public boolean createTestUserIfSupported(Throwable reason, String userName, String userPassword,
-			IProperties testProps) throws SQLException {
+			IProperties testProps) {
 		if (!(reason instanceof SQLException)) {
 			return false;
 		}
@@ -110,7 +111,7 @@ public class MariaTestDialect extends AbstractConnectionTestDialect {
 
 	@Override
 	public void dropCreatedTestUser(String userName, String userPassword, IProperties testProps)
-			throws SQLException {
+			{
 		Properties createUserProps = new Properties(testProps);
 		createUserProps.put(RandomUserScript.SCRIPT_IS_CREATE, "false");
 		createUserProps.put(RandomUserScript.SCRIPT_USER_NAME, userName);
@@ -127,8 +128,9 @@ public class MariaTestDialect extends AbstractConnectionTestDialect {
 		}
 	}
 
+	@SneakyThrows
 	@Override
-	public void preStructureRebuild(Connection connection) throws SQLException {
+	public void preStructureRebuild(Connection connection) {
 		super.preStructureRebuild(connection);
 
 		Statement stm = null;
@@ -207,8 +209,9 @@ public class MariaTestDialect extends AbstractConnectionTestDialect {
 		// intended blank
 	}
 
+	@SneakyThrows
 	@Override
-	public boolean isEmptySchema(Connection connection) throws SQLException {
+	public boolean isEmptySchema(Connection connection) {
 		Statement stmt = null;
 		ResultSet rs = null;
 		try {
@@ -235,9 +238,10 @@ public class MariaTestDialect extends AbstractConnectionTestDialect {
 		}
 	}
 
+	@SneakyThrows
 	@Override
 	public String[] createOptimisticLockTrigger(Connection connection, String fqTableName)
-			throws SQLException {
+			{
 		if (MariaDialect.BIN_TABLE_NAME.matcher(fqTableName).matches()
 				|| MariaDialect.IDX_TABLE_NAME.matcher(fqTableName).matches()) {
 			return new String[0];
@@ -317,19 +321,19 @@ public class MariaTestDialect extends AbstractConnectionTestDialect {
 	}
 
 	@Override
-	protected IList<String> queryForAllTables(Connection connection) throws SQLException {
+	protected IList<String> queryForAllTables(Connection connection) {
 		return new ArrayList<>();
 	}
 
 	@Override
-	protected IList<String> queryForAllTriggers(Connection connection) throws SQLException {
+	protected IList<String> queryForAllTriggers(Connection connection) {
 		return connectionDialect.queryDefault(connection, "TRIGGER_NAME",
 				"SELECT t.trigger_name AS TRIGGER_NAME FROM information_schema.triggers t");
 	}
 
 	@Override
 	protected IList<String> queryForAllPermissionGroupNeedingTables(Connection connection)
-			throws SQLException {
+			{
 		return connectionDialect.queryDefault(connection, "TNAME",
 				"SELECT c.table_name AS TNAME FROM information_schema.columns c WHERE c.column_name='"
 						+ PermissionGroup.permGroupIdNameOfData + "' AND table_schema='" + schemaNames[0]
@@ -338,14 +342,15 @@ public class MariaTestDialect extends AbstractConnectionTestDialect {
 
 	@Override
 	protected IList<String> queryForAllPotentialPermissionGroups(Connection connection)
-			throws SQLException {
+			{
 		return connectionDialect.queryDefault(connection, "PERM_GROUP_NAME",
 				"SELECT t.table_name AS PERM_GROUP_NAME FROM information_schema.tables t");
 	}
 
+	@SneakyThrows
 	@Override
 	public String[] createPermissionGroup(Connection connection, String tableName)
-			throws SQLException {
+			{
 		int maxProcedureNameLength = connection.getMetaData().getMaxProcedureNameLength();
 		String permissionGroupName =
 				ormPatternMatcher.buildPermissionGroupFromTableName(tableName, maxProcedureNameLength);

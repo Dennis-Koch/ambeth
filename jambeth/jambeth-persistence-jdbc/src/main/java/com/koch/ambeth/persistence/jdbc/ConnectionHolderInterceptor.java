@@ -30,9 +30,8 @@ import com.koch.ambeth.merge.ILightweightTransaction;
 import com.koch.ambeth.persistence.IConnectionHolder;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.proxy.AbstractSimpleInterceptor;
+import com.koch.ambeth.util.proxy.MethodProxy;
 import com.koch.ambeth.util.threading.SensitiveThreadLocal;
-
-import net.sf.cglib.proxy.MethodProxy;
 
 public class ConnectionHolderInterceptor extends AbstractSimpleInterceptor
 		implements IConnectionHolder, IThreadLocalCleanupBean {

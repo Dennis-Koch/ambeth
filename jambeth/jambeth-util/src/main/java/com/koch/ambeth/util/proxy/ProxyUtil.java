@@ -20,9 +20,6 @@ limitations under the License.
  * #L%
  */
 
-import net.sf.cglib.proxy.Callback;
-import net.sf.cglib.proxy.Factory;
-
 public class ProxyUtil {
 	private ProxyUtil() {
 		// Intended blank

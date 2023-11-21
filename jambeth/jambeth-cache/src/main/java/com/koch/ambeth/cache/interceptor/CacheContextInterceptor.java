@@ -28,9 +28,8 @@ import com.koch.ambeth.merge.cache.ICacheFactory;
 import com.koch.ambeth.merge.cache.ICacheProvider;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.proxy.CascadedInterceptor;
+import com.koch.ambeth.util.proxy.MethodProxy;
 import com.koch.ambeth.util.state.IStateRollback;
-
-import net.sf.cglib.proxy.MethodProxy;
 
 public class CacheContextInterceptor extends CascadedInterceptor {
 	@Autowired

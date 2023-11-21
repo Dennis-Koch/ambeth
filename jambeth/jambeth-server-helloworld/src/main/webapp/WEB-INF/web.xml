@@ -19,10 +19,11 @@ limitations under the License.
   #L%
   -->
 
-<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns="http://java.sun.com/xml/ns/javaee" xmlns:web="http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
-	xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
-	version="2.5">
+<web-app xmlns="https://jakarta.ee/xml/ns/jakartaee"
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee https://jakarta.ee/xml/ns/jakartaee/web-app_6_0.xsd"
+		metadata-complete="false"
+		version="6.0">
 
 	<display-name>jAmbeth HelloWorld REST</display-name>
 
@@ -32,16 +33,19 @@ limitations under the License.
 	</context-param>
 
 	<listener>
-		<listener-class>com.koch.ambeth.webservice.AmbethServletListener</listener-class>
+		<listener-class>com.koch.ambeth.server.rest.AmbethServletListener</listener-class>
 	</listener>
 
 	<servlet>
-		<servlet-name>jersey-servlet</servlet-name>		
+		<servlet-name>jetty-servlet</servlet-name>
 		<!-- <servlet-class>com.sun.jersey.spi.container.servlet.ServletContainer</servlet-class> -->
 		<servlet-class>org.glassfish.jersey.servlet.ServletContainer</servlet-class>
+		<!--
+		<servlet-class>org.eclipse.jetty.ee10.servlet.ServletContextHandler</servlet-class>
+		-->
 		<init-param>
 		     <param-name>jersey.config.server.provider.packages</param-name>
-		     <param-value>com.koch.ambeth.webservice;com.koch.ambeth.helloworld</param-value>
+		     <param-value>com.koch.ambeth.server.rest;com.koch.ambeth.server.webservice;com.koch.ambeth.server.helloworld</param-value>
 		</init-param>
 		<init-param>
 			<param-name>jersey.spi.container.ContainerRequestFilters</param-name>
@@ -55,12 +59,11 @@ limitations under the License.
 	</servlet>
 
 	<servlet-mapping>
-		<servlet-name>jersey-servlet</servlet-name>
+		<servlet-name>jetty-servlet</servlet-name>
 		<url-pattern>/*</url-pattern>
 	</servlet-mapping>
 
 	<session-config>
 		<session-timeout>60</session-timeout>
 	</session-config>
-
 </web-app>

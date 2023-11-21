@@ -24,8 +24,7 @@ import com.koch.ambeth.ioc.IFactoryBean;
 import com.koch.ambeth.ioc.IInitializingBean;
 import com.koch.ambeth.util.ParamChecker;
 import com.koch.ambeth.util.proxy.IProxyFactory;
-
-import net.sf.cglib.proxy.MethodInterceptor;
+import com.koch.ambeth.util.proxy.MethodInterceptor;
 
 public class ProxyBean implements IInitializingBean, IFactoryBean {
 	protected IProxyFactory proxyFactory;

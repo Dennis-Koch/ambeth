@@ -21,15 +21,15 @@ limitations under the License.
 
 <value-object-mappings xmlns="http://schema.kochdev.com/ambeth/ambeth_vom_2_0">
 
-	<entity class="com.koch.ambeth.helloworld.transfer.TestEntity">
-		<value-object class="com.koch.ambeth.helloworld.vo.TestEntityVO" />			
+	<entity class="com.koch.ambeth.server.helloworld.transfer.TestEntity">
+		<value-object class="com.koch.ambeth.server.helloworld.vo.TestEntityVO" />
 	</entity>
 	
-	<entity class="com.koch.ambeth.helloworld.transfer.TestEntity2">
-		<value-object class="com.koch.ambeth.helloworld.vo.TestEntity2VO" />			
+	<entity class="com.koch.ambeth.server.helloworld.transfer.TestEntity2">
+		<value-object class="com.koch.ambeth.server.helloworld.vo.TestEntity2VO" />
 	</entity>
 	
-	<entity class="com.koch.ambeth.helloworld.transfer.TestEntity3">
-		<value-object class="com.koch.ambeth.helloworld.vo.TestEntity3VO" />			
+	<entity class="com.koch.ambeth.server.helloworld.transfer.TestEntity3">
+		<value-object class="com.koch.ambeth.server.helloworld.vo.TestEntity3VO" />
 	</entity>
 </value-object-mappings>

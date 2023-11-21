@@ -20,9 +20,6 @@ limitations under the License.
  * #L%
  */
 
-import java.beans.Introspector;
-import java.util.Collection;
-
 import com.koch.ambeth.ioc.IStartingBean;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.log.ILogger;
@@ -30,14 +27,10 @@ import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.orm.IOrmEntityTypeProvider;
 import com.koch.ambeth.merge.orm.blueprint.IBlueprintProvider;
 import com.koch.ambeth.merge.orm.blueprint.IEntityAnnotationBlueprint;
-import com.koch.ambeth.merge.orm.blueprint.IEntityAnnotationPropertyBlueprint;
-import com.koch.ambeth.merge.orm.blueprint.IEntityPropertyBlueprint;
-import com.koch.ambeth.merge.orm.blueprint.IEntityTypeBlueprint;
 import com.koch.ambeth.util.IConversionHelper;
 import com.koch.ambeth.util.collections.WeakHashMap;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.objectcollector.IThreadLocalObjectCollector;
-
 import javassist.ClassPool;
 import javassist.CtClass;
 import javassist.CtField;
@@ -56,6 +49,9 @@ import javassist.bytecode.annotation.LongMemberValue;
 import javassist.bytecode.annotation.ShortMemberValue;
 import javassist.bytecode.annotation.StringMemberValue;
 
+import java.beans.Introspector;
+import java.util.Collection;
+
 public class JavassistOrmEntityTypeProvider implements IOrmEntityTypeProvider, IStartingBean {
 	@LogInstance
 	private ILogger log;
@@ -73,7 +69,7 @@ public class JavassistOrmEntityTypeProvider implements IOrmEntityTypeProvider, I
 
 	protected CtClass stringClass;
 
-	protected WeakHashMap<String, Class<?>> alreadLoadedClasses = new WeakHashMap<>();
+	protected WeakHashMap<String, Class<?>> alreadyLoadedClasses = new WeakHashMap<>();
 
 	@Override
 	public Class<?> resolveEntityType(String entityTypeName) {
@@ -82,11 +78,10 @@ public class JavassistOrmEntityTypeProvider implements IOrmEntityTypeProvider, I
 					"No " + IBlueprintProvider.class.getName() + " injected. This is an illegal state");
 		}
 
-		if (alreadLoadedClasses.containsKey(entityTypeName)) {
-			return alreadLoadedClasses.get(entityTypeName);
+		if (alreadyLoadedClasses.containsKey(entityTypeName)) {
+			return alreadyLoadedClasses.get(entityTypeName);
 		}
-		IEntityTypeBlueprint entityTypeBlueprint =
-				blueprintProvider.resolveEntityTypeBlueprint(entityTypeName);
+		var entityTypeBlueprint = blueprintProvider.resolveEntityTypeBlueprint(entityTypeName);
 
 		CtClass newClass;
 		if (entityTypeBlueprint.getIsClass()) {
@@ -112,35 +107,32 @@ public class JavassistOrmEntityTypeProvider implements IOrmEntityTypeProvider, I
 				}
 			}
 
-			ConstPool constPool = newClass.getClassFile().getConstPool();
+			var constPool = newClass.getClassFile().getConstPool();
 			if (entityTypeBlueprint.getAnnotations() != null) {
-				AnnotationsAttribute interfAnnotationAttributeInfo =
+				var interfAnnotationAttributeInfo =
 						createAnnotationAttribute(entityTypeBlueprint.getAnnotations(), constPool);
 				newClass.getClassFile().addAttribute(interfAnnotationAttributeInfo);
 			}
 
 			if (entityTypeBlueprint.getProperties() != null) {
-				for (IEntityPropertyBlueprint prop : entityTypeBlueprint.getProperties()) {
+				for (var prop : entityTypeBlueprint.getProperties()) {
 					if (entityTypeBlueprint.getIsClass()) {
-						CtField ctField = new CtField(pool.get(prop.getType()),
+						var ctField = new CtField(pool.get(prop.getType()),
 								Introspector.decapitalize(prop.getName()), newClass);
 						newClass.addField(ctField);
 						newClass.addMethod(CtNewMethod.getter("get" + prop.getName(), ctField));
 						newClass.addMethod(CtNewMethod.setter("set" + prop.getName(), ctField));
 					}
 					else {
-						CtClass resultType = pool.get(prop.getType());
-						CtMethod ctGetMethod = new CtMethod(resultType, "get" + prop.getName(), null, newClass);
+						var resultType = pool.get(prop.getType());
+						var ctGetMethod = new CtMethod(resultType, "get" + prop.getName(), null, newClass);
 						newClass.addMethod(ctGetMethod);
-						AnnotationsAttribute annotationAttributeInfo =
-								createAnnotationAttribute(prop.getAnnotations(), constPool);
+						var annotationAttributeInfo = createAnnotationAttribute(prop.getAnnotations(), constPool);
 						ctGetMethod.getMethodInfo().addAttribute(annotationAttributeInfo);
 						if (!prop.isReadonly()) {
-							CtClass[] parameters = new CtClass[] {resultType};
-							CtMethod ctSetMethod =
-									new CtMethod(CtClass.voidType, "set" + prop.getName(), parameters, newClass);
+							var parameters = new CtClass[] {resultType};
+							var ctSetMethod = new CtMethod(CtClass.voidType, "set" + prop.getName(), parameters, newClass);
 							newClass.addMethod(ctSetMethod);
-
 						}
 					}
 				}
@@ -150,7 +142,7 @@ public class JavassistOrmEntityTypeProvider implements IOrmEntityTypeProvider, I
 
 			entityType = newClass.toClass();
 
-			alreadLoadedClasses.put(entityTypeName, entityType);
+			alreadyLoadedClasses.put(entityTypeName, entityType);
 			return entityType;
 		}
 		catch (Exception e) {
@@ -161,71 +153,70 @@ public class JavassistOrmEntityTypeProvider implements IOrmEntityTypeProvider, I
 	protected AnnotationsAttribute createAnnotationAttribute(
 			Collection<? extends IEntityAnnotationBlueprint> annotations, ConstPool constPool)
 			throws Exception {
-		AnnotationsAttribute attr =
-				new AnnotationsAttribute(constPool, AnnotationsAttribute.visibleTag);
-		for (IEntityAnnotationBlueprint anno : annotations) {
-			Annotation annot = new Annotation(anno.getType(), constPool);
-			CtClass annotClass = pool.get(anno.getType());
+		var attr = new AnnotationsAttribute(constPool, AnnotationsAttribute.visibleTag);
+		for (var anno : annotations) {
+			var annotation = new Annotation(anno.getType(), constPool);
+			var annotationType = pool.get(anno.getType());
 
-			for (IEntityAnnotationPropertyBlueprint annonProp : anno.getProperties()) {
-				CtMethod annonPropMethod = annotClass.getDeclaredMethod(annonProp.getName());
+			for (var annotatedProp : anno.getProperties()) {
+				var annotatedPropMethod = annotationType.getDeclaredMethod(annotatedProp.getName());
 
-				if (annonPropMethod.getReturnType().equals(CtClass.booleanType)) {
-					annot.addMemberValue(annonProp.getName(), //
+				if (annotatedPropMethod.getReturnType().equals(CtClass.booleanType)) {
+					annotation.addMemberValue(annotatedProp.getName(), //
 							new BooleanMemberValue(
-									conversionHelper.convertValueToType(Boolean.class, annonProp.getValue()),
+									conversionHelper.convertValueToType(Boolean.class, annotatedProp.getValue()),
 									constPool));
 				}
-				else if (annonPropMethod.getReturnType().equals(CtClass.byteType)) {
-					annot.addMemberValue(annonProp.getName(), //
+				else if (annotatedPropMethod.getReturnType().equals(CtClass.byteType)) {
+					annotation.addMemberValue(annotatedProp.getName(), //
 							new ByteMemberValue(
-									conversionHelper.convertValueToType(Byte.class, annonProp.getValue()),
+									conversionHelper.convertValueToType(Byte.class, annotatedProp.getValue()),
 									constPool));
 				}
-				else if (annonPropMethod.getReturnType().equals(CtClass.charType)) {
-					annot.addMemberValue(annonProp.getName(), //
+				else if (annotatedPropMethod.getReturnType().equals(CtClass.charType)) {
+					annotation.addMemberValue(annotatedProp.getName(), //
 							new CharMemberValue(
-									conversionHelper.convertValueToType(Character.class, annonProp.getValue()),
+									conversionHelper.convertValueToType(Character.class, annotatedProp.getValue()),
 									constPool));
 				}
-				else if (annonPropMethod.getReturnType().equals(CtClass.doubleType)) {
-					annot.addMemberValue(annonProp.getName(), //
+				else if (annotatedPropMethod.getReturnType().equals(CtClass.doubleType)) {
+					annotation.addMemberValue(annotatedProp.getName(), //
 							new DoubleMemberValue(
-									conversionHelper.convertValueToType(Double.class, annonProp.getValue()),
+									conversionHelper.convertValueToType(Double.class, annotatedProp.getValue()),
 									constPool));
 				}
-				else if (annonPropMethod.getReturnType().equals(CtClass.floatType)) {
-					annot.addMemberValue(annonProp.getName(), //
+				else if (annotatedPropMethod.getReturnType().equals(CtClass.floatType)) {
+					annotation.addMemberValue(annotatedProp.getName(), //
 							new FloatMemberValue(
-									conversionHelper.convertValueToType(Float.class, annonProp.getValue()),
+									conversionHelper.convertValueToType(Float.class, annotatedProp.getValue()),
 									constPool));
 				}
-				else if (annonPropMethod.getReturnType().equals(CtClass.intType)) {
-					annot.addMemberValue(annonProp.getName(), //
+				else if (annotatedPropMethod.getReturnType().equals(CtClass.intType)) {
+					annotation.addMemberValue(annotatedProp.getName(), //
 							new IntegerMemberValue(
-									conversionHelper.convertValueToType(Integer.class, annonProp.getValue()),
+									conversionHelper.convertValueToType(Integer.class, annotatedProp.getValue()),
 									constPool));
 				}
-				else if (annonPropMethod.getReturnType().equals(CtClass.longType)) {
-					annot.addMemberValue(annonProp.getName(), //
+				else if (annotatedPropMethod.getReturnType().equals(CtClass.longType)) {
+					annotation.addMemberValue(annotatedProp.getName(), //
 							new LongMemberValue(
-									conversionHelper.convertValueToType(Long.class, annonProp.getValue()),
+									conversionHelper.convertValueToType(Long.class, annotatedProp.getValue()),
 									constPool));
 				}
-				else if (annonPropMethod.getReturnType().equals(CtClass.shortType)) {
-					annot.addMemberValue(annonProp.getName(), //
+				else if (annotatedPropMethod.getReturnType().equals(CtClass.shortType)) {
+					annotation.addMemberValue(annotatedProp.getName(), //
 							new ShortMemberValue(
-									conversionHelper.convertValueToType(Short.class, annonProp.getValue()),
+									conversionHelper.convertValueToType(Short.class, annotatedProp.getValue()),
 									constPool));
 				}
-				else if (annonPropMethod.getReturnType().equals(stringClass)) {
-					annot.addMemberValue(annonProp.getName(), //
+				else if (annotatedPropMethod.getReturnType().equals(stringClass)) {
+					annotation.addMemberValue(annotatedProp.getName(), //
 							new StringMemberValue(
-									conversionHelper.convertValueToType(String.class, annonProp.getValue()),
+									conversionHelper.convertValueToType(String.class, annotatedProp.getValue()),
 									constPool));
 				}
 			}
-			attr.addAnnotation(annot);
+			attr.addAnnotation(annotation);
 		}
 		return attr;
 	}

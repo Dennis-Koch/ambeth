@@ -8401,8 +8401,8 @@
   </TypeDescription>
   <TypeDescription Type="class" NamespaceName="de.osthus.ambeth.cache.transfer" TypeName="LoadContainer" FullTypeName="de.osthus.ambeth.cache.transfer.LoadContainer" Source="C:\hudson\workspace\Ambeth.Integrity.Solution\src\java\jAmbeth-dev-2.0.1749.jar" ModuleName="jAmbeth.Cache">
     <Annotations>
-      <Annotation>javax.xml.bind.annotation.XmlAccessorType</Annotation>
-      <Annotation>javax.xml.bind.annotation.XmlRootElement</Annotation>
+      <Annotation>jakarta.xml.bind.annotation.XmlAccessorType</Annotation>
+      <Annotation>jakarta.xml.bind.annotation.XmlRootElement</Annotation>
     </Annotations>
     <MethodDescriptions>
       <MethodDescription MethodName="getReference" ReturnType="de.osthus.ambeth.merge.model.IObjRef">
@@ -8499,8 +8499,8 @@
   </TypeDescription>
   <TypeDescription Type="class" NamespaceName="de.osthus.ambeth.cache.transfer" TypeName="ObjRelation" FullTypeName="de.osthus.ambeth.cache.transfer.ObjRelation" Source="C:\hudson\workspace\Ambeth.Integrity.Solution\src\java\jAmbeth-dev-2.0.1749.jar" ModuleName="jAmbeth.Cache">
     <Annotations>
-      <Annotation>javax.xml.bind.annotation.XmlAccessorType</Annotation>
-      <Annotation>javax.xml.bind.annotation.XmlRootElement</Annotation>
+      <Annotation>jakarta.xml.bind.annotation.XmlAccessorType</Annotation>
+      <Annotation>jakarta.xml.bind.annotation.XmlRootElement</Annotation>
     </Annotations>
     <MethodDescriptions>
       <MethodDescription MethodName="setVersion" ReturnType="void">
@@ -8620,8 +8620,8 @@
   </TypeDescription>
   <TypeDescription Type="class" NamespaceName="de.osthus.ambeth.cache.transfer" TypeName="ObjRelationResult" FullTypeName="de.osthus.ambeth.cache.transfer.ObjRelationResult" Source="C:\hudson\workspace\Ambeth.Integrity.Solution\src\java\jAmbeth-dev-2.0.1749.jar" ModuleName="jAmbeth.Cache">
     <Annotations>
-      <Annotation>javax.xml.bind.annotation.XmlAccessorType</Annotation>
-      <Annotation>javax.xml.bind.annotation.XmlRootElement</Annotation>
+      <Annotation>jakarta.xml.bind.annotation.XmlAccessorType</Annotation>
+      <Annotation>jakarta.xml.bind.annotation.XmlRootElement</Annotation>
     </Annotations>
     <MethodDescriptions>
       <MethodDescription MethodName="getReference" ReturnType="de.osthus.ambeth.cache.model.IObjRelation">
@@ -18105,8 +18105,8 @@
   </TypeDescription>
   <TypeDescription Type="class" NamespaceName="de.osthus.ambeth.datachange.transfer" TypeName="DataChangeEntry" FullTypeName="de.osthus.ambeth.datachange.transfer.DataChangeEntry" Source="C:\hudson\workspace\Ambeth.Integrity.Solution\src\java\jAmbeth-dev-2.0.1749.jar" ModuleName="jAmbeth.DataChange">
     <Annotations>
-      <Annotation>javax.xml.bind.annotation.XmlAccessorType</Annotation>
-      <Annotation>javax.xml.bind.annotation.XmlRootElement</Annotation>
+      <Annotation>jakarta.xml.bind.annotation.XmlAccessorType</Annotation>
+      <Annotation>jakarta.xml.bind.annotation.XmlRootElement</Annotation>
     </Annotations>
     <MethodDescriptions>
       <MethodDescription MethodName="setId" ReturnType="void">
@@ -18198,8 +18198,8 @@
   </TypeDescription>
   <TypeDescription Type="class" NamespaceName="de.osthus.ambeth.datachange.transfer" TypeName="DataChangeEvent" FullTypeName="de.osthus.ambeth.datachange.transfer.DataChangeEvent" Source="C:\hudson\workspace\Ambeth.Integrity.Solution\src\java\jAmbeth-dev-2.0.1749.jar" ModuleName="jAmbeth.DataChange">
     <Annotations>
-      <Annotation>javax.xml.bind.annotation.XmlAccessorType</Annotation>
-      <Annotation>javax.xml.bind.annotation.XmlRootElement</Annotation>
+      <Annotation>jakarta.xml.bind.annotation.XmlAccessorType</Annotation>
+      <Annotation>jakarta.xml.bind.annotation.XmlRootElement</Annotation>
     </Annotations>
     <MethodDescriptions>
       <MethodDescription MethodName="getChangeTime" ReturnType="long">
@@ -19427,8 +19427,8 @@
   </TypeDescription>
   <TypeDescription Type="class" NamespaceName="de.osthus.ambeth.event.transfer" TypeName="EventItem" FullTypeName="de.osthus.ambeth.event.transfer.EventItem" Source="C:\hudson\workspace\Ambeth.Integrity.Solution\src\java\jAmbeth-dev-2.0.1749.jar" ModuleName="jAmbeth.Event">
     <Annotations>
-      <Annotation>javax.xml.bind.annotation.XmlAccessorType</Annotation>
-      <Annotation>javax.xml.bind.annotation.XmlRootElement</Annotation>
+      <Annotation>jakarta.xml.bind.annotation.XmlAccessorType</Annotation>
+      <Annotation>jakarta.xml.bind.annotation.XmlRootElement</Annotation>
     </Annotations>
     <MethodDescriptions>
       <MethodDescription MethodName="getEventObject" ReturnType="java.lang.Object">
@@ -30202,9 +30202,9 @@
   </TypeDescription>
   <TypeDescription Type="class" NamespaceName="de.osthus.ambeth.merge.transfer" TypeName="AbstractChangeContainer" FullTypeName="de.osthus.ambeth.merge.transfer.AbstractChangeContainer" Source="C:\hudson\workspace\Ambeth.Integrity.Solution\src\java\jAmbeth-dev-2.0.1749.jar" ModuleName="jAmbeth.Merge">
     <Annotations>
-      <Annotation>javax.xml.bind.annotation.XmlAccessorType</Annotation>
-      <Annotation>javax.xml.bind.annotation.XmlSeeAlso</Annotation>
-      <Annotation>javax.xml.bind.annotation.XmlRootElement</Annotation>
+      <Annotation>jakarta.xml.bind.annotation.XmlAccessorType</Annotation>
+      <Annotation>jakarta.xml.bind.annotation.XmlSeeAlso</Annotation>
+      <Annotation>jakarta.xml.bind.annotation.XmlRootElement</Annotation>
     </Annotations>
     <MethodDescriptions>
       <MethodDescription MethodName="getReference" ReturnType="de.osthus.ambeth.merge.model.IObjRef">
@@ -30240,8 +30240,8 @@
   </TypeDescription>
   <TypeDescription Type="class" NamespaceName="de.osthus.ambeth.merge.transfer" TypeName="CUDResult" FullTypeName="de.osthus.ambeth.merge.transfer.CUDResult" Source="C:\hudson\workspace\Ambeth.Integrity.Solution\src\java\jAmbeth-dev-2.0.1749.jar" ModuleName="jAmbeth.Merge">
     <Annotations>
-      <Annotation>javax.xml.bind.annotation.XmlAccessorType</Annotation>
-      <Annotation>javax.xml.bind.annotation.XmlRootElement</Annotation>
+      <Annotation>jakarta.xml.bind.annotation.XmlAccessorType</Annotation>
+      <Annotation>jakarta.xml.bind.annotation.XmlRootElement</Annotation>
     </Annotations>
     <MethodDescriptions>
       <MethodDescription MethodName="getAllChanges" ReturnType="java.util.List&lt;de.osthus.ambeth.merge.model.IChangeContainer&gt;">
@@ -30277,8 +30277,8 @@
   </TypeDescription>
   <TypeDescription Type="class" NamespaceName="de.osthus.ambeth.merge.transfer" TypeName="CreateContainer" FullTypeName="de.osthus.ambeth.merge.transfer.CreateContainer" Source="C:\hudson\workspace\Ambeth.Integrity.Solution\src\java\jAmbeth-dev-2.0.1749.jar" ModuleName="jAmbeth.Merge">
     <Annotations>
-      <Annotation>javax.xml.bind.annotation.XmlAccessorType</Annotation>
-      <Annotation>javax.xml.bind.annotation.XmlRootElement</Annotation>
+      <Annotation>jakarta.xml.bind.annotation.XmlAccessorType</Annotation>
+      <Annotation>jakarta.xml.bind.annotation.XmlRootElement</Annotation>
     </Annotations>
     <MethodDescriptions>
       <MethodDescription MethodName="getRelations" ReturnType="de.osthus.ambeth.merge.model.IRelationUpdateItem[]">
@@ -30322,16 +30322,16 @@
   </TypeDescription>
   <TypeDescription Type="class" NamespaceName="de.osthus.ambeth.merge.transfer" TypeName="DeleteContainer" FullTypeName="de.osthus.ambeth.merge.transfer.DeleteContainer" Source="C:\hudson\workspace\Ambeth.Integrity.Solution\src\java\jAmbeth-dev-2.0.1749.jar" ModuleName="jAmbeth.Merge">
     <Annotations>
-      <Annotation>javax.xml.bind.annotation.XmlAccessorType</Annotation>
-      <Annotation>javax.xml.bind.annotation.XmlRootElement</Annotation>
+      <Annotation>jakarta.xml.bind.annotation.XmlAccessorType</Annotation>
+      <Annotation>jakarta.xml.bind.annotation.XmlRootElement</Annotation>
     </Annotations>
     <MethodDescriptions />
     <FieldDescriptions />
   </TypeDescription>
   <TypeDescription Type="class" NamespaceName="de.osthus.ambeth.merge.transfer" TypeName="DirectObjRef" FullTypeName="de.osthus.ambeth.merge.transfer.DirectObjRef" Source="C:\hudson\workspace\Ambeth.Integrity.Solution\src\java\jAmbeth-dev-2.0.1749.jar" ModuleName="jAmbeth.Merge">
     <Annotations>
-      <Annotation>javax.xml.bind.annotation.XmlAccessorType</Annotation>
-      <Annotation>javax.xml.bind.annotation.XmlRootElement</Annotation>
+      <Annotation>jakarta.xml.bind.annotation.XmlAccessorType</Annotation>
+      <Annotation>jakarta.xml.bind.annotation.XmlRootElement</Annotation>
     </Annotations>
     <MethodDescriptions>
       <MethodDescription MethodName="getDirect" ReturnType="java.lang.Object">
@@ -30387,8 +30387,8 @@
   </TypeDescription>
   <TypeDescription Type="class" NamespaceName="de.osthus.ambeth.merge.transfer" TypeName="EntityMetaDataTransfer" FullTypeName="de.osthus.ambeth.merge.transfer.EntityMetaDataTransfer" Source="C:\hudson\workspace\Ambeth.Integrity.Solution\src\java\jAmbeth-dev-2.0.1749.jar" ModuleName="jAmbeth.Merge">
     <Annotations>
-      <Annotation>javax.xml.bind.annotation.XmlAccessorType</Annotation>
-      <Annotation>javax.xml.bind.annotation.XmlRootElement</Annotation>
+      <Annotation>jakarta.xml.bind.annotation.XmlAccessorType</Annotation>
+      <Annotation>jakarta.xml.bind.annotation.XmlRootElement</Annotation>
     </Annotations>
     <MethodDescriptions>
       <MethodDescription MethodName="getEntityType" ReturnType="java.lang.Class&lt;?&gt;">
@@ -30686,8 +30686,8 @@
   </TypeDescription>
   <TypeDescription Type="class" NamespaceName="de.osthus.ambeth.merge.transfer" TypeName="ObjRef" FullTypeName="de.osthus.ambeth.merge.transfer.ObjRef" Source="C:\hudson\workspace\Ambeth.Integrity.Solution\src\java\jAmbeth-dev-2.0.1749.jar" ModuleName="jAmbeth.Merge">
     <Annotations>
-      <Annotation>javax.xml.bind.annotation.XmlAccessorType</Annotation>
-      <Annotation>javax.xml.bind.annotation.XmlRootElement</Annotation>
+      <Annotation>jakarta.xml.bind.annotation.XmlAccessorType</Annotation>
+      <Annotation>jakarta.xml.bind.annotation.XmlRootElement</Annotation>
     </Annotations>
     <MethodDescriptions>
       <MethodDescription MethodName="setId" ReturnType="void">
@@ -30804,7 +30804,7 @@
   </TypeDescription>
   <TypeDescription Type="class" NamespaceName="de.osthus.ambeth.merge.transfer" TypeName="OriCollection" FullTypeName="de.osthus.ambeth.merge.transfer.OriCollection" Source="C:\hudson\workspace\Ambeth.Integrity.Solution\src\java\jAmbeth-dev-2.0.1749.jar" ModuleName="jAmbeth.Merge">
     <Annotations>
-      <Annotation>javax.xml.bind.annotation.XmlRootElement</Annotation>
+      <Annotation>jakarta.xml.bind.annotation.XmlRootElement</Annotation>
     </Annotations>
     <MethodDescriptions>
       <MethodDescription MethodName="getAllChangeORIs" ReturnType="java.util.List&lt;de.osthus.ambeth.merge.model.IObjRef&gt;">
@@ -30862,8 +30862,8 @@
   </TypeDescription>
   <TypeDescription Type="class" NamespaceName="de.osthus.ambeth.merge.transfer" TypeName="PrimitiveUpdateItem" FullTypeName="de.osthus.ambeth.merge.transfer.PrimitiveUpdateItem" Source="C:\hudson\workspace\Ambeth.Integrity.Solution\src\java\jAmbeth-dev-2.0.1749.jar" ModuleName="jAmbeth.Merge">
     <Annotations>
-      <Annotation>javax.xml.bind.annotation.XmlAccessorType</Annotation>
-      <Annotation>javax.xml.bind.annotation.XmlRootElement</Annotation>
+      <Annotation>jakarta.xml.bind.annotation.XmlAccessorType</Annotation>
+      <Annotation>jakarta.xml.bind.annotation.XmlRootElement</Annotation>
     </Annotations>
     <MethodDescriptions>
       <MethodDescription MethodName="getMemberName" ReturnType="java.lang.String">
@@ -30913,8 +30913,8 @@
   </TypeDescription>
   <TypeDescription Type="class" NamespaceName="de.osthus.ambeth.merge.transfer" TypeName="RelationUpdateItem" FullTypeName="de.osthus.ambeth.merge.transfer.RelationUpdateItem" Source="C:\hudson\workspace\Ambeth.Integrity.Solution\src\java\jAmbeth-dev-2.0.1749.jar" ModuleName="jAmbeth.Merge">
     <Annotations>
-      <Annotation>javax.xml.bind.annotation.XmlAccessorType</Annotation>
-      <Annotation>javax.xml.bind.annotation.XmlRootElement</Annotation>
+      <Annotation>jakarta.xml.bind.annotation.XmlAccessorType</Annotation>
+      <Annotation>jakarta.xml.bind.annotation.XmlRootElement</Annotation>
     </Annotations>
     <MethodDescriptions>
       <MethodDescription MethodName="getMemberName" ReturnType="java.lang.String">
@@ -30978,8 +30978,8 @@
   </TypeDescription>
   <TypeDescription Type="class" NamespaceName="de.osthus.ambeth.merge.transfer" TypeName="UpdateContainer" FullTypeName="de.osthus.ambeth.merge.transfer.UpdateContainer" Source="C:\hudson\workspace\Ambeth.Integrity.Solution\src\java\jAmbeth-dev-2.0.1749.jar" ModuleName="jAmbeth.Merge">
     <Annotations>
-      <Annotation>javax.xml.bind.annotation.XmlAccessorType</Annotation>
-      <Annotation>javax.xml.bind.annotation.XmlRootElement</Annotation>
+      <Annotation>jakarta.xml.bind.annotation.XmlAccessorType</Annotation>
+      <Annotation>jakarta.xml.bind.annotation.XmlRootElement</Annotation>
     </Annotations>
     <MethodDescriptions>
       <MethodDescription MethodName="getRelations" ReturnType="de.osthus.ambeth.merge.model.IRelationUpdateItem[]">
@@ -36613,8 +36613,8 @@
   </TypeDescription>
   <TypeDescription Type="class" NamespaceName="de.osthus.ambeth.transfer" TypeName="MethodDescription" FullTypeName="de.osthus.ambeth.transfer.MethodDescription" Source="C:\hudson\workspace\Ambeth.Integrity.Solution\src\java\jAmbeth-dev-2.0.1749.jar" ModuleName="jAmbeth.Util">
     <Annotations>
-      <Annotation>javax.xml.bind.annotation.XmlAccessorType</Annotation>
-      <Annotation>javax.xml.bind.annotation.XmlRootElement</Annotation>
+      <Annotation>jakarta.xml.bind.annotation.XmlAccessorType</Annotation>
+      <Annotation>jakarta.xml.bind.annotation.XmlRootElement</Annotation>
     </Annotations>
     <MethodDescriptions>
       <MethodDescription MethodName="setMethodName" ReturnType="void">
@@ -38306,8 +38306,8 @@
   </TypeDescription>
   <TypeDescription Type="class" NamespaceName="de.osthus.ambeth.typeinfo" TypeName="TypeHandle" FullTypeName="de.osthus.ambeth.typeinfo.TypeHandle" Source="C:\hudson\workspace\Ambeth.Integrity.Solution\src\java\jAmbeth-dev-2.0.1749.jar" ModuleName="jAmbeth.Util">
     <Annotations>
-      <Annotation>javax.xml.bind.annotation.XmlAccessorType</Annotation>
-      <Annotation>javax.xml.bind.annotation.XmlRootElement</Annotation>
+      <Annotation>jakarta.xml.bind.annotation.XmlAccessorType</Annotation>
+      <Annotation>jakarta.xml.bind.annotation.XmlRootElement</Annotation>
     </Annotations>
     <MethodDescriptions>
       <MethodDescription MethodName="getEntityType" ReturnType="java.lang.Class&lt;?&gt;">

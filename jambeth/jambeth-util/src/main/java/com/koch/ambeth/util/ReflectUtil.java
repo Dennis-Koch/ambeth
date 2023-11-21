@@ -22,9 +22,7 @@ limitations under the License.
 
 import java.lang.ref.Reference;
 import java.lang.ref.WeakReference;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
+import java.lang.reflect.*;
 import java.util.Arrays;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -60,6 +58,15 @@ public final class ReflectUtil {
 
 	private static final java.util.concurrent.locks.Lock writeLock = new ReentrantLock();
 
+	public static final Method METHOD_FINALIZE;
+
+	static {
+		try {
+			METHOD_FINALIZE = Object.class.getDeclaredMethod("finalize");
+		} catch (NoSuchMethodException e) {
+			throw new RuntimeException(e);
+		}
+	}
 	protected static final ReflectEntry getReflectEntry(Class<?> type) {
 		Reference<ReflectEntry> entryR = typeToMethodsMap.get(type);
 		if (entryR != null) {
@@ -345,7 +352,9 @@ public final class ReflectUtil {
 		ArrayList<Field> allDeclaredFields = new ArrayList<>();
 		Field[] declaredFields = type.getDeclaredFields();
 		for (Field declaredField : declaredFields) {
-			declaredField.setAccessible(true);
+			if (!type.getPackageName().startsWith("java.")) {
+				declaredField.setAccessible(true);
+			}
 			entry.nameToDeclaredFieldMap.put(declaredField.getName(), declaredField);
 			allDeclaredFields.add(declaredField);
 		}
@@ -379,7 +388,19 @@ public final class ReflectUtil {
 		fillDeclaredMethods(type, declaredMethodsList);
 		Method[] declaredMethods = declaredMethodsList.toArray(Method.class);
 		for (Method declaredMethod : declaredMethods) {
-			declaredMethod.setAccessible(true);
+			if (METHOD_FINALIZE.equals(declaredMethod)) {
+				continue;
+			}
+			if (Modifier.isNative(declaredMethod.getModifiers())) {
+				continue;
+			}
+			if (!type.getPackageName().startsWith("java.")) {
+				try {
+					declaredMethod.setAccessible(true);
+				} catch (InaccessibleObjectException e) {
+					throw e;
+				}
+			}
 			allDeclaredMethodsList.add(declaredMethod);
 		}
 		entry.declaredMethods = declaredMethods;

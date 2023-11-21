@@ -38,6 +38,7 @@ import com.koch.ambeth.util.IClassLoaderProvider;
 import com.koch.ambeth.util.ReflectUtil;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.state.IStateRollback;
+import lombok.SneakyThrows;
 
 public class ConnectionFactory extends AbstractConnectionFactory {
 	private static final Method m_getConnection;
@@ -45,6 +46,7 @@ public class ConnectionFactory extends AbstractConnectionFactory {
 	static {
 		m_getConnection = ReflectUtil.getDeclaredMethod(false, DriverManager.class, Connection.class,
 				"getConnection", String.class, java.util.Properties.class, Class.class);
+		m_getConnection.setAccessible(true);
 	}
 
 	@LogInstance
@@ -67,20 +69,19 @@ public class ConnectionFactory extends AbstractConnectionFactory {
 
 	@Override
 	protected Connection createIntern() throws Exception {
-		String connectionUrl = databaseConnectionUrlProvider.getConnectionUrl();
+		var connectionUrl = databaseConnectionUrlProvider.getConnectionUrl();
 		try {
 			if (log.isInfoEnabled()) {
 				log.info(
 						"Creating jdbc connection to '" + connectionUrl + "' with user='" + userName + "'");
 			}
-			boolean success = false;
-
-			Connection connection = callDriverManagerGetConnection(connectionUrl, userName, userPass);
+			var success = false;
+			var connection = callDriverManagerGetConnection(connectionUrl, userName, userPass);
 			try {
 				if (log.isDebugEnabled()) {
 					log.debug("[" + System.identityHashCode(connection) + "] created connection");
 				}
-				DatabaseMetaData dbmd = connection.getMetaData();
+				var dbmd = connection.getMetaData();
 				if (dbmd.supportsTransactionIsolationLevel(Connection.TRANSACTION_REPEATABLE_READ)) {
 					connection.setTransactionIsolation(Connection.TRANSACTION_REPEATABLE_READ);
 				}
@@ -110,6 +111,7 @@ public class ConnectionFactory extends AbstractConnectionFactory {
 		}
 	}
 
+	@SneakyThrows
 	protected Connection callDriverManagerGetConnection(String connectionUrl, String userName,
 			String userPass) {
 		// it is necessary to call the private method
@@ -120,19 +122,14 @@ public class ConnectionFactory extends AbstractConnectionFactory {
 		// driver from another classloader. That is why the latter case will fail when calling the
 		// "official" public DriverManager#getConnection(...) overloads.
 
-		java.util.Properties info = new java.util.Properties();
+		var info = new java.util.Properties();
 
 		info.put("user", userName);
 		info.put("password", userPass);
 
-		IStateRollback rollback = classLoaderProvider.pushClassLoader(IStateRollback.EMPTY_ROLLBACKS);
+		var rollback = classLoaderProvider.pushClassLoader(IStateRollback.EMPTY_ROLLBACKS);
 		try {
-			try {
-				return (Connection) m_getConnection.invoke(null, connectionUrl, info, null);
-			}
-			catch (IllegalAccessException | InvocationTargetException e) {
-				throw RuntimeExceptionUtil.mask(e);
-			}
+			return (Connection) m_getConnection.invoke(null, connectionUrl, info, null);
 		}
 		finally {
 			rollback.rollback();

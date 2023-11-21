@@ -23,6 +23,8 @@ limitations under the License.
 import com.koch.ambeth.ioc.factory.IBeanContextFactory;
 
 public interface ITestConnector {
+    boolean supports(String databaseProtocol);
+
 	void handleTestSetup(IBeanContextFactory beanContextFactory, String databaseProtocol);
 
 	void handleTest(IBeanContextFactory beanContextFactory, String databaseProtocol);

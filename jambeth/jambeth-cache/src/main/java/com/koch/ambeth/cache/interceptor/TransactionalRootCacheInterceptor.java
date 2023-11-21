@@ -36,8 +36,7 @@ import com.koch.ambeth.merge.cache.HandleContentDelegate;
 import com.koch.ambeth.merge.config.MergeConfigurationConstants;
 import com.koch.ambeth.merge.security.ISecurityActivation;
 import com.koch.ambeth.util.collections.ArrayList;
-
-import net.sf.cglib.proxy.MethodProxy;
+import com.koch.ambeth.util.proxy.MethodProxy;
 
 public class TransactionalRootCacheInterceptor extends AbstractRootCacheAwareInterceptor
 		implements ITransactionalRootCacheManager, ISecondLevelCacheManager {

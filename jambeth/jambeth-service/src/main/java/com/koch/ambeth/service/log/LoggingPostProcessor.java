@@ -31,9 +31,8 @@ import com.koch.ambeth.ioc.factory.IBeanContextFactory;
 import com.koch.ambeth.service.config.ServiceConfigurationConstants;
 import com.koch.ambeth.service.log.interceptor.LogInterceptor;
 import com.koch.ambeth.service.proxy.AbstractCascadePostProcessor;
+import com.koch.ambeth.util.proxy.Callback;
 import com.koch.ambeth.util.proxy.ICascadedInterceptor;
-
-import net.sf.cglib.proxy.Callback;
 
 public class LoggingPostProcessor extends AbstractCascadePostProcessor
 		implements IOrderedBeanProcessor {
@@ -51,7 +50,7 @@ public class LoggingPostProcessor extends AbstractCascadePostProcessor
 				&& (!wrapAllInteractions || Callback.class.isAssignableFrom(type))) {
 			return null;
 		}
-		LogInterceptor logInterceptor = new LogInterceptor();
+		var logInterceptor = new LogInterceptor();
 		if (beanContext.isRunning()) {
 			return beanContext.registerWithLifecycle(logInterceptor).finish();
 		}

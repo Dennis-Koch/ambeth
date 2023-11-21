@@ -60,11 +60,10 @@ import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.objectcollector.IThreadLocalObjectCollector;
+import com.koch.ambeth.util.proxy.Factory;
 import com.koch.ambeth.util.proxy.ICascadedInterceptor;
 import com.koch.ambeth.util.state.IStateRollback;
 import com.koch.ambeth.util.state.NoOpStateRollback;
-
-import net.sf.cglib.proxy.Factory;
 
 public class CacheService implements ICacheService, IInitializingBean, ExecuteServiceDelegate {
 	@LogInstance

@@ -20,10 +20,30 @@ limitations under the License.
  * #L%
  */
 
-import com.koch.ambeth.tomcat.TomcatApplication;
+import com.koch.ambeth.informationbus.persistence.setup.AmbethPersistenceSetup;
+import com.koch.ambeth.jetty.JettyApplication;
+import com.koch.ambeth.log.config.Properties;
+import com.koch.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationConstants;
+import com.koch.ambeth.persistence.jdbc.connector.DatabaseProtocolResolver;
+import org.burningwave.core.assembler.StaticComponentContainer;
+import org.testcontainers.containers.PostgreSQLContainer;
 
 public class Main {
 	public static void main(String[] args) throws Throwable {
-		TomcatApplication.run();
+		new StaticComponentContainer();
+
+		var dbContainer = new PostgreSQLContainer<>("postgres:15-alpine");
+		dbContainer.start();
+
+		Properties.getApplication().putString(PersistenceJdbcConfigurationConstants.DatabaseConnection, dbContainer.getJdbcUrl());
+		Properties.getApplication().putString(PersistenceJdbcConfigurationConstants.DatabaseName, dbContainer.getDatabaseName());
+		Properties.getApplication().putString(PersistenceJdbcConfigurationConstants.DatabaseUser, dbContainer.getUsername());
+		Properties.getApplication().putString(PersistenceJdbcConfigurationConstants.DatabasePass, dbContainer.getPassword());
+		Properties.getApplication().putString(PersistenceJdbcConfigurationConstants.DatabaseSchemaName, "helloworld");
+		DatabaseProtocolResolver.enrichWithDatabaseProtocol(Properties.getApplication());
+		var persistenceSetup = new AmbethPersistenceSetup(Main.class).withProperties(Properties.getApplication());
+		persistenceSetup.executeSetup(Main.class.getMethod("main", String[].class));
+
+		JettyApplication.run();
 	}
 }

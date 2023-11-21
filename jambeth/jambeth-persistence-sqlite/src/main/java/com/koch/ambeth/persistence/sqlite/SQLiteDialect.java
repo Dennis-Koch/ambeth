@@ -38,6 +38,7 @@ import java.util.regex.Pattern;
 
 import javax.persistence.PersistenceException;
 
+import lombok.SneakyThrows;
 import org.sqlite.JDBC;
 
 import com.koch.ambeth.ioc.IServiceContext;
@@ -170,9 +171,10 @@ public class SQLiteDialect extends AbstractConnectionDialect {
 		return sb.toString();
 	}
 
+	@SneakyThrows
 	@Override
 	public IList<IMap<String, String>> getExportedKeys(Connection connection, String[] schemaNames)
-			throws SQLException {
+			{
 		ArrayList<IMap<String, String>> allForeignKeys = new ArrayList<>();
 		PreparedStatement pstm = null;
 		ResultSet allForeignKeysRS = null;
@@ -219,7 +221,7 @@ public class SQLiteDialect extends AbstractConnectionDialect {
 
 	@Override
 	public ILinkedMap<String, IList<String>> getFulltextIndexes(Connection connection,
-			String schemaName) throws SQLException {
+			String schemaName) {
 		LinkedHashMap<String, IList<String>> fulltextIndexes =
 				new LinkedHashMap<>();
 		// NOT YET IMPLEMENTED
@@ -232,7 +234,7 @@ public class SQLiteDialect extends AbstractConnectionDialect {
 	}
 
 	@Override
-	public void releaseSavepoint(Savepoint savepoint, Connection connection) throws SQLException {
+	public void releaseSavepoint(Savepoint savepoint, Connection connection) {
 	}
 
 	@Override
@@ -289,9 +291,10 @@ public class SQLiteDialect extends AbstractConnectionDialect {
 		// return ex;
 	}
 
+	@SneakyThrows
 	@Override
 	public ResultSet getIndexInfo(Connection connection, String schemaName, String tableName,
-			boolean unique) throws SQLException {
+			boolean unique) {
 		return connection.getMetaData().getIndexInfo(null, schemaName, tableName, unique, true);
 	}
 
@@ -322,7 +325,7 @@ public class SQLiteDialect extends AbstractConnectionDialect {
 
 	@Override
 	public List<String> getAllFullqualifiedSequences(Connection connection, String... schemaNames)
-			throws SQLException {
+			{
 		// TODO
 		throw new UnsupportedOperationException("Not yet implemented");
 		// List<String> allSequenceNames = new ArrayList<String>();
@@ -354,14 +357,14 @@ public class SQLiteDialect extends AbstractConnectionDialect {
 
 	@Override
 	public List<String> getAllFullqualifiedTableNames(Connection connection, String... schemaNames)
-			throws SQLException {
+			{
 		return queryDefault(connection, "FULL_NAME",
 				"SELECT tbl_name AS FULL_NAME FROM sqlite_master where type='table'");
 	}
 
 	@Override
 	public List<String> getAllFullqualifiedViews(Connection connection, String... schemaNames)
-			throws SQLException {
+			{
 		// TODO
 		throw new UnsupportedOperationException("Not yet implemented");
 		//
@@ -404,9 +407,10 @@ public class SQLiteDialect extends AbstractConnectionDialect {
 		enableConstraintsSQL.add("SET CONSTRAINTS " + fullName + " IMMEDIATE");
 	}
 
+	@SneakyThrows
 	@Override
 	public IList<IColumnEntry> getAllFieldsOfTable(Connection connection, String fqTableName)
-			throws SQLException {
+			{
 		String[] names = sqlBuilder.getSchemaAndTableName(fqTableName);
 		ResultSet tableColumnsRS = connection.getMetaData().getColumns(null, names[0], names[1], null);
 		try {
@@ -504,9 +508,10 @@ public class SQLiteDialect extends AbstractConnectionDialect {
 				.finish();
 	}
 
+	@SneakyThrows
 	@Override
 	protected ConnectionKeyValue preProcessConnectionIntern(Connection connection,
-			String[] schemaNames, boolean forcePreProcessing) throws SQLException {
+			String[] schemaNames, boolean forcePreProcessing) {
 		Statement stm = connection.createStatement();
 		try {
 			stm.execute("PRAGMA foreign_keys = ON");

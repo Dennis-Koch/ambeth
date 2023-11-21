@@ -23,7 +23,11 @@ limitations under the License.
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.StringWriter;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Set;
@@ -37,18 +41,20 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 import java.util.zip.InflaterInputStream;
 
-import javax.servlet.ServletContext;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.GET;
-import javax.ws.rs.NotSupportedException;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.StreamingOutput;
+import com.koch.ambeth.ioc.jaxb.IJAXBContextProvider;
+import com.koch.ambeth.service.rest.Constants;
+import jakarta.servlet.ServletContext;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.NotSupportedException;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.StreamingOutput;
 
 import com.koch.ambeth.ioc.IServiceContext;
 import com.koch.ambeth.ioc.threadlocal.IThreadLocalCleanupController;
@@ -72,6 +78,10 @@ import com.koch.ambeth.util.state.NoOpStateRollback;
 import com.koch.ambeth.util.threading.IBackgroundWorkerParamDelegate;
 import com.koch.ambeth.xml.ICyclicXMLHandler;
 import com.koch.ambeth.xml.ioc.XmlModule;
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.Marshaller;
+import lombok.SneakyThrows;
+import org.glassfish.jersey.message.internal.HttpHeaderReader;
 
 public abstract class AbstractServiceREST {
 	public static final String THREAD_LOCAL_HANDLED = "threadLocalHandled";
@@ -82,7 +92,11 @@ public abstract class AbstractServiceREST {
 	 */
 	public static final String ACCEPT_ENCODING_WORKAROUND = "Accept-Encoding-Workaround";
 
+	public static final String noEncoding = "identity";
+
 	public static final String deflateEncoding = "deflate";
+
+	public static final String anyEncoding = "*";
 
 	public static final String gzipEncoding = "gzip";
 
@@ -155,21 +169,38 @@ public abstract class AbstractServiceREST {
 
 	@GET
 	@Path("ping")
-	@Produces({MediaType.TEXT_PLAIN})
+	@Produces({ MediaType.WILDCARD, MediaType.TEXT_PLAIN, MediaType.APPLICATION_XML})
 	public String ping() {
-		return "Ping";
+		return "pong: " + DateTimeFormatter.ISO_DATE_TIME.format(OffsetDateTime.now());
 	}
 
 	@GET
-	@Path("ping2")
-	@Produces({MediaType.TEXT_XML})
-	public ObjRef ping2() {
+	@Path("ping3")
+	@Produces
+	public ObjRef ping2_application_xml() {
 		ObjRef objRef = new ObjRef();
 		objRef.setId(5);
 		objRef.setIdNameIndex((byte) -1);
 		objRef.setVersion(7);
 		objRef.setRealType(CreateContainer.class);
 		return objRef;
+	}
+
+	@GET
+	@Path("ping2")
+	@Produces({Constants.AMBETH_MEDIA_TYPE})
+	public StreamingOutput ping2_ambeth_xml(@Context HttpServletRequest request, @Context HttpServletResponse response) {
+		var rollback = preServiceCall(request, response);
+		try {
+			var result = ping2_application_xml();
+			return createResult(result, request, response);
+		}
+		catch (Throwable e) {
+			return createExceptionResult(e, request, response);
+		}
+		finally {
+			rollback.rollback();
+		}
 	}
 
 	@SuppressWarnings("unchecked")
@@ -221,14 +252,14 @@ public abstract class AbstractServiceREST {
 		if (Boolean.TRUE.equals(request.getAttribute(THREAD_LOCAL_HANDLED))) {
 			return NoOpStateRollback.instance;
 		}
-		final ILogger log = getLog();
-		final String path = log.isDebugEnabled() ? request.getMethod() + " " + request.getRequestURI()
+		var log = getLog();
+		var path = log.isDebugEnabled() ? request.getMethod() + " " + request.getRequestURI()
 				: null;
 		if (path != null) {
 			log.debug("Enter: " + path);
 		}
-		boolean success = false;
-		IStateRollback rollback = aspect.pushServletAspectWithThreadLocals(request);
+		var success = false;
+		var rollback = aspect.pushServletAspectWithThreadLocals(request);
 		try {
 			if (path != null) {
 				rollback = new AbstractStateRollback(rollback) {
@@ -261,11 +292,11 @@ public abstract class AbstractServiceREST {
 	}
 
 	protected List<String> readMultiValueFromHeader(String name, HttpServletRequest request) {
-		Enumeration<String> headers = request.getHeaders(name);
+		var headers = request.getHeaders(name);
 		if (!headers.hasMoreElements()) {
 			return EmptyList.<String>getInstance();
 		}
-		ArrayList<String> list = new ArrayList<>();
+		var list = new ArrayList<String>();
 		while (headers.hasMoreElements()) {
 			list.add(headers.nextElement());
 		}
@@ -275,7 +306,7 @@ public abstract class AbstractServiceREST {
 	protected Object[] getArguments(InputStream is, HttpServletRequest request) {
 		is = decompressContentIfNecessary(is, request);
 
-		String contentType = request.getContentType();
+		var contentType = request.getContentType();
 
 		Object args = null;
 		if (contentType == null || "application/xml".equals(contentType)
@@ -316,8 +347,8 @@ public abstract class AbstractServiceREST {
 		if (e == null) {
 			return null;
 		}
-		AmbethServiceException result = new AmbethServiceException();
-		StringBuilder sb = new StringBuilder();
+        var result = new AmbethServiceException();
+        var sb = new StringBuilder();
 		AmbethLogger.printThrowable(e, sb, "\n", 0, false);
 		result.setMessage(e.getMessage());
 		result.setExceptionType(e.getClass().getName());
@@ -332,18 +363,18 @@ public abstract class AbstractServiceREST {
 				&& e.getMessage() == null) {
 			e = e.getCause();
 		}
-		IServiceContext beanContext = this.beanContext;
+        var beanContext = this.beanContext;
 		if (beanContext != null && beanContext.isRunning() && !beanContext.isDisposing()) {
 			logException(e, null);
 		}
-		AmbethServiceException result = convertThrowable(e);
+        var result = convertThrowable(e);
 
-		int errorStatus = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
+        var errorStatus = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 		if (e instanceof SecurityException) {
 			errorStatus = HttpServletResponse.SC_FORBIDDEN;
 		}
-		final int fErrorStatus = errorStatus;
-		final StreamingOutput streamingOutput = createResult(result, request, response);
+        var fErrorStatus = errorStatus;
+        var streamingOutput = createResult(result, request, response);
 		response.setStatus(fErrorStatus);
 		return new StreamingOutput() {
 			@Override
@@ -354,10 +385,22 @@ public abstract class AbstractServiceREST {
 		};
 	}
 
-	protected void writeContent(OutputStream os, Object result) {
-		ICyclicXMLHandler cyclicXmlHandler = getService(XmlModule.CYCLIC_XML_HANDLER,
-				ICyclicXMLHandler.class);
-		cyclicXmlHandler.writeToStream(os, result);
+	@SneakyThrows
+	protected void writeContent(String contentType, OutputStream os, Object result) {
+		if (Constants.AMBETH_MEDIA_TYPE.equals(contentType)) {
+			var cyclicXmlHandler = getService(XmlModule.CYCLIC_XML_HANDLER,
+					ICyclicXMLHandler.class);
+			cyclicXmlHandler.writeToStream(os, result);
+			return;
+		}
+		if (result == null) {
+			os.write("null".getBytes(StandardCharsets.UTF_8));
+			return;
+		}
+		var jaxbContextProvider = getService(IJAXBContextProvider.class);
+			var context = jaxbContextProvider.acquireSharedContext(result.getClass());
+			Marshaller m = context.createMarshaller();
+			m.marshal(result, os);
 	}
 
 	protected StreamingOutput createResult(Object result, HttpServletRequest request,
@@ -365,41 +408,39 @@ public abstract class AbstractServiceREST {
 		return createResult(result, request, response, null, true);
 	}
 
+    @SneakyThrows
 	protected StreamingOutput createSynchronousResult(Object result, HttpServletRequest request,
 			HttpServletResponse response) {
-		StreamingOutput asyncOutput = createResult(result, request, response, null, false);
-		final FastByteArrayOutputStream bos = new FastByteArrayOutputStream();
-		try {
-			asyncOutput.write(bos);
-			return new StreamingOutput() {
-				@Override
-				public void write(OutputStream output) throws IOException, WebApplicationException {
-					bos.writeTo(output);
-				}
-			};
-		}
-		catch (Exception e) {
-			throw RuntimeExceptionUtil.mask(e);
-		}
+        var asyncOutput = createResult(result, request, response, null, false);
+        var bos = new FastByteArrayOutputStream();
+        asyncOutput.write(bos);
+        return new StreamingOutput() {
+            @Override
+            public void write(OutputStream output) throws IOException, WebApplicationException {
+                bos.writeTo(output);
+            }
+        };
 	}
 
 	protected StreamingOutput createResult(final Object result, HttpServletRequest request,
 			final HttpServletResponse response,
 			final IBackgroundWorkerParamDelegate<Throwable> streamingFinishedCallback,
 			final boolean cleanupOnFinally) {
-		final String contentEncoding = evaluateAcceptedContentEncoding(request, response);
+		var contentType = evaluateAcceptedType(request, response);
+		var contentEncoding = evaluateAcceptedContentEncoding(request, response);
 		return new StreamingOutput() {
 			@Override
 			public void write(OutputStream output) throws IOException, WebApplicationException {
-				response.setHeader(HttpHeaders.CONTENT_ENCODING, contentEncoding);
-				if (gzipEncoding.equals(contentEncoding)) {
-					output = new GZIPOutputStream(output);
-				}
-				else if (deflateEncoding.equals(contentEncoding)) {
-					output = new DeflaterOutputStream(output);
+				if (contentEncoding != null && !contentEncoding.isEmpty()) {
+					response.setHeader(HttpHeaders.CONTENT_ENCODING, contentEncoding);
+					if (gzipEncoding.equals(contentEncoding)) {
+						output = new GZIPOutputStream(output);
+					} else if (deflateEncoding.equals(contentEncoding)) {
+						output = new DeflaterOutputStream(output);
+					}
 				}
 				try {
-					writeContent(output, result);
+					writeContent(contentType, output, result);
 					if (output instanceof DeflaterOutputStream) {
 						((DeflaterOutputStream) output).finish();
 					}
@@ -419,9 +460,9 @@ public abstract class AbstractServiceREST {
 					ILogger log = getLog();
 					if (log.isErrorEnabled()) {
 						// Reconstruct written stream for debugging purpose
-						final StringBuilder sb = new StringBuilder();
+						var sb = new StringBuilder();
 						try {
-							writeContent(new OutputStream() {
+							writeContent(contentType, new OutputStream() {
 								@Override
 								public void write(int b) throws IOException {
 									sb.append(b);
@@ -454,14 +495,14 @@ public abstract class AbstractServiceREST {
 
 	protected String evaluateAcceptedContentEncoding(HttpServletRequest request,
 			HttpServletResponse response) {
-		List<String> acceptEncoding = readMultiValueFromHeader(ACCEPT_ENCODING_WORKAROUND, request);
+		var acceptEncoding = readMultiValueFromHeader(ACCEPT_ENCODING_WORKAROUND, request);
 		if (acceptEncoding.isEmpty()) {
 			acceptEncoding = readMultiValueFromHeader(HttpHeaders.ACCEPT_ENCODING, request);
 		}
 		for (int a = acceptEncoding.size(); a-- > 0;) {
 			acceptEncoding.set(a, acceptEncoding.get(a).toLowerCase());
 		}
-		if (acceptEncoding.contains(deflateEncoding)) {
+		if (acceptEncoding.contains(deflateEncoding) || acceptEncoding.contains(anyEncoding)) {
 			response.setHeader(HttpHeaders.CONTENT_ENCODING, deflateEncoding);
 			return deflateEncoding;
 		}
@@ -469,7 +510,14 @@ public abstract class AbstractServiceREST {
 			response.setHeader(HttpHeaders.CONTENT_ENCODING, gzipEncoding);
 			return gzipEncoding;
 		}
-		return "text/xml";
+		return noEncoding;
+	}
+
+	@SneakyThrows
+	protected String evaluateAcceptedType(HttpServletRequest request,
+													 HttpServletResponse response) {
+		var acceptTypes = HttpHeaderReader.readAcceptMediaType(request.getHeader(HttpHeaders.ACCEPT));
+		return acceptTypes.isEmpty() ? MediaType.APPLICATION_XML : acceptTypes.get(0).toString();
 	}
 
 	protected InputStream decompressContentIfNecessary(InputStream is, HttpServletRequest request) {
@@ -478,7 +526,7 @@ public abstract class AbstractServiceREST {
 			contentEncoding = readSingleValueFromHeader(HttpHeaders.CONTENT_ENCODING, request);
 		}
 		if (contentEncoding == null) {
-			contentEncoding = "";
+			contentEncoding = noEncoding;
 		}
 		contentEncoding = contentEncoding.toLowerCase();
 		if (deflateEncoding.equals(contentEncoding)) {

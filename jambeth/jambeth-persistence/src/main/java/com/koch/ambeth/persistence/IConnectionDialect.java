@@ -51,36 +51,34 @@ public interface IConnectionDialect {
 
 	String getSelectForUpdateFragment();
 
-	Blob createBlob(Connection connection) throws SQLException;
+	Blob createBlob(Connection connection);
 
-	void releaseBlob(Blob blob) throws SQLException;
+	void releaseBlob(Blob blob);
 
-	Clob createClob(Connection connection) throws SQLException;
+	Clob createClob(Connection connection);
 
-	void releaseClob(Clob clob) throws SQLException;
+	void releaseClob(Clob clob);
 
-	void releaseArray(java.sql.Array array) throws SQLException;
+	void releaseArray(java.sql.Array array);
 
 	String toDefaultCase(String unquotedIdentifier);
 
 	void preProcessConnection(Connection connection, String[] schemaNames,
 			boolean forcePreProcessing);
 
-	IList<IMap<String, String>> getExportedKeys(Connection connection, String[] schemaNames)
-			throws SQLException;
+	IList<IMap<String, String>> getExportedKeys(Connection connection, String[] schemaNames);
 
-	ILinkedMap<String, IList<String>> getFulltextIndexes(Connection connection, String schemaName)
-			throws SQLException;
+	ILinkedMap<String, IList<String>> getFulltextIndexes(Connection connection, String schemaName);
 
 	boolean isSystemTable(String tableName);
 
 	IStateRollback disableConstraints(Connection connection, String... schemaNames);
 
-	void commit(Connection connection) throws SQLException;
+	void commit(Connection connection);
 
-	void rollback(Connection connection) throws SQLException;
+	void rollback(Connection connection);
 
-	void releaseSavepoint(Savepoint savepoint, Connection connection) throws SQLException;
+	void releaseSavepoint(Savepoint savepoint, Connection connection);
 
 	IOperand getRegexpLikeFunction(IOperand sourceString, IOperand pattern, IOperand matchParameter);
 
@@ -92,27 +90,22 @@ public interface IConnectionDialect {
 
 	boolean useVersionOnOptimisticUpdate();
 
-	ResultSet getIndexInfo(Connection connection, String schemaName, String tableName, boolean unique)
-			throws SQLException;
+	ResultSet getIndexInfo(Connection connection, String schemaName, String tableName, boolean unique);
 
 	Class<?> getComponentTypeByFieldTypeName(String additionalFieldInfo);
 
 	String getFieldTypeNameByComponentType(Class<?> componentType);
 
-	List<String> getAllFullqualifiedTableNames(Connection connection, String... schemaNames)
-			throws SQLException;
+	List<String> getAllFullqualifiedTableNames(Connection connection, String... schemaNames);
 
-	List<String> getAllFullqualifiedViews(Connection connection, String... schemaNames)
-			throws SQLException;
+	List<String> getAllFullqualifiedViews(Connection connection, String... schemaNames);
 
-	List<String> getAllFullqualifiedSequences(Connection connection, String... schemaNames)
-			throws SQLException;
+	List<String> getAllFullqualifiedSequences(Connection connection, String... schemaNames);
 
-	IList<IColumnEntry> getAllFieldsOfTable(Connection connection, String fqTableName)
-			throws SQLException;
+	IList<IColumnEntry> getAllFieldsOfTable(Connection connection, String fqTableName);
 
 	IList<String> queryDefault(Connection connection, String resultColumnName, String sql,
-			Object... args) throws SQLException;
+			Object... args);
 
 	int getMaxInClauseBatchThreshold();
 

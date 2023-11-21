@@ -66,27 +66,27 @@ public abstract class AbstractEntityMetaDataReader implements IDisposableBean {
 
 	@Override
 	public void destroy() {
-		for (IOrmConfigGroup ormConfigGroup : ormConfigGroups) {
+		for (var ormConfigGroup : ormConfigGroups) {
 			ormConfigGroupExtendable.unregisterOrmConfigGroup(ormConfigGroup);
 		}
-		for (IEntityMetaData entityMetaData : managedEntityMetaData) {
+		for (var entityMetaData : managedEntityMetaData) {
 			entityMetaDataExtendable.unregisterEntityMetaData(entityMetaData);
 		}
 	}
 
 	protected void readConfig(IOrmConfigGroup ormConfigGroup) {
-		LinkedHashSet<IEntityConfig> entities = new LinkedHashSet<>();
+		var entities = new LinkedHashSet<IEntityConfig>();
 		entities.addAll(ormConfigGroup.getLocalEntityConfigs());
 		entities.addAll(ormConfigGroup.getExternalEntityConfigs());
 
-		for (IEntityConfig entityConfig : entities) {
-			Class<?> entityType = entityConfig.getEntityType();
+		for (var entityConfig : entities) {
+			var entityType = entityConfig.getEntityType();
 			if (entityMetaDataProvider.getMetaData(entityType, true) != null) {
 				continue;
 			}
-			Class<?> realType = entityConfig.getRealType();
+			var realType = entityConfig.getRealType();
 
-			EntityMetaData metaData = new EntityMetaData();
+			var metaData = new EntityMetaData();
 			metaData.setEntityType(entityType);
 			metaData.setRealType(realType);
 			metaData.setLocalEntity(entityConfig.isLocal());

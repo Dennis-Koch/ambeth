@@ -24,9 +24,6 @@ limitations under the License.
 
 import java.lang.reflect.Method;
 
-import net.sf.cglib.proxy.MethodInterceptor;
-import net.sf.cglib.proxy.MethodProxy;
-
 public abstract class CascadedInterceptor extends AbstractSimpleInterceptor
 		implements ICascadedInterceptor {
 	private Object target;

@@ -24,9 +24,8 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 
 import com.koch.ambeth.util.proxy.AbstractSimpleInterceptor;
-
-import net.sf.cglib.proxy.MethodInterceptor;
-import net.sf.cglib.proxy.MethodProxy;
+import com.koch.ambeth.util.proxy.MethodInterceptor;
+import com.koch.ambeth.util.proxy.MethodProxy;
 
 public final class EmptyInterceptor extends AbstractSimpleInterceptor {
 	public static final MethodInterceptor INSTANCE = new EmptyInterceptor();

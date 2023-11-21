@@ -26,8 +26,8 @@ import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
 import java.util.Collection;
 
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlTransient;
+import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlTransient;
 
 import com.koch.ambeth.ioc.typeinfo.TypeInfoItemUtil;
 import com.koch.ambeth.util.ParamChecker;

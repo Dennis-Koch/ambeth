@@ -20,6 +20,7 @@ limitations under the License.
  * #L%
  */
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
 import com.koch.ambeth.ioc.accessor.AccessorClassLoader;
@@ -29,9 +30,8 @@ import com.koch.ambeth.merge.bytecode.EmbeddedEnhancementHint;
 import com.koch.ambeth.merge.bytecode.IBytecodePrinter;
 import com.koch.ambeth.util.collections.SmartCopyMap;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
-
-import net.sf.cglib.reflect.FastClass;
-import net.sf.cglib.reflect.FastConstructor;
+import com.koch.ambeth.util.typeinfo.FastConstructorAccess;
+import lombok.SneakyThrows;
 
 public class EmbeddedMemberMixin {
 	@Autowired
@@ -40,32 +40,27 @@ public class EmbeddedMemberMixin {
 	@Autowired(optional = true)
 	protected IBytecodePrinter bytecodePrinter;
 
-	protected final SmartCopyMap<Class<?>, FastConstructor> typeToEmbbeddedParamConstructorMap = new SmartCopyMap<>(
+	protected final SmartCopyMap<Class<?>, FastConstructorAccess> typeToEmbbeddedParamConstructorMap = new SmartCopyMap<>(
 			0.5f);
 
+	@SneakyThrows
 	public Object createEmbeddedObject(Class<?> embeddedType, Class<?> entityType,
 			Object parentObject, String memberPath) {
-		Class<?> enhancedEmbeddedType = bytecodeEnhancer.getEnhancedType(embeddedType,
+		var enhancedEmbeddedType = bytecodeEnhancer.getEnhancedType(embeddedType,
 				new EmbeddedEnhancementHint(entityType, parentObject.getClass(), memberPath));
-		FastConstructor embeddedConstructor = getEmbeddedParamConstructor(enhancedEmbeddedType,
+		var embeddedConstructor = getEmbeddedParamConstructor(enhancedEmbeddedType,
 				parentObject.getClass());
-		Object[] constructorArgs = new Object[] { parentObject };
-		try {
-			return embeddedConstructor.newInstance(constructorArgs);
-		}
-		catch (InvocationTargetException e) {
-			throw RuntimeExceptionUtil.mask(e);
-		}
+		var constructorArgs = new Object[] { parentObject };
+		return embeddedConstructor.newInstance(constructorArgs);
 	}
 
-	protected <T> FastConstructor getEmbeddedParamConstructor(Class<T> embeddedType,
-			Class<?> parentObjectType) {
-		FastConstructor constructor = typeToEmbbeddedParamConstructorMap.get(embeddedType);
+	protected FastConstructorAccess getEmbeddedParamConstructor(Class<?> embeddedType,
+																	Class<?> parentObjectType) {
+		var constructor = typeToEmbbeddedParamConstructorMap.get(embeddedType);
 		if (constructor == null) {
 			try {
 				AccessorClassLoader classLoader = AccessorClassLoader.get(embeddedType);
-				FastClass fastEmbeddedType = FastClass.create(classLoader, embeddedType);
-				constructor = fastEmbeddedType.getConstructor(new Class<?>[] { parentObjectType });
+				constructor = FastConstructorAccess.get(embeddedType.getConstructor(new Class<?>[] { parentObjectType }));
 			}
 			catch (Throwable e) {
 				if (bytecodePrinter != null) {

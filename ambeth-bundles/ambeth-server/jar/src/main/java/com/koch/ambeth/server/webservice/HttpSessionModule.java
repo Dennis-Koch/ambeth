@@ -20,7 +20,7 @@ limitations under the License.
  * #L%
  */
 
-import javax.servlet.http.HttpSession;
+import jakarta.servlet.http.HttpSession;
 
 import com.koch.ambeth.ioc.IInitializingModule;
 import com.koch.ambeth.ioc.factory.IBeanContextFactory;

@@ -20,8 +20,6 @@ limitations under the License.
  * #L%
  */
 
-import net.sf.cglib.proxy.MethodInterceptor;
-
 public interface IProxyFactory {
 	<T> T createProxy(Class<T> type, MethodInterceptor... interceptors);
 

@@ -62,9 +62,8 @@ import com.koch.ambeth.util.annotation.QueryResultType;
 import com.koch.ambeth.util.annotation.SmartQuery;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.proxy.CascadedInterceptor;
+import com.koch.ambeth.util.proxy.MethodProxy;
 import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
-
-import net.sf.cglib.proxy.MethodProxy;
 
 public class QueryInterceptor extends CascadedInterceptor {
 	public static final String P_BEHAVIOUR = "Behaviour";
@@ -264,8 +263,8 @@ public class QueryInterceptor extends CascadedInterceptor {
 	/**
 	 * get QueryBuilderBean, this object may be from cache or will just be created ad-hoc
 	 *
-	 * @param obj intercepted object
 	 * @param method intercepted method
+	 * @param behaviourOfMethod the mode in which generic method behavior is expected
 	 * @return QueryBuilderBean instance for Squery
 	 */
 	private QueryBuilderBean<?> getOrCreateQueryBuilderBean(Method method,

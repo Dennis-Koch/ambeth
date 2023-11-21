@@ -23,14 +23,14 @@ limitations under the License.
 import java.io.InputStream;
 import java.util.List;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.StreamingOutput;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.StreamingOutput;
 
 import com.koch.ambeth.cache.ioc.CacheModule;
 import com.koch.ambeth.cache.service.ICacheService;
@@ -56,10 +56,10 @@ public class CacheServiceREST extends AbstractServiceREST {
 	@Path("getEntities")
 	public StreamingOutput getEntities(InputStream is, @Context HttpServletRequest request,
 			@Context HttpServletResponse response) {
-		IStateRollback rollback = preServiceCall(request, response);
+		var rollback = preServiceCall(request, response);
 		try {
-			Object[] args = getArguments(is, request);
-			List<ILoadContainer> result = getCacheService().getEntities((List<IObjRef>) args[0]);
+			var args = getArguments(is, request);
+			var result = getCacheService().getEntities((List<IObjRef>) args[0]);
 			return createResult(result, request, response);
 		}
 		catch (Throwable e) {
@@ -75,11 +75,10 @@ public class CacheServiceREST extends AbstractServiceREST {
 	@Path("getRelations")
 	public StreamingOutput getRelations(InputStream is, @Context HttpServletRequest request,
 			@Context HttpServletResponse response) {
-		IStateRollback rollback = preServiceCall(request, response);
+		var rollback = preServiceCall(request, response);
 		try {
-			Object[] args = getArguments(is, request);
-			List<IObjRelationResult> result = getCacheService()
-					.getRelations((List<IObjRelation>) args[0]);
+			var args = getArguments(is, request);
+			var result = getCacheService().getRelations((List<IObjRelation>) args[0]);
 			return createResult(result, request, response);
 		}
 		catch (Throwable e) {
@@ -94,11 +93,10 @@ public class CacheServiceREST extends AbstractServiceREST {
 	@Path("getORIsForServiceRequest")
 	public StreamingOutput getORIsForServiceRequest(InputStream is,
 			@Context HttpServletRequest request, @Context HttpServletResponse response) {
-		IStateRollback rollback = preServiceCall(request, response);
+		var rollback = preServiceCall(request, response);
 		try {
-			Object[] args = getArguments(is, request);
-			IServiceResult result = getCacheService()
-					.getORIsForServiceRequest((IServiceDescription) args[0]);
+			var args = getArguments(is, request);
+			var result = getCacheService().getORIsForServiceRequest((IServiceDescription) args[0]);
 			return createResult(result, request, response);
 		}
 		catch (Throwable e) {

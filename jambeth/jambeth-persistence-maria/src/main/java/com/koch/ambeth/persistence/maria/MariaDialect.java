@@ -50,6 +50,7 @@ import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.IMap;
 import com.koch.ambeth.util.collections.LinkedHashMap;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
+import lombok.SneakyThrows;
 
 public class MariaDialect extends AbstractConnectionDialect {
 	public static final Pattern BIN_TABLE_NAME = Pattern.compile("BIN\\$.{22}==\\$0",
@@ -97,9 +98,10 @@ public class MariaDialect extends AbstractConnectionDialect {
 		return org.mariadb.jdbc.Driver.class;
 	}
 
+	@SneakyThrows
 	@Override
 	public IList<IMap<String, String>> getExportedKeys(Connection connection, String[] schemaNames)
-			throws SQLException {
+			{
 		PreparedStatement pstm = null;
 		ResultSet allForeignKeysRS = null;
 		try {
@@ -142,7 +144,7 @@ public class MariaDialect extends AbstractConnectionDialect {
 
 	@Override
 	public ILinkedMap<String, IList<String>> getFulltextIndexes(Connection connection,
-			String schemaName) throws SQLException {
+			String schemaName) {
 		return EmptyMap.emptyMap();
 	}
 
@@ -152,7 +154,7 @@ public class MariaDialect extends AbstractConnectionDialect {
 	}
 
 	@Override
-	public void releaseSavepoint(Savepoint savepoint, Connection connection) throws SQLException {
+	public void releaseSavepoint(Savepoint savepoint, Connection connection) {
 		throw new UnsupportedOperationException();
 	}
 
@@ -172,9 +174,10 @@ public class MariaDialect extends AbstractConnectionDialect {
 		return null;
 	}
 
+	@SneakyThrows
 	@Override
 	public ResultSet getIndexInfo(Connection connection, String schemaName, String tableName,
-			boolean unique) throws SQLException {
+			boolean unique) {
 		return connection.getMetaData().getIndexInfo(null, schemaName, tableName, unique, true);
 	}
 
@@ -191,9 +194,10 @@ public class MariaDialect extends AbstractConnectionDialect {
 		throw new UnsupportedOperationException("not yet implemented");
 	}
 
+	@SneakyThrows
 	@Override
 	public List<String> getAllFullqualifiedTableNames(Connection connection, String... schemaNames)
-			throws SQLException {
+			{
 		PreparedStatement pstm = null;
 		ResultSet rs = null;
 		try {
@@ -228,9 +232,10 @@ public class MariaDialect extends AbstractConnectionDialect {
 		}
 	}
 
+	@SneakyThrows
 	@Override
 	public List<String> getAllFullqualifiedViews(Connection connection, String... schemaNames)
-			throws SQLException {
+			{
 		PreparedStatement pstm = null;
 		ResultSet rs = null;
 		try {
@@ -260,9 +265,10 @@ public class MariaDialect extends AbstractConnectionDialect {
 		}
 	}
 
+	@SneakyThrows
 	@Override
 	public IList<IColumnEntry> getAllFieldsOfTable(Connection connection, String fqTableName)
-			throws SQLException {
+			{
 		String[] names = sqlBuilder.getSchemaAndTableName(fqTableName);
 		ResultSet tableColumnsRS = connection.getMetaData().getColumns(null, names[0], names[1], null);
 		try {
@@ -299,9 +305,10 @@ public class MariaDialect extends AbstractConnectionDialect {
 		return null;
 	}
 
+	@SneakyThrows
 	@Override
 	public List<String> getAllFullqualifiedSequences(Connection connection, String... schemaNames)
-			throws SQLException {
+			{
 		Statement stm = null;
 		ResultSet rs = null;
 		try {
@@ -334,9 +341,10 @@ public class MariaDialect extends AbstractConnectionDialect {
 		throw new UnsupportedOperationException();
 	}
 
+	@SneakyThrows
 	@Override
 	protected ConnectionKeyValue preProcessConnectionIntern(Connection connection,
-			String[] schemaNames, boolean forcePreProcessing) throws SQLException {
+			String[] schemaNames, boolean forcePreProcessing) {
 		Statement stm = connection.createStatement();
 		try {
 			stm.execute("USE " + schemaNames[0]);

@@ -1,7 +1,3 @@
-package com.koch.ambeth.server.webservice;
-
-import javax.servlet.http.HttpServletRequest;
-
 /*-
  * #%L
  * jambeth-server
@@ -22,7 +18,10 @@ limitations under the License.
  * #L%
  */
 
-import javax.servlet.http.HttpSession;
+package com.koch.ambeth.server.webservice;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 
 import com.koch.ambeth.util.state.IStateRollback;
 

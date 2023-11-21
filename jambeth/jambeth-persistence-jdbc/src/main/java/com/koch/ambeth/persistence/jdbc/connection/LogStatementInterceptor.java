@@ -45,10 +45,9 @@ import com.koch.ambeth.util.collections.HashSet;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.objectcollector.IThreadLocalObjectCollector;
 import com.koch.ambeth.util.proxy.AbstractSimpleInterceptor;
+import com.koch.ambeth.util.proxy.MethodProxy;
 import com.koch.ambeth.util.sensor.ISensor;
 import com.koch.ambeth.util.sensor.Sensor;
-
-import net.sf.cglib.proxy.MethodProxy;
 
 public class LogStatementInterceptor extends AbstractSimpleInterceptor
 		implements IInitializingBean, IPrintable {

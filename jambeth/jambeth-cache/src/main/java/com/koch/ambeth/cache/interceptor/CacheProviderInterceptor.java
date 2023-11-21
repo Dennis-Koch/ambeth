@@ -38,11 +38,10 @@ import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.HashSet;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.proxy.AbstractSimpleInterceptor;
+import com.koch.ambeth.util.proxy.MethodProxy;
 import com.koch.ambeth.util.state.AbstractStateRollback;
 import com.koch.ambeth.util.state.IStateRollback;
 import com.koch.ambeth.util.threading.SensitiveThreadLocal;
-
-import net.sf.cglib.proxy.MethodProxy;
 
 public class CacheProviderInterceptor extends AbstractSimpleInterceptor
 		implements ICacheProviderExtendable, ICacheProvider, ICacheContext, IThreadLocalCleanupBean {

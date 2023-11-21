@@ -26,10 +26,9 @@ import com.koch.ambeth.ioc.factory.IBeanContextFactory;
 import com.koch.ambeth.service.log.interceptor.LogInterceptor;
 import com.koch.ambeth.util.ParamChecker;
 import com.koch.ambeth.util.proxy.IProxyFactory;
+import com.koch.ambeth.util.proxy.MethodInterceptor;
 import com.koch.ambeth.util.proxy.TargetingInterceptor;
 import com.koch.ambeth.util.threading.IBackgroundWorkerParamDelegate;
-
-import net.sf.cglib.proxy.MethodInterceptor;
 
 public class SyncClientServiceInterceptorBuilder implements IClientServiceInterceptorBuilder {
 	@Autowired
@@ -40,7 +39,7 @@ public class SyncClientServiceInterceptorBuilder implements IClientServiceInterc
 
 	@Override
 	public MethodInterceptor createInterceptor(IServiceContext sourceBeanContext,
-			Class<?> syncLocalInterface, Class<?> syncRemoteInterface, Class<?> asyncRemoteInterface) {
+											   Class<?> syncLocalInterface, Class<?> syncRemoteInterface, Class<?> asyncRemoteInterface) {
 		ParamChecker.assertParamNotNull(sourceBeanContext, "sourceBeanContext");
 		if (syncRemoteInterface == null) {
 			syncRemoteInterface = syncLocalInterface;

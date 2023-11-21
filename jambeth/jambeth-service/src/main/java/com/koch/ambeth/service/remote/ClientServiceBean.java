@@ -27,8 +27,6 @@ import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.config.Property;
 import com.koch.ambeth.util.proxy.IProxyFactory;
 
-import net.sf.cglib.proxy.MethodInterceptor;
-
 public class ClientServiceBean implements IFactoryBean, IInitializingBean {
 	public static final String INTERFACE_PROP_NAME = "InterfaceType";
 	public static final String SYNC_REMOTE_INTERFACE_PROP_NAME = "SyncRemoteInterfaceType";
@@ -63,7 +61,7 @@ public class ClientServiceBean implements IFactoryBean, IInitializingBean {
 	}
 
 	private void init() {
-		MethodInterceptor interceptor = clientServiceInterceptorBuilder.createInterceptor(beanContext,
+		var interceptor = clientServiceInterceptorBuilder.createInterceptor(beanContext,
 				interfaceType, syncRemoteInterfaceType, asyncRemoteInterfaceType);
 		proxy = proxyFactory.createProxy(interfaceType, interceptor);
 	}

@@ -20,9 +20,6 @@ limitations under the License.
  * #L%
  */
 
-import java.sql.Connection;
-import java.sql.SQLException;
-
 import com.koch.ambeth.event.IEventDispatcher;
 import com.koch.ambeth.ioc.IInitializingBean;
 import com.koch.ambeth.ioc.IServiceContext;
@@ -35,12 +32,11 @@ import com.koch.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationConst
 import com.koch.ambeth.persistence.jdbc.event.ConnectionCreatedEvent;
 import com.koch.ambeth.util.ParamChecker;
 import com.koch.ambeth.util.collections.ArrayList;
-import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
+import com.koch.ambeth.util.proxy.Factory;
 import com.koch.ambeth.util.proxy.IProxyFactory;
+import lombok.SneakyThrows;
 
-import net.sf.cglib.proxy.Callback;
-import net.sf.cglib.proxy.Factory;
-import net.sf.cglib.proxy.MethodInterceptor;
+import java.sql.Connection;
 
 public abstract class AbstractConnectionFactory implements IConnectionFactory, IInitializingBean {
 	@Autowired
@@ -72,18 +68,14 @@ public abstract class AbstractConnectionFactory implements IConnectionFactory, I
 		schemaNames = connectionDialect.toDefaultCase(schemaName).split("[:;]");
 	}
 
+	@SneakyThrows
 	@Override
 	public final Connection create() {
 		while (preparedConnectionInstances != null && !preparedConnectionInstances.isEmpty()) {
-			Connection preparedConnection = preparedConnectionInstances
+			var preparedConnection = preparedConnectionInstances
 					.remove(preparedConnectionInstances.size() - 1);
-			try {
-				if (preparedConnection.isClosed()) {
-					continue;
-				}
-			}
-			catch (SQLException e) {
-				throw RuntimeExceptionUtil.mask(e);
+			if (preparedConnection.isClosed()) {
+				continue;
 			}
 			connectionDialect.preProcessConnection(preparedConnection, schemaNames, false);
 
@@ -92,50 +84,41 @@ public abstract class AbstractConnectionFactory implements IConnectionFactory, I
 			}
 			return preparedConnection;
 		}
-		try {
-			Connection connection = createIntern();
-			connection.setAutoCommit(false);
+		var connection = createIntern();
+		connection.setAutoCommit(false);
 
-			MethodInterceptor logConnectionInterceptor = beanContext
-					.registerExternalBean(new LogConnectionInterceptor(connectionKeyHandle))
-					.propertyValue("Connection", connection).finish();
-			Connection conn = proxyFactory.createProxy(Connection.class,
-					connectionDialect.getConnectionInterfaces(connection), logConnectionInterceptor);
+		var logConnectionInterceptor = beanContext
+				.registerExternalBean(new LogConnectionInterceptor(connectionKeyHandle))
+				.propertyValue("Connection", connection).finish();
+		var conn = proxyFactory.createProxy(Connection.class,
+				connectionDialect.getConnectionInterfaces(connection), logConnectionInterceptor);
 
-			connectionDialect.preProcessConnection(conn, schemaNames, false);
+		connectionDialect.preProcessConnection(conn, schemaNames, false);
 
-			if (eventDispatcher != null) {
-				eventDispatcher.dispatchEvent(new ConnectionCreatedEvent(conn));
-			}
-			return conn;
+		if (eventDispatcher != null) {
+			eventDispatcher.dispatchEvent(new ConnectionCreatedEvent(conn));
 		}
-		catch (Exception e) {
-			throw RuntimeExceptionUtil.mask(e);
-		}
+		return conn;
 	}
 
+	@SneakyThrows
 	@Override
 	public final void create(Connection reusableConnection) {
-		try {
-			if (!(reusableConnection instanceof Factory)) {
-				throw new IllegalArgumentException("Connection is not reusable");
-			}
-			Callback callback = ((Factory) reusableConnection).getCallback(0);
-			if (!(callback instanceof LogConnectionInterceptor)) {
-				throw new IllegalArgumentException("Connection is not reusable");
-			}
-			LogConnectionInterceptor lci = (LogConnectionInterceptor) callback;
-			if (lci.getConnection() != null) {
-				return;
-			}
-			Connection connection = createIntern();
-			((LogConnectionInterceptor) callback).setConnection(connection);
-			if (eventDispatcher != null) {
-				eventDispatcher.dispatchEvent(new ConnectionCreatedEvent(reusableConnection));
-			}
+		if (!(reusableConnection instanceof Factory)) {
+			throw new IllegalArgumentException("Connection is not reusable");
 		}
-		catch (Exception e) {
-			throw RuntimeExceptionUtil.mask(e);
+		var callback = ((Factory) reusableConnection).getCallback(0);
+		if (!(callback instanceof LogConnectionInterceptor)) {
+			throw new IllegalArgumentException("Connection is not reusable");
+		}
+		var lci = (LogConnectionInterceptor) callback;
+		if (lci.getConnection() != null) {
+			return;
+		}
+		var connection = createIntern();
+		((LogConnectionInterceptor) callback).setConnection(connection);
+		if (eventDispatcher != null) {
+			eventDispatcher.dispatchEvent(new ConnectionCreatedEvent(reusableConnection));
 		}
 	}
 

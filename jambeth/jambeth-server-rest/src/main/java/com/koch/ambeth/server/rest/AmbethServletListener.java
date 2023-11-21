@@ -1,20 +1,5 @@
 package com.koch.ambeth.server.rest;
 
-import java.nio.charset.Charset;
-import java.sql.Driver;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-import java.util.Enumeration;
-import java.util.StringTokenizer;
-
-import javax.servlet.ServletContext;
-import javax.servlet.ServletContextEvent;
-import javax.servlet.ServletContextListener;
-import javax.servlet.annotation.WebListener;
-import javax.servlet.http.HttpSessionEvent;
-import javax.servlet.http.HttpSessionListener;
-import javax.ws.rs.ext.Provider;
-
 import com.koch.ambeth.core.Ambeth;
 import com.koch.ambeth.core.bundle.IBundleModule;
 import com.koch.ambeth.core.start.IAmbethApplication;
@@ -33,6 +18,18 @@ import com.koch.ambeth.util.IConversionHelper;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.config.IProperties;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
+import jakarta.servlet.ServletContext;
+import jakarta.servlet.ServletContextEvent;
+import jakarta.servlet.ServletContextListener;
+import jakarta.servlet.annotation.WebListener;
+import jakarta.servlet.http.HttpSessionEvent;
+import jakarta.servlet.http.HttpSessionListener;
+import jakarta.ws.rs.ext.Provider;
+import java.sql.Driver;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+import java.util.Enumeration;
+import java.util.StringTokenizer;
 
 @WebListener
 @Provider
@@ -43,8 +40,6 @@ public class AmbethServletListener implements ServletContextListener, HttpSessio
 	public static final String ATTRIBUTE_I_SERVICE_CONTEXT = "ambeth.IServiceContext";
 
 	public static final String ATTRIBUTE_I_APPLICATION = "ambeth.Application";
-
-	protected final Charset utfCharset = Charset.forName("UTF-8");
 
 	protected ServletContext servletContext;
 

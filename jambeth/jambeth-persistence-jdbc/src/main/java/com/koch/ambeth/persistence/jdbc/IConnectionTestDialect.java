@@ -31,26 +31,26 @@ public interface IConnectionTestDialect {
 
 	void dropAllSchemaContent(Connection conn, String schemaName);
 
-	List<String> getTablesWithoutOptimisticLockTrigger(Connection connection) throws SQLException;
+	List<String> getTablesWithoutOptimisticLockTrigger(Connection connection);
 
-	String[] createOptimisticLockTrigger(Connection connection, String tableName) throws SQLException;
+	String[] createOptimisticLockTrigger(Connection connection, String tableName);
 
-	String[] createAdditionalTriggers(Connection connection, String tableName) throws SQLException;
+	String[] createAdditionalTriggers(Connection connection, String tableName);
 
-	List<String> getTablesWithoutPermissionGroup(Connection conn) throws SQLException;
+	List<String> getTablesWithoutPermissionGroup(Connection conn);
 
-	String[] createPermissionGroup(Connection conn, String tableName) throws SQLException;
+	String[] createPermissionGroup(Connection conn, String tableName);
 
 	boolean createTestUserIfSupported(Throwable reason, String userName, String userPassword,
-			IProperties testProps) throws SQLException;
+			IProperties testProps);
 
 	void dropCreatedTestUser(String userName, String userPassword, IProperties testProps)
 			throws SQLException;
 
-	boolean isEmptySchema(Connection connection) throws SQLException;
+	boolean isEmptySchema(Connection connection);
 
 	void preProcessConnectionForTest(Connection connection, String[] schemaNames,
 			boolean forcePreProcessing);
 
-	void preStructureRebuild(Connection connection) throws SQLException;
+	void preStructureRebuild(Connection connection);
 }

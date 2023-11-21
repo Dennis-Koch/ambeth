@@ -29,7 +29,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.naming.directory.DirContext;
-import javax.servlet.ServletContext;
+import jakarta.servlet.ServletContext;
 
 import com.koch.ambeth.core.start.IClasspathInfo;
 import com.koch.ambeth.ioc.annotation.Autowired;
