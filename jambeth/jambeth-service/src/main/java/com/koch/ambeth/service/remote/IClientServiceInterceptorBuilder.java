@@ -25,6 +25,5 @@ import com.koch.ambeth.util.proxy.MethodInterceptor;
 
 
 public interface IClientServiceInterceptorBuilder {
-	MethodInterceptor createInterceptor(IServiceContext sourceBeanContext,
-										Class<?> syncLocalInterface, Class<?> syncRemoteInterface, Class<?> asyncRemoteInterface);
+    MethodInterceptor createInterceptor(IServiceContext sourceBeanContext, Class<?> syncLocalInterface, Class<?> syncRemoteInterface, Class<?> asyncRemoteInterface);
 }

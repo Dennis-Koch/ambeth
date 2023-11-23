@@ -50,75 +50,58 @@ import com.koch.ambeth.util.typeinfo.ITypeInfoProviderFactory;
 
 @FrameworkModule
 public class ServiceModule implements IInitializingModule {
-	@Property(name = ServiceConfigurationConstants.NetworkClientMode, defaultValue = "false")
-	protected boolean networkClientMode;
+    @Property(name = ServiceConfigurationConstants.NetworkClientMode, defaultValue = "false")
+    protected boolean networkClientMode;
 
-	@Property(name = ServiceConfigurationConstants.ProcessServiceBeanActive, defaultValue = "true")
-	protected boolean isProcessServiceBeanActive;
+    @Property(name = ServiceConfigurationConstants.ProcessServiceBeanActive, defaultValue = "true")
+    protected boolean isProcessServiceBeanActive;
 
-	@Property(name = ServiceConfigurationConstants.OfflineModeSupported, defaultValue = "false")
-	protected boolean offlineModeSupported;
+    @Property(name = ServiceConfigurationConstants.OfflineModeSupported, defaultValue = "false")
+    protected boolean offlineModeSupported;
 
-	@Property(name = ServiceConfigurationConstants.TypeInfoProviderType, mandatory = false)
-	protected Class<?> typeInfoProviderType;
+    @Property(name = ServiceConfigurationConstants.TypeInfoProviderType, mandatory = false)
+    protected Class<?> typeInfoProviderType;
 
-	@Property(name = ServiceConfigurationConstants.ServiceRemoteInterceptorType, mandatory = false)
-	protected Class<? extends IClientServiceInterceptorBuilder> ServiceRemoteInterceptorType;
+    @Property(name = ServiceConfigurationConstants.ServiceRemoteInterceptorType, mandatory = false)
+    protected Class<? extends IClientServiceInterceptorBuilder> ServiceRemoteInterceptorType;
 
-	@Override
-	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
-		if (typeInfoProviderType == null) {
-			typeInfoProviderType = TypeInfoProvider.class;
-		}
-		if (networkClientMode) {
-			// beanContextFactory.registerBean("serviceFactory", ServiceFactory.class);
+    @Override
+    public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
+        if (typeInfoProviderType == null) {
+            typeInfoProviderType = TypeInfoProvider.class;
+        }
+        if (networkClientMode) {
+            if (ServiceRemoteInterceptorType == null) {
+                ServiceRemoteInterceptorType = SyncClientServiceInterceptorBuilder.class;
+            }
+            beanContextFactory.registerBean("clientServiceInterceptorBuilder", ServiceRemoteInterceptorType).autowireable(IClientServiceInterceptorBuilder.class);
 
-			if (ServiceRemoteInterceptorType == null) {
-				ServiceRemoteInterceptorType = SyncClientServiceInterceptorBuilder.class;
-			}
-			beanContextFactory
-					.registerBean("clientServiceInterceptorBuilder", ServiceRemoteInterceptorType)
-					.autowireable(IClientServiceInterceptorBuilder.class);
+            if (!offlineModeSupported) {
+                // Register default service url provider
+                beanContextFactory.registerBean("serviceUrlProvider", DefaultServiceUrlProvider.class).autowireable(IServiceUrlProvider.class, IOfflineListenerExtendable.class);
+            }
+        } else if (!offlineModeSupported) {
+            beanContextFactory.registerBean(NoOpOfflineExtendable.class).autowireable(IOfflineListenerExtendable.class);
+        }
+        beanContextFactory.registerBean(ServiceByNameProvider.class).propertyValue("ParentServiceByNameProvider", null).autowireable(IServiceByNameProvider.class, IServiceExtendable.class);
 
-			if (!offlineModeSupported) {
-				// Register default service url provider
-				beanContextFactory.registerBean("serviceUrlProvider", DefaultServiceUrlProvider.class)
-						.autowireable(IServiceUrlProvider.class, IOfflineListenerExtendable.class);
-			}
-		}
-		else if (!offlineModeSupported) {
-			beanContextFactory.registerBean(NoOpOfflineExtendable.class)
-					.autowireable(IOfflineListenerExtendable.class);
-		}
-		beanContextFactory.registerBean(ServiceByNameProvider.class)
-				.propertyValue("ParentServiceByNameProvider", null)
-				.autowireable(IServiceByNameProvider.class, IServiceExtendable.class);
+        beanContextFactory.registerBean("serviceResultProcessorRegistry", ServiceResultProcessorRegistry.class)
+                          .autowireable(IServiceResultProcessorRegistry.class, IServiceResultProcessorExtendable.class);
 
-		beanContextFactory
-				.registerBean("serviceResultProcessorRegistry", ServiceResultProcessorRegistry.class)
-				.autowireable(IServiceResultProcessorRegistry.class,
-						IServiceResultProcessorExtendable.class);
+        beanContextFactory.registerBean("typeInfoProvider", typeInfoProviderType).autowireable(ITypeInfoProvider.class);
 
-		beanContextFactory.registerBean("typeInfoProvider", typeInfoProviderType)
-				.autowireable(ITypeInfoProvider.class);
+        beanContextFactory.registerBean("typeInfoProviderFactory", TypeInfoProviderFactory.class)
+                          .propertyValue("TypeInfoProviderType", typeInfoProviderType)
+                          .autowireable(ITypeInfoProviderFactory.class);
 
-		beanContextFactory.registerBean("typeInfoProviderFactory", TypeInfoProviderFactory.class)
-				.propertyValue("TypeInfoProviderType", typeInfoProviderType)
-				.autowireable(ITypeInfoProviderFactory.class);
+        beanContextFactory.registerBean("loggingPostProcessor", LoggingPostProcessor.class);
 
-		beanContextFactory.registerBean("loggingPostProcessor", LoggingPostProcessor.class);
+        if (networkClientMode && isProcessServiceBeanActive) {
+            beanContextFactory.registerBean("processService", ClientServiceBean.class).propertyValue(ClientServiceBean.INTERFACE_PROP_NAME, IProcessService.class).autowireable(IProcessService.class);
+        } else {
+            beanContextFactory.registerBean("processService", ProcessService.class).autowireable(IProcessService.class);
+        }
 
-		if (networkClientMode && isProcessServiceBeanActive) {
-			beanContextFactory.registerBean("processService", ClientServiceBean.class)
-					.propertyValue(ClientServiceBean.INTERFACE_PROP_NAME, IProcessService.class)
-					.autowireable(IProcessService.class);
-		}
-		else {
-			beanContextFactory.registerBean("processService", ProcessService.class)
-					.autowireable(IProcessService.class);
-		}
-
-		beanContextFactory.registerBean("xmlTypeHelper", XmlTypeHelper.class)
-				.autowireable(IXmlTypeHelper.class);
-	}
+        beanContextFactory.registerBean("xmlTypeHelper", XmlTypeHelper.class).autowireable(IXmlTypeHelper.class);
+    }
 }

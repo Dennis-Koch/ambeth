@@ -21,56 +21,46 @@ limitations under the License.
  */
 
 import com.koch.ambeth.ioc.IFactoryBean;
-import com.koch.ambeth.ioc.IInitializingBean;
 import com.koch.ambeth.ioc.IServiceContext;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.config.Property;
 import com.koch.ambeth.util.proxy.IProxyFactory;
 
-public class ClientServiceBean implements IFactoryBean, IInitializingBean {
-	public static final String INTERFACE_PROP_NAME = "InterfaceType";
-	public static final String SYNC_REMOTE_INTERFACE_PROP_NAME = "SyncRemoteInterfaceType";
-	public static final String ASYNC_REMOTE_INTERFACE_PROP_NAME = "AsyncRemoteInterfaceType";
+public class ClientServiceBean implements IFactoryBean {
+    public static final String INTERFACE_PROP_NAME = "InterfaceType";
+    public static final String SYNC_REMOTE_INTERFACE_PROP_NAME = "SyncRemoteInterfaceType";
+    public static final String ASYNC_REMOTE_INTERFACE_PROP_NAME = "AsyncRemoteInterfaceType";
+    protected final Object mutex = new Object();
 
-	@Autowired
-	protected IClientServiceFactory clientServiceFactory;
+    protected Object proxy;
+    @Autowired
+    protected IClientServiceInterceptorBuilder clientServiceInterceptorBuilder;
+    @Autowired
+    protected IProxyFactory proxyFactory;
+    @Autowired
+    protected IServiceContext beanContext;
+    @Property
+    protected Class<?> interfaceType;
+    @Property(mandatory = false)
+    protected Class<?> syncRemoteInterfaceType;
+    @Property(mandatory = false)
+    protected Class<?> asyncRemoteInterfaceType;
 
-	@Autowired
-	protected IClientServiceInterceptorBuilder clientServiceInterceptorBuilder;
+    protected Object createProxy() {
+        var interceptor = clientServiceInterceptorBuilder.createInterceptor(beanContext, interfaceType, syncRemoteInterfaceType, asyncRemoteInterfaceType);
+        return proxyFactory.createProxy(interfaceType, interceptor);
+    }
 
-	@Autowired
-	protected IProxyFactory proxyFactory;
-
-	@Autowired
-	protected IServiceContext beanContext;
-
-	@Property
-	protected Class<?> interfaceType;
-
-	@Property(mandatory = false)
-	protected Class<?> syncRemoteInterfaceType;
-
-	@Property(mandatory = false)
-	protected Class<?> asyncRemoteInterfaceType;
-
-	public Object proxy;
-
-	@Override
-	public void afterPropertiesSet() throws Throwable {
-		getObject();
-	}
-
-	private void init() {
-		var interceptor = clientServiceInterceptorBuilder.createInterceptor(beanContext,
-				interfaceType, syncRemoteInterfaceType, asyncRemoteInterfaceType);
-		proxy = proxyFactory.createProxy(interfaceType, interceptor);
-	}
-
-	@Override
-	public Object getObject() {
-		if (proxy == null) {
-			init();
-		}
-		return proxy;
-	}
+    @Override
+    public Object getObject() {
+        if (proxy != null) {
+            return proxy;
+        }
+        synchronized (mutex) {
+            if (proxy == null) {
+                proxy = createProxy();
+            }
+            return proxy;
+        }
+    }
 }

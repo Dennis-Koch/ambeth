@@ -21,84 +21,94 @@ limitations under the License.
  */
 
 import com.koch.ambeth.log.config.Properties;
-import com.koch.ambeth.persistence.jdbc.IConnectionFactory;
 import com.koch.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationConstants;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import lombok.SneakyThrows;
 
 import javax.naming.InitialContext;
 import javax.sql.DataSource;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class DatabaseProtocolResolver {
 
-	private static final Pattern ORACLE_PATTERN = Pattern.compile("^(jdbc:[^:]+:[^:]+)(?::[^:/]+/[^:]+)?:@.*");
-	private static final Pattern NON_ORACLE_PATTERN = Pattern.compile("^(jdbc:[^:]+)(:.*)?");
+    private static final Pattern ORACLE_PATTERN = Pattern.compile("^(jdbc:[^:]+:[^:]+)(?::[^:/]+/[^:]+)?:@.*");
+    private static final Pattern NON_ORACLE_PATTERN = Pattern.compile("^(jdbc:[^:]+)(:.*)?");
 
-	@SneakyThrows
-	public static void enrichWithDatabaseProtocol(Properties contextProperties) {
-		var databaseProtocol = contextProperties.getString(PersistenceJdbcConfigurationConstants.DatabaseProtocol);
-		if (databaseProtocol != null) {
-			return;
-		}
-		try {
-			var connectionUrl = resolveConnectionUrl(contextProperties);
-			Matcher urlMatcher;
-			if (connectionUrl.contains(":@")) {
-				// Oracle
-				// jdbc:oracle:driver:username/password@host:port:database
-				urlMatcher = ORACLE_PATTERN.matcher(connectionUrl);
-				// Ignore ([^:]+)(?::(\\d++))?(?::([^:]+))?$ => host:post/database?params
-			}
-			else {
-				// Use everything from jdbc to the second :
-				// Postgresql, MySql, SqlServer
-				// jdbc:driver://host:port/database?user=...
-				// jdbc:h2:tcp://localhost/~/test;AUTO_RECONNECT=TRUE
-				// Derby, DB2, Sybase, H2 non-urls
-				// jdbc:driver:...
-				urlMatcher = NON_ORACLE_PATTERN.matcher(connectionUrl);
-			}
-			if (contextProperties.get(PersistenceJdbcConfigurationConstants.DatabaseConnection) == null) {
-				contextProperties.putString(PersistenceJdbcConfigurationConstants.DatabaseConnection, connectionUrl);
-			}
-			if (urlMatcher.matches()) {
-				var protocol = urlMatcher.group(1);
-				contextProperties.putString(PersistenceJdbcConfigurationConstants.DatabaseProtocol,
-						protocol);
-			}
-		}
-		catch (Throwable e) {
-			throw RuntimeExceptionUtil.mask(e, DatabaseProtocolResolver.class.getSimpleName()
-					+ " was not able to get the database protocol from the dataSource");
-			// Do nothing and hope that the connection is configured elsewhere
-		}
-	}
+    public static void enrichWithDatabaseProtocol(java.util.Properties props) {
+        enrichWithDatabaseProtocol(props::get, props::put);
+    }
 
-	@SneakyThrows
-	private static String resolveConnectionUrl(Properties contextProperties) {
-		var useIntegrationConnectionFactory = Boolean.parseBoolean(contextProperties.getString(PersistenceJdbcConfigurationConstants.IntegratedConnectionFactory, "true"));
-		if (useIntegrationConnectionFactory) {
-			var connectionUrl = contextProperties.getString(PersistenceJdbcConfigurationConstants.DatabaseConnection);
-			if (connectionUrl == null) {
-				throw new IllegalStateException("No connection URL resolvable. Maybe you need to specify '" + PersistenceJdbcConfigurationConstants.DatabaseConnection + "'");
-			}
-			return connectionUrl;
-		}
-		DataSource dataSource = contextProperties.get(PersistenceJdbcConfigurationConstants.DataSourceInstance);
-		if (dataSource == null) {
-			String dataSourceName = contextProperties.get(PersistenceJdbcConfigurationConstants.DataSourceName);
-			if (dataSourceName != null) {
-				var ic = new InitialContext();
-				dataSource = (DataSource) ic.lookup(dataSourceName);
-			}
-		}
-		if (dataSource != null) {
-			try (var connection = dataSource.getConnection()) {
-				return connection.getMetaData().getURL();
-			}
-		}
-		throw new IllegalStateException("No connection URL resolvable. As '" + PersistenceJdbcConfigurationConstants.DatabaseConnection + "'=false you may need to specify '" + PersistenceJdbcConfigurationConstants.DataSourceInstance + "'");
-	}
+    public static void enrichWithDatabaseProtocol(Properties props) {
+        enrichWithDatabaseProtocol(props::get, props::put);
+    }
+
+    @SneakyThrows
+    public static void enrichWithDatabaseProtocol(Function<String, Object> propGetter, BiConsumer<String, String> propSetter) {
+        var databaseProtocol = propGetter.apply(PersistenceJdbcConfigurationConstants.DatabaseProtocol);
+        if (databaseProtocol != null) {
+            return;
+        }
+        try {
+            var connectionUrl = resolveConnectionUrl(propGetter);
+            Matcher urlMatcher;
+            if (connectionUrl.contains(":@")) {
+                // Oracle
+                // jdbc:oracle:driver:username/password@host:port:database
+                urlMatcher = ORACLE_PATTERN.matcher(connectionUrl);
+                // Ignore ([^:]+)(?::(\\d++))?(?::([^:]+))?$ => host:post/database?params
+            } else {
+                // Use everything from jdbc to the second :
+                // Postgresql, MySql, SqlServer
+                // jdbc:driver://host:port/database?user=...
+                // jdbc:h2:tcp://localhost/~/test;AUTO_RECONNECT=TRUE
+                // Derby, DB2, Sybase, H2 non-urls
+                // jdbc:driver:...
+                urlMatcher = NON_ORACLE_PATTERN.matcher(connectionUrl);
+            }
+            if (propGetter.apply(PersistenceJdbcConfigurationConstants.DatabaseConnection) == null) {
+                propSetter.accept(PersistenceJdbcConfigurationConstants.DatabaseConnection, connectionUrl);
+            }
+            if (urlMatcher.matches()) {
+                var protocol = urlMatcher.group(1);
+                propSetter.accept(PersistenceJdbcConfigurationConstants.DatabaseProtocol, protocol);
+            }
+        } catch (Throwable e) {
+            throw RuntimeExceptionUtil.mask(e, DatabaseProtocolResolver.class.getSimpleName() + " was not able to get the database protocol from the dataSource");
+            // Do nothing and hope that the connection is configured elsewhere
+        }
+    }
+
+    @SneakyThrows
+    private static String resolveConnectionUrl(Function<String, Object> propGetter) {
+        var integratedConnectionFactory = propGetter.apply(PersistenceJdbcConfigurationConstants.IntegratedConnectionFactory);
+        if (integratedConnectionFactory == null) {
+            integratedConnectionFactory = "true";
+        }
+        var useIntegrationConnectionFactory = Boolean.parseBoolean(integratedConnectionFactory != null ? integratedConnectionFactory.toString() : null);
+        if (useIntegrationConnectionFactory) {
+            var connectionUrl = (String) propGetter.apply(PersistenceJdbcConfigurationConstants.DatabaseConnection);
+            if (connectionUrl == null) {
+                throw new IllegalStateException("No connection URL resolvable. Maybe you need to specify '" + PersistenceJdbcConfigurationConstants.DatabaseConnection + "'");
+            }
+            return connectionUrl;
+        }
+        DataSource dataSource = (DataSource) propGetter.apply(PersistenceJdbcConfigurationConstants.DataSourceInstance);
+        if (dataSource == null) {
+            String dataSourceName = (String) propGetter.apply(PersistenceJdbcConfigurationConstants.DataSourceName);
+            if (dataSourceName != null) {
+                var ic = new InitialContext();
+                dataSource = (DataSource) ic.lookup(dataSourceName);
+            }
+        }
+        if (dataSource != null) {
+            try (var connection = dataSource.getConnection()) {
+                return connection.getMetaData().getURL();
+            }
+        }
+        throw new IllegalStateException(
+                "No connection URL resolvable. As '" + PersistenceJdbcConfigurationConstants.DatabaseConnection + "'=false you may need to specify '" + PersistenceJdbcConfigurationConstants.DataSourceInstance + "'");
+    }
 }

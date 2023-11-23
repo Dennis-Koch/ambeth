@@ -20,9 +20,6 @@ limitations under the License.
  * #L%
  */
 
-import org.junit.Assert;
-import org.junit.runner.RunWith;
-
 import com.koch.ambeth.audit.server.ioc.AuditModule;
 import com.koch.ambeth.cache.proxy.IEntityEquals;
 import com.koch.ambeth.cache.server.ioc.CacheServerModule;
@@ -53,86 +50,93 @@ import com.koch.ambeth.service.merge.IEntityMetaDataProvider;
 import com.koch.ambeth.service.merge.model.IEntityMetaData;
 import com.koch.ambeth.testutil.AbstractInformationBusWithPersistenceTest.PersistencePropertiesProvider;
 import com.koch.ambeth.util.IConversionHelper;
+import org.junit.Assert;
+import org.junit.runner.RunWith;
 
-@TestFrameworkModule({ AuditModule.class, CacheServerModule.class, EventServerModule.class,
-		EventDataChangeModule.class, ExprModule.class, MergeServerModule.class, PersistenceModule.class,
-		PersistenceJdbcModule.class, PrivilegeModule.class, PrivilegeServerModule.class,
-		SecurityServerModule.class, SecurityQueryModule.class, QueryModule.class, QueryJdbcModule.class,
-		FilterPersistenceModule.class, PreparedStatementParamLoggerModule.class })
+@TestFrameworkModule({
+        AuditModule.class,
+        CacheServerModule.class,
+        EventServerModule.class,
+        EventDataChangeModule.class,
+        ExprModule.class,
+        MergeServerModule.class,
+        PersistenceModule.class,
+        PersistenceJdbcModule.class,
+        PrivilegeModule.class,
+        PrivilegeServerModule.class,
+        SecurityServerModule.class,
+        SecurityQueryModule.class,
+        QueryModule.class,
+        QueryJdbcModule.class,
+        FilterPersistenceModule.class,
+        PreparedStatementParamLoggerModule.class
+})
 @TestProperties(type = PersistencePropertiesProvider.class)
 @RunWith(AmbethInformationBusWithPersistenceRunner.class)
 public abstract class AbstractInformationBusWithPersistenceTest extends AbstractInformationBusTest {
-	public static class PersistencePropertiesProvider implements IPropertiesProvider {
-		@Override
-		public void fillProperties(Properties props) {
-			// PersistenceJdbcModule
-			props.put(ServiceConfigurationConstants.NetworkClientMode, "false");
-			props.put(ServiceConfigurationConstants.SlaveMode, "false");
-			props.put(ServiceConfigurationConstants.LogShortNames, "true");
-			props.put(PersistenceConfigurationConstants.AutoIndexForeignKeys, "true");
+    @Autowired
+    protected IConnectionFactory connectionFactory;
+    @Autowired
+    protected IConversionHelper conversionHelper;
+    @Autowired
+    protected IEntityFactory entityFactory;
+    @Autowired
+    protected IEntityMetaDataProvider entityMetaDataProvider;
+    @Autowired
+    protected IMeasurement measurement;
+    @Autowired
+    protected IQueryBuilderFactory queryBuilderFactory;
+    @Autowired
+    protected ITransaction transaction;
 
-			// IocModule
-			props.put(IocConfigurationConstants.UseObjectCollector, "false");
-		}
-	}
+    public void assertProxyEquals(Object expected, Object actual) {
+        assertProxyEquals("", expected, actual);
+    }
 
-	@Autowired
-	protected IConnectionFactory connectionFactory;
+    public void assertProxyEquals(String message, Object expected, Object actual) {
+        if (expected == actual) {
+            // Nothing to do
+            return;
+        }
+        if (expected == null) {
+            if (actual == null) {
+                return;
+            } else {
+                Assert.fail("expected:<" + expected + "> but was:<" + actual + ">");
+            }
+        } else if (actual == null) {
+            Assert.fail("expected:<" + expected + "> but was:<" + actual + ">");
+        }
+        if (expected instanceof IEntityEquals) {
+            if (expected.equals(actual)) {
+                return;
+            }
+            IEntityEquals expectedEE = (IEntityEquals) expected;
+            Assert.fail("expected:<" + expectedEE.toString() + "> but was:<" + actual + ">");
+        }
+        IEntityMetaData expectedMetaData = entityMetaDataProvider.getMetaData(expected.getClass());
+        IEntityMetaData actualMetaData = entityMetaDataProvider.getMetaData(actual.getClass());
+        Class<?> expectedType = expectedMetaData.getEntityType();
+        Class<?> actualType = actualMetaData.getEntityType();
+        if (!expectedType.equals(actualType)) {
+            Assert.fail("expected:<" + expected + "> but was:<" + actual + ">");
+        }
+        Object expectedId = expectedMetaData.getIdMember().getValue(expected, false);
+        Object actualId = actualMetaData.getIdMember().getValue(actual, false);
+        Assert.assertEquals(expectedId, actualId);
+    }
 
-	@Autowired
-	protected IConversionHelper conversionHelper;
+    public static class PersistencePropertiesProvider implements IPropertiesProvider {
+        @Override
+        public void fillProperties(Properties props) {
+            // PersistenceJdbcModule
+            props.put(ServiceConfigurationConstants.NetworkClientMode, "false");
+            props.put(ServiceConfigurationConstants.SlaveMode, "false");
+            props.put(ServiceConfigurationConstants.LogShortNames, "true");
+            props.put(PersistenceConfigurationConstants.AutoIndexForeignKeys, "true");
 
-	@Autowired
-	protected IEntityFactory entityFactory;
-
-	@Autowired
-	protected IEntityMetaDataProvider entityMetaDataProvider;
-
-	@Autowired
-	protected IMeasurement measurement;
-
-	@Autowired
-	protected IQueryBuilderFactory queryBuilderFactory;
-
-	@Autowired
-	protected ITransaction transaction;
-
-	public void assertProxyEquals(Object expected, Object actual) {
-		assertProxyEquals("", expected, actual);
-	}
-
-	public void assertProxyEquals(String message, Object expected, Object actual) {
-		if (expected == actual) {
-			// Nothing to do
-			return;
-		}
-		if (expected == null) {
-			if (actual == null) {
-				return;
-			}
-			else {
-				Assert.fail("expected:<" + expected + "> but was:<" + actual + ">");
-			}
-		}
-		else if (actual == null) {
-			Assert.fail("expected:<" + expected + "> but was:<" + actual + ">");
-		}
-		if (expected instanceof IEntityEquals) {
-			if (expected.equals(actual)) {
-				return;
-			}
-			IEntityEquals expectedEE = (IEntityEquals) expected;
-			Assert.fail("expected:<" + expectedEE.toString() + "> but was:<" + actual + ">");
-		}
-		IEntityMetaData expectedMetaData = entityMetaDataProvider.getMetaData(expected.getClass());
-		IEntityMetaData actualMetaData = entityMetaDataProvider.getMetaData(actual.getClass());
-		Class<?> expectedType = expectedMetaData.getEntityType();
-		Class<?> actualType = actualMetaData.getEntityType();
-		if (!expectedType.equals(actualType)) {
-			Assert.fail("expected:<" + expected + "> but was:<" + actual + ">");
-		}
-		Object expectedId = expectedMetaData.getIdMember().getValue(expected, false);
-		Object actualId = actualMetaData.getIdMember().getValue(actual, false);
-		Assert.assertEquals(expectedId, actualId);
-	}
+            // IocModule
+            props.put(IocConfigurationConstants.UseObjectCollector, "false");
+        }
+    }
 }
