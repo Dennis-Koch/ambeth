@@ -20,21 +20,21 @@ limitations under the License.
  * #L%
  */
 
-import com.koch.ambeth.util.threading.IBackgroundWorkerDelegate;
-import com.koch.ambeth.util.threading.IBackgroundWorkerParamDelegate;
-import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
-import com.koch.ambeth.util.threading.IResultingBackgroundWorkerParamDelegate;
+import com.koch.ambeth.util.function.CheckedConsumer;
+import com.koch.ambeth.util.function.CheckedFunction;
+import com.koch.ambeth.util.function.CheckedRunnable;
+import com.koch.ambeth.util.function.CheckedSupplier;
 
 public interface IForkState {
-	void use(Runnable runnable);
+    void use(Runnable runnable);
 
-	void use(IBackgroundWorkerDelegate runnable);
+    void use(CheckedRunnable runnable);
 
-	<V> void use(IBackgroundWorkerParamDelegate<V> runnable, V arg);
+    <V> void use(CheckedConsumer<V> runnable, V arg);
 
-	<R> R use(IResultingBackgroundWorkerDelegate<R> runnable);
+    <R> R use(CheckedSupplier<R> runnable);
 
-	<R, V> R use(IResultingBackgroundWorkerParamDelegate<R, V> runnable, V arg);
+    <R, V> R use(CheckedFunction<V, R> runnable, V arg);
 
-	void reintegrateForkedValues();
+    void reintegrateForkedValues();
 }

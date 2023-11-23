@@ -22,14 +22,13 @@ limitations under the License.
 
 import com.koch.ambeth.ioc.threadlocal.IThreadLocalCleanupController;
 import com.koch.ambeth.util.collections.ArrayList;
-import com.koch.ambeth.util.threading.IBackgroundWorkerParamDelegate;
+import com.koch.ambeth.util.function.CheckedConsumer;
 
 public class RunnableHandle<V> extends AbstractRunnableHandle<V> {
-	public final IBackgroundWorkerParamDelegate<V> run;
+    public final CheckedConsumer<V> run;
 
-	public RunnableHandle(IBackgroundWorkerParamDelegate<V> run, ArrayList<V> items,
-			IThreadLocalCleanupController threadLocalCleanupController) {
-		super(items, threadLocalCleanupController);
-		this.run = run;
-	}
+    public RunnableHandle(CheckedConsumer<V> run, ArrayList<V> items, IThreadLocalCleanupController threadLocalCleanupController) {
+        super(items, threadLocalCleanupController);
+        this.run = run;
+    }
 }

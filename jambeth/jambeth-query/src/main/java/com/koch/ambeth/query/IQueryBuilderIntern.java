@@ -20,11 +20,10 @@ limitations under the License.
  * #L%
  */
 
-import javax.persistence.criteria.JoinType;
+import jakarta.persistence.criteria.JoinType;
 
 public interface IQueryBuilderIntern<T> extends IQueryBuilder<T> {
-	IOperand column(String columnName, ISqlJoin joinClause, boolean checkFieldExistence);
+    IOperand column(String columnName, ISqlJoin joinClause, boolean checkFieldExistence);
 
-	ISqlJoin joinIntern(String tableName, IOperand columnBase, IOperand columnJoined,
-			JoinType joinType);
+    ISqlJoin joinIntern(String tableName, IOperand columnBase, IOperand columnJoined, JoinType joinType);
 }

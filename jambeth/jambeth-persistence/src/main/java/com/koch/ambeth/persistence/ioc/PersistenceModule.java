@@ -59,51 +59,41 @@ import com.koch.ambeth.util.proxy.TargetingInterceptor;
 
 @FrameworkModule
 public class PersistenceModule implements IInitializingModule {
-	@Autowired
-	protected IProxyFactory proxyFactory;
+    @Autowired
+    protected IProxyFactory proxyFactory;
 
-	@Override
-	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
-		beanContextFactory.registerBean(PersistenceHelper.class).autowireable(IPersistenceHelper.class);
-		beanContextFactory.registerBean(PersistencePostProcessor.class);
+    @Override
+    public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
+        beanContextFactory.registerBean(PersistenceHelper.class).autowireable(IPersistenceHelper.class);
+        beanContextFactory.registerBean(PersistencePostProcessor.class);
 
-		beanContextFactory.registerBean(QueryPostProcessor.class);
+        beanContextFactory.registerBean(QueryPostProcessor.class);
 
-		beanContextFactory.registerBean(EntityLoader.class).autowireable(IEntityLoader.class,
-				ILoadContainerProvider.class);
+        beanContextFactory.registerBean(EntityLoader.class).autowireable(IEntityLoader.class, ILoadContainerProvider.class);
 
-		ExtendableBean.registerExtendableBean(beanContextFactory, ITransactionListenerProvider.class,
-				ITransactionListenerExtendable.class, ITransactionListenerProvider.class.getClassLoader());
+        ExtendableBean.registerExtendableBean(beanContextFactory, ITransactionListenerProvider.class, ITransactionListenerExtendable.class, ITransactionListenerProvider.class.getClassLoader());
 
-		ExtendableBean.registerExtendableBean(beanContextFactory,
-				IDatabaseLifecycleCallbackRegistry.class, IDatabaseLifecycleCallbackExtendable.class,
-				IDatabaseLifecycleCallbackExtendable.class.getClassLoader());
+        ExtendableBean.registerExtendableBean(beanContextFactory, IDatabaseLifecycleCallbackRegistry.class, IDatabaseLifecycleCallbackExtendable.class,
+                IDatabaseLifecycleCallbackExtendable.class.getClassLoader());
 
-		beanContextFactory.registerBean(DatabaseProviderRegistry.class)
-				.autowireable(IDatabaseProviderRegistry.class, IDatabaseProviderExtendable.class);
+        beanContextFactory.registerBean(DatabaseProviderRegistry.class).autowireable(IDatabaseProviderRegistry.class, IDatabaseProviderExtendable.class);
 
-		beanContextFactory.registerBean(DatabaseSessionIdController.class)
-				.autowireable(IDatabaseSessionIdController.class);
+        beanContextFactory.registerBean(DatabaseSessionIdController.class).autowireable(IDatabaseSessionIdController.class);
 
-		beanContextFactory.registerBean(XmlDatabaseMapper.class).precedence(PrecedenceType.HIGH)
-				.autowireable(IOrmDatabaseMapper.class, IOrmConfigGroupExtendable.class);
+        beanContextFactory.registerBean(XmlDatabaseMapper.class).precedence(PrecedenceType.HIGH).autowireable(IOrmDatabaseMapper.class, IOrmConfigGroupExtendable.class);
 
-		beanContextFactory.registerBean(OrmPatternMatcher.class).autowireable(IOrmPatternMatcher.class);
+        beanContextFactory.registerBean(OrmPatternMatcher.class).autowireable(IOrmPatternMatcher.class);
 
-		beanContextFactory.registerBean(SqlBuilder.class).autowireable(ISqlBuilder.class,
-				ISqlKeywordRegistry.class);
+        beanContextFactory.registerBean(SqlBuilder.class).autowireable(ISqlBuilder.class, ISqlKeywordRegistry.class);
 
-		TargetingInterceptor databaseInterceptor = (TargetingInterceptor) beanContextFactory
-				.registerBean(TargetingInterceptor.class)
-				.propertyRef(TargetingInterceptor.TARGET_PROVIDER_PROP,
-						IDatabaseProvider.DEFAULT_DATABASE_PROVIDER_NAME)
-				.getInstance();
+        var databaseInterceptor = (TargetingInterceptor) beanContextFactory.registerBean(TargetingInterceptor.class)
+                                                                           .propertyRef(TargetingInterceptor.TARGET_PROVIDER_PROP, IDatabaseProvider.DEFAULT_DATABASE_PROVIDER_NAME)
+                                                                           .getInstance();
 
-		IDatabase databaseTlProxy = proxyFactory.createProxy(IDatabase.class, databaseInterceptor);
+        var databaseTlProxy = proxyFactory.createProxy(IDatabase.class, databaseInterceptor);
 
-		beanContextFactory.registerExternalBean(databaseTlProxy).autowireable(IDatabase.class);
+        beanContextFactory.registerExternalBean(databaseTlProxy).autowireable(IDatabase.class);
 
-		beanContextFactory.registerBean(PersistenceExceptionUtil.class)
-				.autowireable(IPersistenceExceptionUtil.class);
-	}
+        beanContextFactory.registerBean(PersistenceExceptionUtil.class).autowireable(IPersistenceExceptionUtil.class);
+    }
 }

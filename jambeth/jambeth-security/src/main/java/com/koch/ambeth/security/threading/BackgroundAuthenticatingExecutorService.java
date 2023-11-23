@@ -20,9 +20,6 @@ limitations under the License.
  * #L%
  */
 
-import java.util.concurrent.Exchanger;
-import java.util.concurrent.Executor;
-
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.proxy.Self;
 import com.koch.ambeth.ioc.threadlocal.IThreadLocalCleanupController;
@@ -33,131 +30,110 @@ import com.koch.ambeth.security.ISecurityContextHolder;
 import com.koch.ambeth.security.SecurityContext;
 import com.koch.ambeth.security.SecurityContextType;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
-import com.koch.ambeth.util.state.IStateRollback;
-import com.koch.ambeth.util.threading.IBackgroundWorkerDelegate;
-import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
+import com.koch.ambeth.util.function.CheckedRunnable;
+import com.koch.ambeth.util.function.CheckedSupplier;
+import com.koch.ambeth.util.state.StateRollback;
+import lombok.SneakyThrows;
+
+import java.util.concurrent.Exchanger;
+import java.util.concurrent.Executor;
 
 @SecurityContext(SecurityContextType.NOT_REQUIRED)
-public class BackgroundAuthenticatingExecutorService
-		implements IBackgroundAuthenticatingExecutorService, IBackgroundAuthenticatingExecution {
-	public static final String P_THREAD_POOL = "ThreadPool";
+public class BackgroundAuthenticatingExecutorService implements IBackgroundAuthenticatingExecutorService, IBackgroundAuthenticatingExecution {
+    public static final String P_THREAD_POOL = "ThreadPool";
+    @Autowired
+    protected Executor threadPool;
+    @Autowired
+    protected ISecurityContextHolder securityContextHolder;
+    @Autowired
+    protected IThreadLocalCleanupController threadLocalCleanupController;
+    @Self
+    protected IBackgroundAuthenticatingExecution self;
+    @LogInstance
+    private ILogger log;
 
-	private class ExchangeResultRunnable<T> implements Runnable {
-		private final Exchanger<T> exchanger;
-		private final IAuthentication authentication;
-		private final IResultingBackgroundWorkerDelegate<T> runnable;
+    @Override
+    public void startBackgroundWorkerWithAuthentication(CheckedRunnable runnable) {
+        // get the current authentication
+        var backgroundWorker = createRunnableWithAuthentication(runnable);
+        // Using Ambeth Thread pool to get ThreadLocal support e.g. for authentication issues
+        threadPool.execute(backgroundWorker);
+    }
 
-		private ExchangeResultRunnable(Exchanger<T> exchanger, IAuthentication authentication,
-				IResultingBackgroundWorkerDelegate<T> runnable) {
-			this.exchanger = exchanger;
-			this.authentication = authentication;
-			this.runnable = runnable;
-		}
+    @Override
+    public <T> T startBackgroundWorkerWithAuthentication(CheckedSupplier<T> runnable) {
+        // get the current authentication
+        var exchanger = new Exchanger<T>();
+        var backgroundWorker = createRunnableWithAuthentication(runnable, exchanger);
+        // Using Ambeth Thread pool to get ThreadLocal support e.g. for authentication issues
+        threadPool.execute(backgroundWorker);
+        try {
+            return exchanger.exchange(null);
+        } catch (InterruptedException e) {
+            Thread.interrupted(); // clear flag
+            throw RuntimeExceptionUtil.mask(e);
+        }
+    }
 
-		@Override
-		public void run() {
-			T result = null;
-			IStateRollback rollback =
-					threadLocalCleanupController.pushThreadLocalState(IStateRollback.EMPTY_ROLLBACKS);
-			try {
-				rollback = securityContextHolder.pushAuthentication(authentication, rollback);
-				result = runnable.invoke();
-			}
-			catch (Exception e) {
-				throw RuntimeExceptionUtil.mask(e);
-			}
-			finally {
-				rollback.rollback();
-				try {
-					exchanger.exchange(result);
-				}
-				catch (InterruptedException e) {
-					// intended blank
-				}
-			}
-		}
-	}
+    @Override
+    @SecurityContext(SecurityContextType.AUTHENTICATED)
+    public void execute(CheckedRunnable runnable) throws Exception {
+        runnable.run();
+    }
 
-	@LogInstance
-	private ILogger log;
+    @Override
+    @SecurityContext(SecurityContextType.AUTHENTICATED)
+    public <T> T execute(CheckedSupplier<T> runnable) throws Exception {
+        return runnable.get();
+    }
 
-	@Autowired
-	protected Executor threadPool;
+    private Runnable createRunnableWithAuthentication(final CheckedRunnable runnable) {
+        var authentication = securityContextHolder.getContext().getAuthentication();
+        return () -> {
+            var rollback = StateRollback.chain(chain -> {
+                chain.append(threadLocalCleanupController.pushThreadLocalState());
+                chain.append(securityContextHolder.pushAuthentication(authentication));
+                self.execute(runnable);
+            });
+            rollback.rollback();
+        };
+    }
 
-	@Autowired
-	protected ISecurityContextHolder securityContextHolder;
+    private <T> Runnable createRunnableWithAuthentication(final CheckedSupplier<T> runnable, final Exchanger<T> exchanger) {
+        var authentication = securityContextHolder.getContext().getAuthentication();
+        var backgroundWorker = new ExchangeResultRunnable<>(exchanger, authentication, runnable);
+        return backgroundWorker;
+    }
 
-	@Autowired
-	protected IThreadLocalCleanupController threadLocalCleanupController;
+    private class ExchangeResultRunnable<T> implements Runnable {
+        private final Exchanger<T> exchanger;
+        private final IAuthentication authentication;
+        private final CheckedSupplier<T> runnable;
 
-	@Self
-	protected IBackgroundAuthenticatingExecution self;
+        private ExchangeResultRunnable(Exchanger<T> exchanger, IAuthentication authentication, CheckedSupplier<T> runnable) {
+            this.exchanger = exchanger;
+            this.authentication = authentication;
+            this.runnable = runnable;
+        }
 
-	@Override
-	public void startBackgroundWorkerWithAuthentication(IBackgroundWorkerDelegate runnable) {
-		// get the current authentication
-		Runnable backgroundWorker = createRunnableWithAuthentication(runnable);
-		// Using Ambeth Thread pool to get ThreadLocal support e.g. for authentication issues
-		threadPool.execute(backgroundWorker);
-	}
-
-	@Override
-	public <T> T startBackgroundWorkerWithAuthentication(
-			IResultingBackgroundWorkerDelegate<T> runnable) {
-		// get the current authentication
-		Exchanger<T> exchanger = new Exchanger<>();
-		Runnable backgroundWorker = createRunnableWithAuthentication(runnable, exchanger);
-		// Using Ambeth Thread pool to get ThreadLocal support e.g. for authentication issues
-		threadPool.execute(backgroundWorker);
-		try {
-			return exchanger.exchange(null);
-		}
-		catch (InterruptedException e) {
-			Thread.interrupted(); // clear flag
-			throw RuntimeExceptionUtil.mask(e);
-		}
-	}
-
-	@Override
-	@SecurityContext(SecurityContextType.AUTHENTICATED)
-	public void execute(IBackgroundWorkerDelegate runnable) throws Exception {
-		runnable.invoke();
-	}
-
-	@Override
-	@SecurityContext(SecurityContextType.AUTHENTICATED)
-	public <T> T execute(IResultingBackgroundWorkerDelegate<T> runnable) throws Exception {
-		return runnable.invoke();
-	}
-
-	private Runnable createRunnableWithAuthentication(final IBackgroundWorkerDelegate runnable) {
-		final IAuthentication authentication = securityContextHolder.getContext().getAuthentication();
-
-		Runnable backgroundWorker = new Runnable() {
-			@Override
-			public void run() {
-				IStateRollback rollback =
-						threadLocalCleanupController.pushThreadLocalState(IStateRollback.EMPTY_ROLLBACKS);
-				try {
-					rollback = securityContextHolder.pushAuthentication(authentication, rollback);
-					self.execute(runnable);
-				}
-				catch (Exception e) {
-					throw RuntimeExceptionUtil.mask(e);
-				}
-				finally {
-					rollback.rollback();
-				}
-			}
-		};
-		return backgroundWorker;
-	}
-
-	private <T> Runnable createRunnableWithAuthentication(
-			final IResultingBackgroundWorkerDelegate<T> runnable, final Exchanger<T> exchanger) {
-		IAuthentication authentication = securityContextHolder.getContext().getAuthentication();
-
-		Runnable backgroundWorker = new ExchangeResultRunnable<>(exchanger, authentication, runnable);
-		return backgroundWorker;
-	}
+        @SneakyThrows
+        @Override
+        public void run() {
+            T result = null;
+            var rollback = StateRollback.chain(chain -> {
+                chain.append(threadLocalCleanupController.pushThreadLocalState());
+                chain.append(securityContextHolder.pushAuthentication(authentication));
+            });
+            try {
+                result = runnable.get();
+            } finally {
+                rollback.rollback();
+                try {
+                    exchanger.exchange(result);
+                } catch (InterruptedException e) {
+                    // intended blank
+                }
+            }
+        }
+    }
 }

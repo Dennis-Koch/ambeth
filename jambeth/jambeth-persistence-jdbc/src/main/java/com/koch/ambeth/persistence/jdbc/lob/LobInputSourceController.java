@@ -20,12 +20,6 @@ limitations under the License.
  * #L%
  */
 
-import java.io.IOException;
-import java.sql.Blob;
-import java.sql.Clob;
-import java.util.Arrays;
-import java.util.Iterator;
-
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.merge.proxy.IEntityMetaDataHolder;
 import com.koch.ambeth.persistence.IConnectionDialect;
@@ -42,125 +36,106 @@ import com.koch.ambeth.stream.binary.IBinaryInputStream;
 import com.koch.ambeth.stream.chars.ICharacterInputStream;
 import com.koch.ambeth.util.IConversionHelper;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
-import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
+
+import java.io.IOException;
+import java.sql.Blob;
+import java.sql.Clob;
+import java.util.Arrays;
+import java.util.Iterator;
 
 public class LobInputSourceController implements ILobInputSourceController {
-	@Autowired
-	protected IConnectionDialect connectionDialect;
+    @Autowired
+    protected IConnectionDialect connectionDialect;
 
-	@Autowired
-	protected IConversionHelper conversionHelper;
+    @Autowired
+    protected IConversionHelper conversionHelper;
 
-	@Autowired
-	protected IDatabase database;
+    @Autowired
+    protected IDatabase database;
 
-	@Autowired
-	protected ITransaction transaction;
+    @Autowired
+    protected ITransaction transaction;
 
-	@Override
-	public IInputStream deriveInputStream(final Object parentEntity, final Member member) {
-		return deriveBinaryInputStreamIntern(parentEntity, member);
-	}
+    @Override
+    public IInputStream deriveInputStream(final Object parentEntity, final Member member) {
+        return deriveBinaryInputStreamIntern(parentEntity, member);
+    }
 
-	@Override
-	public IBinaryInputStream deriveBinaryInputStream(final Object parentEntity,
-			final Member member) {
-		if (transaction.isActive()) {
-			return (IBinaryInputStream) deriveBinaryInputStreamIntern(parentEntity, member);
-		}
-		if (!connectionDialect.isTransactionNecessaryDuringLobStreaming()) {
-			return transaction
-					.runInTransaction(new IResultingBackgroundWorkerDelegate<IBinaryInputStream>() {
-						@Override
-						public IBinaryInputStream invoke() throws Exception {
-							return (IBinaryInputStream) deriveBinaryInputStreamIntern(parentEntity, member);
-						}
-					});
-		}
-		try {
-			transaction.begin(true);
-			final IBinaryInputStream bis =
-					(IBinaryInputStream) deriveBinaryInputStreamIntern(parentEntity, member);
-			return new IBinaryInputStream() {
-				@Override
-				public void close() throws IOException {
-					try {
-						bis.close();
-					}
-					finally {
-						transaction.rollback(false);
-					}
-				}
+    @Override
+    public IBinaryInputStream deriveBinaryInputStream(final Object parentEntity, final Member member) {
+        if (transaction.isActive()) {
+            return (IBinaryInputStream) deriveBinaryInputStreamIntern(parentEntity, member);
+        }
+        if (!connectionDialect.isTransactionNecessaryDuringLobStreaming()) {
+            return transaction.runInTransaction(() -> (IBinaryInputStream) deriveBinaryInputStreamIntern(parentEntity, member));
+        }
+        try {
+            transaction.begin(true);
+            final IBinaryInputStream bis = (IBinaryInputStream) deriveBinaryInputStreamIntern(parentEntity, member);
+            return new IBinaryInputStream() {
+                @Override
+                public void close() throws IOException {
+                    try {
+                        bis.close();
+                    } finally {
+                        transaction.rollback(false);
+                    }
+                }
 
-				@Override
-				public int readByte() {
-					return bis.readByte();
-				}
-			};
-		}
-		catch (Throwable e) {
-			transaction.rollback(false);
-			throw RuntimeExceptionUtil.mask(e);
-		}
-	}
+                @Override
+                public int readByte() {
+                    return bis.readByte();
+                }
+            };
+        } catch (Throwable e) {
+            transaction.rollback(false);
+            throw RuntimeExceptionUtil.mask(e);
+        }
+    }
 
-	@Override
-	public ICharacterInputStream deriveCharacterInputStream(final Object parentEntity,
-			final Member member) {
-		if (transaction.isActive()) {
-			return (ICharacterInputStream) deriveBinaryInputStreamIntern(parentEntity, member);
-		}
-		return transaction
-				.runInTransaction(new IResultingBackgroundWorkerDelegate<ICharacterInputStream>() {
-					@Override
-					public ICharacterInputStream invoke() throws Exception {
-						return (ICharacterInputStream) deriveBinaryInputStreamIntern(parentEntity, member);
-					}
-				});
-	}
+    @Override
+    public ICharacterInputStream deriveCharacterInputStream(final Object parentEntity, final Member member) {
+        if (transaction.isActive()) {
+            return (ICharacterInputStream) deriveBinaryInputStreamIntern(parentEntity, member);
+        }
+        return transaction.runInTransaction(() -> (ICharacterInputStream) deriveBinaryInputStreamIntern(parentEntity, member));
+    }
 
-	protected IInputStream deriveBinaryInputStreamIntern(final Object parentEntity,
-			final Member member) {
-		IEntityMetaData metaData = ((IEntityMetaDataHolder) parentEntity).get__EntityMetaData();
-		IDatabase database = this.database.getCurrent();
-		Table table = (Table) database.getTableByType(metaData.getEntityType());
+    protected IInputStream deriveBinaryInputStreamIntern(final Object parentEntity, final Member member) {
+        IEntityMetaData metaData = ((IEntityMetaDataHolder) parentEntity).get__EntityMetaData();
+        IDatabase database = this.database.getCurrent();
+        Table table = (Table) database.getTableByType(metaData.getEntityType());
 
-		IFieldMetaData idField = table.getMetaData().getIdField();
+        IFieldMetaData idField = table.getMetaData().getIdField();
 
-		Object persistedId = conversionHelper.convertValueToType(idField.getFieldType(),
-				metaData.getIdMember().getValue(parentEntity));
+        Object persistedId = conversionHelper.convertValueToType(idField.getFieldType(), metaData.getIdMember().getValue(parentEntity));
 
-		IFieldMetaData lobField = table.getMetaData().getFieldByMemberName(member.getName());
+        IFieldMetaData lobField = table.getMetaData().getFieldByMemberName(member.getName());
 
-		boolean success = false;
-		IDataCursor dataCursor = table.selectDataJoin(Arrays.asList("\"" + lobField.getName() + "\""),
-				null, "\"" + idField.getName() + "\"=?", null, null, Arrays.asList(persistedId));
-		try {
-			Iterator<IDataItem> dataCursorIter = dataCursor.iterator();
-			if (!dataCursorIter.hasNext()) {
-				if (Clob.class.equals(lobField.getFieldType())) {
-					return new EmptyClobInputStream();
-				}
-				return new EmptyBlobInputStream();
-			}
-			IDataItem dataItem = dataCursorIter.next();
-			if (Clob.class.equals(lobField.getFieldType())) {
-				Clob value = (Clob) connectionDialect.convertFromFieldType(database, lobField, Clob.class,
-						dataItem.getValue(0));
-				success = true;
-				return new ClobInputStream(dataCursor, value);
-			}
-			else {
-				Blob value = (Blob) connectionDialect.convertFromFieldType(database, lobField, Blob.class,
-						dataItem.getValue(0));
-				success = true;
-				return new BlobInputStream(dataCursor, value);
-			}
-		}
-		finally {
-			if (!success) {
-				dataCursor.dispose();
-			}
-		}
-	}
+        boolean success = false;
+        IDataCursor dataCursor = table.selectDataJoin(Arrays.asList("\"" + lobField.getName() + "\""), null, "\"" + idField.getName() + "\"=?", null, null, Arrays.asList(persistedId));
+        try {
+            Iterator<IDataItem> dataCursorIter = dataCursor.iterator();
+            if (!dataCursorIter.hasNext()) {
+                if (Clob.class.equals(lobField.getFieldType())) {
+                    return new EmptyClobInputStream();
+                }
+                return new EmptyBlobInputStream();
+            }
+            IDataItem dataItem = dataCursorIter.next();
+            if (Clob.class.equals(lobField.getFieldType())) {
+                Clob value = (Clob) connectionDialect.convertFromFieldType(database, lobField, Clob.class, dataItem.getValue(0));
+                success = true;
+                return new ClobInputStream(dataCursor, value);
+            } else {
+                Blob value = (Blob) connectionDialect.convertFromFieldType(database, lobField, Blob.class, dataItem.getValue(0));
+                success = true;
+                return new BlobInputStream(dataCursor, value);
+            }
+        } finally {
+            if (!success) {
+                dataCursor.dispose();
+            }
+        }
+    }
 }

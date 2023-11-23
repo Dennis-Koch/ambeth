@@ -20,25 +20,23 @@ limitations under the License.
  * #L%
  */
 
-import org.junit.Test;
-
 import com.koch.ambeth.informationbus.persistence.setup.SQLStructure;
 import com.koch.ambeth.persistence.api.IDatabase;
 import com.koch.ambeth.persistence.api.database.DatabaseCallback;
 import com.koch.ambeth.testutil.AbstractInformationBusWithPersistenceTest;
 import com.koch.ambeth.util.collections.ILinkedMap;
+import org.junit.Test;
 
 @SQLStructure("IgnoreTable_structure.sql")
 public class IgnoreTableTest extends AbstractInformationBusWithPersistenceTest {
-	@Test
-	public void testAutoIndexFalse() {
-		transaction.processAndCommit(new DatabaseCallback() {
+    @Test
+    public void testAutoIndexFalse() {
+        transaction.processAndCommit(new DatabaseCallback() {
 
-			@Override
-			public void callback(ILinkedMap<Object, IDatabase> persistenceUnitToDatabaseMap)
-					throws Exception {
+            @Override
+            public void callback(ILinkedMap<Object, IDatabase> persistenceUnitToDatabaseMap) throws Exception {
 
-			}
-		});
-	}
+            }
+        });
+    }
 }

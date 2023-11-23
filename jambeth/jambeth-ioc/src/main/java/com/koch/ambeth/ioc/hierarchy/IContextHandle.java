@@ -23,14 +23,14 @@ limitations under the License.
 import com.koch.ambeth.ioc.IServiceContext;
 import com.koch.ambeth.ioc.factory.IBeanContextFactory;
 import com.koch.ambeth.util.collections.IMap;
-import com.koch.ambeth.util.threading.IBackgroundWorkerParamDelegate;
+import com.koch.ambeth.util.function.CheckedConsumer;
 
 public interface IContextHandle {
-	IServiceContext start();
+    IServiceContext start();
 
-	IServiceContext start(IMap<String, Object> namedBeans);
+    IServiceContext start(IMap<String, Object> namedBeans);
 
-	IServiceContext start(IBackgroundWorkerParamDelegate<IBeanContextFactory> registerPhaseDelegate);
+    IServiceContext start(CheckedConsumer<IBeanContextFactory> registerPhaseDelegate);
 
-	void stop();
+    void stop();
 }

@@ -20,14 +20,9 @@ limitations under the License.
  * #L%
  */
 
-import java.lang.reflect.Array;
-import java.util.List;
-
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.config.Property;
-import com.koch.ambeth.persistence.api.IDatabase;
 import com.koch.ambeth.persistence.api.database.ITransaction;
-import com.koch.ambeth.persistence.api.database.ResultingDatabaseCallback;
 import com.koch.ambeth.query.IQueryIntern;
 import com.koch.ambeth.query.filter.IQueryResultCacheItem;
 import com.koch.ambeth.query.filter.IQueryResultRetriever;
@@ -39,110 +34,100 @@ import com.koch.ambeth.service.metadata.Member;
 import com.koch.ambeth.util.IConversionHelper;
 import com.koch.ambeth.util.WrapperTypeSet;
 import com.koch.ambeth.util.collections.ArrayList;
-import com.koch.ambeth.util.collections.ILinkedMap;
 import com.koch.ambeth.util.collections.IMap;
 
+import java.lang.reflect.Array;
+import java.util.List;
+
 public class DefaultQueryResultRetriever implements IQueryResultRetriever {
-	@Autowired
-	protected IConversionHelper conversionHelper;
+    @Autowired
+    protected IConversionHelper conversionHelper;
 
-	@Autowired
-	protected IMap<Object, Object> currentNameToValueMap;
+    @Autowired
+    protected IMap<Object, Object> currentNameToValueMap;
 
-	@Autowired
-	protected IEntityMetaDataProvider entityMetaDataProvider;
+    @Autowired
+    protected IEntityMetaDataProvider entityMetaDataProvider;
 
-	@Autowired
-	protected IQueryIntern<?> query;
+    @Autowired
+    protected IQueryIntern<?> query;
 
-	@Autowired
-	protected ITransaction transaction;
+    @Autowired
+    protected ITransaction transaction;
 
-	@Property
-	protected int size;
+    @Property
+    protected int size;
 
-	@Override
-	public boolean containsPageOnly() {
-		return currentNameToValueMap.containsKey(QueryConstants.PAGING_SIZE_OBJECT);
-	}
+    @Override
+    public boolean containsPageOnly() {
+        return currentNameToValueMap.containsKey(QueryConstants.PAGING_SIZE_OBJECT);
+    }
 
-	@Override
-	public List<Class<?>> getRelatedEntityTypes() {
-		ArrayList<Class<?>> relatedEntityTypes = new ArrayList<>();
-		query.fillRelatedEntityTypes(relatedEntityTypes);
-		return relatedEntityTypes;
-	}
+    @Override
+    public List<Class<?>> getRelatedEntityTypes() {
+        ArrayList<Class<?>> relatedEntityTypes = new ArrayList<>();
+        query.fillRelatedEntityTypes(relatedEntityTypes);
+        return relatedEntityTypes;
+    }
 
-	@SuppressWarnings("unchecked")
-	@Override
-	public IQueryResultCacheItem getQueryResult() {
-		return transaction.processAndCommit(new ResultingDatabaseCallback<IQueryResultCacheItem>() {
-			@Override
-			public IQueryResultCacheItem callback(
-					ILinkedMap<Object, IDatabase> persistenceUnitToDatabaseMap) throws Exception {
-				IConversionHelper conversionHelper = DefaultQueryResultRetriever.this.conversionHelper;
-				IQueryIntern<?> query = DefaultQueryResultRetriever.this.query;
-				Class<?> entityType = query.getEntityType();
-				IEntityMetaData metaData = entityMetaDataProvider.getMetaData(entityType);
-				Member[] alternateIdMembers = metaData.getAlternateIdMembers();
-				int length = alternateIdMembers.length + 1;
+    @SuppressWarnings("unchecked")
+    @Override
+    public IQueryResultCacheItem getQueryResult() {
+        return transaction.processAndCommitWithResult(persistenceUnitToDatabaseMap -> {
+            IConversionHelper conversionHelper = DefaultQueryResultRetriever.this.conversionHelper;
+            IQueryIntern<?> query = DefaultQueryResultRetriever.this.query;
+            Class<?> entityType = query.getEntityType();
+            IEntityMetaData metaData = entityMetaDataProvider.getMetaData(entityType);
+            Member[] alternateIdMembers = metaData.getAlternateIdMembers();
+            int length = alternateIdMembers.length + 1;
 
-				ArrayList<Object>[] idLists = new ArrayList[length];
-				Class<?> versionType = metaData.getVersionMember() != null
-						? metaData.getVersionMember().getRealType()
-						: null;
-				Class<?>[] idTypes = new Class[length];
-				for (int a = length; a-- > 0;) {
-					idLists[a] = new ArrayList<>();
-					idTypes[a] = metaData.getIdMemberByIdIndex((byte) (a - 1)).getRealType();
-				}
-				ArrayList<Object> versionList = new ArrayList<>();
-				long totalSize = query.count(currentNameToValueMap);
-				if (size != 0) {
-					IVersionCursor versionCursor = query.retrieveAsVersions(currentNameToValueMap, true);
-					try {
-						for (IVersionItem versionItem : versionCursor) {
-							for (int idIndex = length; idIndex-- > 0;) {
-								Object id = conversionHelper.convertValueToType(idTypes[idIndex],
-										versionItem.getId((byte) (idIndex - 1)));
-								idLists[idIndex].add(id);
-							}
-							Object version = versionType != null
-									? conversionHelper.convertValueToType(versionType, versionItem.getVersion())
-									: null;
-							versionList.add(version);
-						}
-					}
-					finally {
-						versionCursor.dispose();
-					}
-				}
-				Object[] idArrays = new Object[length];
-				for (int a = length; a-- > 0;) {
-					idArrays[a] = convertListToArray(idLists[a], idTypes[a]);
-				}
-				Object versionArray = versionType != null ? convertListToArray(versionList, versionType)
-						: null;
-				return new QueryResultCacheItem(entityType, totalSize, idLists[0].size(), idArrays,
-						versionArray);
-			}
-		});
-	}
+            ArrayList<Object>[] idLists = new ArrayList[length];
+            Class<?> versionType = metaData.getVersionMember() != null ? metaData.getVersionMember().getRealType() : null;
+            Class<?>[] idTypes = new Class[length];
+            for (int a = length; a-- > 0; ) {
+                idLists[a] = new ArrayList<>();
+                idTypes[a] = metaData.getIdMemberByIdIndex((byte) (a - 1)).getRealType();
+            }
+            ArrayList<Object> versionList = new ArrayList<>();
+            long totalSize = query.count(currentNameToValueMap);
+            if (size != 0) {
+                IVersionCursor versionCursor = query.retrieveAsVersions(currentNameToValueMap, true);
+                try {
+                    for (IVersionItem versionItem : versionCursor) {
+                        for (int idIndex = length; idIndex-- > 0; ) {
+                            Object id = conversionHelper.convertValueToType(idTypes[idIndex], versionItem.getId((byte) (idIndex - 1)));
+                            idLists[idIndex].add(id);
+                        }
+                        Object version = versionType != null ? conversionHelper.convertValueToType(versionType, versionItem.getVersion()) : null;
+                        versionList.add(version);
+                    }
+                } finally {
+                    versionCursor.dispose();
+                }
+            }
+            Object[] idArrays = new Object[length];
+            for (int a = length; a-- > 0; ) {
+                idArrays[a] = convertListToArray(idLists[a], idTypes[a]);
+            }
+            Object versionArray = versionType != null ? convertListToArray(versionList, versionType) : null;
+            return new QueryResultCacheItem(entityType, totalSize, idLists[0].size(), idArrays, versionArray);
+        });
+    }
 
-	protected Object convertListToArray(List<Object> list, Class<?> expectedItemType) {
-		if (expectedItemType != null) {
-			Class<?> unwrappedType = WrapperTypeSet.getUnwrappedType(expectedItemType);
-			if (unwrappedType != null) {
-				expectedItemType = unwrappedType;
-			}
-		}
-		if (expectedItemType == null) {
-			return list.toArray(new Object[list.size()]);
-		}
-		Object array = Array.newInstance(expectedItemType, list.size());
-		for (int a = list.size(); a-- > 0;) {
-			Array.set(array, a, list.get(a));
-		}
-		return array;
-	}
+    protected Object convertListToArray(List<Object> list, Class<?> expectedItemType) {
+        if (expectedItemType != null) {
+            Class<?> unwrappedType = WrapperTypeSet.getUnwrappedType(expectedItemType);
+            if (unwrappedType != null) {
+                expectedItemType = unwrappedType;
+            }
+        }
+        if (expectedItemType == null) {
+            return list.toArray(new Object[list.size()]);
+        }
+        Object array = Array.newInstance(expectedItemType, list.size());
+        for (int a = list.size(); a-- > 0; ) {
+            Array.set(array, a, list.get(a));
+        }
+        return array;
+    }
 }

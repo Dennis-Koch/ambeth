@@ -24,45 +24,25 @@ import com.koch.ambeth.ioc.IInitializingModule;
 import com.koch.ambeth.ioc.config.Property;
 import com.koch.ambeth.ioc.factory.IBeanContextFactory;
 import com.koch.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationConstants;
-import com.koch.ambeth.persistence.jdbc.connector.IConnector;
 
 import java.util.ServiceLoader;
 
 public class DialectSelectorSchemaModule implements IInitializingModule {
-	public static ITestConnector loadTestConnector(String databaseProtocol) {
+    public static ITestConnector loadTestConnector(String databaseProtocol) {
         var serviceLoader = ServiceLoader.load(ITestConnector.class);
-        var connector = serviceLoader.stream().map(ServiceLoader.Provider::get).filter(conn -> conn.supports(databaseProtocol)).findFirst().orElse(null);
+        return serviceLoader.stream()
+                            .map(ServiceLoader.Provider::get)
+                            .filter(conn -> conn.supports(databaseProtocol))
+                            .findFirst()
+                            .orElseThrow(() -> new IllegalStateException("No test connector found for protocol: '" + databaseProtocol + "'"));
+    }
 
+    @Property(name = PersistenceJdbcConfigurationConstants.DatabaseProtocol)
+    protected String databaseProtocol;
 
-		// String connectorName = databaseProtocol.toUpperCase().replace(':', '_');
-		var classLoader = Thread.currentThread().getContextClassLoader();
-
-		var connectorName = databaseProtocol.toLowerCase().replace(':', '.') + '.'
-				+ databaseProtocol.toUpperCase().replace(':', '_');
-		var fqConnectorName = DialectSelectorSchemaModule.class.getPackage().getName() + "."
-				+ connectorName;
-		try {
-			var connectorType = classLoader.loadClass(fqConnectorName);
-			return (ITestConnector) connectorType.newInstance();
-		}
-		catch (Throwable e) {
-			try {
-				var connectorType = DialectSelectorSchemaModule.class.getClassLoader()
-						.loadClass(fqConnectorName);
-				return (ITestConnector) connectorType.newInstance();
-			}
-			catch (Throwable e2) {
-				throw new IllegalStateException("Protocol not supported: '" + databaseProtocol + "'", e);
-			}
-		}
-	}
-
-	@Property(name = PersistenceJdbcConfigurationConstants.DatabaseProtocol)
-	protected String databaseProtocol;
-
-	@Override
-	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
-		ITestConnector connector = loadTestConnector(databaseProtocol);
-		connector.handleTestSetup(beanContextFactory, databaseProtocol);
-	}
+    @Override
+    public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
+        var connector = loadTestConnector(databaseProtocol);
+        connector.handleTestSetup(beanContextFactory, databaseProtocol);
+    }
 }

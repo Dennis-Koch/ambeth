@@ -20,19 +20,16 @@ limitations under the License.
  * #L%
  */
 
-import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
+import com.koch.ambeth.util.function.CheckedSupplier;
 
 public interface ICacheFactory {
-	IDisposableCache withParent(ICache parent,
-			IResultingBackgroundWorkerDelegate<IDisposableCache> runnable);
+    IDisposableCache withParent(ICache parent, CheckedSupplier<IDisposableCache> runnable);
 
-	IDisposableCache createPrivileged(CacheFactoryDirective cacheFactoryDirective, String name);
+    IDisposableCache createPrivileged(CacheFactoryDirective cacheFactoryDirective, String name);
 
-	IDisposableCache createPrivileged(CacheFactoryDirective cacheFactoryDirective,
-			boolean foreignThreadAware, Boolean useWeakEntries, String name);
+    IDisposableCache createPrivileged(CacheFactoryDirective cacheFactoryDirective, boolean foreignThreadAware, Boolean useWeakEntries, String name);
 
-	IDisposableCache create(CacheFactoryDirective cacheFactoryDirective, String name);
+    IDisposableCache create(CacheFactoryDirective cacheFactoryDirective, String name);
 
-	IDisposableCache create(CacheFactoryDirective cacheFactoryDirective, boolean foreignThreadAware,
-			Boolean useWeakEntries, String name);
+    IDisposableCache create(CacheFactoryDirective cacheFactoryDirective, boolean foreignThreadAware, Boolean useWeakEntries, String name);
 }

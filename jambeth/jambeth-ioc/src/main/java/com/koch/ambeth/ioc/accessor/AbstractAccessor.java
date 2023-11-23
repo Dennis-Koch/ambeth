@@ -22,21 +22,21 @@ limitations under the License.
 
 
 public abstract class AbstractAccessor {
-	public abstract boolean canRead();
+    public abstract boolean canRead();
 
-	public abstract boolean canWrite();
+    public abstract boolean canWrite();
 
-	public abstract Object getValue(Object obj, boolean allowNullEquivalentValue);
+    public abstract Object getValue(Object obj, boolean allowNullEquivalentValue);
 
-	public abstract Object getValue(Object obj);
+    public abstract Object getValue(Object obj);
 
-	public abstract void setValue(Object obj, Object value);
+    public abstract void setValue(Object obj, Object value);
 
-	public int getIntValue(Object obj) {
-		return ((Number) getValue(obj, true)).intValue();
-	}
+    public int getIntValue(Object obj) {
+        return ((Number) getValue(obj, true)).intValue();
+    }
 
-	public void setIntValue(Object obj, int value) {
-		setValue(obj, Integer.valueOf(value));
-	}
+    public void setIntValue(Object obj, int value) {
+        setValue(obj, Integer.valueOf(value));
+    }
 }

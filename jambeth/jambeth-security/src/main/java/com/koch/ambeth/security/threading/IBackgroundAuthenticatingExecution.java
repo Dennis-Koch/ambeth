@@ -20,14 +20,14 @@ limitations under the License.
  * #L%
  */
 
-import com.koch.ambeth.util.threading.IBackgroundWorkerDelegate;
-import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
+import com.koch.ambeth.util.function.CheckedRunnable;
+import com.koch.ambeth.util.function.CheckedSupplier;
 
 /**
  * This execution is used in order to activate all proxies (especially the SecurityProxy)
  */
 public interface IBackgroundAuthenticatingExecution {
-	void execute(IBackgroundWorkerDelegate runnable) throws Exception;
+    void execute(CheckedRunnable runnable) throws Exception;
 
-	<T> T execute(IResultingBackgroundWorkerDelegate<T> runnable) throws Exception;
+    <T> T execute(CheckedSupplier<T> runnable) throws Exception;
 }

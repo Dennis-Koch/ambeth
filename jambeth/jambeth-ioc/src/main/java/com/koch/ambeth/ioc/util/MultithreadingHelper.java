@@ -1,33 +1,5 @@
 package com.koch.ambeth.ioc.util;
 
-import java.util.List;
-import java.util.Map;
-
-/*-
- * #%L
- * jambeth-ioc
- * %%
- * Copyright (C) 2017 Koch Softwaredevelopment
- * %%
- * Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-     http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
- * #L%
- */
-
-import java.util.Map.Entry;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.TimeUnit;
-
 import com.koch.ambeth.ioc.IServiceContext;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.cancel.ICancellation;
@@ -39,322 +11,265 @@ import com.koch.ambeth.util.IClassLoaderProvider;
 import com.koch.ambeth.util.ParamHolder;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
-import com.koch.ambeth.util.threading.IBackgroundWorkerDelegate;
-import com.koch.ambeth.util.threading.IBackgroundWorkerParamDelegate;
-import com.koch.ambeth.util.threading.IResultingBackgroundWorkerParamDelegate;
+import com.koch.ambeth.util.function.CheckedConsumer;
+import com.koch.ambeth.util.function.CheckedFunction;
+import lombok.Value;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class MultithreadingHelper implements IMultithreadingHelper {
-	private class CancellationCheckBackgroundWorker<V> implements IBackgroundWorkerParamDelegate<V> {
-		private final IBackgroundWorkerParamDelegate<V> itemHandler;
+    /**
+     * Defines the maximal amount of time threads is given to run a parallel task.
+     */
+    public static final String TIMEOUT = "ambeth.mth.timeout";
+    @Autowired
+    protected ICancellation cancellation;
+    @Autowired
+    protected IClassLoaderProvider classLoaderProvider;
+    @Autowired(optional = true)
+    protected ExecutorService executor;
+    @Autowired
+    protected IThreadLocalCleanupController threadLocalCleanupController;
+    @Property(name = TIMEOUT, defaultValue = "30000")
+    protected long timeout;
+    @Property(name = IocConfigurationConstants.TransparentParallelizationActive, defaultValue = "true")
+    protected boolean transparentParallelizationActive;
 
-		private CancellationCheckBackgroundWorker(IBackgroundWorkerParamDelegate<V> itemHandler) {
-			this.itemHandler = itemHandler;
-		}
+    @Override
+    public void invokeInParallel(IServiceContext serviceContext, Runnable runnable, int workerCount) {
+        invokeInParallel(serviceContext, false, timeout, runnable, workerCount);
+    }
 
-		@Override
-		public void invoke(final V state) throws Exception {
-			cancellation.withCancellationAwareness(new IBackgroundWorkerDelegate() {
-				@Override
-				public void invoke() throws Exception {
-					itemHandler.invoke(state);
-				}
-			});
-		}
-	}
+    @Override
+    public void invokeInParallel(IServiceContext serviceContext, boolean inheritThreadLocals, long timeout, Runnable runnable, int workerCount) {
+        Runnable[] runnables = new Runnable[workerCount];
+        for (int a = workerCount; a-- > 0; ) {
+            if (runnable instanceof INamedRunnable) {
+                String name = ((INamedRunnable) runnable).getName() + "-" + a;
+                runnables[a] = new WrappingNamedRunnable(runnable, name);
+            } else {
+                runnables[a] = runnable;
+            }
+        }
+        invokeInParallel(serviceContext, inheritThreadLocals, timeout, runnables);
+    }
 
-	private class CancellationCheckResultingBackgroundWorker<R, V>
-			implements IResultingBackgroundWorkerParamDelegate<R, V> {
-		private final IResultingBackgroundWorkerParamDelegate<R, V> itemHandler;
+    @Override
+    public void invokeInParallel(final IServiceContext serviceContext, Runnable... runnables) {
+        invokeInParallel(serviceContext, false, timeout, runnables);
+    }
 
-		private CancellationCheckResultingBackgroundWorker(
-				IResultingBackgroundWorkerParamDelegate<R, V> itemHandler) {
-			this.itemHandler = itemHandler;
-		}
+    @Override
+    public void invokeInParallel(IServiceContext serviceContext, boolean inheritThreadLocals, long timeout, Runnable... runnables) {
+        CountDownLatch latch = new CountDownLatch(runnables.length);
+        ParamHolder<Throwable> throwableHolder = new ParamHolder<>();
+        IForkState forkState = inheritThreadLocals ? threadLocalCleanupController.createForkState() : null;
 
-		@Override
-		public R invoke(V state) throws Exception {
-			return cancellation.withCancellationAwareness(itemHandler, state);
-		}
-	}
+        Thread[] threads = new Thread[runnables.length];
+        for (int a = runnables.length; a-- > 0; ) {
+            Runnable catchingRunnable = new CatchingRunnable(forkState, runnables[a], latch, throwableHolder, cancellation, threadLocalCleanupController);
 
-	/**
-	 * Defines the maximal amount of time threads is given to run a parallel task.
-	 */
-	public static final String TIMEOUT = "ambeth.mth.timeout";
+            Thread thread = new Thread(catchingRunnable);
+            thread.setContextClassLoader(classLoaderProvider.getClassLoader());
+            thread.setDaemon(true);
+            threads[a] = thread;
+        }
+        for (Thread thread : threads) {
+            thread.start();
+        }
+        try {
+            latch.await(timeout, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException e) {
+            throw RuntimeExceptionUtil.mask(e);
+        }
+        if (throwableHolder.getValue() != null) {
+            throw RuntimeExceptionUtil.mask(throwableHolder.getValue(), "Error occured while invoking runnables");
+        }
+    }
 
-	@Autowired
-	protected ICancellation cancellation;
+    protected boolean isMultiThreadingAllowed() {
+        return transparentParallelizationActive && executor != null;
+    }
 
-	@Autowired
-	protected IClassLoaderProvider classLoaderProvider;
+    @Override
+    public <R, V> void invokeAndWait(List<V> items, CheckedFunction<V, R> itemHandler, IAggregrateResultHandler<R, V> aggregateResultHandler) {
+        if (items.isEmpty()) {
+            return;
+        }
+        if (!isMultiThreadingAllowed() || items.size() == 1) {
+            for (int a = items.size(); a-- > 0; ) {
+                V item = items.get(a);
+                R result = CheckedFunction.invoke(itemHandler, item);
+                if (aggregateResultHandler != null) {
+                    aggregateResultHandler.aggregateResult(result, item);
+                }
+            }
+            return;
+        }
+        ResultingRunnableHandle<R, V> runnableHandle =
+                new ResultingRunnableHandle<>(new CancellationCheckResultingBackgroundWorker<>(itemHandler), aggregateResultHandler, new ArrayList<>(items), threadLocalCleanupController);
 
-	@Autowired(optional = true)
-	protected ExecutorService executor;
+        Runnable parallelRunnable = new ResultingParallelRunnable<>(runnableHandle, true);
+        Runnable mainRunnable = new ResultingParallelRunnable<>(runnableHandle, false);
 
-	@Autowired
-	protected IThreadLocalCleanupController threadLocalCleanupController;
+        queueAndWait(items.size() - 1, parallelRunnable, mainRunnable, runnableHandle);
+    }
 
-	@Property(name = TIMEOUT, defaultValue = "30000")
-	protected long timeout;
+    @SuppressWarnings("unchecked")
+    @Override
+    public <R, K, V> void invokeAndWait(Map<K, V> items, CheckedFunction<Entry<K, V>, R> itemHandler, IAggregrateResultHandler<R, Entry<K, V>> aggregateResultHandler) {
+        if (items.isEmpty()) {
+            return;
+        }
+        if (!isMultiThreadingAllowed() || items.size() == 1) {
+            if (items instanceof Iterable) {
+                for (Entry<K, V> item : (Iterable<Entry<K, V>>) items) {
+                    R result = CheckedFunction.invoke(itemHandler, item);
+                    if (aggregateResultHandler != null) {
+                        aggregateResultHandler.aggregateResult(result, item);
+                    }
+                }
+            } else {
+                for (Entry<K, V> item : items.entrySet()) {
+                    R result = CheckedFunction.invoke(itemHandler, item);
+                    if (aggregateResultHandler != null) {
+                        aggregateResultHandler.aggregateResult(result, item);
+                    }
+                }
+            }
+            return;
+        }
+        var itemsList = new ArrayList<Entry<K, V>>(items.size());
+        if (items instanceof Iterable) {
+            for (var item : (Iterable<Entry<K, V>>) items) {
+                itemsList.add(item);
+            }
+        } else {
+            for (var item : items.entrySet()) {
+                itemsList.add(item);
+            }
+        }
+        var runnableHandle =
+                new ResultingRunnableHandle<>(new CancellationCheckResultingBackgroundWorker<Entry<K, V>, R>(itemHandler), aggregateResultHandler, itemsList, threadLocalCleanupController);
 
-	@Property(name = IocConfigurationConstants.TransparentParallelizationActive,
-			defaultValue = "true")
-	protected boolean transparentParallelizationActive;
+        var parallelRunnable = new ResultingParallelRunnable<>(runnableHandle, true);
+        var mainRunnable = new ResultingParallelRunnable<>(runnableHandle, false);
 
-	@Override
-	public void invokeInParallel(IServiceContext serviceContext, Runnable runnable, int workerCount) {
-		invokeInParallel(serviceContext, false, timeout, runnable, workerCount);
-	}
+        queueAndWait(items.size() - 1, parallelRunnable, mainRunnable, runnableHandle);
+    }
 
-	@Override
-	public void invokeInParallel(IServiceContext serviceContext, boolean inheritThreadLocals,
-			long timeout, Runnable runnable, int workerCount) {
-		Runnable[] runnables = new Runnable[workerCount];
-		for (int a = workerCount; a-- > 0;) {
-			if (runnable instanceof INamedRunnable) {
-				String name = ((INamedRunnable) runnable).getName() + "-" + a;
-				runnables[a] = new WrappingNamedRunnable(runnable, name);
-			}
-			else {
-				runnables[a] = runnable;
-			}
-		}
-		invokeInParallel(serviceContext, inheritThreadLocals, timeout, runnables);
-	}
+    @Override
+    public <V> void invokeAndWait(List<V> items, CheckedConsumer<V> itemHandler) {
+        if (items.isEmpty()) {
+            return;
+        }
+        if (!isMultiThreadingAllowed() || items.size() == 1) {
+            for (int a = items.size(); a-- > 0; ) {
+                V item = items.get(a);
+                CheckedConsumer.invoke(itemHandler, item);
+            }
+            return;
+        }
+        var runnableHandle = new RunnableHandle<V>(new CancellationCheckBackgroundWorker<>(itemHandler), new ArrayList<>(items), threadLocalCleanupController);
 
-	@Override
-	public void invokeInParallel(final IServiceContext serviceContext, Runnable... runnables) {
-		invokeInParallel(serviceContext, false, timeout, runnables);
-	}
+        var parallelRunnable = new ParallelRunnable<>(runnableHandle, true);
+        var mainRunnable = new ParallelRunnable<>(runnableHandle, false);
 
-	@Override
-	public void invokeInParallel(IServiceContext serviceContext, boolean inheritThreadLocals,
-			long timeout, Runnable... runnables) {
-		CountDownLatch latch = new CountDownLatch(runnables.length);
-		ParamHolder<Throwable> throwableHolder = new ParamHolder<>();
-		IForkState forkState = inheritThreadLocals ? threadLocalCleanupController.createForkState()
-				: null;
+        queueAndWait(items.size() - 1, parallelRunnable, mainRunnable, runnableHandle);
+    }
 
-		Thread[] threads = new Thread[runnables.length];
-		for (int a = runnables.length; a-- > 0;) {
-			Runnable catchingRunnable = new CatchingRunnable(forkState, runnables[a], latch,
-					throwableHolder, cancellation, threadLocalCleanupController);
+    @SuppressWarnings("unchecked")
+    @Override
+    public <K, V> void invokeAndWait(Map<K, V> items, CheckedConsumer<Entry<K, V>> itemHandler) {
+        if (items.isEmpty()) {
+            return;
+        }
+        if (!isMultiThreadingAllowed() || items.size() == 1) {
+            if (items instanceof Iterable) {
+                for (var item : (Iterable<Entry<K, V>>) items) {
+                    CheckedConsumer.invoke(itemHandler, item);
+                }
+            } else {
+                for (var item : items.entrySet()) {
+                    CheckedConsumer.invoke(itemHandler, item);
+                }
+            }
+            return;
+        }
+        var itemsList = new ArrayList<Entry<K, V>>(items.size());
+        if (items instanceof Iterable) {
+            for (var item : (Iterable<Entry<K, V>>) items) {
+                itemsList.add(item);
+            }
+        } else {
+            for (var item : items.entrySet()) {
+                itemsList.add(item);
+            }
+        }
+        var runnableHandle = new RunnableHandle<Entry<K, V>>(new CancellationCheckBackgroundWorker<>(itemHandler), itemsList, threadLocalCleanupController);
 
-			Thread thread = new Thread(catchingRunnable);
-			thread.setContextClassLoader(classLoaderProvider.getClassLoader());
-			thread.setDaemon(true);
-			threads[a] = thread;
-		}
-		for (Thread thread : threads) {
-			thread.start();
-		}
-		try {
-			latch.await(timeout, TimeUnit.MILLISECONDS);
-		}
-		catch (InterruptedException e) {
-			throw RuntimeExceptionUtil.mask(e);
-		}
-		if (throwableHolder.getValue() != null) {
-			throw RuntimeExceptionUtil.mask(throwableHolder.getValue(),
-					"Error occured while invoking runnables");
-		}
-	}
+        var parallelRunnable = new ParallelRunnable<>(runnableHandle, true);
+        var mainRunnable = new ParallelRunnable<>(runnableHandle, false);
 
-	protected boolean isMultiThreadingAllowed() {
-		return transparentParallelizationActive && executor != null;
-	}
+        queueAndWait(items.size() - 1, parallelRunnable, mainRunnable, runnableHandle);
+    }
 
-	@Override
-	public <R, V> void invokeAndWait(List<V> items,
-			IResultingBackgroundWorkerParamDelegate<R, V> itemHandler,
-			IAggregrateResultHandler<R, V> aggregateResultHandler) {
-		if (items.isEmpty()) {
-			return;
-		}
-		if (!isMultiThreadingAllowed() || items.size() == 1) {
-			try {
-				for (int a = items.size(); a-- > 0;) {
-					V item = items.get(a);
-					R result = itemHandler.invoke(item);
-					if (aggregateResultHandler != null) {
-						aggregateResultHandler.aggregateResult(result, item);
-					}
-				}
-				return;
-			}
-			catch (Exception e) {
-				throw RuntimeExceptionUtil.mask(e);
-			}
-		}
-		ResultingRunnableHandle<R, V> runnableHandle = new ResultingRunnableHandle<>(
-				new CancellationCheckResultingBackgroundWorker<>(itemHandler), aggregateResultHandler,
-				new ArrayList<>(items), threadLocalCleanupController);
+    protected <V> void queueAndWait(int forkCount, Runnable parallelRunnable, Runnable mainRunnable, AbstractRunnableHandle<V> runnableHandle) {
+        // for n items fork at most n - 1 threads because our main thread behaves like a worker by
+        // itself
+        for (int a = forkCount; a-- > 0; ) {
+            executor.execute(parallelRunnable);
+        }
+        // consume items with the "main thread" as long as there is one in the queue
+        mainRunnable.run();
 
-		Runnable parallelRunnable = new ResultingParallelRunnable<>(runnableHandle, true);
-		Runnable mainRunnable = new ResultingParallelRunnable<>(runnableHandle, false);
+        // wait till the forked threads have finished, too
+        waitForLatch(runnableHandle.latch, runnableHandle);
 
-		queueAndWait(items.size() - 1, parallelRunnable, mainRunnable, runnableHandle);
-	}
+        runnableHandle.forkState.reintegrateForkedValues();
+    }
 
-	@SuppressWarnings("unchecked")
-	@Override
-	public <R, K, V> void invokeAndWait(Map<K, V> items,
-			IResultingBackgroundWorkerParamDelegate<R, Entry<K, V>> itemHandler,
-			IAggregrateResultHandler<R, Entry<K, V>> aggregateResultHandler) {
-		if (items.isEmpty()) {
-			return;
-		}
-		if (!isMultiThreadingAllowed() || items.size() == 1) {
-			try {
-				if (items instanceof Iterable) {
-					for (Entry<K, V> item : (Iterable<Entry<K, V>>) items) {
-						R result = itemHandler.invoke(item);
-						if (aggregateResultHandler != null) {
-							aggregateResultHandler.aggregateResult(result, item);
-						}
-					}
-				}
-				else {
-					for (Entry<K, V> item : items.entrySet()) {
-						R result = itemHandler.invoke(item);
-						if (aggregateResultHandler != null) {
-							aggregateResultHandler.aggregateResult(result, item);
-						}
-					}
-				}
-				return;
-			}
-			catch (Exception e) {
-				throw RuntimeExceptionUtil.mask(e);
-			}
-		}
-		ArrayList<Entry<K, V>> itemsList = new ArrayList<>(items.size());
-		if (items instanceof Iterable) {
-			for (Entry<K, V> item : (Iterable<Entry<K, V>>) items) {
-				itemsList.add(item);
-			}
-		}
-		else {
-			for (Entry<K, V> item : items.entrySet()) {
-				itemsList.add(item);
-			}
-		}
-		ResultingRunnableHandle<R, Entry<K, V>> runnableHandle = new ResultingRunnableHandle<>(
-				new CancellationCheckResultingBackgroundWorker<>(itemHandler), aggregateResultHandler,
-				itemsList, threadLocalCleanupController);
+    protected void waitForLatch(CountDownLatch latch, InterruptingParamHolder exHolder) {
+        while (true) {
+            Throwable ex = exHolder.getValue();
+            if (ex != null) {
+                // A parallel exception will be thrown here
+                throw RuntimeExceptionUtil.mask(ex);
+            }
+            try {
+                latch.await();
+                if (latch.getCount() == 0) {
+                    return;
+                }
+            } catch (InterruptedException e) {
+                // intended blank
+                // will be thrown if a foreign thread throws an exception an is stored in the paramHolder
+            }
+        }
+    }
 
-		Runnable parallelRunnable = new ResultingParallelRunnable<>(runnableHandle, true);
-		Runnable mainRunnable = new ResultingParallelRunnable<>(runnableHandle, false);
+    @Value
+    private class CancellationCheckBackgroundWorker<V> implements CheckedConsumer<V> {
+        CheckedConsumer<V> itemHandler;
 
-		queueAndWait(items.size() - 1, parallelRunnable, mainRunnable, runnableHandle);
-	}
+        @Override
+        public void accept(final V state) throws Exception {
+            cancellation.withCancellationAwareness(itemHandler, state);
+        }
+    }
 
-	@Override
-	public <V> void invokeAndWait(List<V> items, IBackgroundWorkerParamDelegate<V> itemHandler) {
-		if (items.isEmpty()) {
-			return;
-		}
-		if (!isMultiThreadingAllowed() || items.size() == 1) {
-			try {
-				for (int a = items.size(); a-- > 0;) {
-					V item = items.get(a);
-					itemHandler.invoke(item);
-				}
-				return;
-			}
-			catch (Exception e) {
-				throw RuntimeExceptionUtil.mask(e);
-			}
-		}
-		RunnableHandle<V> runnableHandle = new RunnableHandle<>(
-				new CancellationCheckBackgroundWorker<>(itemHandler), new ArrayList<>(items),
-				threadLocalCleanupController);
+    @Value
+    private class CancellationCheckResultingBackgroundWorker<V, R> implements CheckedFunction<V, R> {
+        CheckedFunction<V, R> itemHandler;
 
-		Runnable parallelRunnable = new ParallelRunnable<>(runnableHandle, true);
-		Runnable mainRunnable = new ParallelRunnable<>(runnableHandle, false);
-
-		queueAndWait(items.size() - 1, parallelRunnable, mainRunnable, runnableHandle);
-	}
-
-	@SuppressWarnings("unchecked")
-	@Override
-	public <K, V> void invokeAndWait(Map<K, V> items,
-			IBackgroundWorkerParamDelegate<Entry<K, V>> itemHandler) {
-		if (items.isEmpty()) {
-			return;
-		}
-		if (!isMultiThreadingAllowed() || items.size() == 1) {
-			try {
-				if (items instanceof Iterable) {
-					for (Entry<K, V> item : (Iterable<Entry<K, V>>) items) {
-						itemHandler.invoke(item);
-					}
-				}
-				else {
-					for (Entry<K, V> item : items.entrySet()) {
-						itemHandler.invoke(item);
-					}
-				}
-				return;
-			}
-			catch (Exception e) {
-				throw RuntimeExceptionUtil.mask(e);
-			}
-		}
-		ArrayList<Entry<K, V>> itemsList = new ArrayList<>(items.size());
-		if (items instanceof Iterable) {
-			for (Entry<K, V> item : (Iterable<Entry<K, V>>) items) {
-				itemsList.add(item);
-			}
-		}
-		else {
-			for (Entry<K, V> item : items.entrySet()) {
-				itemsList.add(item);
-			}
-		}
-		RunnableHandle<Entry<K, V>> runnableHandle = new RunnableHandle<>(
-				new CancellationCheckBackgroundWorker<>(itemHandler), itemsList,
-				threadLocalCleanupController);
-
-		Runnable parallelRunnable = new ParallelRunnable<>(runnableHandle, true);
-		Runnable mainRunnable = new ParallelRunnable<>(runnableHandle, false);
-
-		queueAndWait(items.size() - 1, parallelRunnable, mainRunnable, runnableHandle);
-	}
-
-	protected <V> void queueAndWait(int forkCount, Runnable parallelRunnable, Runnable mainRunnable,
-			AbstractRunnableHandle<V> runnableHandle) {
-		// for n items fork at most n - 1 threads because our main thread behaves like a worker by
-		// itself
-		for (int a = forkCount; a-- > 0;) {
-			executor.execute(parallelRunnable);
-		}
-		// consume items with the "main thread" as long as there is one in the queue
-		mainRunnable.run();
-
-		// wait till the forked threads have finished, too
-		waitForLatch(runnableHandle.latch, runnableHandle);
-
-		runnableHandle.forkState.reintegrateForkedValues();
-	}
-
-	protected void waitForLatch(CountDownLatch latch, InterruptingParamHolder exHolder) {
-		while (true) {
-			Throwable ex = exHolder.getValue();
-			if (ex != null) {
-				// A parallel exception will be thrown here
-				throw RuntimeExceptionUtil.mask(ex);
-			}
-			try {
-				latch.await();
-				if (latch.getCount() == 0) {
-					return;
-				}
-			}
-			catch (InterruptedException e) {
-				// intended blank
-				// will be thrown if a foreign thread throws an exception an is stored in the paramHolder
-			}
-		}
-	}
+        @Override
+        public R apply(V state) throws Exception {
+            return cancellation.withCancellationAwareness(itemHandler, state);
+        }
+    }
 }

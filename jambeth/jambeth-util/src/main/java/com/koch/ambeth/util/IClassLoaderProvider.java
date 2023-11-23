@@ -23,7 +23,7 @@ limitations under the License.
  */
 
 public interface IClassLoaderProvider {
-	ClassLoader getClassLoader();
+    ClassLoader getClassLoader();
 
-	IStateRollback pushClassLoader(IStateRollback... rollbacks);
+    IStateRollback pushClassLoader();
 }

@@ -28,7 +28,7 @@ import java.sql.SQLException;
 import java.sql.Savepoint;
 import java.util.List;
 
-import javax.persistence.PersistenceException;
+import jakarta.persistence.PersistenceException;
 
 import com.koch.ambeth.persistence.api.IDatabase;
 import com.koch.ambeth.persistence.api.IFieldMetaData;
@@ -41,116 +41,111 @@ import com.koch.ambeth.util.collections.IMap;
 import com.koch.ambeth.util.state.IStateRollback;
 
 public interface IConnectionDialect {
-	String escapeName(CharSequence symbolName);
+    String escapeName(CharSequence symbolName);
 
-	IAppendable escapeName(CharSequence symbolName, IAppendable sb);
+    IAppendable escapeName(CharSequence symbolName, IAppendable sb);
 
-	String escapeSchemaAndSymbolName(CharSequence schemaName, CharSequence symbolName);
+    String escapeSchemaAndSymbolName(CharSequence schemaName, CharSequence symbolName);
 
-	String getEscapeLiteral();
+    String getEscapeLiteral();
 
-	String getSelectForUpdateFragment();
+    String getSelectForUpdateFragment();
 
-	Blob createBlob(Connection connection);
+    Blob createBlob(Connection connection);
 
-	void releaseBlob(Blob blob);
+    void releaseBlob(Blob blob);
 
-	Clob createClob(Connection connection);
+    Clob createClob(Connection connection);
 
-	void releaseClob(Clob clob);
+    void releaseClob(Clob clob);
 
-	void releaseArray(java.sql.Array array);
+    void releaseArray(java.sql.Array array);
 
-	String toDefaultCase(String unquotedIdentifier);
+    String toDefaultCase(String unquotedIdentifier);
 
-	void preProcessConnection(Connection connection, String[] schemaNames,
-			boolean forcePreProcessing);
+    void preProcessConnection(Connection connection, String[] schemaNames, boolean forcePreProcessing);
 
-	IList<IMap<String, String>> getExportedKeys(Connection connection, String[] schemaNames);
+    IList<IMap<String, String>> getExportedKeys(Connection connection, String[] schemaNames);
 
-	ILinkedMap<String, IList<String>> getFulltextIndexes(Connection connection, String schemaName);
+    ILinkedMap<String, IList<String>> getFulltextIndexes(Connection connection, String schemaName);
 
-	boolean isSystemTable(String tableName);
+    boolean isSystemTable(String tableName);
 
-	IStateRollback disableConstraints(Connection connection, String... schemaNames);
+    IStateRollback disableConstraints(Connection connection, String... schemaNames);
 
-	void commit(Connection connection);
+    void commit(Connection connection);
 
-	void rollback(Connection connection);
+    void rollback(Connection connection);
 
-	void releaseSavepoint(Savepoint savepoint, Connection connection);
+    void releaseSavepoint(Savepoint savepoint, Connection connection);
 
-	IOperand getRegexpLikeFunction(IOperand sourceString, IOperand pattern, IOperand matchParameter);
+    IOperand getRegexpLikeFunction(IOperand sourceString, IOperand pattern, IOperand matchParameter);
 
-	IOperand getLimitOperand(IOperand operand, IValueOperand valueOperand);
+    IOperand getLimitOperand(IOperand operand, IValueOperand valueOperand);
 
-	int getResourceBusyErrorCode();
+    int getResourceBusyErrorCode();
 
-	PersistenceException createPersistenceException(SQLException e, String relatedSql);
+    PersistenceException createPersistenceException(SQLException e, String relatedSql);
 
-	boolean useVersionOnOptimisticUpdate();
+    boolean useVersionOnOptimisticUpdate();
 
-	ResultSet getIndexInfo(Connection connection, String schemaName, String tableName, boolean unique);
+    ResultSet getIndexInfo(Connection connection, String schemaName, String tableName, boolean unique);
 
-	Class<?> getComponentTypeByFieldTypeName(String additionalFieldInfo);
+    Class<?> getComponentTypeByFieldTypeName(String additionalFieldInfo);
 
-	String getFieldTypeNameByComponentType(Class<?> componentType);
+    String getFieldTypeNameByComponentType(Class<?> componentType);
 
-	List<String> getAllFullqualifiedTableNames(Connection connection, String... schemaNames);
+    List<String> getAllFullqualifiedTableNames(Connection connection, String... schemaNames);
 
-	List<String> getAllFullqualifiedViews(Connection connection, String... schemaNames);
+    List<String> getAllFullqualifiedViews(Connection connection, String... schemaNames);
 
-	List<String> getAllFullqualifiedSequences(Connection connection, String... schemaNames);
+    List<String> getAllFullqualifiedSequences(Connection connection, String... schemaNames);
 
-	IList<IColumnEntry> getAllFieldsOfTable(Connection connection, String fqTableName);
+    IList<IColumnEntry> getAllFieldsOfTable(Connection connection, String fqTableName);
 
-	IList<String> queryDefault(Connection connection, String resultColumnName, String sql,
-			Object... args);
+    IList<String> queryDefault(Connection connection, String resultColumnName, String sql, Object... args);
 
-	int getMaxInClauseBatchThreshold();
+    int getMaxInClauseBatchThreshold();
 
-	boolean isEmptyStringAsNullStored(IFieldMetaData field);
+    boolean isEmptyStringAsNullStored(IFieldMetaData field);
 
-	Object convertToFieldType(IFieldMetaData field, Object value);
+    Object convertToFieldType(IFieldMetaData field, Object value);
 
-	Object convertFromFieldType(IDatabase database, IFieldMetaData field, Class<?> expectedType,
-			Object value);
+    Object convertFromFieldType(IDatabase database, IFieldMetaData field, Class<?> expectedType, Object value);
 
-	boolean isTransactionNecessaryDuringLobStreaming();
+    boolean isTransactionNecessaryDuringLobStreaming();
 
-	void appendIsInOperatorClause(IAppendable appendable);
+    void appendIsInOperatorClause(IAppendable appendable);
 
-	boolean isCompactMultiValueRecommended(IList<Object> values);
+    boolean isCompactMultiValueRecommended(IList<Object> values);
 
-	void handleWithMultiValueLeftField(IAppendable querySB, IMap<Object, Object> nameToValueMap,
-			IList<Object> parameters, IList<IList<Object>> splitValues, boolean caseSensitive,
-			Class<?> leftOperandFieldType);
+    void handleWithMultiValueLeftField(IAppendable querySB, IMap<Object, Object> nameToValueMap, IList<Object> parameters, IList<IList<Object>> splitValues, boolean caseSensitive,
+            Class<?> leftOperandFieldType);
 
-	/**
-	 * append the best suited list clause IN( ?,?,?,?,?) (with ids as single parameters) _OR_ = ANY
-	 * [?] (with an array)
-	 *
-	 * @param parameters
-	 * @param sb
-	 * @param fieldType
-	 * @param splittedIds
-	 */
-	void appendListClause(List<Object> parameters, IAppendable sb, Class<?> fieldType,
-			IList<Object> splittedIds);
+    /**
+     * append the best suited list clause IN( ?,?,?,?,?) (with ids as single parameters) _OR_ = ANY
+     * [?] (with an array)
+     *
+     * @param parameters
+     * @param sb
+     * @param fieldType
+     * @param splittedIds
+     */
+    void appendListClause(List<Object> parameters, IAppendable sb, Class<?> fieldType, IList<Object> splittedIds);
 
-	/**
-	 * Replace Oracle SQL with connection dialect specific SQL
-	 *
-	 * @param sqlCommand
-	 * @return
-	 */
-	String prepareCommand(String sqlCommand);
+    /**
+     * Replace Oracle SQL with connection dialect specific SQL
+     *
+     * @param sqlCommand
+     * @return
+     */
+    String prepareCommand(String sqlCommand);
 
-	SelectPosition getLimitPosition();
+    SelectPosition getLimitPosition();
 
-	int getColumnCountForLinkTable();
+    int getColumnCountForLinkTable();
 
-	String buildClearTableSQL(String tableName);
+    String buildClearTableSQL(String tableName);
 
-	Class<?>[] getConnectionInterfaces(Connection connection);
+    Class<?>[] getConnectionInterfaces(Connection connection);
 }

@@ -20,10 +20,10 @@ limitations under the License.
  * #L%
  */
 
-import javax.persistence.PersistenceException;
+import jakarta.persistence.PersistenceException;
 
 public interface IPersistenceExceptionUtil {
-	PersistenceException mask(Throwable e);
+    PersistenceException mask(Throwable e);
 
-	PersistenceException mask(Throwable e, String relatedSql);
+    PersistenceException mask(Throwable e, String relatedSql);
 }

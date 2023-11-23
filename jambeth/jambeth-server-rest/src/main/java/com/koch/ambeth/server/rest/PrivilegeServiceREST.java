@@ -20,9 +20,10 @@ limitations under the License.
  * #L%
  */
 
-import java.io.InputStream;
-import java.util.List;
-
+import com.koch.ambeth.security.service.IPrivilegeService;
+import com.koch.ambeth.service.merge.model.IObjRef;
+import com.koch.ambeth.service.model.ISecurityScope;
+import com.koch.ambeth.service.rest.Constants;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.ws.rs.Consumes;
@@ -32,57 +33,25 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.StreamingOutput;
 
-import com.koch.ambeth.security.privilege.transfer.IPrivilegeOfService;
-import com.koch.ambeth.security.privilege.transfer.ITypePrivilegeOfService;
-import com.koch.ambeth.security.service.IPrivilegeService;
-import com.koch.ambeth.service.merge.model.IObjRef;
-import com.koch.ambeth.service.model.ISecurityScope;
-import com.koch.ambeth.service.rest.Constants;
-import com.koch.ambeth.util.state.IStateRollback;
+import java.io.InputStream;
 
 @Path("/PrivilegeService")
-@Consumes({Constants.AMBETH_MEDIA_TYPE})
-@Produces({Constants.AMBETH_MEDIA_TYPE})
+@Consumes({ Constants.AMBETH_MEDIA_TYPE })
+@Produces({ Constants.AMBETH_MEDIA_TYPE })
 public class PrivilegeServiceREST extends AbstractServiceREST {
-	protected IPrivilegeService getPrivilegeService() {
-		return getService(IPrivilegeService.class);
-	}
+    protected IPrivilegeService getPrivilegeService() {
+        return getService(IPrivilegeService.class);
+    }
 
-	@POST
-	@Path("getPrivileges")
-	public StreamingOutput getPrivileges(InputStream is, @Context HttpServletRequest request,
-			@Context HttpServletResponse response) {
-		var rollback = preServiceCall(request, response);
-		try {
-			var args = getArguments(is, request);
-			var result = getPrivilegeService().getPrivileges((IObjRef[]) args[0],
-					(ISecurityScope[]) args[1]);
-			return createResult(result, request, response);
-		}
-		catch (Throwable e) {
-			return createExceptionResult(e, request, response);
-		}
-		finally {
-			rollback.rollback();
-		}
-	}
+    @POST
+    @Path("getPrivileges")
+    public StreamingOutput getPrivileges(InputStream is, @Context HttpServletRequest request, @Context HttpServletResponse response) {
+        return defaultStreamingRequest(request, response, is, args -> getPrivilegeService().getPrivileges((IObjRef[]) args[0], (ISecurityScope[]) args[1]));
+    }
 
-	@POST
-	@Path("getPrivilegesOfTypes")
-	public StreamingOutput getPrivilegesOfTypes(InputStream is, @Context HttpServletRequest request,
-			@Context HttpServletResponse response) {
-		var rollback = preServiceCall(request, response);
-		try {
-			var args = getArguments(is, request);
-			var result = getPrivilegeService().getPrivilegesOfTypes((Class<?>[]) args[0],
-							(ISecurityScope[]) args[1]);
-			return createResult(result, request, response);
-		}
-		catch (Throwable e) {
-			return createExceptionResult(e, request, response);
-		}
-		finally {
-			rollback.rollback();
-		}
-	}
+    @POST
+    @Path("getPrivilegesOfTypes")
+    public StreamingOutput getPrivilegesOfTypes(InputStream is, @Context HttpServletRequest request, @Context HttpServletResponse response) {
+        return defaultStreamingRequest(request, response, is, args -> getPrivilegeService().getPrivilegesOfTypes((Class<?>[]) args[0], (ISecurityScope[]) args[1]));
+    }
 }

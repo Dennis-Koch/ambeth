@@ -25,93 +25,77 @@ import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.threadlocal.Forkable;
 import com.koch.ambeth.ioc.threadlocal.IThreadLocalCleanupBean;
 import com.koch.ambeth.service.model.ISecurityScope;
-import com.koch.ambeth.util.state.AbstractStateRollback;
 import com.koch.ambeth.util.state.IStateRollback;
 import com.koch.ambeth.util.threading.SensitiveThreadLocal;
 
-public class SecurityScopeProvider implements IThreadLocalCleanupBean, ISecurityScopeProvider,
-		ISecurityScopeChangeListenerExtendable {
-	public static final ISecurityScope[] defaultSecurityScopes = new ISecurityScope[0];
+public class SecurityScopeProvider implements IThreadLocalCleanupBean, ISecurityScopeProvider, ISecurityScopeChangeListenerExtendable {
+    public static final ISecurityScope[] defaultSecurityScopes = new ISecurityScope[0];
+    @Forkable
+    protected final ThreadLocal<SecurityScopeHandle> securityScopeTL = new SensitiveThreadLocal<>();
+    protected final DefaultExtendableContainer<ISecurityScopeChangeListener> securityScopeChangeListeners =
+            new DefaultExtendableContainer<>(ISecurityScopeChangeListener.class, "securityScopeChangeListener");
+    @Autowired(optional = true)
+    protected IDefaultSecurityScopeProvider defaultSecurityScopeProvider;
 
-	@Autowired(optional = true)
-	protected IDefaultSecurityScopeProvider defaultSecurityScopeProvider;
+    @Override
+    public void cleanupThreadLocal() {
+        securityScopeTL.remove();
+    }
 
-	@Forkable
-	protected final ThreadLocal<SecurityScopeHandle> securityScopeTL = new SensitiveThreadLocal<>();
+    @Override
+    public ISecurityScope[] getSecurityScopes() {
+        var securityScopeHandle = securityScopeTL.get();
+        if (securityScopeHandle == null) {
+            if (defaultSecurityScopeProvider != null) {
+                return defaultSecurityScopeProvider.getDefaultSecurityScopes();
+            }
+            return defaultSecurityScopes;
+        }
+        if (securityScopeHandle.securityScopes == null) {
+            if (defaultSecurityScopeProvider != null) {
+                return defaultSecurityScopeProvider.getDefaultSecurityScopes();
+            }
+            return defaultSecurityScopes;
+        }
+        return securityScopeHandle.securityScopes;
+    }
 
-	protected final DefaultExtendableContainer<ISecurityScopeChangeListener> securityScopeChangeListeners =
-			new DefaultExtendableContainer<>(
-					ISecurityScopeChangeListener.class, "securityScopeChangeListener");
+    @Override
+    public void setSecurityScopes(ISecurityScope[] securityScopes) {
+        var securityScopeHandle = securityScopeTL.get();
+        if (securityScopeHandle == null) {
+            securityScopeHandle = new SecurityScopeHandle();
+            securityScopeTL.set(securityScopeHandle);
+        }
+        securityScopeHandle.securityScopes = securityScopes;
+        notifySecurityScopeChangeListeners(securityScopeHandle);
+    }
 
-	@Override
-	public void cleanupThreadLocal() {
-		securityScopeTL.remove();
-	}
+    @Override
+    public IStateRollback pushSecurityScopes(ISecurityScope securityScope) {
+        return pushSecurityScopes(new ISecurityScope[] { securityScope });
+    }
 
-	@Override
-	public ISecurityScope[] getSecurityScopes() {
-		SecurityScopeHandle securityScopeHandle = securityScopeTL.get();
-		if (securityScopeHandle == null) {
-			if (defaultSecurityScopeProvider != null) {
-				return defaultSecurityScopeProvider.getDefaultSecurityScopes();
-			}
-			return defaultSecurityScopes;
-		}
-		if (securityScopeHandle.securityScopes == null) {
-			if (defaultSecurityScopeProvider != null) {
-				return defaultSecurityScopeProvider.getDefaultSecurityScopes();
-			}
-			return defaultSecurityScopes;
-		}
-		return securityScopeHandle.securityScopes;
-	}
+    @Override
+    public IStateRollback pushSecurityScopes(ISecurityScope[] securityScopes) {
+        var oldSecurityScopes = getSecurityScopes();
+        setSecurityScopes(securityScopes);
+        return () -> setSecurityScopes(oldSecurityScopes);
+    }
 
-	@Override
-	public void setSecurityScopes(ISecurityScope[] securityScopes) {
-		SecurityScopeHandle securityScopeHandle = securityScopeTL.get();
-		if (securityScopeHandle == null) {
-			securityScopeHandle = new SecurityScopeHandle();
-			securityScopeTL.set(securityScopeHandle);
-		}
-		securityScopeHandle.securityScopes = securityScopes;
-		notifySecurityScopeChangeListeners(securityScopeHandle);
-	}
+    protected void notifySecurityScopeChangeListeners(SecurityScopeHandle securityScopeHandle) {
+        for (var securityScopeChangeListener : securityScopeChangeListeners.getExtensionsShared()) {
+            securityScopeChangeListener.securityScopeChanged(securityScopeHandle.securityScopes);
+        }
+    }
 
-	@Override
-	public IStateRollback pushSecurityScopes(ISecurityScope securityScope,
-			IStateRollback... rollbacks) {
-		return pushSecurityScopes(new ISecurityScope[] {securityScope}, rollbacks);
-	}
+    @Override
+    public void registerSecurityScopeChangeListener(ISecurityScopeChangeListener securityScopeChangeListener) {
+        securityScopeChangeListeners.register(securityScopeChangeListener);
+    }
 
-	@Override
-	public IStateRollback pushSecurityScopes(ISecurityScope[] securityScopes,
-			IStateRollback... rollbacks) {
-		final ISecurityScope[] oldSecurityScopes = getSecurityScopes();
-		setSecurityScopes(securityScopes);
-		return new AbstractStateRollback(rollbacks) {
-			@Override
-			protected void rollbackIntern() throws Exception {
-				setSecurityScopes(oldSecurityScopes);
-			}
-		};
-	}
-
-	protected void notifySecurityScopeChangeListeners(SecurityScopeHandle securityScopeHandle) {
-		for (ISecurityScopeChangeListener securityScopeChangeListener : securityScopeChangeListeners
-				.getExtensionsShared()) {
-			securityScopeChangeListener.securityScopeChanged(securityScopeHandle.securityScopes);
-		}
-	}
-
-	@Override
-	public void registerSecurityScopeChangeListener(
-			ISecurityScopeChangeListener securityScopeChangeListener) {
-		securityScopeChangeListeners.register(securityScopeChangeListener);
-	}
-
-	@Override
-	public void unregisterSecurityScopeChangeListener(
-			ISecurityScopeChangeListener securityScopeChangeListener) {
-		securityScopeChangeListeners.unregister(securityScopeChangeListener);
-	}
+    @Override
+    public void unregisterSecurityScopeChangeListener(ISecurityScopeChangeListener securityScopeChangeListener) {
+        securityScopeChangeListeners.unregister(securityScopeChangeListener);
+    }
 }

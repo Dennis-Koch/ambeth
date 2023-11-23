@@ -1,9 +1,9 @@
 package com.koch.ambeth.merge.security;
 
-import java.lang.reflect.Method;
+import com.koch.ambeth.util.function.CheckedRunnable;
+import com.koch.ambeth.util.function.CheckedSupplier;
 
-import com.koch.ambeth.util.threading.IBackgroundWorkerDelegate;
-import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
+import java.lang.reflect.Method;
 
 /*-
  * #%L
@@ -26,13 +26,13 @@ limitations under the License.
  */
 
 public interface ILightweightSecurityContext {
-	boolean isAuthenticated();
+    boolean isAuthenticated();
 
-	void withAuthenticated(IBackgroundWorkerDelegate delegate);
+    void withAuthenticated(CheckedRunnable delegate);
 
-	<R> R withAuthenticated(IResultingBackgroundWorkerDelegate<R> delegate);
+    <R> R withAuthenticated(CheckedSupplier<R> delegate);
 
-	void withAuthorized(Method method, IBackgroundWorkerDelegate delegate);
+    void withAuthorized(Method method, CheckedRunnable delegate);
 
-	<R> R withAuthorized(Method method, IResultingBackgroundWorkerDelegate<R> delegate);
+    <R> R withAuthorized(Method method, CheckedSupplier<R> delegate);
 }

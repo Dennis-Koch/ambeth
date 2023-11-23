@@ -20,17 +20,11 @@ limitations under the License.
  * #L%
  */
 
-import java.io.Closeable;
-import java.io.IOException;
-import java.util.List;
-import java.util.Map.Entry;
-
 import com.koch.ambeth.core.config.CoreConfigurationConstants;
 import com.koch.ambeth.ioc.IInitializingBean;
 import com.koch.ambeth.ioc.IServiceContext;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.config.Property;
-import com.koch.ambeth.ioc.factory.IBeanContextFactory;
 import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.util.IClasspathScanner;
@@ -38,86 +32,75 @@ import com.koch.ambeth.util.IConversionHelper;
 import com.koch.ambeth.util.IDisposable;
 import com.koch.ambeth.util.collections.IMap;
 import com.koch.ambeth.util.config.IProperties;
-import com.koch.ambeth.util.threading.IBackgroundWorkerParamDelegate;
 
-public class ConfigurableClasspathScanner
-		implements IClasspathScanner, IInitializingBean, IDisposable, Closeable {
-	@LogInstance
-	private ILogger log;
+import java.io.Closeable;
+import java.io.IOException;
+import java.util.List;
+import java.util.Map.Entry;
 
-	@Autowired
-	protected IServiceContext serviceContext;
+public class ConfigurableClasspathScanner implements IClasspathScanner, IInitializingBean, IDisposable, Closeable {
+    @Autowired
+    protected IServiceContext serviceContext;
+    @Autowired
+    protected IProperties properties;
+    @Autowired
+    protected IConversionHelper conversionHelper;
+    @Property
+    protected IMap<Class<?>, Object> autowiredInstances;
+    protected IServiceContext scannerContext;
+    protected IClasspathScanner classpathScanner;
+    @LogInstance
+    private ILogger log;
 
-	@Autowired
-	protected IProperties properties;
+    @Override
+    public void afterPropertiesSet() throws Throwable {
+        var classpathScannerClass = getConfiguredType(CoreConfigurationConstants.ClasspathScannerClass, CoreClasspathScanner.class.getName());
+        var classpathInfoClass = getConfiguredType(CoreConfigurationConstants.ClasspathInfoClass, SystemClasspathInfo.class.getName());
 
-	@Autowired
-	protected IConversionHelper conversionHelper;
+        scannerContext = serviceContext.createService(childContextFactory -> {
+            childContextFactory.registerBean(classpathScannerClass).autowireable(IClasspathScanner.class);
+            childContextFactory.registerBean(classpathInfoClass).autowireable(IClasspathInfo.class);
 
-	@Property
-	protected IMap<Class<?>, Object> autowiredInstances;
+            for (Entry<Class<?>, Object> autowiring : autowiredInstances) {
+                var typeToPublish = autowiring.getKey();
+                var externalBean = autowiring.getValue();
+                childContextFactory.registerExternalBean(externalBean).autowireable(typeToPublish);
+            }
+        });
+        classpathScanner = scannerContext.getService(IClasspathScanner.class);
+    }
 
-	protected IServiceContext scannerContext;
+    @Override
+    public void dispose() {
+        if (scannerContext != null) {
+            scannerContext.dispose();
 
-	protected IClasspathScanner classpathScanner;
+            scannerContext = null;
+            classpathScanner = null;
+        }
+    }
 
-	@Override
-	public void afterPropertiesSet() throws Throwable {
-		final Class<?> classpathScannerClass = getConfiguredType(
-				CoreConfigurationConstants.ClasspathScannerClass, CoreClasspathScanner.class.getName());
-		final Class<?> classpathInfoClass = getConfiguredType(
-				CoreConfigurationConstants.ClasspathInfoClass, SystemClasspathInfo.class.getName());
+    @Override
+    public void close() throws IOException {
+        dispose();
+    }
 
-		scannerContext = serviceContext
-				.createService(new IBackgroundWorkerParamDelegate<IBeanContextFactory>() {
+    @Override
+    public List<Class<?>> scanClassesAnnotatedWith(Class<?>... annotationTypes) {
+        List<Class<?>> annotatedWith = classpathScanner.scanClassesAnnotatedWith(annotationTypes);
+        return annotatedWith;
+    }
 
-					@Override
-					public void invoke(IBeanContextFactory beanContextFactory) throws Exception {
-						beanContextFactory.registerBean(classpathScannerClass)
-								.autowireable(IClasspathScanner.class);
-						beanContextFactory.registerBean(classpathInfoClass).autowireable(IClasspathInfo.class);
+    @Override
+    public List<Class<?>> scanClassesImplementing(Class<?>... superTypes) {
+        List<Class<?>> implementing = classpathScanner.scanClassesImplementing(superTypes);
+        return implementing;
+    }
 
-						for (Entry<Class<?>, Object> autowiring : autowiredInstances) {
-							Class<?> typeToPublish = autowiring.getKey();
-							Object externalBean = autowiring.getValue();
-							beanContextFactory.registerExternalBean(externalBean).autowireable(typeToPublish);
-						}
-					}
-				});
-		classpathScanner = scannerContext.getService(IClasspathScanner.class);
-	}
+    protected Class<?> getConfiguredType(String propertyName, String defaulValue) {
+        String className = properties.getString(propertyName, defaulValue);
+        Class<?> clazz = conversionHelper.convertValueToType(Class.class, className);
 
-	@Override
-	public void dispose() {
-		if (scannerContext != null) {
-			scannerContext.dispose();
-
-			scannerContext = null;
-			classpathScanner = null;
-		}
-	}
-
-	@Override
-	public void close() throws IOException {
-		dispose();
-	}
-
-	@Override
-	public List<Class<?>> scanClassesAnnotatedWith(Class<?>... annotationTypes) {
-		List<Class<?>> annotatedWith = classpathScanner.scanClassesAnnotatedWith(annotationTypes);
-		return annotatedWith;
-	}
-
-	@Override
-	public List<Class<?>> scanClassesImplementing(Class<?>... superTypes) {
-		List<Class<?>> implementing = classpathScanner.scanClassesImplementing(superTypes);
-		return implementing;
-	}
-
-	protected Class<?> getConfiguredType(String propertyName, String defaulValue) {
-		String className = properties.getString(propertyName, defaulValue);
-		Class<?> clazz = conversionHelper.convertValueToType(Class.class, className);
-
-		return clazz;
-	}
+        return clazz;
+    }
 }

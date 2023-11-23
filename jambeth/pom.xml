@@ -1,939 +1,939 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-	<modelVersion>4.0.0</modelVersion>
-
-	<artifactId>jambeth-pom</artifactId>
-	<version>3.1.0-SNAPSHOT</version>
-	<packaging>pom</packaging>
-
-	<parent>
-		<groupId>com.koch.ambeth</groupId>
-		<artifactId>base-pom</artifactId>
-		<version>1.0.3-SNAPSHOT</version>
-	</parent>
-
-	<properties>
-		<ambeth.version>${project.version}</ambeth.version>
-		<maven.git-commit-id.version>2.2.2</maven.git-commit-id.version>
-		<dotGitDirectory>${project.basedir}/../../.git</dotGitDirectory>
-		<javassist.version>3.19.0-GA</javassist.version>
-	</properties>
-
-	<modules>
-		<module>jambeth-audit</module>
-		<module>jambeth-audit-server</module>
-		<module>jambeth-bytecode</module>
-		<module>jambeth-cache</module>
-		<module>jambeth-cache-bytecode</module>
-		<module>jambeth-cache-datachange</module>
-		<module>jambeth-cache-server</module>
-		<module>jambeth-cache-stream</module>
-		<module>jambeth-datachange</module>
-		<module>jambeth-datachange-kafka</module>
-		<module>jambeth-datachange-persistence</module>
-		<module>jambeth-doc-scope</module>
-		<module>jambeth-dot</module>
-		<module>jambeth-eclipse-databinding</module>
-		<module>jambeth-event</module>
-		<module>jambeth-event-datachange</module>
-		<module>jambeth-event-kafka</module>
-		<module>jambeth-event-server</module>
-		<module>jambeth-examples</module>
-		<module>jambeth-expr</module>
-		<module>jambeth-expr-exp4j</module>
-		<module>jambeth-filter</module>
-		<module>jambeth-ioc</module>
-		<module>jambeth-ioc-osgi</module>
-		<module>jambeth-jetty</module>
-		<module>jambeth-job</module>
-		<module>jambeth-job-cron4j</module>
-		<module>jambeth-log</module>
-		<module>jambeth-log-slf4j</module>
-		<module>jambeth-mapping</module>
-		<module>jambeth-merge</module>
-		<module>jambeth-merge-bytecode</module>
-		<module>jambeth-merge-server</module>
-		<module>jambeth-mina</module>
-		<module>jambeth-persistence</module>
-		<module>jambeth-persistence-api</module>
-		<module>jambeth-persistence-h2</module>
-		<module>jambeth-persistence-jdbc</module>
-		<module>jambeth-persistence-maria</module>
-		<module>jambeth-persistence-mssql</module>
-		<module>jambeth-persistence-oracle11</module>
-		<module>jambeth-persistence-pg</module>
-		<module>jambeth-persistence-sqlite</module>
-		<module>jambeth-platform</module>
-		<module>jambeth-query</module>
-		<module>jambeth-query-inmemory</module>
-		<module>jambeth-query-jdbc</module>
-		<module>jambeth-security</module>
-		<module>jambeth-security-bytecode</module>
-		<module>jambeth-security-job</module>
-		<module>jambeth-security-persistence</module>
-		<module>jambeth-security-server</module>
-		<module>jambeth-security-xml</module>
-		<module>jambeth-sensor</module>
-		<module>jambeth-server-helloworld</module>
-		<module>jambeth-server-rest</module>
-		<module>jambeth-service</module>
-		<module>jambeth-service-rest</module>
-		<module>jambeth-shell</module>
-		<module>jambeth-soap</module>
-		<module>jambeth-stream</module>
-		<module>jambeth-util</module>
-		<module>jambeth-xml</module>
-		<!-- REMOVED till migrated from other repo <module>jAmbeth.Xml.File</module> -->
-
-		<module>jambeth-test-pom</module>
-		<module>../ambeth-bundles</module>
-	</modules>
-
-	<dependencyManagement>
-		<dependencies>
-			<!-- jAmbeth dependencies -->
-			<dependency>
-				<groupId>com.koch.ambeth</groupId>
-				<artifactId>jambeth-audit</artifactId>
-				<version>${project.version}</version>
-			</dependency>
-
-			<dependency>
-				<groupId>com.koch.ambeth</groupId>
-				<artifactId>jambeth-audit-server</artifactId>
-				<version>${project.version}</version>
-			</dependency>
-
-			<dependency>
-				<groupId>com.koch.ambeth</groupId>
-				<artifactId>jambeth-bytecode</artifactId>
-				<version>${project.version}</version>
-			</dependency>
-
-			<dependency>
-				<groupId>com.koch.ambeth</groupId>
-				<artifactId>jambeth-cache</artifactId>
-				<version>${project.version}</version>
-			</dependency>
-
-			<dependency>
-				<groupId>com.koch.ambeth</groupId>
-				<artifactId>jambeth-cache-bytecode</artifactId>
-				<version>${project.version}</version>
-			</dependency>
-
-			<dependency>
-				<groupId>com.koch.ambeth</groupId>
-				<artifactId>jambeth-cache-datachange</artifactId>
-				<version>${project.version}</version>
-			</dependency>
-
-			<dependency>
-				<groupId>com.koch.ambeth</groupId>
-				<artifactId>jambeth-cache-server</artifactId>
-				<version>${project.version}</version>
-			</dependency>
-
-			<dependency>
-				<groupId>com.koch.ambeth</groupId>
-				<artifactId>jambeth-cache-stream</artifactId>
-				<version>${project.version}</version>
-			</dependency>
-
-			<dependency>
-				<groupId>com.koch.ambeth</groupId>
-				<artifactId>jambeth-datachange</artifactId>
-				<version>${project.version}</version>
-			</dependency>
-
-			<dependency>
-				<groupId>com.koch.ambeth</groupId>
-				<artifactId>jambeth-datachange-kafka</artifactId>
-				<version>${project.version}</version>
-			</dependency>
-
-			<dependency>
-				<groupId>com.koch.ambeth</groupId>
-				<artifactId>jambeth-datachange-persistence</artifactId>
-				<version>${project.version}</version>
-			</dependency>
-
-			<dependency>
-				<groupId>com.koch.ambeth</groupId>
-				<artifactId>jambeth-dot</artifactId>
-				<version>${project.version}</version>
-			</dependency>
-
-			<dependency>
-				<groupId>com.koch.ambeth</groupId>
-				<artifactId>jambeth-eclipse-databinding</artifactId>
-				<version>${project.version}</version>
-			</dependency>
-
-			<dependency>
-				<groupId>com.koch.ambeth</groupId>
-				<artifactId>jambeth-event</artifactId>
-				<version>${project.version}</version>
-			</dependency>
-
-			<dependency>
-				<groupId>com.koch.ambeth</groupId>
-				<artifactId>jambeth-event-datachange</artifactId>
-				<version>${project.version}</version>
-			</dependency>
-
-			<dependency>
-				<groupId>com.koch.ambeth</groupId>
-				<artifactId>jambeth-event-kafka</artifactId>
-				<version>${project.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>com.koch.ambeth</groupId>
-				<artifactId>jambeth-event-kafka-test</artifactId>
-				<version>${project.version}</version>
-				<scope>test</scope>
-			</dependency>
-
-			<dependency>
-				<groupId>com.koch.ambeth</groupId>
-				<artifactId>jambeth-event-server</artifactId>
-				<version>${project.version}</version>
-			</dependency>
-
-			<dependency>
-				<groupId>com.koch.ambeth</groupId>
-				<artifactId>jambeth-examples</artifactId>
-				<version>${project.version}</version>
-			</dependency>
-
-			<dependency>
-				<groupId>com.koch.ambeth</groupId>
-				<artifactId>jambeth-expr</artifactId>
-				<version>${project.version}</version>
-			</dependency>
-
-			<dependency>
-				<groupId>com.koch.ambeth</groupId>
-				<artifactId>jambeth-expr-exp4j</artifactId>
-				<version>${project.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>com.koch.ambeth</groupId>
-				<artifactId>jambeth-expr-exp4j-test</artifactId>
-				<version>${project.version}</version>
-				<scope>test</scope>
-			</dependency>
-
-			<dependency>
-				<groupId>com.koch.ambeth</groupId>
-				<artifactId>jambeth-filter</artifactId>
-				<version>${project.version}</version>
-			</dependency>
-
-			<dependency>
-				<groupId>com.koch.ambeth</groupId>
-				<artifactId>jambeth-ioc</artifactId>
-				<version>${project.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>com.koch.ambeth</groupId>
-				<artifactId>jambeth-ioc-test</artifactId>
-				<version>${project.version}</version>
-				<scope>test</scope>
-			</dependency>
-
-			<dependency>
-				<groupId>com.koch.ambeth</groupId>
-				<artifactId>jambeth-ioc-osgi</artifactId>
-				<version>${project.version}</version>
-			</dependency>
-
-			<dependency>
-				<groupId>com.koch.ambeth</groupId>
-				<artifactId>jambeth-jetty</artifactId>
-				<version>${project.version}</version>
-			</dependency>
-
-			<dependency>
-				<groupId>com.koch.ambeth</groupId>
-				<artifactId>jambeth-job</artifactId>
-				<version>${project.version}</version>
-			</dependency>
-
-			<dependency>
-				<groupId>com.koch.ambeth</groupId>
-				<artifactId>jambeth-job-cron4j</artifactId>
-				<version>${project.version}</version>
-			</dependency>
-
-			<dependency>
-				<groupId>com.koch.ambeth</groupId>
-				<artifactId>jambeth-log</artifactId>
-				<version>${project.version}</version>
-			</dependency>
-
-			<dependency>
-				<groupId>com.koch.ambeth</groupId>
-				<artifactId>jambeth-mapping</artifactId>
-				<version>${project.version}</version>
-			</dependency>
-
-			<dependency>
-				<groupId>com.koch.ambeth</groupId>
-				<artifactId>jambeth-merge</artifactId>
-				<version>${project.version}</version>
-			</dependency>
-
-			<dependency>
-				<groupId>com.koch.ambeth</groupId>
-				<artifactId>jambeth-merge-bytecode</artifactId>
-				<version>${project.version}</version>
-			</dependency>
-
-			<dependency>
-				<groupId>com.koch.ambeth</groupId>
-				<artifactId>jambeth-merge-server</artifactId>
-				<version>${project.version}</version>
-			</dependency>
-
-			<dependency>
-				<groupId>com.koch.ambeth</groupId>
-				<artifactId>jambeth-mina</artifactId>
-				<version>${project.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>com.koch.ambeth</groupId>
-				<artifactId>jambeth-mina-test</artifactId>
-				<version>${project.version}</version>
-				<scope>test</scope>
-			</dependency>
-
-			<dependency>
-				<groupId>com.koch.ambeth</groupId>
-				<artifactId>jambeth-persistence</artifactId>
-				<version>${project.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>com.koch.ambeth</groupId>
-				<artifactId>jambeth-persistence-test</artifactId>
-				<version>${project.version}</version>
-				<scope>test</scope>
-			</dependency>
-
-			<dependency>
-				<groupId>com.koch.ambeth</groupId>
-				<artifactId>jambeth-persistence-api</artifactId>
-				<version>${project.version}</version>
-			</dependency>
-
-			<dependency>
-				<groupId>com.koch.ambeth</groupId>
-				<artifactId>jambeth-persistence-h2</artifactId>
-				<version>${project.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>com.koch.ambeth</groupId>
-				<artifactId>jambeth-persistence-h2-test</artifactId>
-				<version>${project.version}</version>
-				<scope>test</scope>
-			</dependency>
-
-			<dependency>
-				<groupId>com.koch.ambeth</groupId>
-				<artifactId>jambeth-persistence-jdbc</artifactId>
-				<version>${project.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>com.koch.ambeth</groupId>
-				<artifactId>jambeth-persistence-jdbc-test</artifactId>
-				<version>${project.version}</version>
-				<scope>test</scope>
-			</dependency>
-
-			<dependency>
-				<groupId>com.koch.ambeth</groupId>
-				<artifactId>jambeth-persistence-maria</artifactId>
-				<version>${project.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>com.koch.ambeth</groupId>
-				<artifactId>jambeth-persistence-maria-test</artifactId>
-				<version>${project.version}</version>
-				<scope>test</scope>
-			</dependency>
-
-			<dependency>
-				<groupId>com.koch.ambeth</groupId>
-				<artifactId>jambeth-persistence-mssql</artifactId>
-				<version>${project.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>com.koch.ambeth</groupId>
-				<artifactId>jambeth-persistence-mssql-test</artifactId>
-				<version>${project.version}</version>
-				<scope>test</scope>
-			</dependency>
-
-			<dependency>
-				<groupId>com.koch.ambeth</groupId>
-				<artifactId>jambeth-persistence-oracle11</artifactId>
-				<version>${project.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>com.koch.ambeth</groupId>
-				<artifactId>jambeth-persistence-oracle11-test</artifactId>
-				<version>${project.version}</version>
-				<scope>test</scope>
-			</dependency>
-
-			<dependency>
-				<groupId>com.koch.ambeth</groupId>
-				<artifactId>jambeth-persistence-pg</artifactId>
-				<version>${project.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>com.koch.ambeth</groupId>
-				<artifactId>jambeth-persistence-pg-test</artifactId>
-				<version>${project.version}</version>
-				<scope>test</scope>
-			</dependency>
-
-			<dependency>
-				<groupId>com.koch.ambeth</groupId>
-				<artifactId>jambeth-persistence-sqlite</artifactId>
-				<version>${project.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>com.koch.ambeth</groupId>
-				<artifactId>jambeth-persistence-sqlite-test</artifactId>
-				<version>${project.version}</version>
-				<scope>test</scope>
-			</dependency>
-
-			<dependency>
-				<groupId>com.koch.ambeth</groupId>
-				<artifactId>jambeth-platform</artifactId>
-				<version>${project.version}</version>
-			</dependency>
-
-			<dependency>
-				<groupId>com.koch.ambeth</groupId>
-				<artifactId>jambeth-query</artifactId>
-				<version>${project.version}</version>
-			</dependency>
-
-			<dependency>
-				<groupId>com.koch.ambeth</groupId>
-				<artifactId>jambeth-query-inmemory</artifactId>
-				<version>${project.version}</version>
-			</dependency>
-
-			<dependency>
-				<groupId>com.koch.ambeth</groupId>
-				<artifactId>jambeth-query-jdbc</artifactId>
-				<version>${project.version}</version>
-			</dependency>
-
-			<dependency>
-				<groupId>com.koch.ambeth</groupId>
-				<artifactId>jambeth-security</artifactId>
-				<version>${project.version}</version>
-			</dependency>
-
-			<dependency>
-				<groupId>com.koch.ambeth</groupId>
-				<artifactId>jambeth-security-bytecode</artifactId>
-				<version>${project.version}</version>
-			</dependency>
-
-			<dependency>
-				<groupId>com.koch.ambeth</groupId>
-				<artifactId>jambeth-security-job</artifactId>
-				<version>${project.version}</version>
-			</dependency>
-
-			<dependency>
-				<groupId>com.koch.ambeth</groupId>
-				<artifactId>jambeth-security-persistence</artifactId>
-				<version>${project.version}</version>
-			</dependency>
-
-			<dependency>
-				<groupId>com.koch.ambeth</groupId>
-				<artifactId>jambeth-security-server</artifactId>
-				<version>${project.version}</version>
-			</dependency>
-
-			<dependency>
-				<groupId>com.koch.ambeth</groupId>
-				<artifactId>jambeth-security-xml</artifactId>
-				<version>${project.version}</version>
-			</dependency>
-
-			<dependency>
-				<groupId>com.koch.ambeth</groupId>
-				<artifactId>jambeth-sensor</artifactId>
-				<version>${project.version}</version>
-			</dependency>
-
-			<dependency>
-				<groupId>com.koch.ambeth</groupId>
-				<artifactId>jambeth-server-rest</artifactId>
-				<version>${project.version}</version>
-			</dependency>
-
-			<dependency>
-				<groupId>com.koch.ambeth</groupId>
-				<artifactId>jambeth-service</artifactId>
-				<version>${project.version}</version>
-			</dependency>
-
-			<dependency>
-				<groupId>com.koch.ambeth</groupId>
-				<artifactId>jambeth-service-rest</artifactId>
-				<version>${project.version}</version>
-			</dependency>
-
-			<dependency>
-				<groupId>com.koch.ambeth</groupId>
-				<artifactId>jambeth-shell</artifactId>
-				<version>${project.version}</version>
-			</dependency>
-
-			<dependency>
-				<groupId>com.koch.ambeth</groupId>
-				<artifactId>jambeth-soap</artifactId>
-				<version>${project.version}</version>
-			</dependency>
-
-			<dependency>
-				<groupId>com.koch.ambeth</groupId>
-				<artifactId>jambeth-stream</artifactId>
-				<version>${project.version}</version>
-			</dependency>
-
-			<dependency>
-				<groupId>com.koch.ambeth</groupId>
-				<artifactId>jambeth-util</artifactId>
-				<version>${project.version}</version>
-			</dependency>
-
-			<dependency>
-				<groupId>com.koch.ambeth</groupId>
-				<artifactId>jambeth-xml</artifactId>
-				<version>${project.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>com.koch.ambeth</groupId>
-				<artifactId>jambeth-xml-test</artifactId>
-				<version>${project.version}</version>
-				<scope>test</scope>
-			</dependency>
-
-			<!-- BUNDLES -->
-			<dependency>
-				<groupId>com.koch.ambeth</groupId>
-				<artifactId>jambeth-test-pom</artifactId>
-				<version>${project.version}</version>
-				<type>pom</type>
-				<scope>test</scope>
-			</dependency>
-
-			<dependency>
-				<groupId>com.koch.ambeth</groupId>
-				<artifactId>jambeth-core</artifactId>
-				<version>${project.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>com.koch.ambeth</groupId>
-				<artifactId>jambeth-core-test</artifactId>
-				<version>${project.version}</version>
-				<scope>test</scope>
-			</dependency>
-			<dependency>
-				<groupId>com.koch.ambeth</groupId>
-				<artifactId>jambeth-core-kar</artifactId>
-				<version>${project.version}</version>
-				<type>kar</type>
-				<scope>runtime</scope>
-			</dependency>
-
-			<dependency>
-				<groupId>com.koch.ambeth</groupId>
-				<artifactId>jambeth-information-bus</artifactId>
-				<version>${project.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>com.koch.ambeth</groupId>
-				<artifactId>jambeth-information-bus-test</artifactId>
-				<version>${project.version}</version>
-				<scope>test</scope>
-			</dependency>
-			<dependency>
-				<groupId>com.koch.ambeth</groupId>
-				<artifactId>jambeth-information-bus-kar</artifactId>
-				<version>${project.version}</version>
-				<type>kar</type>
-				<scope>runtime</scope>
-			</dependency>
-
-			<dependency>
-				<groupId>com.koch.ambeth</groupId>
-				<artifactId>jambeth-information-bus-with-persistence</artifactId>
-				<version>${project.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>com.koch.ambeth</groupId>
-				<artifactId>jambeth-information-bus-with-persistence-test</artifactId>
-				<version>${project.version}</version>
-				<scope>test</scope>
-			</dependency>
-
-			<dependency>
-				<groupId>com.koch.ambeth</groupId>
-				<artifactId>jambeth-server</artifactId>
-				<version>${project.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>com.koch.ambeth</groupId>
-				<artifactId>jambeth-server-test</artifactId>
-				<version>${project.version}</version>
-				<scope>test</scope>
-			</dependency>
-
-			<dependency>
-				<groupId>com.koch.ambeth</groupId>
-				<artifactId>jambeth-server-with-persistence</artifactId>
-				<version>${project.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>com.koch.ambeth</groupId>
-				<artifactId>jambeth-server-with-persistence-test</artifactId>
-				<version>${project.version}</version>
-				<scope>test</scope>
-			</dependency>
-
-			<dependency>
-				<groupId>jakarta.xml.bind</groupId>
-				<artifactId>jakarta.xml.bind-api</artifactId>
-				<version>4.0.1</version>
-			</dependency>
-
-			<dependency>
-				<groupId>org.apache.httpcomponents</groupId>
-				<artifactId>httpclient-osgi</artifactId>
-				<version>4.5.3</version>
-			</dependency>
-			<dependency>
-				<groupId>org.apache.httpcomponents</groupId>
-				<artifactId>httpclient</artifactId>
-				<version>4.5.3</version>
-			</dependency>
-			<dependency>
-				<groupId>org.apache.httpcomponents</groupId>
-				<artifactId>httpclient-cache</artifactId>
-				<version>4.5.3</version>
-			</dependency>
-			<dependency>
-				<groupId>org.apache.httpcomponents</groupId>
-				<artifactId>httpcore</artifactId>
-				<version>4.4.6</version>
-			</dependency>
-			<dependency>
-				<groupId>org.apache.httpcomponents</groupId>
-				<artifactId>httpcore-osgi</artifactId>
-				<version>4.4.6</version>
-			</dependency>
-			<dependency>
-				<groupId>org.apache.httpcomponents</groupId>
-				<artifactId>fluent-hc</artifactId>
-				<version>4.5.3</version>
-			</dependency>
-			<dependency>
-				<groupId>org.apache.httpcomponents</groupId>
-				<artifactId>httpmime</artifactId>
-				<version>4.5.3</version>
-			</dependency>
-		</dependencies>
-	</dependencyManagement>
-
-	<dependencies>
-		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>com.koch.ambeth</groupId>
-			<artifactId>junit-categories</artifactId>
-		</dependency>
-	</dependencies>
-
-	<build>
-		<pluginManagement>
-			<plugins>
-				<plugin>
-					<groupId>org.eclipse.m2e</groupId>
-					<artifactId>lifecycle-mapping</artifactId>
-					<version>1.0.0</version>
-					<configuration>
-						<lifecycleMappingMetadata>
-							<pluginExecutions>
-								<pluginExecution>
-									<pluginExecutionFilter>
-										<groupId>org.apache.karaf.tooling</groupId>
-										<artifactId>karaf-maven-plugin</artifactId>
-										<versionRange>[4,)</versionRange>
-										<goals>
-											<goal>assembly</goal>
-											<goal>features-generate-descriptor</goal>
-											<goal>kar</goal>
-											<goal>verify</goal>
-										</goals>
-									</pluginExecutionFilter>
-									<action>
-										<ignore></ignore>
-									</action>
-								</pluginExecution>
-								<pluginExecution>
-									<pluginExecutionFilter>
-										<groupId>org.codehaus.mojo</groupId>
-										<artifactId>build-helper-maven-plugin</artifactId>
-										<versionRange>[1.12,)</versionRange>
-										<goals>
-											<goal>regex-property</goal>
-										</goals>
-									</pluginExecutionFilter>
-									<action>
-										<ignore />
-									</action>
-								</pluginExecution>
-								<pluginExecution>
-									<pluginExecutionFilter>
-										<groupId>org.apache.maven.plugins</groupId>
-										<artifactId>maven-antrun-plugin</artifactId>
-										<versionRange>[1.8,)</versionRange>
-										<goals>
-											<goal>run</goal>
-										</goals>
-									</pluginExecutionFilter>
-									<action>
-										<ignore />
-									</action>
-								</pluginExecution>
-							</pluginExecutions>
-						</lifecycleMappingMetadata>
-					</configuration>
-				</plugin>
-				<plugin>
-					<groupId>pl.project13.maven</groupId>
-					<artifactId>git-commit-id-plugin</artifactId>
-					<version>${maven.git-commit-id.version}</version>
-					<executions>
-						<execution>
-							<id>get-the-git-infos</id>
-							<goals>
-								<goal>revision</goal>
-							</goals>
-						</execution>
-					</executions>
-					<configuration>
-						<dotGitDirectory>${dotGitDirectory}</dotGitDirectory>
-						<skipPoms>false</skipPoms>
-						<failOnNoGitDirectory>false</failOnNoGitDirectory>
-						<generateGitPropertiesFile>true</generateGitPropertiesFile>
-						<includeOnlyProperties>
-							<includeOnlyProperty>^git.commit.id$</includeOnlyProperty>
-							<includeOnlyProperty>^git.commit.time$</includeOnlyProperty>
-							<includeOnlyProperty>^git.commit.id.describe$</includeOnlyProperty>
-							<includeOnlyProperty>^git.branch$</includeOnlyProperty>
-							<includeOnlyProperty>^git.tags$</includeOnlyProperty>
-							<includeOnlyProperty>^git.dirty$</includeOnlyProperty>
-							<includeOnlyProperty>^git.build.version$</includeOnlyProperty>
-							<includeOnlyProperty>^git.build.time$</includeOnlyProperty>
-						</includeOnlyProperties>
-					</configuration>
-				</plugin>
-				<plugin>
-					<groupId>org.apache.maven.plugins</groupId>
-					<artifactId>maven-pmd-plugin</artifactId>
-				</plugin>
-				<plugin>
-					<groupId>org.apache.maven.plugins</groupId>
-					<artifactId>maven-antrun-plugin</artifactId>
-				</plugin>
-			</plugins>
-		</pluginManagement>
-		<plugins>
-			<plugin>
-				<groupId>biz.aQute.bnd</groupId>
-				<artifactId>bnd-maven-plugin</artifactId>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.felix</groupId>
-				<artifactId>maven-bundle-plugin</artifactId>
-				<extensions>true</extensions>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-release-plugin</artifactId>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-source-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>attach-sources</id>
-						<phase>verify</phase>
-						<goals>
-							<goal>jar-no-fork</goal>
-							<goal>test-jar-no-fork</goal>
-						</goals>
-					</execution>
-				</executions>
-				<configuration>
-					<archive>
-						<manifestEntries>
-							<Bundle-ManifestVersion>2</Bundle-ManifestVersion>
-							<Bundle-Name>${Bundle-Name}</Bundle-Name>
-							<Bundle-SymbolicName>${Bundle-SymbolicName}.source</Bundle-SymbolicName>
-							<Bundle-Version>${mf.version}</Bundle-Version>
-							<Eclipse-SourceBundle>${Bundle-Name};version="${mf.version}";roots:="."</Eclipse-SourceBundle>
-						</manifestEntries>
-					</archive>
-					<forceCreation>true</forceCreation>
-				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-surefire-plugin</artifactId>
-				<!-- <configuration> <argLine>-XX:MaxPermSize=128m @{argLine}</argLine> 
-					</configuration> -->
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-site-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>attach-descriptor</id>
-						<goals>
-							<goal>attach-descriptor</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>build-helper-maven-plugin</artifactId>
-			</plugin>
-		</plugins>
-	</build>
-
-	<profiles>
-		<profile>
-			<id>dev-local</id>
-			<activation>
-				<property>
-					<name>!deploy.env</name>
-				</property>
-			</activation>
-			<properties>
-				<server.id>jetty</server.id>
-				<webserver.host>localhost</webserver.host>
-				<webserver.port>9090</webserver.port>
-				<deploy.env>test</deploy.env>
-				<local.server.port>8089</local.server.port>
-			</properties>
-		</profile>
-		<profile>
-			<id>jenkins</id>
-			<activation>
-				<property>
-					<name>env.JENKINS_HOME</name>
-				</property>
-			</activation>
-			<build>
-				<plugins>
-					<plugin>
-						<groupId>pl.project13.maven</groupId>
-						<artifactId>git-commit-id-plugin</artifactId>
-					</plugin>
-				</plugins>
-			</build>
-		</profile>
-		<profile>
-			<id>copy-manifest</id>
-			<activation>
-				<property>
-					<name>!env.JENKINS_HOME</name>
-				</property>
-				<file>
-					<missing>${basedir}/build.properties</missing>
-					<exists>${basedir}/bnd.bnd</exists>
-				</file>
-			</activation>
-			<build>
-				<plugins>
-					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-antrun-plugin</artifactId>
-						<executions>
-							<execution>
-								<id>copy META-INF and OSGI-INF</id>
-								<phase>package</phase>
-								<configuration>
-									<target>
-										<ac:if xmlns:ac="antlib:net.sf.antcontrib">
-											<and>
-												<not>
-													<available file="${project.basedir}/build.properties" />
-												</not>
-												<available file="${project.basedir}/bnd.bnd" />
-											</and>
-											<ac:then>
-												<copy todir="${project.basedir}/META-INF" verbose="true"
-													failonerror="false" preservelastmodified="true" includeEmptyDirs="false">
-													<fileset dir="${project.build.outputDirectory}/META-INF"
-														includes="MANIFEST.MF" />
-												</copy>
-												<copy todir="${project.basedir}/OSGI-INF" verbose="true"
-													failonerror="false" preservelastmodified="true" includeEmptyDirs="false">
-													<fileset dir="${project.build.outputDirectory}/OSGI-INF" />
-												</copy>
-											</ac:then>
-										</ac:if>
-									</target>
-								</configuration>
-								<goals>
-									<goal>run</goal>
-								</goals>
-							</execution>
-						</executions>
-						<dependencies>
-							<dependency>
-								<groupId>ant-contrib</groupId>
-								<artifactId>ant-contrib</artifactId>
-								<version>1.0b3</version>
-								<exclusions>
-									<exclusion>
-										<groupId>ant</groupId>
-										<artifactId>ant</artifactId>
-									</exclusion>
-								</exclusions>
-							</dependency>
-							<dependency>
-								<groupId>org.apache.ant</groupId>
-								<artifactId>ant-nodeps</artifactId>
-								<version>1.8.1</version>
-							</dependency>
-						</dependencies>
-					</plugin>
-				</plugins>
-			</build>
-		</profile>
-	</profiles>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>jambeth-pom</artifactId>
+    <version>3.1.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
+
+    <parent>
+        <groupId>com.koch.ambeth</groupId>
+        <artifactId>base-pom</artifactId>
+        <version>1.0.3-SNAPSHOT</version>
+    </parent>
+
+    <properties>
+        <ambeth.version>${project.version}</ambeth.version>
+        <maven.git-commit-id.version>2.2.2</maven.git-commit-id.version>
+        <dotGitDirectory>${project.basedir}/../../.git</dotGitDirectory>
+        <javassist.version>3.19.0-GA</javassist.version>
+    </properties>
+
+    <modules>
+        <module>jambeth-audit</module>
+        <module>jambeth-audit-server</module>
+        <module>jambeth-bytecode</module>
+        <module>jambeth-cache</module>
+        <module>jambeth-cache-bytecode</module>
+        <module>jambeth-cache-datachange</module>
+        <module>jambeth-cache-server</module>
+        <module>jambeth-cache-stream</module>
+        <module>jambeth-datachange</module>
+        <module>jambeth-datachange-kafka</module>
+        <module>jambeth-datachange-persistence</module>
+        <module>jambeth-doc-scope</module>
+        <module>jambeth-dot</module>
+        <module>jambeth-eclipse-databinding</module>
+        <module>jambeth-event</module>
+        <module>jambeth-event-datachange</module>
+        <module>jambeth-event-kafka</module>
+        <module>jambeth-event-server</module>
+        <module>jambeth-examples</module>
+        <module>jambeth-expr</module>
+        <module>jambeth-expr-exp4j</module>
+        <module>jambeth-filter</module>
+        <module>jambeth-ioc</module>
+        <module>jambeth-ioc-osgi</module>
+        <module>jambeth-jetty</module>
+        <module>jambeth-job</module>
+        <module>jambeth-job-cron4j</module>
+        <module>jambeth-log</module>
+        <module>jambeth-log-slf4j</module>
+        <module>jambeth-mapping</module>
+        <module>jambeth-merge</module>
+        <module>jambeth-merge-bytecode</module>
+        <module>jambeth-merge-server</module>
+        <module>jambeth-mina</module>
+        <module>jambeth-persistence</module>
+        <module>jambeth-persistence-api</module>
+        <module>jambeth-persistence-h2</module>
+        <module>jambeth-persistence-jdbc</module>
+        <module>jambeth-persistence-maria</module>
+        <module>jambeth-persistence-mssql</module>
+        <module>jambeth-persistence-oracle11</module>
+        <module>jambeth-persistence-pg</module>
+        <module>jambeth-persistence-sqlite</module>
+        <module>jambeth-platform</module>
+        <module>jambeth-query</module>
+        <module>jambeth-query-inmemory</module>
+        <module>jambeth-query-jdbc</module>
+        <module>jambeth-security</module>
+        <module>jambeth-security-bytecode</module>
+        <module>jambeth-security-job</module>
+        <module>jambeth-security-persistence</module>
+        <module>jambeth-security-server</module>
+        <module>jambeth-security-xml</module>
+        <module>jambeth-sensor</module>
+        <module>jambeth-server-helloworld</module>
+        <module>jambeth-server-rest</module>
+        <module>jambeth-service</module>
+        <module>jambeth-service-rest</module>
+        <module>jambeth-shell</module>
+        <module>jambeth-soap</module>
+        <module>jambeth-stream</module>
+        <module>jambeth-util</module>
+        <module>jambeth-xml</module>
+        <!-- REMOVED till migrated from other repo <module>jAmbeth.Xml.File</module> -->
+
+        <module>jambeth-test-pom</module>
+        <module>../ambeth-bundles</module>
+    </modules>
+
+    <dependencyManagement>
+        <dependencies>
+            <!-- jAmbeth dependencies -->
+            <dependency>
+                <groupId>com.koch.ambeth</groupId>
+                <artifactId>jambeth-audit</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.koch.ambeth</groupId>
+                <artifactId>jambeth-audit-server</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.koch.ambeth</groupId>
+                <artifactId>jambeth-bytecode</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.koch.ambeth</groupId>
+                <artifactId>jambeth-cache</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.koch.ambeth</groupId>
+                <artifactId>jambeth-cache-bytecode</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.koch.ambeth</groupId>
+                <artifactId>jambeth-cache-datachange</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.koch.ambeth</groupId>
+                <artifactId>jambeth-cache-server</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.koch.ambeth</groupId>
+                <artifactId>jambeth-cache-stream</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.koch.ambeth</groupId>
+                <artifactId>jambeth-datachange</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.koch.ambeth</groupId>
+                <artifactId>jambeth-datachange-kafka</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.koch.ambeth</groupId>
+                <artifactId>jambeth-datachange-persistence</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.koch.ambeth</groupId>
+                <artifactId>jambeth-dot</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.koch.ambeth</groupId>
+                <artifactId>jambeth-eclipse-databinding</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.koch.ambeth</groupId>
+                <artifactId>jambeth-event</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.koch.ambeth</groupId>
+                <artifactId>jambeth-event-datachange</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.koch.ambeth</groupId>
+                <artifactId>jambeth-event-kafka</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.koch.ambeth</groupId>
+                <artifactId>jambeth-event-kafka-test</artifactId>
+                <version>${project.version}</version>
+                <scope>test</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>com.koch.ambeth</groupId>
+                <artifactId>jambeth-event-server</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.koch.ambeth</groupId>
+                <artifactId>jambeth-examples</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.koch.ambeth</groupId>
+                <artifactId>jambeth-expr</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.koch.ambeth</groupId>
+                <artifactId>jambeth-expr-exp4j</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.koch.ambeth</groupId>
+                <artifactId>jambeth-expr-exp4j-test</artifactId>
+                <version>${project.version}</version>
+                <scope>test</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>com.koch.ambeth</groupId>
+                <artifactId>jambeth-filter</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.koch.ambeth</groupId>
+                <artifactId>jambeth-ioc</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.koch.ambeth</groupId>
+                <artifactId>jambeth-ioc-test</artifactId>
+                <version>${project.version}</version>
+                <scope>test</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>com.koch.ambeth</groupId>
+                <artifactId>jambeth-ioc-osgi</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.koch.ambeth</groupId>
+                <artifactId>jambeth-jetty</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.koch.ambeth</groupId>
+                <artifactId>jambeth-job</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.koch.ambeth</groupId>
+                <artifactId>jambeth-job-cron4j</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.koch.ambeth</groupId>
+                <artifactId>jambeth-log</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.koch.ambeth</groupId>
+                <artifactId>jambeth-log-slf4j</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.koch.ambeth</groupId>
+                <artifactId>jambeth-mapping</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.koch.ambeth</groupId>
+                <artifactId>jambeth-merge</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.koch.ambeth</groupId>
+                <artifactId>jambeth-merge-bytecode</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.koch.ambeth</groupId>
+                <artifactId>jambeth-merge-server</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.koch.ambeth</groupId>
+                <artifactId>jambeth-mina</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.koch.ambeth</groupId>
+                <artifactId>jambeth-mina-test</artifactId>
+                <version>${project.version}</version>
+                <scope>test</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>com.koch.ambeth</groupId>
+                <artifactId>jambeth-persistence</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.koch.ambeth</groupId>
+                <artifactId>jambeth-persistence-test</artifactId>
+                <version>${project.version}</version>
+                <scope>test</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>com.koch.ambeth</groupId>
+                <artifactId>jambeth-persistence-api</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.koch.ambeth</groupId>
+                <artifactId>jambeth-persistence-h2</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.koch.ambeth</groupId>
+                <artifactId>jambeth-persistence-h2-test</artifactId>
+                <version>${project.version}</version>
+                <scope>test</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>com.koch.ambeth</groupId>
+                <artifactId>jambeth-persistence-jdbc</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.koch.ambeth</groupId>
+                <artifactId>jambeth-persistence-jdbc-test</artifactId>
+                <version>${project.version}</version>
+                <scope>test</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>com.koch.ambeth</groupId>
+                <artifactId>jambeth-persistence-maria</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.koch.ambeth</groupId>
+                <artifactId>jambeth-persistence-maria-test</artifactId>
+                <version>${project.version}</version>
+                <scope>test</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>com.koch.ambeth</groupId>
+                <artifactId>jambeth-persistence-mssql</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.koch.ambeth</groupId>
+                <artifactId>jambeth-persistence-mssql-test</artifactId>
+                <version>${project.version}</version>
+                <scope>test</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>com.koch.ambeth</groupId>
+                <artifactId>jambeth-persistence-oracle11</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.koch.ambeth</groupId>
+                <artifactId>jambeth-persistence-oracle11-test</artifactId>
+                <version>${project.version}</version>
+                <scope>test</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>com.koch.ambeth</groupId>
+                <artifactId>jambeth-persistence-pg</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.koch.ambeth</groupId>
+                <artifactId>jambeth-persistence-pg-test</artifactId>
+                <version>${project.version}</version>
+                <scope>test</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>com.koch.ambeth</groupId>
+                <artifactId>jambeth-persistence-sqlite</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.koch.ambeth</groupId>
+                <artifactId>jambeth-persistence-sqlite-test</artifactId>
+                <version>${project.version}</version>
+                <scope>test</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>com.koch.ambeth</groupId>
+                <artifactId>jambeth-platform</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.koch.ambeth</groupId>
+                <artifactId>jambeth-query</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.koch.ambeth</groupId>
+                <artifactId>jambeth-query-inmemory</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.koch.ambeth</groupId>
+                <artifactId>jambeth-query-jdbc</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.koch.ambeth</groupId>
+                <artifactId>jambeth-security</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.koch.ambeth</groupId>
+                <artifactId>jambeth-security-bytecode</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.koch.ambeth</groupId>
+                <artifactId>jambeth-security-job</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.koch.ambeth</groupId>
+                <artifactId>jambeth-security-persistence</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.koch.ambeth</groupId>
+                <artifactId>jambeth-security-server</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.koch.ambeth</groupId>
+                <artifactId>jambeth-security-xml</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.koch.ambeth</groupId>
+                <artifactId>jambeth-sensor</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.koch.ambeth</groupId>
+                <artifactId>jambeth-server-rest</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.koch.ambeth</groupId>
+                <artifactId>jambeth-service</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.koch.ambeth</groupId>
+                <artifactId>jambeth-service-rest</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.koch.ambeth</groupId>
+                <artifactId>jambeth-shell</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.koch.ambeth</groupId>
+                <artifactId>jambeth-soap</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.koch.ambeth</groupId>
+                <artifactId>jambeth-stream</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.koch.ambeth</groupId>
+                <artifactId>jambeth-util</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.koch.ambeth</groupId>
+                <artifactId>jambeth-xml</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.koch.ambeth</groupId>
+                <artifactId>jambeth-xml-test</artifactId>
+                <version>${project.version}</version>
+                <scope>test</scope>
+            </dependency>
+
+            <!-- BUNDLES -->
+            <dependency>
+                <groupId>com.koch.ambeth</groupId>
+                <artifactId>jambeth-test-pom</artifactId>
+                <version>${project.version}</version>
+                <type>pom</type>
+                <scope>test</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>com.koch.ambeth</groupId>
+                <artifactId>jambeth-core</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.koch.ambeth</groupId>
+                <artifactId>jambeth-core-test</artifactId>
+                <version>${project.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.koch.ambeth</groupId>
+                <artifactId>jambeth-core-kar</artifactId>
+                <version>${project.version}</version>
+                <type>kar</type>
+                <scope>runtime</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>com.koch.ambeth</groupId>
+                <artifactId>jambeth-information-bus</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.koch.ambeth</groupId>
+                <artifactId>jambeth-information-bus-test</artifactId>
+                <version>${project.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.koch.ambeth</groupId>
+                <artifactId>jambeth-information-bus-kar</artifactId>
+                <version>${project.version}</version>
+                <type>kar</type>
+                <scope>runtime</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>com.koch.ambeth</groupId>
+                <artifactId>jambeth-information-bus-with-persistence</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.koch.ambeth</groupId>
+                <artifactId>jambeth-information-bus-with-persistence-test</artifactId>
+                <version>${project.version}</version>
+                <scope>test</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>com.koch.ambeth</groupId>
+                <artifactId>jambeth-server</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.koch.ambeth</groupId>
+                <artifactId>jambeth-server-test</artifactId>
+                <version>${project.version}</version>
+                <scope>test</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>com.koch.ambeth</groupId>
+                <artifactId>jambeth-server-with-persistence</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.koch.ambeth</groupId>
+                <artifactId>jambeth-server-with-persistence-test</artifactId>
+                <version>${project.version}</version>
+                <scope>test</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.httpcomponents</groupId>
+                <artifactId>httpclient-osgi</artifactId>
+                <version>4.5.3</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.httpcomponents</groupId>
+                <artifactId>httpclient</artifactId>
+                <version>4.5.3</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.httpcomponents</groupId>
+                <artifactId>httpclient-cache</artifactId>
+                <version>4.5.3</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.httpcomponents</groupId>
+                <artifactId>httpcore</artifactId>
+                <version>4.4.6</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.httpcomponents</groupId>
+                <artifactId>httpcore-osgi</artifactId>
+                <version>4.4.6</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.httpcomponents</groupId>
+                <artifactId>fluent-hc</artifactId>
+                <version>4.5.3</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.httpcomponents</groupId>
+                <artifactId>httpmime</artifactId>
+                <version>4.5.3</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <dependencies>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.koch.ambeth</groupId>
+            <artifactId>junit-categories</artifactId>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.eclipse.m2e</groupId>
+                    <artifactId>lifecycle-mapping</artifactId>
+                    <version>1.0.0</version>
+                    <configuration>
+                        <lifecycleMappingMetadata>
+                            <pluginExecutions>
+                                <pluginExecution>
+                                    <pluginExecutionFilter>
+                                        <groupId>org.apache.karaf.tooling</groupId>
+                                        <artifactId>karaf-maven-plugin</artifactId>
+                                        <versionRange>[4,)</versionRange>
+                                        <goals>
+                                            <goal>assembly</goal>
+                                            <goal>features-generate-descriptor</goal>
+                                            <goal>kar</goal>
+                                            <goal>verify</goal>
+                                        </goals>
+                                    </pluginExecutionFilter>
+                                    <action>
+                                        <ignore></ignore>
+                                    </action>
+                                </pluginExecution>
+                                <pluginExecution>
+                                    <pluginExecutionFilter>
+                                        <groupId>org.codehaus.mojo</groupId>
+                                        <artifactId>build-helper-maven-plugin</artifactId>
+                                        <versionRange>[1.12,)</versionRange>
+                                        <goals>
+                                            <goal>regex-property</goal>
+                                        </goals>
+                                    </pluginExecutionFilter>
+                                    <action>
+                                        <ignore/>
+                                    </action>
+                                </pluginExecution>
+                                <pluginExecution>
+                                    <pluginExecutionFilter>
+                                        <groupId>org.apache.maven.plugins</groupId>
+                                        <artifactId>maven-antrun-plugin</artifactId>
+                                        <versionRange>[1.8,)</versionRange>
+                                        <goals>
+                                            <goal>run</goal>
+                                        </goals>
+                                    </pluginExecutionFilter>
+                                    <action>
+                                        <ignore/>
+                                    </action>
+                                </pluginExecution>
+                            </pluginExecutions>
+                        </lifecycleMappingMetadata>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>pl.project13.maven</groupId>
+                    <artifactId>git-commit-id-plugin</artifactId>
+                    <version>${maven.git-commit-id.version}</version>
+                    <executions>
+                        <execution>
+                            <id>get-the-git-infos</id>
+                            <goals>
+                                <goal>revision</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                    <configuration>
+                        <dotGitDirectory>${dotGitDirectory}</dotGitDirectory>
+                        <skipPoms>false</skipPoms>
+                        <failOnNoGitDirectory>false</failOnNoGitDirectory>
+                        <generateGitPropertiesFile>true</generateGitPropertiesFile>
+                        <includeOnlyProperties>
+                            <includeOnlyProperty>^git.commit.id$</includeOnlyProperty>
+                            <includeOnlyProperty>^git.commit.time$</includeOnlyProperty>
+                            <includeOnlyProperty>^git.commit.id.describe$</includeOnlyProperty>
+                            <includeOnlyProperty>^git.branch$</includeOnlyProperty>
+                            <includeOnlyProperty>^git.tags$</includeOnlyProperty>
+                            <includeOnlyProperty>^git.dirty$</includeOnlyProperty>
+                            <includeOnlyProperty>^git.build.version$</includeOnlyProperty>
+                            <includeOnlyProperty>^git.build.time$</includeOnlyProperty>
+                        </includeOnlyProperties>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-pmd-plugin</artifactId>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-antrun-plugin</artifactId>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+        <plugins>
+            <plugin>
+                <groupId>biz.aQute.bnd</groupId>
+                <artifactId>bnd-maven-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-bundle-plugin</artifactId>
+                <extensions>true</extensions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-release-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>jar-no-fork</goal>
+                            <goal>test-jar-no-fork</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <archive>
+                        <manifestEntries>
+                            <Bundle-ManifestVersion>2</Bundle-ManifestVersion>
+                            <Bundle-Name>${Bundle-Name}</Bundle-Name>
+                            <Bundle-SymbolicName>${Bundle-SymbolicName}.source</Bundle-SymbolicName>
+                            <Bundle-Version>${mf.version}</Bundle-Version>
+                            <Eclipse-SourceBundle>${Bundle-Name};version="${mf.version}";roots:="."</Eclipse-SourceBundle>
+                        </manifestEntries>
+                    </archive>
+                    <forceCreation>true</forceCreation>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <!-- <configuration> <argLine>-XX:MaxPermSize=128m @{argLine}</argLine>
+                    </configuration> -->
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-site-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>attach-descriptor</id>
+                        <goals>
+                            <goal>attach-descriptor</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+
+    <profiles>
+        <profile>
+            <id>dev-local</id>
+            <activation>
+                <property>
+                    <name>!deploy.env</name>
+                </property>
+            </activation>
+            <properties>
+                <server.id>jetty</server.id>
+                <webserver.host>localhost</webserver.host>
+                <webserver.port>9090</webserver.port>
+                <deploy.env>test</deploy.env>
+                <local.server.port>8089</local.server.port>
+            </properties>
+        </profile>
+        <profile>
+            <id>jenkins</id>
+            <activation>
+                <property>
+                    <name>env.JENKINS_HOME</name>
+                </property>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>pl.project13.maven</groupId>
+                        <artifactId>git-commit-id-plugin</artifactId>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>copy-manifest</id>
+            <activation>
+                <property>
+                    <name>!env.JENKINS_HOME</name>
+                </property>
+                <file>
+                    <missing>${basedir}/build.properties</missing>
+                    <exists>${basedir}/bnd.bnd</exists>
+                </file>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-antrun-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>copy META-INF and OSGI-INF</id>
+                                <phase>package</phase>
+                                <configuration>
+                                    <target>
+                                        <ac:if xmlns:ac="antlib:net.sf.antcontrib">
+                                            <and>
+                                                <not>
+                                                    <available file="${project.basedir}/build.properties"/>
+                                                </not>
+                                                <available file="${project.basedir}/bnd.bnd"/>
+                                            </and>
+                                            <ac:then>
+                                                <copy todir="${project.basedir}/META-INF" verbose="true"
+                                                      failonerror="false" preservelastmodified="true" includeEmptyDirs="false">
+                                                    <fileset dir="${project.build.outputDirectory}/META-INF"
+                                                             includes="MANIFEST.MF"/>
+                                                </copy>
+                                                <copy todir="${project.basedir}/OSGI-INF" verbose="true"
+                                                      failonerror="false" preservelastmodified="true" includeEmptyDirs="false">
+                                                    <fileset dir="${project.build.outputDirectory}/OSGI-INF"/>
+                                                </copy>
+                                            </ac:then>
+                                        </ac:if>
+                                    </target>
+                                </configuration>
+                                <goals>
+                                    <goal>run</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <dependencies>
+                            <dependency>
+                                <groupId>ant-contrib</groupId>
+                                <artifactId>ant-contrib</artifactId>
+                                <version>1.0b3</version>
+                                <exclusions>
+                                    <exclusion>
+                                        <groupId>ant</groupId>
+                                        <artifactId>ant</artifactId>
+                                    </exclusion>
+                                </exclusions>
+                            </dependency>
+                            <dependency>
+                                <groupId>org.apache.ant</groupId>
+                                <artifactId>ant-nodeps</artifactId>
+                                <version>1.8.1</version>
+                            </dependency>
+                        </dependencies>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>

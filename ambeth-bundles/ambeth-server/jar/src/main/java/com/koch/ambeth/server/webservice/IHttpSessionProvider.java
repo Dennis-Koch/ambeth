@@ -20,16 +20,14 @@ limitations under the License.
 
 package com.koch.ambeth.server.webservice;
 
+import com.koch.ambeth.util.state.IStateRollback;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 
-import com.koch.ambeth.util.state.IStateRollback;
-
 public interface IHttpSessionProvider {
-	HttpSession getCurrentHttpSession();
+    HttpSession getCurrentHttpSession();
 
-	HttpServletRequest getCurrentHttpRequest();
+    HttpServletRequest getCurrentHttpRequest();
 
-	IStateRollback pushCurrentHttpSession(HttpSession httpSession,
-			HttpServletRequest httpServletRequest, IStateRollback... rollbacks);
+    IStateRollback pushCurrentHttpSession(HttpSession httpSession, HttpServletRequest httpServletRequest);
 }

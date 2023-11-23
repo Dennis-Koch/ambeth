@@ -25,40 +25,42 @@ import com.koch.ambeth.xml.pending.ICommandTypeRegistry;
 import com.koch.ambeth.xml.pending.IObjectCommand;
 
 public interface IReader {
-	boolean isEmptyElement();
+    boolean isEmptyElement();
 
-	String getAttributeValue(String attributeName);
+    String getAttributeValue(String attributeName);
 
-	Object readObject();
+    Object readObject();
 
-	Object readObject(Class<?> returnType);
+    Object readObject(Class<?> returnType);
 
-	String getElementName();
+    String getElementName();
 
-	String getElementValue();
+    String getElementValue();
 
-	boolean nextTag();
+    boolean nextTag();
 
-	boolean nextToken();
+    boolean nextToken();
 
-	boolean isStartTag();
+    boolean isStartTag();
 
-	void moveOverElementEnd();
+    boolean isEndTag();
 
-	Object getObjectById(int id);
+    void moveOverElementEnd();
 
-	Object getObjectById(int id, boolean checkExistence);
+    Object getObjectById(int id);
 
-	void putObjectWithId(Object obj, int id);
+    Object getObjectById(int id, boolean checkExistence);
 
-	void putMembersOfType(Class<?> type, SpecifiedMember[] members);
+    void putObjectWithId(Object obj, int id);
 
-	SpecifiedMember[] getMembersOfType(Class<?> type);
+    void putMembersOfType(Class<?> type, SpecifiedMember[] members);
 
-	void addObjectCommand(IObjectCommand pendingSetter);
+    SpecifiedMember[] getMembersOfType(Class<?> type);
 
-	// IReader contains the registry because the reader in fact is the deserialization state.
-	ICommandTypeRegistry getCommandTypeRegistry();
+    void addObjectCommand(IObjectCommand pendingSetter);
 
-	ICommandTypeExtendable getCommandTypeExtendable();
+    // IReader contains the registry because the reader in fact is the deserialization state.
+    ICommandTypeRegistry getCommandTypeRegistry();
+
+    ICommandTypeExtendable getCommandTypeExtendable();
 }

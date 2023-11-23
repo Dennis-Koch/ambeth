@@ -20,76 +20,68 @@ limitations under the License.
  * #L%
  */
 
+import com.koch.ambeth.util.function.CheckedConsumer;
+
 import java.util.ArrayList;
 import java.util.List;
 
-import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
-import com.koch.ambeth.util.threading.IBackgroundWorkerParamDelegate;
-
 public class EventDispatcherFake implements IEventDispatcher {
-	public final List<DispatchedEvent> dispatchedEvents = new ArrayList<>();
+    public final List<DispatchedEvent> dispatchedEvents = new ArrayList<>();
 
-	class DispatchedEvent {
-		public Object eventObject;
-		public long dispatchTime;
-		public long sequenceId;
+    @Override
+    public boolean isDispatchingBatchedEvents() {
+        return false;
+    }
 
-		public DispatchedEvent(Object eventObject, long dispatchTime, long sequenceId) {
-			this.eventObject = eventObject;
-			this.dispatchTime = dispatchTime;
-			this.sequenceId = sequenceId;
-		}
-	}
+    @Override
+    public void dispatchEvent(Object eventObject) {
+        dispatchEvent(eventObject, System.currentTimeMillis(), -1);
+    }
 
-	@Override
-	public boolean isDispatchingBatchedEvents() {
-		return false;
-	}
+    @Override
+    public void dispatchEvent(Object eventObject, long dispatchTime, long sequenceId) {
+        dispatchedEvents.add(new DispatchedEvent(eventObject, dispatchTime, sequenceId));
+    }
 
-	@Override
-	public void dispatchEvent(Object eventObject) {
-		dispatchEvent(eventObject, System.currentTimeMillis(), -1);
-	}
+    @Override
+    public boolean hasListeners(Class<?> eventType) {
+        return true;
+    }
 
-	@Override
-	public void dispatchEvent(Object eventObject, long dispatchTime, long sequenceId) {
-		dispatchedEvents.add(new DispatchedEvent(eventObject, dispatchTime, sequenceId));
-	}
+    @Override
+    public void waitEventToResume(Object eventTargetToResume, long maxWaitTime, CheckedConsumer<IProcessResumeItem> resumeDelegate, CheckedConsumer<Throwable> errorDelegate) {
+        CheckedConsumer.invoke(resumeDelegate, null);
+    }
 
-	@Override
-	public boolean hasListeners(Class<?> eventType) {
-		return true;
-	}
+    @Override
+    public void enableEventQueue() {
+        throw new UnsupportedOperationException();
+    }
 
-	@Override
-	public void waitEventToResume(Object eventTargetToResume, long maxWaitTime,
-			IBackgroundWorkerParamDelegate<IProcessResumeItem> resumeDelegate,
-			IBackgroundWorkerParamDelegate<Throwable> errorDelegate) {
-		try {
-			resumeDelegate.invoke(null);
-		}
-		catch (Exception e) {
-			throw RuntimeExceptionUtil.mask(e);
-		}
-	}
+    @Override
+    public void flushEventQueue() {
+        throw new UnsupportedOperationException();
+    }
 
-	@Override
-	public void enableEventQueue() {
-		throw new UnsupportedOperationException();
-	}
+    @Override
+    public void pause(Object eventTarget) {
+        throw new UnsupportedOperationException();
+    }
 
-	@Override
-	public void flushEventQueue() {
-		throw new UnsupportedOperationException();
-	}
+    @Override
+    public void resume(Object eventTarget) {
+        throw new UnsupportedOperationException();
+    }
 
-	@Override
-	public void pause(Object eventTarget) {
-		throw new UnsupportedOperationException();
-	}
+    class DispatchedEvent {
+        public Object eventObject;
+        public long dispatchTime;
+        public long sequenceId;
 
-	@Override
-	public void resume(Object eventTarget) {
-		throw new UnsupportedOperationException();
-	}
+        public DispatchedEvent(Object eventObject, long dispatchTime, long sequenceId) {
+            this.eventObject = eventObject;
+            this.dispatchTime = dispatchTime;
+            this.sequenceId = sequenceId;
+        }
+    }
 }

@@ -20,8 +20,6 @@ limitations under the License.
  * #L%
  */
 
-import java.lang.reflect.Method;
-
 import com.koch.ambeth.cache.AbstractCache;
 import com.koch.ambeth.cache.IRootCache;
 import com.koch.ambeth.cache.RootCache;
@@ -37,84 +35,74 @@ import com.koch.ambeth.util.collections.IdentityHashSet;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.proxy.AbstractSimpleInterceptor;
 
-public abstract class AbstractRootCacheAwareInterceptor extends AbstractSimpleInterceptor
-		implements IThreadLocalCleanupBean {
-	protected static final Method clearMethod;
+import java.lang.reflect.Method;
 
-	static {
-		try {
-			clearMethod = IWritableCache.class.getMethod("clear");
-		}
-		catch (SecurityException e) {
-			throw RuntimeExceptionUtil.mask(e);
-		}
-		catch (NoSuchMethodException e) {
-			throw RuntimeExceptionUtil.mask(e);
-		}
-	}
+public abstract class AbstractRootCacheAwareInterceptor extends AbstractSimpleInterceptor implements IThreadLocalCleanupBean {
+    protected static final Method clearMethod;
 
-	@Autowired(optional = true)
-	protected IOfflineListenerExtendable offlineListenerExtendable;
+    static {
+        try {
+            clearMethod = IWritableCache.class.getMethod("clear");
+        } catch (SecurityException e) {
+            throw RuntimeExceptionUtil.mask(e);
+        } catch (NoSuchMethodException e) {
+            throw RuntimeExceptionUtil.mask(e);
+        }
+    }
 
-	@Autowired
-	protected IServiceContext serviceContext;
+    protected final IdentityHashSet<RootCache> allRootCaches = new IdentityHashSet<>();
+    @Autowired(optional = true)
+    protected IOfflineListenerExtendable offlineListenerExtendable;
+    @Autowired
+    protected IServiceContext serviceContext;
+    @Autowired
+    protected ICacheRetriever storedCacheRetriever;
 
-	@Autowired
-	protected ICacheRetriever storedCacheRetriever;
+    protected IRootCache acquireRootCache(boolean privileged, ThreadLocal<RootCache> currentRootCacheTL) {
+        return acquireRootCache(privileged, currentRootCacheTL, storedCacheRetriever, null, null);
+    }
 
-	protected final IdentityHashSet<RootCache> allRootCaches = new IdentityHashSet<>();
+    protected IRootCache acquireRootCache(boolean privileged, ThreadLocal<RootCache> currentRootCacheTL, ICacheRetriever cacheRetriever, Lock readLock, Lock writeLock) {
+        var rootCacheBR = serviceContext.registerBean(RootCache.class)//
+                                        .propertyValue("CacheRetriever", cacheRetriever)//
+                                        .propertyValue("BoundThread", Thread.currentThread());
+        if (readLock != null) {
+            rootCacheBR.propertyValue("ReadLock", readLock);
+        }
+        if (writeLock != null) {
+            rootCacheBR.propertyValue("WriteLock", writeLock);
+        }
+        var rootCache = postProcessRootCacheConfiguration(rootCacheBR).propertyValue("Privileged", Boolean.valueOf(privileged)).finish();
 
-	protected IRootCache acquireRootCache(boolean privileged,
-			ThreadLocal<RootCache> currentRootCacheTL) {
-		return acquireRootCache(privileged, currentRootCacheTL, storedCacheRetriever, null, null);
-	}
+        if (offlineListenerExtendable != null) {
+            offlineListenerExtendable.addOfflineListener(rootCache);
+        }
+        synchronized (allRootCaches) {
+            allRootCaches.add(rootCache);
+        }
+        currentRootCacheTL.set(rootCache);
+        return rootCache;
+    }
 
-	protected IRootCache acquireRootCache(boolean privileged,
-			ThreadLocal<RootCache> currentRootCacheTL, ICacheRetriever cacheRetriever, Lock readLock,
-			Lock writeLock) {
-		IBeanRuntime<RootCache> rootCacheBR = serviceContext.registerBean(RootCache.class)//
-				.propertyValue("CacheRetriever", cacheRetriever)//
-				.propertyValue("BoundThread", Thread.currentThread());
-		if (readLock != null) {
-			rootCacheBR.propertyValue("ReadLock", readLock);
-		}
-		if (writeLock != null) {
-			rootCacheBR.propertyValue("WriteLock", writeLock);
-		}
-		RootCache rootCache = postProcessRootCacheConfiguration(rootCacheBR)
-				.propertyValue("Privileged", Boolean.valueOf(privileged)).finish();
+    protected IBeanRuntime<RootCache> postProcessRootCacheConfiguration(IBeanRuntime<RootCache> rootCacheBR) {
+        // Do not inject EventQueue because caches without foreign interest will never receive async
+        // DCEs
+        return rootCacheBR.ignoreProperties(RootCache.P_EVENT_QUEUE).propertyValue(AbstractCache.P_WEAK_ENTRIES, Boolean.FALSE);
+    }
 
-		if (offlineListenerExtendable != null) {
-			offlineListenerExtendable.addOfflineListener(rootCache);
-		}
-		synchronized (allRootCaches) {
-			allRootCaches.add(rootCache);
-		}
-		currentRootCacheTL.set(rootCache);
-		return rootCache;
-	}
-
-	protected IBeanRuntime<RootCache> postProcessRootCacheConfiguration(
-			IBeanRuntime<RootCache> rootCacheBR) {
-		// Do not inject EventQueue because caches without foreign interest will never receive async
-		// DCEs
-		return rootCacheBR.ignoreProperties(RootCache.P_EVENT_QUEUE)
-				.propertyValue(AbstractCache.P_WEAK_ENTRIES, Boolean.FALSE);
-	}
-
-	protected void disposeCurrentRootCache(ThreadLocal<RootCache> currentTL) {
-		RootCache rootCache = currentTL.get();
-		currentTL.remove();
-		if (rootCache == null) {
-			return;
-		}
-		if (offlineListenerExtendable != null) {
-			offlineListenerExtendable.removeOfflineListener(rootCache);
-		}
-		synchronized (allRootCaches) {
-			allRootCaches.remove(rootCache);
-		}
-		// Cut reference to persistence layer
-		rootCache.dispose();
-	}
+    protected void disposeCurrentRootCache(ThreadLocal<RootCache> currentTL) {
+        var rootCache = currentTL.get();
+        currentTL.remove();
+        if (rootCache == null) {
+            return;
+        }
+        if (offlineListenerExtendable != null) {
+            offlineListenerExtendable.removeOfflineListener(rootCache);
+        }
+        synchronized (allRootCaches) {
+            allRootCaches.remove(rootCache);
+        }
+        // Cut reference to persistence layer
+        rootCache.dispose();
+    }
 }

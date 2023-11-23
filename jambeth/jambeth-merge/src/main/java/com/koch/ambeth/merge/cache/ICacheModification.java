@@ -20,20 +20,20 @@ limitations under the License.
  * #L%
  */
 
-import com.koch.ambeth.util.threading.IBackgroundWorkerDelegate;
+import com.koch.ambeth.util.function.CheckedRunnable;
 
 public interface ICacheModification {
-	boolean isInternalUpdate();
+    boolean isInternalUpdate();
 
-	void setInternalUpdate(boolean internalUpdate);
+    void setInternalUpdate(boolean internalUpdate);
 
-	boolean isActive();
+    boolean isActive();
 
-	void setActive(boolean active);
+    void setActive(boolean active);
 
-	boolean isActiveOrFlushing();
+    boolean isActiveOrFlushing();
 
-	boolean isActiveOrFlushingOrInternalUpdate();
+    boolean isActiveOrFlushingOrInternalUpdate();
 
-	void queuePropertyChangeEvent(IBackgroundWorkerDelegate task);
+    void queuePropertyChangeEvent(CheckedRunnable task);
 }

@@ -13,9 +13,9 @@ import com.koch.ambeth.util.state.IStateRollback;
  */
 public interface IAsyncLazyLoadController {
 
-	IStateRollback pushAsynchronousResultAllowed(IStateRollback... rollbacks);
+    IStateRollback pushAsynchronousResultAllowed();
 
-	void awaitAsyncWorkload() throws InterruptedException;
+    void awaitAsyncWorkload() throws InterruptedException;
 
-	boolean awaitAsyncWorkload(long time, TimeUnit unit) throws InterruptedException;
+    boolean awaitAsyncWorkload(long time, TimeUnit unit) throws InterruptedException;
 }

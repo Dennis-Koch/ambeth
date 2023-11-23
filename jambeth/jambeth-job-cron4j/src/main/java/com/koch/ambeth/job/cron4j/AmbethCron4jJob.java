@@ -20,9 +20,6 @@ limitations under the License.
  * #L%
  */
 
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
-
 import com.koch.ambeth.ioc.IServiceContext;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.config.Property;
@@ -32,89 +29,77 @@ import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.security.IAuthentication;
 import com.koch.ambeth.security.ISecurityContextHolder;
-import com.koch.ambeth.util.state.IStateRollback;
-
+import com.koch.ambeth.util.state.StateRollback;
 import it.sauronsoftware.cron4j.Task;
 import it.sauronsoftware.cron4j.TaskExecutionContext;
 
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
 public class AmbethCron4jJob extends Task {
-	@LogInstance
-	private ILogger log;
+    @Autowired(optional = true)
+    protected IAuthentication authentication;
+    @Autowired
+    protected IServiceContext beanContext;
+    @Autowired
+    protected ISecurityContextHolder securityContextHolder;
+    @Autowired
+    protected IJob job;
+    @Property
+    protected String jobName;
+    protected Lock writeLock = new ReentrantLock();
+    protected Lock waitingLock = new ReentrantLock();
+    @LogInstance
+    private ILogger log;
 
-	@Autowired(optional = true)
-	protected IAuthentication authentication;
+    @Override
+    public void execute(TaskExecutionContext context) throws RuntimeException {
+        var waitingLock = this.waitingLock;
+        if (!waitingLock.tryLock()) {
+            return;
+        }
+        var writeLock = this.writeLock;
+        try {
+            writeLock.lock();
+        } finally {
+            waitingLock.unlock();
+        }
+        try {
+            var thread = Thread.currentThread();
 
-	@Autowired
-	protected IServiceContext beanContext;
+            var tlCleanupController = beanContext.getService(IThreadLocalCleanupController.class);
+            var oldName = thread.getName();
+            var rollback = tlCleanupController.pushThreadLocalState();
+            try {
+                thread.setName("Job " + jobName);
+                var jobContext = beanContext.registerBean(AmbethCron4jJobContext.class)//
+                                            .propertyValue("TaskExecutionContext", context)//
+                                            .finish();
 
-	@Autowired
-	protected ISecurityContextHolder securityContextHolder;
-
-	@Autowired
-	protected IJob job;
-
-	@Property
-	protected String jobName;
-
-	protected Lock writeLock = new ReentrantLock();
-
-	protected Lock waitingLock = new ReentrantLock();
-
-	@Override
-	public void execute(TaskExecutionContext context) throws RuntimeException {
-		Lock waitingLock = this.waitingLock;
-		if (!waitingLock.tryLock()) {
-			return;
-		}
-		Lock writeLock = this.writeLock;
-		try {
-			writeLock.lock();
-		}
-		finally {
-			waitingLock.unlock();
-		}
-		try {
-			Thread thread = Thread.currentThread();
-
-			IThreadLocalCleanupController tlCleanupController = beanContext
-					.getService(IThreadLocalCleanupController.class);
-			IStateRollback rollback =
-					tlCleanupController.pushThreadLocalState(IStateRollback.EMPTY_ROLLBACKS);
-			String oldName = thread.getName();
-			try {
-				thread.setName("Job " + jobName);
-				final AmbethCron4jJobContext jobContext = beanContext
-						.registerBean(AmbethCron4jJobContext.class)//
-						.propertyValue("TaskExecutionContext", context)//
-						.finish();
-
-				long start = System.currentTimeMillis();
-				if (log.isDebugEnabled()) {
-					log.debug("Executing job '" + jobName + "'");
-				}
-				try {
-					if (authentication != null) {
-						rollback = securityContextHolder.pushAuthentication(authentication, rollback);
-					}
-					job.execute(jobContext);
-					if (log.isDebugEnabled()) {
-						long end = System.currentTimeMillis();
-						log.debug("Execution of job '" + jobName + "' finished (" + (end - start) + " ms)");
-					}
-				}
-				catch (Throwable e) {
-					if (log.isErrorEnabled()) {
-						log.error("Error occured while executing job '" + jobName + "'", e);
-					}
-				}
-			}
-			finally {
-				thread.setName(oldName);
-				rollback.rollback();
-			}
-		}
-		finally {
-			writeLock.unlock();
-		}
-	}
+                var start = System.currentTimeMillis();
+                if (log.isDebugEnabled()) {
+                    log.debug("Executing job '" + jobName + "'");
+                }
+                try {
+                    if (authentication != null) {
+                        rollback = StateRollback.prepend(securityContextHolder.pushAuthentication(authentication), rollback);
+                    }
+                    job.execute(jobContext);
+                    if (log.isDebugEnabled()) {
+                        long end = System.currentTimeMillis();
+                        log.debug("Execution of job '" + jobName + "' finished (" + (end - start) + " ms)");
+                    }
+                } catch (Throwable e) {
+                    if (log.isErrorEnabled()) {
+                        log.error("Error occured while executing job '" + jobName + "'", e);
+                    }
+                }
+            } finally {
+                thread.setName(oldName);
+                rollback.rollback();
+            }
+        } finally {
+            writeLock.unlock();
+        }
+    }
 }

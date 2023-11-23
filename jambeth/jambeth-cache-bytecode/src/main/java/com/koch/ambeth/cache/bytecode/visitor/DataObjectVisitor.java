@@ -20,14 +20,6 @@ limitations under the License.
  * #L%
  */
 
-import java.util.Collection;
-import java.util.Iterator;
-
-import org.objectweb.asm.ClassVisitor;
-import org.objectweb.asm.Label;
-import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.commons.GeneratorAdapter;
-
 import com.koch.ambeth.bytecode.ClassGenerator;
 import com.koch.ambeth.bytecode.FieldInstance;
 import com.koch.ambeth.bytecode.MethodGenerator;
@@ -43,315 +35,290 @@ import com.koch.ambeth.util.annotation.IgnoreToBeUpdated;
 import com.koch.ambeth.util.annotation.ParentChild;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.model.IDataObject;
-import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
 import com.koch.ambeth.util.typeinfo.IPropertyInfoProvider;
+import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.Label;
+import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.commons.GeneratorAdapter;
+
+import java.util.Collection;
+import java.util.Iterator;
 
 public class DataObjectVisitor extends ClassGenerator {
-	public static final Class<?> templateType = DataObjectMixin.class;
+    public static final Class<?> templateType = DataObjectMixin.class;
+    public static final MethodInstance m_toBeUpdatedChanged = new MethodInstance(null, templateType, void.class, "toBeUpdatedChanged", IDataObject.class, boolean.class, boolean.class);
+    public static final PropertyInstance p_hasPendingChanges = PropertyInstance.findByTemplate(IDataObject.class, IDataObject.P_HAS_PENDING_CHANGES, boolean.class, false);
+    public static final PropertyInstance template_p_toBeCreated = PropertyInstance.findByTemplate(IDataObject.class, IDataObject.P_TO_BE_CREATED, boolean.class, false);
+    public static final PropertyInstance template_p_toBeUpdated = PropertyInstance.findByTemplate(IDataObject.class, IDataObject.P_TO_BE_UPDATED, boolean.class, false);
+    public static final PropertyInstance template_p_toBeDeleted = PropertyInstance.findByTemplate(IDataObject.class, IDataObject.P_TO_BE_DELETED, boolean.class, false);
+    public static final Class<IgnoreToBeUpdated> c_ignoreToBeUpdated = IgnoreToBeUpdated.class;
+    protected static final String templatePropertyName = "__" + templateType.getSimpleName();
 
-	protected static final String templatePropertyName = "__" + templateType.getSimpleName();
+    public static PropertyInstance getDataObjectTemplatePI(ClassGenerator cv) {
+        Object bean = getState().getBeanContext().getService(templateType);
+        PropertyInstance p_dataObjectTemplate = getState().getProperty(templatePropertyName, bean.getClass());
+        if (p_dataObjectTemplate != null) {
+            return p_dataObjectTemplate;
+        }
+        return cv.implementAssignedReadonlyProperty(templatePropertyName, bean);
+    }
 
-	public static final MethodInstance m_toBeUpdatedChanged = new MethodInstance(null, templateType,
-			void.class, "toBeUpdatedChanged", IDataObject.class, boolean.class, boolean.class);
+    protected final IEntityMetaData metaData;
 
-	public static final PropertyInstance p_hasPendingChanges =
-			PropertyInstance.findByTemplate(IDataObject.class, IDataObject.P_HAS_PENDING_CHANGES,
-					boolean.class, false);
+    protected final IPropertyInfoProvider propertyInfoProvider;
 
-	public static final PropertyInstance template_p_toBeCreated =
-			PropertyInstance.findByTemplate(IDataObject.class, IDataObject.P_TO_BE_CREATED, boolean.class,
-					false);
+    public DataObjectVisitor(ClassVisitor cv, IEntityMetaData metaData, IPropertyInfoProvider propertyInfoProvider) {
+        super(cv);
+        this.metaData = metaData;
+        this.propertyInfoProvider = propertyInfoProvider;
+    }
 
-	public static final PropertyInstance template_p_toBeUpdated =
-			PropertyInstance.findByTemplate(IDataObject.class, IDataObject.P_TO_BE_UPDATED, boolean.class,
-					false);
+    @Override
+    public void visitEnd() {
+        PropertyInstance p_toBeCreated = implementToBeCreated(template_p_toBeCreated);
 
-	public static final PropertyInstance template_p_toBeDeleted =
-			PropertyInstance.findByTemplate(IDataObject.class, IDataObject.P_TO_BE_DELETED, boolean.class,
-					false);
+        PropertyInstance p_toBeUpdated = implementToBeUpdated();
 
-	public static final Class<IgnoreToBeUpdated> c_ignoreToBeUpdated = IgnoreToBeUpdated.class;
+        // ToBeDeleted
+        final FieldInstance f_toBeDeleted = implementField(new FieldInstance(Opcodes.ACC_PRIVATE, "$toBeDeleted", null, template_p_toBeDeleted.getPropertyType()));
 
-	public static PropertyInstance getDataObjectTemplatePI(ClassGenerator cv) {
-		Object bean = getState().getBeanContext().getService(templateType);
-		PropertyInstance p_dataObjectTemplate =
-				getState().getProperty(templatePropertyName, bean.getClass());
-		if (p_dataObjectTemplate != null) {
-			return p_dataObjectTemplate;
-		}
-		return cv.implementAssignedReadonlyProperty(templatePropertyName, bean);
-	}
+        PropertyInstance p_toBeDeleted = implementProperty(template_p_toBeDeleted, new Script() {
+            @Override
+            public void execute(MethodGenerator mg) {
+                mg.getThisField(f_toBeDeleted);
+                mg.returnValue();
+            }
+        }, new Script() {
+            @Override
+            public void execute(MethodGenerator mg) {
+                mg.putThisField(f_toBeDeleted, new Script() {
+                    @Override
+                    public void execute(MethodGenerator mg) {
+                        mg.loadArg(0);
+                    }
+                });
+                mg.returnValue();
+            }
+        });
+        p_toBeDeleted.addAnnotation(c_ignoreToBeUpdated);
 
-	protected final IEntityMetaData metaData;
+        implementHasPendingChanges(p_hasPendingChanges, p_toBeUpdated, p_toBeCreated, p_toBeDeleted);
 
-	protected final IPropertyInfoProvider propertyInfoProvider;
+        super.visitEnd();
+    }
 
-	public DataObjectVisitor(ClassVisitor cv, IEntityMetaData metaData,
-			IPropertyInfoProvider propertyInfoProvider) {
-		super(cv);
-		this.metaData = metaData;
-		this.propertyInfoProvider = propertyInfoProvider;
-	}
+    protected PropertyInstance implementToBeUpdated() {
+        final PropertyInstance p_dataObjectTemplate = getDataObjectTemplatePI(this);
 
-	@Override
-	public void visitEnd() {
-		PropertyInstance p_toBeCreated = implementToBeCreated(template_p_toBeCreated);
+        final FieldInstance f_toBeUpdated = implementField(new FieldInstance(Opcodes.ACC_PRIVATE, "$toBeUpdated", null, template_p_toBeUpdated.getPropertyType()));
 
-		PropertyInstance p_toBeUpdated = implementToBeUpdated();
+        boolean atLeastOneToManyMember = false;
+        final ArrayList<RelationMember> parentChildMembers = new ArrayList<>();
+        for (RelationMember relationMember : metaData.getRelationMembers()) {
+            if (relationMember.getAnnotation(ParentChild.class) != null) {
+                parentChildMembers.add(relationMember);
+                if (relationMember.isToMany()) {
+                    atLeastOneToManyMember = true;
+                }
+            }
+        }
+        final boolean fAtLeastOneToManyMember = atLeastOneToManyMember;
+        PropertyInstance p_toBeUpdated = implementProperty(template_p_toBeUpdated, new Script() {
+            @Override
+            public void execute(MethodGenerator mg) {
+                if (parentChildMembers.isEmpty()) {
+                    mg.getThisField(f_toBeUpdated);
+                    mg.returnValue();
+                    return;
+                }
+                int loc_iterator = -1;
+                if (fAtLeastOneToManyMember) {
+                    loc_iterator = mg.newLocal(Iterator.class);
+                }
+                // we have to check the toBeUpdated-State for our "parentChild" members to decide our own
+                // toBeUpdate-State by OR-concatenation
+                int loc_parentChildValue = mg.newLocal(Object.class);
+                Label trueLabel = mg.newLabel();
 
-		// ToBeDeleted
-		final FieldInstance f_toBeDeleted = implementField(new FieldInstance(Opcodes.ACC_PRIVATE,
-				"$toBeDeleted", null, template_p_toBeDeleted.getPropertyType()));
+                mg.getThisField(f_toBeUpdated);
+                mg.ifZCmp(GeneratorAdapter.NE, trueLabel);
 
-		PropertyInstance p_toBeDeleted = implementProperty(template_p_toBeDeleted, new Script()
+                for (RelationMember parentChildMember : parentChildMembers) {
+                    int relationIndex = metaData.getIndexByRelationName(parentChildMember.getName());
+                    Label l_valueIsNull = mg.newLabel();
+                    // load this RelationMember at runtime to be able to call its "getValue(Object obj)"
 
-		{
-			@Override
-			public void execute(MethodGenerator mg) {
-				mg.getThisField(f_toBeDeleted);
-				mg.returnValue();
-			}
-		}, new Script() {
-			@Override
-			public void execute(MethodGenerator mg) {
-				mg.putThisField(f_toBeDeleted, new Script() {
-					@Override
-					public void execute(MethodGenerator mg) {
-						mg.loadArg(0);
-					}
-				});
-				mg.returnValue();
-			}
-		});
-		p_toBeDeleted.addAnnotation(c_ignoreToBeUpdated);
+                    mg.loadThis();
+                    mg.push(relationIndex);
 
-		implementHasPendingChanges(p_hasPendingChanges, p_toBeUpdated, p_toBeCreated, p_toBeDeleted);
+                    mg.invokeVirtual(MethodInstance.findByTemplate(RelationsGetterVisitor.m_template_isInitialized_Member, false));
 
-		super.visitEnd();
-	}
+                    mg.ifZCmp(GeneratorAdapter.EQ, l_valueIsNull); // skip this member if it is not
+                    // initialized
 
-	protected PropertyInstance implementToBeUpdated() {
-		final PropertyInstance p_dataObjectTemplate = getDataObjectTemplatePI(this);
+                    mg.loadThis();
+                    mg.push(relationIndex);
+                    mg.invokeVirtual(MethodInstance.findByTemplate(RelationsGetterVisitor.m_template_getValueDirect_Member, false));
 
-		final FieldInstance f_toBeUpdated = implementField(new FieldInstance(Opcodes.ACC_PRIVATE,
-				"$toBeUpdated", null, template_p_toBeUpdated.getPropertyType()));
+                    mg.storeLocal(loc_parentChildValue);
 
-		boolean atLeastOneToManyMember = false;
-		final ArrayList<RelationMember> parentChildMembers = new ArrayList<>();
-		for (RelationMember relationMember : metaData.getRelationMembers()) {
-			if (relationMember.getAnnotation(ParentChild.class) != null) {
-				parentChildMembers.add(relationMember);
-				if (relationMember.isToMany()) {
-					atLeastOneToManyMember = true;
-				}
-			}
-		}
-		final boolean fAtLeastOneToManyMember = atLeastOneToManyMember;
-		PropertyInstance p_toBeUpdated = implementProperty(template_p_toBeUpdated, new Script() {
-			@Override
-			public void execute(MethodGenerator mg) {
-				if (parentChildMembers.isEmpty()) {
-					mg.getThisField(f_toBeUpdated);
-					mg.returnValue();
-					return;
-				}
-				int loc_iterator = -1;
-				if (fAtLeastOneToManyMember) {
-					loc_iterator = mg.newLocal(Iterator.class);
-				}
-				// we have to check the toBeUpdated-State for our "parentChild" members to decide our own
-				// toBeUpdate-State by OR-concatenation
-				int loc_parentChildValue = mg.newLocal(Object.class);
-				Label trueLabel = mg.newLabel();
+                    mg.loadLocal(loc_parentChildValue);
+                    mg.ifNull(l_valueIsNull);
 
-				mg.getThisField(f_toBeUpdated);
-				mg.ifZCmp(GeneratorAdapter.NE, trueLabel);
+                    mg.loadLocal(loc_parentChildValue);
 
-				for (RelationMember parentChildMember : parentChildMembers) {
-					int relationIndex = metaData.getIndexByRelationName(parentChildMember.getName());
-					Label l_valueIsNull = mg.newLabel();
-					// load this RelationMember at runtime to be able to call its "getValue(Object obj)"
+                    if (parentChildMember.isToMany()) {
+                        Label l_startLoop = mg.newLabel();
+                        Label l_endLoop = mg.newLabel();
 
-					mg.loadThis();
-					mg.push(relationIndex);
+                        mg.checkCast(Collection.class);
+                        mg.invokeInterface(new MethodInstance(null, Collection.class, Iterator.class, "iterator"));
+                        mg.storeLocal(loc_iterator);
 
-					mg.invokeVirtual(MethodInstance
-							.findByTemplate(RelationsGetterVisitor.m_template_isInitialized_Member, false));
+                        mg.mark(l_startLoop);
+                        mg.loadLocal(loc_iterator);
+                        mg.invokeInterface(new MethodInstance(null, Iterator.class, boolean.class, "hasNext"));
 
-					mg.ifZCmp(GeneratorAdapter.EQ, l_valueIsNull); // skip this member if it is not
-																													// initialized
+                        mg.ifZCmp(GeneratorAdapter.EQ, l_endLoop);
+                        mg.loadLocal(loc_iterator);
+                        mg.invokeInterface(new MethodInstance(null, Iterator.class, Object.class, "next"));
 
-					mg.loadThis();
-					mg.push(relationIndex);
-					mg.invokeVirtual(MethodInstance
-							.findByTemplate(RelationsGetterVisitor.m_template_getValueDirect_Member, false));
+                        mg.checkCast(IDataObject.class);
+                        mg.invokeInterface(template_p_toBeUpdated.getGetter());
+                        mg.ifZCmp(GeneratorAdapter.NE, trueLabel);
 
-					mg.storeLocal(loc_parentChildValue);
+                        mg.goTo(l_startLoop);
+                        mg.mark(l_endLoop);
+                    } else {
+                        mg.checkCast(IDataObject.class);
+                        mg.invokeInterface(template_p_toBeUpdated.getGetter());
+                        mg.ifZCmp(GeneratorAdapter.NE, trueLabel);
+                    }
+                    mg.mark(l_valueIsNull);
+                }
 
-					mg.loadLocal(loc_parentChildValue);
-					mg.ifNull(l_valueIsNull);
+                mg.push(false);
+                mg.returnValue();
 
-					mg.loadLocal(loc_parentChildValue);
+                mg.mark(trueLabel);
+                mg.push(true);
+                mg.returnValue();
+            }
+        }, new Script() {
+            @Override
+            public void execute(MethodGenerator mv) {
+                int loc_existingValue = mv.newLocal(boolean.class);
+                Label l_finish = mv.newLabel();
+                mv.getThisField(f_toBeUpdated);
+                mv.storeLocal(loc_existingValue);
 
-					if (parentChildMember.isToMany()) {
-						Label l_startLoop = mg.newLabel();
-						Label l_endLoop = mg.newLabel();
+                mv.loadLocal(loc_existingValue);
+                mv.loadArg(0);
+                mv.ifCmp(boolean.class, GeneratorAdapter.EQ, l_finish);
 
-						mg.checkCast(Collection.class);
-						mg.invokeInterface(
-								new MethodInstance(null, Collection.class, Iterator.class, "iterator"));
-						mg.storeLocal(loc_iterator);
+                mv.putThisField(f_toBeUpdated, new Script() {
 
-						mg.mark(l_startLoop);
-						mg.loadLocal(loc_iterator);
-						mg.invokeInterface(
-								new MethodInstance(null, Iterator.class, boolean.class, "hasNext"));
+                    @Override
+                    public void execute(MethodGenerator mg) {
+                        mg.loadArg(0);
+                    }
+                });
 
-						mg.ifZCmp(GeneratorAdapter.EQ, l_endLoop);
-						mg.loadLocal(loc_iterator);
-						mg.invokeInterface(new MethodInstance(null, Iterator.class, Object.class, "next"));
+                // call dataObjectTemplate
+                mv.callThisGetter(p_dataObjectTemplate);
+                // "this" argument
+                mv.loadThis();
+                // oldValue argument
+                mv.loadLocal(loc_existingValue);
+                // newValue argument
+                mv.loadArg(0);
+                mv.invokeVirtual(m_toBeUpdatedChanged);
 
-						mg.checkCast(IDataObject.class);
-						mg.invokeInterface(template_p_toBeUpdated.getGetter());
-						mg.ifZCmp(GeneratorAdapter.NE, trueLabel);
+                mv.mark(l_finish);
+                mv.returnValue();
+            }
+        });
+        p_toBeUpdated.addAnnotation(c_ignoreToBeUpdated);
+        return p_toBeUpdated;
+    }
 
-						mg.goTo(l_startLoop);
-						mg.mark(l_endLoop);
-					}
-					else {
-						mg.checkCast(IDataObject.class);
-						mg.invokeInterface(template_p_toBeUpdated.getGetter());
-						mg.ifZCmp(GeneratorAdapter.NE, trueLabel);
-					}
-					mg.mark(l_valueIsNull);
-				}
+    /**
+     * public boolean isToBeCreated() { return get__Id() == null; }
+     *
+     * @param p_toBeCreated
+     */
+    protected PropertyInstance implementToBeCreated(PropertyInstance p_toBeCreated) {
+        MethodGenerator mg = visitMethod(p_toBeCreated.getGetter());
+        p_toBeCreated = PropertyInstance.findByTemplate(p_toBeCreated, false);
+        Member idMember = metaData.getIdMember();
+        if (idMember instanceof CompositeIdMember) {
+            ArrayList<String> names = new ArrayList<>();
+            for (Member itemMember : ((CompositeIdMember) idMember).getMembers()) {
+                names.add(itemMember.getName());
+            }
+            p_toBeCreated.addAnnotation(c_fireThisOPC, new Object[] { names.toArray(String.class) });
+        } else {
+            p_toBeCreated.addAnnotation(c_fireThisOPC, idMember.getName());
+        }
 
-				mg.push(false);
-				mg.returnValue();
+        Label trueLabel = mg.newLabel();
 
-				mg.mark(trueLabel);
-				mg.push(true);
-				mg.returnValue();
-			}
-		}, new Script() {
-			@Override
-			public void execute(MethodGenerator mv) {
-				int loc_existingValue = mv.newLocal(boolean.class);
-				Label l_finish = mv.newLabel();
-				mv.getThisField(f_toBeUpdated);
-				mv.storeLocal(loc_existingValue);
+        mg.loadThis();
+        mg.invokeVirtual(GetIdMethodCreator.getGetId());
 
-				mv.loadLocal(loc_existingValue);
-				mv.loadArg(0);
-				mv.ifCmp(boolean.class, GeneratorAdapter.EQ, l_finish);
+        mg.ifNull(trueLabel);
 
-				mv.putThisField(f_toBeUpdated, new Script() {
+        mg.push(false);
+        mg.returnValue();
 
-					@Override
-					public void execute(MethodGenerator mg) {
-						mg.loadArg(0);
-					}
-				});
+        mg.mark(trueLabel);
 
-				// call dataObjectTemplate
-				mv.callThisGetter(p_dataObjectTemplate);
-				// "this" argument
-				mv.loadThis();
-				// oldValue argument
-				mv.loadLocal(loc_existingValue);
-				// newValue argument
-				mv.loadArg(0);
-				mv.invokeVirtual(m_toBeUpdatedChanged);
+        mg.push(true);
+        mg.returnValue();
+        mg.endMethod();
+        return p_toBeCreated;
+    }
 
-				mv.mark(l_finish);
-				mv.returnValue();
-			}
-		});
-		p_toBeUpdated.addAnnotation(c_ignoreToBeUpdated);
-		return p_toBeUpdated;
-	}
+    /**
+     * public boolean hasPendingChanges() { return isToBeUpdated() || isToBeCreated() ||
+     * isToBeDeleted(); }
+     */
+    protected void implementHasPendingChanges(final PropertyInstance p_hasPendingChanges, final PropertyInstance p_ToBeUpdated, final PropertyInstance p_ToBeCreated,
+            final PropertyInstance p_ToBeDeleted) {
+        setPropertyContext(p_hasPendingChanges.getName(), () -> {
+            var mg = visitMethod(p_hasPendingChanges.getGetter());
+            var curr_p_hasPendingChanges = PropertyInstance.findByTemplate(DataObjectVisitor.p_hasPendingChanges, false);
+            curr_p_hasPendingChanges.addAnnotation(c_ignoreToBeUpdated);
+            curr_p_hasPendingChanges.addAnnotation(c_fireThisOPC, new Object[] {
+                    new String[] {
+                            p_ToBeCreated.getName(), p_ToBeUpdated.getName(), p_ToBeDeleted.getName()
+                    }
+            });
+            // p_hasPendingChanges.addAnnotation(c_ftopc, p_ToBeUpdated.getName());
+            // p_hasPendingChanges.addAnnotation(c_ftopc, p_ToBeDeleted.getName());
 
-	/**
-	 * public boolean isToBeCreated() { return get__Id() == null; }
-	 *
-	 * @param owner
-	 */
-	protected PropertyInstance implementToBeCreated(PropertyInstance p_toBeCreated) {
-		MethodGenerator mg = visitMethod(p_toBeCreated.getGetter());
-		p_toBeCreated = PropertyInstance.findByTemplate(p_toBeCreated, false);
-		Member idMember = metaData.getIdMember();
-		if (idMember instanceof CompositeIdMember) {
-			ArrayList<String> names = new ArrayList<>();
-			for (Member itemMember : ((CompositeIdMember) idMember).getMembers()) {
-				names.add(itemMember.getName());
-			}
-			p_toBeCreated.addAnnotation(c_fireThisOPC, new Object[] {names.toArray(String.class)});
-		}
-		else {
-			p_toBeCreated.addAnnotation(c_fireThisOPC, idMember.getName());
-		}
+            Label trueLabel = mg.newLabel();
 
-		Label trueLabel = mg.newLabel();
+            mg.loadThis();
+            mg.invokeVirtual(p_ToBeUpdated.getGetter());
+            mg.ifZCmp(GeneratorAdapter.NE, trueLabel);
 
-		mg.loadThis();
-		mg.invokeVirtual(GetIdMethodCreator.getGetId());
+            mg.loadThis();
+            mg.invokeVirtual(p_ToBeCreated.getGetter());
+            mg.ifZCmp(GeneratorAdapter.NE, trueLabel);
 
-		mg.ifNull(trueLabel);
+            mg.loadThis();
+            mg.invokeVirtual(p_ToBeDeleted.getGetter());
+            mg.ifZCmp(GeneratorAdapter.NE, trueLabel);
 
-		mg.push(false);
-		mg.returnValue();
+            mg.push(false);
+            mg.returnValue();
 
-		mg.mark(trueLabel);
-
-		mg.push(true);
-		mg.returnValue();
-		mg.endMethod();
-		return p_toBeCreated;
-	}
-
-	/**
-	 * public boolean hasPendingChanges() { return isToBeUpdated() || isToBeCreated() ||
-	 * isToBeDeleted(); }
-	 */
-	protected void implementHasPendingChanges(final PropertyInstance p_hasPendingChanges,
-			final PropertyInstance p_ToBeUpdated, final PropertyInstance p_ToBeCreated,
-			final PropertyInstance p_ToBeDeleted) {
-		setPropertyContext(p_hasPendingChanges.getName(),
-				new IResultingBackgroundWorkerDelegate<Object>() {
-					@Override
-					public Object invoke() throws Exception {
-						MethodGenerator mg = visitMethod(p_hasPendingChanges.getGetter());
-						PropertyInstance p_hasPendingChanges =
-								PropertyInstance.findByTemplate(DataObjectVisitor.p_hasPendingChanges, false);
-						p_hasPendingChanges.addAnnotation(c_ignoreToBeUpdated);
-						p_hasPendingChanges.addAnnotation(c_fireThisOPC, new Object[] {new String[] {
-								p_ToBeCreated.getName(), p_ToBeUpdated.getName(), p_ToBeDeleted.getName()}});
-						// p_hasPendingChanges.addAnnotation(c_ftopc, p_ToBeUpdated.getName());
-						// p_hasPendingChanges.addAnnotation(c_ftopc, p_ToBeDeleted.getName());
-
-						Label trueLabel = mg.newLabel();
-
-						mg.loadThis();
-						mg.invokeVirtual(p_ToBeUpdated.getGetter());
-						mg.ifZCmp(GeneratorAdapter.NE, trueLabel);
-
-						mg.loadThis();
-						mg.invokeVirtual(p_ToBeCreated.getGetter());
-						mg.ifZCmp(GeneratorAdapter.NE, trueLabel);
-
-						mg.loadThis();
-						mg.invokeVirtual(p_ToBeDeleted.getGetter());
-						mg.ifZCmp(GeneratorAdapter.NE, trueLabel);
-
-						mg.push(false);
-						mg.returnValue();
-
-						mg.mark(trueLabel);
-						mg.push(true);
-						mg.returnValue();
-						mg.endMethod();
-						return null;
-					}
-				});
-	}
+            mg.mark(trueLabel);
+            mg.push(true);
+            mg.returnValue();
+            mg.endMethod();
+            return null;
+        });
+    }
 }

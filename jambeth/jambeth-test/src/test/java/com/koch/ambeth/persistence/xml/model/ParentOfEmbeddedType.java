@@ -20,23 +20,23 @@ limitations under the License.
  * #L%
  */
 
-import javax.persistence.Embedded;
+import jakarta.persistence.Embedded;
 
 import com.koch.ambeth.model.AbstractEntity;
 
 public class ParentOfEmbeddedType extends AbstractEntity {
-	@Embedded
-	protected TestEmbeddedType myEmbeddedType;
+    @Embedded
+    protected TestEmbeddedType myEmbeddedType;
 
-	protected ParentOfEmbeddedType() {
-		// Intended blank
-	}
+    protected ParentOfEmbeddedType() {
+        // Intended blank
+    }
 
-	public TestEmbeddedType getMyEmbeddedType() {
-		return myEmbeddedType;
-	}
+    public TestEmbeddedType getMyEmbeddedType() {
+        return myEmbeddedType;
+    }
 
-	public void setMyEmbeddedType(TestEmbeddedType myEmbeddedType) {
-		this.myEmbeddedType = myEmbeddedType;
-	}
+    public void setMyEmbeddedType(TestEmbeddedType myEmbeddedType) {
+        this.myEmbeddedType = myEmbeddedType;
+    }
 }

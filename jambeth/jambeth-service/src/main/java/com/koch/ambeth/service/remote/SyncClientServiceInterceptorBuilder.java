@@ -22,63 +22,48 @@ limitations under the License.
 
 import com.koch.ambeth.ioc.IServiceContext;
 import com.koch.ambeth.ioc.annotation.Autowired;
-import com.koch.ambeth.ioc.factory.IBeanContextFactory;
 import com.koch.ambeth.service.log.interceptor.LogInterceptor;
 import com.koch.ambeth.util.ParamChecker;
 import com.koch.ambeth.util.proxy.IProxyFactory;
 import com.koch.ambeth.util.proxy.MethodInterceptor;
 import com.koch.ambeth.util.proxy.TargetingInterceptor;
-import com.koch.ambeth.util.threading.IBackgroundWorkerParamDelegate;
 
 public class SyncClientServiceInterceptorBuilder implements IClientServiceInterceptorBuilder {
-	@Autowired
-	protected IClientServiceFactory clientServiceFactory;
+    @Autowired
+    protected IClientServiceFactory clientServiceFactory;
 
-	@Autowired
-	protected IProxyFactory proxyFactory;
+    @Autowired
+    protected IProxyFactory proxyFactory;
 
-	@Override
-	public MethodInterceptor createInterceptor(IServiceContext sourceBeanContext,
-											   Class<?> syncLocalInterface, Class<?> syncRemoteInterface, Class<?> asyncRemoteInterface) {
-		ParamChecker.assertParamNotNull(sourceBeanContext, "sourceBeanContext");
-		if (syncRemoteInterface == null) {
-			syncRemoteInterface = syncLocalInterface;
-		}
-		final Class<?> clientProviderType =
-				clientServiceFactory.getTargetProviderType(syncRemoteInterface);
+    @Override
+    public MethodInterceptor createInterceptor(IServiceContext sourceBeanContext, Class<?> syncLocalInterface, Class<?> syncRemoteInterface, Class<?> asyncRemoteInterface) {
+        ParamChecker.assertParamNotNull(sourceBeanContext, "sourceBeanContext");
+        if (syncRemoteInterface == null) {
+            syncRemoteInterface = syncLocalInterface;
+        }
+        var clientProviderType = clientServiceFactory.getTargetProviderType(syncRemoteInterface);
 
-		final String serviceName = clientServiceFactory.getServiceName(syncRemoteInterface);
+        var serviceName = clientServiceFactory.getServiceName(syncRemoteInterface);
 
-		final String logInterceptorName = "logInterceptor";
-		final String remoteTargetProviderName = "remoteTargetProvider";
-		final String interceptorName = "interceptor";
+        var logInterceptorName = "logInterceptor";
+        var remoteTargetProviderName = "remoteTargetProvider";
+        var interceptorName = "interceptor";
 
-		IServiceContext childContext =
-				sourceBeanContext.createService(new IBackgroundWorkerParamDelegate<IBeanContextFactory>() {
-					@Override
-					public void invoke(IBeanContextFactory bcf) {
-						if (IRemoteTargetProvider.class.isAssignableFrom(clientProviderType)) {
-							bcf.registerBean(remoteTargetProviderName, clientProviderType)
-									.propertyValue(IRemoteTargetProvider.SERVICE_NAME_PROP, serviceName);
-							clientServiceFactory.postProcessTargetProviderBean(remoteTargetProviderName, bcf);
+        var childContext = sourceBeanContext.createService(bcf -> {
+            if (IRemoteTargetProvider.class.isAssignableFrom(clientProviderType)) {
+                bcf.registerBean(remoteTargetProviderName, clientProviderType).propertyValue(IRemoteTargetProvider.SERVICE_NAME_PROP, serviceName);
+                clientServiceFactory.postProcessTargetProviderBean(remoteTargetProviderName, bcf);
 
-							bcf.registerBean(interceptorName, TargetingInterceptor.class)
-									.propertyRef(TargetingInterceptor.TARGET_PROVIDER_PROP, remoteTargetProviderName);
-						}
-						else if (IRemoteInterceptor.class.isAssignableFrom(clientProviderType)) {
-							bcf.registerBean(interceptorName, clientProviderType)
-									.propertyValue(IRemoteTargetProvider.SERVICE_NAME_PROP, serviceName);
-							clientServiceFactory.postProcessTargetProviderBean(interceptorName, bcf);
-						}
-						else {
-							throw new IllegalStateException(
-									"ProviderType '" + clientProviderType + "' is not supported here");
-						}
-						bcf.registerBean(logInterceptorName, LogInterceptor.class).propertyRef("Target",
-								interceptorName);
-					}
-				});
+                bcf.registerBean(interceptorName, TargetingInterceptor.class).propertyRef(TargetingInterceptor.TARGET_PROVIDER_PROP, remoteTargetProviderName);
+            } else if (IRemoteInterceptor.class.isAssignableFrom(clientProviderType)) {
+                bcf.registerBean(interceptorName, clientProviderType).propertyValue(IRemoteTargetProvider.SERVICE_NAME_PROP, serviceName);
+                clientServiceFactory.postProcessTargetProviderBean(interceptorName, bcf);
+            } else {
+                throw new IllegalStateException("ProviderType '" + clientProviderType + "' is not supported here");
+            }
+            bcf.registerBean(logInterceptorName, LogInterceptor.class).propertyRef("Target", interceptorName);
+        });
 
-		return childContext.getService(logInterceptorName, MethodInterceptor.class);
-	}
+        return childContext.getService(logInterceptorName, MethodInterceptor.class);
+    }
 }

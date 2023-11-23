@@ -22,10 +22,10 @@ limitations under the License.
 
 import com.koch.ambeth.service.cache.model.ILoadContainer;
 import com.koch.ambeth.util.collections.IList;
-import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
+import com.koch.ambeth.util.function.CheckedSupplier;
 
 public interface IVerifyOnLoad {
-	<R> R verifyEntitiesOnLoad(IResultingBackgroundWorkerDelegate<R> runnable) throws Exception;
+    <R> R verifyEntitiesOnLoad(CheckedSupplier<R> runnable);
 
-	void queueVerifyEntitiesOnLoad(IList<ILoadContainer> loadedEntities);
+    void queueVerifyEntitiesOnLoad(IList<ILoadContainer> loadedEntities);
 }

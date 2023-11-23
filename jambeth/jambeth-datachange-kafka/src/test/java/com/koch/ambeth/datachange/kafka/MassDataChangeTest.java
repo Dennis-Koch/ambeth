@@ -20,17 +20,6 @@ limitations under the License.
  * #L%
  */
 
-import java.util.EnumSet;
-import java.util.Iterator;
-import java.util.concurrent.Callable;
-import java.util.concurrent.FutureTask;
-import java.util.concurrent.TimeUnit;
-
-import org.junit.Assert;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
-
 import com.github.charithe.kafka.KafkaJunitRule;
 import com.koch.ambeth.cache.IRootCache;
 import com.koch.ambeth.cache.ioc.CacheModule;
@@ -68,260 +57,219 @@ import com.koch.ambeth.util.IClasspathScanner;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.config.IProperties;
-import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
-import com.koch.ambeth.util.threading.IBackgroundWorkerDelegate;
+import com.koch.ambeth.util.function.CheckedRunnable;
 import com.koch.ambeth.xml.ioc.XmlModule;
 import com.koch.ambeth.xml.util.ClasspathScanner;
+import org.junit.Assert;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.experimental.categories.Category;
+
+import java.util.EnumSet;
+import java.util.Iterator;
+import java.util.concurrent.Callable;
+import java.util.concurrent.FutureTask;
+import java.util.concurrent.TimeUnit;
 
 @TestPropertiesList({
-		// producer
-		@TestProperties(name = EventKafkaConfigurationConstants.TOPIC_NAME, value = "test"), //
-		@TestProperties(name = AmbethKafkaConfiguration.AMBETH_KAFKA_PROP_PREFIX
-				+ "acks", value = "all"), //
-		@TestProperties(name = AmbethKafkaConfiguration.AMBETH_KAFKA_PROP_PREFIX
-				+ "retries", value = "0"), //
-		@TestProperties(name = AmbethKafkaConfiguration.AMBETH_KAFKA_PROP_PREFIX
-				+ "batch.size", value = "16384"), //
-		@TestProperties(name = AmbethKafkaConfiguration.AMBETH_KAFKA_PROP_PREFIX
-				+ "linger.ms", value = "1"), //
-		@TestProperties(name = AmbethKafkaConfiguration.AMBETH_KAFKA_PROP_PREFIX
-				+ "buffer.memory", value = "33554432"), //
+        // producer
+        @TestProperties(name = EventKafkaConfigurationConstants.TOPIC_NAME, value = "test"), //
+        @TestProperties(name = AmbethKafkaConfiguration.AMBETH_KAFKA_PROP_PREFIX + "acks", value = "all"), //
+        @TestProperties(name = AmbethKafkaConfiguration.AMBETH_KAFKA_PROP_PREFIX + "retries", value = "0"), //
+        @TestProperties(name = AmbethKafkaConfiguration.AMBETH_KAFKA_PROP_PREFIX + "batch.size", value = "16384"), //
+        @TestProperties(name = AmbethKafkaConfiguration.AMBETH_KAFKA_PROP_PREFIX + "linger.ms", value = "1"), //
+        @TestProperties(name = AmbethKafkaConfiguration.AMBETH_KAFKA_PROP_PREFIX + "buffer.memory", value = "33554432"), //
 
-		// consumer
-		@TestProperties(name = AmbethKafkaConfiguration.AMBETH_KAFKA_PROP_PREFIX
-				+ "group.id", value = "groupId"), //
-		@TestProperties(name = AmbethKafkaConfiguration.AMBETH_KAFKA_PROP_PREFIX
-				+ "enable.auto.commit", value = "true"), //
-		@TestProperties(name = AmbethKafkaConfiguration.AMBETH_KAFKA_PROP_PREFIX
-				+ "auto.commit.interval.ms", value = "1"), //
-		@TestProperties(name = AmbethKafkaConfiguration.AMBETH_KAFKA_PROP_PREFIX
-				+ "session.timeout.ms", value = "30000"), //
-		@TestProperties(name = AmbethKafkaConfiguration.AMBETH_KAFKA_PROP_PREFIX
-				+ "buffer.memory", value = "33554432"),//
-		// @TestProperties(name = "ambeth.log.level", value = "DEBUG"),//
+        // consumer
+        @TestProperties(name = AmbethKafkaConfiguration.AMBETH_KAFKA_PROP_PREFIX + "group.id", value = "groupId"), //
+        @TestProperties(name = AmbethKafkaConfiguration.AMBETH_KAFKA_PROP_PREFIX + "enable.auto.commit", value = "true"), //
+        @TestProperties(name = AmbethKafkaConfiguration.AMBETH_KAFKA_PROP_PREFIX + "auto.commit.interval.ms", value = "1"), //
+        @TestProperties(name = AmbethKafkaConfiguration.AMBETH_KAFKA_PROP_PREFIX + "session.timeout.ms", value = "30000"), //
+        @TestProperties(name = AmbethKafkaConfiguration.AMBETH_KAFKA_PROP_PREFIX + "buffer.memory", value = "33554432"),//
+        // @TestProperties(name = "ambeth.log.level", value = "DEBUG"),//
 })
 @Category(PerformanceTests.class)
 public class MassDataChangeTest extends AbstractIocTest {
-	private static final int NUM_ENTITIES = 1000;
+    private static final int NUM_ENTITIES = 1000;
 
-	public static FutureTask<String> future = new FutureTask<>(new Callable<String>()
+    public static FutureTask<String> future = new FutureTask<>(new Callable<String>() {
+        @Override
+        public String call() throws Exception {
+            return null;
+        }
+    });
+    @Rule
+    public KafkaJunitRule kafkaRule = new KafkaJunitRule();
+    @Autowired
+    protected IProperties properties;
+    @LogInstance
+    private ILogger log;
 
-	{
-		@Override
-		public String call() throws Exception {
-			return null;
-		}
-	});
+    @Test
+    public void test() throws Throwable {
+        Properties props = new Properties(properties);
 
-	public static class KafkaTestModule implements IInitializingModule {
-		@Override
-		public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
-			beanContextFactory.registerBean(ClasspathScanner.class).autowireable(IClasspathScanner.class);
-		}
-	}
+        props.put(AmbethKafkaConfiguration.AMBETH_KAFKA_PROP_PREFIX + "zookeeper.connect", kafkaRule.zookeeperConnectionString());
+        // props.put("group.id", "group");
+        props.put(AmbethKafkaConfiguration.AMBETH_KAFKA_PROP_PREFIX + "bootstrap.servers", "localhost:" + kafkaRule.kafkaBrokerPort());
+        props.put(AmbethKafkaConfiguration.AMBETH_KAFKA_PROP_PREFIX + "zookeeper.session.timeout.ms", "400");
+        props.put(AmbethKafkaConfiguration.AMBETH_KAFKA_PROP_PREFIX + "zookeeper.sync.time.ms", "200");
+        props.put(AmbethKafkaConfiguration.AMBETH_KAFKA_PROP_PREFIX + "auto.commit.interval.ms", "1000");
+        props.put(ServiceConfigurationConstants.mappingFile, "orm.xml");
 
-	public static class CounterModule implements IInitializingModule {
+        IAmbethApplication app1 = Ambeth.createBundle(InformationBus.class)
+                                        .withAmbethModules(EventKafkaModule.class, DataChangeKafkaModule.class, KafkaTestModule.class, XmlModule.class)
+                                        .withoutPropertiesFileSearch()
+                                        .withProperties(props)
+                                        .start();
+        try {
+            IAmbethApplication app2 = Ambeth.createBundle(InformationBus.class)
+                                            .withAmbethModules(EventKafkaModule.class, DataChangeKafkaModule.class, KafkaTestModule.class, XmlModule.class)
+                                            .withoutPropertiesFileSearch()
+                                            .withProperties(props)
+                                            .start();
+            try {
+                // Measure processing time with Kafka
+                long kafkaTime = testDataChangeEventsWithKafka(app1.getApplicationContext(), app2.getApplicationContext(), NUM_ENTITIES);
+                // Measure processing time without Kafka
+                long withoutKafkaTime = testContextsWithout(app1.getApplicationContext(), app2.getApplicationContext(), NUM_ENTITIES);
+                log.info("Kafka - processing time:" + (kafkaTime - withoutKafkaTime) + "ms " + Math.round(kafkaTime / (withoutKafkaTime / 100) - 100) + " %");
+            } finally {
+                app2.close();
+            }
+        } finally {
+            app1.close();
+        }
+    }
 
-		@Override
-		public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
+    protected Object lookupCacheEntry(IRootCache rootCache, TestEntity testEntity) {
+        return rootCache.getObject(new ObjRef(TestEntity.class, ObjRef.PRIMARY_KEY_INDEX, testEntity.getId(), null), EnumSet.of(CacheDirective.FailEarly, CacheDirective.LoadContainerResult));
+    }
 
-			IBeanConfiguration registerExternalBean = beanContextFactory
-					.registerExternalBean(new IEventListener() {
+    /**
+     * fill up the cache with entities
+     *
+     * @param left
+     * @param countEntities
+     * @param testEntityList
+     */
+    private void fillCache(IServiceContext left, int countEntities, final IList<TestEntity> testEntityList) {
+        IRootCache leftRootCache;
+        {
+            TestEntity testEntity;
+            for (int i = countEntities; i > 0; i--) {
 
-						private int globalCounter = 0;
+                // create cache entry in "left"
+                testEntity = left.getService(IEntityFactory.class).createEntity(TestEntity.class);
+                IEntityMetaData metaData = left.getService(IEntityMetaDataProvider.class).getMetaData(TestEntity.class);
+                metaData.getIdMember().setIntValue(testEntity, i);
+                metaData.getVersionMember().setIntValue(testEntity, 1);
 
-						@Override
-						public void handleEvent(Object eventObject, long dispatchTime, long sequenceId)
-								throws Exception {
-							// wait until all DCE's arrive in the "right" cache.
-							if (globalCounter >= NUM_ENTITIES - 1) {
-								future.run();
-							}
-							globalCounter++;
+                leftRootCache = left.getService(CacheModule.COMMITTED_ROOT_CACHE, IRootCache.class);
+                leftRootCache.put(testEntity);
+                testEntityList.add(testEntity);
+                Assert.assertNotNull(lookupCacheEntry(leftRootCache, testEntity));
 
-						}
-					});
-			beanContextFactory.link(registerExternalBean).to(IEventListenerExtendable.class)
-					.with(DataChangeEvent.class);
-		}
-	}
+            }
+        }
+    }
 
-	@LogInstance
-	private ILogger log;
+    private long testDataChangeEventsWithKafka(IServiceContext left, final IServiceContext right, int countEntities) throws Throwable {
+        final IList<TestEntity> testEntityList = new ArrayList<>();
+        right.createService(CounterModule.class);
+        fillCache(left, countEntities, testEntityList);
+        long millis = System.currentTimeMillis();
 
-	@Rule
-	public KafkaJunitRule kafkaRule = new KafkaJunitRule();
+        {
+            final CheckedRunnable worker = () -> {
+                // fire the DCE in "right"
+                for (Iterator<TestEntity> iterator = testEntityList.iterator(); iterator.hasNext(); ) {
+                    TestEntity testEntity = iterator.next();
+                    DataChangeEvent dce = DataChangeEvent.create(0, 1, 0);
+                    dce.getUpdates().add(new DataChangeEntry(TestEntity.class, ObjRef.PRIMARY_KEY_INDEX, testEntity.getId(), testEntity.getVersion() + 1));
+                    right.getService(IEventDispatcher.class).dispatchEvent(dce);
+                }
+            };
+            new Thread(() -> CheckedRunnable.invoke(worker)).start();
+        }
+        log.info("start waiting...");
+        // wait for all DCE events to arrive in the right context
+        // TODO: is this correct?
+        future.get(2, TimeUnit.MINUTES);
 
-	@Autowired
-	protected IProperties properties;
+        long timeSpend = System.currentTimeMillis() - millis;
+        Thread.sleep(2000); // TODO: this should not be needed because the feature "should" only be
+        // return if entities have been removed from the cache
+        log.info("Kafka DCE for " + NUM_ENTITIES + " DCEs took: " + timeSpend + "ms");
+        ensureCacheCleaned(left, testEntityList);
+        return timeSpend;
+    }
 
-	@Test
-	public void test() throws Throwable {
-		Properties props = new Properties(properties);
+    private void ensureCacheCleaned(IServiceContext left, final IList<TestEntity> testEntityList) {
+        IRootCache leftRootCache;
+        {
+            // ensure that entry in "left" is removed
+            leftRootCache = left.getService(CacheModule.COMMITTED_ROOT_CACHE, IRootCache.class);
 
-		props.put(AmbethKafkaConfiguration.AMBETH_KAFKA_PROP_PREFIX + "zookeeper.connect",
-				kafkaRule.zookeeperConnectionString());
-		// props.put("group.id", "group");
-		props.put(AmbethKafkaConfiguration.AMBETH_KAFKA_PROP_PREFIX + "bootstrap.servers",
-				"localhost:" + kafkaRule.kafkaBrokerPort());
-		props.put(AmbethKafkaConfiguration.AMBETH_KAFKA_PROP_PREFIX + "zookeeper.session.timeout.ms",
-				"400");
-		props.put(AmbethKafkaConfiguration.AMBETH_KAFKA_PROP_PREFIX + "zookeeper.sync.time.ms", "200");
-		props.put(AmbethKafkaConfiguration.AMBETH_KAFKA_PROP_PREFIX + "auto.commit.interval.ms",
-				"1000");
-		props.put(ServiceConfigurationConstants.mappingFile, "orm.xml");
+            for (Iterator<TestEntity> iterator = testEntityList.iterator(); iterator.hasNext(); ) {
+                TestEntity testEntity = iterator.next();
 
-		IAmbethApplication app1 = Ambeth.createBundle(InformationBus.class)
-				.withAmbethModules(EventKafkaModule.class, DataChangeKafkaModule.class,
-						KafkaTestModule.class, XmlModule.class)
-				.withoutPropertiesFileSearch().withProperties(props).start();
-		try {
-			IAmbethApplication app2 = Ambeth.createBundle(InformationBus.class)
-					.withAmbethModules(EventKafkaModule.class, DataChangeKafkaModule.class,
-							KafkaTestModule.class, XmlModule.class)
-					.withoutPropertiesFileSearch().withProperties(props).start();
-			try {
-				// Measure processing time with Kafka
-				long kafkaTime = testDataChangeEventsWithKafka(app1.getApplicationContext(),
-						app2.getApplicationContext(), NUM_ENTITIES);
-				// Measure processing time without Kafka
-				long withoutKafkaTime = testContextsWithout(app1.getApplicationContext(),
-						app2.getApplicationContext(), NUM_ENTITIES);
-				log.info("Kafka - processing time:" + (kafkaTime - withoutKafkaTime) + "ms "
-						+ Math.round(kafkaTime / (withoutKafkaTime / 100) - 100) + " %");
-			}
-			finally {
-				app2.close();
-			}
-		}
-		finally {
-			app1.close();
-		}
-	}
+                Assert.assertNull("Expect entitiy: " + testEntity.getId() + " to be removed from the cache.", lookupCacheEntry(leftRootCache, testEntity));
+            }
+        }
+    }
 
-	protected Object lookupCacheEntry(IRootCache rootCache, TestEntity testEntity) {
-		return rootCache.getObject(
-				new ObjRef(TestEntity.class, ObjRef.PRIMARY_KEY_INDEX, testEntity.getId(), null),
-				EnumSet.of(CacheDirective.FailEarly, CacheDirective.LoadContainerResult));
-	}
+    private long testContextsWithout(IServiceContext left, final IServiceContext right1, int countEntities) throws Throwable {
+        IRootCache leftRootCache;
+        final IList<TestEntity> testEntityList = new ArrayList<>();
+        fillCache(left, countEntities, testEntityList);
+        long mills = System.currentTimeMillis();
+        log.info("start waiting...");
+        {
+            // fire the DCE in "right"
+            for (Iterator<TestEntity> iterator = testEntityList.iterator(); iterator.hasNext(); ) {
+                TestEntity testEntity = iterator.next();
+                DataChangeEvent dce = DataChangeEvent.create(0, 1, 0);
+                dce.getUpdates().add(new DataChangeEntry(TestEntity.class, ObjRef.PRIMARY_KEY_INDEX, testEntity.getId(), testEntity.getVersion() + 1));
+                left.getService(IEventDispatcher.class).dispatchEvent(dce);
+            }
+        }
+        long timeSpend = System.currentTimeMillis() - mills;
+        Thread.sleep(2000); // TODO: this should not be needed because the feature "should" only be
+        // return if entities have been removed from the cache
 
-	/**
-	 * fill up the cache with entities
-	 *
-	 * @param left
-	 * @param countEntities
-	 * @param testEntityList
-	 */
-	private void fillCache(IServiceContext left, int countEntities,
-			final IList<TestEntity> testEntityList) {
-		IRootCache leftRootCache;
-		{
-			TestEntity testEntity;
-			for (int i = countEntities; i > 0; i--) {
+        log.info("Without Kafka DCE for " + NUM_ENTITIES + " DCEs took: " + timeSpend + "ms");
+        ensureCacheCleaned(left, testEntityList);
+        return timeSpend;
+    }
 
-				// create cache entry in "left"
-				testEntity = left.getService(IEntityFactory.class).createEntity(TestEntity.class);
-				IEntityMetaData metaData = left.getService(IEntityMetaDataProvider.class)
-						.getMetaData(TestEntity.class);
-				metaData.getIdMember().setIntValue(testEntity, i);
-				metaData.getVersionMember().setIntValue(testEntity, 1);
+    public static class KafkaTestModule implements IInitializingModule {
+        @Override
+        public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
+            beanContextFactory.registerBean(ClasspathScanner.class).autowireable(IClasspathScanner.class);
+        }
+    }
 
-				leftRootCache = left.getService(CacheModule.COMMITTED_ROOT_CACHE, IRootCache.class);
-				leftRootCache.put(testEntity);
-				testEntityList.add(testEntity);
-				Assert.assertNotNull(lookupCacheEntry(leftRootCache, testEntity));
+    public static class CounterModule implements IInitializingModule {
 
-			}
-		}
-	}
+        @Override
+        public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
 
-	private long testDataChangeEventsWithKafka(IServiceContext left, final IServiceContext right,
-			int countEntities) throws Throwable {
-		final IList<TestEntity> testEntityList = new ArrayList<>();
-		right.createService(CounterModule.class);
-		fillCache(left, countEntities, testEntityList);
-		long mills = System.currentTimeMillis();
+            IBeanConfiguration registerExternalBean = beanContextFactory.registerExternalBean(new IEventListener() {
 
-		{
-			final IBackgroundWorkerDelegate worker = new IBackgroundWorkerDelegate() {
+                private int globalCounter = 0;
 
-				@Override
-				public void invoke() throws Exception {
-					// fire the DCE in "right"
-					for (Iterator<TestEntity> iterator = testEntityList.iterator(); iterator.hasNext();) {
-						TestEntity testEntity = iterator.next();
-						DataChangeEvent dce = DataChangeEvent.create(0, 1, 0);
-						dce.getUpdates().add(new DataChangeEntry(TestEntity.class, ObjRef.PRIMARY_KEY_INDEX,
-								testEntity.getId(), testEntity.getVersion() + 1));
-						right.getService(IEventDispatcher.class).dispatchEvent(dce);
-					}
-				}
-			};
-			new Thread() {
-				@Override
-				public void run() {
-					try {
-						worker.invoke();
-					}
-					catch (Exception e) {
-						throw RuntimeExceptionUtil.mask(e);
-					}
-				}
-			}.start();
+                @Override
+                public void handleEvent(Object eventObject, long dispatchTime, long sequenceId) throws Exception {
+                    // wait until all DCE's arrive in the "right" cache.
+                    if (globalCounter >= NUM_ENTITIES - 1) {
+                        future.run();
+                    }
+                    globalCounter++;
 
-		}
-		log.info("start waiting...");
-		// wait for all DCE events to arrive in the right context
-		// TODO: is this correct?
-		future.get(2, TimeUnit.MINUTES);
-
-		long timeSpend = System.currentTimeMillis() - mills;
-		Thread.sleep(2000); // TODO: this should not be needed because the feature "should" only be
-												// return if entities have been removed from the cache
-		log.info("Kafka DCE for " + NUM_ENTITIES + " DCEs took: " + timeSpend + "ms");
-		ensureCacheCleaned(left, testEntityList);
-		return timeSpend;
-	}
-
-	private void ensureCacheCleaned(IServiceContext left, final IList<TestEntity> testEntityList) {
-		IRootCache leftRootCache;
-		{
-			// ensure that entry in "left" is removed
-			leftRootCache = left.getService(CacheModule.COMMITTED_ROOT_CACHE, IRootCache.class);
-
-			for (Iterator<TestEntity> iterator = testEntityList.iterator(); iterator.hasNext();) {
-				TestEntity testEntity = iterator.next();
-
-				Assert.assertNull(
-						"Expect entitiy: " + testEntity.getId() + " to be removed from the cache.",
-						lookupCacheEntry(leftRootCache, testEntity));
-			}
-		}
-	}
-
-	private long testContextsWithout(IServiceContext left, final IServiceContext right1,
-			int countEntities) throws Throwable {
-		IRootCache leftRootCache;
-		final IList<TestEntity> testEntityList = new ArrayList<>();
-		fillCache(left, countEntities, testEntityList);
-		long mills = System.currentTimeMillis();
-		log.info("start waiting...");
-		{
-			// fire the DCE in "right"
-			for (Iterator<TestEntity> iterator = testEntityList.iterator(); iterator.hasNext();) {
-				TestEntity testEntity = iterator.next();
-				DataChangeEvent dce = DataChangeEvent.create(0, 1, 0);
-				dce.getUpdates().add(new DataChangeEntry(TestEntity.class, ObjRef.PRIMARY_KEY_INDEX,
-						testEntity.getId(), testEntity.getVersion() + 1));
-				left.getService(IEventDispatcher.class).dispatchEvent(dce);
-			}
-		}
-		long timeSpend = System.currentTimeMillis() - mills;
-		Thread.sleep(2000); // TODO: this should not be needed because the feature "should" only be
-												// return if entities have been removed from the cache
-
-		log.info("Without Kafka DCE for " + NUM_ENTITIES + " DCEs took: " + timeSpend + "ms");
-		ensureCacheCleaned(left, testEntityList);
-		return timeSpend;
-	}
+                }
+            });
+            beanContextFactory.link(registerExternalBean).to(IEventListenerExtendable.class).with(DataChangeEvent.class);
+        }
+    }
 }

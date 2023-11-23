@@ -20,33 +20,20 @@ limitations under the License.
  * #L%
  */
 
+import com.koch.ambeth.util.state.IStateRollback;
+
 import java.util.Set;
 
-import com.koch.ambeth.util.state.IStateRollback;
-import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
-
 public interface ISecurityActivation {
-	boolean isSecured();
+    boolean isSecured();
 
-	boolean isServiceSecurityEnabled();
+    boolean isServiceSecurityEnabled();
 
-	boolean isFilterActivated();
+    boolean isFilterActivated();
 
-	/**
-	 * Please use {@link #pushWithoutSecurity(IStateRollback...)} instead
-	 * 
-	 * @param pausedSecurityRunnable
-	 * @return
-	 * @throws Exception
-	 */
-	@Deprecated
-	<R> R executeWithoutSecurity(IResultingBackgroundWorkerDelegate<R> pausedSecurityRunnable)
-			throws Exception;
+    IStateRollback pushWithSecurityDirective(Set<SecurityDirective> securityDirective);
 
-	IStateRollback pushWithSecurityDirective(Set<SecurityDirective> securityDirective,
-			IStateRollback... rollbacks);
+    IStateRollback pushWithoutSecurity();
 
-	IStateRollback pushWithoutSecurity(IStateRollback... rollbacks);
-
-	IStateRollback pushWithoutFiltering(IStateRollback... rollbacks);
+    IStateRollback pushWithoutFiltering();
 }

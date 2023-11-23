@@ -20,73 +20,68 @@ limitations under the License.
  * #L%
  */
 
+import com.koch.ambeth.ioc.threadlocal.IForkState;
+import com.koch.ambeth.util.function.CheckedConsumer;
+import com.koch.ambeth.util.function.CheckedFunction;
+
 import java.util.concurrent.locks.Lock;
 
-import com.koch.ambeth.ioc.threadlocal.IForkState;
-import com.koch.ambeth.util.threading.IBackgroundWorkerParamDelegate;
-import com.koch.ambeth.util.threading.IResultingBackgroundWorkerParamDelegate;
-
 public class ResultingParallelRunnable<R, V> extends AbstractParallelRunnable<V> {
-	public static class Invocation<R, V> implements IBackgroundWorkerParamDelegate<V> {
-		protected final IResultingBackgroundWorkerParamDelegate<R, V> run;
+    private final Invocation<R, V> run;
+    private final IForkState forkState;
 
-		public Invocation(ResultingRunnableHandle<R, V> runnableHandle) {
-			run = runnableHandle.run;
-		}
+    public ResultingParallelRunnable(ResultingRunnableHandle<R, V> runnableHandle, boolean buildThreadLocals) {
+        super(runnableHandle, buildThreadLocals);
+        forkState = runnableHandle.forkState;
+        if (runnableHandle.aggregrateResultHandler != null) {
+            run = new InvocationWithAggregate<>(runnableHandle);
+        } else {
+            run = new Invocation<>(runnableHandle);
+        }
+    }
 
-		@Override
-		public void invoke(V item) throws Exception {
-			run.invoke(item);
-		}
-	}
+    @Override
+    protected void runIntern(V item) throws Throwable {
+        if (buildThreadLocals) {
+            forkState.use(run, item);
+        } else {
+            run.accept(item);
+        }
+    }
 
-	public static class InvocationWithAggregate<R, V> extends Invocation<R, V> {
-		private final IAggregrateResultHandler<R, V> aggregrateResultHandler;
-		private final Lock parallelLock;
+    public static class Invocation<R, V> implements CheckedConsumer<V> {
+        protected final CheckedFunction<V, R> run;
 
-		public InvocationWithAggregate(ResultingRunnableHandle<R, V> runnableHandle) {
-			super(runnableHandle);
-			aggregrateResultHandler = runnableHandle.aggregrateResultHandler;
-			parallelLock = runnableHandle.parallelLock;
-		}
+        public Invocation(ResultingRunnableHandle<R, V> runnableHandle) {
+            run = runnableHandle.run;
+        }
 
-		@Override
-		public void invoke(V item) throws Exception {
-			R result = run.invoke(item);
-			Lock parallelLock = this.parallelLock;
-			parallelLock.lock();
-			try {
-				aggregrateResultHandler.aggregateResult(result, item);
-			}
-			finally {
-				parallelLock.unlock();
-			}
-		}
-	}
+        @Override
+        public void accept(V item) throws Exception {
+            run.apply(item);
+        }
+    }
 
-	private final Invocation<R, V> run;
+    public static class InvocationWithAggregate<R, V> extends Invocation<R, V> {
+        private final IAggregrateResultHandler<R, V> aggregrateResultHandler;
+        private final Lock parallelLock;
 
-	private final IForkState forkState;
+        public InvocationWithAggregate(ResultingRunnableHandle<R, V> runnableHandle) {
+            super(runnableHandle);
+            aggregrateResultHandler = runnableHandle.aggregrateResultHandler;
+            parallelLock = runnableHandle.parallelLock;
+        }
 
-	public ResultingParallelRunnable(ResultingRunnableHandle<R, V> runnableHandle,
-			boolean buildThreadLocals) {
-		super(runnableHandle, buildThreadLocals);
-		forkState = runnableHandle.forkState;
-		if (runnableHandle.aggregrateResultHandler != null) {
-			run = new InvocationWithAggregate<>(runnableHandle);
-		}
-		else {
-			run = new Invocation<>(runnableHandle);
-		}
-	}
-
-	@Override
-	protected void runIntern(V item) throws Throwable {
-		if (buildThreadLocals) {
-			forkState.use(run, item);
-		}
-		else {
-			run.invoke(item);
-		}
-	}
+        @Override
+        public void accept(V item) throws Exception {
+            var result = run.apply(item);
+            var parallelLock = this.parallelLock;
+            parallelLock.lock();
+            try {
+                aggregrateResultHandler.aggregateResult(result, item);
+            } finally {
+                parallelLock.unlock();
+            }
+        }
+    }
 }

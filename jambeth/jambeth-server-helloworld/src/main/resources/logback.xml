@@ -5,7 +5,15 @@
         </encoder>
     </appender>
 
-    <root level="debug">
-        <appender-ref ref="STDOUT" />
+    <root level="info">
+        <appender-ref ref="STDOUT"/>
     </root>
+
+    <logger name="com.koch.ambeth" level="info" additivity="false">
+        <appender-ref ref="STDOUT"/>
+    </logger>
+
+    <logger name="com.koch.ambeth.bytecode" level="info" additivity="false">
+        <appender-ref ref="STDOUT"/>
+    </logger>
 </configuration>

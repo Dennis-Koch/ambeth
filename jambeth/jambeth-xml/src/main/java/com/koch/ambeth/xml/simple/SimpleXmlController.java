@@ -32,61 +32,61 @@ import com.koch.ambeth.xml.ITypeBasedHandler;
 import com.koch.ambeth.xml.ITypeBasedHandlerExtendable;
 import com.koch.ambeth.xml.IWriter;
 
-public class SimpleXmlController
-		implements ICyclicXmlController, ITypeBasedHandlerExtendable, INameBasedHandlerExtendable {
-	protected final ClassExtendableContainer<ITypeBasedHandler> typeToElementHandlers =
-			new ClassExtendableContainer<>("elementHandler", "type");
+public class SimpleXmlController implements ICyclicXmlController, ITypeBasedHandlerExtendable, INameBasedHandlerExtendable {
+    protected final ClassExtendableContainer<ITypeBasedHandler> typeToElementHandlers = new ClassExtendableContainer<>("elementHandler", "type");
 
-	protected final MapExtendableContainer<String, INameBasedHandler> nameToElementHandlers =
-			new MapExtendableContainer<>("elementHandler", "name");
+    protected final MapExtendableContainer<String, INameBasedHandler> nameToElementHandlers = new MapExtendableContainer<>("elementHandler", "name");
 
-	@Autowired
-	protected IProxyHelper proxyHelper;
+    @Autowired
+    protected IProxyHelper proxyHelper;
 
-	@Override
-	public Object readObject(IReader reader) {
-		return readObject(Object.class, reader);
-	}
+    @Override
+    public Object readObject(IReader reader) {
+        return readObject(Object.class, reader);
+    }
 
-	@Override
-	public Object readObject(Class<?> returnType, IReader reader) {
-		String elementName = reader.getElementName();
-		INameBasedHandler nameBasedHandler = nameToElementHandlers.getExtension(elementName);
-		if (nameBasedHandler == null) {
-			throw new IllegalArgumentException("Could not read object: " + elementName);
-		}
-		return nameBasedHandler.readObject(returnType, elementName, 0, reader);
-	}
+    @Override
+    public Object readObject(Class<?> returnType, IReader reader) {
+        String elementName = reader.getElementName();
+        INameBasedHandler nameBasedHandler = nameToElementHandlers.getExtension(elementName);
+        if (nameBasedHandler == null) {
+            throw new IllegalArgumentException("Could not read object: " + elementName);
+        }
+        return nameBasedHandler.readObject(returnType, elementName, 0, reader);
+    }
 
-	@Override
-	public void writeObject(Object obj, IWriter writer) {
-		Class<?> type = proxyHelper.getRealType(obj.getClass());
-		ITypeBasedHandler extension = typeToElementHandlers.getExtension(type);
-		if (extension == null) {
-			throw new IllegalArgumentException("Could not write object: " + obj);
-		}
-		extension.writeObject(obj, type, writer);
-	}
+    @Override
+    public void writeObject(Object obj, IWriter writer) {
+        writeObject(obj, writer, false);
+    }
 
-	@Override
-	public void registerElementHandler(ITypeBasedHandler elementHandler, Class<?> type) {
-		typeToElementHandlers.register(elementHandler, type);
-	}
+    @Override
+    public void writeObject(Object obj, IWriter writer, boolean suppressReference) {
+        var type = proxyHelper.getRealType(obj.getClass());
+        var extension = typeToElementHandlers.getExtension(type);
+        if (extension == null) {
+            throw new IllegalArgumentException("Could not write object: " + obj);
+        }
+        extension.writeObject(obj, type, writer, suppressReference);
+    }
 
-	@Override
-	public void unregisterElementHandler(ITypeBasedHandler elementHandler, Class<?> type) {
-		typeToElementHandlers.unregister(elementHandler, type);
-	}
+    @Override
+    public void registerElementHandler(ITypeBasedHandler elementHandler, Class<?> type) {
+        typeToElementHandlers.register(elementHandler, type);
+    }
 
-	@Override
-	public void registerNameBasedElementHandler(INameBasedHandler nameBasedElementHandler,
-			String elementName) {
-		nameToElementHandlers.register(nameBasedElementHandler, elementName);
-	}
+    @Override
+    public void unregisterElementHandler(ITypeBasedHandler elementHandler, Class<?> type) {
+        typeToElementHandlers.unregister(elementHandler, type);
+    }
 
-	@Override
-	public void unregisterNameBasedElementHandler(INameBasedHandler nameBasedElementHandler,
-			String elementName) {
-		nameToElementHandlers.unregister(nameBasedElementHandler, elementName);
-	}
+    @Override
+    public void registerNameBasedElementHandler(INameBasedHandler nameBasedElementHandler, String elementName) {
+        nameToElementHandlers.register(nameBasedElementHandler, elementName);
+    }
+
+    @Override
+    public void unregisterNameBasedElementHandler(INameBasedHandler nameBasedElementHandler, String elementName) {
+        nameToElementHandlers.unregister(nameBasedElementHandler, elementName);
+    }
 }

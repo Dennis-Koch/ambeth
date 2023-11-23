@@ -34,11 +34,11 @@ import java.util.ServiceLoader;
 @FrameworkModule
 public class DialectSelectorModule implements IInitializingModule, IPropertyLoadingBean {
     public static void fillProperties(Properties props) {
-        String databaseProtocol = props.getString(PersistenceJdbcConfigurationConstants.DatabaseProtocol);
+        var databaseProtocol = props.getString(PersistenceJdbcConfigurationConstants.DatabaseProtocol);
         if (databaseProtocol == null) {
             return;
         }
-        IConnector connector = loadConnector(databaseProtocol);
+        var connector = loadConnector(databaseProtocol);
         connector.handleProperties(props, databaseProtocol);
     }
 
@@ -50,6 +50,7 @@ public class DialectSelectorModule implements IInitializingModule, IPropertyLoad
                             .findFirst()
                             .orElseThrow(() -> new IllegalStateException("No connector found for protocol: '" + databaseProtocol + "'"));
     }
+
     @Property(name = PersistenceJdbcConfigurationConstants.DatabaseProtocol, mandatory = false)
     protected String databaseProtocol;
 
@@ -59,7 +60,7 @@ public class DialectSelectorModule implements IInitializingModule, IPropertyLoad
             // At this point databaseProtocol MUST be initialized
             ParamChecker.assertNotNull(databaseProtocol, "databaseProtocol");
         }
-        IConnector connector = loadConnector(databaseProtocol);
+        var connector = loadConnector(databaseProtocol);
         connector.handleProd(beanContextFactory, databaseProtocol);
     }
 

@@ -20,11 +20,6 @@ limitations under the License.
  * #L%
  */
 
-import java.util.Arrays;
-import java.util.concurrent.Executor;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
-
 import com.koch.ambeth.audit.IAuditEntryVerifier;
 import com.koch.ambeth.audit.server.config.AuditConfigurationConstants;
 import com.koch.ambeth.ioc.IDisposableBean;
@@ -39,191 +34,160 @@ import com.koch.ambeth.merge.cache.CacheFactoryDirective;
 import com.koch.ambeth.merge.cache.ICache;
 import com.koch.ambeth.merge.cache.ICacheContext;
 import com.koch.ambeth.merge.cache.ICacheFactory;
-import com.koch.ambeth.merge.cache.IDisposableCache;
 import com.koch.ambeth.merge.security.ISecurityActivation;
 import com.koch.ambeth.service.merge.model.IObjRef;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
-import com.koch.ambeth.util.state.IStateRollback;
-import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
+import com.koch.ambeth.util.state.StateRollback;
+
+import java.util.Arrays;
+import java.util.concurrent.Executor;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class AuditVerifyOnLoadTask implements Runnable, IAuditVerifyOnLoadTask, IDisposableBean {
-	@LogInstance
-	private ILogger log;
+    protected final ArrayList<IObjRef> queuedObjRefs = new ArrayList<>();
+    protected final Lock writeLock = new ReentrantLock();
+    @Autowired
+    protected IAuditEntryVerifier auditEntryVerifier;
+    @Autowired
+    protected ICache cache;
+    @Autowired
+    protected ICacheContext cacheContext;
+    @Autowired
+    protected ICacheFactory cacheFactory;
+    @Autowired
+    protected ISecurityActivation securityActivation;
+    @Autowired
+    protected IThreadLocalCleanupController threadLocalCleanupController;
+    @Autowired
+    protected ILightweightTransaction transaction;
+    @Autowired(value = IocModule.THREAD_POOL_NAME)
+    protected Executor executor;
+    @Property(name = AuditConfigurationConstants.VerifyEntitiesMaxTransactionTime, defaultValue = "30000")
+    protected long verifyEntitiesMaxTransactionTime;
+    protected volatile boolean isActive, isDestroyed;
+    @LogInstance
+    private ILogger log;
 
-	@Autowired
-	protected IAuditEntryVerifier auditEntryVerifier;
+    @Override
+    public void destroy() throws Throwable {
+        isDestroyed = true;
+    }
 
-	@Autowired
-	protected ICache cache;
+    @Override
+    public void verifyEntitiesAsync(IList<IObjRef> objRefs) {
+        writeLock.lock();
+        try {
+            queuedObjRefs.addAll(objRefs);
+            if (isActive) {
+                return;
+            }
+            isActive = true;
+            executor.execute(this);
+        } finally {
+            writeLock.unlock();
+        }
+    }
 
-	@Autowired
-	protected ICacheContext cacheContext;
+    @Override
+    public void run() {
+        final ArrayList<IObjRef> objRefsToVerify = pullObjRefsToVerify();
+        if (objRefsToVerify == null) {
+            return;
+        }
+        final long openTransactionUntil = System.currentTimeMillis() + verifyEntitiesMaxTransactionTime;
+        Boolean reQueue = null;
+        Thread currentThread = Thread.currentThread();
+        String oldName = currentThread.getName();
+        currentThread.setName(getClass().getSimpleName());
+        try {
+            var rollback = threadLocalCleanupController.pushThreadLocalState();
+            try {
+                reQueue = transaction.runInLazyTransaction(() -> {
+                    var currObjRefsToVerify = objRefsToVerify;
+                    while (true) {
+                        try {
+                            verifyEntitiesSync(currObjRefsToVerify);
+                            if (System.currentTimeMillis() > openTransactionUntil) {
+                                return Boolean.TRUE;
+                            }
+                        } finally {
+                            currObjRefsToVerify = pullObjRefsToVerify();
+                            if (currObjRefsToVerify == null) {
+                                return Boolean.FALSE;
+                            }
+                        }
+                    }
+                });
+            } catch (Exception e) {
+                if (!isDestroyed) {
+                    throw e;
+                }
+            } finally {
+                rollback.rollback();
+            }
+        } finally {
+            currentThread.setName(oldName);
+        }
+        if (isDestroyed) {
+            return;
+        }
+        if (Boolean.TRUE.equals(reQueue)) {
+            writeLock.lock();
+            try {
+                isActive = true;
+                executor.execute(this);
+            } finally {
+                writeLock.unlock();
+            }
+        }
+    }
 
-	@Autowired
-	protected ICacheFactory cacheFactory;
+    private ArrayList<IObjRef> pullObjRefsToVerify() {
+        writeLock.lock();
+        try {
+            if (queuedObjRefs.isEmpty() || isDestroyed) {
+                isActive = false;
+                return null;
+            }
+            var objRefsToVerify = new ArrayList<>(queuedObjRefs);
+            queuedObjRefs.clear();
+            return objRefsToVerify;
+        } finally {
+            writeLock.unlock();
+        }
+    }
 
-	@Autowired
-	protected ISecurityActivation securityActivation;
+    @Override
+    public void verifyEntitiesSync(final IList<IObjRef> objRefsToVerify) {
+        try {
+            transaction.runInLazyTransaction(() -> runInLazyTransaction(objRefsToVerify));
+        } catch (Throwable e) {
+            if (!isDestroyed) {
+                throw RuntimeExceptionUtil.mask(e);
+            }
+        }
 
-	@Autowired
-	protected IThreadLocalCleanupController threadLocalCleanupController;
+    }
 
-	@Autowired
-	protected ILightweightTransaction transaction;
-
-	@Autowired(value = IocModule.THREAD_POOL_NAME)
-	protected Executor executor;
-
-	@Property(name = AuditConfigurationConstants.VerifyEntitiesMaxTransactionTime,
-			defaultValue = "30000")
-	protected long verifyEntitiesMaxTransactionTime;
-
-	protected final ArrayList<IObjRef> queuedObjRefs = new ArrayList<>();
-
-	protected volatile boolean isActive, isDestroyed;
-
-	protected final Lock writeLock = new ReentrantLock();
-
-	@Override
-	public void destroy() throws Throwable {
-		isDestroyed = true;
-	}
-
-	@Override
-	public void verifyEntitiesAsync(IList<IObjRef> objRefs) {
-		writeLock.lock();
-		try {
-			queuedObjRefs.addAll(objRefs);
-			if (isActive) {
-				return;
-			}
-			isActive = true;
-			executor.execute(this);
-		}
-		finally {
-			writeLock.unlock();
-		}
-	}
-
-	@Override
-	public void run() {
-		final ArrayList<IObjRef> objRefsToVerify = pullObjRefsToVerify();
-		if (objRefsToVerify == null) {
-			return;
-		}
-		final long openTransactionUntil = System.currentTimeMillis() + verifyEntitiesMaxTransactionTime;
-		Boolean reQueue = null;
-		Thread currentThread = Thread.currentThread();
-		String oldName = currentThread.getName();
-		currentThread.setName(getClass().getSimpleName());
-		try {
-			IStateRollback rollback =
-					threadLocalCleanupController.pushThreadLocalState(IStateRollback.EMPTY_ROLLBACKS);
-			try {
-				reQueue =
-						transaction.runInLazyTransaction(new IResultingBackgroundWorkerDelegate<Boolean>() {
-							@Override
-							public Boolean invoke() throws Exception {
-								ArrayList<IObjRef> currObjRefsToVerify = objRefsToVerify;
-								while (true) {
-									try {
-										verifyEntitiesSync(currObjRefsToVerify);
-										if (System.currentTimeMillis() > openTransactionUntil) {
-											return Boolean.TRUE;
-										}
-									}
-									finally {
-										currObjRefsToVerify = pullObjRefsToVerify();
-										if (currObjRefsToVerify == null) {
-											return Boolean.FALSE;
-										}
-									}
-								}
-							}
-						});
-			}
-			catch (Exception e) {
-				if (!isDestroyed) {
-					throw e;
-				}
-			}
-			finally {
-				rollback.rollback();
-			}
-		}
-		finally {
-			currentThread.setName(oldName);
-		}
-		if (isDestroyed) {
-			return;
-		}
-		if (Boolean.TRUE.equals(reQueue)) {
-			writeLock.lock();
-			try {
-				isActive = true;
-				executor.execute(this);
-			}
-			finally {
-				writeLock.unlock();
-			}
-		}
-	}
-
-	private ArrayList<IObjRef> pullObjRefsToVerify() {
-		writeLock.lock();
-		try {
-			if (queuedObjRefs.isEmpty() || isDestroyed) {
-				isActive = false;
-				return null;
-			}
-			ArrayList<IObjRef> objRefsToVerify = new ArrayList<>(queuedObjRefs);
-			queuedObjRefs.clear();
-			return objRefsToVerify;
-		}
-		finally {
-			writeLock.unlock();
-		}
-	}
-
-	@Override
-	public void verifyEntitiesSync(final IList<IObjRef> objRefsToVerify) {
-		try {
-			transaction.runInLazyTransaction(new IResultingBackgroundWorkerDelegate<Object>() {
-				@Override
-				public Object invoke() throws Exception {
-					runInLazyTransaction(objRefsToVerify);
-					return null;
-				}
-			});
-		}
-		catch (Throwable e) {
-			if (!isDestroyed) {
-				throw RuntimeExceptionUtil.mask(e);
-			}
-		}
-
-	}
-
-	protected void runInLazyTransaction(final IList<IObjRef> objRefsToVerify) throws Exception {
-		IDisposableCache cache = cacheFactory.createPrivileged(CacheFactoryDirective.NoDCE, false,
-				Boolean.FALSE, "AuditEntryVerifier");
-		try {
-			IStateRollback rollback = cacheContext.pushCache(cache);
-			try {
-				rollback = securityActivation.pushWithoutSecurity(rollback);
-				if (!auditEntryVerifier.verifyEntities(objRefsToVerify)) {
-					log.error(
-							"Audit entry verification failed: " + Arrays.toString(objRefsToVerify.toArray()));
-				}
-			}
-			finally {
-				rollback.rollback();
-			}
-		}
-		finally {
-			cache.dispose();
-		}
-	}
+    protected void runInLazyTransaction(final IList<IObjRef> objRefsToVerify) {
+        var cache = cacheFactory.createPrivileged(CacheFactoryDirective.NoDCE, false, Boolean.FALSE, "AuditEntryVerifier");
+        try {
+            var rollback = StateRollback.chain(chain -> {
+                chain.append(cacheContext.pushCache(cache));
+                chain.append(securityActivation.pushWithoutSecurity());
+            });
+            try {
+                if (!auditEntryVerifier.verifyEntities(objRefsToVerify)) {
+                    log.error("Audit entry verification failed: " + Arrays.toString(objRefsToVerify.toArray()));
+                }
+            } finally {
+                rollback.rollback();
+            }
+        } finally {
+            cache.dispose();
+        }
+    }
 }

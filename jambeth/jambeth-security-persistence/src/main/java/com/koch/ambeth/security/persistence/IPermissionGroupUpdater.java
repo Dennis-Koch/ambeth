@@ -21,12 +21,12 @@ limitations under the License.
  */
 
 import com.koch.ambeth.datachange.model.IDataChange;
-import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
+import com.koch.ambeth.util.function.CheckedSupplier;
 
 public interface IPermissionGroupUpdater {
-	void updatePermissionGroups(IDataChange dataChange);
+    void updatePermissionGroups(IDataChange dataChange);
 
-	void fillEmptyPermissionGroups();
+    void fillEmptyPermissionGroups();
 
-	<R> R executeWithoutPermissionGroupUpdate(IResultingBackgroundWorkerDelegate<R> runnable);
+    <R> R executeWithoutPermissionGroupUpdate(CheckedSupplier<R> runnable);
 }

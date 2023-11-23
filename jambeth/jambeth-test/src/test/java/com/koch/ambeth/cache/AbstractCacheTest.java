@@ -20,21 +20,6 @@ limitations under the License.
  * #L%
  */
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
-
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
-
 import com.koch.ambeth.cache.AbstractCacheTest.AbstractCacheTestModule;
 import com.koch.ambeth.cache.service.ICacheRetrieverExtendable;
 import com.koch.ambeth.cache.stream.CacheRetrieverFake;
@@ -58,288 +43,287 @@ import com.koch.ambeth.testutil.TestFrameworkModule;
 import com.koch.ambeth.testutil.TestRebuildContext;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.IList;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Ignore;
+import org.junit.Test;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+
+import static org.junit.Assert.*;
 
 @TestFrameworkModule(AbstractCacheTestModule.class)
 @TestRebuildContext
 public class AbstractCacheTest extends AbstractInformationBusTest {
-	@FrameworkModule
-	public static class AbstractCacheTestModule implements IInitializingModule {
-		@Override
-		public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
-			IBeanConfiguration cacheRetrieverFakeBC =
-					beanContextFactory.registerBean(CacheRetrieverFake.class);
-			beanContextFactory.link(cacheRetrieverFakeBC).to(ICacheRetrieverExtendable.class)
-					.with(Material.class);
-			beanContextFactory.link(cacheRetrieverFakeBC).to(ICacheRetrieverExtendable.class)
-					.with(Unit.class);
-		}
-	}
+    private IList<Object> fakeResults;
+    private AbstractCache<AbstractCacheValue> fixture;
 
-	private IList<Object> fakeResults;
+    @Override
+    public void afterPropertiesSet() throws Throwable {
+        super.afterPropertiesSet();
+    }
 
-	private AbstractCache<AbstractCacheValue> fixture;
+    /**
+     * IMPORTANT TO KNOW:
+     * <p>
+     * The abstract method getObjects(List<IObjRef>, Set<CacheDirective>) is overridden to return a
+     * list containing the content of the static list 'fakeResults', the ObjRef list provided as
+     * search values and the given set of CacheDirectives.
+     *
+     * @throws Exception
+     */
+    @Before
+    public void setUp() throws Exception {
+        fixture = new AbstractCache<AbstractCacheValue>() {
+            @Override
+            public ICache getCurrentCache() {
+                return this;
+            }
 
-	@Override
-	public void afterPropertiesSet() throws Throwable {
-		super.afterPropertiesSet();
-	}
+            @Override
+            public boolean isPrivileged() {
+                return true;
+            }
 
-	/**
-	 * IMPORTANT TO KNOW:
-	 *
-	 * The abstract method getObjects(List<IObjRef>, Set<CacheDirective>) is overridden to return a
-	 * list containing the content of the static list 'fakeResults', the ObjRef list provided as
-	 * search values and the given set of CacheDirectives.
-	 *
-	 * @throws Exception
-	 */
-	@Before
-	public void setUp() throws Exception {
-		fixture = new AbstractCache<AbstractCacheValue>() {
-			@Override
-			public ICache getCurrentCache() {
-				return this;
-			}
+            @Override
+            public IList<Object> getObjects(List<IObjRef> orisToGet, Set<CacheDirective> cacheDirective) {
+                IList<Object> results = new ArrayList<>(fakeResults);
+                results.addAll(orisToGet);
+                results.add(cacheDirective);
+                return results;
+            }
 
-			@Override
-			public boolean isPrivileged() {
-				return true;
-			}
+            @Override
+            public IList<IObjRelationResult> getObjRelations(List<IObjRelation> objRels, Set<CacheDirective> cacheDirective) {
+                throw new UnsupportedOperationException();
+            }
 
-			@Override
-			public IList<Object> getObjects(List<IObjRef> orisToGet, Set<CacheDirective> cacheDirective) {
-				IList<Object> results = new ArrayList<>(fakeResults);
-				results.addAll(orisToGet);
-				results.add(cacheDirective);
-				return results;
-			}
+            @Override
+            protected CacheKey[] getAlternateCacheKeysFromCacheValue(IEntityMetaData metaData, AbstractCacheValue cacheValue) {
+                return new CacheKey[0];
+            }
 
-			@Override
-			public IList<IObjRelationResult> getObjRelations(List<IObjRelation> objRels,
-					Set<CacheDirective> cacheDirective) {
-				throw new UnsupportedOperationException();
-			}
+            @Override
+            public <E> IList<E> getObjects(Class<E> type, List<?> ids) {
+                return null;
+            }
 
-			@Override
-			protected CacheKey[] getAlternateCacheKeysFromCacheValue(IEntityMetaData metaData,
-					AbstractCacheValue cacheValue) {
-				return new CacheKey[0];
-			}
+            @Override
+            public <E> E getObject(Class<E> type, Object id, Set<CacheDirective> cacheDirective) {
+                return null;
+            }
 
-			@Override
-			public <E> IList<E> getObjects(Class<E> type, List<?> ids) {
-				return null;
-			}
+            @Override
+            protected Object getIdOfCacheValue(IEntityMetaData metaData, AbstractCacheValue cacheValue) {
+                return cacheValue.getId();
+            }
 
-			@Override
-			public <E> E getObject(Class<E> type, Object id, Set<CacheDirective> cacheDirective) {
-				return null;
-			}
+            @Override
+            protected Object getVersionOfCacheValue(IEntityMetaData metaData, AbstractCacheValue cacheValue) {
+                return cacheValue.getVersion();
+            }
 
-			@Override
-			protected Object getIdOfCacheValue(IEntityMetaData metaData, AbstractCacheValue cacheValue) {
-				return cacheValue.getId();
-			}
+            @Override
+            protected void setIdOfCacheValue(IEntityMetaData metaData, AbstractCacheValue cacheValue, Object id) {
+                cacheValue.setId(id);
+            }
 
-			@Override
-			protected Object getVersionOfCacheValue(IEntityMetaData metaData,
-					AbstractCacheValue cacheValue) {
-				return cacheValue.getVersion();
-			}
+            @Override
+            protected void setVersionOfCacheValue(IEntityMetaData metaData, AbstractCacheValue cacheValue, Object version) {
+                cacheValue.setVersion(version);
+            }
 
-			@Override
-			protected void setIdOfCacheValue(IEntityMetaData metaData, AbstractCacheValue cacheValue,
-					Object id) {
-				cacheValue.setId(id);
-			}
+            @Override
+            public AbstractCacheValue createCacheValueInstance(final IEntityMetaData metaData, Object obj) {
+                return new AbstractCacheValue() {
+                    protected Object id;
 
-			@Override
-			protected void setVersionOfCacheValue(IEntityMetaData metaData, AbstractCacheValue cacheValue,
-					Object version) {
-				cacheValue.setVersion(version);
-			}
+                    protected Object version;
 
-			@Override
-			public AbstractCacheValue createCacheValueInstance(final IEntityMetaData metaData,
-					Object obj) {
-				return new AbstractCacheValue() {
-					protected Object id;
+                    @Override
+                    public Object getId() {
+                        return id;
+                    }
 
-					protected Object version;
+                    @Override
+                    public void setId(Object id) {
+                        this.id = id;
+                    }
 
-					@Override
-					public Object getId() {
-						return id;
-					}
+                    @Override
+                    public Object getVersion() {
+                        return version;
+                    }
 
-					@Override
-					public void setId(Object id) {
-						this.id = id;
-					}
+                    @Override
+                    public void setVersion(Object version) {
+                        this.version = version;
+                    }
 
-					@Override
-					public Object getVersion() {
-						return version;
-					}
+                    @Override
+                    public Class<?> getEntityType() {
+                        return metaData.getEntityType();
+                    }
 
-					@Override
-					public void setVersion(Object version) {
-						this.version = version;
-					}
+                    @Override
+                    public Object getPrimitive(int primitiveIndex) {
+                        return null;
+                    }
 
-					@Override
-					public Class<?> getEntityType() {
-						return metaData.getEntityType();
-					}
+                    @Override
+                    public Object[] getPrimitives() {
+                        return new Object[0];
+                    }
+                };
+            }
 
-					@Override
-					public Object getPrimitive(int primitiveIndex) {
-						return null;
-					}
+            @Override
+            protected void putInternObjRelation(AbstractCacheValue cacheValue, IEntityMetaData metaData, IObjRelation objRelation, IObjRef[] relationsOfMember) {
+                // Intended blank
+            }
 
-					@Override
-					public Object[] getPrimitives() {
-						return new Object[0];
-					}
-				};
-			}
+            @Override
+            protected void putIntern(ILoadContainer loadContainer) {
+                throw new UnsupportedOperationException();
+            }
+        };
+        fixture = beanContext.registerExternalBean(fixture).finish();
+        fakeResults = new ArrayList<>();
+    }
 
-			@Override
-			protected void putInternObjRelation(AbstractCacheValue cacheValue, IEntityMetaData metaData,
-					IObjRelation objRelation, IObjRef[] relationsOfMember) {
-				// Intended blank
-			}
+    @After
+    public void tearDown() throws Exception {
+        fakeResults = null;
+    }
 
-			@Override
-			protected void putIntern(ILoadContainer loadContainer) {
-				throw new UnsupportedOperationException();
-			}
-		};
-		fixture = beanContext.registerExternalBean(fixture).finish();
-		fakeResults = new ArrayList<>();
-	}
+    @Test
+    public void testAfterPropertiesSet() {
+        fixture.afterPropertiesSet();
+    }
 
-	@After
-	public void tearDown() throws Exception {
-		fakeResults = null;
-	}
+    @Test
+    @Ignore
+    public void testGetObjectClassOfEObject() {
+        Object actual = fixture.getObject(Material.class, 1);
+        assertNotNull(actual);
+        assertTrue(actual instanceof ObjRef);
+    }
 
-	@Test
-	public void testAfterPropertiesSet() {
-		fixture.afterPropertiesSet();
-	}
+    @Test
+    public void testGetObjectIObjRef() {
+        IObjRef ori = new ObjRef(Material.class, 1, 1);
+        Object actual = fixture.getObject(ori, Collections.<CacheDirective>emptySet());
+        assertNotNull(actual);
+        assertSame(ori, actual);
+    }
 
-	@Test
-	@Ignore
-	public void testGetObjectClassOfEObject() {
-		Object actual = fixture.getObject(Material.class, 1);
-		assertNotNull(actual);
-		assertTrue(actual instanceof ObjRef);
-	}
+    @Test
+    @Ignore
+    public void testGetObjectClassOfEObjectSetOfCacheDirective() {
+        Object actual = fixture.getObject(Material.class, 1, Collections.<CacheDirective>emptySet());
+        assertNotNull(actual);
+        assertTrue(actual instanceof ObjRef);
+    }
 
-	@Test
-	public void testGetObjectIObjRef() {
-		IObjRef ori = new ObjRef(Material.class, 1, 1);
-		Object actual = fixture.getObject(ori, Collections.<CacheDirective>emptySet());
-		assertNotNull(actual);
-		assertSame(ori, actual);
-	}
+    @Test
+    public void testGetObjectIObjRefSetOfCacheDirective() {
+        IObjRef ori = new ObjRef(Material.class, 1, 1);
+        Object actual = fixture.getObject(ori, Collections.<CacheDirective>emptySet());
+        assertNotNull(actual);
+        assertSame(ori, actual);
+    }
 
-	@Test
-	@Ignore
-	public void testGetObjectClassOfEObjectSetOfCacheDirective() {
-		Object actual = fixture.getObject(Material.class, 1, Collections.<CacheDirective>emptySet());
-		assertNotNull(actual);
-		assertTrue(actual instanceof ObjRef);
-	}
+    @SuppressWarnings("unchecked")
+    @Test
+    public void testGetObjectsClassOfEObjectArray() {
+        IList<?> actual;
+        actual = fixture.getObjects(Material.class, new Object[0]);
+        assertNotNull(actual);
+        assertEquals(1, actual.size());
+        assertEquals(0, ((Set<CacheDirective>) actual.get(0)).size());
 
-	@Test
-	public void testGetObjectIObjRefSetOfCacheDirective() {
-		IObjRef ori = new ObjRef(Material.class, 1, 1);
-		Object actual = fixture.getObject(ori, Collections.<CacheDirective>emptySet());
-		assertNotNull(actual);
-		assertSame(ori, actual);
-	}
+        fakeResults.add(1);
+        Object[] ids = new Object[] { 2, 5 };
+        actual = fixture.getObjects(Material.class, ids);
+        assertNotNull(actual);
+        assertEquals(4, actual.size());
+        assertEquals(1, actual.get(0));
+        assertTrue(actual.get(1) instanceof ObjRef);
+        // Does not make sense because the ObjRef instances where already put back in the OC
+        // assertTrue(Arrays.asList(ids).contains(((ObjRef) actual.get(1)).getId()));
+        assertTrue(actual.get(2) instanceof ObjRef);
+        // Does not make sense because the ObjRef instances where already put back in the OC
+        // assertTrue(Arrays.asList(ids).contains(((ObjRef) actual.get(2)).getId()));
+        assertEquals(0, ((Set<CacheDirective>) actual.get(3)).size());
+    }
 
-	@SuppressWarnings("unchecked")
-	@Test
-	public void testGetObjectsClassOfEObjectArray() {
-		IList<?> actual;
-		actual = fixture.getObjects(Material.class, new Object[0]);
-		assertNotNull(actual);
-		assertEquals(1, actual.size());
-		assertEquals(0, ((Set<CacheDirective>) actual.get(0)).size());
+    @SuppressWarnings("unchecked")
+    @Test
+    @Ignore
+    public void testGetObjectsClassOfEListOfObject() {
+        IList<?> actual;
+        actual = fixture.getObjects(Material.class, Collections.<Object>emptyList());
+        assertNotNull(actual);
+        assertEquals(1, actual.size());
+        assertTrue(((Set<CacheDirective>) actual.get(0)).contains(CacheDirective.None));
 
-		fakeResults.add(1);
-		Object[] ids = new Object[] {2, 5};
-		actual = fixture.getObjects(Material.class, ids);
-		assertNotNull(actual);
-		assertEquals(4, actual.size());
-		assertEquals(1, actual.get(0));
-		assertTrue(actual.get(1) instanceof ObjRef);
-		// Does not make sense because the ObjRef instances where already put back in the OC
-		// assertTrue(Arrays.asList(ids).contains(((ObjRef) actual.get(1)).getId()));
-		assertTrue(actual.get(2) instanceof ObjRef);
-		// Does not make sense because the ObjRef instances where already put back in the OC
-		// assertTrue(Arrays.asList(ids).contains(((ObjRef) actual.get(2)).getId()));
-		assertEquals(0, ((Set<CacheDirective>) actual.get(3)).size());
-	}
+        fakeResults.add(1);
+        List<Object> ids = Arrays.asList(new Object[] { 2, 4 });
+        actual = fixture.getObjects(Material.class, ids);
+        assertNotNull(actual);
+        assertEquals(4, actual.size());
+        assertEquals(1, actual.get(0));
+        assertTrue(actual.get(1) instanceof ObjRef);
+        assertTrue(ids.contains(((ObjRef) actual.get(1)).getId()));
+        assertTrue(actual.get(2) instanceof ObjRef);
+        assertTrue(ids.contains(((ObjRef) actual.get(2)).getId()));
+        assertTrue(((Set<CacheDirective>) actual.get(3)).contains(CacheDirective.None));
+    }
 
-	@SuppressWarnings("unchecked")
-	@Test
-	@Ignore
-	public void testGetObjectsClassOfEListOfObject() {
-		IList<?> actual;
-		actual = fixture.getObjects(Material.class, Collections.<Object>emptyList());
-		assertNotNull(actual);
-		assertEquals(1, actual.size());
-		assertTrue(((Set<CacheDirective>) actual.get(0)).contains(CacheDirective.None));
+    @SuppressWarnings("unchecked")
+    @Test
+    @Ignore
+    public void testGetObjectsIObjRefArraySetOfCacheDirective() {
+        IList<Object> actual;
+        IObjRef[] orisToGetArray = IObjRef.EMPTY_ARRAY;
+        actual = fixture.getObjects(orisToGetArray, Collections.<CacheDirective>emptySet());
+        assertNotNull(actual);
+        assertEquals(1, actual.size());
+        assertTrue(((Set<CacheDirective>) actual.get(0)).contains(CacheDirective.None));
 
-		fakeResults.add(1);
-		List<Object> ids = Arrays.asList(new Object[] {2, 4});
-		actual = fixture.getObjects(Material.class, ids);
-		assertNotNull(actual);
-		assertEquals(4, actual.size());
-		assertEquals(1, actual.get(0));
-		assertTrue(actual.get(1) instanceof ObjRef);
-		assertTrue(ids.contains(((ObjRef) actual.get(1)).getId()));
-		assertTrue(actual.get(2) instanceof ObjRef);
-		assertTrue(ids.contains(((ObjRef) actual.get(2)).getId()));
-		assertTrue(((Set<CacheDirective>) actual.get(3)).contains(CacheDirective.None));
-	}
+        fakeResults.add(1);
+        orisToGetArray = new IObjRef[] { new ObjRef(Material.class, 2, null), new ObjRef(Material.class, 4, null) };
+        actual = fixture.getObjects(orisToGetArray, Collections.<CacheDirective>emptySet());
+        assertNotNull(actual);
+        assertEquals(4, actual.size());
+        assertEquals(1, actual.get(0));
+        assertTrue(actual.get(1) instanceof ObjRef);
+        assertTrue(Arrays.asList(orisToGetArray).contains(actual.get(1)));
+        assertTrue(actual.get(2) instanceof ObjRef);
+        assertTrue(Arrays.asList(orisToGetArray).contains(actual.get(2)));
+        assertTrue(((Set<CacheDirective>) actual.get(3)).contains(CacheDirective.None));
+    }
 
-	@SuppressWarnings("unchecked")
-	@Test
-	@Ignore
-	public void testGetObjectsIObjRefArraySetOfCacheDirective() {
-		IList<Object> actual;
-		IObjRef[] orisToGetArray = IObjRef.EMPTY_ARRAY;
-		actual = fixture.getObjects(orisToGetArray, Collections.<CacheDirective>emptySet());
-		assertNotNull(actual);
-		assertEquals(1, actual.size());
-		assertTrue(((Set<CacheDirective>) actual.get(0)).contains(CacheDirective.None));
+    @Test(expected = NullPointerException.class)
+    public void testGetObjectsIObjRefArraySetOfCacheDirective_null() {
+        fixture.getObjects((IObjRef[]) null, Collections.<CacheDirective>emptySet());
+    }
 
-		fakeResults.add(1);
-		orisToGetArray =
-				new IObjRef[] {new ObjRef(Material.class, 2, null), new ObjRef(Material.class, 4, null)};
-		actual = fixture.getObjects(orisToGetArray, Collections.<CacheDirective>emptySet());
-		assertNotNull(actual);
-		assertEquals(4, actual.size());
-		assertEquals(1, actual.get(0));
-		assertTrue(actual.get(1) instanceof ObjRef);
-		assertTrue(Arrays.asList(orisToGetArray).contains(actual.get(1)));
-		assertTrue(actual.get(2) instanceof ObjRef);
-		assertTrue(Arrays.asList(orisToGetArray).contains(actual.get(2)));
-		assertTrue(((Set<CacheDirective>) actual.get(3)).contains(CacheDirective.None));
-	}
+    @Test(expected = UnsupportedOperationException.class)
+    public void testGetContent() {
+        fixture.getContent(null);
+    }
 
-	@Test(expected = NullPointerException.class)
-	public void testGetObjectsIObjRefArraySetOfCacheDirective_null() {
-		fixture.getObjects((IObjRef[]) null, Collections.<CacheDirective>emptySet());
-	}
-
-	@Test(expected = UnsupportedOperationException.class)
-	public void testGetContent() {
-		fixture.getContent(null);
-	}
+    @FrameworkModule
+    public static class AbstractCacheTestModule implements IInitializingModule {
+        @Override
+        public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
+            IBeanConfiguration cacheRetrieverFakeBC = beanContextFactory.registerBean(CacheRetrieverFake.class);
+            beanContextFactory.link(cacheRetrieverFakeBC).to(ICacheRetrieverExtendable.class).with(Material.class);
+            beanContextFactory.link(cacheRetrieverFakeBC).to(ICacheRetrieverExtendable.class).with(Unit.class);
+        }
+    }
 }

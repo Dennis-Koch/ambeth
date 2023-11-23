@@ -29,8 +29,8 @@ import java.sql.Statement;
 import java.util.List;
 import java.util.Set;
 
-import javax.persistence.OptimisticLockException;
-import javax.persistence.PersistenceException;
+import jakarta.persistence.OptimisticLockException;
+import jakarta.persistence.PersistenceException;
 
 import lombok.SneakyThrows;
 import org.h2.Driver;
@@ -54,278 +54,253 @@ import com.koch.ambeth.util.collections.IMap;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
 public class H2Dialect extends AbstractConnectionDialect {
-	public static int getOptimisticLockErrorCode() {
-		return 10001;
-	}
+    public static int getOptimisticLockErrorCode() {
+        return 10001;
+    }
 
-	@Autowired
-	protected ISqlBuilder sqlBuilder;
+    @Autowired
+    protected ISqlBuilder sqlBuilder;
 
-	@Property(name = PersistenceJdbcConfigurationConstants.DatabaseProtocol)
-	protected String protocol;
+    @Property(name = PersistenceJdbcConfigurationConstants.DatabaseProtocol)
+    protected String protocol;
 
-	@Override
-	protected Class<?> getDriverType() {
-		return Driver.class;
-	}
+    @Override
+    protected Class<?> getDriverType() {
+        return Driver.class;
+    }
 
-	@Override
-	protected ConnectionKeyValue preProcessConnectionIntern(Connection connection,
-			String[] schemaNames, boolean forcePreProcessing) {
-		Statement stm = null;
-		ResultSet rs = null;
-		try {
-			stm = connection.createStatement();
-			stm.execute("SET MULTI_THREADED 1");
+    @Override
+    protected ConnectionKeyValue preProcessConnectionIntern(Connection connection, String[] schemaNames, boolean forcePreProcessing) {
+        Statement stm = null;
+        ResultSet rs = null;
+        try {
+            stm = connection.createStatement();
+            stm.execute("SET MULTI_THREADED 1");
 
-			if ("jdbc:h2:mem".equals(protocol)) {
-				stm.execute("SET DB_CLOSE_DELAY -1");
-			}
-			stm.execute("CREATE SCHEMA IF NOT EXISTS \"" + schemaNames[0] + "\"");
-			stm.execute("SET SCHEMA \"" + schemaNames[0] + "\"");
+            if ("jdbc:h2:mem".equals(protocol)) {
+                stm.execute("SET DB_CLOSE_DELAY -1");
+            }
+            stm.execute("CREATE SCHEMA IF NOT EXISTS \"" + schemaNames[0] + "\"");
+            stm.execute("SET SCHEMA \"" + schemaNames[0] + "\"");
 
-			rs = stm.executeQuery("SELECT alias_name FROM INFORMATION_SCHEMA.FUNCTION_ALIASES");
-			HashSet<String> functionAliases = new HashSet<>();
-			while (rs.next()) {
-				functionAliases.add(rs.getString("alias_name"));
-			}
-			rs.close();
-			createAliasIfNecessary("TO_TIMESTAMP", Functions.class.getName() + ".toTimestamp",
-					functionAliases, stm);
+            rs = stm.executeQuery("SELECT alias_name FROM INFORMATION_SCHEMA.FUNCTION_ALIASES");
+            HashSet<String> functionAliases = new HashSet<>();
+            while (rs.next()) {
+                functionAliases.add(rs.getString("alias_name"));
+            }
+            rs.close();
+            createAliasIfNecessary("TO_TIMESTAMP", Functions.class.getName() + ".toTimestamp", functionAliases, stm);
 
-			stm = connection.createStatement();
-			ArrayList<String> disableSql = new ArrayList<>();
-			ArrayList<String> enableSql = new ArrayList<>();
-			for (String tableName : getAllFullqualifiedTableNames(connection, schemaNames)) {
-				disableSql.add("ALTER TABLE " + tableName + " SET REFERENTIAL_INTEGRITY FALSE");
-				enableSql.add("ALTER TABLE " + tableName + " SET REFERENTIAL_INTEGRITY TRUE CHECK");
-			}
-			return new ConnectionKeyValue(disableSql.toArray(String.class),
-					enableSql.toArray(String.class));
-		}
-		catch (Exception e) {
-			throw RuntimeExceptionUtil.mask(e);
-		}
-		finally {
-			JdbcUtil.close(stm, rs);
-		}
-	}
+            stm = connection.createStatement();
+            ArrayList<String> disableSql = new ArrayList<>();
+            ArrayList<String> enableSql = new ArrayList<>();
+            for (String tableName : getAllFullqualifiedTableNames(connection, schemaNames)) {
+                disableSql.add("ALTER TABLE " + tableName + " SET REFERENTIAL_INTEGRITY FALSE");
+                enableSql.add("ALTER TABLE " + tableName + " SET REFERENTIAL_INTEGRITY TRUE CHECK");
+            }
+            return new ConnectionKeyValue(disableSql.toArray(String.class), enableSql.toArray(String.class));
+        } catch (Exception e) {
+            throw RuntimeExceptionUtil.mask(e);
+        } finally {
+            JdbcUtil.close(stm, rs);
+        }
+    }
 
-	@SneakyThrows
-	protected void createAliasIfNecessary(String aliasName, String functionName,
-			Set<String> functionAliases, Statement stm) {
-		if (functionAliases.contains(aliasName)) {
-			return;
-		}
-		stm.execute("CREATE ALIAS \"" + toDefaultCase(aliasName) + "\" FOR \"" + functionName + "\"");
-	}
+    @SneakyThrows
+    protected void createAliasIfNecessary(String aliasName, String functionName, Set<String> functionAliases, Statement stm) {
+        if (functionAliases.contains(aliasName)) {
+            return;
+        }
+        stm.execute("CREATE ALIAS \"" + toDefaultCase(aliasName) + "\" FOR \"" + functionName + "\"");
+    }
 
-	@SneakyThrows
-	@Override
-	public IList<IMap<String, String>> getExportedKeys(Connection connection, String[] schemaNames)
-			{
-		Statement stm = null;
-		ResultSet rs = null;
-		try {
-			ArrayList<IMap<String, String>> allForeignKeys = new ArrayList<>();
-			// rs = connection.getMetaData().getExportedKeys(null, null, null);
-			stm = connection.createStatement();
-			// rs = stm.executeQuery("SELECT * FROM INFORMATION_SCHEMA.CONSTRAINTS WHERE
-			// constraint_type='REFERENTIAL'");
-			rs = stm.executeQuery("SELECT * FROM INFORMATION_SCHEMA.CROSS_REFERENCES");
-			// printResultSet(rs);
-			while (rs.next()) {
-				HashMap<String, String> foreignKey = new HashMap<>();
+    @SneakyThrows
+    @Override
+    public IList<IMap<String, String>> getExportedKeys(Connection connection, String[] schemaNames) {
+        Statement stm = null;
+        ResultSet rs = null;
+        try {
+            ArrayList<IMap<String, String>> allForeignKeys = new ArrayList<>();
+            // rs = connection.getMetaData().getExportedKeys(null, null, null);
+            stm = connection.createStatement();
+            // rs = stm.executeQuery("SELECT * FROM INFORMATION_SCHEMA.CONSTRAINTS WHERE
+            // constraint_type='REFERENTIAL'");
+            rs = stm.executeQuery("SELECT * FROM INFORMATION_SCHEMA.CROSS_REFERENCES");
+            // printResultSet(rs);
+            while (rs.next()) {
+                HashMap<String, String> foreignKey = new HashMap<>();
 
-				foreignKey.put("OWNER", schemaNames[0]);
-				foreignKey.put("CONSTRAINT_NAME", rs.getString("FK_NAME"));
-				foreignKey.put("FKTABLE_NAME", rs.getString("FKTABLE_NAME"));
-				foreignKey.put("FKCOLUMN_NAME", rs.getString("FKCOLUMN_NAME"));
-				foreignKey.put("PKTABLE_NAME", rs.getString("PKTABLE_NAME"));
-				foreignKey.put("PKCOLUMN_NAME", rs.getString("PKCOLUMN_NAME"));
+                foreignKey.put("OWNER", schemaNames[0]);
+                foreignKey.put("CONSTRAINT_NAME", rs.getString("FK_NAME"));
+                foreignKey.put("FKTABLE_NAME", rs.getString("FKTABLE_NAME"));
+                foreignKey.put("FKCOLUMN_NAME", rs.getString("FKCOLUMN_NAME"));
+                foreignKey.put("PKTABLE_NAME", rs.getString("PKTABLE_NAME"));
+                foreignKey.put("PKCOLUMN_NAME", rs.getString("PKCOLUMN_NAME"));
 
-				allForeignKeys.add(foreignKey);
-			}
-			return allForeignKeys;
-		}
-		finally {
-			JdbcUtil.close(stm, rs);
-		}
-	}
+                allForeignKeys.add(foreignKey);
+            }
+            return allForeignKeys;
+        } finally {
+            JdbcUtil.close(stm, rs);
+        }
+    }
 
-	@Override
-	public ILinkedMap<String, IList<String>> getFulltextIndexes(Connection connection,
-			String schemaName) {
-		return EmptyMap.emptyMap();
-	}
+    @Override
+    public ILinkedMap<String, IList<String>> getFulltextIndexes(Connection connection, String schemaName) {
+        return EmptyMap.emptyMap();
+    }
 
-	@Override
-	public boolean isSystemTable(String tableName) {
-		return false;
-	}
+    @Override
+    public boolean isSystemTable(String tableName) {
+        return false;
+    }
 
-	@Override
-	public void releaseSavepoint(Savepoint savepoint, Connection connection) {
-		throw new UnsupportedOperationException();
-	}
+    @Override
+    public void releaseSavepoint(Savepoint savepoint, Connection connection) {
+        throw new UnsupportedOperationException();
+    }
 
-	@Override
-	public int getResourceBusyErrorCode() {
-		throw new UnsupportedOperationException();
-	}
+    @Override
+    public int getResourceBusyErrorCode() {
+        throw new UnsupportedOperationException();
+    }
 
-	@Override
-	public PersistenceException createPersistenceException(SQLException e, String relatedSql) {
-		int errorCode = e.getErrorCode();
-		if (errorCode == getOptimisticLockErrorCode()) {
-			OptimisticLockException ex = new OptimisticLockException(relatedSql, e);
-			ex.setStackTrace(RuntimeExceptionUtil.EMPTY_STACK_TRACE);
-			return ex;
-		}
-		return null;
-	}
+    @Override
+    public PersistenceException createPersistenceException(SQLException e, String relatedSql) {
+        int errorCode = e.getErrorCode();
+        if (errorCode == getOptimisticLockErrorCode()) {
+            OptimisticLockException ex = new OptimisticLockException(relatedSql, e);
+            ex.setStackTrace(RuntimeExceptionUtil.EMPTY_STACK_TRACE);
+            return ex;
+        }
+        return null;
+    }
 
-	@SneakyThrows
-	@Override
-	public ResultSet getIndexInfo(Connection connection, String schemaName, String tableName,
-			boolean unique) {
-		return connection.getMetaData().getIndexInfo(null, schemaName, tableName, unique, true);
-	}
+    @SneakyThrows
+    @Override
+    public ResultSet getIndexInfo(Connection connection, String schemaName, String tableName, boolean unique) {
+        return connection.getMetaData().getIndexInfo(null, schemaName, tableName, unique, true);
+    }
 
-	@Override
-	public Class<?> getComponentTypeByFieldTypeName(String additionalFieldInfo) {
-		// H2 does not support arrays so there is never a component type
-		return null;
-	}
+    @Override
+    public Class<?> getComponentTypeByFieldTypeName(String additionalFieldInfo) {
+        // H2 does not support arrays so there is never a component type
+        return null;
+    }
 
-	@Override
-	public String getFieldTypeNameByComponentType(Class<?> componentType) {
-		throw new UnsupportedOperationException();
-	}
+    @Override
+    public String getFieldTypeNameByComponentType(Class<?> componentType) {
+        throw new UnsupportedOperationException();
+    }
 
-	@Override
-	public List<String> getAllFullqualifiedSequences(Connection connection, String... schemaNames)
-			{
-		if (schemaNames.length == 0) {
-			schemaNames = this.schemaNames;
-		}
-		return queryDefault(connection, "full_name",
-				"SELECT sequence_schema || '.' || sequence_name AS full_name FROM INFORMATION_SCHEMA.SEQUENCES WHERE sequence_schema IN (?)",
-				(Object) schemaNames);
-	}
+    @Override
+    public List<String> getAllFullqualifiedSequences(Connection connection, String... schemaNames) {
+        if (schemaNames.length == 0) {
+            schemaNames = this.schemaNames;
+        }
+        return queryDefault(connection, "full_name", "SELECT sequence_schema || '.' || sequence_name AS full_name FROM INFORMATION_SCHEMA.SEQUENCES WHERE sequence_schema IN (?)",
+                (Object) schemaNames);
+    }
 
-	@Override
-	public List<String> getAllFullqualifiedTableNames(Connection connection, String... schemaNames)
-			{
-		if (schemaNames.length == 0) {
-			schemaNames = this.schemaNames;
-		}
-		return queryDefault(connection, "full_name",
-				"SELECT table_schema || '.' || table_name AS full_name FROM INFORMATION_SCHEMA.TABLES WHERE table_type='TABLE' AND table_schema IN (?)",
-				(Object) schemaNames);
-	}
+    @Override
+    public List<String> getAllFullqualifiedTableNames(Connection connection, String... schemaNames) {
+        if (schemaNames.length == 0) {
+            schemaNames = this.schemaNames;
+        }
+        return queryDefault(connection, "full_name", "SELECT table_schema || '.' || table_name AS full_name FROM INFORMATION_SCHEMA.TABLES WHERE table_type='TABLE' AND table_schema IN (?)",
+                (Object) schemaNames);
+    }
 
-	@SneakyThrows
-	@Override
-	public List<String> getAllFullqualifiedViews(Connection connection, String... schemaNames)
-			{
-		if (schemaNames.length == 0) {
-			schemaNames = this.schemaNames;
-		}
-		PreparedStatement pstm = null;
-		ResultSet rs = null;
-		try {
-			pstm = connection.prepareStatement(
-					"SELECT table_schema, table_name FROM INFORMATION_SCHEMA.VIEWS WHERE table_schema IN (?)");
-			pstm.setObject(1, schemaNames);
-			rs = pstm.executeQuery();
-			ArrayList<String> viewNames = new ArrayList<>();
-			while (rs.next()) {
-				String tableSchema = rs.getString("table_schema");
-				String tableName = rs.getString("table_name");
-				viewNames.add(tableSchema + "." + tableName);
-			}
-			return viewNames;
-		}
-		finally {
-			JdbcUtil.close(pstm, rs);
-		}
-	}
+    @SneakyThrows
+    @Override
+    public List<String> getAllFullqualifiedViews(Connection connection, String... schemaNames) {
+        if (schemaNames.length == 0) {
+            schemaNames = this.schemaNames;
+        }
+        PreparedStatement pstm = null;
+        ResultSet rs = null;
+        try {
+            pstm = connection.prepareStatement("SELECT table_schema, table_name FROM INFORMATION_SCHEMA.VIEWS WHERE table_schema IN (?)");
+            pstm.setObject(1, schemaNames);
+            rs = pstm.executeQuery();
+            ArrayList<String> viewNames = new ArrayList<>();
+            while (rs.next()) {
+                String tableSchema = rs.getString("table_schema");
+                String tableName = rs.getString("table_name");
+                viewNames.add(tableSchema + "." + tableName);
+            }
+            return viewNames;
+        } finally {
+            JdbcUtil.close(pstm, rs);
+        }
+    }
 
-	@SneakyThrows
-	@Override
-	public IList<IColumnEntry> getAllFieldsOfTable(Connection connection, String fqTableName)
-			{
-		String[] names = sqlBuilder.getSchemaAndTableName(fqTableName);
-		ResultSet tableColumnsRS = connection.getMetaData().getColumns(null, names[0], names[1], null);
-		try {
-			ArrayList<IColumnEntry> columns = new ArrayList<>();
-			while (tableColumnsRS.next()) {
-				String fieldName = tableColumnsRS.getString("COLUMN_NAME");
-				int columnIndex = tableColumnsRS.getInt("ORDINAL_POSITION");
-				int typeIndex = tableColumnsRS.getInt("DATA_TYPE");
+    @SneakyThrows
+    @Override
+    public IList<IColumnEntry> getAllFieldsOfTable(Connection connection, String fqTableName) {
+        String[] names = sqlBuilder.getSchemaAndTableName(fqTableName);
+        ResultSet tableColumnsRS = connection.getMetaData().getColumns(null, names[0], names[1], null);
+        try {
+            ArrayList<IColumnEntry> columns = new ArrayList<>();
+            while (tableColumnsRS.next()) {
+                String fieldName = tableColumnsRS.getString("COLUMN_NAME");
+                int columnIndex = tableColumnsRS.getInt("ORDINAL_POSITION");
+                int typeIndex = tableColumnsRS.getInt("DATA_TYPE");
 
-				String typeName = tableColumnsRS.getString("TYPE_NAME");
+                String typeName = tableColumnsRS.getString("TYPE_NAME");
 
-				String isNullable = tableColumnsRS.getString("IS_NULLABLE");
-				boolean nullable = "YES".equalsIgnoreCase(isNullable);
+                String isNullable = tableColumnsRS.getString("IS_NULLABLE");
+                boolean nullable = "YES".equalsIgnoreCase(isNullable);
 
-				int scale = tableColumnsRS.getInt("COLUMN_SIZE");
-				int digits = tableColumnsRS.getInt("DECIMAL_DIGITS");
-				int radix = tableColumnsRS.getInt("NUM_PREC_RADIX");
+                int scale = tableColumnsRS.getInt("COLUMN_SIZE");
+                int digits = tableColumnsRS.getInt("DECIMAL_DIGITS");
+                int radix = tableColumnsRS.getInt("NUM_PREC_RADIX");
 
-				Class<?> javaType = JdbcUtil.getJavaTypeFromJdbcType(typeIndex, scale, digits);
+                Class<?> javaType = JdbcUtil.getJavaTypeFromJdbcType(typeIndex, scale, digits);
 
-				ColumnEntry entry = new ColumnEntry(fieldName, columnIndex, javaType, typeName, nullable,
-						radix, true);
-				columns.add(entry);
-			}
-			return columns;
-		}
-		finally {
-			JdbcUtil.close(tableColumnsRS);
-		}
-	}
+                ColumnEntry entry = new ColumnEntry(fieldName, columnIndex, javaType, typeName, nullable, radix, true);
+                columns.add(entry);
+            }
+            return columns;
+        } finally {
+            JdbcUtil.close(tableColumnsRS);
+        }
+    }
 
-	@Override
-	protected String buildDeferrableForeignKeyConstraintsSelectSQL(String[] schemaNames) {
-		return null;
-	}
+    @Override
+    protected String buildDeferrableForeignKeyConstraintsSelectSQL(String[] schemaNames) {
+        return null;
+    }
 
-	@Override
-	protected void handleRow(String schemaName, String tableName, String constraintName,
-			ArrayList<String> disableConstraintsSQL, ArrayList<String> enableConstraintsSQL) {
-		throw new UnsupportedOperationException();
-	}
+    @Override
+    protected void handleRow(String schemaName, String tableName, String constraintName, ArrayList<String> disableConstraintsSQL, ArrayList<String> enableConstraintsSQL) {
+        throw new UnsupportedOperationException();
+    }
 
-	@Override
-	public String prepareCommand(String sqlCommand) {
-		sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER *\\( *1 *, *0 *\\)", " BOOLEAN");
-		sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER *\\( *3 *, *0 *\\)", " INT");
-		sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER *\\( *5 *, *0 *\\)", " INT");
-		sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER *\\( *9 *, *0 *\\)", " INT");
-		sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER *\\( *10 *, *0 *\\)", " LONG");
-		sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER *\\( *12 *, *0 *\\)", " LONG");
-		sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER *\\( *18 *, *0 *\\)", " BIGINT");
-		sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER *\\( *\\* *, *0 *\\)", " BIGINT");
-		sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER", " DOUBLE");
-		sqlCommand = prepareCommandIntern(sqlCommand, "VARCHAR2 *\\( *(\\d+) *BYTE *\\)",
-				"VARCHAR($1)");
-		sqlCommand = prepareCommandIntern(sqlCommand, "VARCHAR2 *\\( *(\\d+) *CHAR *\\)",
-				"VARCHAR($1)");
-		sqlCommand = prepareCommandIntern(sqlCommand, " DEFERRABLE *INITIALLY *(?:DEFERRED|IMMEDIATE)",
-				"");
-		sqlCommand = prepareCommandIntern(sqlCommand, " NOORDER", "");
-		sqlCommand = prepareCommandIntern(sqlCommand, " USING +INDEX", "");
-		sqlCommand = prepareCommandIntern(sqlCommand, "MAXVALUE *9{19,} ",
-				"MAXVALUE 999999999999999999 ");
-		sqlCommand = prepareCommandIntern(sqlCommand, "DBMS_RANDOM\\.VALUE", "RAND()");
-		sqlCommand = prepareCommandIntern(sqlCommand, "to_timestamp\\(", "TO_TIMESTAMP(");
-		return sqlCommand;
-	}
+    @Override
+    public String prepareCommand(String sqlCommand) {
+        sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER *\\( *1 *, *0 *\\)", " BOOLEAN");
+        sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER *\\( *3 *, *0 *\\)", " INT");
+        sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER *\\( *5 *, *0 *\\)", " INT");
+        sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER *\\( *9 *, *0 *\\)", " INT");
+        sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER *\\( *10 *, *0 *\\)", " LONG");
+        sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER *\\( *12 *, *0 *\\)", " LONG");
+        sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER *\\( *18 *, *0 *\\)", " BIGINT");
+        sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER *\\( *\\* *, *0 *\\)", " BIGINT");
+        sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER", " DOUBLE");
+        sqlCommand = prepareCommandIntern(sqlCommand, "VARCHAR2 *\\( *(\\d+) *BYTE *\\)", "VARCHAR($1)");
+        sqlCommand = prepareCommandIntern(sqlCommand, "VARCHAR2 *\\( *(\\d+) *CHAR *\\)", "VARCHAR($1)");
+        sqlCommand = prepareCommandIntern(sqlCommand, " DEFERRABLE *INITIALLY *(?:DEFERRED|IMMEDIATE)", "");
+        sqlCommand = prepareCommandIntern(sqlCommand, " NOORDER", "");
+        sqlCommand = prepareCommandIntern(sqlCommand, " USING +INDEX", "");
+        sqlCommand = prepareCommandIntern(sqlCommand, "MAXVALUE *9{19,} ", "MAXVALUE 999999999999999999 ");
+        sqlCommand = prepareCommandIntern(sqlCommand, "DBMS_RANDOM\\.VALUE", "RAND()");
+        sqlCommand = prepareCommandIntern(sqlCommand, "to_timestamp\\(", "TO_TIMESTAMP(");
+        return sqlCommand;
+    }
 
-	@Override
-	public SelectPosition getLimitPosition() {
-		return SelectPosition.AFTER_WHERE;
-	}
+    @Override
+    public SelectPosition getLimitPosition() {
+        return SelectPosition.AFTER_WHERE;
+    }
 }

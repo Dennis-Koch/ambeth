@@ -20,130 +20,134 @@ limitations under the License.
  * #L%
  */
 
-import java.lang.reflect.Method;
-
+import com.koch.ambeth.service.metadata.IDTOType;
+import com.koch.ambeth.service.model.ISecurityScope;
+import com.koch.ambeth.service.model.IServiceDescription;
+import com.koch.ambeth.util.IPrintable;
+import com.koch.ambeth.util.StringConversionHelper;
+import com.koch.ambeth.util.objectcollector.IObjectCollector;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlElement;
 import jakarta.xml.bind.annotation.XmlRootElement;
+import lombok.SneakyThrows;
 
-import com.koch.ambeth.service.metadata.IDTOType;
-import com.koch.ambeth.service.model.ISecurityScope;
-import com.koch.ambeth.service.model.IServiceDescription;
-import com.koch.ambeth.util.StringConversionHelper;
-import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
-import com.koch.ambeth.util.objectcollector.IObjectCollector;
+import java.lang.reflect.Method;
 
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
-public class ServiceDescription implements IServiceDescription, IDTOType {
-	@XmlElement(required = true)
-	protected String serviceName;
+public class ServiceDescription implements IServiceDescription, IDTOType, IPrintable {
+    @XmlElement(required = true)
+    protected String serviceName;
 
-	@XmlElement(required = true)
-	protected String methodName;
+    @XmlElement(required = true)
+    protected String methodName;
 
-	@XmlElement(required = true)
-	protected Class<?>[] paramTypes;
+    @XmlElement(required = true)
+    protected Class<?>[] paramTypes;
 
-	@XmlElement(required = true)
-	protected ISecurityScope[] securityScopes;
+    @XmlElement(required = true)
+    protected ISecurityScope[] securityScopes;
 
-	@XmlElement(required = true)
-	protected Object[] arguments;
+    @XmlElement(required = true)
+    protected Object[] arguments;
 
-	protected transient Method method;
+    protected transient Method method;
 
-	@Override
-	public String getServiceName() {
-		return serviceName;
-	}
+    @Override
+    public String getServiceName() {
+        return serviceName;
+    }
 
-	public void setServiceName(String serviceName) {
-		this.serviceName = serviceName;
-	}
+    public void setServiceName(String serviceName) {
+        this.serviceName = serviceName;
+    }
 
-	@Override
-	public Method getMethod(Class<?> serviceType, IObjectCollector objectCollector) {
-		if (method == null) {
-			Class<?>[] paramTypes = getParamTypes();
-			for (Class<?> paramType : paramTypes) {
-				if (paramType == null) {
-					// paramType could not be resolved with the current classloader
-					return null;
-				}
-			}
-			try {
-				try {
-					method = serviceType.getMethod(
-							StringConversionHelper.upperCaseFirst(objectCollector, getMethodName()), paramTypes);
-				}
-				catch (NoSuchMethodException e) {
-					method = serviceType.getMethod(
-							StringConversionHelper.lowerCaseFirst(objectCollector, getMethodName()), paramTypes);
-				}
-			}
-			catch (Exception e) {
-				throw RuntimeExceptionUtil.mask(e);
-			}
-		}
-		return method;
-	}
+    @SneakyThrows
+    @Override
+    public Method getMethod(Class<?> serviceType, IObjectCollector objectCollector) {
+        if (method == null) {
+            var paramTypes = getParamTypes();
+            if (paramTypes == null) {
+                throw new IllegalStateException("paramTypes must be valid");
+            }
+            for (var paramType : paramTypes) {
+                if (paramType == null) {
+                    // paramType could not be resolved with the current classloader
+                    return null;
+                }
+            }
+            try {
+                method = serviceType.getMethod(StringConversionHelper.upperCaseFirst(objectCollector, getMethodName()), paramTypes);
+            } catch (NoSuchMethodException e) {
+                method = serviceType.getMethod(StringConversionHelper.lowerCaseFirst(objectCollector, getMethodName()), paramTypes);
+            }
+        }
+        return method;
+    }
 
-	public void setMethodName(String methodName) {
-		this.methodName = methodName;
-	}
+    public String getMethodName() {
+        return methodName;
+    }
 
-	public String getMethodName() {
-		return methodName;
-	}
+    public void setMethodName(String methodName) {
+        this.methodName = methodName;
+    }
 
-	@Override
-	public Object[] getArguments() {
-		return arguments;
-	}
+    @Override
+    public Object[] getArguments() {
+        return arguments;
+    }
 
-	public Class<?>[] getParamTypes() {
-		return paramTypes;
-	}
+    public void setArguments(Object[] arguments) {
+        this.arguments = arguments;
+    }
 
-	public void setParamTypes(Class<?>[] paramTypes) {
-		this.paramTypes = paramTypes;
-	}
+    public Class<?>[] getParamTypes() {
+        return paramTypes;
+    }
 
-	public void setArguments(Object[] arguments) {
-		this.arguments = arguments;
-	}
+    public void setParamTypes(Class<?>[] paramTypes) {
+        this.paramTypes = paramTypes;
+    }
 
-	@Override
-	public ISecurityScope[] getSecurityScopes() {
-		return securityScopes;
-	}
+    @Override
+    public ISecurityScope[] getSecurityScopes() {
+        return securityScopes;
+    }
 
-	public void setSecurityScopes(ISecurityScope[] securityScopes) {
-		this.securityScopes = securityScopes;
-	}
+    public void setSecurityScopes(ISecurityScope[] securityScopes) {
+        this.securityScopes = securityScopes;
+    }
 
-	@Override
-	public String toString() {
-		StringBuilder sb = new StringBuilder();
-		sb.append(getServiceName()).append(" => ").append(getMethodName()).append('(');
-		boolean first = true;
-		for (Class<?> paramType : getParamTypes()) {
-			if (first) {
-				first = false;
-			}
-			else {
-				sb.append(',');
-			}
-			if (paramType == null) {
-				sb.append("<n/a>");
-			}
-			else {
-				sb.append(paramType.getSimpleName());
-			}
-		}
-		sb.append(')');
-		return sb.toString();
-	}
+    @Override
+    public String toString() {
+        var sb = new StringBuilder();
+        toString(sb);
+        return sb.toString();
+    }
+
+    @Override
+    public void toString(StringBuilder sb) {
+        sb.append(getServiceName()).append(" => ").append(getMethodName()).append('(');
+        var first = true;
+        var paramTypes = getParamTypes();
+        if (paramTypes == null) {
+            sb.append("...");
+        } else {
+            for (var paramType : paramTypes) {
+                if (first) {
+                    first = false;
+                } else {
+                    sb.append(',');
+                }
+                if (paramType == null) {
+                    sb.append("<n/a>");
+                } else {
+                    sb.append(paramType.getSimpleName());
+                }
+            }
+        }
+        sb.append(')');
+    }
 }

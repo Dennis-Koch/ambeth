@@ -23,9 +23,9 @@ limitations under the License.
  */
 
 public interface IThreadLocalCleanupController {
-	void cleanupThreadLocal();
+    void cleanupThreadLocal();
 
-	IForkState createForkState();
+    IForkState createForkState();
 
-	IStateRollback pushThreadLocalState(IStateRollback... rollbacks);
+    IStateRollback pushThreadLocalState();
 }

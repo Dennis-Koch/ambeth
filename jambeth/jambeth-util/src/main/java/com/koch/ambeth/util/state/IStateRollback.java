@@ -23,8 +23,6 @@ limitations under the License.
 /**
  * Allows to rollback a given action. In many cases the action made is a modification of a static or
  * instance field which can then be reverted/rolled back.<br>
- * For instances of this interface please inherit always from
- * <code>AbstractStateRollback</code>.<br>
  * <br>
  * Example:
  *
@@ -32,26 +30,19 @@ limitations under the License.
  * {@code
  * public class MyClass
  * {
- *   private int value;
+ *   private volatile int value;
  *
- *   public IStateRollback withValue(int value, IStateRollback... rollbacks)
+ *   public IStateRollback pushValue(int value)
  *   {
- *      final int oldValue = this.value;
+ *      var oldValue = this.value;
  *      this.value = value;
- *      return new AbstractStateRollback(rollbacks)
- *      {
- *        &#064;Override
- *        protected void rollbackIntern() throws Exception
- *        {
- *          MyClass.this.value = oldValue;
- *        }
- *      }
+ *      return () -> MyClass.this.value = oldValue;
  *   }
  * }
  * </pre>
  */
 public interface IStateRollback {
-	public static final IStateRollback[] EMPTY_ROLLBACKS = new IStateRollback[0];
+    public static final IStateRollback[] EMPTY_ROLLBACKS = new IStateRollback[0];
 
-	void rollback();
+    void rollback();
 }

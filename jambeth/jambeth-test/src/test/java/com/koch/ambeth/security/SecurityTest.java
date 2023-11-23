@@ -20,14 +20,6 @@ limitations under the License.
  * #L%
  */
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-
-import java.util.List;
-
-import org.junit.Assert;
-import org.junit.Test;
-
 import com.koch.ambeth.audit.Password;
 import com.koch.ambeth.audit.User;
 import com.koch.ambeth.audit.UserIdentifierProvider;
@@ -50,8 +42,6 @@ import com.koch.ambeth.merge.cache.HandleContentDelegate;
 import com.koch.ambeth.merge.cache.ICache;
 import com.koch.ambeth.merge.config.MergeConfigurationConstants;
 import com.koch.ambeth.merge.security.ISecurityActivation;
-import com.koch.ambeth.persistence.api.IDatabase;
-import com.koch.ambeth.persistence.api.database.DatabaseCallback;
 import com.koch.ambeth.persistence.xml.TestServicesModule;
 import com.koch.ambeth.persistence.xml.model.Employee;
 import com.koch.ambeth.persistence.xml.model.IBusinessService;
@@ -71,134 +61,115 @@ import com.koch.ambeth.testutil.TestModule;
 import com.koch.ambeth.testutil.TestProperties;
 import com.koch.ambeth.testutil.TestPropertiesList;
 import com.koch.ambeth.util.codec.Base64;
-import com.koch.ambeth.util.collections.ILinkedMap;
-import com.koch.ambeth.util.state.IStateRollback;
-import com.koch.ambeth.util.threading.IBackgroundWorkerDelegate;
+import com.koch.ambeth.util.function.CheckedRunnable;
+import org.junit.Assert;
+import org.junit.Test;
+
+import java.util.List;
+
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 @SQLData("/com/koch/ambeth/security/Relations_data.sql")
 @SQLStructure("/com/koch/ambeth/security/Relations_structure.sql")
 @TestProperties(name = MergeConfigurationConstants.SecurityActive, value = "true")
 @TestPropertiesList({
-		@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "com/koch/ambeth/persistence/xml/orm.xml;com/koch/ambeth/security/orm.xml"),
-		@TestProperties(name = CacheConfigurationConstants.ServiceResultCacheActive, value = "false"),
-		@TestProperties(name = SecurityServerConfigurationConstants.LoginPasswordAutoRehashActive, value = "false") })
+        @TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "com/koch/ambeth/persistence/xml/orm.xml;com/koch/ambeth/security/orm.xml"),
+        @TestProperties(name = CacheConfigurationConstants.ServiceResultCacheActive, value = "false"),
+        @TestProperties(name = SecurityServerConfigurationConstants.LoginPasswordAutoRehashActive, value = "false")
+})
 @TestModule(TestServicesModule.class)
 @TestFrameworkModule({ SecurityTestFrameworkModule.class, SecurityTestModule.class })
 public class SecurityTest extends AbstractInformationBusWithPersistenceTest {
-	public static final String IN_MEMORY_CACHE_RETRIEVER = "inMemoryCacheRetriever";
+    public static final String IN_MEMORY_CACHE_RETRIEVER = "inMemoryCacheRetriever";
+    public static final String userName1 = "userName1", userPass1 = "abcd";
+    @Autowired
+    protected IBusinessService businessService;
+    @Autowired
+    protected ICache cache;
+    @Autowired
+    protected ISecondLevelCacheManager secondLevelCacheManager;
+    @Autowired
+    protected IEmployeeService employeeService;
+    @Autowired
+    protected ISecurityActivation securityActivation;
+    @Autowired(IN_MEMORY_CACHE_RETRIEVER)
+    protected InMemoryCacheRetriever inMemoryCacheRetriever;
+    @LogInstance
+    private ILogger log;
 
-	public static class SecurityTestFrameworkModule implements IInitializingModule {
-		@Override
-		public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
-			beanContextFactory.registerBean(TestAuthorizationManager.class)
-					.autowireable(IAuthorizationManager.class);
-			beanContextFactory.registerBean(UserIdentifierProvider.class)
-					.autowireable(IUserIdentifierProvider.class);
-			beanContextFactory.registerBean(TestUserResolver.class).autowireable(IUserResolver.class);
+    @Override
+    public void afterPropertiesSet() throws Throwable {
+        super.afterPropertiesSet();
 
-			beanContextFactory.link(IUser.class).to(ITechnicalEntityTypeExtendable.class)
-					.with(User.class);
-			beanContextFactory.link(IPassword.class).to(ITechnicalEntityTypeExtendable.class)
-					.with(Password.class);
-		}
-	}
+        char[] salt = "abcdef=".toCharArray();
+        char[] value = Base64.encodeBytes(Passwords.hashPassword(userPass1.toCharArray(), Base64.decode(salt), Passwords.ALGORITHM, Passwords.ITERATION_COUNT, Passwords.KEY_SIZE)).toCharArray();
 
-	public static class SecurityTestModule implements IInitializingModule {
-		@Override
-		public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
-			IBeanConfiguration inMemoryCacheRetriever = beanContextFactory
-					.registerBean(IN_MEMORY_CACHE_RETRIEVER, InMemoryCacheRetriever.class);
-			beanContextFactory.link(inMemoryCacheRetriever).to(ICacheRetrieverExtendable.class)
-					.with(User.class);
-			beanContextFactory.link(inMemoryCacheRetriever).to(ICacheRetrieverExtendable.class)
-					.with(Password.class);
-		}
-	}
+        IInMemoryConfig password10 = inMemoryCacheRetriever.add(Password.class, 10)
+                                                           .primitive(IPassword.Salt, salt)
+                                                           .primitive(IPassword.Algorithm, Passwords.ALGORITHM)
+                                                           .primitive(IPassword.IterationCount, Passwords.ITERATION_COUNT)
+                                                           .primitive(IPassword.KeySize, Passwords.KEY_SIZE)
+                                                           .primitive(IPassword.Value, value);
+        inMemoryCacheRetriever.add(User.class, 1).primitive(User.SID, userName1).addRelation(IUser.Password, password10);
+    }
 
-	public static final String userName1 = "userName1", userPass1 = "abcd";
+    @Test
+    @TestAuthentication(name = userName1, password = userPass1)
+    public void testListDelete() {
+        final CheckedRunnable checkRootCache = () -> {
 
-	@LogInstance
-	private ILogger log;
+            assertTrue(cache.getObjects(Employee.class, 1, 2, 3).isEmpty());
 
-	@Autowired
-	protected IBusinessService businessService;
+            // test privileged transactional root cache
+            IRootCache rootCache = secondLevelCacheManager.selectSecondLevelCache();
+            rootCache.getContent(new HandleContentDelegate() {
+                @Override
+                public void invoke(Class<?> entityType, byte idIndex, Object id, Object value) {
+                    if (Employee.class.isAssignableFrom(entityType)) {
+                        Assert.fail("RootCache must not contain an entry for a " + Employee.class.getName());
+                    }
+                }
+            });
+        };
+        transaction.processAndCommit(persistenceUnitToDatabaseMap -> {
+            var rollback = securityActivation.pushWithoutSecurity();
+            try {
+                List<Employee> employees = cache.getObjects(Employee.class, 1, 2, 3);
+                assertFalse(employees.isEmpty());
 
-	@Autowired
-	protected ICache cache;
+                employeeService.delete(employees);
 
-	@Autowired
-	protected ISecondLevelCacheManager secondLevelCacheManager;
+                // test privileged transactional root cache
+                CheckedRunnable.invoke(checkRootCache);
+            } finally {
+                rollback.rollback();
+            }
+            // test non-privileged transactional root cache
+            CheckedRunnable.invoke(checkRootCache);
+        });
+        // test committed root cache
+        CheckedRunnable.invoke(checkRootCache);
+    }
 
-	@Autowired
-	protected IEmployeeService employeeService;
+    public static class SecurityTestFrameworkModule implements IInitializingModule {
+        @Override
+        public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
+            beanContextFactory.registerBean(TestAuthorizationManager.class).autowireable(IAuthorizationManager.class);
+            beanContextFactory.registerBean(UserIdentifierProvider.class).autowireable(IUserIdentifierProvider.class);
+            beanContextFactory.registerBean(TestUserResolver.class).autowireable(IUserResolver.class);
 
-	@Autowired
-	protected ISecurityActivation securityActivation;
+            beanContextFactory.link(IUser.class).to(ITechnicalEntityTypeExtendable.class).with(User.class);
+            beanContextFactory.link(IPassword.class).to(ITechnicalEntityTypeExtendable.class).with(Password.class);
+        }
+    }
 
-	@Autowired(IN_MEMORY_CACHE_RETRIEVER)
-	protected InMemoryCacheRetriever inMemoryCacheRetriever;
-
-	@Override
-	public void afterPropertiesSet() throws Throwable {
-		super.afterPropertiesSet();
-
-		char[] salt = "abcdef=".toCharArray();
-		char[] value = Base64.encodeBytes(Passwords.hashPassword(userPass1.toCharArray(),
-				Base64.decode(salt), Passwords.ALGORITHM, Passwords.ITERATION_COUNT, Passwords.KEY_SIZE))
-				.toCharArray();
-
-		IInMemoryConfig password10 = inMemoryCacheRetriever.add(Password.class, 10)
-				.primitive(IPassword.Salt, salt).primitive(IPassword.Algorithm, Passwords.ALGORITHM)
-				.primitive(IPassword.IterationCount, Passwords.ITERATION_COUNT)
-				.primitive(IPassword.KeySize, Passwords.KEY_SIZE).primitive(IPassword.Value, value);
-		inMemoryCacheRetriever.add(User.class, 1).primitive(User.SID, userName1)
-				.addRelation(IUser.Password, password10);
-	}
-
-	@Test
-	@TestAuthentication(name = userName1, password = userPass1)
-	public void testListDelete() throws Throwable {
-		final IBackgroundWorkerDelegate checkRootCache = new IBackgroundWorkerDelegate() {
-
-			@Override
-			public void invoke() throws Exception {
-				assertTrue(cache.getObjects(Employee.class, 1, 2, 3).isEmpty());
-
-				// test privileged transactional root cache
-				IRootCache rootCache = secondLevelCacheManager.selectSecondLevelCache();
-				rootCache.getContent(new HandleContentDelegate() {
-					@Override
-					public void invoke(Class<?> entityType, byte idIndex, Object id, Object value) {
-						if (Employee.class.isAssignableFrom(entityType)) {
-							Assert.fail("RootCache must not contain an entry for a " + Employee.class.getName());
-						}
-					}
-				});
-			}
-		};
-		transaction.processAndCommit(new DatabaseCallback() {
-			@Override
-			public void callback(ILinkedMap<Object, IDatabase> persistenceUnitToDatabaseMap)
-					throws Exception {
-				IStateRollback rollback = securityActivation
-						.pushWithoutSecurity(IStateRollback.EMPTY_ROLLBACKS);
-				try {
-					List<Employee> employees = cache.getObjects(Employee.class, 1, 2, 3);
-					assertFalse(employees.isEmpty());
-
-					employeeService.delete(employees);
-
-					// test privileged transactional root cache
-					checkRootCache.invoke();
-				}
-				finally {
-					rollback.rollback();
-				}
-				// test non-privileged transactional root cache
-				checkRootCache.invoke();
-			}
-		});
-		// test committed root cache
-		checkRootCache.invoke();
-	}
+    public static class SecurityTestModule implements IInitializingModule {
+        @Override
+        public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
+            IBeanConfiguration inMemoryCacheRetriever = beanContextFactory.registerBean(IN_MEMORY_CACHE_RETRIEVER, InMemoryCacheRetriever.class);
+            beanContextFactory.link(inMemoryCacheRetriever).to(ICacheRetrieverExtendable.class).with(User.class);
+            beanContextFactory.link(inMemoryCacheRetriever).to(ICacheRetrieverExtendable.class).with(Password.class);
+        }
+    }
 }

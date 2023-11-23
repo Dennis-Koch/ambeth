@@ -22,9 +22,8 @@ limitations under the License.
 
 import com.koch.ambeth.ioc.IServiceContext;
 import com.koch.ambeth.ioc.factory.IBeanContextFactory;
-import com.koch.ambeth.util.threading.IBackgroundWorkerParamDelegate;
+import com.koch.ambeth.util.function.CheckedConsumer;
 
 public interface IContextFactory {
-	IServiceContext createChildContext(
-			IBackgroundWorkerParamDelegate<IBeanContextFactory> registerPhaseDelegate);
+    IServiceContext createChildContext(CheckedConsumer<IBeanContextFactory> registerPhaseDelegate);
 }

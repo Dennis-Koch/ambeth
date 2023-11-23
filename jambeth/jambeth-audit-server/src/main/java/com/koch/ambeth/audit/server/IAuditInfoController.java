@@ -4,24 +4,19 @@ import com.koch.ambeth.security.model.IUser;
 import com.koch.ambeth.util.state.IStateRollback;
 
 public interface IAuditInfoController {
-	void pushAuditReason(String auditReason);
+    IStateRollback pushAuditReason(String auditReason);
 
-	String popAuditReason();
+    String peekAuditReason();
 
-	String peekAuditReason();
+    IStateRollback pushAuditContext(String auditContext);
 
-	void pushAuditContext(String auditContext);
+    String peekAuditContext();
 
-	String popAuditContext();
+    void removeAuditInfo();
 
-	String peekAuditContext();
+    IStateRollback pushClearTextPassword(char[] clearTextPassword);
 
-	void removeAuditInfo();
+    String createAuditedValueOfEntityPrimitive(Object primitiveValueOfEntity);
 
-	IStateRollback pushClearTextPassword(char[] clearTextPassword, IStateRollback... rollbacks);
-
-	String createAuditedValueOfEntityPrimitive(Object primitiveValueOfEntity);
-
-	IStateRollback pushAuthorizedUser(IUser user, char[] clearTextPassword,
-			boolean forceGivenAuthorization, IStateRollback... rollbacks);
+    IStateRollback pushAuthorizedUser(IUser user, char[] clearTextPassword, boolean forceGivenAuthorization);
 }

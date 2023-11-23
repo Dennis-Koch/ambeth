@@ -21,7 +21,7 @@ limitations under the License.
  */
 
 public interface ITypeBasedHandler {
-	Object readObject(Class<?> returnType, Class<?> objType, int id, IReader reader);
+    Object readObject(Class<?> returnType, Class<?> objType, int id, IReader reader);
 
-	void writeObject(Object obj, Class<?> type, IWriter writer);
+    void writeObject(Object obj, Class<?> type, IWriter writer, boolean suppressReference);
 }

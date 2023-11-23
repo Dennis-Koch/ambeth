@@ -20,9 +20,6 @@ limitations under the License.
  * #L%
  */
 
-import java.util.Collection;
-import java.util.List;
-
 import com.koch.ambeth.filter.IFilterDescriptor;
 import com.koch.ambeth.filter.IPagingRequest;
 import com.koch.ambeth.filter.IPagingResponse;
@@ -37,79 +34,83 @@ import com.koch.ambeth.server.helloworld.transfer.TestEntity;
 import com.koch.ambeth.server.helloworld.transfer.TestEntity2;
 import com.koch.ambeth.service.proxy.Service;
 
+import java.util.Collection;
+import java.util.List;
+
 @Service(name = "HelloWorldService", value = IHelloWorldService.class)
 @SecurityContext(SecurityContextType.NOT_REQUIRED)
 public class HelloWorldService implements IHelloWorldService {
-	@Autowired
-	protected IQueryBuilderFactory qbf;
+    @Autowired
+    protected IQueryBuilderFactory qbf;
 
-	@Autowired
-	protected IFilterToQueryBuilder filterToQueryBuilder;
+    @Autowired
+    protected IFilterToQueryBuilder filterToQueryBuilder;
 
-	@Override
-	public IPagingResponse<TestEntity> findTestEntities(
-			IFilterDescriptor<TestEntity> filterDescriptor, ISortDescriptor[] sortDescriptors,
-			IPagingRequest pagingRequest) {
-		IPagingQuery<TestEntity> pagingQuery =
-				filterToQueryBuilder.buildQuery(filterDescriptor, sortDescriptors);
+    @Override
+    public IPagingResponse<TestEntity> findTestEntities(IFilterDescriptor<TestEntity> filterDescriptor, ISortDescriptor[] sortDescriptors, IPagingRequest pagingRequest) {
+        IPagingQuery<TestEntity> pagingQuery = filterToQueryBuilder.buildQuery(filterDescriptor, sortDescriptors);
 
-		return pagingQuery.retrieve(pagingRequest);
-	}
+        return pagingQuery.retrieve(pagingRequest);
+    }
 
-	@Override
-	@SecurityContext(SecurityContextType.AUTHENTICATED)
-	public List<TestEntity> getAllTestEntities() {
-		return qbf.create(TestEntity.class).build().retrieve();
-	}
+    @Override
+    @SecurityContext(SecurityContextType.AUTHENTICATED)
+    public List<TestEntity> getAllTestEntities() {
+        var result = qbf.create(TestEntity.class).build().retrieve();
+        if (!result.isEmpty()) {
+            result.get(0).setMyValue((int) Math.random() * 10000);
+        }
+        return result;
+    }
 
-	@Override
-	@SecurityContext(SecurityContextType.AUTHORIZED)
-	public List<TestEntity2> getAllTest2Entities() {
-		return qbf.create(TestEntity2.class).build().retrieve();
-	}
+    @Override
+    @SecurityContext(SecurityContextType.AUTHORIZED)
+    public List<TestEntity2> getAllTest2Entities() {
+        return qbf.create(TestEntity2.class).build().retrieve();
+    }
 
-	@Override
-	public double doFunnyThings(int value, String text) {
-		return ((value + text.length()) % 2) + 0.3456;
-	}
+    @Override
+    public double doFunnyThings(int value, String text) {
+        return ((value + text.length()) % 2) + 0.3456;
+    }
 
-	@Override
-	public void saveTestEntities(TestEntity... testEntities) {
-		throw new UnsupportedOperationException("Not implemented, because this should never be called");
-	}
+    @Override
+    public void saveTestEntities(TestEntity... testEntities) {
+        throw new UnsupportedOperationException("Not implemented, because this should never be called");
+    }
 
-	@Override
-	public void saveTestEntities(Collection<TestEntity> testEntities) {
-		throw new UnsupportedOperationException("Not implemented, because this should never be called");
-	}
+    @Override
+    public void saveTestEntities(Collection<TestEntity> testEntities) {
+        throw new UnsupportedOperationException("Not implemented, because this should never be called");
+    }
 
-	@Override
-	public void saveTest2Entities(TestEntity2... test2Entities) {
-		throw new UnsupportedOperationException("Not implemented, because this should never be called");
-	}
+    @Override
+    public void saveTest2Entities(TestEntity2... test2Entities) {
+        throw new UnsupportedOperationException("Not implemented, because this should never be called");
+    }
 
-	@Override
-	public void deleteTestEntities(TestEntity... testEntities) {
-		throw new UnsupportedOperationException("Not implemented, because this should never be called");
-	}
+    @Override
+    public void deleteTestEntities(TestEntity... testEntities) {
+        throw new UnsupportedOperationException("Not implemented, because this should never be called");
+    }
 
-	@Override
-	public void deleteTestEntities(Collection<TestEntity> testEntities) {
-		throw new UnsupportedOperationException("Not implemented, because this should never be called");
-	}
+    @Override
+    public void deleteTestEntities(Collection<TestEntity> testEntities) {
+        throw new UnsupportedOperationException("Not implemented, because this should never be called");
+    }
 
-	@Override
-	public void deleteTestEntities(long... ids) {
-		throw new UnsupportedOperationException("Not implemented, because this should never be called");
-	}
+    @Override
+    public void deleteTestEntities(long... ids) {
+        throw new UnsupportedOperationException("Not implemented, because this should never be called");
+    }
 
-	@Override
-	public void deleteTest2Entities(TestEntity2... test2Entities) {
-		throw new UnsupportedOperationException("Not implemented, because this should never be called");
-	}
+    @Override
+    public void deleteTest2Entities(TestEntity2... test2Entities) {
+        throw new UnsupportedOperationException("Not implemented, because this should never be called");
+    }
 
-	@Override
-	public void forbiddenMethod() {
-		throw new IllegalStateException("This will never occur because security will catch this call");
-	}
+    @Override
+    public void forbiddenMethod() {
+        throw new IllegalStateException("This will never occur because security will catch this call");
+    }
 }

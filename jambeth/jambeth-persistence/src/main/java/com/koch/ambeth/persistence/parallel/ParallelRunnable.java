@@ -20,96 +20,86 @@ limitations under the License.
  * #L%
  */
 
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.locks.Lock;
-
 import com.koch.ambeth.ioc.threadlocal.IForkState;
 import com.koch.ambeth.util.ParamHolder;
 import com.koch.ambeth.util.collections.IList;
+import com.koch.ambeth.util.function.CheckedConsumer;
 import com.koch.ambeth.util.state.IStateRollback;
-import com.koch.ambeth.util.state.NoOpStateRollback;
-import com.koch.ambeth.util.threading.IBackgroundWorkerParamDelegate;
+import com.koch.ambeth.util.state.StateRollback;
+
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.locks.Lock;
 
 public class ParallelRunnable<V> implements Runnable {
-	protected final RunnableHandle<V> runnableHandle;
+    protected final RunnableHandle<V> runnableHandle;
 
-	protected final boolean buildThreadLocals;
+    protected final boolean buildThreadLocals;
 
-	public ParallelRunnable(RunnableHandle<V> runnableHandle, boolean buildThreadLocals) {
-		this.runnableHandle = runnableHandle;
-		this.buildThreadLocals = buildThreadLocals;
-	}
+    public ParallelRunnable(RunnableHandle<V> runnableHandle, boolean buildThreadLocals) {
+        this.runnableHandle = runnableHandle;
+        this.buildThreadLocals = buildThreadLocals;
+    }
 
-	@Override
-	public void run() {
-		IStateRollback rollback = NoOpStateRollback.instance;
-		if (buildThreadLocals) {
-			rollback = runnableHandle.threadLocalCleanupController
-					.pushThreadLocalState(IStateRollback.EMPTY_ROLLBACKS);
-		}
-		try {
-			final Lock parallelLock = runnableHandle.parallelLock;
-			IList<V> items = runnableHandle.items;
-			IForkState forkState = runnableHandle.forkState;
-			ParamHolder<Throwable> exHolder = runnableHandle.exHolder;
-			CountDownLatch latch = runnableHandle.latch;
+    @Override
+    public void run() {
+        IStateRollback rollback = StateRollback.empty();
+        if (buildThreadLocals) {
+            rollback = runnableHandle.threadLocalCleanupController.pushThreadLocalState();
+        }
+        try {
+            final Lock parallelLock = runnableHandle.parallelLock;
+            IList<V> items = runnableHandle.items;
+            IForkState forkState = runnableHandle.forkState;
+            ParamHolder<Throwable> exHolder = runnableHandle.exHolder;
+            CountDownLatch latch = runnableHandle.latch;
 
-			IBackgroundWorkerParamDelegate<V> run = new IBackgroundWorkerParamDelegate<V>() {
-				@Override
-				public void invoke(V state) throws Exception {
-					runnableHandle.run.invoke(state);
-					writeParallelResult(parallelLock, state);
-				}
-			};
+            CheckedConsumer<V> run = state -> {
+                CheckedConsumer.invoke(runnableHandle.run, state);
+                writeParallelResult(parallelLock, state);
+            };
 
-			while (true) {
-				V item;
-				parallelLock.lock();
-				try {
-					if (exHolder.getValue() != null) {
-						// an uncatched error occurred somewhere
-						return;
-					}
-					// pop the last item of the queue
-					item = items.popLastElement();
-				}
-				finally {
-					parallelLock.unlock();
-				}
-				if (item == null) {
-					// queue finished
-					return;
-				}
-				try {
-					if (buildThreadLocals) {
-						forkState.use(run, item);
-					}
-					else {
-						run.invoke(item);
-					}
-				}
-				catch (Throwable e) {
-					parallelLock.lock();
-					try {
-						if (exHolder.getValue() == null) {
-							exHolder.setValue(e);
-						}
-					}
-					finally {
-						parallelLock.unlock();
-					}
-				}
-				finally {
-					latch.countDown();
-				}
-			}
-		}
-		finally {
-			rollback.rollback();
-		}
-	}
+            while (true) {
+                V item;
+                parallelLock.lock();
+                try {
+                    if (exHolder.getValue() != null) {
+                        // an uncatched error occurred somewhere
+                        return;
+                    }
+                    // pop the last item of the queue
+                    item = items.popLastElement();
+                } finally {
+                    parallelLock.unlock();
+                }
+                if (item == null) {
+                    // queue finished
+                    return;
+                }
+                try {
+                    if (buildThreadLocals) {
+                        forkState.use(run, item);
+                    } else {
+                        CheckedConsumer.invoke(run, item);
+                    }
+                } catch (Throwable e) {
+                    parallelLock.lock();
+                    try {
+                        if (exHolder.getValue() == null) {
+                            exHolder.setValue(e);
+                        }
+                    } finally {
+                        parallelLock.unlock();
+                    }
+                } finally {
+                    latch.countDown();
+                }
+            }
+        } finally {
+            rollback.rollback();
+        }
+    }
 
-	protected void writeParallelResult(Lock parallelLock, V item) {
-		// intended blank
-	}
+    protected void writeParallelResult(Lock parallelLock, V item) {
+        // intended blank
+    }
 }

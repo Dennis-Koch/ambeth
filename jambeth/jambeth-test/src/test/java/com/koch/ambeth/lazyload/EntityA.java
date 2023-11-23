@@ -2,18 +2,18 @@ package com.koch.ambeth.lazyload;
 
 import java.util.List;
 
-import javax.persistence.Embedded;
+import jakarta.persistence.Embedded;
 
 import com.koch.ambeth.util.annotation.PropertyChangeAspect;
 
 @PropertyChangeAspect(includeNewValue = true, includeOldValue = true)
 public interface EntityA {
-	int getId();
+    int getId();
 
-	int getVersion();
+    int getVersion();
 
-	@Embedded
-	EmbeddedA getEmbeddedA();
+    @Embedded
+    EmbeddedA getEmbeddedA();
 
-	List<EntityC> getEntityCs();
+    List<EntityC> getEntityCs();
 }

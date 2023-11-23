@@ -8,4 +8,5 @@ module jambeth.util {
     requires net.bytebuddy;
     requires org.burningwave.core;
     requires org.objectweb.asm;
+    requires spring.core;
 }

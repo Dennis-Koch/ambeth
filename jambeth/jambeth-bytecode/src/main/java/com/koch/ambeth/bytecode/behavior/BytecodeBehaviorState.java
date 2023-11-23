@@ -20,11 +20,6 @@ limitations under the License.
  * #L%
  */
 
-import java.lang.reflect.Field;
-import java.util.Map.Entry;
-
-import org.objectweb.asm.Type;
-
 import com.koch.ambeth.bytecode.FieldInstance;
 import com.koch.ambeth.bytecode.IValueResolveDelegate;
 import com.koch.ambeth.bytecode.MethodInstance;
@@ -35,234 +30,209 @@ import com.koch.ambeth.util.MethodKeyOfType;
 import com.koch.ambeth.util.ReflectUtil;
 import com.koch.ambeth.util.collections.LinkedHashMap;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
-import com.koch.ambeth.util.state.AbstractStateRollback;
+import com.koch.ambeth.util.function.CheckedSupplier;
 import com.koch.ambeth.util.state.IStateRollback;
-import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
+import lombok.SneakyThrows;
+import org.objectweb.asm.Type;
+
+import java.lang.reflect.Field;
+import java.util.Map.Entry;
 
 public class BytecodeBehaviorState implements IBytecodeBehaviorState {
-	public static class PropertyKey {
-		private final String propertyName;
+    private static final ThreadLocal<IBytecodeBehaviorState> stateTL = new ThreadLocal<>();
 
-		private final Type propertyType;
+    public static IBytecodeBehaviorState getState() {
+        return stateTL.get();
+    }
 
-		public PropertyKey(String propertyName, Type propertyType) {
-			this.propertyName = propertyName;
-			this.propertyType = propertyType;
-		}
+    /**
+     * Please use
+     * {@link #pushState(Class, Class, Type, IServiceContext, IEnhancementHint)}
+     * instead
+     */
+    @Deprecated
+    @SneakyThrows
+    public static <T> T setState(Class<?> originalType, Class<?> currentType, Type newType, IServiceContext beanContext, IEnhancementHint context, CheckedSupplier<T> runnable) {
+        var rollback = pushState(originalType, currentType, newType, beanContext, context);
+        try {
+            return CheckedSupplier.invoke(runnable);
+        } finally {
+            rollback.rollback();
+        }
+    }
 
-		@Override
-		public boolean equals(Object obj) {
-			if (obj == this) {
-				return true;
-			}
-			if (!(obj instanceof PropertyKey)) {
-				return false;
-			}
-			PropertyKey other = (PropertyKey) obj;
-			return propertyName.equals(other.propertyName) && (propertyType == null
-					|| other.propertyType == null || propertyType.equals(other.propertyType));
-		}
+    public static IStateRollback pushState(Class<?> originalType, Class<?> currentType, Type newType, IServiceContext beanContext, IEnhancementHint context) {
+        var oldState = stateTL.get();
+        stateTL.set(new BytecodeBehaviorState(currentType, newType, originalType, beanContext, context));
+        return () -> {
+            if (oldState != null) {
+                stateTL.set(oldState);
+            } else {
+                stateTL.remove();
+            }
+        };
+    }
 
-		@Override
-		public int hashCode() {
-			if (propertyType == null) {
-				return propertyName.hashCode();
-			}
-			return propertyName.hashCode() ^ propertyType.hashCode();
-		}
-	}
+    private final Class<?> currentType;
+    private final Type newType;
+    private final Class<?> originalType;
+    private final IServiceContext beanContext;
+    private final IEnhancementHint context;
+    private final LinkedHashMap<MethodKeyOfType, MethodInstance> implementedMethods = new LinkedHashMap<>();
+    private final LinkedHashMap<PropertyKey, PropertyInstance> implementedProperties = new LinkedHashMap<>();
+    private final LinkedHashMap<String, FieldInstance> implementedFields = new LinkedHashMap<>();
+    private final LinkedHashMap<String, IValueResolveDelegate> initializeStaticFields = new LinkedHashMap<>();
 
-	private static final ThreadLocal<IBytecodeBehaviorState> stateTL =
-			new ThreadLocal<>();
+    public BytecodeBehaviorState(Class<?> currentType, Type newType, Class<?> originalType, IServiceContext beanContext, IEnhancementHint context) {
+        this.currentType = currentType;
+        this.newType = newType;
+        this.originalType = originalType;
+        this.beanContext = beanContext;
+        this.context = context;
+    }
 
-	public static IBytecodeBehaviorState getState() {
-		return stateTL.get();
-	}
+    @Override
+    public Class<?> getCurrentType() {
+        return currentType;
+    }
 
-	/**
-	 * Please use
-	 * {@link #pushState(Class, Class, Type, IServiceContext, IEnhancementHint, IStateRollback...)}
-	 * instead
-	 */
-	@Deprecated
-	public static <T> T setState(Class<?> originalType, Class<?> currentType, Type newType,
-			IServiceContext beanContext, IEnhancementHint context,
-			IResultingBackgroundWorkerDelegate<T> runnable) {
-		IStateRollback rollback = pushState(originalType, currentType, newType, beanContext, context);
-		try {
-			return runnable.invoke();
-		}
-		catch (Exception e) {
-			throw RuntimeExceptionUtil.mask(e);
-		}
-		finally {
-			rollback.rollback();
-		}
-	}
+    @Override
+    public Type getNewType() {
+        return newType;
+    }
 
-	public static IStateRollback pushState(Class<?> originalType, Class<?> currentType, Type newType,
-			IServiceContext beanContext, IEnhancementHint context, IStateRollback... rollbacks) {
-		final IBytecodeBehaviorState oldState = stateTL.get();
-		stateTL
-				.set(new BytecodeBehaviorState(currentType, newType, originalType, beanContext, context));
-		return new AbstractStateRollback(rollbacks) {
-			@Override
-			protected void rollbackIntern() throws Exception {
-				if (oldState != null) {
-					stateTL.set(oldState);
-				}
-				else {
-					stateTL.remove();
-				}
-			}
-		};
-	}
+    @Override
+    public Class<?> getOriginalType() {
+        return originalType;
+    }
 
-	private final Class<?> currentType;
-	private final Type newType;
-	private final Class<?> originalType;
-	private final IServiceContext beanContext;
-	private final IEnhancementHint context;
+    @Override
+    public IServiceContext getBeanContext() {
+        return beanContext;
+    }
 
-	private final LinkedHashMap<MethodKeyOfType, MethodInstance> implementedMethods =
-			new LinkedHashMap<>();
+    @Override
+    public IEnhancementHint getContext() {
+        return context;
+    }
 
-	private final LinkedHashMap<PropertyKey, PropertyInstance> implementedProperties =
-			new LinkedHashMap<>();
+    @Override
+    public <T extends IEnhancementHint> T getContext(Class<T> contextType) {
+        return context.unwrap(contextType);
+    }
 
-	private final LinkedHashMap<String, FieldInstance> implementedFields =
-			new LinkedHashMap<>();
+    public void methodImplemented(MethodInstance method) {
+        if (!implementedMethods.putIfNotExists(new MethodKeyOfType(method.getName(), method.getReturnType(), method.getParameters()), method)) {
+            throw new IllegalStateException("Method already implemented: " + method);
+        }
+    }
 
-	private final LinkedHashMap<String, IValueResolveDelegate> initializeStaticFields =
-			new LinkedHashMap<>();
+    public void fieldImplemented(FieldInstance field) {
+        if (!implementedFields.putIfNotExists(field.getName(), field)) {
+            throw new IllegalStateException("Field already implemented: " + field);
+        }
+    }
 
-	public BytecodeBehaviorState(Class<?> currentType, Type newType, Class<?> originalType,
-			IServiceContext beanContext, IEnhancementHint context) {
-		this.currentType = currentType;
-		this.newType = newType;
-		this.originalType = originalType;
-		this.beanContext = beanContext;
-		this.context = context;
-	}
+    public void propertyImplemented(PropertyInstance property) {
+        if (!implementedProperties.putIfNotExists(new PropertyKey(property.getName(), property.getPropertyType()), property)) {
+            throw new IllegalStateException("Property already implemented: " + property);
+        }
+    }
 
-	@Override
-	public Class<?> getCurrentType() {
-		return currentType;
-	}
+    public void queueFieldInitialization(String fieldName, IValueResolveDelegate value) {
+        if (!initializeStaticFields.putIfNotExists(fieldName, value)) {
+            throw new IllegalStateException("Field already queued for initialization: " + fieldName);
+        }
+    }
 
-	@Override
-	public Type getNewType() {
-		return newType;
-	}
+    @Override
+    public PropertyInstance getProperty(String propertyName, Class<?> propertyType) {
+        return getProperty(propertyName, Type.getType(propertyType));
+    }
 
-	@Override
-	public Class<?> getOriginalType() {
-		return originalType;
-	}
+    @Override
+    public PropertyInstance getProperty(String propertyName, Type propertyType) {
+        PropertyInstance pi = implementedProperties.get(new PropertyKey(propertyName, propertyType));
+        if (pi != null) {
+            return pi;
+        }
+        return PropertyInstance.findByTemplate(getCurrentType(), propertyName, propertyType, true);
+    }
 
-	@Override
-	public IServiceContext getBeanContext() {
-		return beanContext;
-	}
+    @Override
+    public MethodInstance[] getAlreadyImplementedMethodsOnNewType() {
+        return implementedMethods.toArray(MethodInstance.class);
+    }
 
-	@Override
-	public IEnhancementHint getContext() {
-		return context;
-	}
+    @Override
+    public FieldInstance getAlreadyImplementedField(String fieldName) {
+        FieldInstance field = implementedFields.get(fieldName);
+        if (field == null) {
+            Field[] declaredFieldInHierarchy = ReflectUtil.getDeclaredFieldInHierarchy(getCurrentType(), fieldName);
+            if (declaredFieldInHierarchy != null && declaredFieldInHierarchy.length > 0) {
+                field = new FieldInstance(declaredFieldInHierarchy[0]);
+            }
+        }
+        return field;
+    }
 
-	@Override
-	public <T extends IEnhancementHint> T getContext(Class<T> contextType) {
-		return context.unwrap(contextType);
-	}
+    @Override
+    public boolean hasMethod(MethodInstance method) {
+        MethodInstance existingMethod = MethodInstance.findByTemplate(method, true);
+        return existingMethod != null && getState().getNewType().equals(existingMethod.getOwner());
+    }
 
-	public void methodImplemented(MethodInstance method) {
-		if (!implementedMethods.putIfNotExists(
-				new MethodKeyOfType(method.getName(), method.getReturnType(), method.getParameters()),
-				method)) {
-			throw new IllegalStateException("Method already implemented: " + method);
-		}
-	}
+    @Override
+    public boolean isMethodAlreadyImplementedOnNewType(MethodInstance method) {
+        return implementedMethods.containsKey(new MethodKeyOfType(method.getName(), method.getReturnType(), method.getParameters()));
+    }
 
-	public void fieldImplemented(FieldInstance field) {
-		if (!implementedFields.putIfNotExists(field.getName(), field)) {
-			throw new IllegalStateException("Field already implemented: " + field);
-		}
-	}
+    public void postProcessCreatedType(Class<?> newType) {
+        for (Entry<String, IValueResolveDelegate> entry : initializeStaticFields) {
+            Field[] fields = ReflectUtil.getDeclaredFieldInHierarchy(newType, entry.getKey());
+            if (fields.length == 0) {
+                throw new IllegalStateException("Field not found: '" + newType.getName() + "." + entry.getKey());
+            }
+            Object value = entry.getValue().invoke(entry.getKey(), newType);
+            for (Field field : fields) {
+                try {
+                    field.set(null, value);
+                } catch (Throwable e) {
+                    throw RuntimeExceptionUtil.mask(e, "Error occured while setting field: " + field);
+                }
+            }
+        }
+        initializeStaticFields.clear();
+    }
 
-	public void propertyImplemented(PropertyInstance property) {
-		if (!implementedProperties.putIfNotExists(
-				new PropertyKey(property.getName(), property.getPropertyType()), property)) {
-			throw new IllegalStateException("Property already implemented: " + property);
-		}
-	}
+    public static class PropertyKey {
+        private final String propertyName;
 
-	public void queueFieldInitialization(String fieldName, IValueResolveDelegate value) {
-		if (!initializeStaticFields.putIfNotExists(fieldName, value)) {
-			throw new IllegalStateException("Field already queued for initialization: " + fieldName);
-		}
-	}
+        private final Type propertyType;
 
-	@Override
-	public PropertyInstance getProperty(String propertyName, Class<?> propertyType) {
-		return getProperty(propertyName, Type.getType(propertyType));
-	}
+        public PropertyKey(String propertyName, Type propertyType) {
+            this.propertyName = propertyName;
+            this.propertyType = propertyType;
+        }
 
-	@Override
-	public PropertyInstance getProperty(String propertyName, Type propertyType) {
-		PropertyInstance pi = implementedProperties.get(new PropertyKey(propertyName, propertyType));
-		if (pi != null) {
-			return pi;
-		}
-		return PropertyInstance.findByTemplate(getCurrentType(), propertyName, propertyType, true);
-	}
+        @Override
+        public boolean equals(Object obj) {
+            if (obj == this) {
+                return true;
+            }
+            if (!(obj instanceof PropertyKey)) {
+                return false;
+            }
+            PropertyKey other = (PropertyKey) obj;
+            return propertyName.equals(other.propertyName) && (propertyType == null || other.propertyType == null || propertyType.equals(other.propertyType));
+        }
 
-	@Override
-	public MethodInstance[] getAlreadyImplementedMethodsOnNewType() {
-		return implementedMethods.toArray(MethodInstance.class);
-	}
-
-	@Override
-	public FieldInstance getAlreadyImplementedField(String fieldName) {
-		FieldInstance field = implementedFields.get(fieldName);
-		if (field == null) {
-			Field[] declaredFieldInHierarchy =
-					ReflectUtil.getDeclaredFieldInHierarchy(getCurrentType(), fieldName);
-			if (declaredFieldInHierarchy != null && declaredFieldInHierarchy.length > 0) {
-				field = new FieldInstance(declaredFieldInHierarchy[0]);
-			}
-		}
-		return field;
-	}
-
-	@Override
-	public boolean hasMethod(MethodInstance method) {
-		MethodInstance existingMethod = MethodInstance.findByTemplate(method, true);
-		return existingMethod != null && getState().getNewType().equals(existingMethod.getOwner());
-	}
-
-	@Override
-	public boolean isMethodAlreadyImplementedOnNewType(MethodInstance method) {
-		return implementedMethods.containsKey(
-				new MethodKeyOfType(method.getName(), method.getReturnType(), method.getParameters()));
-	}
-
-	public void postProcessCreatedType(Class<?> newType) {
-		for (Entry<String, IValueResolveDelegate> entry : initializeStaticFields) {
-			Field[] fields = ReflectUtil.getDeclaredFieldInHierarchy(newType, entry.getKey());
-			if (fields.length == 0) {
-				throw new IllegalStateException(
-						"Field not found: '" + newType.getName() + "." + entry.getKey());
-			}
-			Object value = entry.getValue().invoke(entry.getKey(), newType);
-			for (Field field : fields) {
-				try {
-					field.set(null, value);
-				}
-				catch (Throwable e) {
-					throw RuntimeExceptionUtil.mask(e, "Error occured while setting field: " + field);
-				}
-			}
-		}
-		initializeStaticFields.clear();
-	}
+        @Override
+        public int hashCode() {
+            if (propertyType == null) {
+                return propertyName.hashCode();
+            }
+            return propertyName.hashCode() ^ propertyType.hashCode();
+        }
+    }
 }

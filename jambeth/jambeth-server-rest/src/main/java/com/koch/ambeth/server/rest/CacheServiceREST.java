@@ -20,9 +20,12 @@ limitations under the License.
  * #L%
  */
 
-import java.io.InputStream;
-import java.util.List;
-
+import com.koch.ambeth.cache.ioc.CacheModule;
+import com.koch.ambeth.cache.service.ICacheService;
+import com.koch.ambeth.service.cache.model.IObjRelation;
+import com.koch.ambeth.service.merge.model.IObjRef;
+import com.koch.ambeth.service.model.IServiceDescription;
+import com.koch.ambeth.service.rest.Constants;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.ws.rs.Consumes;
@@ -32,78 +35,34 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.StreamingOutput;
 
-import com.koch.ambeth.cache.ioc.CacheModule;
-import com.koch.ambeth.cache.service.ICacheService;
-import com.koch.ambeth.service.cache.model.ILoadContainer;
-import com.koch.ambeth.service.cache.model.IObjRelation;
-import com.koch.ambeth.service.cache.model.IObjRelationResult;
-import com.koch.ambeth.service.cache.model.IServiceResult;
-import com.koch.ambeth.service.merge.model.IObjRef;
-import com.koch.ambeth.service.model.IServiceDescription;
-import com.koch.ambeth.service.rest.Constants;
-import com.koch.ambeth.util.state.IStateRollback;
+import java.io.InputStream;
+import java.util.List;
 
 @Path("/CacheService")
 @Consumes({ Constants.AMBETH_MEDIA_TYPE })
 @Produces({ Constants.AMBETH_MEDIA_TYPE })
 public class CacheServiceREST extends AbstractServiceREST {
-	protected ICacheService getCacheService() {
-		return getServiceContext().getService(CacheModule.EXTERNAL_CACHE_SERVICE, ICacheService.class);
-	}
+    protected ICacheService getCacheService() {
+        return getServiceContext().getService(CacheModule.EXTERNAL_CACHE_SERVICE, ICacheService.class);
+    }
 
-	@SuppressWarnings("unchecked")
-	@POST
-	@Path("getEntities")
-	public StreamingOutput getEntities(InputStream is, @Context HttpServletRequest request,
-			@Context HttpServletResponse response) {
-		var rollback = preServiceCall(request, response);
-		try {
-			var args = getArguments(is, request);
-			var result = getCacheService().getEntities((List<IObjRef>) args[0]);
-			return createResult(result, request, response);
-		}
-		catch (Throwable e) {
-			return createExceptionResult(e, request, response);
-		}
-		finally {
-			rollback.rollback();
-		}
-	}
+    @SuppressWarnings("unchecked")
+    @POST
+    @Path("getEntities")
+    public StreamingOutput getEntities(InputStream is, @Context HttpServletRequest request, @Context HttpServletResponse response) {
+        return defaultStreamingRequest(request, response, is, args -> getCacheService().getEntities((List<IObjRef>) args[0]));
+    }
 
-	@SuppressWarnings("unchecked")
-	@POST
-	@Path("getRelations")
-	public StreamingOutput getRelations(InputStream is, @Context HttpServletRequest request,
-			@Context HttpServletResponse response) {
-		var rollback = preServiceCall(request, response);
-		try {
-			var args = getArguments(is, request);
-			var result = getCacheService().getRelations((List<IObjRelation>) args[0]);
-			return createResult(result, request, response);
-		}
-		catch (Throwable e) {
-			return createExceptionResult(e, request, response);
-		}
-		finally {
-			rollback.rollback();
-		}
-	}
+    @SuppressWarnings("unchecked")
+    @POST
+    @Path("getRelations")
+    public StreamingOutput getRelations(InputStream is, @Context HttpServletRequest request, @Context HttpServletResponse response) {
+        return defaultStreamingRequest(request, response, is, args -> getCacheService().getRelations((List<IObjRelation>) args[0]));
+    }
 
-	@POST
-	@Path("getORIsForServiceRequest")
-	public StreamingOutput getORIsForServiceRequest(InputStream is,
-			@Context HttpServletRequest request, @Context HttpServletResponse response) {
-		var rollback = preServiceCall(request, response);
-		try {
-			var args = getArguments(is, request);
-			var result = getCacheService().getORIsForServiceRequest((IServiceDescription) args[0]);
-			return createResult(result, request, response);
-		}
-		catch (Throwable e) {
-			return createExceptionResult(e, request, response);
-		}
-		finally {
-			rollback.rollback();
-		}
-	}
+    @POST
+    @Path("getORIsForServiceRequest")
+    public StreamingOutput getORIsForServiceRequest(InputStream is, @Context HttpServletRequest request, @Context HttpServletResponse response) {
+        return defaultStreamingRequest(request, response, is, args -> getCacheService().getORIsForServiceRequest((IServiceDescription) args[0]));
+    }
 }

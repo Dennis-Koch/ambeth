@@ -20,13 +20,6 @@ limitations under the License.
  * #L%
  */
 
-import java.util.Collections;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
-
 import com.koch.ambeth.event.IEventBatcher;
 import com.koch.ambeth.event.IEventListener;
 import com.koch.ambeth.event.IQueuedEvent;
@@ -39,338 +32,320 @@ import com.koch.ambeth.event.transfer.EventItem;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.extendable.ClassExtendableContainer;
 import com.koch.ambeth.util.collections.ArrayList;
-import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.IListElem;
 import com.koch.ambeth.util.collections.InterfaceFastList;
 
-public class EventManager
-		implements IEventProvider, IEventStore, IEventListener, IEventStoreHandlerExtendable {
-	@Autowired
-	protected IEventBatcher eventBatcher;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
-	protected final InterfaceFastList<IQueuedEvent> eventQueue =
-			new InterfaceFastList<>();
+public class EventManager implements IEventProvider, IEventStore, IEventListener, IEventStoreHandlerExtendable {
+    protected final InterfaceFastList<IQueuedEvent> eventQueue = new InterfaceFastList<>();
+    protected final ClassExtendableContainer<IEventStoreHandler> eventStoreHandlers = new ClassExtendableContainer<>("eventStoreHandler", "eventType");
+    protected final Lock eventQueueLock = new ReentrantLock();
+    protected final Condition cond = eventQueueLock.newCondition();
+    @Autowired
+    protected IEventBatcher eventBatcher;
+    protected volatile long eventSequence;
+    protected long lastCleanup;
+    protected long maxEventHistoryTime;
+    protected long maxResponseDelay;
+    protected long minCleanupDelay;
 
-	protected volatile long eventSequence;
+    public EventManager() {
+        maxEventHistoryTime = 10L * 60L * 1000L;// Minutes(10);
+        maxResponseDelay = 60L * 1000L; // Seconds(60);
+        minCleanupDelay = 1L * 1000L; // Seconds(1);
+    }
 
-	protected long lastCleanup;
+    public long getMaxEventHistoryTime() {
+        return maxEventHistoryTime;
+    }
 
-	protected long maxEventHistoryTime;
-	protected long maxResponseDelay;
-	protected long minCleanupDelay;
+    public void setMaxEventHistoryTime(long maxEventHistoryTime) {
+        this.maxEventHistoryTime = maxEventHistoryTime;
+    }
 
-	protected final ClassExtendableContainer<IEventStoreHandler> eventStoreHandlers =
-			new ClassExtendableContainer<>("eventStoreHandler", "eventType");
+    public long getMaxResponseDelay() {
+        return maxResponseDelay;
+    }
 
-	protected final Lock eventQueueLock = new ReentrantLock();
+    public void setMaxResponseDelay(long maxResponseDelay) {
+        this.maxResponseDelay = maxResponseDelay;
+    }
 
-	protected final Condition cond = eventQueueLock.newCondition();
+    public long getMinCleanupDelay() {
+        return minCleanupDelay;
+    }
 
-	public long getMaxEventHistoryTime() {
-		return maxEventHistoryTime;
-	}
+    public void setMinCleanupDelay(long minCleanupDelay) {
+        this.minCleanupDelay = minCleanupDelay;
+    }
 
-	public void setMaxEventHistoryTime(long maxEventHistoryTime) {
-		this.maxEventHistoryTime = maxEventHistoryTime;
-	}
+    @SuppressWarnings("unchecked")
+    @Override
+    public void handleEvent(Object eventObject, long dispatchTime, long sequenceId) {
+        eventObject = preSaveToStore(eventObject);
+        eventQueueLock.lock();
+        try {
+            checkEventHistoryForCleanupIntern();
+            IListElem<IQueuedEvent> queuedEventLE = null;
+            long sequenceNumber = ++eventSequence;
+            if (eventObject instanceof IListElem) {
+                Object listElemTarget = ((IListElem<?>) eventObject).getElemValue();
+                if (listElemTarget instanceof IQueuedEvent) {
+                    queuedEventLE = (IListElem<IQueuedEvent>) listElemTarget;
+                    IQueuedEvent queuedEvent = ((IQueuedEvent) listElemTarget);
+                    queuedEvent.setDispatchTime(dispatchTime);
+                    queuedEvent.setSequenceNumber(sequenceNumber);
+                }
+            }
+            if (queuedEventLE == null) {
+                queuedEventLE = new QueuedEvent(eventObject, dispatchTime, sequenceNumber);
+            }
+            eventQueue.pushLast(queuedEventLE);
+            cond.signalAll();
+        } finally {
+            eventQueueLock.unlock();
+        }
+    }
 
-	public long getMaxResponseDelay() {
-		return maxResponseDelay;
-	}
+    @SuppressWarnings("unchecked")
+    @Override
+    public void addEvents(List<Object> eventObjects) {
+        for (int i = eventObjects.size(); i-- > 0; ) {
+            Object eventObject = eventObjects.get(i);
+            eventObject = preSaveToStore(eventObject);
+            eventObjects.set(i, eventObject);
+        }
+        eventQueueLock.lock();
+        try {
+            checkEventHistoryForCleanupIntern();
+            long dispatchTime = System.currentTimeMillis();
+            for (int i = 0, size = eventObjects.size(); i < size; i++) {
+                Object eventObject = eventObjects.get(i);
+                IListElem<IQueuedEvent> queuedEventLE = null;
+                long sequenceNumber = ++eventSequence;
+                if (eventObject instanceof IListElem) {
+                    Object listElemTarget = ((IListElem<?>) eventObject).getElemValue();
+                    if (listElemTarget instanceof IQueuedEvent) {
+                        queuedEventLE = (IListElem<IQueuedEvent>) listElemTarget;
+                        IQueuedEvent queuedEvent = ((IQueuedEvent) listElemTarget);
+                        queuedEvent.setDispatchTime(dispatchTime);
+                        queuedEvent.setSequenceNumber(sequenceNumber);
+                    }
+                }
+                if (queuedEventLE == null) {
+                    queuedEventLE = new QueuedEvent(eventObject, dispatchTime, sequenceNumber);
+                }
+                eventQueue.pushLast(queuedEventLE);
+            }
+            cond.signalAll();
+        } finally {
+            eventQueueLock.unlock();
+        }
+    }
 
-	public void setMaxResponseDelay(long maxResponseDelay) {
-		this.maxResponseDelay = maxResponseDelay;
-	}
+    @Override
+    public List<IEventItem> getEvents(long eventSequenceSince, long requestedMaximumWaitTime) {
+        // take the requested amount of waitTime from the client with
+        // the upper boundary 'MaxResponseDelay'
+        var maximumWaitTime = maxResponseDelay < requestedMaximumWaitTime ? maxResponseDelay : requestedMaximumWaitTime;
+        var selectedEvents = new ArrayList<IQueuedEvent>();
+        var startedTime = System.currentTimeMillis();
+        eventQueueLock.lock();
+        try {
+            try {
+                selectEvents(startedTime, eventSequenceSince, maximumWaitTime, selectedEvents);
+            } finally {
+                checkEventHistoryForCleanupIntern();
+            }
+        } finally {
+            eventQueueLock.unlock();
+        }
+        if (selectedEvents.isEmpty()) {
+            return List.of();
+        }
+        postLoadFromStore(selectedEvents);
+        return batchAndConvertEvents(selectedEvents);
+    }
 
-	public long getMinCleanupDelay() {
-		return minCleanupDelay;
-	}
+    protected Object preSaveToStore(Object eventObject) {
+        Class<?> eventType;
+        if (eventObject instanceof IReplacedEvent) {
+            eventType = ((IReplacedEvent) eventObject).getOriginalEventType();
+        } else {
+            eventType = eventObject.getClass();
+        }
+        IEventStoreHandler eventStoreHandler = eventStoreHandlers.getExtension(eventType);
+        if (eventStoreHandler == null) {
+            return eventObject;
+        }
+        // Replace object if necessary
+        Object replacedEventObject = eventStoreHandler.preSaveInStore(eventObject);
+        if (replacedEventObject == null || replacedEventObject == eventObject) {
+            // Nothing to do
+            return eventObject;
+        }
+        return replacedEventObject;
+    }
 
-	public void setMinCleanupDelay(long minCleanupDelay) {
-		this.minCleanupDelay = minCleanupDelay;
-	}
+    protected void postLoadFromStore(List<IQueuedEvent> selectedEvents) {
+        for (int a = selectedEvents.size(); a-- > 0; ) {
+            IQueuedEvent selectedEvent = selectedEvents.get(a);
+            Object eventObject = selectedEvent.getEventObject();
+            Class<?> eventType;
+            if (eventObject instanceof IReplacedEvent) {
+                eventType = ((IReplacedEvent) eventObject).getOriginalEventType();
+            } else {
+                eventType = eventObject.getClass();
+            }
+            IEventStoreHandler eventStoreHandler = eventStoreHandlers.getExtension(eventType);
+            if (eventStoreHandler == null) {
+                continue;
+            }
+            // Replace object if necessary
+            Object replacedEventObject = eventStoreHandler.postLoadFromStore(eventObject);
+            if (replacedEventObject == null || replacedEventObject == eventObject) {
+                // Nothing to do
+                continue;
+            }
+            selectedEvents.set(a, new QueuedEvent(replacedEventObject, selectedEvent.getDispatchTime(), selectedEvent.getSequenceNumber()));
+        }
+    }
 
-	public EventManager() {
-		maxEventHistoryTime = 10L * 60L * 1000L;// Minutes(10);
-		maxResponseDelay = 60L * 1000L; // Seconds(60);
-		minCleanupDelay = 1L * 1000L; // Seconds(1);
-	}
+    protected List<IEventItem> batchAndConvertEvents(List<IQueuedEvent> selectedEvents) {
+        var batchedEvents = eventBatcher.batchEvents(selectedEvents);
+        var convertedEvents = new java.util.ArrayList<IEventItem>(batchedEvents.size());
+        for (int a = 0, size = batchedEvents.size(); a < size; a++) {
+            var batchedEvent = batchedEvents.get(a);
+            convertedEvents.add(new EventItem(batchedEvent.getEventObject(), batchedEvent.getDispatchTime(), batchedEvent.getSequenceNumber()));
+        }
+        return convertedEvents;
+    }
 
-	@SuppressWarnings("unchecked")
-	@Override
-	public void handleEvent(Object eventObject, long dispatchTime, long sequenceId) {
-		eventObject = preSaveToStore(eventObject);
-		eventQueueLock.lock();
-		try {
-			checkEventHistoryForCleanupIntern();
-			IListElem<IQueuedEvent> queuedEventLE = null;
-			long sequenceNumber = ++eventSequence;
-			if (eventObject instanceof IListElem) {
-				Object listElemTarget = ((IListElem<?>) eventObject).getElemValue();
-				if (listElemTarget instanceof IQueuedEvent) {
-					queuedEventLE = (IListElem<IQueuedEvent>) listElemTarget;
-					IQueuedEvent queuedEvent = ((IQueuedEvent) listElemTarget);
-					queuedEvent.setDispatchTime(dispatchTime);
-					queuedEvent.setSequenceNumber(sequenceNumber);
-				}
-			}
-			if (queuedEventLE == null) {
-				queuedEventLE = new QueuedEvent(eventObject, dispatchTime, sequenceNumber);
-			}
-			eventQueue.pushLast(queuedEventLE);
-			cond.signalAll();
-		}
-		finally {
-			eventQueueLock.unlock();
-		}
-	}
+    protected void selectEvents(long startedTime, long eventSequenceSince, long maximumWaitTime, List<IQueuedEvent> selectedEvents) {
+        while (true) {
+            IListElem<IQueuedEvent> currentLE = eventQueue.last();
+            IListElem<IQueuedEvent> startLE = null;
+            while (currentLE != null) {
+                IQueuedEvent eventItem = currentLE.getElemValue();
+                if (eventItem.getSequenceNumber() <= eventSequenceSince) {
+                    // This event is now older than the events we are interested in
+                    // Since all events are ordered we can go one step further
+                    break;
+                }
+                startLE = currentLE;
+                currentLE = currentLE.getPrev();
+            }
+            if (startLE != null) {
+                currentLE = startLE;
+                while (currentLE != null) {
+                    IQueuedEvent eventItem = currentLE.getElemValue();
+                    selectedEvents.add(eventItem);
+                    currentLE = currentLE.getNext();
+                }
+                return;
+            }
+            if (maximumWaitTime <= 0) {
+                return;
+            }
+            long passedTime = System.currentTimeMillis() - startedTime;
+            long waitTimeSpan = maximumWaitTime - passedTime;
+            if (waitTimeSpan <= 0) {
+                return;
+            }
+            eventQueueLock.lock();
+            try {
+                try {
+                    cond.await(waitTimeSpan, TimeUnit.MILLISECONDS);
+                } catch (InterruptedException e) {
+                    // Intended blank
+                }
+            } finally {
+                eventQueueLock.unlock();
+            }
+        }
+    }
 
-	@SuppressWarnings("unchecked")
-	@Override
-	public void addEvents(List<Object> eventObjects) {
-		for (int i = eventObjects.size(); i-- > 0;) {
-			Object eventObject = eventObjects.get(i);
-			eventObject = preSaveToStore(eventObject);
-			eventObjects.set(i, eventObject);
-		}
-		eventQueueLock.lock();
-		try {
-			checkEventHistoryForCleanupIntern();
-			long dispatchTime = System.currentTimeMillis();
-			for (int i = 0, size = eventObjects.size(); i < size; i++) {
-				Object eventObject = eventObjects.get(i);
-				IListElem<IQueuedEvent> queuedEventLE = null;
-				long sequenceNumber = ++eventSequence;
-				if (eventObject instanceof IListElem) {
-					Object listElemTarget = ((IListElem<?>) eventObject).getElemValue();
-					if (listElemTarget instanceof IQueuedEvent) {
-						queuedEventLE = (IListElem<IQueuedEvent>) listElemTarget;
-						IQueuedEvent queuedEvent = ((IQueuedEvent) listElemTarget);
-						queuedEvent.setDispatchTime(dispatchTime);
-						queuedEvent.setSequenceNumber(sequenceNumber);
-					}
-				}
-				if (queuedEventLE == null) {
-					queuedEventLE = new QueuedEvent(eventObject, dispatchTime, sequenceNumber);
-				}
-				eventQueue.pushLast(queuedEventLE);
-			}
-			cond.signalAll();
-		}
-		finally {
-			eventQueueLock.unlock();
-		}
-	}
+    @Override
+    public long getCurrentEventSequence() {
+        return eventSequence;
+    }
 
-	@Override
-	public List<IEventItem> getEvents(long eventSequenceSince, long requestedMaximumWaitTime) {
-		// take the requested amount of waitTime from the client with
-		// the upper boundary 'MaxResponseDelay'
-		long maximumWaitTime =
-				maxResponseDelay < requestedMaximumWaitTime ? maxResponseDelay : requestedMaximumWaitTime;
-		ArrayList<IQueuedEvent> selectedEvents = new ArrayList<>();
-		long startedTime = System.currentTimeMillis();
-		eventQueueLock.lock();
-		try {
-			try {
-				selectEvents(startedTime, eventSequenceSince, maximumWaitTime, selectedEvents);
-			}
-			finally {
-				checkEventHistoryForCleanupIntern();
-			}
-		}
-		finally {
-			eventQueueLock.unlock();
-		}
-		if (selectedEvents.isEmpty()) {
-			return Collections.emptyList();
-		}
-		postLoadFromStore(selectedEvents);
-		return batchAndConvertEvents(selectedEvents);
-	}
+    @Override
+    public long findEventSequenceNumber(long time) {
+        long requestedSequenceNumber = 0;
 
-	protected Object preSaveToStore(Object eventObject) {
-		Class<?> eventType;
-		if (eventObject instanceof IReplacedEvent) {
-			eventType = ((IReplacedEvent) eventObject).getOriginalEventType();
-		}
-		else {
-			eventType = eventObject.getClass();
-		}
-		IEventStoreHandler eventStoreHandler = eventStoreHandlers.getExtension(eventType);
-		if (eventStoreHandler == null) {
-			return eventObject;
-		}
-		// Replace object if necessary
-		Object replacedEventObject = eventStoreHandler.preSaveInStore(eventObject);
-		if (replacedEventObject == null || replacedEventObject == eventObject) {
-			// Nothing to do
-			return eventObject;
-		}
-		return replacedEventObject;
-	}
+        IListElem<IQueuedEvent> currentLE = eventQueue.last();
+        while (currentLE != null) {
+            IQueuedEvent eventItem = currentLE.getElemValue();
+            if (eventItem.getDispatchTime() < time) {
+                // This event is now older than the event sequence number we are interested in
+                // Since all events are ordered we can go one stop further
+                requestedSequenceNumber = eventItem.getSequenceNumber();
+                break;
+            }
+            currentLE = currentLE.getPrev();
+        }
 
-	protected void postLoadFromStore(List<IQueuedEvent> selectedEvents) {
-		for (int a = selectedEvents.size(); a-- > 0;) {
-			IQueuedEvent selectedEvent = selectedEvents.get(a);
-			Object eventObject = selectedEvent.getEventObject();
-			Class<?> eventType;
-			if (eventObject instanceof IReplacedEvent) {
-				eventType = ((IReplacedEvent) eventObject).getOriginalEventType();
-			}
-			else {
-				eventType = eventObject.getClass();
-			}
-			IEventStoreHandler eventStoreHandler = eventStoreHandlers.getExtension(eventType);
-			if (eventStoreHandler == null) {
-				continue;
-			}
-			// Replace object if necessary
-			Object replacedEventObject = eventStoreHandler.postLoadFromStore(eventObject);
-			if (replacedEventObject == null || replacedEventObject == eventObject) {
-				// Nothing to do
-				continue;
-			}
-			selectedEvents.set(a, new QueuedEvent(replacedEventObject, selectedEvent.getDispatchTime(),
-					selectedEvent.getSequenceNumber()));
-		}
-	}
+        return requestedSequenceNumber;
+    }
 
-	protected List<IEventItem> batchAndConvertEvents(List<IQueuedEvent> selectedEvents) {
-		IList<IQueuedEvent> batchedEvents = eventBatcher.batchEvents(selectedEvents);
-		java.util.ArrayList<IEventItem> convertedEvents =
-				new java.util.ArrayList<>(batchedEvents.size());
-		for (int a = 0, size = batchedEvents.size(); a < size; a++) {
-			IQueuedEvent batchedEvent = batchedEvents.get(a);
-			convertedEvents.add(new EventItem(batchedEvent.getEventObject(),
-					batchedEvent.getDispatchTime(), batchedEvent.getSequenceNumber()));
-		}
-		return convertedEvents;
-	}
+    public void checkEventHistoryForCleanup() {
+        eventQueueLock.lock();
+        try {
+            checkEventHistoryForCleanupIntern();
+        } finally {
+            eventQueueLock.unlock();
+        }
+    }
 
-	protected void selectEvents(long startedTime, long eventSequenceSince, long maximumWaitTime,
-			List<IQueuedEvent> selectedEvents) {
-		while (true) {
-			IListElem<IQueuedEvent> currentLE = eventQueue.last();
-			IListElem<IQueuedEvent> startLE = null;
-			while (currentLE != null) {
-				IQueuedEvent eventItem = currentLE.getElemValue();
-				if (eventItem.getSequenceNumber() <= eventSequenceSince) {
-					// This event is now older than the events we are interested in
-					// Since all events are ordered we can go one step further
-					break;
-				}
-				startLE = currentLE;
-				currentLE = currentLE.getPrev();
-			}
-			if (startLE != null) {
-				currentLE = startLE;
-				while (currentLE != null) {
-					IQueuedEvent eventItem = currentLE.getElemValue();
-					selectedEvents.add(eventItem);
-					currentLE = currentLE.getNext();
-				}
-				return;
-			}
-			long passedTime = System.currentTimeMillis() - startedTime;
-			long waitTimeSpan = maximumWaitTime - passedTime;
-			if (waitTimeSpan <= 0) {
-				return;
-			}
-			eventQueueLock.lock();
-			try {
-				try {
-					cond.await(waitTimeSpan, TimeUnit.MILLISECONDS);
-				}
-				catch (InterruptedException e) {
-					// Intended blank
-				}
-			}
-			finally {
-				eventQueueLock.unlock();
-			}
-		}
-	}
+    protected void checkEventHistoryForCleanupIntern() {
+        long now = System.currentTimeMillis();
+        if (now - lastCleanup < minCleanupDelay) {
+            return;
+        }
+        lastCleanup = now;
+        long timeToDelete = now - getMaxEventHistoryTime();
+        IListElem<IQueuedEvent> currentLE = eventQueue.first();
+        while (currentLE != null) {
+            IQueuedEvent eventItem = currentLE.getElemValue();
 
-	@Override
-	public long getCurrentEventSequence() {
-		return eventSequence;
-	}
+            // Store next pointer as first thing
+            IListElem<IQueuedEvent> nextLE = currentLE.getNext();
 
-	@Override
-	public long findEventSequenceNumber(long time) {
-		long requestedSequenceNumber = 0;
+            if (eventItem.getDispatchTime() >= timeToDelete) {
+                // Event is not old enough to get killed, but the queue is
+                // sorted monotone increasing so we can break here
+                break;
+            }
+            eventQueue.remove(currentLE);
+            currentLE = nextLE;
+            Object eventObject = eventItem.getEventObject();
+            Class<?> eventType;
+            if (eventObject instanceof IReplacedEvent) {
+                eventType = ((IReplacedEvent) eventObject).getOriginalEventType();
+            } else {
+                eventType = eventObject.getClass();
+            }
+            IEventStoreHandler eventStoreHandler = eventStoreHandlers.getExtension(eventType);
+            if (eventStoreHandler == null) {
+                continue;
+            }
+            eventStoreHandler.eventRemovedFromStore(eventObject);
+        }
+    }
 
-		IListElem<IQueuedEvent> currentLE = eventQueue.last();
-		while (currentLE != null) {
-			IQueuedEvent eventItem = currentLE.getElemValue();
-			if (eventItem.getDispatchTime() < time) {
-				// This event is now older than the event sequence number we are interested in
-				// Since all events are ordered we can go one stop further
-				requestedSequenceNumber = eventItem.getSequenceNumber();
-				break;
-			}
-			currentLE = currentLE.getPrev();
-		}
+    @Override
+    public void registerEventStoreHandler(IEventStoreHandler eventStoreHandler, Class<?> eventType) {
+        eventStoreHandlers.register(eventStoreHandler, eventType);
+    }
 
-		return requestedSequenceNumber;
-	}
-
-	public void checkEventHistoryForCleanup() {
-		eventQueueLock.lock();
-		try {
-			checkEventHistoryForCleanupIntern();
-		}
-		finally {
-			eventQueueLock.unlock();
-		}
-	}
-
-	protected void checkEventHistoryForCleanupIntern() {
-		long now = System.currentTimeMillis();
-		if (now - lastCleanup < minCleanupDelay) {
-			return;
-		}
-		lastCleanup = now;
-		long timeToDelete = now - getMaxEventHistoryTime();
-		IListElem<IQueuedEvent> currentLE = eventQueue.first();
-		while (currentLE != null) {
-			IQueuedEvent eventItem = currentLE.getElemValue();
-
-			// Store next pointer as first thing
-			IListElem<IQueuedEvent> nextLE = currentLE.getNext();
-
-			if (eventItem.getDispatchTime() >= timeToDelete) {
-				// Event is not old enough to get killed, but the queue is
-				// sorted monotone increasing so we can break here
-				break;
-			}
-			eventQueue.remove(currentLE);
-			currentLE = nextLE;
-			Object eventObject = eventItem.getEventObject();
-			Class<?> eventType;
-			if (eventObject instanceof IReplacedEvent) {
-				eventType = ((IReplacedEvent) eventObject).getOriginalEventType();
-			}
-			else {
-				eventType = eventObject.getClass();
-			}
-			IEventStoreHandler eventStoreHandler = eventStoreHandlers.getExtension(eventType);
-			if (eventStoreHandler == null) {
-				continue;
-			}
-			eventStoreHandler.eventRemovedFromStore(eventObject);
-		}
-	}
-
-	@Override
-	public void registerEventStoreHandler(IEventStoreHandler eventStoreHandler, Class<?> eventType) {
-		eventStoreHandlers.register(eventStoreHandler, eventType);
-	}
-
-	@Override
-	public void unregisterEventStoreHandler(IEventStoreHandler eventStoreHandler,
-			Class<?> eventType) {
-		eventStoreHandlers.unregister(eventStoreHandler, eventType);
-	}
+    @Override
+    public void unregisterEventStoreHandler(IEventStoreHandler eventStoreHandler, Class<?> eventType) {
+        eventStoreHandlers.unregister(eventStoreHandler, eventType);
+    }
 }

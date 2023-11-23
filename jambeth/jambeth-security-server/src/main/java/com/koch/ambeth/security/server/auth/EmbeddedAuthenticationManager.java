@@ -27,83 +27,66 @@ import com.koch.ambeth.security.AuthenticationException;
 import com.koch.ambeth.security.AuthenticationResult;
 import com.koch.ambeth.security.IAuthentication;
 import com.koch.ambeth.security.IAuthenticationResult;
-import com.koch.ambeth.security.model.IPassword;
 import com.koch.ambeth.security.model.IUser;
-import com.koch.ambeth.security.server.ICheckPasswordResult;
 import com.koch.ambeth.security.server.IPasswordUtil;
 import com.koch.ambeth.security.server.IUserIdentifierProvider;
 import com.koch.ambeth.security.server.IUserResolver;
 import com.koch.ambeth.security.server.config.SecurityServerConfigurationConstants;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
-import com.koch.ambeth.util.state.IStateRollback;
 
 public class EmbeddedAuthenticationManager extends AbstractAuthenticationManager {
-	@Autowired
-	protected IUserIdentifierProvider userIdentifierProvider;
+    @Autowired
+    protected IUserIdentifierProvider userIdentifierProvider;
 
-	@Autowired
-	protected IUserResolver userResolver;
+    @Autowired
+    protected IUserResolver userResolver;
 
-	@Autowired
-	protected IPasswordUtil passwordUtil;
+    @Autowired
+    protected IPasswordUtil passwordUtil;
 
-	@Autowired
-	protected ISecurityActivation securityActivation;
+    @Autowired
+    protected ISecurityActivation securityActivation;
 
-	@Property(name = SecurityServerConfigurationConstants.LoginPasswordAutoRehashActive,
-			defaultValue = "true")
-	protected boolean autoRehashPasswords;
+    @Property(name = SecurityServerConfigurationConstants.LoginPasswordAutoRehashActive, defaultValue = "true")
+    protected boolean autoRehashPasswords;
 
-	@Override
-	public IAuthenticationResult authenticate(final IAuthentication authentication)
-			throws AuthenticationException {
-		IUser user;
-		try {
-			IStateRollback rollback = securityActivation
-					.pushWithoutSecurity(IStateRollback.EMPTY_ROLLBACKS);
-			try {
-				user = userResolver.resolveUserBySID(authentication.getUserName());
-				if (user != null) {
-					// enforce loading
-					user.getPassword();
-				}
-			}
-			finally {
-				rollback.rollback();
-			}
-		}
-		catch (Exception e) {
-			throw RuntimeExceptionUtil.mask(e);
-		}
-		if (user == null || user.getPassword() == null) {
-			throw createAuthenticationException(authentication);
-		}
-		try {
-			final IPassword password = user.getPassword();
-			final ICheckPasswordResult checkPasswordResult = passwordUtil
-					.checkClearTextPassword(authentication.getPassword(), password);
-			if (!checkPasswordResult.isPasswordCorrect()) {
-				throw createAuthenticationException(authentication);
-			}
-			boolean rehashRecommended = checkPasswordResult.isRehashPasswordRecommended();
-			if (rehashRecommended && autoRehashPasswords) {
-				IStateRollback rollback = securityActivation
-						.pushWithoutSecurity(IStateRollback.EMPTY_ROLLBACKS);
-				try {
-					passwordUtil.rehashPassword(authentication.getPassword(), password);
-				}
-				finally {
-					rollback.rollback();
-				}
-				rehashRecommended = false;
-			}
-			String sid = userIdentifierProvider.getSID(user);
-			return new AuthenticationResult(sid, checkPasswordResult.isChangePasswordRecommended(),
-					checkPasswordResult.isChangePasswordRequired(), rehashRecommended,
-					checkPasswordResult.isAccountingActive());
-		}
-		catch (Exception e) {
-			throw RuntimeExceptionUtil.mask(e);
-		}
-	}
+    @Override
+    public IAuthenticationResult authenticate(final IAuthentication authentication) throws AuthenticationException {
+        IUser user;
+        var rollback = securityActivation.pushWithoutSecurity();
+        try {
+            user = userResolver.resolveUserBySID(authentication.getUserName());
+            if (user != null) {
+                // enforce loading
+                user.getPassword();
+            }
+        } finally {
+            rollback.rollback();
+        }
+        if (user == null || user.getPassword() == null) {
+            throw createAuthenticationException(authentication);
+        }
+        try {
+            var password = user.getPassword();
+            var checkPasswordResult = passwordUtil.checkClearTextPassword(authentication.getPassword(), password);
+            if (!checkPasswordResult.isPasswordCorrect()) {
+                throw createAuthenticationException(authentication);
+            }
+            var rehashRecommended = checkPasswordResult.isRehashPasswordRecommended();
+            if (rehashRecommended && autoRehashPasswords) {
+                var securityRollback = securityActivation.pushWithoutSecurity();
+                try {
+                    passwordUtil.rehashPassword(authentication.getPassword(), password);
+                } finally {
+                    securityRollback.rollback();
+                }
+                rehashRecommended = false;
+            }
+            var sid = userIdentifierProvider.getSID(user);
+            return new AuthenticationResult(sid, checkPasswordResult.isChangePasswordRecommended(), checkPasswordResult.isChangePasswordRequired(), rehashRecommended,
+                    checkPasswordResult.isAccountingActive());
+        } catch (Exception e) {
+            throw RuntimeExceptionUtil.mask(e);
+        }
+    }
 }

@@ -20,9 +20,6 @@ limitations under the License.
  * #L%
  */
 
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
-
 import com.koch.ambeth.ioc.DefaultExtendableContainer;
 import com.koch.ambeth.ioc.IInitializingBean;
 import com.koch.ambeth.ioc.IServiceContext;
@@ -36,77 +33,65 @@ import com.koch.ambeth.query.IQueryBuilderExtensionExtendable;
 import com.koch.ambeth.query.IQueryBuilderFactory;
 import com.koch.ambeth.service.merge.IEntityMetaDataProvider;
 import com.koch.ambeth.service.merge.model.IEntityMetaData;
-import com.koch.ambeth.util.threading.IBackgroundWorkerDelegate;
 
-public class SqlQueryBuilderFactory
-		implements IQueryBuilderFactory, IQueryBuilderExtensionExtendable, IInitializingBean {
-	@Autowired
-	protected IServiceContext beanContext;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
-	@Autowired
-	protected IEntityMetaDataProvider entityMetaDataProvider;
+public class SqlQueryBuilderFactory implements IQueryBuilderFactory, IQueryBuilderExtensionExtendable, IInitializingBean {
+    protected final DefaultExtendableContainer<IQueryBuilderExtension> queryBuilderExtensions = new DefaultExtendableContainer<>(IQueryBuilderExtension.class, "queryBuilderExtension");
+    protected final Lock writeLock = new ReentrantLock();
+    @Autowired
+    protected IServiceContext beanContext;
+    @Autowired
+    protected IEntityMetaDataProvider entityMetaDataProvider;
+    @Autowired
+    protected IGarbageProxyFactory garbageProxyFactory;
+    @Autowired
+    protected ILightweightTransaction transaction;
+    @SuppressWarnings("rawtypes")
+    protected IGarbageProxyConstructor<IQueryBuilder> queryBuilderGPC;
+    protected volatile boolean firstQueryBuilder = true;
 
-	@Autowired
-	protected IGarbageProxyFactory garbageProxyFactory;
+    @Override
+    public void afterPropertiesSet() throws Throwable {
+        queryBuilderGPC = garbageProxyFactory.createGarbageProxyConstructor(IQueryBuilder.class);
+    }
 
-	@Autowired
-	protected ILightweightTransaction transaction;
+    @SuppressWarnings("unchecked")
+    @Override
+    public <T> IQueryBuilder<T> create(Class<T> entityType) {
+        if (firstQueryBuilder) {
+            writeLock.lock();
+            try {
+                if (firstQueryBuilder) {
+                    transaction.runInTransaction(() -> {
+                        // intended blank
+                    });
+                    firstQueryBuilder = false;
+                }
+            } finally {
+                writeLock.unlock();
+            }
+        }
+        IEntityMetaData metaData = entityMetaDataProvider.getMetaData(entityType);
+        Class<?> realEntityType = metaData.getEntityType();
+        IQueryBuilderExtension[] queryBuilderExtensions = this.queryBuilderExtensions.getExtensions();
+        IQueryBuilder<T> sqlQueryBuilder = beanContext.registerBean(SqlQueryBuilder.class)
+                                                      .propertyValue(SqlQueryBuilder.P_ENTITY_TYPE, realEntityType)
+                                                      .propertyValue(SqlQueryBuilder.P_META_DATA, metaData)
+                                                      .propertyValue(SqlQueryBuilder.P_QUERY_BUILDER_EXTENSIONS, queryBuilderExtensions)
+                                                      .finish();
 
-	protected final DefaultExtendableContainer<IQueryBuilderExtension> queryBuilderExtensions =
-			new DefaultExtendableContainer<>(
-					IQueryBuilderExtension.class, "queryBuilderExtension");
+        return queryBuilderGPC.createInstance(sqlQueryBuilder);
+    }
 
-	@SuppressWarnings("rawtypes")
-	protected IGarbageProxyConstructor<IQueryBuilder> queryBuilderGPC;
+    @Override
+    public void registerQueryBuilderExtension(IQueryBuilderExtension queryBuilderExtension) {
+        queryBuilderExtensions.register(queryBuilderExtension);
+    }
 
-	protected final Lock writeLock = new ReentrantLock();
-
-	protected volatile boolean firstQueryBuilder = true;
-
-	@Override
-	public void afterPropertiesSet() throws Throwable {
-		queryBuilderGPC = garbageProxyFactory.createGarbageProxyConstructor(IQueryBuilder.class);
-	}
-
-	@SuppressWarnings("unchecked")
-	@Override
-	public <T> IQueryBuilder<T> create(Class<T> entityType) {
-		if (firstQueryBuilder) {
-			writeLock.lock();
-			try {
-				if (firstQueryBuilder) {
-					transaction.runInTransaction(new IBackgroundWorkerDelegate() {
-						@Override
-						public void invoke() throws Exception {
-							// intended blank
-						}
-					});
-					firstQueryBuilder = false;
-				}
-			}
-			finally {
-				writeLock.unlock();
-			}
-		}
-		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(entityType);
-		Class<?> realEntityType = metaData.getEntityType();
-		IQueryBuilderExtension[] queryBuilderExtensions = this.queryBuilderExtensions.getExtensions();
-		IQueryBuilder<T> sqlQueryBuilder = beanContext.registerBean(SqlQueryBuilder.class)//
-				.propertyValue(SqlQueryBuilder.P_ENTITY_TYPE, realEntityType)//
-				.propertyValue(SqlQueryBuilder.P_META_DATA, metaData)//
-				.propertyValue(SqlQueryBuilder.P_QUERY_BUILDER_EXTENSIONS, queryBuilderExtensions)//
-				.finish();
-
-		return queryBuilderGPC.createInstance(sqlQueryBuilder);
-	}
-
-	@Override
-	public void registerQueryBuilderExtension(IQueryBuilderExtension queryBuilderExtension) {
-		queryBuilderExtensions.register(queryBuilderExtension);
-	}
-
-	@Override
-	public void unregisterQueryBuilderExtension(IQueryBuilderExtension queryBuilderExtension) {
-		queryBuilderExtensions.unregister(queryBuilderExtension);
-	}
+    @Override
+    public void unregisterQueryBuilderExtension(IQueryBuilderExtension queryBuilderExtension) {
+        queryBuilderExtensions.unregister(queryBuilderExtension);
+    }
 }

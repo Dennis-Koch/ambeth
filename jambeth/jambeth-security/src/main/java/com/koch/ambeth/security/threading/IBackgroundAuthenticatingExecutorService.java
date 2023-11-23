@@ -20,11 +20,11 @@ limitations under the License.
  * #L%
  */
 
-import com.koch.ambeth.util.threading.IBackgroundWorkerDelegate;
-import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
+import com.koch.ambeth.util.function.CheckedRunnable;
+import com.koch.ambeth.util.function.CheckedSupplier;
 
 public interface IBackgroundAuthenticatingExecutorService {
-	void startBackgroundWorkerWithAuthentication(IBackgroundWorkerDelegate runnable);
+    void startBackgroundWorkerWithAuthentication(CheckedRunnable runnable);
 
-	<T> T startBackgroundWorkerWithAuthentication(IResultingBackgroundWorkerDelegate<T> runnable);
+    <T> T startBackgroundWorkerWithAuthentication(CheckedSupplier<T> runnable);
 }

@@ -36,77 +36,74 @@ import com.koch.ambeth.xml.IWriter;
 import com.koch.ambeth.xml.typehandler.AbstractHandler;
 
 public class ObjRefElementHandler extends AbstractHandler implements INameBasedHandler {
-	protected static final String idNameIndex = "ix";
+    protected static final String idNameIndex = "ix";
+    @Autowired
+    protected IEntityMetaDataProvider entityMetaDataProvider;
+    @Autowired
+    protected IObjRefFactory objRefFactory;
+    @LogInstance
+    private ILogger log;
 
-	@LogInstance
-	private ILogger log;
+    @Override
+    public boolean writesCustom(Object obj, Class<?> type, IWriter writer) {
+        if (!IObjRef.class.isAssignableFrom(type) || IDirectObjRef.class.isAssignableFrom(type)) {
+            return false;
+        }
+        IObjRef ori = (IObjRef) obj;
+        writeOpenElement(ori, writer);
+        writer.writeObject(ori.getRealType());
+        writer.writeObject(ori.getId());
+        writer.writeObject(ori.getVersion());
+        writer.writeCloseElement(xmlDictionary.getEntityRefElement());
+        return true;
+    }
 
-	@Autowired
-	protected IEntityMetaDataProvider entityMetaDataProvider;
+    @Override
+    public Object readObject(Class<?> returnType, String elementName, int id, IReader reader) {
+        if (!xmlDictionary.getEntityRefElement().equals(elementName)) {
+            throw new IllegalStateException("Element '" + elementName + "' not supported");
+        }
 
-	@Autowired
-	protected IObjRefFactory objRefFactory;
+        String idIndexValue = reader.getAttributeValue(idNameIndex);
+        byte idIndex = idIndexValue != null ? Byte.parseByte(idIndexValue) : ObjRef.PRIMARY_KEY_INDEX;
+        reader.nextTag();
+        Class<?> realType = (Class<?>) reader.readObject();
+        Object objId = reader.readObject();
+        Object version = reader.readObject();
 
-	@Override
-	public boolean writesCustom(Object obj, Class<?> type, IWriter writer) {
-		if (!IObjRef.class.isAssignableFrom(type) || IDirectObjRef.class.isAssignableFrom(type)) {
-			return false;
-		}
-		IObjRef ori = (IObjRef) obj;
-		writeOpenElement(ori, writer);
-		writer.writeObject(ori.getRealType());
-		writer.writeObject(ori.getId());
-		writer.writeObject(ori.getVersion());
-		writer.writeCloseElement(xmlDictionary.getEntityRefElement());
-		return true;
-	}
+        if (objId != null || version != null) {
+            IEntityMetaData metaData = entityMetaDataProvider.getMetaData(realType, true);
+            if (metaData != null) {
+                if (objId != null) {
+                    PrimitiveMember idMember = metaData.getIdMemberByIdIndex(idIndex);
+                    if (objId.equals(idMember.getNullEquivalentValue())) {
+                        objId = null;
+                    }
+                }
+                if (version != null) {
+                    PrimitiveMember versionMember = metaData.getVersionMember();
+                    if (versionMember != null) {
+                        if (version.equals(versionMember.getNullEquivalentValue())) {
+                            version = null;
+                        }
+                    }
+                }
+            }
+        }
 
-	@Override
-	public Object readObject(Class<?> returnType, String elementName, int id, IReader reader) {
-		if (!xmlDictionary.getEntityRefElement().equals(elementName)) {
-			throw new IllegalStateException("Element '" + elementName + "' not supported");
-		}
+        IObjRef obj = objRefFactory.createObjRef(realType, idIndex, objId, version);
 
-		String idIndexValue = reader.getAttributeValue(idNameIndex);
-		byte idIndex = idIndexValue != null ? Byte.parseByte(idIndexValue) : ObjRef.PRIMARY_KEY_INDEX;
-		reader.nextTag();
-		Class<?> realType = (Class<?>) reader.readObject();
-		Object objId = reader.readObject();
-		Object version = reader.readObject();
+        return obj;
+    }
 
-		if (objId != null || version != null) {
-			IEntityMetaData metaData = entityMetaDataProvider.getMetaData(realType, true);
-			if (metaData != null) {
-				if (objId != null) {
-					PrimitiveMember idMember = metaData.getIdMemberByIdIndex(idIndex);
-					if (objId.equals(idMember.getNullEquivalentValue())) {
-						objId = null;
-					}
-				}
-				if (version != null) {
-					PrimitiveMember versionMember = metaData.getVersionMember();
-					if (versionMember != null) {
-						if (version.equals(versionMember.getNullEquivalentValue())) {
-							version = null;
-						}
-					}
-				}
-			}
-		}
-
-		IObjRef obj = objRefFactory.createObjRef(realType, idIndex, objId, version);
-
-		return obj;
-	}
-
-	protected void writeOpenElement(IObjRef ori, IWriter writer) {
-		writer.writeStartElement(xmlDictionary.getEntityRefElement());
-		int id = writer.acquireIdForObject(ori);
-		writer.writeAttribute(xmlDictionary.getIdAttribute(), Integer.toString(id));
-		byte idIndex = ori.getIdNameIndex();
-		if (idIndex != ObjRef.PRIMARY_KEY_INDEX) {
-			writer.writeAttribute(idNameIndex, Byte.toString(ori.getIdNameIndex()));
-		}
-		writer.writeStartElementEnd();
-	}
+    protected void writeOpenElement(IObjRef ori, IWriter writer) {
+        writer.writeStartElement(xmlDictionary.getEntityRefElement());
+        int id = writer.acquireIdForObject(ori);
+        writer.writeAttribute(xmlDictionary.getIdAttribute(), id);
+        byte idIndex = ori.getIdNameIndex();
+        if (idIndex != ObjRef.PRIMARY_KEY_INDEX) {
+            writer.writeAttribute(idNameIndex, Byte.toString(ori.getIdNameIndex()));
+        }
+        writer.writeStartElementEnd();
+    }
 }

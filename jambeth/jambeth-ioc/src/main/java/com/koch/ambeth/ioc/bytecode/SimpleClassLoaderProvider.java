@@ -22,40 +22,38 @@ limitations under the License.
 
 import com.koch.ambeth.ioc.IInitializingBean;
 import com.koch.ambeth.util.IClassLoaderProvider;
-import com.koch.ambeth.util.state.AbstractStateRollback;
 import com.koch.ambeth.util.state.IStateRollback;
 
 public class SimpleClassLoaderProvider implements IClassLoaderProvider, IInitializingBean {
 
-	public static final String CLASS_LOADER_PROP_NAME = "ClassLoader";
+    public static final String CLASS_LOADER_PROP_NAME = "ClassLoader";
 
-	protected ClassLoader classLoader;
+    protected ClassLoader classLoader;
 
-	@Override
-	public void afterPropertiesSet() throws Throwable {
-		if (classLoader == null) {
-			classLoader = Thread.currentThread().getContextClassLoader();
-		}
-	}
+    @Override
+    public void afterPropertiesSet() throws Throwable {
+        if (classLoader == null) {
+            classLoader = Thread.currentThread()
+                                .getContextClassLoader();
+        }
+    }
 
-	@Override
-	public ClassLoader getClassLoader() {
-		return classLoader;
-	}
+    @Override
+    public ClassLoader getClassLoader() {
+        return classLoader;
+    }
 
-	public void setClassLoader(ClassLoader classLoader) {
-		this.classLoader = classLoader;
-	}
+    public void setClassLoader(ClassLoader classLoader) {
+        this.classLoader = classLoader;
+    }
 
-	@Override
-	public IStateRollback pushClassLoader(IStateRollback... rollbacks) {
-		final ClassLoader oldCL = Thread.currentThread().getContextClassLoader();
-		Thread.currentThread().setContextClassLoader(getClassLoader());
-		return new AbstractStateRollback(rollbacks) {
-			@Override
-			protected void rollbackIntern() throws Exception {
-				Thread.currentThread().setContextClassLoader(oldCL);
-			}
-		};
-	}
+    @Override
+    public IStateRollback pushClassLoader() {
+        final ClassLoader oldCL = Thread.currentThread()
+                                        .getContextClassLoader();
+        Thread.currentThread()
+              .setContextClassLoader(getClassLoader());
+        return () -> Thread.currentThread()
+                           .setContextClassLoader(oldCL);
+    }
 }

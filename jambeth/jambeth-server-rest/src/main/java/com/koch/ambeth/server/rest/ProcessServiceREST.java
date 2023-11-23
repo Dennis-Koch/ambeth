@@ -20,8 +20,9 @@ limitations under the License.
  * #L%
  */
 
-import java.io.InputStream;
-
+import com.koch.ambeth.service.IProcessService;
+import com.koch.ambeth.service.model.IServiceDescription;
+import com.koch.ambeth.service.rest.Constants;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.ws.rs.Consumes;
@@ -31,34 +32,19 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.StreamingOutput;
 
-import com.koch.ambeth.service.IProcessService;
-import com.koch.ambeth.service.model.IServiceDescription;
-import com.koch.ambeth.service.rest.Constants;
-import com.koch.ambeth.util.state.IStateRollback;
+import java.io.InputStream;
 
 @Path("/ProcessService")
 @Consumes(Constants.AMBETH_MEDIA_TYPE)
 @Produces(Constants.AMBETH_MEDIA_TYPE)
 public class ProcessServiceREST extends AbstractServiceREST {
-	protected IProcessService getProcessService() {
-		return getServiceContext().getService(IProcessService.class);
-	}
+    protected IProcessService getProcessService() {
+        return getServiceContext().getService(IProcessService.class);
+    }
 
-	@POST
-	@Path("invokeService")
-	public StreamingOutput invokeService(InputStream is, @Context HttpServletRequest request,
-			@Context HttpServletResponse response) {
-		var rollback = preServiceCall(request, response);
-		try {
-			var args = getArguments(is, request);
-			var result = getProcessService().invokeService((IServiceDescription) args[0]);
-			return createResult(result, request, response);
-		}
-		catch (Throwable e) {
-			return createExceptionResult(e, request, response);
-		}
-		finally {
-			rollback.rollback();
-		}
-	}
+    @POST
+    @Path("invokeService")
+    public StreamingOutput invokeService(InputStream is, @Context HttpServletRequest request, @Context HttpServletResponse response) {
+        return defaultStreamingRequest(request, response, is, args -> getProcessService().invokeService((IServiceDescription) args[0]));
+    }
 }

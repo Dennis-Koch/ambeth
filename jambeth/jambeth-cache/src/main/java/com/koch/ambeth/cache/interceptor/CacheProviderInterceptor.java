@@ -20,10 +20,6 @@ limitations under the License.
  * #L%
  */
 
-import java.lang.reflect.Method;
-import java.util.Set;
-import java.util.Stack;
-
 import com.koch.ambeth.cache.ICacheProviderExtendable;
 import com.koch.ambeth.cache.IRootCache;
 import com.koch.ambeth.ioc.annotation.Autowired;
@@ -39,124 +35,120 @@ import com.koch.ambeth.util.collections.HashSet;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.proxy.AbstractSimpleInterceptor;
 import com.koch.ambeth.util.proxy.MethodProxy;
-import com.koch.ambeth.util.state.AbstractStateRollback;
 import com.koch.ambeth.util.state.IStateRollback;
 import com.koch.ambeth.util.threading.SensitiveThreadLocal;
 
-public class CacheProviderInterceptor extends AbstractSimpleInterceptor
-		implements ICacheProviderExtendable, ICacheProvider, ICacheContext, IThreadLocalCleanupBean {
-	private static final Set<Method> methodsDirectlyToRootCache = new HashSet<>();
+import java.lang.reflect.Method;
+import java.util.Set;
+import java.util.Stack;
 
-	private static final Method currentCacheMethod;
+public class CacheProviderInterceptor extends AbstractSimpleInterceptor implements ICacheProviderExtendable, ICacheProvider, ICacheContext, IThreadLocalCleanupBean {
+    private static final Set<Method> methodsDirectlyToRootCache = new HashSet<>();
 
-	static {
-		try {
-			methodsDirectlyToRootCache.add(ICache.class.getMethod("getReadLock"));
-			methodsDirectlyToRootCache.add(ICache.class.getMethod("getWriteLock"));
-			currentCacheMethod = ICache.class.getMethod("getCurrentCache");
-		}
-		catch (NoSuchMethodException e) {
-			throw RuntimeExceptionUtil.mask(e);
-		}
-	}
+    private static final Method currentCacheMethod;
 
-	protected final Stack<ICacheProvider> cacheProviderStack = new Stack<>();
+    static {
+        try {
+            methodsDirectlyToRootCache.add(ICache.class.getMethod("getReadLock"));
+            methodsDirectlyToRootCache.add(ICache.class.getMethod("getWriteLock"));
+            currentCacheMethod = ICache.class.getMethod("getCurrentCache");
+        } catch (NoSuchMethodException e) {
+            throw RuntimeExceptionUtil.mask(e);
+        }
+    }
 
-	@Forkable(ForkableType.SHALLOW_COPY)
-	protected final ThreadLocal<ArrayList<ICacheProvider>> cacheProviderStackTL = new SensitiveThreadLocal<>();
+    protected final Stack<ICacheProvider> cacheProviderStack = new Stack<>();
 
-	@Autowired
-	protected ICacheProvider threadLocalCacheProvider;
+    @Forkable(ForkableType.SHALLOW_COPY)
+    protected final ThreadLocal<ArrayList<ICacheProvider>> cacheProviderStackTL = new SensitiveThreadLocal<>();
 
-	@Autowired
-	protected IRootCache rootCache;
+    @Autowired
+    protected IRootCache rootCache;
 
-	@Override
-	public void cleanupThreadLocal() {
-		cacheProviderStackTL.remove();
-	}
+    @Override
+    public void cleanupThreadLocal() {
+        cacheProviderStackTL.remove();
+    }
 
-	@Override
-	public void registerCacheProvider(ICacheProvider cacheProvider) {
-		ParamChecker.assertParamNotNull(cacheProvider, "cacheProvider");
-		cacheProviderStack.push(cacheProvider);
-	}
+    @Override
+    public void registerCacheProvider(ICacheProvider cacheProvider) {
+        ParamChecker.assertParamNotNull(cacheProvider, "cacheProvider");
+        cacheProviderStack.push(cacheProvider);
+    }
 
-	@Override
-	public void unregisterCacheProvider(ICacheProvider cacheProvider) {
-		ParamChecker.assertParamNotNull(cacheProvider, "cacheProvider");
-		if (cacheProviderStack.peek() != cacheProvider) {
-			throw new IllegalStateException(
-					"The current cacheProvider is not the one specified to unregister");
-		}
-		cacheProviderStack.pop();
-	}
+    @Override
+    public void unregisterCacheProvider(ICacheProvider cacheProvider) {
+        ParamChecker.assertParamNotNull(cacheProvider, "cacheProvider");
+        if (cacheProviderStack.peek() != cacheProvider) {
+            throw new IllegalStateException("The current cacheProvider is not the one specified to unregister");
+        }
+        cacheProviderStack.pop();
+    }
 
-	public ICacheProvider getCurrentCacheProvider() {
-		ArrayList<ICacheProvider> stack = cacheProviderStackTL.get();
-		if (stack != null && !stack.isEmpty()) {
-			return stack.peek();
-		}
-		if (!cacheProviderStack.isEmpty()) {
-			return cacheProviderStack.peek();
-		}
-		return null;
-	}
+    public ICacheProvider getCurrentCacheProvider() {
+        var stack = cacheProviderStackTL.get();
+        if (stack != null && !stack.isEmpty()) {
+            return stack.peek();
+        }
+        if (!cacheProviderStack.isEmpty()) {
+            return cacheProviderStack.peek();
+        }
+        return null;
+    }
 
-	@Override
-	public ICache getCurrentCache() {
-		return getCurrentCacheProvider().getCurrentCache();
-	}
+    @Override
+    public ICache getCurrentCache() {
+        return getCurrentCacheProvider().getCurrentCache();
+    }
 
-	@Override
-	public boolean isNewInstanceOnCall() {
-		return getCurrentCacheProvider().isNewInstanceOnCall();
-	}
+    @Override
+    public boolean isNewInstanceOnCall() {
+        return getCurrentCacheProvider().isNewInstanceOnCall();
+    }
 
-	@Override
-	public IStateRollback pushCache(ICache cache, IStateRollback... rollbacks) {
-		return pushCache(new SingleCacheProvider(cache));
-	}
+    @Override
+    public IStateRollback pushCache(ICache cache) {
+        return pushCache(new SingleCacheProvider(cache));
+    }
 
-	@Override
-	public IStateRollback pushCache(final ICacheProvider cacheProvider, IStateRollback... rollbacks) {
-		ParamChecker.assertParamNotNull(cacheProvider, "cacheProvider");
+    @Override
+    public IStateRollback pushCache(ICacheProvider cacheProvider) {
+        ParamChecker.assertParamNotNull(cacheProvider, "cacheProvider");
 
-		ArrayList<ICacheProvider> stack = cacheProviderStackTL.get();
-		if (stack == null) {
-			stack = new ArrayList<>();
-			cacheProviderStackTL.set(stack);
-		}
-		stack.add(cacheProvider);
+        var stack = cacheProviderStackTL.get();
+        if (stack == null) {
+            stack = new ArrayList<>();
+            cacheProviderStackTL.set(stack);
+        }
+        stack.add(cacheProvider);
+        var fStack = stack;
 
-		return new AbstractStateRollback(rollbacks) {
-			@Override
-			protected void rollbackIntern() throws Exception {
-				ArrayList<ICacheProvider> stack = cacheProviderStackTL.get();
-				if (stack.popLastElement() != cacheProvider) {
-					throw new IllegalStateException("Must never happen");
-				}
-			}
-		};
-	}
+        return () -> {
+            var stackOnRemove = cacheProviderStackTL.get();
+            if (fStack != stackOnRemove) {
+                throw new IllegalStateException("Must never happen");
+            }
+            if (stackOnRemove.popLastElement() != cacheProvider) {
+                throw new IllegalStateException("Must never happen");
+            }
+        };
+    }
 
-	@Override
-	protected Object interceptIntern(Object obj, Method method, Object[] args, MethodProxy proxy)
-			throws Throwable {
-		ICacheProvider cacheProvider = getCurrentCacheProvider();
-		if (cacheProvider == null && currentCacheMethod.equals(method)) {
-			return null;
-		}
-		if (method.getDeclaringClass().equals(ICacheProvider.class)) {
-			return proxy.invoke(cacheProvider, args);
-		}
-		Object target;
-		if (!cacheProvider.isNewInstanceOnCall() || !methodsDirectlyToRootCache.contains(method)) {
-			target = cacheProvider.getCurrentCache();
-		}
-		else {
-			target = rootCache;
-		}
-		return proxy.invoke(target, args);
-	}
+    @Override
+    protected Object interceptIntern(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable {
+        var cacheProvider = getCurrentCacheProvider();
+        if (cacheProvider == null && currentCacheMethod.equals(method)) {
+            return null;
+        }
+        if (method.getDeclaringClass().equals(ICacheProvider.class)) {
+            return proxy.invoke(cacheProvider, args);
+        }
+        Object target;
+        if (!cacheProvider.isNewInstanceOnCall() || !methodsDirectlyToRootCache.contains(method)) {
+            target = cacheProvider.getCurrentCache();
+        } else {
+            target = rootCache;
+        }
+        return proxy.invoke(target, args);
+    }
 }

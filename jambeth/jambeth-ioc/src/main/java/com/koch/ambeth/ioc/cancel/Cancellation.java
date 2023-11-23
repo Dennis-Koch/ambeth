@@ -23,114 +23,105 @@ limitations under the License.
 import com.koch.ambeth.ioc.threadlocal.Forkable;
 import com.koch.ambeth.ioc.threadlocal.IThreadLocalCleanupBean;
 import com.koch.ambeth.util.ParamChecker;
-import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
+import com.koch.ambeth.util.function.CheckedConsumer;
+import com.koch.ambeth.util.function.CheckedFunction;
+import com.koch.ambeth.util.function.CheckedRunnable;
+import com.koch.ambeth.util.function.CheckedSupplier;
 import com.koch.ambeth.util.state.IStateRollback;
-import com.koch.ambeth.util.threading.IBackgroundWorkerDelegate;
-import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
-import com.koch.ambeth.util.threading.IResultingBackgroundWorkerParamDelegate;
+import com.koch.ambeth.util.state.StateRollback;
 
 public class Cancellation implements ICancellation, ICancellationWritable, IThreadLocalCleanupBean {
-	@Forkable
-	protected final ThreadLocal<ICancellationHandle> cancelledTL = new ThreadLocal<>();
+    @Forkable
+    protected final ThreadLocal<ICancellationHandle> cancelledTL = new ThreadLocal<>();
 
-	@Override
-	public void cleanupThreadLocal() {
-		cancelledTL.set(null);
-	}
+    @Override
+    public void cleanupThreadLocal() {
+        cancelledTL.set(null);
+    }
 
-	@Override
-	public boolean isCancelled() {
-		ICancellationHandle cancellationHandle = cancelledTL.get();
-		if (cancellationHandle == null) {
-			return false;
-		}
-		return cancellationHandle.isCancelled();
-	}
+    @Override
+    public boolean isCancelled() {
+        ICancellationHandle cancellationHandle = cancelledTL.get();
+        if (cancellationHandle == null) {
+            return false;
+        }
+        return cancellationHandle.isCancelled();
+    }
 
-	@Override
-	public void withCancellationAwareness(IBackgroundWorkerDelegate runnable) {
-		ensureNotCancelled();
-		ICancellationHandle cancellationHandle = cancelledTL.get();
-		if (cancellationHandle == null) {
-			try {
-				runnable.invoke();
-				return;
-			}
-			catch (Exception e) {
-				throw RuntimeExceptionUtil.mask(e);
-			}
-		}
-		cancellationHandle.withCancellationAwareness(runnable);
-	}
+    @Override
+    public <V> void withCancellationAwareness(CheckedConsumer<V> consumer, V state) {
+        ensureNotCancelled();
+        var cancellationHandle = cancelledTL.get();
+        if (cancellationHandle == null) {
+            CheckedConsumer.invoke(consumer, state);
+            return;
+        }
+        cancellationHandle.withCancellationAwareness(consumer, state);
+    }
 
-	@Override
-	public <R> R withCancellationAwareness(IResultingBackgroundWorkerDelegate<R> runnable) {
-		ensureNotCancelled();
-		ICancellationHandle cancellationHandle = cancelledTL.get();
-		if (cancellationHandle == null) {
-			try {
-				return runnable.invoke();
-			}
-			catch (Exception e) {
-				throw RuntimeExceptionUtil.mask(e);
-			}
-		}
-		return cancellationHandle.withCancellationAwareness(runnable);
-	}
+    @Override
+    public void withCancellationAwareness(CheckedRunnable runnable) {
+        ensureNotCancelled();
+        var cancellationHandle = cancelledTL.get();
+        if (cancellationHandle == null) {
+            CheckedRunnable.invoke(runnable);
+        }
+        cancellationHandle.withCancellationAwareness(runnable);
+    }
 
-	@Override
-	public <R, V> R withCancellationAwareness(IResultingBackgroundWorkerParamDelegate<R, V> runnable,
-			V state) {
-		ensureNotCancelled();
-		ICancellationHandle cancellationHandle = cancelledTL.get();
-		if (cancellationHandle == null) {
-			try {
-				return runnable.invoke(state);
-			}
-			catch (Exception e) {
-				throw RuntimeExceptionUtil.mask(e);
-			}
-		}
-		return cancellationHandle.withCancellationAwareness(runnable, state);
-	}
 
-	@Override
-	public void ensureNotCancelled() {
-		if (isCancelled()) {
-			throw new CancelledException();
-		}
-	}
+    @Override
+    public <R> R withCancellationAwareness(CheckedSupplier<R> supplier) {
+        ensureNotCancelled();
+        var cancellationHandle = cancelledTL.get();
+        if (cancellationHandle == null) {
+            return CheckedSupplier.invoke(supplier);
+        }
+        return cancellationHandle.withCancellationAwareness(supplier);
+    }
 
-	@Override
-	public ICancellationHandle getEnsureCancellationHandle() {
-		ensureNotCancelled();
-		ICancellationHandle cancellationHandle = cancelledTL.get();
-		if (cancellationHandle == null) {
-			cancellationHandle = createUnassignedCancellationHandle();
-			cancelledTL.set(cancellationHandle);
-		}
-		return cancellationHandle;
-	}
+    @Override
+    public <R, V> R withCancellationAwareness(CheckedFunction<V, R> function, V state) {
+        ensureNotCancelled();
+        var cancellationHandle = cancelledTL.get();
+        if (cancellationHandle == null) {
+            return CheckedFunction.invoke(function, state);
+        }
+        return cancellationHandle.withCancellationAwareness(function, state);
+    }
 
-	@Override
-	public ICancellationHandle createUnassignedCancellationHandle() {
-		return new CancellationHandle(this);
-	}
+    @Override
+    public void ensureNotCancelled() {
+        if (isCancelled()) {
+            throw new CancelledException();
+        }
+    }
 
-	@Override
-	public IStateRollback pushCancellationHandle(final ICancellationHandle cancellationHandle) {
-		ParamChecker.assertParamNotNull(cancellationHandle, "cancellationHandle");
-		final boolean hasBeenAdded = ((CancellationHandle) cancellationHandle).addOwningThread();
-		final ICancellationHandle oldCancellationHandle = cancelledTL.get();
-		cancelledTL.set(cancellationHandle);
-		return new IStateRollback() {
-			@Override
-			public void rollback() {
-				if (hasBeenAdded) {
-					((CancellationHandle) cancellationHandle).removeOwningThread();
-				}
-				cancelledTL.set(oldCancellationHandle);
-			}
-		};
-	}
+    @Override
+    public ICancellationHandle getEnsureCancellationHandle() {
+        ensureNotCancelled();
+        var cancellationHandle = cancelledTL.get();
+        if (cancellationHandle == null) {
+            cancellationHandle = createUnassignedCancellationHandle();
+            cancelledTL.set(cancellationHandle);
+        }
+        return cancellationHandle;
+    }
+
+    @Override
+    public ICancellationHandle createUnassignedCancellationHandle() {
+        return new CancellationHandle(this);
+    }
+
+    @Override
+    public IStateRollback pushCancellationHandle(final ICancellationHandle cancellationHandle) {
+        ParamChecker.assertParamNotNull(cancellationHandle, "cancellationHandle");
+        return StateRollback.chain(chain -> {
+            chain.append(((CancellationHandle) cancellationHandle).addOwningThread());
+
+            var oldCancellationHandle = cancelledTL.get();
+            cancelledTL.set(cancellationHandle);
+            chain.append(() -> cancelledTL.set(oldCancellationHandle));
+        });
+    }
 }

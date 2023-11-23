@@ -20,6 +20,7 @@
 		<junit-categories.version>1.0.3-SNAPSHOT</junit-categories.version>
 		<bytebuddy.version>1.14.9</bytebuddy.version>
 		<lombok.version>1.18.30</lombok.version>
+        <spring.version>6.1.0</spring.version>
 		<checkstyle.file>${jambeth.path.test}/checkstyle_checks.xml</checkstyle.file>
 		<checkstyle.properties>${jambeth.path.test}/checkstyle.properties</checkstyle.properties>
 		<findbugs.file>${jambeth.path.test}/findbugs_exclude_checks.xml</findbugs.file>
@@ -79,7 +80,49 @@
 				<artifactId>asm-util</artifactId>
 				<version>9.6</version>
 			</dependency>
+            <dependency>
+                <groupId>org.testcontainers</groupId>
+                <artifactId>postgresql</artifactId>
+                <version>1.19.2</version>
+                <scope>test</scope>
+            </dependency>
 
+            <dependency>
+                <groupId>jakarta.el</groupId>
+                <artifactId>jakarta.el-api</artifactId>
+                <version>5.0.1</version>
+            </dependency>
+            <dependency>
+                <groupId>jakarta.enterprise</groupId>
+                <artifactId>jakarta.enterprise.cdi-api</artifactId>
+                <version>4.0.1</version>
+            </dependency>
+            <dependency>
+                <groupId>jakarta.interceptor</groupId>
+                <artifactId>jakarta.interceptor-api</artifactId>
+                <version>2.2.0-RC1</version>
+            </dependency>
+            <dependency>
+                <groupId>jakarta.persistence</groupId>
+                <artifactId>jakarta.persistence-api</artifactId>
+                <version>3.2.0-B02</version>
+            </dependency>
+            <dependency>
+                <groupId>jakarta.servlet</groupId>
+                <artifactId>jakarta.servlet-api</artifactId>
+                <version>6.0.0</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>jakarta.transaction</groupId>
+                <artifactId>jakarta.transaction-api</artifactId>
+                <version>2.0.1</version>
+            </dependency>
+            <dependency>
+                <groupId>jakarta.xml.bind</groupId>
+                <artifactId>jakarta.xml.bind-api</artifactId>
+                <version>4.0.1</version>
+            </dependency>
 			<dependency>
 				<groupId>jakarta.ws.rs</groupId>
 				<artifactId>jakarta.ws.rs-api</artifactId>
@@ -136,46 +179,9 @@
 			</dependency>
 
 			<dependency>
-				<groupId>jakarta.servlet</groupId>
-				<artifactId>jakarta.servlet-api</artifactId>
-				<version>6.0.0</version>
-				<scope>provided</scope>
-			</dependency>
-
-			<dependency>
-				<groupId>org.eclipse.persistence</groupId>
-				<artifactId>javax.persistence</artifactId>
-				<version>2.1.1</version>
-			</dependency>
-
-			<dependency>
 				<groupId>org.javassist</groupId>
 				<artifactId>javassist</artifactId>
 				<version>3.29.2-GA</version>
-			</dependency>
-
-			<dependency>
-				<groupId>javax.interceptor</groupId>
-				<artifactId>javax.interceptor-api</artifactId>
-				<version>1.2</version>
-			</dependency>
-
-			<dependency>
-				<groupId>javax.transaction</groupId>
-				<artifactId>javax.transaction-api</artifactId>
-				<version>1.2</version>
-			</dependency>
-
-			<dependency>
-				<groupId>javax.enterprise</groupId>
-				<artifactId>cdi-api</artifactId>
-				<version>1.2</version>
-			</dependency>
-
-			<dependency>
-				<groupId>javax.el</groupId>
-				<artifactId>javax.el-api</artifactId>
-				<version>3.0.1-b06</version>
 			</dependency>
 
 			<dependency>
@@ -197,6 +203,12 @@
 				<scope>compile</scope>
 			</dependency>
 
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-core</artifactId>
+                <version>${spring.version}</version>
+            </dependency>
+
 			<dependency>
 				<groupId>org.slf4j</groupId>
 				<artifactId>slf4j-api</artifactId>
@@ -207,12 +219,14 @@
 				<groupId>ch.qos.logback</groupId>
 				<artifactId>logback-classic</artifactId>
 				<version>1.4.11</version>
+                <scope>test</scope>
 			</dependency>
 
 			<dependency>
 				<groupId>ch.qos.logback</groupId>
 				<artifactId>logback-core</artifactId>
 				<version>1.4.11</version>
+                <scope>test</scope>
 			</dependency>
 
 			<!-- Base dependencies -->

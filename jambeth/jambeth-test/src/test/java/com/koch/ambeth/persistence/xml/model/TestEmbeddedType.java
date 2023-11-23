@@ -20,33 +20,33 @@ limitations under the License.
  * #L%
  */
 
-import javax.persistence.Embeddable;
+import jakarta.persistence.Embeddable;
 
 import com.koch.ambeth.model.AbstractEntity;
 
 @Embeddable
 public class TestEmbeddedType extends AbstractEntity {
-	protected String name;
+    protected String name;
 
-	protected int value;
+    protected int value;
 
-	protected TestEmbeddedType() {
-		// Intended blank
-	}
+    protected TestEmbeddedType() {
+        // Intended blank
+    }
 
-	public String getName() {
-		return name;
-	}
+    public String getName() {
+        return name;
+    }
 
-	public int getValue() {
-		return value;
-	}
+    public void setName(String name) {
+        this.name = name;
+    }
 
-	public void setName(String name) {
-		this.name = name;
-	}
+    public int getValue() {
+        return value;
+    }
 
-	public void setValue(int value) {
-		this.value = value;
-	}
+    public void setValue(int value) {
+        this.value = value;
+    }
 }

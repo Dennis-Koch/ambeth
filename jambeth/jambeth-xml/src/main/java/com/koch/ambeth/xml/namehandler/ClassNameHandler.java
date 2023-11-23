@@ -20,11 +20,6 @@ limitations under the License.
  * #L%
  */
 
-import java.lang.reflect.Array;
-import java.util.Date;
-import java.util.Map.Entry;
-import java.util.regex.Pattern;
-
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.merge.IProxyHelper;
 import com.koch.ambeth.util.IClassCache;
@@ -46,277 +41,261 @@ import com.koch.ambeth.xml.IXmlTypeRegistry;
 import com.koch.ambeth.xml.SpecifiedMember;
 import com.koch.ambeth.xml.typehandler.AbstractHandler;
 
+import java.lang.reflect.Array;
+import java.util.Date;
+import java.util.Map.Entry;
+import java.util.regex.Pattern;
+
 public class ClassNameHandler extends AbstractHandler implements INameBasedHandler {
-	private static final String SPECIFIED_SUFFIX = "Specified";
+    protected static final Pattern splitPattern = Pattern.compile(" ");
+    private static final String SPECIFIED_SUFFIX = "Specified";
+    private static final SpecifiedMember[] EMPTY_TII = new SpecifiedMember[0];
+    protected final HashSet<Class<?>> noMemberAttribute = new HashSet<>();
 
-	private static final SpecifiedMember[] EMPTY_TII = new SpecifiedMember[0];
+    @Autowired
+    protected IClassCache classCache;
 
-	protected static final Pattern splitPattern = Pattern.compile(" ");
+    @Autowired
+    protected IProxyHelper proxyHelper;
 
-	protected final HashSet<Class<?>> noMemberAttribute = new HashSet<>();
+    @Autowired
+    protected ITypeInfoProvider typeInfoProvider;
 
-	@Autowired
-	protected IClassCache classCache;
+    @Autowired
+    protected IXmlTypeRegistry xmlTypeRegistry;
 
-	@Autowired
-	protected IProxyHelper proxyHelper;
+    @Override
+    public void afterPropertiesSet() throws Throwable {
+        super.afterPropertiesSet();
 
-	@Autowired
-	protected ITypeInfoProvider typeInfoProvider;
+        noMemberAttribute.add(Date.class);
+        noMemberAttribute.add(Object.class);
+    }
 
-	@Autowired
-	protected IXmlTypeRegistry xmlTypeRegistry;
+    public void writeAsAttribute(Class<?> type, IWriter writer) {
+        writeAsAttribute(type, xmlDictionary.getClassIdAttribute(), xmlDictionary.getClassNameAttribute(), xmlDictionary.getClassNamespaceAttribute(), xmlDictionary.getClassMemberAttribute(), writer);
+    }
 
-	@Override
-	public void afterPropertiesSet() throws Throwable {
-		super.afterPropertiesSet();
+    public void writeAsAttribute(Class<?> type, String classIdAttribute, String classNameAttribute, String classNamespaceAttribute, String classMemberAttribute, IWriter writer) {
+        Class<?> realType = proxyHelper.getRealType(type);
+        int typeId = writer.getIdOfObject(type);
+        if (typeId > 0) {
+            writer.writeAttribute(classIdAttribute, typeId);
+            return;
+        }
+        typeId = writer.acquireIdForObject(realType);
+        writer.writeAttribute(classIdAttribute, typeId);
 
-		noMemberAttribute.add(Date.class);
-		noMemberAttribute.add(Object.class);
-	}
+        IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
+        StringBuilder sb = tlObjectCollector.create(StringBuilder.class);
+        try {
+            while (type.isArray()) {
+                sb.append("[]");
+                type = type.getComponentType();
+            }
+            String xmlName, xmlNamespace;
+            IXmlTypeKey xmlType = xmlTypeRegistry.getXmlType(type);
+            xmlName = xmlType.getName();
+            xmlNamespace = xmlType.getNamespace();
+            if (sb.length() > 0) {
+                sb.insert(0, xmlName);
+                writer.writeAttribute(classNameAttribute, sb.toString());
+            } else {
+                writer.writeAttribute(classNameAttribute, xmlName);
+            }
+            writer.writeAttribute(classNamespaceAttribute, xmlNamespace);
 
-	public void writeAsAttribute(Class<?> type, IWriter writer) {
-		writeAsAttribute(type, xmlDictionary.getClassIdAttribute(),
-				xmlDictionary.getClassNameAttribute(), xmlDictionary.getClassNamespaceAttribute(),
-				xmlDictionary.getClassMemberAttribute(), writer);
-	}
+            if (!realType.isArray() && !realType.isEnum() && !realType.isInterface() && !noMemberAttribute.contains(realType)) {
+                sb.setLength(0);
+                ITypeInfo typeInfo = typeInfoProvider.getTypeInfo(type);
+                ITypeInfoItem[] members = typeInfo.getMembers();
 
-	public void writeAsAttribute(Class<?> type, String classIdAttribute, String classNameAttribute,
-			String classNamespaceAttribute, String classMemberAttribute, IWriter writer) {
-		Class<?> realType = proxyHelper.getRealType(type);
-		int typeId = writer.getIdOfObject(type);
-		if (typeId > 0) {
-			writer.writeAttribute(classIdAttribute, Integer.toString(typeId));
-			return;
-		}
-		typeId = writer.acquireIdForObject(realType);
-		writer.writeAttribute(classIdAttribute, Integer.toString(typeId));
+                LinkedHashMap<String, ITypeInfoItem> potentialSpecifiedMemberMap = new LinkedHashMap<>();
 
-		IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
-		StringBuilder sb = tlObjectCollector.create(StringBuilder.class);
-		try {
-			while (type.isArray()) {
-				sb.append("[]");
-				type = type.getComponentType();
-			}
-			String xmlName, xmlNamespace;
-			IXmlTypeKey xmlType = xmlTypeRegistry.getXmlType(type);
-			xmlName = xmlType.getName();
-			xmlNamespace = xmlType.getNamespace();
-			if (sb.length() > 0) {
-				sb.insert(0, xmlName);
-				writer.writeAttribute(classNameAttribute, sb.toString());
-			}
-			else {
-				writer.writeAttribute(classNameAttribute, xmlName);
-			}
-			writer.writeAttribute(classNamespaceAttribute, xmlNamespace);
+                for (int a = 0, size = members.length; a < size; a++) {
+                    ITypeInfoItem member = members[a];
+                    String name = member.getName();
+                    if (name.endsWith(SPECIFIED_SUFFIX)) {
+                        String realName = name.substring(0, name.length() - SPECIFIED_SUFFIX.length());
+                        potentialSpecifiedMemberMap.put(realName, member);
+                    }
+                }
 
-			if (!realType.isArray() && !realType.isEnum() && !realType.isInterface()
-					&& !noMemberAttribute.contains(realType)) {
-				sb.setLength(0);
-				ITypeInfo typeInfo = typeInfoProvider.getTypeInfo(type);
-				ITypeInfoItem[] members = typeInfo.getMembers();
+                IdentityLinkedMap<ITypeInfoItem, ITypeInfoItem> usedMembers = new IdentityLinkedMap<>();
 
-				LinkedHashMap<String, ITypeInfoItem> potentialSpecifiedMemberMap = new LinkedHashMap<>();
+                for (int a = 0, size = members.length; a < size; a++) {
+                    ITypeInfoItem member = members[a];
+                    if (member.isXMLIgnore()) {
+                        continue;
+                    }
+                    if (!member.canRead() || !member.canWrite()) {
+                        continue;
+                    }
+                    ITypeInfoItem specifiedMember = potentialSpecifiedMemberMap.get(member.getName());
 
-				for (int a = 0, size = members.length; a < size; a++) {
-					ITypeInfoItem member = members[a];
-					String name = member.getName();
-					if (name.endsWith(SPECIFIED_SUFFIX)) {
-						String realName = name.substring(0, name.length() - SPECIFIED_SUFFIX.length());
-						potentialSpecifiedMemberMap.put(realName, member);
-					}
-				}
+                    usedMembers.put(member, specifiedMember);
 
-				IdentityLinkedMap<ITypeInfoItem, ITypeInfoItem> usedMembers = new IdentityLinkedMap<>();
+                }
 
-				for (int a = 0, size = members.length; a < size; a++) {
-					ITypeInfoItem member = members[a];
-					if (member.isXMLIgnore()) {
-						continue;
-					}
-					if (!member.canRead() || !member.canWrite()) {
-						continue;
-					}
-					ITypeInfoItem specifiedMember = potentialSpecifiedMemberMap.get(member.getName());
+                for (ITypeInfoItem specifiedMember : usedMembers.values()) {
+                    if (specifiedMember != null) {
+                        usedMembers.remove(specifiedMember);
+                    }
+                }
+                ArrayList<SpecifiedMember> membersToWrite = new ArrayList<>();
+                for (Entry<ITypeInfoItem, ITypeInfoItem> entry : usedMembers) {
+                    ITypeInfoItem member = entry.getKey();
+                    if (sb.length() > 0) {
+                        sb.append(' ');
+                    }
+                    sb.append(member.getXMLName());
 
-					usedMembers.put(member, specifiedMember);
+                    membersToWrite.add(new SpecifiedMember(member, entry.getValue()));
+                }
+                writer.writeAttribute(classMemberAttribute, sb.toString());
+                writer.putMembersOfType(type, membersToWrite.toArray(SpecifiedMember.class));
+            }
+        } finally {
+            tlObjectCollector.dispose(sb);
+        }
+    }
 
-				}
+    public Class<?> readFromAttribute(IReader reader) {
+        return readFromAttribute(xmlDictionary.getClassIdAttribute(), xmlDictionary.getClassNameAttribute(), xmlDictionary.getClassNamespaceAttribute(), xmlDictionary.getClassMemberAttribute(),
+                reader);
+    }
 
-				for (ITypeInfoItem specifiedMember : usedMembers.values()) {
-					if (specifiedMember != null) {
-						usedMembers.remove(specifiedMember);
-					}
-				}
-				ArrayList<SpecifiedMember> membersToWrite = new ArrayList<>();
-				for (Entry<ITypeInfoItem, ITypeInfoItem> entry : usedMembers) {
-					ITypeInfoItem member = entry.getKey();
-					if (sb.length() > 0) {
-						sb.append(' ');
-					}
-					sb.append(member.getXMLName());
+    public Class<?> readFromAttribute(String classIdAttribute, String classNameAttribute, String classNamespaceAttribute, String classMemberAttribute, IReader reader) {
+        String classIdValue = reader.getAttributeValue(classIdAttribute);
+        int classId = 0;
+        if (classIdValue != null && classIdValue.length() > 0) {
+            classId = Integer.parseInt(classIdValue);
+            Class<?> typeObj = (Class<?>) reader.getObjectById(classId, false);
+            if (typeObj != null) {
+                return typeObj;
+            }
+        }
+        String name = reader.getAttributeValue(classNameAttribute);
+        if (name == null) {
+            if (classId > 0) {
+                throw new IllegalStateException("Class with id '" + classIdAttribute + "' not yet specified in this stream");
+            }
+            throw new IllegalStateException("Neither class id '" + classIdAttribute + "' nor class type '" + classNameAttribute + "' specified");
+        }
+        String namespace = reader.getAttributeValue(classNamespaceAttribute);
 
-					membersToWrite.add(new SpecifiedMember(member, entry.getValue()));
-				}
-				writer.writeAttribute(classMemberAttribute, sb.toString());
-				writer.putMembersOfType(type, membersToWrite.toArray(SpecifiedMember.class));
-			}
-		}
-		finally {
-			tlObjectCollector.dispose(sb);
-		}
-	}
+        IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
 
-	public Class<?> readFromAttribute(IReader reader) {
-		return readFromAttribute(xmlDictionary.getClassIdAttribute(),
-				xmlDictionary.getClassNameAttribute(), xmlDictionary.getClassNamespaceAttribute(),
-				xmlDictionary.getClassMemberAttribute(), reader);
-	}
+        int arrayIndex = name.length();
+        int dimensionCount = 0;
+        while (name.startsWith("[]", arrayIndex - 2)) {
+            dimensionCount++;
+            arrayIndex -= 2;
+        }
+        Class<?> typeObj = xmlTypeRegistry.getType(name.substring(0, arrayIndex), namespace);
 
-	public Class<?> readFromAttribute(String classIdAttribute, String classNameAttribute,
-			String classNamespaceAttribute, String classMemberAttribute, IReader reader) {
-		String classIdValue = reader.getAttributeValue(classIdAttribute);
-		int classId = 0;
-		if (classIdValue != null && classIdValue.length() > 0) {
-			classId = Integer.parseInt(classIdValue);
-			Class<?> typeObj = (Class<?>) reader.getObjectById(classId, false);
-			if (typeObj != null) {
-				return typeObj;
-			}
-		}
-		String name = reader.getAttributeValue(classNameAttribute);
-		if (name == null) {
-			if (classId > 0) {
-				throw new IllegalStateException(
-						"Class with id '" + classIdAttribute + "' not yet specified in this stream");
-			}
-			throw new IllegalStateException(
-					"Neither class id '" + classIdAttribute + "' nor class type '" + classNameAttribute
-							+ "' specified");
-		}
-		String namespace = reader.getAttributeValue(classNamespaceAttribute);
+        String classMemberValue = reader.getAttributeValue(classMemberAttribute);
+        if (classMemberValue != null) {
+            ITypeInfo typeInfo = typeInfoProvider.getTypeInfo(typeObj);
+            String[] memberNames = splitPattern.split(classMemberValue);
+            SpecifiedMember[] members = memberNames.length > 0 ? new SpecifiedMember[memberNames.length] : EMPTY_TII;
 
-		IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
+            StringBuilder sb = new StringBuilder();
+            for (int a = memberNames.length; a-- > 0; ) {
+                String memberName = memberNames[a];
+                ITypeInfoItem member = typeInfo.getMemberByXmlName(memberName);
+                if (member == null) {
+                    throw new IllegalStateException("No member found with xml name '" + memberName + "' on entity '" + typeObj.getName() + "'");
+                }
+                sb.setLength(0);
+                sb.append(memberName).append(SPECIFIED_SUFFIX);
+                ITypeInfoItem specifiedMember = typeInfo.getMemberByXmlName(sb.toString());
+                members[a] = new SpecifiedMember(member, specifiedMember);
+            }
+            reader.putMembersOfType(typeObj, members);
+        }
+        if (dimensionCount > 0) {
+            StringBuilder sb = tlObjectCollector.create(StringBuilder.class);
+            try {
+                for (int a = dimensionCount; a-- > 0; ) {
+                    sb.append('[');
+                }
+                sb.append('L');
+                sb.append(typeObj.getName());
+                sb.append(';');
+                typeObj = classCache.forName(sb.toString());
+            } catch (ClassNotFoundException e) {
+                throw RuntimeExceptionUtil.mask(e);
+            } finally {
+                tlObjectCollector.dispose(sb);
+            }
+        }
+        if (classId > 0) {
+            reader.putObjectWithId(typeObj, classId);
+        }
+        return typeObj;
+    }
 
-		int arrayIndex = name.length();
-		int dimensionCount = 0;
-		while (name.startsWith("[]", arrayIndex - 2)) {
-			dimensionCount++;
-			arrayIndex -= 2;
-		}
-		Class<?> typeObj = xmlTypeRegistry.getType(name.substring(0, arrayIndex), namespace);
+    @Override
+    public boolean writesCustom(Object obj, Class<?> type, IWriter writer) {
+        if (!Class.class.equals(type)) {
+            return false;
+        }
+        Class<?> typeObj = (Class<?>) obj;
+        IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
+        StringBuilder sb = tlObjectCollector.create(StringBuilder.class);
+        try {
+            while (typeObj.isArray()) {
+                sb.append("[]");
+                typeObj = typeObj.getComponentType();
+            }
+            String xmlName, xmlNamespace;
+            IXmlTypeKey xmlType = xmlTypeRegistry.getXmlType(typeObj);
+            xmlName = xmlType.getName();
+            xmlNamespace = xmlType.getNamespace();
 
-		String classMemberValue = reader.getAttributeValue(classMemberAttribute);
-		if (classMemberValue != null) {
-			ITypeInfo typeInfo = typeInfoProvider.getTypeInfo(typeObj);
-			String[] memberNames = splitPattern.split(classMemberValue);
-			SpecifiedMember[] members = memberNames.length > 0 ? new SpecifiedMember[memberNames.length]
-					: EMPTY_TII;
+            int id = writer.acquireIdForObject(obj);
+            writer.writeStartElement(xmlDictionary.getClassElement());
+            writer.writeAttribute(xmlDictionary.getIdAttribute(), id);
+            if (sb.length() > 0) {
+                sb.insert(0, xmlName);
+                writer.writeAttribute(xmlDictionary.getClassNameAttribute(), sb.toString());
+            } else {
+                writer.writeAttribute(xmlDictionary.getClassNameAttribute(), xmlName);
+            }
+            writer.writeAttribute(xmlDictionary.getClassNamespaceAttribute(), xmlNamespace);
+            writer.writeEndElement();
+        } finally {
+            tlObjectCollector.dispose(sb);
+        }
+        return true;
+    }
 
-			StringBuilder sb = new StringBuilder();
-			for (int a = memberNames.length; a-- > 0;) {
-				String memberName = memberNames[a];
-				ITypeInfoItem member = typeInfo.getMemberByXmlName(memberName);
-				if (member == null) {
-					throw new IllegalStateException("No member found with xml name '" + memberName
-							+ "' on entity '" + typeObj.getName() + "'");
-				}
-				sb.setLength(0);
-				sb.append(memberName).append(SPECIFIED_SUFFIX);
-				ITypeInfoItem specifiedMember = typeInfo.getMemberByXmlName(sb.toString());
-				members[a] = new SpecifiedMember(member, specifiedMember);
-			}
-			reader.putMembersOfType(typeObj, members);
-		}
-		if (dimensionCount > 0) {
-			StringBuilder sb = tlObjectCollector.create(StringBuilder.class);
-			try {
-				for (int a = dimensionCount; a-- > 0;) {
-					sb.append('[');
-				}
-				sb.append('L');
-				sb.append(typeObj.getName());
-				sb.append(';');
-				typeObj = classCache.forName(sb.toString());
-			}
-			catch (ClassNotFoundException e) {
-				throw RuntimeExceptionUtil.mask(e);
-			}
-			finally {
-				tlObjectCollector.dispose(sb);
-			}
-		}
-		if (classId > 0) {
-			reader.putObjectWithId(typeObj, classId);
-		}
-		return typeObj;
-	}
+    @Override
+    public Object readObject(Class<?> returnType, String elementName, int id, IReader reader) {
+        if (!xmlDictionary.getClassElement().equals(elementName)) {
+            throw new IllegalStateException("Element '" + elementName + "' not supported");
+        }
+        String name = reader.getAttributeValue(xmlDictionary.getClassNameAttribute());
+        String namespace = reader.getAttributeValue(xmlDictionary.getClassNamespaceAttribute());
 
-	@Override
-	public boolean writesCustom(Object obj, Class<?> type, IWriter writer) {
-		if (!Class.class.equals(type)) {
-			return false;
-		}
-		Class<?> typeObj = (Class<?>) obj;
-		IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
-		StringBuilder sb = tlObjectCollector.create(StringBuilder.class);
-		try {
-			while (typeObj.isArray()) {
-				sb.append("[]");
-				typeObj = typeObj.getComponentType();
-			}
-			String xmlName, xmlNamespace;
-			IXmlTypeKey xmlType = xmlTypeRegistry.getXmlType(typeObj);
-			xmlName = xmlType.getName();
-			xmlNamespace = xmlType.getNamespace();
-
-			int id = writer.acquireIdForObject(obj);
-			writer.writeStartElement(xmlDictionary.getClassElement());
-			writer.writeAttribute(xmlDictionary.getIdAttribute(), Integer.toString(id));
-			if (sb.length() > 0) {
-				sb.insert(0, xmlName);
-				writer.writeAttribute(xmlDictionary.getClassNameAttribute(), sb.toString());
-			}
-			else {
-				writer.writeAttribute(xmlDictionary.getClassNameAttribute(), xmlName);
-			}
-			writer.writeAttribute(xmlDictionary.getClassNamespaceAttribute(), xmlNamespace);
-			writer.writeEndElement();
-		}
-		finally {
-			tlObjectCollector.dispose(sb);
-		}
-		return true;
-	}
-
-	@Override
-	public Object readObject(Class<?> returnType, String elementName, int id, IReader reader) {
-		if (!xmlDictionary.getClassElement().equals(elementName)) {
-			throw new IllegalStateException("Element '" + elementName + "' not supported");
-		}
-		String name = reader.getAttributeValue(xmlDictionary.getClassNameAttribute());
-		String namespace = reader.getAttributeValue(xmlDictionary.getClassNamespaceAttribute());
-
-		int arrayIndex = name.length();
-		int dimensionCount = 0;
-		while (name.startsWith("[]", arrayIndex - 2)) {
-			dimensionCount++;
-			arrayIndex -= 2;
-		}
-		try {
-			Class<?> typeObj = xmlTypeRegistry.getType(name.substring(0, arrayIndex), namespace);
-			if (dimensionCount > 0) {
-				return Array.newInstance(typeObj, 0).getClass();
-			}
-			return typeObj;
-		}
-		catch (MaskingRuntimeException e) {
-			if (e.getCause() instanceof ClassNotFoundException) {
-				return null;
-			}
-			throw e;
-		}
-	}
+        int arrayIndex = name.length();
+        int dimensionCount = 0;
+        while (name.startsWith("[]", arrayIndex - 2)) {
+            dimensionCount++;
+            arrayIndex -= 2;
+        }
+        try {
+            Class<?> typeObj = xmlTypeRegistry.getType(name.substring(0, arrayIndex), namespace);
+            if (dimensionCount > 0) {
+                return Array.newInstance(typeObj, 0).getClass();
+            }
+            return typeObj;
+        } catch (MaskingRuntimeException e) {
+            if (e.getCause() instanceof ClassNotFoundException) {
+                return null;
+            }
+            throw e;
+        }
+    }
 }

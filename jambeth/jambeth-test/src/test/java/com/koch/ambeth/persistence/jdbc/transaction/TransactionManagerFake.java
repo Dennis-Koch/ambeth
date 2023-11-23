@@ -20,59 +20,63 @@ limitations under the License.
  * #L%
  */
 
-import javax.transaction.HeuristicMixedException;
-import javax.transaction.HeuristicRollbackException;
-import javax.transaction.InvalidTransactionException;
-import javax.transaction.NotSupportedException;
-import javax.transaction.RollbackException;
-import javax.transaction.SystemException;
-import javax.transaction.Transaction;
-import javax.transaction.TransactionManager;
+import jakarta.transaction.HeuristicMixedException;
+import jakarta.transaction.HeuristicRollbackException;
+import jakarta.transaction.InvalidTransactionException;
+import jakarta.transaction.NotSupportedException;
+import jakarta.transaction.RollbackException;
+import jakarta.transaction.SystemException;
+import jakarta.transaction.Transaction;
+import jakarta.transaction.TransactionManager;
 
 public class TransactionManagerFake implements TransactionManager {
-	private Transaction transaction;
+    private Transaction transaction;
 
-	@Override
-	public void begin() throws NotSupportedException, SystemException {
-	}
+    @Override
+    public void begin() throws NotSupportedException, SystemException {
 
-	@Override
-	public void commit() throws RollbackException, HeuristicMixedException,
-			HeuristicRollbackException, SecurityException, IllegalStateException, SystemException {
-	}
+    }
 
-	@Override
-	public int getStatus() throws SystemException {
-		return 0;
-	}
+    @Override
+    public void commit() throws RollbackException, HeuristicMixedException, HeuristicRollbackException, SecurityException, IllegalStateException, SystemException {
 
-	@Override
-	public Transaction getTransaction() throws SystemException {
-		if (transaction == null) {
-			transaction = new TransactionFake();
-		}
-		return transaction;
-	}
+    }
 
-	@Override
-	public void resume(Transaction tobj)
-			throws InvalidTransactionException, IllegalStateException, SystemException {
-	}
+    @Override
+    public int getStatus() throws SystemException {
+        return 0;
+    }
 
-	@Override
-	public void rollback() throws IllegalStateException, SecurityException, SystemException {
-	}
+    @Override
+    public Transaction getTransaction() throws SystemException {
+        if (transaction == null) {
+            transaction = new TransactionFake();
+        }
+        return transaction;
+    }
 
-	@Override
-	public void setRollbackOnly() throws IllegalStateException, SystemException {
-	}
+    @Override
+    public void resume(Transaction tobj) throws InvalidTransactionException, IllegalStateException, SystemException {
 
-	@Override
-	public void setTransactionTimeout(int seconds) throws SystemException {
-	}
+    }
 
-	@Override
-	public Transaction suspend() throws SystemException {
-		return null;
-	}
+    @Override
+    public void rollback() throws IllegalStateException, SecurityException, SystemException {
+
+    }
+
+    @Override
+    public void setRollbackOnly() throws IllegalStateException, SystemException {
+
+    }
+
+    @Override
+    public void setTransactionTimeout(int seconds) throws SystemException {
+
+    }
+
+    @Override
+    public Transaction suspend() throws SystemException {
+        return null;
+    }
 }

@@ -20,19 +20,21 @@ limitations under the License.
  * #L%
  */
 
-import com.koch.ambeth.util.threading.IBackgroundWorkerDelegate;
-import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
+import com.koch.ambeth.util.function.CheckedRunnable;
+import com.koch.ambeth.util.function.CheckedSupplier;
 
 public interface ILightweightTransaction {
-	boolean isActive();
+    boolean isActive();
 
-	void runInTransaction(IBackgroundWorkerDelegate runnable);
+    void runInTransaction(CheckedRunnable runnable);
 
-	<R> R runInTransaction(IResultingBackgroundWorkerDelegate<R> runnable);
+    <R> R runInTransaction(CheckedSupplier<R> runnable);
 
-	<R> R runInLazyTransaction(IResultingBackgroundWorkerDelegate<R> runnable);
+    void runInLazyTransaction(CheckedRunnable runnable);
 
-	void runOnTransactionPreCommit(IBackgroundWorkerDelegate runnable);
+    <R> R runInLazyTransaction(CheckedSupplier<R> runnable);
 
-	void runOnTransactionPostCommit(IBackgroundWorkerDelegate runnable);
+    void runOnTransactionPreCommit(CheckedRunnable runnable);
+
+    void runOnTransactionPostCommit(CheckedRunnable runnable);
 }

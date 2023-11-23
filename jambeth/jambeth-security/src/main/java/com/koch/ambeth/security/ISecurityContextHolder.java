@@ -22,11 +22,11 @@ limitations under the License.
 import com.koch.ambeth.util.state.IStateRollback;
 
 public interface ISecurityContextHolder {
-	ISecurityContext getContext();
+    ISecurityContext getContext();
 
-	ISecurityContext getCreateContext();
+    ISecurityContext getCreateContext();
 
-	void clearContext();
+    void clearContext();
 
-	IStateRollback pushAuthentication(IAuthentication authentication, IStateRollback... rollbacks);
+    IStateRollback pushAuthentication(IAuthentication authentication);
 }

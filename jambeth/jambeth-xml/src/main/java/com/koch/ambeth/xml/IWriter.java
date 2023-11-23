@@ -22,39 +22,47 @@ limitations under the License.
 
 
 public interface IWriter {
-	boolean isInAttributeState();
+    boolean isInAttributeState();
 
-	void writeEscapedXml(CharSequence unescapedString);
+    void writeEscapedXml(CharSequence unescapedString);
 
-	void writeAttribute(CharSequence attributeName, Object attributeValue);
+    void writeAttribute(CharSequence attributeName, Object attributeValue);
 
-	void writeAttribute(CharSequence attributeName, CharSequence attributeValue);
+    void writeAttribute(CharSequence attributeName, byte attributeValue);
 
-	void writeEndElement();
+    void writeAttribute(CharSequence attributeName, int attributeValue);
 
-	void writeCloseElement(CharSequence elementName);
+    void writeAttribute(CharSequence attributeName, long attributeValue);
 
-	void write(CharSequence s);
+    void writeAttribute(CharSequence attributeName, CharSequence attributeValue);
 
-	void writeOpenElement(CharSequence elementName);
+    void writeEndElement();
 
-	void writeStartElement(CharSequence elementName);
+    void writeCloseElement(CharSequence elementName);
 
-	void writeStartElementEnd();
+    void write(CharSequence s);
 
-	void writeObject(Object obj);
+    void writeOpenElement(CharSequence elementName);
 
-	void writeEmptyElement(CharSequence elementName);
+    void writeStartElement(CharSequence elementName);
 
-	void write(char s);
+    void writeStartElementEnd();
 
-	int getIdOfObject(Object obj);
+    void writeObject(Object obj);
 
-	int acquireIdForObject(Object obj);
+    void writeObject(Object obj, boolean suppressReference);
 
-	void putMembersOfType(Class<?> type, SpecifiedMember[] members);
+    void writeEmptyElement(CharSequence elementName);
 
-	SpecifiedMember[] getMembersOfType(Class<?> type);
+    void write(char s);
 
-	void addSubstitutedEntity(Object entity);
+    int getIdOfObject(Object obj);
+
+    int acquireIdForObject(Object obj);
+
+    void putMembersOfType(Class<?> type, SpecifiedMember[] members);
+
+    SpecifiedMember[] getMembersOfType(Class<?> type);
+
+    void addSubstitutedEntity(Object entity);
 }

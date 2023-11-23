@@ -20,10 +20,6 @@ limitations under the License.
  * #L%
  */
 
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.ReentrantLock;
-
 import com.koch.ambeth.ioc.IInitializingBean;
 import com.koch.ambeth.ioc.config.Property;
 import com.koch.ambeth.log.ILogger;
@@ -32,182 +28,161 @@ import com.koch.ambeth.persistence.api.IDatabase;
 import com.koch.ambeth.persistence.api.IDatabasePool;
 import com.koch.ambeth.persistence.config.PersistenceConfigurationConstants;
 import com.koch.ambeth.persistence.database.IDatabaseFactory;
-import com.koch.ambeth.persistence.database.IDatabaseLifecycleCallback;
 import com.koch.ambeth.persistence.database.callback.IDatabaseLifecycleCallbackRegistry;
 import com.koch.ambeth.persistence.parallel.IModifyingDatabase;
 import com.koch.ambeth.util.ParamChecker;
-import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
+
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class NoopDatabasePool implements IDatabasePool, IInitializingBean {
-	@LogInstance
-	private ILogger log;
+    protected final ReentrantLock writeLock = new ReentrantLock();
+    protected final Condition notFullCond = writeLock.newCondition();
+    protected int pendingTryCount; // 0 -> no limit, keep trying
+    protected long pendingTryTimeSpan;
+    protected IDatabaseFactory databaseFactory;
+    protected volatile boolean shuttingDown;
+    protected IDatabaseLifecycleCallbackRegistry databaseLifecycleCallbackRegistry;
+    @LogInstance
+    private ILogger log;
 
-	protected int pendingTryCount; // 0 -> no limit, keep trying
+    @Override
+    public void afterPropertiesSet() {
+        ParamChecker.assertNotNull(databaseFactory, "databaseFactory");
+        ParamChecker.assertNotNull(databaseLifecycleCallbackRegistry, "databaseLifecycleCallbackRegistry");
 
-	protected long pendingTryTimeSpan;
+        ParamChecker.assertTrue(pendingTryCount >= 0, "pendingTryCount");
+        ParamChecker.assertTrue(pendingTryTimeSpan >= 0, "pendingTryTimeSpan");
+    }
 
-	protected IDatabaseFactory databaseFactory;
+    public void setDatabaseFactory(IDatabaseFactory databaseFactory) {
+        this.databaseFactory = databaseFactory;
+    }
 
-	protected volatile boolean shuttingDown;
+    public void setDatabaseLifecycleCallbackRegistry(IDatabaseLifecycleCallbackRegistry databaseLifecycleCallbackRegistry) {
+        this.databaseLifecycleCallbackRegistry = databaseLifecycleCallbackRegistry;
+    }
 
-	protected IDatabaseLifecycleCallbackRegistry databaseLifecycleCallbackRegistry;
+    @Property(name = PersistenceConfigurationConstants.DatabasePoolTryCount, defaultValue = "1")
+    public void setPendingTryCount(int pendingTryCount) {
+        this.pendingTryCount = pendingTryCount;
+    }
 
-	protected final ReentrantLock writeLock = new ReentrantLock();
+    @Property(name = PersistenceConfigurationConstants.DatabasePoolTryTimeSpan, defaultValue = "30000")
+    public void setPendingTryTimeSpan(long pendingTryTimeSpan) {
+        this.pendingTryTimeSpan = pendingTryTimeSpan;
+    }
 
-	protected final Condition notFullCond = writeLock.newCondition();
+    @Override
+    public void shutdown() {
+        shuttingDown = true;
+    }
 
-	@Override
-	public void afterPropertiesSet() {
-		ParamChecker.assertNotNull(databaseFactory, "databaseFactory");
-		ParamChecker.assertNotNull(databaseLifecycleCallbackRegistry,
-				"databaseLifecycleCallbackRegistry");
+    @Override
+    public IDatabase acquireDatabase() {
+        return acquireDatabaseIntern(false, false);
+    }
 
-		ParamChecker.assertTrue(pendingTryCount >= 0, "pendingTryCount");
-		ParamChecker.assertTrue(pendingTryTimeSpan >= 0, "pendingTryTimeSpan");
-	}
+    @Override
+    public IDatabase acquireDatabase(boolean readonlyMode) {
+        return acquireDatabaseIntern(false, readonlyMode);
+    }
 
-	public void setDatabaseFactory(IDatabaseFactory databaseFactory) {
-		this.databaseFactory = databaseFactory;
-	}
+    @Override
+    public IDatabase tryAcquireDatabase() {
+        return acquireDatabaseIntern(true, false);
+    }
 
-	public void setDatabaseLifecycleCallbackRegistry(
-			IDatabaseLifecycleCallbackRegistry databaseLifecycleCallbackRegistry) {
-		this.databaseLifecycleCallbackRegistry = databaseLifecycleCallbackRegistry;
-	}
+    @Override
+    public IDatabase tryAcquireDatabase(boolean readonlyMode) {
+        return acquireDatabaseIntern(true, readonlyMode);
+    }
 
-	@Property(name = PersistenceConfigurationConstants.DatabasePoolTryCount, defaultValue = "1")
-	public void setPendingTryCount(int pendingTryCount) {
-		this.pendingTryCount = pendingTryCount;
-	}
+    protected IDatabase acquireDatabaseIntern(boolean tryOnly, boolean readOnly) {
+        var currentTryCount = 0;
+        var currentTime = System.currentTimeMillis();
+        var keepTrying = !tryOnly;
+        IDatabase database = null;
 
-	@Property(name = PersistenceConfigurationConstants.DatabasePoolTryTimeSpan,
-			defaultValue = "30000")
-	public void setPendingTryTimeSpan(long pendingTryTimeSpan) {
-		this.pendingTryTimeSpan = pendingTryTimeSpan;
-	}
+        while (keepTrying) {
+            if (shuttingDown) {
+                throw new RuntimeException("DatabasePool is shutting down");
+            }
 
-	@Override
-	public void shutdown() {
-		shuttingDown = true;
-	}
+            if (pendingTryCount > 0 && currentTryCount > pendingTryCount) {
+                throw new IllegalStateException(
+                        "Tried " + pendingTryCount + " times waiting for " + (System.currentTimeMillis() - currentTime) + "ms without successfully receiving a database instance");
+            }
 
-	@Override
-	public IDatabase acquireDatabase() {
-		return acquireDatabaseIntern(false, false);
-	}
+            database = createNewDatabase();
+            currentTryCount++;
+            if (database != null) {
+                break;
+            }
+            if (keepTrying) {
+                var writeLock = this.writeLock;
+                writeLock.lock();
+                try {
+                    try {
+                        notFullCond.await(pendingTryTimeSpan, TimeUnit.MILLISECONDS);
+                    } catch (InterruptedException e) {
+                        continue;
+                    }
+                } finally {
+                    writeLock.unlock();
+                }
+            }
+        }
+        if (database != null) {
+            database.acquired(readOnly);
+        }
+        return database;
+    }
 
-	@Override
-	public IDatabase acquireDatabase(boolean readonlyMode) {
-		return acquireDatabaseIntern(false, readonlyMode);
-	}
+    protected IDatabase createNewDatabase() {
+        var database = databaseFactory.createDatabaseInstance(this);
+        notifyCallbacksCreated(database);
+        return database;
+    }
 
-	@Override
-	public IDatabase tryAcquireDatabase() {
-		return acquireDatabaseIntern(true, false);
-	}
+    protected void notifyCallbacksCreated(IDatabase database) {
+        var databaseLifecycleCallbacks = databaseLifecycleCallbackRegistry.getDatabaseLifecycleCallbacks();
+        for (var callback : databaseLifecycleCallbacks) {
+            try {
+                callback.databaseConnected(database);
+            } catch (Throwable e) {
+                log.error(e);
+            }
+        }
+    }
 
-	@Override
-	public IDatabase tryAcquireDatabase(boolean readonlyMode) {
-		return acquireDatabaseIntern(true, readonlyMode);
-	}
+    protected void notifyCallbacksClosed(IDatabase database) {
+        var databaseLifecycleCallbacks = databaseLifecycleCallbackRegistry.getDatabaseLifecycleCallbacks();
+        for (var callback : databaseLifecycleCallbacks) {
+            try {
+                callback.databaseClosed(database);
+            } catch (Throwable e) {
+                log.error(e);
+            }
+        }
+    }
 
-	protected IDatabase acquireDatabaseIntern(boolean tryOnly, boolean readOnly) {
-		int currentTryCount = 0;
-		long currentTime = System.currentTimeMillis();
-		boolean keepTrying = !tryOnly;
-		IDatabase database = null;
+    @Override
+    public void releaseDatabase(IDatabase database) {
+        releaseDatabase(database, false);
+    }
 
-		while (keepTrying) {
-			if (shuttingDown) {
-				throw new RuntimeException("DatabasePool is shutting down");
-			}
-
-			if (pendingTryCount > 0 && currentTryCount > pendingTryCount) {
-				throw new IllegalStateException("Tried " + pendingTryCount + " times waiting for "
-						+ (System.currentTimeMillis() - currentTime)
-						+ "ms without successfully receiving a database instance");
-			}
-
-			database = createNewDatabase();
-			currentTryCount++;
-			if (database != null) {
-				break;
-			}
-			if (keepTrying) {
-				ReentrantLock writeLock = this.writeLock;
-				writeLock.lock();
-				try {
-					try {
-						notFullCond.await(pendingTryTimeSpan, TimeUnit.MILLISECONDS);
-					}
-					catch (InterruptedException e) {
-						continue;
-					}
-				}
-				finally {
-					writeLock.unlock();
-				}
-			}
-		}
-		if (database != null) {
-			database.acquired(readOnly);
-		}
-		return database;
-	}
-
-	protected IDatabase createNewDatabase() {
-		try {
-			IDatabase database = databaseFactory.createDatabaseInstance(this);
-			notifyCallbacksCreated(database);
-			return database;
-		}
-		catch (Exception e) {
-			throw RuntimeExceptionUtil.mask(e);
-		}
-	}
-
-	protected void notifyCallbacksCreated(IDatabase database) {
-		IDatabaseLifecycleCallback[] databaseLifecycleCallbacks =
-				databaseLifecycleCallbackRegistry.getDatabaseLifecycleCallbacks();
-		for (IDatabaseLifecycleCallback callback : databaseLifecycleCallbacks) {
-			try {
-				callback.databaseConnected(database);
-			}
-			catch (Throwable e) {
-				log.error(e);
-			}
-		}
-	}
-
-	protected void notifyCallbacksClosed(IDatabase database) {
-		IDatabaseLifecycleCallback[] databaseLifecycleCallbacks =
-				databaseLifecycleCallbackRegistry.getDatabaseLifecycleCallbacks();
-		for (IDatabaseLifecycleCallback callback : databaseLifecycleCallbacks) {
-			try {
-				callback.databaseClosed(database);
-			}
-			catch (Throwable e) {
-				log.error(e);
-			}
-		}
-	}
-
-	@Override
-	public void releaseDatabase(IDatabase database) {
-		releaseDatabase(database, false);
-	}
-
-	@Override
-	public void releaseDatabase(IDatabase database, boolean backToPool) {
-		ParamChecker.assertParamNotNull(database, "database");
-		database.getAutowiredBeanInContext(IModifyingDatabase.class).setModifyingDatabase(false);
-		try {
-			database.setSessionId(-1);
-			database.dispose();
-			notifyCallbacksClosed(database);
-		}
-		catch (Throwable e) {
-			// Intended blank
-		}
-	}
+    @Override
+    public void releaseDatabase(IDatabase database, boolean backToPool) {
+        ParamChecker.assertParamNotNull(database, "database");
+        database.getAutowiredBeanInContext(IModifyingDatabase.class).setModifyingDatabase(false);
+        try {
+            database.setSessionId(-1);
+            database.dispose();
+            notifyCallbacksClosed(database);
+        } catch (Throwable e) {
+            // Intended blank
+        }
+    }
 }

@@ -20,37 +20,37 @@ limitations under the License.
  * #L%
  */
 
-import javax.persistence.PersistenceException;
+import jakarta.persistence.PersistenceException;
 
 public abstract class AbstractAmbethPersistenceException extends PersistenceException {
-	private static final long serialVersionUID = -6289536750887364782L;
+    private static final long serialVersionUID = -6289536750887364782L;
 
-	protected final String relatedSql;
+    protected final String relatedSql;
 
-	public AbstractAmbethPersistenceException(String message, String relatedSql, Throwable cause) {
-		super(message, cause);
-		this.relatedSql = relatedSql;
-	}
+    public AbstractAmbethPersistenceException(String message, String relatedSql, Throwable cause) {
+        super(message, cause);
+        this.relatedSql = relatedSql;
+    }
 
-	public AbstractAmbethPersistenceException(String message, String relatedSql) {
-		super(message);
-		this.relatedSql = relatedSql;
-	}
+    public AbstractAmbethPersistenceException(String message, String relatedSql) {
+        super(message);
+        this.relatedSql = relatedSql;
+    }
 
-	public AbstractAmbethPersistenceException(String relatedSql, Throwable cause) {
-		super(cause);
-		this.relatedSql = relatedSql;
-	}
+    public AbstractAmbethPersistenceException(String relatedSql, Throwable cause) {
+        super(cause);
+        this.relatedSql = relatedSql;
+    }
 
-	public String getRelatedSql() {
-		return relatedSql;
-	}
+    public String getRelatedSql() {
+        return relatedSql;
+    }
 
-	@Override
-	public String getMessage() {
-		if (relatedSql == null) {
-			return super.getMessage();
-		}
-		return super.getMessage() + ". Related SQL: " + relatedSql;
-	}
+    @Override
+    public String getMessage() {
+        if (relatedSql == null) {
+            return super.getMessage();
+        }
+        return super.getMessage() + ". Related SQL: " + relatedSql;
+    }
 }

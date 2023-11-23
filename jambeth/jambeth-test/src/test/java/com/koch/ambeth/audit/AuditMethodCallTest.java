@@ -1,10 +1,5 @@
 package com.koch.ambeth.audit;
 
-import java.util.List;
-
-import org.junit.Assert;
-import org.junit.Test;
-
 import com.koch.ambeth.audit.AuditMethodCallTest.AuditMethodCallTestFrameworkModule;
 import com.koch.ambeth.audit.AuditMethodCallTest.AuditMethodCallTestModule;
 import com.koch.ambeth.audit.model.IAuditEntry;
@@ -57,313 +52,265 @@ import com.koch.ambeth.testutil.TestFrameworkModule;
 import com.koch.ambeth.testutil.TestModule;
 import com.koch.ambeth.testutil.TestProperties;
 import com.koch.ambeth.testutil.TestPropertiesList;
-import com.koch.ambeth.util.state.IStateRollback;
-import com.koch.ambeth.util.threading.IBackgroundWorkerDelegate;
+import com.koch.ambeth.util.state.StateRollback;
+import org.junit.Assert;
+import org.junit.Test;
 
-@TestFrameworkModule({AuditModule.class, AuditMethodCallTestFrameworkModule.class})
+import java.util.List;
+
+@TestFrameworkModule({ AuditModule.class, AuditMethodCallTestFrameworkModule.class })
 @TestModule(AuditMethodCallTestModule.class)
 @TestPropertiesList({
-		@TestProperties(name = ServiceConfigurationConstants.mappingFile,
-				value = "AuditMethodCall_orm.xml;security-orm.xml"),
-		@TestProperties(name = AuditConfigurationConstants.AuditActive, value = "true"),
-		@TestProperties(name = "ambeth.log.level", value = "DEBUG"),
-		@TestProperties(name = SecurityServerConfigurationConstants.SignatureActive, value = "true"),
-		@TestProperties(name = AuditConfigurationConstants.VerifyEntitiesOnLoad,
-				value = "VERIFY_SYNC")})
-@SQLStructureList({@SQLStructure("security-structure.sql"), //
-		@SQLStructure("audit-structure.sql")})
+        @TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "AuditMethodCall_orm.xml;security-orm.xml"),
+        @TestProperties(name = AuditConfigurationConstants.AuditActive, value = "true"),
+        @TestProperties(name = "ambeth.log.level", value = "DEBUG"),
+        @TestProperties(name = SecurityServerConfigurationConstants.SignatureActive, value = "true"),
+        @TestProperties(name = AuditConfigurationConstants.VerifyEntitiesOnLoad, value = "VERIFY_SYNC")
+})
+@SQLStructureList({
+        @SQLStructure("security-structure.sql"), //
+        @SQLStructure("audit-structure.sql")
+})
 public class AuditMethodCallTest extends AbstractInformationBusWithPersistenceTest {
-	public static class ABC implements IEntityPermissionRule<User> {
-		@Autowired
-		protected ITestAuditService service;
+    @Autowired
+    protected IAuditInfoController auditController;
+    @Autowired
+    protected IAuditEntryReader auditEntryReader;
+    @Autowired
+    protected IAuditEntryVerifier auditEntryVerifier;
+    @Autowired
+    protected IEventDispatcher eventDispatcher;
+    @Autowired
+    protected IMergeProcess mergeProcess;
+    @Autowired
+    protected IPasswordUtil passwordUtil;
+    @Autowired
+    protected ISecurityContextHolder securityContextHolder;
+    @Autowired
+    protected ISecurityScopeProvider securityScopeProvider;
+    @Autowired
+    protected ITestAuditService testAuditService;
+    @LogInstance
+    private ILogger log;
 
-		@Override
-		public void buildPrefetchConfig(Class<? extends User> entityType,
-				IPrefetchConfig prefetchConfig) {
-		}
+    @Test
+    @TestProperties(name = SecurityServerConfigurationConstants.SignatureActive, value = "false")
+    public void myTest() {
+        Assert.assertEquals("5", testAuditService.auditedServiceCall(new Integer(5)));
+    }
 
-		@Override
-		public void evaluatePermissionOnInstance(IObjRef objRef, User entity,
-				IAuthorization currentUser, ISecurityScope[] securityScopes,
-				IEntityPermissionEvaluation pe) {
-			service.auditedServiceCall(new Integer(6));
-		}
-	}
+    @Test
+    public void auditedEntity() {
+        char[] passwordOfUser = "abc".toCharArray();
+        User user = entityFactory.createEntity(User.class);
+        user.setName("MyName");
+        user.setSID("mySid");
 
-	public static class AuditMethodCallTestModule implements IInitializingModule {
-		@Override
-		public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
-			beanContextFactory.registerBean(TestAuditService.class).autowireable(ITestAuditService.class);
+        var rollback = StateRollback.chain(chain -> {
+            chain.append(auditController.pushAuditReason("junit test"));
+            passwordUtil.assignNewPassword(passwordOfUser, user, null);
+            chain.append(auditController.pushAuthorizedUser(user, passwordOfUser, true));
+        });
+        try {
+            mergeProcess.process(user);
+        } finally {
+            rollback.rollback();
+        }
+        ((IThreadLocalCleanupBean) auditController).cleanupThreadLocal();
+        Assert.assertTrue(user.getId() > 0);
+    }
 
-			IBeanConfiguration bc = beanContextFactory.registerBean(ABC.class);
-			SecurityServerModule.linkPermissionRule(beanContextFactory, bc, User.class);
-		}
-	}
+    @Test(expected = AuditReasonMissingException.class)
+    @TestProperties(name = SecurityServerConfigurationConstants.SignatureActive, value = "false")
+    public void auditedEntity_NoReasonThrowsException() {
+        char[] passwordOfUser = "abc".toCharArray();
+        User user = entityFactory.createEntity(User.class);
+        user.setName("MyName");
+        user.setSID("mySid");
 
-	public static class AuditMethodCallTestFrameworkModule implements IInitializingModule {
-		@Override
-		public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
-			beanContextFactory.registerBean(UserIdentifierProvider.class)
-					.autowireable(IUserIdentifierProvider.class);
-			beanContextFactory.registerBean(TestUserResolver.class).autowireable(IUserResolver.class);
+        passwordUtil.assignNewPassword(passwordOfUser, user, null);
 
-			beanContextFactory.link(IUser.class).to(ITechnicalEntityTypeExtendable.class)
-					.with(User.class);
-			beanContextFactory.link(IPassword.class).to(ITechnicalEntityTypeExtendable.class)
-					.with(Password.class);
-			beanContextFactory.link(ISignature.class).to(ITechnicalEntityTypeExtendable.class)
-					.with(Signature.class);
-			beanContextFactory.link(IAuditEntry.class).to(ITechnicalEntityTypeExtendable.class)
-					.with(AuditEntry.class);
-			beanContextFactory.link(IAuditedEntity.class).to(ITechnicalEntityTypeExtendable.class)
-					.with(AuditedEntity.class);
-			beanContextFactory.link(IAuditedService.class).to(ITechnicalEntityTypeExtendable.class)
-					.with(AuditedService.class);
-			beanContextFactory.link(IAuditedEntityRef.class).to(ITechnicalEntityTypeExtendable.class)
-					.with(AuditedEntityRef.class);
-			beanContextFactory.link(IAuditedEntityPrimitiveProperty.class)
-					.to(ITechnicalEntityTypeExtendable.class).with(AuditedEntityPrimitiveProperty.class);
-			beanContextFactory.link(IAuditedEntityRelationProperty.class)
-					.to(ITechnicalEntityTypeExtendable.class).with(AuditedEntityRelationProperty.class);
-			beanContextFactory.link(IAuditedEntityRelationPropertyItem.class)
-					.to(ITechnicalEntityTypeExtendable.class).with(AuditedEntityRelationPropertyItem.class);
-		}
-	}
+        mergeProcess.process(user);
+    }
 
-	@LogInstance
-	private ILogger log;
+    @Test
+    public void verify() {
+        final char[] passwordOfUser = "abc".toCharArray();
+        final User user = entityFactory.createEntity(User.class);
+        user.setName("MyName");
+        user.setSID("mySid");
 
-	@Autowired
-	protected IAuditInfoController auditController;
+        passwordUtil.assignNewPassword(passwordOfUser, user, null);
 
-	@Autowired
-	protected IAuditEntryReader auditEntryReader;
+        var password = user.getPassword();
 
-	@Autowired
-	protected IAuditEntryVerifier auditEntryVerifier;
+        var rollback = StateRollback.chain(chain -> {
+            chain.append(auditController.pushAuditReason("junit test"));
+            chain.append(auditController.pushAuthorizedUser(user, passwordOfUser, true));
+        });
+        try {
+            try {
+                transaction.runInTransaction(() -> mergeProcess.process(user));
+            } finally {
+            }
+        } finally {
+            rollback.rollback();
+        }
+        {
+            List<IAuditedEntity> auditedEntitiesOfUser = auditEntryReader.getAllAuditedEntitiesOfEntity(user);
 
-	@Autowired
-	protected IEventDispatcher eventDispatcher;
+            Assert.assertEquals(1, auditedEntitiesOfUser.size());
+            boolean[] verifiedAuditedEntities = auditEntryVerifier.verifyAuditedEntities(auditedEntitiesOfUser);
+            Assert.assertEquals(auditedEntitiesOfUser.size(), verifiedAuditedEntities.length);
+            for (boolean verifySuccessful : verifiedAuditedEntities) {
+                Assert.assertTrue(verifySuccessful);
+            }
+        }
+        {
+            List<IAuditedEntity> auditedEntitiesOfPassword = auditEntryReader.getAllAuditedEntitiesOfEntity(password);
 
-	@Autowired
-	protected IMergeProcess mergeProcess;
+            Assert.assertEquals(1, auditedEntitiesOfPassword.size());
+            boolean[] verifiedAuditedEntities = auditEntryVerifier.verifyAuditedEntities(auditedEntitiesOfPassword);
+            Assert.assertEquals(auditedEntitiesOfPassword.size(), verifiedAuditedEntities.length);
+            for (boolean verifySuccessful : verifiedAuditedEntities) {
+                Assert.assertTrue(verifySuccessful);
+            }
+        }
+        {
+            List<IAuditEntry> auditEntriesOfUser = auditEntryReader.getAllAuditEntriesOfEntity(user);
 
-	@Autowired
-	protected IPasswordUtil passwordUtil;
+            Assert.assertEquals(1, auditEntriesOfUser.size());
+            boolean[] verifiedAuditEntries = auditEntryVerifier.verifyAuditEntries(auditEntriesOfUser);
+            Assert.assertEquals(auditEntriesOfUser.size(), verifiedAuditEntries.length);
+            for (boolean verifySuccessful : verifiedAuditEntries) {
+                Assert.assertTrue(verifySuccessful);
+            }
+        }
+        eventDispatcher.dispatchEvent(ClearAllCachesEvent.getInstance());
 
-	@Autowired
-	protected ISecurityContextHolder securityContextHolder;
+        User reloadedUser = beanContext.getService(ICache.class).getObject(User.class, user.getId());
+    }
 
-	@Autowired
-	protected ISecurityScopeProvider securityScopeProvider;
+    @Test
+    @TestPropertiesList({
+            @TestProperties(name = AuditConfigurationConstants.VerifyEntitiesOnLoad, value = "VERIFY_ASYNC"),
+            @TestProperties(name = PersistenceConfigurationConstants.DatabasePoolMaxUsed, value = "2"),
+            @TestProperties(name = PersistenceConfigurationConstants.DatabasePoolMaxUnused, value = "2")
+    })
+    public void verifyWithConcurrentUpdate() {
+        final char[] passwordOfUser = "abc".toCharArray();
+        final User user = entityFactory.createEntity(User.class);
+        user.setName("MyName");
+        user.setSID("mySid");
 
-	@Autowired
-	protected ITestAuditService testAuditService;
+        passwordUtil.assignNewPassword(passwordOfUser, user, null);
 
-	@Test
-	@TestProperties(name = SecurityServerConfigurationConstants.SignatureActive, value = "false")
-	public void myTest() {
-		Assert.assertEquals("5", testAuditService.auditedServiceCall(new Integer(5)));
-	}
+        IPassword password = user.getPassword();
 
-	@Test
-	public void auditedEntity() {
-		char[] passwordOfUser = "abc".toCharArray();
-		User user = entityFactory.createEntity(User.class);
-		user.setName("MyName");
-		user.setSID("mySid");
+        var rollback = StateRollback.chain(chain -> {
+            chain.append(auditController.pushAuditReason("junit test"));
+            chain.append(auditController.pushAuthorizedUser(user, passwordOfUser, true));
+        });
+        try {
+            transaction.runInTransaction(() -> mergeProcess.process(user));
+            transaction.runInTransaction(() -> {
+                user.setName(user.getName() + 1);
+                mergeProcess.process(user);
+            });
+        } finally {
+            rollback.rollback();
+        }
+        {
+            List<IAuditedEntity> auditedEntitiesOfUser = auditEntryReader.getAllAuditedEntitiesOfEntity(user);
 
-		auditController.pushAuditReason("junit test");
+            Assert.assertEquals(2, auditedEntitiesOfUser.size());
+            boolean[] verifiedAuditedEntities = auditEntryVerifier.verifyAuditedEntities(auditedEntitiesOfUser);
+            Assert.assertEquals(auditedEntitiesOfUser.size(), verifiedAuditedEntities.length);
+            for (boolean verifySuccessful : verifiedAuditedEntities) {
+                Assert.assertTrue(verifySuccessful);
+            }
+        }
+        {
+            List<IAuditedEntity> auditedEntitiesOfPassword = auditEntryReader.getAllAuditedEntitiesOfEntity(password);
 
-		passwordUtil.assignNewPassword(passwordOfUser, user, null);
+            Assert.assertEquals(1, auditedEntitiesOfPassword.size());
+            boolean[] verifiedAuditedEntities = auditEntryVerifier.verifyAuditedEntities(auditedEntitiesOfPassword);
+            Assert.assertEquals(auditedEntitiesOfPassword.size(), verifiedAuditedEntities.length);
+            for (boolean verifySuccessful : verifiedAuditedEntities) {
+                Assert.assertTrue(verifySuccessful);
+            }
+        }
+        {
+            List<IAuditEntry> auditEntriesOfUser = auditEntryReader.getAllAuditEntriesOfEntity(user);
 
-		IStateRollback revert = auditController.pushAuthorizedUser(user, passwordOfUser, true);
-		try {
-			mergeProcess.process(user);
-		}
-		finally {
-			revert.rollback();
-		}
-		auditController.popAuditReason();
-		((IThreadLocalCleanupBean) auditController).cleanupThreadLocal();
-		Assert.assertTrue(user.getId() > 0);
-	}
+            Assert.assertEquals(2, auditEntriesOfUser.size());
+            boolean[] verifiedAuditEntries = auditEntryVerifier.verifyAuditEntries(auditEntriesOfUser);
+            Assert.assertEquals(auditEntriesOfUser.size(), verifiedAuditEntries.length);
+            for (boolean verifySuccessful : verifiedAuditEntries) {
+                Assert.assertTrue(verifySuccessful);
+            }
+        }
+        eventDispatcher.dispatchEvent(ClearAllCachesEvent.getInstance());
 
-	@Test(expected = AuditReasonMissingException.class)
-	@TestProperties(name = SecurityServerConfigurationConstants.SignatureActive, value = "false")
-	public void auditedEntity_NoReasonThrowsException() {
-		char[] passwordOfUser = "abc".toCharArray();
-		User user = entityFactory.createEntity(User.class);
-		user.setName("MyName");
-		user.setSID("mySid");
+        User reloadedUser = beanContext.getService(ICache.class).getObject(User.class, user.getId());
+    }
 
-		passwordUtil.assignNewPassword(passwordOfUser, user, null);
+    @Test
+    public void testNotAuditedServiceCall() {
+        Assert.assertEquals("5", testAuditService.notAuditedServiceCall(new Integer(5)));
+    }
 
-		mergeProcess.process(user);
-	}
+    @Test
+    public void testAuditedAnnotatedServiceCall_NoAudit() {
+        Assert.assertEquals("5", testAuditService.auditedAnnotatedServiceCall_NoAudit(new Integer(5)));
+    }
 
-	@Test
-	public void verify() {
-		final char[] passwordOfUser = "abc".toCharArray();
-		final User user = entityFactory.createEntity(User.class);
-		user.setName("MyName");
-		user.setSID("mySid");
+    @Test
+    @TestProperties(name = SecurityServerConfigurationConstants.SignatureActive, value = "false")
+    public void testAuditedServiceCallWithAuditedArgument() {
+        Assert.assertEquals("5", testAuditService.auditedServiceCallWithAuditedArgument(new Integer(5), "secret_not_audited"));
+    }
 
-		passwordUtil.assignNewPassword(passwordOfUser, user, null);
+    public static class ABC implements IEntityPermissionRule<User> {
+        @Autowired
+        protected ITestAuditService service;
 
-		IPassword password = user.getPassword();
+        @Override
+        public void buildPrefetchConfig(Class<? extends User> entityType, IPrefetchConfig prefetchConfig) {
+        }
 
-		auditController.pushAuditReason("junit test");
-		try {
-			IStateRollback revert = auditController.pushAuthorizedUser(user, passwordOfUser, true);
-			try {
-				transaction.runInTransaction(new IBackgroundWorkerDelegate() {
-					@Override
-					public void invoke() throws Exception {
-						mergeProcess.process(user);
-					}
-				});
-			}
-			finally {
-				revert.rollback();
-			}
-		}
-		finally {
-			auditController.popAuditReason();
-		}
-		{
-			List<IAuditedEntity> auditedEntitiesOfUser = auditEntryReader
-					.getAllAuditedEntitiesOfEntity(user);
+        @Override
+        public void evaluatePermissionOnInstance(IObjRef objRef, User entity, IAuthorization currentUser, ISecurityScope[] securityScopes, IEntityPermissionEvaluation pe) {
+            service.auditedServiceCall(new Integer(6));
+        }
+    }
 
-			Assert.assertEquals(1, auditedEntitiesOfUser.size());
-			boolean[] verifiedAuditedEntities = auditEntryVerifier
-					.verifyAuditedEntities(auditedEntitiesOfUser);
-			Assert.assertEquals(auditedEntitiesOfUser.size(), verifiedAuditedEntities.length);
-			for (boolean verifySuccessful : verifiedAuditedEntities) {
-				Assert.assertTrue(verifySuccessful);
-			}
-		}
-		{
-			List<IAuditedEntity> auditedEntitiesOfPassword = auditEntryReader
-					.getAllAuditedEntitiesOfEntity(password);
+    public static class AuditMethodCallTestModule implements IInitializingModule {
+        @Override
+        public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
+            beanContextFactory.registerBean(TestAuditService.class).autowireable(ITestAuditService.class);
 
-			Assert.assertEquals(1, auditedEntitiesOfPassword.size());
-			boolean[] verifiedAuditedEntities = auditEntryVerifier
-					.verifyAuditedEntities(auditedEntitiesOfPassword);
-			Assert.assertEquals(auditedEntitiesOfPassword.size(), verifiedAuditedEntities.length);
-			for (boolean verifySuccessful : verifiedAuditedEntities) {
-				Assert.assertTrue(verifySuccessful);
-			}
-		}
-		{
-			List<IAuditEntry> auditEntriesOfUser = auditEntryReader.getAllAuditEntriesOfEntity(user);
+            IBeanConfiguration bc = beanContextFactory.registerBean(ABC.class);
+            SecurityServerModule.linkPermissionRule(beanContextFactory, bc, User.class);
+        }
+    }
 
-			Assert.assertEquals(1, auditEntriesOfUser.size());
-			boolean[] verifiedAuditEntries = auditEntryVerifier.verifyAuditEntries(auditEntriesOfUser);
-			Assert.assertEquals(auditEntriesOfUser.size(), verifiedAuditEntries.length);
-			for (boolean verifySuccessful : verifiedAuditEntries) {
-				Assert.assertTrue(verifySuccessful);
-			}
-		}
-		eventDispatcher.dispatchEvent(ClearAllCachesEvent.getInstance());
+    public static class AuditMethodCallTestFrameworkModule implements IInitializingModule {
+        @Override
+        public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
+            beanContextFactory.registerBean(UserIdentifierProvider.class).autowireable(IUserIdentifierProvider.class);
+            beanContextFactory.registerBean(TestUserResolver.class).autowireable(IUserResolver.class);
 
-		User reloadedUser = beanContext.getService(ICache.class).getObject(User.class, user.getId());
-	}
-
-	@Test
-	@TestPropertiesList({
-			@TestProperties(name = AuditConfigurationConstants.VerifyEntitiesOnLoad,
-					value = "VERIFY_ASYNC"),
-			@TestProperties(name = PersistenceConfigurationConstants.DatabasePoolMaxUsed, value = "2"),
-			@TestProperties(name = PersistenceConfigurationConstants.DatabasePoolMaxUnused, value = "2")})
-	public void verifyWithConcurrentUpdate() {
-		final char[] passwordOfUser = "abc".toCharArray();
-		final User user = entityFactory.createEntity(User.class);
-		user.setName("MyName");
-		user.setSID("mySid");
-
-		passwordUtil.assignNewPassword(passwordOfUser, user, null);
-
-		IPassword password = user.getPassword();
-
-		auditController.pushAuditReason("junit test");
-		try {
-			IStateRollback revert = auditController.pushAuthorizedUser(user, passwordOfUser, true);
-			try {
-				transaction.runInTransaction(new IBackgroundWorkerDelegate() {
-					@Override
-					public void invoke() throws Exception {
-						mergeProcess.process(user);
-					}
-				});
-				transaction.runInTransaction(new IBackgroundWorkerDelegate() {
-					@Override
-					public void invoke() throws Exception {
-						user.setName(user.getName() + 1);
-						mergeProcess.process(user);
-					}
-				});
-			}
-			finally {
-				revert.rollback();
-			}
-		}
-		finally {
-			auditController.popAuditReason();
-		}
-		{
-			List<IAuditedEntity> auditedEntitiesOfUser = auditEntryReader
-					.getAllAuditedEntitiesOfEntity(user);
-
-			Assert.assertEquals(2, auditedEntitiesOfUser.size());
-			boolean[] verifiedAuditedEntities = auditEntryVerifier
-					.verifyAuditedEntities(auditedEntitiesOfUser);
-			Assert.assertEquals(auditedEntitiesOfUser.size(), verifiedAuditedEntities.length);
-			for (boolean verifySuccessful : verifiedAuditedEntities) {
-				Assert.assertTrue(verifySuccessful);
-			}
-		}
-		{
-			List<IAuditedEntity> auditedEntitiesOfPassword = auditEntryReader
-					.getAllAuditedEntitiesOfEntity(password);
-
-			Assert.assertEquals(1, auditedEntitiesOfPassword.size());
-			boolean[] verifiedAuditedEntities = auditEntryVerifier
-					.verifyAuditedEntities(auditedEntitiesOfPassword);
-			Assert.assertEquals(auditedEntitiesOfPassword.size(), verifiedAuditedEntities.length);
-			for (boolean verifySuccessful : verifiedAuditedEntities) {
-				Assert.assertTrue(verifySuccessful);
-			}
-		}
-		{
-			List<IAuditEntry> auditEntriesOfUser = auditEntryReader.getAllAuditEntriesOfEntity(user);
-
-			Assert.assertEquals(2, auditEntriesOfUser.size());
-			boolean[] verifiedAuditEntries = auditEntryVerifier.verifyAuditEntries(auditEntriesOfUser);
-			Assert.assertEquals(auditEntriesOfUser.size(), verifiedAuditEntries.length);
-			for (boolean verifySuccessful : verifiedAuditEntries) {
-				Assert.assertTrue(verifySuccessful);
-			}
-		}
-		eventDispatcher.dispatchEvent(ClearAllCachesEvent.getInstance());
-
-		User reloadedUser = beanContext.getService(ICache.class).getObject(User.class, user.getId());
-	}
-
-	@Test
-	public void testNotAuditedServiceCall() {
-		Assert.assertEquals("5", testAuditService.notAuditedServiceCall(new Integer(5)));
-	}
-
-	@Test
-	public void testAuditedAnnotatedServiceCall_NoAudit() {
-		Assert.assertEquals("5", testAuditService.auditedAnnotatedServiceCall_NoAudit(new Integer(5)));
-	}
-
-	@Test
-	@TestProperties(name = SecurityServerConfigurationConstants.SignatureActive, value = "false")
-	public void testAuditedServiceCallWithAuditedArgument() {
-		Assert.assertEquals("5", testAuditService.auditedServiceCallWithAuditedArgument(new Integer(5),
-				"secret_not_audited"));
-	}
+            beanContextFactory.link(IUser.class).to(ITechnicalEntityTypeExtendable.class).with(User.class);
+            beanContextFactory.link(IPassword.class).to(ITechnicalEntityTypeExtendable.class).with(Password.class);
+            beanContextFactory.link(ISignature.class).to(ITechnicalEntityTypeExtendable.class).with(Signature.class);
+            beanContextFactory.link(IAuditEntry.class).to(ITechnicalEntityTypeExtendable.class).with(AuditEntry.class);
+            beanContextFactory.link(IAuditedEntity.class).to(ITechnicalEntityTypeExtendable.class).with(AuditedEntity.class);
+            beanContextFactory.link(IAuditedService.class).to(ITechnicalEntityTypeExtendable.class).with(AuditedService.class);
+            beanContextFactory.link(IAuditedEntityRef.class).to(ITechnicalEntityTypeExtendable.class).with(AuditedEntityRef.class);
+            beanContextFactory.link(IAuditedEntityPrimitiveProperty.class).to(ITechnicalEntityTypeExtendable.class).with(AuditedEntityPrimitiveProperty.class);
+            beanContextFactory.link(IAuditedEntityRelationProperty.class).to(ITechnicalEntityTypeExtendable.class).with(AuditedEntityRelationProperty.class);
+            beanContextFactory.link(IAuditedEntityRelationPropertyItem.class).to(ITechnicalEntityTypeExtendable.class).with(AuditedEntityRelationPropertyItem.class);
+        }
+    }
 }

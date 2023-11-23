@@ -20,27 +20,6 @@ limitations under the License.
  * #L%
  */
 
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
-
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import jakarta.ws.rs.BadRequestException;
-import jakarta.ws.rs.DELETE;
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.NotFoundException;
-import jakarta.ws.rs.POST;
-import jakarta.ws.rs.PUT;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.WebApplicationException;
-import jakarta.ws.rs.core.Context;
-import jakarta.ws.rs.core.NoContentException;
-import jakarta.ws.rs.core.StreamingOutput;
-
-import com.koch.ambeth.mapping.IMapperService;
 import com.koch.ambeth.mapping.IMapperServiceFactory;
 import com.koch.ambeth.merge.IMergeProcess;
 import com.koch.ambeth.merge.cache.ICache;
@@ -53,482 +32,352 @@ import com.koch.ambeth.util.IClassCache;
 import com.koch.ambeth.util.IConversionHelper;
 import com.koch.ambeth.util.ListUtil;
 import com.koch.ambeth.util.collections.ArrayList;
-import com.koch.ambeth.util.state.IStateRollback;
-import com.koch.ambeth.util.typeinfo.ITypeInfoItem;
 import com.koch.ambeth.util.typeinfo.ITypeInfoProvider;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.ws.rs.BadRequestException;
+import jakarta.ws.rs.DELETE;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.NotFoundException;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.PUT;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.NoContentException;
+import jakarta.ws.rs.core.StreamingOutput;
+
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
 
 @Path("/GenericEntityService")
 // @Consumes({ MediaType.TEXT_PLAIN })
 // @Produces({ MediaType.TEXT_PLAIN })
 public class GenericEntityREST extends AbstractServiceREST {
-	@Override
-	protected void writeContent(String contentType, OutputStream os, Object result) {
-		// TODO: write JSON
-		super.writeContent(contentType, os, result);
-	}
+    @Override
+    protected void writeContent(String contentType, OutputStream os, Object result) {
+        // TODO: write JSON
+        super.writeContent(contentType, os, result);
+    }
 
-	@Override
-	protected Object[] getArguments(InputStream is, HttpServletRequest request) {
-		// TODO: read JSON
-		return super.getArguments(is, request);
-	}
+    @Override
+    protected Object[] getArguments(InputStream is, HttpServletRequest request) {
+        // TODO: read JSON
+        return super.getArguments(is, request);
+    }
 
-	private final class NavigationStep {
-		public final Object value;
+    protected NavigationStep[] navigateTo(String[] path, NavigationMode navigationMode) {
+        ICache cache = getService(ICache.class);
+        IConversionHelper conversionHelper = getService(IConversionHelper.class);
+        IEntityMetaDataProvider entityMetaDataProvider = getService(IEntityMetaDataProvider.class);
 
-		public final IValueObjectConfig config;
+        String valueObjectTypeName = path[0];
+        IEntityMetaData metaData = null;
+        IClassCache classCache = getService(IClassCache.class);
+        try {
+            Class<?> entityType = classCache.loadClass(valueObjectTypeName);
+            metaData = entityMetaDataProvider.getMetaData(entityType, true);
+        } catch (ClassNotFoundException e) {
+            // intended blank
+        }
 
-		public final IEntityMetaData metaData;
+        IValueObjectConfig config = null;
+        if (metaData == null) {
+            config = entityMetaDataProvider.getValueObjectConfig(valueObjectTypeName);
+        }
+        if (config == null) {
+            if (metaData == null) {
+                throw new BadRequestException("Type '" + valueObjectTypeName + "' neither known as an entity nor as a DTO type");
+            }
+        }
+        if (metaData == null) {
+            metaData = entityMetaDataProvider.getMetaData(config.getEntityType());
+        }
 
-		public final Member boMember;
+        Object value = null;
 
-		public NavigationStep(Object value, IEntityMetaData metaData, IValueObjectConfig config,
-				Member boMember) {
-			super();
-			this.value = value;
-			this.metaData = metaData;
-			this.config = config;
-			this.boMember = boMember;
-		}
-	}
+        String entityId = null;
 
-	private enum NavigationMode {
-		DEFAULT, TRY_ONLY, SKIP_LAST;
-	}
+        if (path.length > 1) {
+            entityId = path[1];
+            Object convertedEntityId = conversionHelper.convertValueToType(metaData.getIdMember().getRealType(), entityId);
+            value = cache.getObject(metaData.getEntityType(), convertedEntityId);
+        }
+        StringBuilder pathSB = new StringBuilder(valueObjectTypeName);
 
-	protected NavigationStep[] navigateTo(String[] path, NavigationMode navigationMode) {
-		ICache cache = getService(ICache.class);
-		IConversionHelper conversionHelper = getService(IConversionHelper.class);
-		IEntityMetaDataProvider entityMetaDataProvider = getService(IEntityMetaDataProvider.class);
+        if (value == null) {
+            if (navigationMode == NavigationMode.TRY_ONLY) {
+                return new NavigationStep[] { new NavigationStep(null, metaData, config, null) };
+            }
+            throw new NotFoundException("Entity '" + pathSB + "'  with id '" + entityId + "' not found");
+        }
 
-		String valueObjectTypeName = path[0];
-		IEntityMetaData metaData = null;
-		IClassCache classCache = getService(IClassCache.class);
-		try {
-			Class<?> entityType = classCache.loadClass(valueObjectTypeName);
-			metaData = entityMetaDataProvider.getMetaData(entityType, true);
-		}
-		catch (ClassNotFoundException e) {
-			// intended blank
-		}
+        ArrayList<NavigationStep> navigationSteps = new ArrayList<>();
 
-		IValueObjectConfig config = null;
-		if (metaData == null) {
-			config = entityMetaDataProvider.getValueObjectConfig(valueObjectTypeName);
-		}
-		if (config == null) {
-			if (metaData == null) {
-				throw new BadRequestException(
-						"Type '" + valueObjectTypeName + "' neither known as an entity nor as a DTO type");
-			}
-		}
-		if (metaData == null) {
-			metaData = entityMetaDataProvider.getMetaData(config.getEntityType());
-		}
+        for (int index = 4, size = path.length; index < size; index++) {
+            String voMemberName = path[index];
+            pathSB.append('.').append(voMemberName);
 
-		Object value = null;
+            String boMemberName = config != null ? config.getBusinessObjectMemberName(voMemberName) : voMemberName;
+            Member member = metaData.getMemberByName(boMemberName);
+            if (member == null) {
+                throw new BadRequestException("Entity member '" + pathSB + "' not known");
+            }
+            navigationSteps.add(new NavigationStep(value, metaData, config, member));
+            if (value == null) {
+                if (navigationMode == NavigationMode.TRY_ONLY) {
+                    return navigationSteps.toArray(NavigationStep.class);
+                }
+                throw new NotFoundException("Entity '" + pathSB + "' not found");
+            }
+            if (metaData.isRelationMember(boMemberName)) {
+                metaData = entityMetaDataProvider.getMetaData(member.getElementType());
+                if (config != null) {
+                    List<Class<?>> availableConfigs = entityMetaDataProvider.getValueObjectTypesByEntityType(metaData.getEntityType());
+                    if (availableConfigs.isEmpty()) {
+                        throw new BadRequestException("Entity member '" + pathSB + "' not serializable");
+                    }
+                    config = entityMetaDataProvider.getValueObjectConfig(availableConfigs.get(0));
+                }
+            } else {
+                metaData = null;
+                config = null;
+            }
 
-		String entityId = null;
+            if (navigationMode == NavigationMode.SKIP_LAST && index == size - 1) {
+                break;
+            }
+            value = member.getValue(value);
 
-		if (path.length > 1) {
-			entityId = path[1];
-			Object convertedEntityId = conversionHelper
-					.convertValueToType(metaData.getIdMember().getRealType(), entityId);
-			value = cache.getObject(metaData.getEntityType(), convertedEntityId);
-		}
-		StringBuilder pathSB = new StringBuilder(valueObjectTypeName);
+            if (!member.isToMany() || index + 1 < size) {
+                continue;
+            }
 
-		if (value == null) {
-			if (navigationMode == NavigationMode.TRY_ONLY) {
-				return new NavigationStep[] {new NavigationStep(null, metaData, config, null)};
-			}
-			throw new NotFoundException("Entity '" + pathSB + "'  with id '" + entityId + "' not found");
-		}
+            // next item must be an index specification
+            index++;
+            int indexSpec = conversionHelper.convertValueToType(int.class, path[index]);
+            pathSB.append('[').append(indexSpec).append(']');
 
-		ArrayList<NavigationStep> navigationSteps = new ArrayList<>();
+            if (value instanceof List) {
+                value = ((List<?>) value).get(indexSpec);
+            } else {
+                Iterator<?> iter = ((Iterable<?>) value).iterator();
+                while (true) {
+                    if (!iter.hasNext()) {
+                        throw new NotFoundException("Entity '" + pathSB + "' not found");
+                    }
+                    if (indexSpec == 0) {
+                        break;
+                    }
+                    indexSpec--;
+                    iter.next();
+                }
+                value = iter.next();
+            }
+        }
+        navigationSteps.add(new NavigationStep(value, metaData, config, null));
 
-		for (int index = 4, size = path.length; index < size; index++) {
-			String voMemberName = path[index];
-			pathSB.append('.').append(voMemberName);
+        return navigationSteps.toArray(NavigationStep.class);
+    }
 
-			String boMemberName = config != null ? config.getBusinessObjectMemberName(voMemberName)
-					: voMemberName;
-			Member member = metaData.getMemberByName(boMemberName);
-			if (member == null) {
-				throw new BadRequestException("Entity member '" + pathSB + "' not known");
-			}
-			navigationSteps.add(new NavigationStep(value, metaData, config, member));
-			if (value == null) {
-				if (navigationMode == NavigationMode.TRY_ONLY) {
-					return navigationSteps.toArray(NavigationStep.class);
-				}
-				throw new NotFoundException("Entity '" + pathSB + "' not found");
-			}
-			if (metaData.isRelationMember(boMemberName)) {
-				metaData = entityMetaDataProvider.getMetaData(member.getElementType());
-				if (config != null) {
-					List<Class<?>> availableConfigs = entityMetaDataProvider
-							.getValueObjectTypesByEntityType(metaData.getEntityType());
-					if (availableConfigs.isEmpty()) {
-						throw new BadRequestException("Entity member '" + pathSB + "' not serializable");
-					}
-					config = entityMetaDataProvider.getValueObjectConfig(availableConfigs.get(0));
-				}
-			}
-			else {
-				metaData = null;
-				config = null;
-			}
+    @GET
+    @Path("{subResources:.*}")
+    public StreamingOutput get(@Context HttpServletRequest request, @Context HttpServletResponse response) {
+        return defaultStreamingRequest(request, response, () -> {
+            var basePath = getClass().getAnnotation(Path.class).value();
+            var contextPath = request.getPathInfo();
+            if (!basePath.startsWith("/")) {
+                basePath = "/" + basePath;
+            }
+            if (!basePath.endsWith("/")) {
+                basePath += "/";
+            }
+            if (contextPath.startsWith(basePath)) {
+                contextPath = contextPath.substring(basePath.length());
+            }
+            var path = contextPath.split("/");
 
-			if (navigationMode == NavigationMode.SKIP_LAST && index == size - 1) {
-				break;
-			}
-			value = member.getValue(value);
+            var navigationSteps = navigateTo(path, NavigationMode.DEFAULT);
+            var lastStep = navigationSteps[navigationSteps.length - 1];
 
-			if (!member.isToMany() || index + 1 < size) {
-				continue;
-			}
+            if (lastStep.value instanceof IEntityMetaDataHolder && lastStep.config != null) {
+                var mapperServiceFactory = getService(IMapperServiceFactory.class);
 
-			// next item must be an index specification
-			index++;
-			int indexSpec = conversionHelper.convertValueToType(int.class, path[index]);
-			pathSB.append('[').append(indexSpec).append(']');
+                var mapperService = mapperServiceFactory.create();
+                try {
+                    var valueObject = mapperService.mapToValueObject(lastStep.value, lastStep.config.getValueType());
+                    return createSynchronousResult(valueObject, request, response);
+                } finally {
+                    mapperService.dispose();
+                }
+            }
+            return createSynchronousResult(lastStep.value, request, response);
+        });
+    }
 
-			if (value instanceof List) {
-				value = ((List<?>) value).get(indexSpec);
-			}
-			else {
-				Iterator<?> iter = ((Iterable<?>) value).iterator();
-				while (true) {
-					if (!iter.hasNext()) {
-						throw new NotFoundException("Entity '" + pathSB + "' not found");
-					}
-					if (indexSpec == 0) {
-						break;
-					}
-					indexSpec--;
-					iter.next();
-				}
-				value = iter.next();
-			}
-		}
-		navigationSteps.add(new NavigationStep(value, metaData, config, null));
+    @PUT
+    @Path("{subResources:.*}")
+    public StreamingOutput put(InputStream is, @Context HttpServletRequest request, @Context HttpServletResponse response) {
+        return defaultStreamingRequest(request, response, is, args -> {
+            var contextPath = request.getPathInfo();
+            var path = contextPath.split("/");
 
-		return navigationSteps.toArray(NavigationStep.class);
-	}
+            var navigationSteps = navigateTo(path, NavigationMode.DEFAULT);
+            var parentStep = navigationSteps.length >= 2 ? navigationSteps[navigationSteps.length - 2] : null;
+            var lastStep = navigationSteps[navigationSteps.length - 1];
 
-	@GET
-	@Path("{subResources:.*}")
-	public StreamingOutput get(@Context HttpServletRequest request,
-			@Context HttpServletResponse response) {
-		IStateRollback rollback = preServiceCall(request, response);
-		try {
-			String basePath = getClass().getAnnotation(Path.class).value();
-			String contextPath = request.getPathInfo();
-			if (!basePath.startsWith("/")) {
-				basePath = "/" + basePath;
-			}
-			if (!basePath.endsWith("/")) {
-				basePath += "/";
-			}
-			if (contextPath.startsWith(basePath)) {
-				contextPath = contextPath.substring(basePath.length());
-			}
-			String[] path = contextPath.split("/");
+            if (args.length != 1 || args[0] == null) {
+                throw new BadRequestException("No values provided to modify entity '" + Arrays.toString(path) + "'");
+            }
+            var valueObject = args[0];
 
-			NavigationStep[] navigationSteps = navigateTo(path, NavigationMode.DEFAULT);
-			NavigationStep lastStep = navigationSteps[navigationSteps.length - 1];
+            var metaData = lastStep.metaData != null ? lastStep.metaData : parentStep.metaData;
+            var config = lastStep.metaData != null ? lastStep.config : parentStep.config;
+            var entity = lastStep.metaData != null ? lastStep.value : parentStep.value;
 
-			if (lastStep.value instanceof IEntityMetaDataHolder && lastStep.config != null) {
-				IMapperServiceFactory mapperServiceFactory = getService(IMapperServiceFactory.class);
+            var conversionHelper = getService(IConversionHelper.class);
+            var mapperServiceFactory = getService(IMapperServiceFactory.class);
+            var mergeProcess = getService(IMergeProcess.class);
+            var typeInfoProvider = getService(ITypeInfoProvider.class);
 
-				IMapperService mapperService = mapperServiceFactory.create();
-				try {
-					Object valueObject = mapperService.mapToValueObject(lastStep.value,
-							lastStep.config.getValueType());
-					return createSynchronousResult(valueObject, request, response);
-				}
-				finally {
-					mapperService.dispose();
-				}
-			}
-			return createSynchronousResult(lastStep.value, request, response);
-		}
-		catch (WebApplicationException e) {
-			throw e;
-		}
-		catch (Throwable e) {
-			return createExceptionResult(e, request, response);
-		}
-		finally {
-			rollback.rollback();
-		}
-	}
+            if (lastStep.metaData != null) {
+                var entityId = metaData.getIdMember().getValue(entity);
+                var voIdMemberName = config.getValueObjectMemberName(metaData.getIdMember().getName());
+                var voIdMember = typeInfoProvider.getHierarchicMember(config.getValueType(), voIdMemberName);
+                voIdMember.setValue(valueObject, conversionHelper.convertValueToType(voIdMember.getRealType(), entityId));
 
-	// @PATCH
-	// @Path("{subResources:.*}")
-	// public StreamingOutput patch(InputStream is, @Context HttpServletRequest request,
-	// @Context HttpServletResponse response) {
-	// try {
-	// throw new NotSupportedException("Not yet supported");
-	//
-	// // preServiceCall(request);
-	// //
-	// // String contextPath = request.getPathInfo();
-	// // String[] path = contextPath.split("/");
-	// //
-	// // NavigationStep[] navigationSteps = navigateTo(path, NavigationMode.DEFAULT);
-	// // NavigationStep lastStep = navigationSteps[navigationSteps.length - 1];
-	// //
-	// // if (lastStep.metaData == null)
-	// // {
-	// // throw new WebApplicationException("Resource is not an entity", 422); // unprocessable
-	// // request
-	// // }
-	// // Object[] args = getArguments(is, request);
-	// // if (args.length != 1 || args[0] == null)
-	// // {
-	// // throw new BadRequestException("No values provided to create entity '" +
-	// // Arrays.toString(path) + "'");
-	// // }
-	// // Object valueObject = args[0];
-	// //
-	// // IConversionHelper conversionHelper = getService(IConversionHelper.class);
-	// // IMapperServiceFactory mapperServiceFactory = getService(IMapperServiceFactory.class);
-	// // IMergeProcess mergeProcess = getService(IMergeProcess.class);
-	// // ITypeInfoProvider typeInfoProvider = getService(ITypeInfoProvider.class);
-	// //
-	// // IMapperService mapperService = mapperServiceFactory.create();
-	// // try
-	// // {
-	// // Object businessObject = lastStep.value;
-	// // typeInfoProvider.getClass<?> valueType = lastStep.config.getValueType();
-	// //
-	// // mergeProcess.process(businessObject, null, null, null);
-	// //
-	// // valueObject = mapperService.mapToValueObject(businessObject,
-	// // lastStep.config.getValueType());
-	// // }
-	// // finally
-	// // {
-	// // mapperService.dispose();
-	// // }
-	// // return createResult(valueObject, response);
-	// }
-	// catch (WebApplicationException e) {
-	// throw e;
-	// }
-	// catch (Throwable e) {
-	// return createExceptionResult(e, request, response);
-	// }
-	// finally {
-	// postServiceCall();
-	// }
-	// }
+                var mapperService = mapperServiceFactory.create();
+                try {
+                    var businessObject = mapperService.mapToBusinessObject(valueObject);
+                    mergeProcess.process(businessObject);
 
-	@PUT
-	@Path("{subResources:.*}")
-	public StreamingOutput put(InputStream is, @Context HttpServletRequest request,
-			@Context HttpServletResponse response) {
-		IStateRollback rollback = preServiceCall(request, response);
-		try {
-			String contextPath = request.getPathInfo();
-			String[] path = contextPath.split("/");
+                    valueObject = mapperService.mapToValueObject(businessObject, config.getValueType());
+                    return valueObject;
+                } finally {
+                    mapperService.dispose();
+                }
+            } else {
+                parentStep.boMember.setValue(entity, conversionHelper.convertValueToType(parentStep.boMember.getRealType(), valueObject));
+                mergeProcess.process(entity);
 
-			NavigationStep[] navigationSteps = navigateTo(path, NavigationMode.DEFAULT);
-			NavigationStep parentStep = navigationSteps.length >= 2
-					? navigationSteps[navigationSteps.length - 2]
-					: null;
-			NavigationStep lastStep = navigationSteps[navigationSteps.length - 1];
+                var mapperService = mapperServiceFactory.create();
+                try {
+                    valueObject = mapperService.mapToValueObject(entity, config.getValueType());
+                    return valueObject;
+                } finally {
+                    mapperService.dispose();
+                }
+            }
+        });
+    }
 
-			Object[] args = getArguments(is, request);
-			if (args.length != 1 || args[0] == null) {
-				throw new BadRequestException(
-						"No values provided to modify entity '" + Arrays.toString(path) + "'");
-			}
-			Object valueObject = args[0];
+    @POST
+    @Path("{subResources:.*}")
+    public StreamingOutput post(InputStream is, @Context HttpServletRequest request, @Context HttpServletResponse response) {
+        return defaultStreamingRequest(request, response, is, args -> {
+            var contextPath = request.getPathInfo();
+            var path = contextPath.split("/");
 
-			IEntityMetaData metaData = lastStep.metaData != null ? lastStep.metaData
-					: parentStep.metaData;
-			IValueObjectConfig config = lastStep.metaData != null ? lastStep.config : parentStep.config;
-			Object entity = lastStep.metaData != null ? lastStep.value : parentStep.value;
+            var navigationSteps = navigateTo(path, NavigationMode.DEFAULT);
+            var parentStep = navigationSteps.length >= 2 ? navigationSteps[navigationSteps.length - 2] : null;
+            var lastStep = navigationSteps[navigationSteps.length - 1];
 
-			IConversionHelper conversionHelper = getService(IConversionHelper.class);
-			IMapperServiceFactory mapperServiceFactory = getService(IMapperServiceFactory.class);
-			IMergeProcess mergeProcess = getService(IMergeProcess.class);
-			ITypeInfoProvider typeInfoProvider = getService(ITypeInfoProvider.class);
+            if (args.length != 1 || args[0] == null) {
+                throw new BadRequestException("No values provided to create entity '" + Arrays.toString(path) + "'");
+            }
+            var valueObject = args[0];
 
-			if (lastStep.metaData != null) {
-				Object entityId = metaData.getIdMember().getValue(entity);
-				String voIdMemberName = config.getValueObjectMemberName(metaData.getIdMember().getName());
-				ITypeInfoItem voIdMember = typeInfoProvider.getHierarchicMember(config.getValueType(),
-						voIdMemberName);
-				voIdMember.setValue(valueObject,
-						conversionHelper.convertValueToType(voIdMember.getRealType(), entityId));
+            if (!lastStep.config.getValueType().isAssignableFrom(valueObject.getClass())) {
+                throw new BadRequestException("Expected value type '" + lastStep.config.getValueType().getName() + "'. Given value type '" + valueObject.getClass().getName() + "'");
+            }
 
-				IMapperService mapperService = mapperServiceFactory.create();
-				try {
-					Object businessObject = mapperService.mapToBusinessObject(valueObject);
-					mergeProcess.process(businessObject);
+            var mapperServiceFactory = getService(IMapperServiceFactory.class);
+            var mergeProcess = getService(IMergeProcess.class);
+            var typeInfoProvider = getService(ITypeInfoProvider.class);
 
-					valueObject = mapperService.mapToValueObject(businessObject, config.getValueType());
-					return createResult(valueObject, request, response);
-				}
-				finally {
-					mapperService.dispose();
-				}
-			}
-			else {
-				parentStep.boMember.setValue(entity,
-						conversionHelper.convertValueToType(parentStep.boMember.getRealType(), valueObject));
-				mergeProcess.process(entity);
+            var voIdMemberName = lastStep.config.getValueObjectMemberName(lastStep.metaData.getIdMember().getName());
+            var voVersionMemberName = lastStep.config.getValueObjectMemberName(lastStep.metaData.getVersionMember().getName());
+            var voIdMember = typeInfoProvider.getHierarchicMember(lastStep.config.getValueType(), voIdMemberName);
+            var voVersionMember = typeInfoProvider.getHierarchicMember(lastStep.config.getValueType(), voVersionMemberName);
+            voIdMember.setValue(valueObject, null);
+            if (voVersionMember != null) {
+                voVersionMember.setValue(valueObject, null);
+            }
 
-				IMapperService mapperService = mapperServiceFactory.create();
-				try {
-					valueObject = mapperService.mapToValueObject(entity, config.getValueType());
-					return createResult(valueObject, request, response);
-				}
-				finally {
-					mapperService.dispose();
-				}
-			}
-		}
-		catch (WebApplicationException e) {
-			throw e;
-		}
-		catch (Throwable e) {
-			return createExceptionResult(e, request, response);
-		}
-		finally {
-			rollback.rollback();
-		}
-	}
+            var mapperService = mapperServiceFactory.create();
+            try {
+                var businessObject = mapperService.mapToBusinessObject(valueObject);
+                if (lastStep.value != null && parentStep != null) {
+                    var boMemberName = parentStep.config.getBusinessObjectMemberName(path[path.length - 1]);
+                    var boMember = parentStep.metaData.getMemberByName(boMemberName);
+                    if (boMember == null) {
+                        throw new BadRequestException("Entity member '" + parentStep.metaData.getEntityType().getName() + "." + boMemberName + "' not found");
+                    }
+                    if (parentStep.metaData.isRelationMember(boMember.getName())) {
+                        throw new BadRequestException("Entity member '" + parentStep.metaData.getEntityType().getName() + "." + boMemberName + "' is not pointing to a relation");
+                    }
+                    if (boMember.isToMany()) {
+                        ListUtil.fillList(boMember.getValue(parentStep.value), Arrays.asList(businessObject));
+                    } else {
+                        boMember.setValue(parentStep.value, businessObject);
+                    }
+                    mergeProcess.process(parentStep.value);
+                } else {
+                    mergeProcess.process(businessObject);
+                }
 
-	@POST
-	@Path("{subResources:.*}")
-	public StreamingOutput post(InputStream is, @Context HttpServletRequest request,
-			@Context HttpServletResponse response) {
-		IStateRollback rollback = preServiceCall(request, response);
-		try {
-			String contextPath = request.getPathInfo();
-			String[] path = contextPath.split("/");
+                valueObject = mapperService.mapToValueObject(businessObject, lastStep.config.getValueType());
+                return valueObject;
+            } finally {
+                mapperService.dispose();
+            }
+        });
+    }
 
-			NavigationStep[] navigationSteps = navigateTo(path, NavigationMode.DEFAULT);
-			NavigationStep parentStep = navigationSteps.length >= 2
-					? navigationSteps[navigationSteps.length - 2]
-					: null;
-			NavigationStep lastStep = navigationSteps[navigationSteps.length - 1];
+    @DELETE
+    @Path("{subResources:.*}")
+    public StreamingOutput delete(@Context HttpServletRequest request, @Context HttpServletResponse response) {
+        return defaultStreamingRequest(request, response, () -> {
+            var contextPath = request.getPathInfo();
+            var path = contextPath.split("/");
 
-			Object[] args = getArguments(is, request);
-			if (args.length != 1 || args[0] == null) {
-				throw new BadRequestException(
-						"No values provided to create entity '" + Arrays.toString(path) + "'");
-			}
-			Object valueObject = args[0];
+            var navigationSteps = navigateTo(path, NavigationMode.TRY_ONLY);
+            var lastStep = navigationSteps[navigationSteps.length - 1];
 
-			if (!lastStep.config.getValueType().isAssignableFrom(valueObject.getClass())) {
-				throw new BadRequestException(
-						"Expected value type '" + lastStep.config.getValueType().getName()
-								+ "'. Given value type '" + valueObject.getClass().getName() + "'");
-			}
+            if (lastStep.value == null) {
+                throw new NoContentException("Resource not deleted. Reason: resource not found");
+            }
+            if (lastStep.config == null) {
+                throw new BadRequestException("Instance to delete must be an entity: '" + Arrays.toString(path) + "'");
+            }
+            var mergeProcess = getService(IMergeProcess.class);
+            mergeProcess.begin().delete(lastStep.value).finish();
 
-			IMapperServiceFactory mapperServiceFactory = getService(IMapperServiceFactory.class);
-			IMergeProcess mergeProcess = getService(IMergeProcess.class);
-			ITypeInfoProvider typeInfoProvider = getService(ITypeInfoProvider.class);
+            throw new NoContentException("Resource deleted");
+        });
+    }
 
-			String voIdMemberName = lastStep.config
-					.getValueObjectMemberName(lastStep.metaData.getIdMember().getName());
-			String voVersionMemberName = lastStep.config
-					.getValueObjectMemberName(lastStep.metaData.getVersionMember().getName());
-			ITypeInfoItem voIdMember = typeInfoProvider
-					.getHierarchicMember(lastStep.config.getValueType(), voIdMemberName);
-			ITypeInfoItem voVersionMember = typeInfoProvider
-					.getHierarchicMember(lastStep.config.getValueType(), voVersionMemberName);
-			voIdMember.setValue(valueObject, null);
-			if (voVersionMember != null) {
-				voVersionMember.setValue(valueObject, null);
-			}
+    private enum NavigationMode {
+        DEFAULT, TRY_ONLY, SKIP_LAST;
+    }
 
-			IMapperService mapperService = mapperServiceFactory.create();
-			try {
-				Object businessObject = mapperService.mapToBusinessObject(valueObject);
-				if (lastStep.value != null && parentStep != null) {
-					String boMemberName = parentStep.config
-							.getBusinessObjectMemberName(path[path.length - 1]);
-					Member boMember = parentStep.metaData.getMemberByName(boMemberName);
-					if (boMember == null) {
-						throw new BadRequestException(
-								"Entity member '" + parentStep.metaData.getEntityType().getName() + "."
-										+ boMemberName + "' not found");
-					}
-					if (parentStep.metaData.isRelationMember(boMember.getName())) {
-						throw new BadRequestException(
-								"Entity member '" + parentStep.metaData.getEntityType().getName() + "."
-										+ boMemberName + "' is not pointing to a relation");
-					}
-					if (boMember.isToMany()) {
-						ListUtil.fillList(boMember.getValue(parentStep.value), Arrays.asList(businessObject));
-					}
-					else {
-						boMember.setValue(parentStep.value, businessObject);
-					}
-					mergeProcess.process(parentStep.value);
-				}
-				else {
-					mergeProcess.process(businessObject);
-				}
+    private final class NavigationStep {
+        public final Object value;
 
-				valueObject = mapperService.mapToValueObject(businessObject,
-						lastStep.config.getValueType());
-				return createResult(valueObject, request, response);
-			}
-			finally {
-				mapperService.dispose();
-			}
-		}
-		catch (WebApplicationException e) {
-			throw e;
-		}
-		catch (Throwable e) {
-			return createExceptionResult(e, request, response);
-		}
-		finally {
-			rollback.rollback();
-		}
-	}
+        public final IValueObjectConfig config;
 
-	@DELETE
-	@Path("{subResources:.*}")
-	public StreamingOutput delete(@Context HttpServletRequest request,
-			@Context HttpServletResponse response) {
-		IStateRollback rollback = preServiceCall(request, response);
-		try {
-			String contextPath = request.getPathInfo();
-			String[] path = contextPath.split("/");
+        public final IEntityMetaData metaData;
 
-			NavigationStep[] navigationSteps = navigateTo(path, NavigationMode.TRY_ONLY);
-			NavigationStep lastStep = navigationSteps[navigationSteps.length - 1];
+        public final Member boMember;
 
-			if (lastStep.value == null) {
-				throw new NoContentException("Resource not deleted. Reason: resource not found");
-			}
-			if (lastStep.config == null) {
-				throw new BadRequestException(
-						"Instance to delete must be an entity: '" + Arrays.toString(path) + "'");
-			}
-			IMergeProcess mergeProcess = getService(IMergeProcess.class);
-			mergeProcess.begin().delete(lastStep.value).finish();
-
-			throw new NoContentException("Resource deleted");
-		}
-		catch (WebApplicationException e) {
-			throw e;
-		}
-		catch (Throwable e) {
-			return createExceptionResult(e, request, response);
-		}
-		finally {
-			rollback.rollback();
-		}
-	}
+        public NavigationStep(Object value, IEntityMetaData metaData, IValueObjectConfig config, Member boMember) {
+            super();
+            this.value = value;
+            this.metaData = metaData;
+            this.config = config;
+            this.boMember = boMember;
+        }
+    }
 }

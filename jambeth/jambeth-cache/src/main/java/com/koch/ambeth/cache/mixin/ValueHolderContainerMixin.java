@@ -20,13 +20,6 @@ limitations under the License.
  * #L%
  */
 
-import java.util.Arrays;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
-
 import com.koch.ambeth.cache.ICacheIntern;
 import com.koch.ambeth.cache.proxy.IValueHolderContainer;
 import com.koch.ambeth.cache.transfer.ObjRelation;
@@ -50,283 +43,242 @@ import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.EmptyList;
 import com.koch.ambeth.util.collections.HashSet;
 import com.koch.ambeth.util.collections.IList;
-import com.koch.ambeth.util.state.AbstractStateRollback;
 import com.koch.ambeth.util.state.IStateRollback;
-import com.koch.ambeth.util.state.NoOpStateRollback;
+import com.koch.ambeth.util.state.StateRollback;
 import com.koch.ambeth.util.threading.IGuiThreadHelper;
-import com.koch.ambeth.util.threading.IResultingBackgroundWorkerDelegate;
+
+import java.util.Arrays;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class ValueHolderContainerMixin implements IDisposableBean, IAsyncLazyLoadController {
-	@Autowired
-	protected ICacheHelper cacheHelper;
+    protected final HashSet<DirectValueHolderRef> vhRefToPendingEventHandlersMap = new HashSet<>();
+    protected final Lock writeLock = new ReentrantLock();
+    protected final Condition cond = writeLock.newCondition(), haveDataCond = writeLock.newCondition(), sleepingCond = writeLock.newCondition();
+    protected final ThreadLocal<Boolean> asynchronousResultAllowedTL = new ThreadLocal<>();
+    @Autowired
+    protected ICacheHelper cacheHelper;
+    @Autowired
+    protected IEntityMetaDataProvider entityMetaDataProvider;
+    @Autowired
+    protected IGuiThreadHelper guiThreadHelper;
+    @Autowired
+    protected IObjRefHelper objRefHelper;
+    @Autowired
+    protected IPrefetchHelper prefetchHelper;
+    @Autowired(optional = true)
+    protected ILightweightTransaction transaction;
+    protected volatile boolean disposed;
+    protected long queueInterval = 100;
 
-	@Autowired
-	protected IEntityMetaDataProvider entityMetaDataProvider;
+    protected Thread thread;
 
-	@Autowired
-	protected IGuiThreadHelper guiThreadHelper;
+    protected volatile boolean sleeping = true;
 
-	@Autowired
-	protected IObjRefHelper objRefHelper;
+    @Override
+    public void destroy() throws Throwable {
+        disposed = true;
+        writeLock.lock();
+        try {
+            thread = null;
+            cond.signal();
+            haveDataCond.signal();
+        } finally {
+            writeLock.unlock();
+        }
+    }
 
-	@Autowired
-	protected IPrefetchHelper prefetchHelper;
+    /*
+     * (non-Javadoc)
+     * @see
+     * com.koch.ambeth.cache.mixin.IAsyncLazyLoadController#pushAsynchronousResultAllowed(com.koch.
+     * ambeth.util.state.IStateRollback)
+     */
+    @Override
+    public IStateRollback pushAsynchronousResultAllowed() {
+        var old = asynchronousResultAllowedTL.get();
+        if (Boolean.TRUE.equals(old)) {
+            return StateRollback.empty();
+        }
+        asynchronousResultAllowedTL.set(Boolean.TRUE);
+        return () -> {
+            asynchronousResultAllowedTL.set(old);
+        };
+    }
 
-	@Autowired(optional = true)
-	protected ILightweightTransaction transaction;
+    protected void loadAllPendingValueHolders(DirectValueHolderRef[] vhRefs) {
+        prefetchHelper.prefetch(vhRefs);
+    }
 
-	protected volatile boolean disposed;
+    public IObjRelation getSelf(Object entity, String memberName) {
+        IList<IObjRef> allObjRefs = objRefHelper.entityToAllObjRefs(entity);
+        return new ObjRelation(allObjRefs.toArray(IObjRef.class), memberName);
+    }
 
-	protected final HashSet<DirectValueHolderRef> vhRefToPendingEventHandlersMap =
-			new HashSet<>();
+    public IObjRelation getSelf(IObjRefContainer entity, int relationIndex) {
+        String memberName = entity.get__EntityMetaData().getRelationMembers()[relationIndex].getName();
+        IList<IObjRef> allObjRefs = objRefHelper.entityToAllObjRefs(entity);
+        return new ObjRelation(allObjRefs.toArray(IObjRef.class), memberName);
+    }
 
-	protected final Lock writeLock = new ReentrantLock();
+    public Object getValue(IObjRefContainer entity, RelationMember[] relationMembers, int relationIndex, ICacheIntern targetCache, IObjRef[] objRefs) {
+        return getValue(entity, relationIndex, relationMembers[relationIndex], targetCache, objRefs, CacheDirective.none());
+    }
 
-	protected final Condition cond = writeLock.newCondition(),
-			haveDataCond = writeLock.newCondition(), sleepingCond = writeLock.newCondition();
+    public Object getValue(IObjRefContainer entity, int relationIndex, RelationMember relationMember, final ICacheIntern targetCache, IObjRef[] objRefs, final Set<CacheDirective> cacheDirective) {
+        if (targetCache == null) {
+            // This happens if an entity gets newly created and immediately called for relations (e.g.
+            // collections to add sth)
+            return cacheHelper.createInstanceOfTargetExpectedType(relationMember.getRealType(), relationMember.getElementType());
+        }
+        IGuiThreadHelper guiThreadHelper = this.guiThreadHelper;
+        boolean isInGuiThread = guiThreadHelper.isInGuiThread();
+        ValueHolderState state = entity.get__State(relationIndex);
+        boolean initPending = ValueHolderState.PENDING == state;
+        boolean asynchronousResultAllowed = Boolean.TRUE.equals(asynchronousResultAllowedTL.get());
+        if (isInGuiThread && initPending) {
+            // Content is not really loaded, but instance is available to use (SOLELY for DataBinding in
+            // GUI Thread)
+            Object value = ((IValueHolderContainer) entity).get__ValueDirect(relationIndex);
+            if (value != null) {
+                return value;
+            }
+        }
+        if (!asynchronousResultAllowed) {
+            IList<Object> results;
+            if (objRefs == null) {
+                final IObjRelation self = getSelf(entity, relationMember.getName());
 
-	protected final ThreadLocal<Boolean> asynchronousResultAllowedTL = new ThreadLocal<>();
+                if (transaction != null) {
+                    results = transaction.runInLazyTransaction(() -> {
+                        IList<IObjRelationResult> objRelResults = targetCache.getObjRelations(Arrays.asList(self), targetCache, cacheDirective);
+                        if (objRelResults.isEmpty()) {
+                            return EmptyList.getInstance();
+                        } else {
+                            IObjRelationResult objRelResult = objRelResults.get(0);
+                            return targetCache.getObjects(new ArrayList<IObjRef>(objRelResult.getRelations()), targetCache, cacheDirective);
+                        }
+                    });
+                } else {
+                    IList<IObjRelationResult> objRelResults = targetCache.getObjRelations(Arrays.asList(self), targetCache, cacheDirective);
+                    if (objRelResults.isEmpty()) {
+                        results = EmptyList.getInstance();
+                    } else {
+                        IObjRelationResult objRelResult = objRelResults.get(0);
+                        results = targetCache.getObjects(new ArrayList<IObjRef>(objRelResult.getRelations()), targetCache, cacheDirective);
+                    }
+                }
+            } else {
+                results = targetCache.getObjects(new ArrayList<IObjRef>(objRefs), targetCache, cacheDirective);
+            }
+            return cacheHelper.convertResultListToExpectedType(results, relationMember.getRealType(), relationMember.getElementType());
+        }
+        writeLock.lock();
+        try {
+            if (disposed) {
+                return null;
+            }
+            ((IValueHolderContainer) entity).set__InitPending(relationIndex);
+            vhRefToPendingEventHandlersMap.add(new DirectValueHolderRef(entity, relationMember));
+            ensureThread();
+            haveDataCond.signal();
+        } finally {
+            writeLock.unlock();
+        }
+        return cacheHelper.createInstanceOfTargetExpectedType(relationMember.getRealType(), relationMember.getElementType());
+    }
 
-	protected long queueInterval = 100;
+    private void ensureThread() {
+        if (thread != null && thread.isAlive()) {
+            return;
+        }
+        writeLock.lock();
+        try {
+            sleeping = false;
+        } finally {
+            writeLock.unlock();
+        }
+        thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while (!disposed) {
+                    DirectValueHolderRef[] vhRefs;
+                    writeLock.lock();
+                    try {
+                        sleeping = false;
+                        if (vhRefToPendingEventHandlersMap.size() == 0) {
+                            sleeping = true;
+                            sleepingCond.signalAll();
+                            haveDataCond.await();
+                            continue;
+                        }
+                        cond.await(queueInterval, TimeUnit.MILLISECONDS);
+                        vhRefs = vhRefToPendingEventHandlersMap.toArray(DirectValueHolderRef.class);
+                        vhRefToPendingEventHandlersMap.clear();
+                        if (disposed) {
+                            return;
+                        }
+                    } catch (InterruptedException e) {
+                        Thread.interrupted(); // clear flag
+                        continue;
+                    } finally {
+                        writeLock.unlock();
+                    }
+                    loadAllPendingValueHolders(vhRefs);
+                }
+            }
+        });
+        thread.setName(getClass().getName());
+        thread.setDaemon(true);
+        thread.start();
+    }
 
-	protected Thread thread;
+    public Object getValue(IValueHolderContainer vhc, int relationIndex) {
+        return getValue(vhc, relationIndex, CacheDirective.none());
+    }
 
-	protected volatile boolean sleeping = true;
+    public Object getValue(IValueHolderContainer vhc, int relationIndex, Set<CacheDirective> cacheDirective) {
+        IEntityMetaData metaData = vhc.get__EntityMetaData();
+        RelationMember relationMember = metaData.getRelationMembers()[relationIndex];
+        if (ValueHolderState.INIT == vhc.get__State(relationIndex)) {
+            return relationMember.getValue(vhc);
+        }
+        IObjRef[] objRefs = vhc.get__ObjRefs(relationIndex);
+        return getValue(vhc, relationIndex, relationMember, vhc.get__TargetCache(), objRefs, cacheDirective);
+    }
 
-	@Override
-	public void destroy() throws Throwable {
-		disposed = true;
-		writeLock.lock();
-		try {
-			thread = null;
-			cond.signal();
-			haveDataCond.signal();
-		}
-		finally {
-			writeLock.unlock();
-		}
-	}
+    @Override
+    public void awaitAsyncWorkload() throws InterruptedException {
+        writeLock.lock();
+        try {
+            while (!sleeping) {
+                sleepingCond.await();
+            }
+        } finally {
+            writeLock.unlock();
+        }
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * @see
-	 * com.koch.ambeth.cache.mixin.IAsyncLazyLoadController#pushAsynchronousResultAllowed(com.koch.
-	 * ambeth.util.state.IStateRollback)
-	 */
-	@Override
-	public IStateRollback pushAsynchronousResultAllowed(IStateRollback... rollbacks) {
-		final Boolean old = asynchronousResultAllowedTL.get();
-		if (Boolean.TRUE.equals(old)) {
-			return NoOpStateRollback.createNoOpRollback(rollbacks);
-		}
-		asynchronousResultAllowedTL.set(Boolean.TRUE);
-		return new AbstractStateRollback(rollbacks) {
-			@Override
-			protected void rollbackIntern() throws Exception {
-				asynchronousResultAllowedTL.set(old);
-			}
-		};
-	}
-
-	protected void loadAllPendingValueHolders(DirectValueHolderRef[] vhRefs) {
-		prefetchHelper.prefetch(vhRefs);
-	}
-
-	public IObjRelation getSelf(Object entity, String memberName) {
-		IList<IObjRef> allObjRefs = objRefHelper.entityToAllObjRefs(entity);
-		return new ObjRelation(allObjRefs.toArray(IObjRef.class), memberName);
-	}
-
-	public IObjRelation getSelf(IObjRefContainer entity, int relationIndex) {
-		String memberName = entity.get__EntityMetaData().getRelationMembers()[relationIndex].getName();
-		IList<IObjRef> allObjRefs = objRefHelper.entityToAllObjRefs(entity);
-		return new ObjRelation(allObjRefs.toArray(IObjRef.class), memberName);
-	}
-
-	public Object getValue(IObjRefContainer entity, RelationMember[] relationMembers,
-			int relationIndex, ICacheIntern targetCache, IObjRef[] objRefs) {
-		return getValue(entity, relationIndex, relationMembers[relationIndex], targetCache, objRefs,
-				CacheDirective.none());
-	}
-
-	public Object getValue(IObjRefContainer entity, int relationIndex, RelationMember relationMember,
-			final ICacheIntern targetCache, IObjRef[] objRefs, final Set<CacheDirective> cacheDirective) {
-		if (targetCache == null) {
-			// This happens if an entity gets newly created and immediately called for relations (e.g.
-			// collections to add sth)
-			return cacheHelper.createInstanceOfTargetExpectedType(relationMember.getRealType(),
-					relationMember.getElementType());
-		}
-		IGuiThreadHelper guiThreadHelper = this.guiThreadHelper;
-		boolean isInGuiThread = guiThreadHelper.isInGuiThread();
-		ValueHolderState state = entity.get__State(relationIndex);
-		boolean initPending = ValueHolderState.PENDING == state;
-		boolean asynchronousResultAllowed = Boolean.TRUE.equals(asynchronousResultAllowedTL.get());
-		if (isInGuiThread && initPending) {
-			// Content is not really loaded, but instance is available to use (SOLELY for DataBinding in
-			// GUI Thread)
-			Object value = ((IValueHolderContainer) entity).get__ValueDirect(relationIndex);
-			if (value != null) {
-				return value;
-			}
-		}
-		if (!asynchronousResultAllowed) {
-			IList<Object> results;
-			if (objRefs == null) {
-				final IObjRelation self = getSelf(entity, relationMember.getName());
-
-				if (transaction != null) {
-					results = transaction
-							.runInLazyTransaction(new IResultingBackgroundWorkerDelegate<IList<Object>>() {
-								@Override
-								public IList<Object> invoke() throws Exception {
-									IList<IObjRelationResult> objRelResults = targetCache
-											.getObjRelations(Arrays.asList(self), targetCache, cacheDirective);
-									if (objRelResults.isEmpty()) {
-										return EmptyList.getInstance();
-									}
-									else {
-										IObjRelationResult objRelResult = objRelResults.get(0);
-										return targetCache.getObjects(
-												new ArrayList<IObjRef>(objRelResult.getRelations()), targetCache,
-												cacheDirective);
-									}
-								}
-							});
-				}
-				else {
-					IList<IObjRelationResult> objRelResults = targetCache.getObjRelations(Arrays.asList(self),
-							targetCache, cacheDirective);
-					if (objRelResults.isEmpty()) {
-						results = EmptyList.getInstance();
-					}
-					else {
-						IObjRelationResult objRelResult = objRelResults.get(0);
-						results = targetCache.getObjects(new ArrayList<IObjRef>(objRelResult.getRelations()),
-								targetCache, cacheDirective);
-					}
-				}
-			}
-			else {
-				results = targetCache.getObjects(new ArrayList<IObjRef>(objRefs), targetCache,
-						cacheDirective);
-			}
-			return cacheHelper.convertResultListToExpectedType(results, relationMember.getRealType(),
-					relationMember.getElementType());
-		}
-		writeLock.lock();
-		try {
-			if (disposed) {
-				return null;
-			}
-			((IValueHolderContainer) entity).set__InitPending(relationIndex);
-			vhRefToPendingEventHandlersMap.add(new DirectValueHolderRef(entity, relationMember));
-			ensureThread();
-			haveDataCond.signal();
-		}
-		finally {
-			writeLock.unlock();
-		}
-		return cacheHelper.createInstanceOfTargetExpectedType(relationMember.getRealType(),
-				relationMember.getElementType());
-	}
-
-	private void ensureThread() {
-		if (thread != null && thread.isAlive()) {
-			return;
-		}
-		writeLock.lock();
-		try {
-			sleeping = false;
-		}
-		finally {
-			writeLock.unlock();
-		}
-		thread = new Thread(new Runnable() {
-			@Override
-			public void run() {
-				while (!disposed) {
-					DirectValueHolderRef[] vhRefs;
-					writeLock.lock();
-					try {
-						sleeping = false;
-						if (vhRefToPendingEventHandlersMap.size() == 0) {
-							sleeping = true;
-							sleepingCond.signalAll();
-							haveDataCond.await();
-							continue;
-						}
-						cond.await(queueInterval, TimeUnit.MILLISECONDS);
-						vhRefs =
-								vhRefToPendingEventHandlersMap.toArray(DirectValueHolderRef.class);
-						vhRefToPendingEventHandlersMap.clear();
-						if (disposed) {
-							return;
-						}
-					}
-					catch (InterruptedException e) {
-						Thread.interrupted(); // clear flag
-						continue;
-					}
-					finally {
-						writeLock.unlock();
-					}
-					loadAllPendingValueHolders(vhRefs);
-				}
-			}
-		});
-		thread.setName(getClass().getName());
-		thread.setDaemon(true);
-		thread.start();
-	}
-
-	public Object getValue(IValueHolderContainer vhc, int relationIndex) {
-		return getValue(vhc, relationIndex, CacheDirective.none());
-	}
-
-	public Object getValue(IValueHolderContainer vhc, int relationIndex,
-			Set<CacheDirective> cacheDirective) {
-		IEntityMetaData metaData = vhc.get__EntityMetaData();
-		RelationMember relationMember = metaData.getRelationMembers()[relationIndex];
-		if (ValueHolderState.INIT == vhc.get__State(relationIndex)) {
-			return relationMember.getValue(vhc);
-		}
-		IObjRef[] objRefs = vhc.get__ObjRefs(relationIndex);
-		return getValue(vhc, relationIndex, relationMember, vhc.get__TargetCache(), objRefs,
-				cacheDirective);
-	}
-
-	@Override
-	public void awaitAsyncWorkload() throws InterruptedException {
-		writeLock.lock();
-		try {
-			while (!sleeping) {
-				sleepingCond.await();
-			}
-		}
-		finally {
-			writeLock.unlock();
-		}
-	}
-
-	@Override
-	public boolean awaitAsyncWorkload(long time, TimeUnit unit) throws InterruptedException {
-		long waitTill = System.currentTimeMillis() + unit.toMillis(time);
-		writeLock.lock();
-		try {
-			while (!sleeping) {
-				long maxWait = waitTill - System.currentTimeMillis();
-				if (maxWait <= 0) {
-					return false;
-				}
-				if (sleepingCond.await(maxWait, TimeUnit.MILLISECONDS)) {
-					return true;
-				}
-			}
-			return false;
-		}
-		finally {
-			writeLock.unlock();
-		}
-	}
+    @Override
+    public boolean awaitAsyncWorkload(long time, TimeUnit unit) throws InterruptedException {
+        long waitTill = System.currentTimeMillis() + unit.toMillis(time);
+        writeLock.lock();
+        try {
+            while (!sleeping) {
+                long maxWait = waitTill - System.currentTimeMillis();
+                if (maxWait <= 0) {
+                    return false;
+                }
+                if (sleepingCond.await(maxWait, TimeUnit.MILLISECONDS)) {
+                    return true;
+                }
+            }
+            return false;
+        } finally {
+            writeLock.unlock();
+        }
+    }
 }

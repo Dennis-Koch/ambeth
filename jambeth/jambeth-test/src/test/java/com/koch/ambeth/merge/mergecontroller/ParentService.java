@@ -20,15 +20,15 @@ limitations under the License.
  * #L%
  */
 
-import javax.persistence.PersistenceContext;
+import jakarta.persistence.PersistenceContext;
 
 import com.koch.ambeth.service.proxy.Service;
 
 @PersistenceContext
 @Service(IParentService.class)
 public class ParentService implements IParentService {
-	@Override
-	public void save(Parent parent) {
-		throw new IllegalArgumentException();
-	}
+    @Override
+    public void save(Parent parent) {
+        throw new IllegalArgumentException();
+    }
 }

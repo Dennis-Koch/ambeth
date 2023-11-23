@@ -20,24 +20,28 @@ limitations under the License.
  * #L%
  */
 
+import com.koch.ambeth.util.function.CheckedFunction;
+import com.koch.ambeth.util.function.CheckedRunnable;
+import com.koch.ambeth.util.function.CheckedSupplier;
+
 public interface IGuiThreadHelper {
-	boolean isInGuiThread();
+    boolean isInGuiThread();
 
-	void invokeInGuiAndWait(IBackgroundWorkerDelegate runnable);
+    void invokeInGuiAndWait(CheckedRunnable runnable);
 
-	<R> R invokeInGuiAndWait(IResultingBackgroundWorkerDelegate<R> callback);
+    <R> R invokeInGuiAndWait(CheckedSupplier<R> callback);
 
-	<R, S> R invokeInGuiAndWait(IResultingBackgroundWorkerParamDelegate<R, S> callback, S state);
+    <R, S> R invokeInGuiAndWait(CheckedFunction<S, R> callback, S state);
 
-	void invokeInGuiAndWait(ISendOrPostCallback callback, Object state);
+    void invokeInGuiAndWait(ISendOrPostCallback callback, Object state);
 
-	void invokeInGui(IBackgroundWorkerDelegate runnable);
+    void invokeInGui(CheckedRunnable runnable);
 
-	void invokeInGui(ISendOrPostCallback callback, Object state);
+    void invokeInGui(ISendOrPostCallback callback, Object state);
 
-	void invokeInGuiLate(IBackgroundWorkerDelegate callback);
+    void invokeInGuiLate(CheckedRunnable callback);
 
-	void invokeInGuiLate(ISendOrPostCallback callback, Object state);
+    void invokeInGuiLate(ISendOrPostCallback callback, Object state);
 
-	void invokeOutOfGui(IBackgroundWorkerDelegate runnable);
+    void invokeOutOfGui(CheckedRunnable runnable);
 }

@@ -21,29 +21,47 @@ limitations under the License.
  */
 
 import com.koch.ambeth.informationbus.persistence.setup.AmbethPersistenceSetup;
+import com.koch.ambeth.informationbus.persistence.setup.ISchemaFileProvider;
+import com.koch.ambeth.informationbus.persistence.setup.SQLStructure;
+import com.koch.ambeth.ioc.config.Property;
 import com.koch.ambeth.jetty.JettyApplication;
+import com.koch.ambeth.log.LoggerFactory;
 import com.koch.ambeth.log.config.Properties;
+import com.koch.ambeth.log.slf4j.Slf4jLogger;
 import com.koch.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationConstants;
 import com.koch.ambeth.persistence.jdbc.connector.DatabaseProtocolResolver;
 import org.burningwave.core.assembler.StaticComponentContainer;
 import org.testcontainers.containers.PostgreSQLContainer;
 
+@SQLStructure(schemaFileProvider = Main.HelloWorldSchemaFileProvider.class)
 public class Main {
-	public static void main(String[] args) throws Throwable {
-		new StaticComponentContainer();
+    public static void main(String[] args) throws Throwable {
+        new StaticComponentContainer();
 
-		var dbContainer = new PostgreSQLContainer<>("postgres:15-alpine");
-		dbContainer.start();
+        var dbContainer = new PostgreSQLContainer<>("postgres:15-alpine");
+        dbContainer.start();
 
-		Properties.getApplication().putString(PersistenceJdbcConfigurationConstants.DatabaseConnection, dbContainer.getJdbcUrl());
-		Properties.getApplication().putString(PersistenceJdbcConfigurationConstants.DatabaseName, dbContainer.getDatabaseName());
-		Properties.getApplication().putString(PersistenceJdbcConfigurationConstants.DatabaseUser, dbContainer.getUsername());
-		Properties.getApplication().putString(PersistenceJdbcConfigurationConstants.DatabasePass, dbContainer.getPassword());
-		Properties.getApplication().putString(PersistenceJdbcConfigurationConstants.DatabaseSchemaName, "helloworld");
-		DatabaseProtocolResolver.enrichWithDatabaseProtocol(Properties.getApplication());
-		var persistenceSetup = new AmbethPersistenceSetup(Main.class).withProperties(Properties.getApplication());
-		persistenceSetup.executeSetup(Main.class.getMethod("main", String[].class));
+        LoggerFactory.setLoggerType(Slf4jLogger.class);
+        Properties.getApplication().putString(PersistenceJdbcConfigurationConstants.DatabaseConnection, dbContainer.getJdbcUrl());
+        Properties.getApplication().putString(PersistenceJdbcConfigurationConstants.DatabaseName, dbContainer.getDatabaseName());
+        Properties.getApplication().putString(PersistenceJdbcConfigurationConstants.DatabaseUser, dbContainer.getUsername());
+        Properties.getApplication().putString(PersistenceJdbcConfigurationConstants.DatabasePass, dbContainer.getPassword());
+        Properties.getApplication().putString(PersistenceJdbcConfigurationConstants.DatabaseSchemaName, "helloworld");
+        DatabaseProtocolResolver.enrichWithDatabaseProtocol(Properties.getApplication());
+        var persistenceSetup = new AmbethPersistenceSetup(Main.class).withProperties(Properties.getApplication());
+        persistenceSetup.executeSetup(Main.class.getMethod("main", String[].class));
 
-		JettyApplication.run();
-	}
+        JettyApplication.run();
+    }
+
+    public static class HelloWorldSchemaFileProvider implements ISchemaFileProvider {
+
+        @Property(name = PersistenceJdbcConfigurationConstants.DatabaseProtocol)
+        protected String databaseProtocol;
+
+        @Override
+        public String[] getSchemaFiles() {
+            return new String[] { "schema-" + databaseProtocol.replace(':', '_') + "/create_hello_world_tables.sql" };
+        }
+    }
 }

@@ -20,41 +20,47 @@ limitations under the License.
  * #L%
  */
 
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+
 import java.lang.reflect.Method;
 
+@RequiredArgsConstructor
 public class ServiceResultCacheKey {
 
-	public Method method;
+    @NonNull
+    protected final Method method;
 
-	public Object[] arguments;
+    protected final Object[] arguments;
 
-	public String serviceName;
+    @NonNull
+    protected final String serviceName;
 
-	@Override
-	public int hashCode() {
-		return method.hashCode() ^ serviceName.hashCode();
-	}
+    @Override
+    public int hashCode() {
+        return method.hashCode() ^ serviceName.hashCode();
+    }
 
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj) {
-			return true;
-		}
-		if (!(obj instanceof ServiceResultCacheKey)) {
-			return false;
-		}
-		ServiceResultCacheKey other = (ServiceResultCacheKey) obj;
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (!(obj instanceof ServiceResultCacheKey)) {
+            return false;
+        }
+        var other = (ServiceResultCacheKey) obj;
 
-		if (!method.equals(other.method) || !serviceName.equals(other.serviceName)) {
-			return false;
-		}
-		Object[] otherArgs = other.arguments;
-		for (int a = otherArgs.length; a-- > 0;) {
-			if (!arguments[a].equals(otherArgs[a])) {
-				return false;
-			}
-		}
-		return true;
-	}
+        if (!method.equals(other.method) || !serviceName.equals(other.serviceName)) {
+            return false;
+        }
+        var otherArgs = other.arguments;
+        for (int a = otherArgs.length; a-- > 0; ) {
+            if (!arguments[a].equals(otherArgs[a])) {
+                return false;
+            }
+        }
+        return true;
+    }
 
 }

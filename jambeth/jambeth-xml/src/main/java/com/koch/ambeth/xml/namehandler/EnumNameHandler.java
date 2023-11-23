@@ -20,56 +20,54 @@ limitations under the License.
  * #L%
  */
 
-import java.lang.reflect.Method;
-
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.xml.INameBasedHandler;
 import com.koch.ambeth.xml.IReader;
 import com.koch.ambeth.xml.IWriter;
 import com.koch.ambeth.xml.typehandler.AbstractHandler;
 
+import java.lang.reflect.Method;
+
 public class EnumNameHandler extends AbstractHandler implements INameBasedHandler {
-	protected static final Method enumValueOf;
+    protected static final Method enumValueOf;
 
-	static {
-		try {
-			enumValueOf = Enum.class.getMethod("valueOf", Class.class, String.class);
-		}
-		catch (Exception e) {
-			throw RuntimeExceptionUtil.mask(e);
-		}
-	}
+    static {
+        try {
+            enumValueOf = Enum.class.getMethod("valueOf", Class.class, String.class);
+        } catch (Exception e) {
+            throw RuntimeExceptionUtil.mask(e);
+        }
+    }
 
-	@Override
-	public boolean writesCustom(Object obj, Class<?> type, IWriter writer) {
-		if (!type.isEnum()) {
-			return false;
-		}
-		writer.writeStartElement(xmlDictionary.getEnumElement());
-		int id = writer.acquireIdForObject(obj);
-		writer.writeAttribute(xmlDictionary.getIdAttribute(), Integer.toString(id));
-		classElementHandler.writeAsAttribute(type, writer);
-		writer.writeAttribute(xmlDictionary.getValueAttribute(), obj.toString());
-		writer.writeEndElement();
-		return true;
-	}
+    @Override
+    public boolean writesCustom(Object obj, Class<?> type, IWriter writer) {
+        if (!type.isEnum()) {
+            return false;
+        }
+        writer.writeStartElement(xmlDictionary.getEnumElement());
+        int id = writer.acquireIdForObject(obj);
+        writer.writeAttribute(xmlDictionary.getIdAttribute(), id);
+        classElementHandler.writeAsAttribute(type, writer);
+        writer.writeAttribute(xmlDictionary.getValueAttribute(), obj.toString());
+        writer.writeEndElement();
+        return true;
+    }
 
-	@Override
-	public Object readObject(Class<?> returnType, String elementName, int id, IReader reader) {
-		if (!xmlDictionary.getEnumElement().equals(elementName)) {
-			throw new IllegalStateException("Element '" + elementName + "' not supported");
-		}
-		Class<?> enumType = classElementHandler.readFromAttribute(reader);
+    @Override
+    public Object readObject(Class<?> returnType, String elementName, int id, IReader reader) {
+        if (!xmlDictionary.getEnumElement().equals(elementName)) {
+            throw new IllegalStateException("Element '" + elementName + "' not supported");
+        }
+        Class<?> enumType = classElementHandler.readFromAttribute(reader);
 
-		String enumValue = reader.getAttributeValue(xmlDictionary.getValueAttribute());
-		if (enumValue == null) {
-			throw new IllegalStateException("Element '" + elementName + "' invalid");
-		}
-		try {
-			return enumValueOf.invoke(null, enumType, enumValue);
-		}
-		catch (Exception e) {
-			throw RuntimeExceptionUtil.mask(e);
-		}
-	}
+        String enumValue = reader.getAttributeValue(xmlDictionary.getValueAttribute());
+        if (enumValue == null) {
+            throw new IllegalStateException("Element '" + elementName + "' invalid");
+        }
+        try {
+            return enumValueOf.invoke(null, enumType, enumValue);
+        } catch (Exception e) {
+            throw RuntimeExceptionUtil.mask(e);
+        }
+    }
 }

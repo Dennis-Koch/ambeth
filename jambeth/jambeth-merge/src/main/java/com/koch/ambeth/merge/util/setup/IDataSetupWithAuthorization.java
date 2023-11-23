@@ -23,5 +23,5 @@ limitations under the License.
 import com.koch.ambeth.util.state.IStateRollback;
 
 public interface IDataSetupWithAuthorization {
-	IStateRollback pushAuthorization(IStateRollback... rollbacks);
+    IStateRollback pushAuthorization();
 }

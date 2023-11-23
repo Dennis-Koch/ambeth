@@ -37,187 +37,157 @@ import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.objectcollector.IThreadLocalObjectCollector;
 import com.koch.ambeth.util.objectcollector.ThreadLocalObjectCollector;
-import com.koch.ambeth.util.threading.IBackgroundWorkerDelegate;
-import com.koch.ambeth.util.threading.IBackgroundWorkerParamDelegate;
 
 public class AmbethPlatformContext implements IAmbethPlatformContext {
-	private class AmbethPlatformContextModule implements IInitializingModule {
-		protected final AmbethPlatformContext apc;
+    private static DisposeDatabaseExtension disposeDatabaseExtension;
 
-		public AmbethPlatformContextModule(AmbethPlatformContext apc) {
-			this.apc = apc;
-		}
+    static {
+        try {
+            disposeDatabaseExtension = new DisposeDatabaseExtension();
+        } catch (NoClassDefFoundError e) {
+            // intended blank
+        }
+    }
 
-		@Override
-		public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
-			beanContextFactory.registerExternalBean(apc).autowireable(IAmbethPlatformContext.class);
-		}
-	}
+    public static IAmbethPlatformContext create(Properties props, Class<?>[] providerModules, Class<?>[] frameworkModules, Class<?>[] bootstrapModules, IInitializingModule[] providerModuleInstances,
+            final IInitializingModule[] frameworkModuleInstances, final IInitializingModule[] bootstrapModuleInstances) {
+        ParamChecker.assertParamNotNull(props, "props");
 
-	private static DisposeDatabaseExtension disposeDatabaseExtension;
+        IServiceContext bootstrapContext = null;
+        final AmbethPlatformContext apc = new AmbethPlatformContext();
+        try {
+            IInitializingModule[] providerModuleInstancesCopy = new IInitializingModule[providerModuleInstances.length + 1];
+            System.arraycopy(providerModuleInstances, 0, providerModuleInstancesCopy, 0, providerModuleInstances.length);
+            providerModuleInstancesCopy[providerModuleInstancesCopy.length - 1] = apc.new AmbethPlatformContextModule(apc);
+            providerModuleInstances = providerModuleInstancesCopy;
 
-	static {
-		try {
-			disposeDatabaseExtension = new DisposeDatabaseExtension();
-		}
-		catch (NoClassDefFoundError e) {
-			// intended blank
-		}
-	}
+            bootstrapContext = BeanContextFactory.createBootstrap(props, providerModules, providerModuleInstances);
 
-	public static IAmbethPlatformContext create(Properties props, Class<?>[] providerModules,
-			Class<?>[] frameworkModules, Class<?>[] bootstrapModules,
-			IInitializingModule[] providerModuleInstances,
-			final IInitializingModule[] frameworkModuleInstances,
-			final IInitializingModule[] bootstrapModuleInstances) {
-		ParamChecker.assertParamNotNull(props, "props");
+            IList<IModuleProvider> moduleProviders = bootstrapContext.getImplementingObjects(IModuleProvider.class);
+            for (int a = moduleProviders.size(); a-- > 0; ) {
+                IModuleProvider moduleProvider = moduleProviders.get(a);
+                Class<?>[] mpFrameworkModules = moduleProvider.getFrameworkModules();
+                Class<?>[] mpBootstrapModules = moduleProvider.getBootstrapModules();
+                frameworkModules = ModuleUtil.mergeModules(mpFrameworkModules, frameworkModules);
+                bootstrapModules = ModuleUtil.mergeModules(mpBootstrapModules, bootstrapModules);
+            }
+            IServiceContext frameworkBeanContext = bootstrapContext;
 
-		IServiceContext bootstrapContext = null;
-		final AmbethPlatformContext apc = new AmbethPlatformContext();
-		try {
-			IInitializingModule[] providerModuleInstancesCopy =
-					new IInitializingModule[providerModuleInstances.length + 1];
-			System.arraycopy(providerModuleInstances, 0, providerModuleInstancesCopy, 0,
-					providerModuleInstances.length);
-			providerModuleInstancesCopy[providerModuleInstancesCopy.length - 1] =
-					apc.new AmbethPlatformContextModule(apc);
-			providerModuleInstances = providerModuleInstancesCopy;
+            if (frameworkModules.length > 0 || frameworkModuleInstances.length > 0) {
+                frameworkBeanContext = bootstrapContext.createService("framework", childContextFactory -> {
+                    for (int a = frameworkModuleInstances.length; a-- > 0; ) {
+                        childContextFactory.registerExternalBean(frameworkModuleInstances[a]);
+                    }
+                }, frameworkModules);
+            }
 
-			bootstrapContext =
-					BeanContextFactory.createBootstrap(props, providerModules, providerModuleInstances);
+            ILightweightTransaction transaction = frameworkBeanContext.getService(ILightweightTransaction.class, false);
+            if (transaction != null) {
+                ILogger log = LoggerFactory.getLogger(AmbethPlatformContext.class, props);
+                if (log.isInfoEnabled()) {
+                    log.info("Starting initial database transaction to receive metadata for OR-Mappings...");
+                }
+                transaction.runInTransaction(() -> {
+                    // intended blank
+                });
+                if (log.isInfoEnabled()) {
+                    log.info("Initial database transaction processed successfully");
+                }
+            }
+            IServiceContext applicationBeanContext = frameworkBeanContext;
 
-			IList<IModuleProvider> moduleProviders =
-					bootstrapContext.getImplementingObjects(IModuleProvider.class);
-			for (int a = moduleProviders.size(); a-- > 0;) {
-				IModuleProvider moduleProvider = moduleProviders.get(a);
-				Class<?>[] mpFrameworkModules = moduleProvider.getFrameworkModules();
-				Class<?>[] mpBootstrapModules = moduleProvider.getBootstrapModules();
-				frameworkModules = ModuleUtil.mergeModules(mpFrameworkModules, frameworkModules);
-				bootstrapModules = ModuleUtil.mergeModules(mpBootstrapModules, bootstrapModules);
-			}
-			IServiceContext frameworkBeanContext = bootstrapContext;
+            if (bootstrapModules.length > 0 || bootstrapModuleInstances.length > 0) {
+                applicationBeanContext = frameworkBeanContext.createService("application", childContextFactory -> {
+                    for (int a = bootstrapModuleInstances.length; a-- > 0; ) {
+                        childContextFactory.registerExternalBean(bootstrapModuleInstances[a]);
+                    }
+                }, bootstrapModules);
+            }
+            apc.beanContext = applicationBeanContext;
+            return apc;
+        } catch (Throwable e) {
+            if (bootstrapContext != null) {
+                IThreadLocalCleanupController tlCleanupController = bootstrapContext.getService(IThreadLocalCleanupController.class);
+                bootstrapContext.dispose();
+                tlCleanupController.cleanupThreadLocal();
+            }
+            throw RuntimeExceptionUtil.mask(e);
+        }
+    }
 
-			if (frameworkModules.length > 0 || frameworkModuleInstances.length > 0) {
-				frameworkBeanContext = bootstrapContext.createService("framework",
-						new IBackgroundWorkerParamDelegate<IBeanContextFactory>() {
-							@Override
-							public void invoke(IBeanContextFactory childContextFactory) {
-								for (int a = frameworkModuleInstances.length; a-- > 0;) {
-									childContextFactory.registerExternalBean(frameworkModuleInstances[a]);
-								}
-							}
-						}, frameworkModules);
-			}
+    protected IServiceContext beanContext;
+    protected IEventQueue eventQueue;
 
-			ILightweightTransaction transaction =
-					frameworkBeanContext.getService(ILightweightTransaction.class, false);
-			if (transaction != null) {
-				ILogger log = LoggerFactory.getLogger(AmbethPlatformContext.class, props);
-				if (log.isInfoEnabled()) {
-					log.info("Starting initial database transaction to receive metadata for OR-Mappings...");
-				}
-				transaction.runInTransaction(new IBackgroundWorkerDelegate() {
-					@Override
-					public void invoke() throws Exception {
-						// Intended blank
-					}
-				});
-				if (log.isInfoEnabled()) {
-					log.info("Initial database transaction processed successfully");
-				}
-			}
-			IServiceContext applicationBeanContext = frameworkBeanContext;
+    @Override
+    public void dispose() {
+        if (beanContext == null) {
+            return;
+        }
+        IServiceContext rootContext = beanContext.getRoot();
+        IThreadLocalObjectCollector tlObjectCollector = rootContext.getService(IThreadLocalObjectCollector.class);
+        beanContext.getService(IThreadLocalCleanupController.class).cleanupThreadLocal();
+        rootContext.dispose();
+        beanContext = null;
+        if (tlObjectCollector instanceof ThreadLocalObjectCollector) {
+            ((ThreadLocalObjectCollector) tlObjectCollector).clearThreadLocal();
+            ((ThreadLocalObjectCollector) tlObjectCollector).clearThreadLocals();
+        }
+    }
 
-			if (bootstrapModules.length > 0 || bootstrapModuleInstances.length > 0) {
-				applicationBeanContext = frameworkBeanContext.createService("application",
-						new IBackgroundWorkerParamDelegate<IBeanContextFactory>() {
-							@Override
-							public void invoke(IBeanContextFactory childContextFactory) {
-								for (int a = bootstrapModuleInstances.length; a-- > 0;) {
-									childContextFactory.registerExternalBean(bootstrapModuleInstances[a]);
-								}
-							}
-						}, bootstrapModules);
-			}
-			apc.beanContext = applicationBeanContext;
-			return apc;
-		}
-		catch (Throwable e) {
-			if (bootstrapContext != null) {
-				IThreadLocalCleanupController tlCleanupController =
-						bootstrapContext.getService(IThreadLocalCleanupController.class);
-				bootstrapContext.dispose();
-				tlCleanupController.cleanupThreadLocal();
-			}
-			throw RuntimeExceptionUtil.mask(e);
-		}
-	}
+    @Override
+    public IServiceContext getBeanContext() {
+        return beanContext;
+    }
 
-	protected IServiceContext beanContext;
+    @Override
+    public void clearThreadLocal() {
+        IThreadLocalCleanupController threadLocalCleanupController = beanContext.getService(IThreadLocalCleanupController.class);
+        threadLocalCleanupController.cleanupThreadLocal();
+    }
 
-	protected IEventQueue eventQueue;
+    @Override
+    public void afterBegin() {
+        if (eventQueue != null) {
+            eventQueue.enableEventQueue();
+        }
+    }
 
-	@Override
-	public void dispose() {
-		if (beanContext == null) {
-			return;
-		}
-		IServiceContext rootContext = beanContext.getRoot();
-		IThreadLocalObjectCollector tlObjectCollector =
-				rootContext.getService(IThreadLocalObjectCollector.class);
-		beanContext.getService(IThreadLocalCleanupController.class).cleanupThreadLocal();
-		rootContext.dispose();
-		beanContext = null;
-		if (tlObjectCollector instanceof ThreadLocalObjectCollector) {
-			((ThreadLocalObjectCollector) tlObjectCollector).clearThreadLocal();
-			((ThreadLocalObjectCollector) tlObjectCollector).clearThreadLocals();
-		}
-	}
+    @Override
+    public void afterCommit() {
+        afterEnd();
+    }
 
-	@Override
-	public IServiceContext getBeanContext() {
-		return beanContext;
-	}
+    @Override
+    public void afterRollback() {
+        afterEnd();
+    }
 
-	@Override
-	public void clearThreadLocal() {
-		IThreadLocalCleanupController threadLocalCleanupController =
-				beanContext.getService(IThreadLocalCleanupController.class);
-		threadLocalCleanupController.cleanupThreadLocal();
-	}
+    protected void afterEnd() {
+        try {
+            if (eventQueue != null) {
+                eventQueue.flushEventQueue();
+            }
+        } finally {
+            try {
+                if (disposeDatabaseExtension != null) {
+                    disposeDatabaseExtension.disposeDatabase(beanContext);
+                }
+            } finally {
+                clearThreadLocal();
+            }
+        }
+    }
 
-	@Override
-	public void afterBegin() {
-		if (eventQueue != null) {
-			eventQueue.enableEventQueue();
-		}
-	}
+    private class AmbethPlatformContextModule implements IInitializingModule {
+        protected final AmbethPlatformContext apc;
 
-	@Override
-	public void afterCommit() {
-		afterEnd();
-	}
+        public AmbethPlatformContextModule(AmbethPlatformContext apc) {
+            this.apc = apc;
+        }
 
-	@Override
-	public void afterRollback() {
-		afterEnd();
-	}
-
-	protected void afterEnd() {
-		try {
-			if (eventQueue != null) {
-				eventQueue.flushEventQueue();
-			}
-		}
-		finally {
-			try {
-				if (disposeDatabaseExtension != null) {
-					disposeDatabaseExtension.disposeDatabase(beanContext);
-				}
-			}
-			finally {
-				clearThreadLocal();
-			}
-		}
-	}
+        @Override
+        public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
+            beanContextFactory.registerExternalBean(apc).autowireable(IAmbethPlatformContext.class);
+        }
+    }
 }

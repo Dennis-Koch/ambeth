@@ -33,7 +33,7 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.persistence.PersistenceException;
+import jakarta.persistence.PersistenceException;
 
 import com.koch.ambeth.ioc.IInitializingBean;
 import com.koch.ambeth.ioc.IInitializingModule;
@@ -92,327 +92,280 @@ import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
  * script.create=false script.user.name=CI_TMP_123456,CI_TMP_123458,CI_TMP_123467<br>
  */
 public class RandomUserScript implements IInitializingBean, IStartingBean {
-	public static final String SCRIPT_DATABASE_NAME = "script.database.name";
+    public static final String SCRIPT_DATABASE_NAME = "script.database.name";
 
-	public static final String SCRIPT_USER_NAME = "script.user.name";
+    public static final String SCRIPT_USER_NAME = "script.user.name";
 
-	public static final String SCRIPT_USER_PASS = "script.user.pass";
+    public static final String SCRIPT_USER_PASS = "script.user.pass";
 
-	public static final String SCRIPT_IS_CREATE = "script.create";
+    public static final String SCRIPT_IS_CREATE = "script.create";
 
-	public static final String SCRIPT_USER_QUOTA = "script.user.quota";
+    public static final String SCRIPT_USER_QUOTA = "script.user.quota";
 
-	public static final String SCRIPT_USER_PROPERTYFILE = "script.user.propertyfile";
+    public static final String SCRIPT_USER_PROPERTYFILE = "script.user.propertyfile";
 
-	/** Used as prefix for the schema names in the property file. Also used for one schema only. */
-	public static final String PROPERTY_PREFIX = "database.schema.name";
+    /**
+     * Used as prefix for the schema names in the property file. Also used for one schema only.
+     */
+    public static final String PROPERTY_PREFIX = "database.schema.name";
 
-	private static final String ARGUMENT_DELIMITER = ",";
+    private static final String ARGUMENT_DELIMITER = ",";
 
-	private static final String SCHEMA_DELIMITER = ":";
+    private static final String SCHEMA_DELIMITER = ":";
 
-	@LogInstance
-	private ILogger log;
+    /**
+     * @param args
+     */
+    public static void main(final String[] args) throws Throwable {
+        Properties.getApplication().fillWithCommandLineArgs(args);
+        Properties.loadBootstrapPropertyFile();
 
-	@FrameworkModule
-	public static class RandomUserModule implements IInitializingModule {
-		@Property(name = PersistenceJdbcConfigurationConstants.IntegratedConnectionFactory, defaultValue = "true")
-		protected boolean integratedConnectionFactory;
+        Properties props = Properties.getApplication();
 
-		@Override
-		public void afterPropertiesSet(final IBeanContextFactory beanContextFactory) throws Throwable {
-			beanContextFactory.registerBean(PostgresConnectionUrlProvider.class)
-					.autowireable(IDatabaseConnectionUrlProvider.class);
-			beanContextFactory.registerBean(PostgresDialect.class).autowireable(IConnectionDialect.class);
-			beanContextFactory.registerBean(PersistenceExceptionUtil.class)
-					.autowireable(IPersistenceExceptionUtil.class);
-			if (integratedConnectionFactory) {
-				beanContextFactory.registerBean(ConnectionFactory.class)
-						.autowireable(IConnectionFactory.class);
-			}
-			else {
-				beanContextFactory.registerBean(DataSourceConnectionFactory.class)
-						.autowireable(IConnectionFactory.class);
-			}
-			beanContextFactory.registerBean(SqlBuilder.class).autowireable(ISqlBuilder.class);
-			beanContextFactory.registerBean(PersistenceHelper.class)
-					.autowireable(IPersistenceHelper.class);
-			beanContextFactory.registerBean(RandomUserScript.class);
-		}
-	}
+        if (props.get(PersistenceJdbcConfigurationConstants.DatabaseConnection) == null) {
+            props.put(PersistenceJdbcConfigurationConstants.DatabaseConnection,
+                    "${" + PersistenceJdbcConfigurationConstants.DatabaseProtocol + "}:@" + "${" + PersistenceJdbcConfigurationConstants.DatabaseHost + "}" + ":" + "${" + PersistenceJdbcConfigurationConstants.DatabasePort + "}" + "/" + "${" + PersistenceJdbcConfigurationConstants.DatabaseName + "}");
+        }
+        try (IServiceContext bootstrapContext = BeanContextFactory.createBootstrap(props)) {
+            bootstrapContext.createService("randomUser", RandomUserModule.class, IocModule.class);
+        }
+    }
 
-	/**
-	 * @param args
-	 */
-	public static void main(final String[] args) throws Throwable {
-		Properties.getApplication().fillWithCommandLineArgs(args);
-		Properties.loadBootstrapPropertyFile();
+    private static String[] getUserNames(String userName, String propertyFileName) {
+        String[] userNames = null;
+        if (userName != null) {
+            userNames = userName.split(ARGUMENT_DELIMITER);
+        } else {
+            Properties props = Properties.getApplication();
+            props.load(propertyFileName);
+            List<String> foundUserNames = new ArrayList<>();
+            int index = 0;
+            String usrName = props.getString(PROPERTY_PREFIX + "." + index);
+            while (usrName != null) {
+                foundUserNames.add(usrName);
+                index++;
+                usrName = props.getString(PROPERTY_PREFIX + "." + index);
+            }
+            userNames = foundUserNames.toArray(new String[0]);
+        }
+        return userNames;
+    }
 
-		Properties props = Properties.getApplication();
+    /**
+     * Write the given user name to the given property file. Creates the property file if it doesn't
+     * exist.
+     *
+     * @param propertyFileName Property file name
+     * @param createdUserNames User names
+     */
+    private static void writeToPropertyFile(final String propertyFileName, final List<String> createdUserNames, String[] passwords) {
+        if (propertyFileName == null || createdUserNames == null) {
+            throw new IllegalArgumentException("Mandatory values not set!");
+        }
+        File propertyFile = new File(propertyFileName);
 
-		if (props.get(PersistenceJdbcConfigurationConstants.DatabaseConnection) == null) {
-			props.put(PersistenceJdbcConfigurationConstants.DatabaseConnection,
-					"${" + PersistenceJdbcConfigurationConstants.DatabaseProtocol + "}:@" + "${"
-							+ PersistenceJdbcConfigurationConstants.DatabaseHost + "}" + ":" + "${"
-							+ PersistenceJdbcConfigurationConstants.DatabasePort + "}" + "/" + "${"
-							+ PersistenceJdbcConfigurationConstants.DatabaseName + "}");
-		}
-		try (IServiceContext bootstrapContext = BeanContextFactory.createBootstrap(props)) {
-			bootstrapContext.createService("randomUser", RandomUserModule.class, IocModule.class);
-		}
-	}
+        try (OutputStream os = new FileOutputStream(propertyFile); OutputStreamWriter fw = new OutputStreamWriter(os, Charset.forName("UTF-8"))) {
+            String content = createPropertyFileContent(createdUserNames, passwords);
+            fw.append(content);
+        } catch (IOException e) {
+            throw RuntimeExceptionUtil.mask(e);
+        }
+    }
 
-	@Autowired
-	protected IConnectionFactory connectionFactory;
+    private static String createPropertyFileContent(final List<String> createdUserNames, String[] passwords) {
+        StringBuilder summaryBuilder = new StringBuilder();
+        StringBuilder singleSchemaBuilder = new StringBuilder();
 
-	@Property(name = SCRIPT_IS_CREATE)
-	protected boolean createUser;
+        summaryBuilder.append(PROPERTY_PREFIX);
+        summaryBuilder.append('=');
+        for (int i = 0; i < createdUserNames.size(); i++) {
+            String userName = createdUserNames.get(i);
 
-	@Property(name = SCRIPT_DATABASE_NAME, mandatory = false)
-	protected String databaseName;
+            if (i > 0) {
+                summaryBuilder.append(SCHEMA_DELIMITER);
+            }
+            summaryBuilder.append(userName);
 
-	@Property(name = SCRIPT_USER_NAME, mandatory = false)
-	protected String userName;
+            singleSchemaBuilder.append(PROPERTY_PREFIX);
+            singleSchemaBuilder.append('.');
+            singleSchemaBuilder.append(i);
+            singleSchemaBuilder.append('=');
+            singleSchemaBuilder.append(userName);
+            singleSchemaBuilder.append('\n');
+        }
+        summaryBuilder.append('\n');
 
-	@Property(name = SCRIPT_USER_PASS, mandatory = false)
-	protected String userPass;
+        String connectionUser =
+                PersistenceJdbcConfigurationConstants.DatabaseUser + "=" + createdUserNames.get(0) + "\n" + PersistenceJdbcConfigurationConstants.DatabasePass + "=" + passwords[0] + "\n";
+        String content = connectionUser + summaryBuilder.toString() + singleSchemaBuilder.toString();
+        return content;
+    }
 
-	@Property(name = SCRIPT_USER_QUOTA, defaultValue = "100M")
-	protected String userQuota;
+    private static void deleteUsers(final Connection connection, final String[] userNames) throws SQLException {
+        Statement stm = connection.createStatement();
+        try {
+            for (String userName : userNames) {
+                deleteUser(stm, userName);
+            }
+        } finally {
+            JdbcUtil.close(stm);
+        }
+    }
 
-	@Property(name = SCRIPT_USER_PROPERTYFILE, mandatory = false)
-	protected String userPropertyFile;
+    private static void deleteUser(final Statement statement, final String userName) throws SQLException {
+        statement.execute("DROP DATABASE \"" + userName + "\"");
+        statement.execute("DROP USER \"" + userName + "\"");
+    }
+    @Autowired
+    protected IConnectionFactory connectionFactory;
+    @Property(name = SCRIPT_IS_CREATE)
+    protected boolean createUser;
+    @Property(name = SCRIPT_DATABASE_NAME, mandatory = false)
+    protected String databaseName;
+    @Property(name = SCRIPT_USER_NAME, mandatory = false)
+    protected String userName;
+    @Property(name = SCRIPT_USER_PASS, mandatory = false)
+    protected String userPass;
+    @Property(name = SCRIPT_USER_QUOTA, defaultValue = "100M")
+    protected String userQuota;
+    @Property(name = SCRIPT_USER_PROPERTYFILE, mandatory = false)
+    protected String userPropertyFile;
+    @LogInstance
+    private ILogger log;
 
-	@Override
-	public void afterPropertiesSet() throws Throwable {
-		ParamChecker.assertNotNull(connectionFactory, "connectionFactory");
+    @Override
+    public void afterPropertiesSet() throws Throwable {
+        ParamChecker.assertNotNull(connectionFactory, "connectionFactory");
 
-		if (createUser) {
-			if (userPass == null) {
-				throw new IllegalArgumentException("Property '" + SCRIPT_USER_PASS
-						+ "' has to be specified if '" + SCRIPT_IS_CREATE + "' is true");
-			}
-		}
-		else {
-			String[] userNames = getUserNames(userName, userPropertyFile);
-			if (userNames == null) {
-				throw new IllegalArgumentException(
-						"Property '" + SCRIPT_USER_NAME + "' or '" + SCRIPT_USER_PROPERTYFILE
-								+ "' has to be specified if '" + SCRIPT_IS_CREATE + "' is false");
-			}
-		}
-	}
+        if (createUser) {
+            if (userPass == null) {
+                throw new IllegalArgumentException("Property '" + SCRIPT_USER_PASS + "' has to be specified if '" + SCRIPT_IS_CREATE + "' is true");
+            }
+        } else {
+            String[] userNames = getUserNames(userName, userPropertyFile);
+            if (userNames == null) {
+                throw new IllegalArgumentException("Property '" + SCRIPT_USER_NAME + "' or '" + SCRIPT_USER_PROPERTYFILE + "' has to be specified if '" + SCRIPT_IS_CREATE + "' is false");
+            }
+        }
+    }
 
-	private static String[] getUserNames(String userName, String propertyFileName) {
-		String[] userNames = null;
-		if (userName != null) {
-			userNames = userName.split(ARGUMENT_DELIMITER);
-		}
-		else {
-			Properties props = Properties.getApplication();
-			props.load(propertyFileName);
-			List<String> foundUserNames = new ArrayList<>();
-			int index = 0;
-			String usrName = props.getString(PROPERTY_PREFIX + "." + index);
-			while (usrName != null) {
-				foundUserNames.add(usrName);
-				index++;
-				usrName = props.getString(PROPERTY_PREFIX + "." + index);
-			}
-			userNames = foundUserNames.toArray(new String[0]);
-		}
-		return userNames;
-	}
+    @Override
+    public void afterStarted() throws Throwable {
+        Connection connection = connectionFactory.create();
+        try {
+            if (createUser) {
+                String[] passwords = userPass.split(ARGUMENT_DELIMITER);
+                List<String> createdUserNames = new ArrayList<>();
+                for (String password : passwords) {
+                    String createdUserName = createUser(connection, databaseName, userName, password, userQuota);
+                    if (createdUserName != null) {
+                        System.out.println("[[CREATED_USERNAME]] " + createdUserName);
+                        createdUserNames.add(createdUserName);
+                    }
+                }
+                if (userPropertyFile != null) {
+                    writeToPropertyFile(userPropertyFile, createdUserNames, passwords);
+                }
+            } else {
+                connection.setAutoCommit(true);
+                String[] userNames = getUserNames(userName, userPropertyFile);
+                deleteUsers(connection, userNames);
+            }
+        } finally {
+            JdbcUtil.close(connection);
+            connection = null;
+        }
+    }
 
-	@Override
-	public void afterStarted() throws Throwable {
-		Connection connection = connectionFactory.create();
-		try {
-			if (createUser) {
-				String[] passwords = userPass.split(ARGUMENT_DELIMITER);
-				List<String> createdUserNames = new ArrayList<>();
-				for (String password : passwords) {
-					String createdUserName = createUser(connection, databaseName, userName, password,
-							userQuota);
-					if (createdUserName != null) {
-						System.out.println("[[CREATED_USERNAME]] " + createdUserName);
-						createdUserNames.add(createdUserName);
-					}
-				}
-				if (userPropertyFile != null) {
-					writeToPropertyFile(userPropertyFile, createdUserNames, passwords);
-				}
-			}
-			else {
-				connection.setAutoCommit(true);
-				String[] userNames = getUserNames(userName, userPropertyFile);
-				deleteUsers(connection, userNames);
-			}
-		}
-		finally {
-			JdbcUtil.close(connection);
-			connection = null;
-		}
-	}
+    private String createUser(final Connection connection, final String databaseName, final String username, final String password, final String quota) throws SQLException {
+        String createdUserName = null;
+        boolean oldAutoCommit = connection.getAutoCommit();
+        if (!oldAutoCommit) {
+            connection.commit();
+            connection.setAutoCommit(true);
+        }
+        Statement stm = connection.createStatement();
+        try {
+            int tries = 10, tryCount = 0;
 
-	private String createUser(final Connection connection, final String databaseName,
-			final String username, final String password, final String quota) throws SQLException {
-		String createdUserName = null;
-		boolean oldAutoCommit = connection.getAutoCommit();
-		if (!oldAutoCommit) {
-			connection.commit();
-			connection.setAutoCommit(true);
-		}
-		Statement stm = connection.createStatement();
-		try {
-			int tries = 10, tryCount = 0;
+            SQLException firstEx = null;
+            while (tryCount++ < tries) {
+                // Ensure that we have maximum 28 characters: prefix has 7, long has maximum 19 + 2 random
+                // digits
+                String randomName = username != null ? username : "CI_TMP_" + System.nanoTime() + String.format("%02d", (int) (Math.random() * 99));
+                String randomDatabase = databaseName != null ? databaseName : randomName;
+                try {
+                    try {
+                        stm.execute("CREATE USER \"" + randomName + "\" WITH PASSWORD '" + password + "' SUPERUSER");
+                    } catch (PersistenceException e) {
+                        // check for 'org.postgresql.util.PSQLException: ERROR: role "xxx" already exists'
+                        if (!"42710".equals(((SQLException) e.getCause()).getSQLState())) {
+                            throw e;
+                        }
+                        log.warn(e);
+                    }
+                    stm.execute("CREATE DATABASE \"" + randomDatabase + "\" WITH OWNER \"" + randomName + "\"");
 
-			SQLException firstEx = null;
-			while (tryCount++ < tries) {
-				// Ensure that we have maximum 28 characters: prefix has 7, long has maximum 19 + 2 random
-				// digits
-				String randomName = username != null ? username
-						: "CI_TMP_" + System.nanoTime() + String.format("%02d", (int) (Math.random() * 99));
-				String randomDatabase = databaseName != null ? databaseName : randomName;
-				try {
-					try {
-						stm.execute(
-								"CREATE USER \"" + randomName + "\" WITH PASSWORD '" + password + "' SUPERUSER");
-					}
-					catch (PersistenceException e) {
-						// check for 'org.postgresql.util.PSQLException: ERROR: role "xxx" already exists'
-						if (!"42710".equals(((SQLException) e.getCause()).getSQLState())) {
-							throw e;
-						}
-						log.warn(e);
-					}
-					stm.execute(
-							"CREATE DATABASE \"" + randomDatabase + "\" WITH OWNER \"" + randomName + "\"");
+                    Connection userConnection = DriverManager.getConnection(connection.getMetaData().getURL() + (randomDatabase.equals(randomName) ? "" : randomDatabase), randomName, password);
+                    try {
+                        Statement userStm = userConnection.createStatement();
+                        try {
+                            userStm.execute("DROP SCHEMA IF EXISTS public CASCADE");
+                        } finally {
+                            JdbcUtil.close(userStm);
+                        }
+                    } finally {
+                        userConnection.close();
+                    }
+                    // stm.execute("GRANT ALL PRIVILEGES ON DATABASE " + randomName + " TO " + randomName);
 
-					Connection userConnection = DriverManager.getConnection(
-							connection.getMetaData().getURL()
-									+ (randomDatabase.equals(randomName) ? "" : randomDatabase),
-							randomName, password);
-					try {
-						Statement userStm = userConnection.createStatement();
-						try {
-							userStm.execute("DROP SCHEMA IF EXISTS public CASCADE");
-						}
-						finally {
-							JdbcUtil.close(userStm);
-						}
-					}
-					finally {
-						userConnection.close();
-					}
-					// stm.execute("GRANT ALL PRIVILEGES ON DATABASE " + randomName + " TO " + randomName);
+                    createdUserName = randomName;
+                    break;
+                } catch (SQLException e) {
+                    if (firstEx == null) {
+                        firstEx = e;
+                        if (username != null) {
+                            // no sense to retry because of the fixed username
+                            break;
+                        }
+                    }
+                }
+            }
+            if (createdUserName == null) {
+                log.error("It was not possible to create a random user after " + tries + " + tries. The exception on the first try was:", firstEx);
+            }
+        } catch (Throwable e) {
+            if (createdUserName != null) {
+                deleteUser(stm, createdUserName);
+            }
+            throw RuntimeExceptionUtil.mask(e);
+        } finally {
+            JdbcUtil.close(stm);
+            if (!oldAutoCommit) {
+                connection.setAutoCommit(false);
+            }
+        }
+        return createdUserName;
+    }
 
-					createdUserName = randomName;
-					break;
-				}
-				catch (SQLException e) {
-					if (firstEx == null) {
-						firstEx = e;
-						if (username != null) {
-							// no sense to retry because of the fixed username
-							break;
-						}
-					}
-				}
-			}
-			if (createdUserName == null) {
-				log.error("It was not possible to create a random user after " + tries
-						+ " + tries. The exception on the first try was:", firstEx);
-			}
-		}
-		catch (Throwable e) {
-			if (createdUserName != null) {
-				deleteUser(stm, createdUserName);
-			}
-			throw RuntimeExceptionUtil.mask(e);
-		}
-		finally {
-			JdbcUtil.close(stm);
-			if (!oldAutoCommit) {
-				connection.setAutoCommit(false);
-			}
-		}
-		return createdUserName;
-	}
+    @FrameworkModule
+    public static class RandomUserModule implements IInitializingModule {
+        @Property(name = PersistenceJdbcConfigurationConstants.IntegratedConnectionFactory, defaultValue = "true")
+        protected boolean integratedConnectionFactory;
 
-	/**
-	 * Write the given user name to the given property file. Creates the property file if it doesn't
-	 * exist.
-	 *
-	 * @param propertyFileName
-	 *          Property file name
-	 * @param createdUserNames
-	 *          User names
-	 */
-	private static void writeToPropertyFile(final String propertyFileName,
-			final List<String> createdUserNames, String[] passwords) {
-		if (propertyFileName == null || createdUserNames == null) {
-			throw new IllegalArgumentException("Mandatory values not set!");
-		}
-		File propertyFile = new File(propertyFileName);
-
-		try (OutputStream os = new FileOutputStream(propertyFile);
-				OutputStreamWriter fw = new OutputStreamWriter(os, Charset.forName("UTF-8"))) {
-			String content = createPropertyFileContent(createdUserNames, passwords);
-			fw.append(content);
-		}
-		catch (IOException e) {
-			throw RuntimeExceptionUtil.mask(e);
-		}
-	}
-
-	private static String createPropertyFileContent(final List<String> createdUserNames,
-			String[] passwords) {
-		StringBuilder summaryBuilder = new StringBuilder();
-		StringBuilder singleSchemaBuilder = new StringBuilder();
-
-		summaryBuilder.append(PROPERTY_PREFIX);
-		summaryBuilder.append('=');
-		for (int i = 0; i < createdUserNames.size(); i++) {
-			String userName = createdUserNames.get(i);
-
-			if (i > 0) {
-				summaryBuilder.append(SCHEMA_DELIMITER);
-			}
-			summaryBuilder.append(userName);
-
-			singleSchemaBuilder.append(PROPERTY_PREFIX);
-			singleSchemaBuilder.append('.');
-			singleSchemaBuilder.append(i);
-			singleSchemaBuilder.append('=');
-			singleSchemaBuilder.append(userName);
-			singleSchemaBuilder.append('\n');
-		}
-		summaryBuilder.append('\n');
-
-		String connectionUser = PersistenceJdbcConfigurationConstants.DatabaseUser + "="
-				+ createdUserNames.get(0) + "\n" + PersistenceJdbcConfigurationConstants.DatabasePass + "="
-				+ passwords[0] + "\n";
-		String content = connectionUser + summaryBuilder.toString() + singleSchemaBuilder.toString();
-		return content;
-	}
-
-	private static void deleteUsers(final Connection connection, final String[] userNames)
-			throws SQLException {
-		Statement stm = connection.createStatement();
-		try {
-			for (String userName : userNames) {
-				deleteUser(stm, userName);
-			}
-		}
-		finally {
-			JdbcUtil.close(stm);
-		}
-	}
-
-	private static void deleteUser(final Statement statement, final String userName)
-			throws SQLException {
-		statement.execute("DROP DATABASE \"" + userName + "\"");
-		statement.execute("DROP USER \"" + userName + "\"");
-	}
+        @Override
+        public void afterPropertiesSet(final IBeanContextFactory beanContextFactory) throws Throwable {
+            beanContextFactory.registerBean(PostgresConnectionUrlProvider.class).autowireable(IDatabaseConnectionUrlProvider.class);
+            beanContextFactory.registerBean(PostgresDialect.class).autowireable(IConnectionDialect.class);
+            beanContextFactory.registerBean(PersistenceExceptionUtil.class).autowireable(IPersistenceExceptionUtil.class);
+            if (integratedConnectionFactory) {
+                beanContextFactory.registerBean(ConnectionFactory.class).autowireable(IConnectionFactory.class);
+            } else {
+                beanContextFactory.registerBean(DataSourceConnectionFactory.class).autowireable(IConnectionFactory.class);
+            }
+            beanContextFactory.registerBean(SqlBuilder.class).autowireable(ISqlBuilder.class);
+            beanContextFactory.registerBean(PersistenceHelper.class).autowireable(IPersistenceHelper.class);
+            beanContextFactory.registerBean(RandomUserScript.class);
+        }
+    }
 }

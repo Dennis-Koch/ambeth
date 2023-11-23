@@ -24,11 +24,11 @@ import com.koch.ambeth.service.model.ISecurityScope;
 import com.koch.ambeth.util.state.IStateRollback;
 
 public interface ISecurityScopeProvider {
-	ISecurityScope[] getSecurityScopes();
+    ISecurityScope[] getSecurityScopes();
 
-	void setSecurityScopes(ISecurityScope[] securityScopes);
+    void setSecurityScopes(ISecurityScope[] securityScopes);
 
-	IStateRollback pushSecurityScopes(ISecurityScope securityScope, IStateRollback... rollbacks);
+    IStateRollback pushSecurityScopes(ISecurityScope securityScope);
 
-	IStateRollback pushSecurityScopes(ISecurityScope[] securityScopes, IStateRollback... rollbacks);
+    IStateRollback pushSecurityScopes(ISecurityScope[] securityScopes);
 }

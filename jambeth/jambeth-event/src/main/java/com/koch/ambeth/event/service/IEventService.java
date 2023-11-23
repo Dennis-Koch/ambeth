@@ -20,19 +20,18 @@ limitations under the License.
  * #L%
  */
 
-import java.util.List;
-
 import com.koch.ambeth.event.model.IEventItem;
 import com.koch.ambeth.util.annotation.XmlType;
 
+import java.util.List;
+
 @XmlType
 public interface IEventService {
-	List<IEventItem> pollEvents(long serverSession, long eventSequenceSince,
-			long requestedMaximumWaitTime);
+    List<IEventItem> pollEvents(long serverSession, long eventSequenceSince, long requestedMaximumWaitTime);
 
-	long getCurrentEventSequence();
+    long getCurrentEventSequence();
 
-	long getCurrentServerSession();
+    long getCurrentServerSession();
 
-	long findEventSequenceNumber(long time);
+    long findEventSequenceNumber(long time);
 }

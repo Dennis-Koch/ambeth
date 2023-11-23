@@ -1,8 +1,8 @@
 package com.koch.ambeth.lazyload;
 
-import javax.persistence.Embeddable;
+import jakarta.persistence.Embeddable;
 
 @Embeddable
 public interface EmbeddedA {
-	EntityB getEntityB();
+    EntityB getEntityB();
 }

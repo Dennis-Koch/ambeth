@@ -1,32 +1,26 @@
 package com.koch.ambeth.service.log;
 
-import com.koch.ambeth.util.state.AbstractStateRollback;
 import com.koch.ambeth.util.state.IStateRollback;
-import com.koch.ambeth.util.state.NoOpStateRollback;
+import com.koch.ambeth.util.state.StateRollback;
+import com.koch.ambeth.util.threading.SensitiveThreadLocal;
 
 public final class LogServiceUtil {
-	private static final ThreadLocal<Boolean> suppressedExplicitExceptionLoggingTL =
-			new ThreadLocal<>();
+    private static final ThreadLocal<Boolean> suppressedExplicitExceptionLoggingTL = new SensitiveThreadLocal<>();
 
-	public static IStateRollback pushSuppressExplicitExceptionLogging(IStateRollback... rollbacks) {
-		final Boolean oldValue = suppressedExplicitExceptionLoggingTL.get();
-		if (Boolean.TRUE.equals(oldValue)) {
-			return NoOpStateRollback.createNoOpRollback(rollbacks);
-		}
-		suppressedExplicitExceptionLoggingTL.set(Boolean.TRUE);
-		return new AbstractStateRollback(rollbacks) {
-			@Override
-			protected void rollbackIntern() throws Exception {
-				suppressedExplicitExceptionLoggingTL.set(oldValue);
-			}
-		};
-	}
+    public static IStateRollback pushSuppressExplicitExceptionLogging() {
+        var oldValue = suppressedExplicitExceptionLoggingTL.get();
+        if (Boolean.TRUE.equals(oldValue)) {
+            return StateRollback.empty();
+        }
+        suppressedExplicitExceptionLoggingTL.set(Boolean.TRUE);
+        return () -> suppressedExplicitExceptionLoggingTL.set(oldValue);
+    }
 
-	public static boolean isExplicitExceptionLoggingEnabled() {
-		return !Boolean.TRUE.equals(suppressedExplicitExceptionLoggingTL.get());
-	}
+    public static boolean isExplicitExceptionLoggingEnabled() {
+        return !Boolean.TRUE.equals(suppressedExplicitExceptionLoggingTL.get());
+    }
 
-	private LogServiceUtil() {
-		// intended blank
-	}
+    private LogServiceUtil() {
+        // intended blank
+    }
 }
