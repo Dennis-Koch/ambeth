@@ -20,73 +20,64 @@ limitations under the License.
  * #L%
  */
 
-import org.objectweb.asm.Type;
-
 import com.koch.ambeth.bytecode.behavior.BytecodeBehaviorState;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
+import lombok.SneakyThrows;
+import org.objectweb.asm.Type;
+
+import static org.burningwave.core.assembler.StaticComponentContainer.Methods;
 
 public class ConstructorInstance extends MethodInstance {
-	public static final String CONSTRUCTOR_NAME = "<init>";
+    public static final String CONSTRUCTOR_NAME = "<init>";
 
-	public static final ConstructorInstance defaultConstructor;
+    public static final ConstructorInstance defaultConstructor;
 
-	static {
-		try {
-			defaultConstructor = new ConstructorInstance(Object.class.getDeclaredConstructor());
-		}
-		catch (Exception e) {
-			throw RuntimeExceptionUtil.mask(e);
-		}
-	}
+    static {
+        try {
+            defaultConstructor = new ConstructorInstance(Object.class.getDeclaredConstructor());
+        } catch (Exception e) {
+            throw RuntimeExceptionUtil.mask(e);
+        }
+    }
 
-	public static final String getSignature(java.lang.reflect.Constructor<?> method) {
-		try {
-			var getSignature = method.getClass().getDeclaredMethod("getSignature");
-			getSignature.setAccessible(true);
-			return (String) getSignature.invoke(method);
-		}
-		catch (Exception e) {
-			throw RuntimeExceptionUtil.mask(e);
-		}
-	}
+    @SneakyThrows
+    public static final String getSignature(java.lang.reflect.Constructor<?> method) {
+        return Methods.invokeDirect(method, "getSignature");
+    }
 
-	public ConstructorInstance(java.lang.reflect.Constructor<?> constructor) {
-		super(Type.getType(constructor.getDeclaringClass()),
-				TypeUtil.getModifiersToAccess(constructor.getModifiers()), Type.VOID_TYPE, CONSTRUCTOR_NAME,
-				getSignature(constructor), TypeUtil.getClassesToTypes(constructor.getParameterTypes()));
-	}
+    public ConstructorInstance(java.lang.reflect.Constructor<?> constructor) {
+        super(Type.getType(constructor.getDeclaringClass()), TypeUtil.getModifiersToAccess(constructor.getModifiers()), Type.VOID_TYPE, CONSTRUCTOR_NAME, getSignature(constructor),
+                TypeUtil.getClassesToTypes(constructor.getParameterTypes()));
+    }
 
-	public ConstructorInstance(Type owner, int access, String signature, Type... parameters) {
-		super(owner, access, Type.VOID_TYPE, CONSTRUCTOR_NAME, signature, parameters);
-	}
+    public ConstructorInstance(Type owner, int access, String signature, Type... parameters) {
+        super(owner, access, Type.VOID_TYPE, CONSTRUCTOR_NAME, signature, parameters);
+    }
 
-	public ConstructorInstance(Class<?> owner, int access, String signature, Class<?>... parameters) {
-		super(Type.getType(owner), access, Type.VOID_TYPE, CONSTRUCTOR_NAME, signature,
-				TypeUtil.getClassesToTypes(parameters));
-	}
+    public ConstructorInstance(Class<?> owner, int access, String signature, Class<?>... parameters) {
+        super(Type.getType(owner), access, Type.VOID_TYPE, CONSTRUCTOR_NAME, signature, TypeUtil.getClassesToTypes(parameters));
+    }
 
-	public ConstructorInstance(int access, String signature, Type... parameters) {
-		super(BytecodeBehaviorState.getState().getNewType(), access, Type.VOID_TYPE, CONSTRUCTOR_NAME,
-				signature, parameters);
-	}
+    public ConstructorInstance(int access, String signature, Type... parameters) {
+        super(BytecodeBehaviorState.getState().getNewType(), access, Type.VOID_TYPE, CONSTRUCTOR_NAME, signature, parameters);
+    }
 
-	public ConstructorInstance(int access, String signature, Class<?>... parameters) {
-		super(BytecodeBehaviorState.getState().getNewType(), access, Type.VOID_TYPE, CONSTRUCTOR_NAME,
-				signature, TypeUtil.getClassesToTypes(parameters));
-	}
+    public ConstructorInstance(int access, String signature, Class<?>... parameters) {
+        super(BytecodeBehaviorState.getState().getNewType(), access, Type.VOID_TYPE, CONSTRUCTOR_NAME, signature, TypeUtil.getClassesToTypes(parameters));
+    }
 
-	@Override
-	public MethodInstance deriveName(String methodName) {
-		throw new UnsupportedOperationException();
-	}
+    @Override
+    public MethodInstance deriveName(String methodName) {
+        throw new UnsupportedOperationException();
+    }
 
-	@Override
-	public ConstructorInstance deriveAccess(int access) {
-		return new ConstructorInstance(access, getSignature(), getParameters());
-	}
+    @Override
+    public ConstructorInstance deriveAccess(int access) {
+        return new ConstructorInstance(access, getSignature(), getParameters());
+    }
 
-	@Override
-	public MethodInstance deriveOwner() {
-		throw new UnsupportedOperationException();
-	}
+    @Override
+    public MethodInstance deriveOwner() {
+        throw new UnsupportedOperationException();
+    }
 }

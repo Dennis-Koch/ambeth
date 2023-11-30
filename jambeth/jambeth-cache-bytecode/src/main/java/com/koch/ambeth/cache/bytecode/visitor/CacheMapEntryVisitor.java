@@ -108,6 +108,7 @@ public class CacheMapEntryVisitor extends ClassGenerator {
         }
         return f_id;
     }
+
     protected final IEntityMetaData metaData;
     protected final byte idIndex;
 

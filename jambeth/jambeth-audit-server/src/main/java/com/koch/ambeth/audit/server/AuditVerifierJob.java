@@ -116,7 +116,7 @@ public class AuditVerifierJob implements IJob, IStartingBean {
             try {
                 transaction.processAndCommit(persistenceUnitToDatabaseMap -> {
                     verifyAllAuditEntries(context);
-                }, false, true);
+                }, false, true, false);
             } finally {
                 rollback.rollback();
             }

@@ -20,12 +20,15 @@ limitations under the License.
  * #L%
  */
 
+import io.toolisticon.spiap.api.SpiService;
 import com.koch.ambeth.ioc.factory.IBeanContextFactory;
 import com.koch.ambeth.persistence.IConnectionDialect;
 import com.koch.ambeth.persistence.jdbc.IConnectionTestDialect;
 import com.koch.ambeth.persistence.jdbc.connection.IDatabaseConnectionUrlProvider;
 import com.koch.ambeth.persistence.jdbc.testconnector.ITestConnector;
 
+
+@SpiService(ITestConnector.class)
 public class H2TestConnector implements ITestConnector {
     @Override
     public boolean supports(String databaseProtocol) {
@@ -34,12 +37,9 @@ public class H2TestConnector implements ITestConnector {
 
     @Override
     public void handleTestSetup(IBeanContextFactory beanContextFactory, String databaseProtocol) {
-        beanContextFactory.registerBean(H2ConnectionUrlProvider.class)
-                          .autowireable(IDatabaseConnectionUrlProvider.class);
-        beanContextFactory.registerBean(H2Dialect.class)
-                          .autowireable(IConnectionDialect.class);
-        beanContextFactory.registerBean(H2TestDialect.class)
-                          .autowireable(IConnectionTestDialect.class);
+        beanContextFactory.registerBean(H2ConnectionUrlProvider.class).autowireable(IDatabaseConnectionUrlProvider.class);
+        beanContextFactory.registerBean(H2Dialect.class).autowireable(IConnectionDialect.class);
+        beanContextFactory.registerBean(H2TestDialect.class).autowireable(IConnectionTestDialect.class);
     }
 
     @Override

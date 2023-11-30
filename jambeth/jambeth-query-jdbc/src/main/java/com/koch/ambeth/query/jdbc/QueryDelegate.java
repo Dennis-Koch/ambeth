@@ -11,12 +11,12 @@ import com.koch.ambeth.query.persistence.IVersionCursor;
 import com.koch.ambeth.service.merge.model.IObjRef;
 import com.koch.ambeth.util.ReflectUtil;
 import com.koch.ambeth.util.collections.IList;
-import com.koch.ambeth.util.collections.IMap;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.List;
+import java.util.Map;
 
 public class QueryDelegate<T> implements IQuery<T>, IQueryIntern<T> {
     @Autowired
@@ -61,7 +61,7 @@ public class QueryDelegate<T> implements IQuery<T>, IQueryIntern<T> {
     }
 
     @Override
-    public IQueryKey getQueryKey(IMap<Object, Object> nameToValueMap) {
+    public IQueryKey getQueryKey(Map<Object, Object> nameToValueMap) {
         return query.getQueryKey(nameToValueMap);
     }
 
@@ -76,12 +76,12 @@ public class QueryDelegate<T> implements IQuery<T>, IQueryIntern<T> {
     }
 
     @Override
-    public IDataCursor retrieveAsData(IMap<Object, Object> nameToValueMap) {
+    public IDataCursor retrieveAsData(Map<Object, Object> nameToValueMap) {
         return queryIntern.retrieveAsData(nameToValueMap);
     }
 
     @Override
-    public IVersionCursor retrieveAsVersions(IMap<Object, Object> nameToValueMap) {
+    public IVersionCursor retrieveAsVersions(Map<Object, Object> nameToValueMap) {
         return queryIntern.retrieveAsVersions(nameToValueMap, true);
     }
 
@@ -91,7 +91,7 @@ public class QueryDelegate<T> implements IQuery<T>, IQueryIntern<T> {
     }
 
     @Override
-    public IList<IObjRef> retrieveAsObjRefs(IMap<Object, Object> paramNameToValueMap, int idIndex) {
+    public IList<IObjRef> retrieveAsObjRefs(Map<Object, Object> paramNameToValueMap, int idIndex) {
         return queryIntern.retrieveAsObjRefs(paramNameToValueMap, idIndex);
     }
 
@@ -101,7 +101,7 @@ public class QueryDelegate<T> implements IQuery<T>, IQueryIntern<T> {
     }
 
     @Override
-    public IVersionCursor retrieveAsVersions(IMap<Object, Object> paramNameToValueMap, boolean retrieveAlternateIds) {
+    public IVersionCursor retrieveAsVersions(Map<Object, Object> paramNameToValueMap, boolean retrieveAlternateIds) {
         return queryIntern.retrieveAsVersions(paramNameToValueMap, retrieveAlternateIds);
     }
 
@@ -111,7 +111,7 @@ public class QueryDelegate<T> implements IQuery<T>, IQueryIntern<T> {
     }
 
     @Override
-    public IEntityCursor<T> retrieveAsCursor(IMap<Object, Object> nameToValueMap) {
+    public IEntityCursor<T> retrieveAsCursor(Map<Object, Object> nameToValueMap) {
         return queryIntern.retrieveAsCursor(nameToValueMap);
     }
 
@@ -120,15 +120,15 @@ public class QueryDelegate<T> implements IQuery<T>, IQueryIntern<T> {
         if (transaction.isActive()) {
             return query.retrieve();
         }
-        return transaction.processAndCommitWithResult(persistenceUnitToDatabaseMap -> query.retrieve(), true, true);
+        return transaction.processAndCommitWithResult(persistenceUnitToDatabaseMap -> query.retrieve(), true, true, false);
     }
 
     @Override
-    public IList<T> retrieve(final IMap<Object, Object> nameToValueMap) {
+    public IList<T> retrieve(Map<Object, Object> nameToValueMap) {
         if (transaction.isActive()) {
             return queryIntern.retrieve(nameToValueMap);
         }
-        return transaction.processAndCommitWithResult(persistenceUnitToDatabaseMap -> queryIntern.retrieve(nameToValueMap), true, true);
+        return transaction.processAndCommitWithResult(persistenceUnitToDatabaseMap -> queryIntern.retrieve(nameToValueMap), true, true, false);
     }
 
     @Override
@@ -146,15 +146,15 @@ public class QueryDelegate<T> implements IQuery<T>, IQueryIntern<T> {
         if (transaction.isActive()) {
             return query.count();
         }
-        return transaction.processAndCommitWithResult(persistenceUnitToDatabaseMap -> Long.valueOf(query.count()), true, true).longValue();
+        return transaction.processAndCommitWithResult(persistenceUnitToDatabaseMap -> Long.valueOf(query.count()), true, true, false).longValue();
     }
 
     @Override
-    public long count(final IMap<Object, Object> paramNameToValueMap) {
+    public long count(Map<Object, Object> paramNameToValueMap) {
         if (transaction.isActive()) {
             return queryIntern.count(paramNameToValueMap);
         }
-        return transaction.processAndCommitWithResult(persistenceUnitToDatabaseMap -> Long.valueOf(queryIntern.count(paramNameToValueMap)), true, true).intValue();
+        return transaction.processAndCommitWithResult(persistenceUnitToDatabaseMap -> Long.valueOf(queryIntern.count(paramNameToValueMap)), true, true, false).intValue();
     }
 
     @Override
@@ -162,14 +162,14 @@ public class QueryDelegate<T> implements IQuery<T>, IQueryIntern<T> {
         if (transaction.isActive()) {
             return query.isEmpty();
         }
-        return transaction.processAndCommitWithResult(persistenceUnitToDatabaseMap -> Boolean.valueOf(query.isEmpty()), true, true).booleanValue();
+        return transaction.processAndCommitWithResult(persistenceUnitToDatabaseMap -> Boolean.valueOf(query.isEmpty()), true, true, false).booleanValue();
     }
 
     @Override
-    public boolean isEmpty(final IMap<Object, Object> paramNameToValueMap) {
+    public boolean isEmpty(Map<Object, Object> paramNameToValueMap) {
         if (transaction.isActive()) {
             return queryIntern.isEmpty(paramNameToValueMap);
         }
-        return transaction.processAndCommitWithResult(persistenceUnitToDatabaseMap -> Boolean.valueOf(queryIntern.isEmpty(paramNameToValueMap)), true, true).booleanValue();
+        return transaction.processAndCommitWithResult(persistenceUnitToDatabaseMap -> Boolean.valueOf(queryIntern.isEmpty(paramNameToValueMap)), true, true, false).booleanValue();
     }
 }

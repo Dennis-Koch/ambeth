@@ -51,13 +51,13 @@ public class SyncClientServiceInterceptorBuilder implements IClientServiceInterc
 
         var childContext = sourceBeanContext.createService(bcf -> {
             if (IRemoteTargetProvider.class.isAssignableFrom(clientProviderType)) {
-                bcf.registerBean(remoteTargetProviderName, clientProviderType).propertyValue(IRemoteTargetProvider.SERVICE_NAME_PROP, serviceName);
-                clientServiceFactory.postProcessTargetProviderBean(remoteTargetProviderName, bcf);
+                var bean = bcf.registerBean(remoteTargetProviderName, clientProviderType).propertyValue(IRemoteTargetProvider.SERVICE_NAME_PROP, serviceName);
+                clientServiceFactory.postProcessTargetProviderBean(serviceName, bean, bcf);
 
                 bcf.registerBean(interceptorName, TargetingInterceptor.class).propertyRef(TargetingInterceptor.TARGET_PROVIDER_PROP, remoteTargetProviderName);
             } else if (IRemoteInterceptor.class.isAssignableFrom(clientProviderType)) {
-                bcf.registerBean(interceptorName, clientProviderType).propertyValue(IRemoteTargetProvider.SERVICE_NAME_PROP, serviceName);
-                clientServiceFactory.postProcessTargetProviderBean(interceptorName, bcf);
+                var bean = bcf.registerBean(interceptorName, clientProviderType).propertyValue(IRemoteTargetProvider.SERVICE_NAME_PROP, serviceName);
+                clientServiceFactory.postProcessTargetProviderBean(serviceName, bean, bcf);
             } else {
                 throw new IllegalStateException("ProviderType '" + clientProviderType + "' is not supported here");
             }

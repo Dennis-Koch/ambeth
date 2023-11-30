@@ -1,8 +1,8 @@
-package com.koch.ambeth.ioc;
+package com.koch.ambeth.service.auth;
 
 /*-
  * #%L
- * jambeth-ioc
+ * jambeth-service-rest
  * %%
  * Copyright (C) 2017 Koch Softwaredevelopment
  * %%
@@ -20,8 +20,8 @@ limitations under the License.
  * #L%
  */
 
-public interface HandleObjectsDelegate {
+public interface IAuthenticationHolder {
+    String[] getAuthentication();
 
-	void invoke(Object obj);
-
+    void setAuthentication(String userName, String password);
 }

@@ -28,7 +28,6 @@ import com.koch.ambeth.ioc.IServiceContext;
 import com.koch.ambeth.ioc.accessor.IAccessorTypeProvider;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.config.Property;
-import com.koch.ambeth.merge.ILightweightTransaction;
 import com.koch.ambeth.merge.IObjRefHelper;
 import com.koch.ambeth.merge.cache.CacheDirective;
 import com.koch.ambeth.merge.cache.ICacheModification;
@@ -66,6 +65,7 @@ import com.koch.ambeth.util.collections.LinkedHashSet;
 import com.koch.ambeth.util.collections.ObservableArrayList;
 import com.koch.ambeth.util.collections.ObservableHashSet;
 import com.koch.ambeth.util.threading.IGuiThreadHelper;
+import com.koch.ambeth.util.transaction.ILightweightTransaction;
 
 import java.util.Collection;
 import java.util.EnumSet;

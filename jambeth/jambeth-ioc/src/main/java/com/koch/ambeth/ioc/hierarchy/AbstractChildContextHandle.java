@@ -27,7 +27,6 @@ import com.koch.ambeth.ioc.factory.IBeanContextFactory;
 import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.util.ParamChecker;
-import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.IMap;
 import com.koch.ambeth.util.function.CheckedConsumer;
 
@@ -66,14 +65,13 @@ public abstract class AbstractChildContextHandle implements IInitializingBean, I
 
     @Override
     public IServiceContext start() {
-        IServiceContext childContext = null;
-        Lock writeLock = this.writeLock;
+        var writeLock = this.writeLock;
         writeLock.lock();
         try {
             if (log.isDebugEnabled()) {
                 log.debug("Looking for existing child context...");
             }
-            childContext = getChildContext();
+            var childContext = getChildContext();
             if (childContext == null || childContext.isDisposed()) {
                 if (log.isDebugEnabled()) {
                     log.debug("No valid child context found. Creating new child context");
@@ -83,14 +81,14 @@ public abstract class AbstractChildContextHandle implements IInitializingBean, I
             } else if (log.isDebugEnabled()) {
                 log.debug("Existing child context found and valid");
             }
-            IList<IUpwakingBean> upwakingBeans = childContext.getImplementingObjects(IUpwakingBean.class);
+            var upwakingBeans = childContext.getImplementingObjects(IUpwakingBean.class);
             for (int a = 0, size = upwakingBeans.size(); a < size; a++) {
                 upwakingBeans.get(a).wakeUp();
             }
+            return childContext;
         } finally {
             writeLock.unlock();
         }
-        return childContext;
     }
 
     @Override

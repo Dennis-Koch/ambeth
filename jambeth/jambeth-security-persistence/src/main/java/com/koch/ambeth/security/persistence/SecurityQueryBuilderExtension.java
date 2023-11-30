@@ -20,10 +20,6 @@ limitations under the License.
  * #L%
  */
 
-import java.util.List;
-
-import jakarta.persistence.criteria.JoinType;
-
 import com.koch.ambeth.ioc.IServiceContext;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.config.Property;
@@ -44,7 +40,10 @@ import com.koch.ambeth.security.ISecurityContext;
 import com.koch.ambeth.security.ISecurityContextHolder;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.IList;
-import com.koch.ambeth.util.collections.IMap;
+import jakarta.persistence.criteria.JoinType;
+
+import java.util.List;
+import java.util.Map;
 
 public class SecurityQueryBuilderExtension implements IQueryBuilderExtension {
     @Autowired(optional = true)
@@ -122,7 +121,7 @@ public class SecurityQueryBuilderExtension implements IQueryBuilderExtension {
     }
 
     @Override
-    public void applyOnQuery(IMap<Object, Object> nameToValueMap, IList<Object> parameters, IList<String> additionalSelectColumnList) {
+    public void applyOnQuery(Map<Object, Object> nameToValueMap, IList<Object> parameters, IList<String> additionalSelectColumnList) {
         if (!securityActive || nameToValueMap.containsKey(SqlPermissionOperand.USER_ID_CRITERIA_NAME)) {
             // id is explicitly specified. nothing to do here
             return;

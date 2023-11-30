@@ -24,17 +24,26 @@ import com.koch.ambeth.ioc.IInitializingModule;
 import com.koch.ambeth.ioc.config.Property;
 import com.koch.ambeth.ioc.factory.IBeanContextFactory;
 import com.koch.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationConstants;
+import com.koch.ambeth.persistence.jdbc.connector.IConnector;
+import com.koch.ambeth.util.collections.IdentityHashSet;
 
+import java.util.Arrays;
 import java.util.ServiceLoader;
 
 public class DialectSelectorSchemaModule implements IInitializingModule {
     public static ITestConnector loadTestConnector(String databaseProtocol) {
         var serviceLoader = ServiceLoader.load(ITestConnector.class);
+        var checkedConnectors = new IdentityHashSet<ITestConnector>();
         return serviceLoader.stream()
                             .map(ServiceLoader.Provider::get)
+                            .map(conn -> {
+                                checkedConnectors.add(conn);
+                                return conn;
+                            })
                             .filter(conn -> conn.supports(databaseProtocol))
                             .findFirst()
-                            .orElseThrow(() -> new IllegalStateException("No test connector found for protocol: '" + databaseProtocol + "'"));
+                            .orElseThrow(() -> new IllegalStateException(
+                                    "No test connector found for protocol: '" + databaseProtocol + "'. Available connectors: " + Arrays.toString(checkedConnectors.toArray(IConnector[]::new))));
     }
 
     @Property(name = PersistenceJdbcConfigurationConstants.DatabaseProtocol)

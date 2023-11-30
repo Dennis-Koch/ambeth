@@ -20,38 +20,36 @@ limitations under the License.
  * #L%
  */
 
-import java.io.IOException;
+import lombok.SneakyThrows;
+
 import java.io.Writer;
 
-import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
-
 public class WriterAppendable implements IAppendable {
-	protected final Writer target;
+    protected final Writer target;
 
-	public WriterAppendable(Writer target) {
-		this.target = target;
-	}
+    public WriterAppendable(Writer target) {
+        this.target = target;
+    }
 
-	@Override
-	public IAppendable append(char value) {
-		try {
-			target.append(value);
-		}
-		catch (IOException e) {
-			throw RuntimeExceptionUtil.mask(e);
-		}
-		return this;
-	}
+    @SneakyThrows
+    @Override
+    public IAppendable append(char value) {
+        target.append(value);
+        return this;
+    }
 
-	@Override
-	public IAppendable append(CharSequence value) {
-		try {
-			target.append(value);
-		}
-		catch (IOException e) {
-			throw RuntimeExceptionUtil.mask(e);
-		}
-		return this;
-	}
+    @SneakyThrows
+    @Override
+    public IAppendable append(int value) {
+        target.append(Integer.toString(value));
+        return this;
+    }
+
+    @SneakyThrows
+    @Override
+    public IAppendable append(CharSequence value) {
+        target.append(value);
+        return this;
+    }
 
 }

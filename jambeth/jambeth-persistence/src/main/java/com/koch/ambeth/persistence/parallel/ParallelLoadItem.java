@@ -20,27 +20,25 @@ limitations under the License.
  * #L%
  */
 
-import java.util.Collection;
-
 import com.koch.ambeth.persistence.LoadMode;
 import com.koch.ambeth.util.collections.LinkedHashMap;
 
+import java.util.Collection;
+
 public class ParallelLoadItem extends AbstractParallelItem {
-	public final Class<?> entityType;
+    public final Class<?> entityType;
 
-	public final byte idIndex;
+    public final byte idIndex;
 
-	public final Collection<Object> ids;
+    public final Collection<Object> ids;
 
-	public final LoadMode loadMode;
+    public final LoadMode loadMode;
 
-	public ParallelLoadItem(Class<?> entityType, byte idIndex, Collection<Object> ids,
-			LoadMode loadMode,
-			LinkedHashMap<Class<?>, Collection<Object>[]> sharedCascadeTypeToPendingInit) {
-		super(sharedCascadeTypeToPendingInit);
-		this.entityType = entityType;
-		this.idIndex = idIndex;
-		this.ids = ids;
-		this.loadMode = loadMode;
-	}
+    public ParallelLoadItem(Class<?> entityType, byte idIndex, Collection<Object> ids, LoadMode loadMode, LinkedHashMap<Class<?>, Collection<Object>[]> sharedCascadeTypeToPendingInit) {
+        super(sharedCascadeTypeToPendingInit);
+        this.entityType = entityType;
+        this.idIndex = idIndex;
+        this.ids = ids;
+        this.loadMode = loadMode;
+    }
 }

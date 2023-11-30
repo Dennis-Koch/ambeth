@@ -20,16 +20,6 @@ limitations under the License.
  * #L%
  */
 
-import java.sql.Array;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.List;
-
-import jakarta.persistence.PersistenceException;
-
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.persistence.ArrayQueryItem;
 import com.koch.ambeth.persistence.api.IDatabaseMetaData;
@@ -42,6 +32,15 @@ import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.sensor.ISensor;
 import com.koch.ambeth.util.sensor.Sensor;
+import jakarta.persistence.PersistenceException;
+
+import java.sql.Array;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.List;
 
 public class JDBCSqlConnection extends SqlConnection {
     @Autowired
@@ -116,14 +115,14 @@ public class JDBCSqlConnection extends SqlConnection {
         try {
             if (parameters != null) {
                 IList<Object> arraysToDispose = null;
-                IConnectionExtension connectionExtension = this.connectionExtension;
+                var connectionExtension = this.connectionExtension;
                 try {
-                    PreparedStatement pstm = connection.prepareStatement(sql);
+                    var pstm = connection.prepareStatement(sql);
                     stm = pstm;
                     for (int index = 0, size = parameters.size(); index < size; index++) {
-                        Object value = parameters.get(index);
+                        var value = parameters.get(index);
                         if (value instanceof ArrayQueryItem) {
-                            ArrayQueryItem aqi = (ArrayQueryItem) value;
+                            var aqi = (ArrayQueryItem) value;
                             value = connectionExtension.createJDBCArray(aqi.getFieldType(), aqi.getValues());
 
                             if (arraysToDispose == null) {
@@ -158,7 +157,7 @@ public class JDBCSqlConnection extends SqlConnection {
                 JdbcUtil.close(stm, resultSet);
             }
         }
-        JDBCResultSet jdbcResultSet = new JDBCResultSet();
+        var jdbcResultSet = new JDBCResultSet();
         jdbcResultSet.setResultSet(resultSet);
         jdbcResultSet.setSensor(jdbcResultSetSensor);
         jdbcResultSet.setSql(sql);

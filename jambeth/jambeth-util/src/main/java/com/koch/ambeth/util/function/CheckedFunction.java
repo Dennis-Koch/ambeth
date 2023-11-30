@@ -17,7 +17,7 @@ public interface CheckedFunction<T, R> {
     }
 
     @SneakyThrows
-    static <R, S> R invoke(CheckedFunction<S, R> function, S state) {
+    static <S, R> R invoke(CheckedFunction<S, R> function, S state) {
         return function.apply(state);
     }
 

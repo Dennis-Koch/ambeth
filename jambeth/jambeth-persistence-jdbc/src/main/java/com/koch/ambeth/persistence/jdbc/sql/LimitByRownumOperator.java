@@ -25,23 +25,23 @@ import com.koch.ambeth.query.IOperand;
 import com.koch.ambeth.query.IValueOperand;
 import com.koch.ambeth.util.appendable.IAppendable;
 import com.koch.ambeth.util.collections.IList;
-import com.koch.ambeth.util.collections.IMap;
+
+import java.util.Map;
 
 public class LimitByRownumOperator implements IOperand {
-	@Property
-	protected IOperand operand;
+    @Property
+    protected IOperand operand;
 
-	@Property
-	protected IValueOperand valueOperand;
+    @Property
+    protected IValueOperand valueOperand;
 
-	@Override
-	public void expandQuery(IAppendable querySB, IMap<Object, Object> nameToValueMap,
-			boolean joinQuery, IList<Object> parameters) {
-		Object value = valueOperand.getValue(nameToValueMap);
-		if (value == null || ((Number) value).intValue() == 0) {
-			return;
-		}
-		querySB.append("ROWNUM<=");
-		querySB.append(value.toString());
-	}
+    @Override
+    public void expandQuery(IAppendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, IList<Object> parameters) {
+        var value = valueOperand.getValue(nameToValueMap);
+        if (value == null || ((Number) value).intValue() == 0) {
+            return;
+        }
+        querySB.append("ROWNUM<=");
+        querySB.append(value.toString());
+    }
 }

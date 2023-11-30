@@ -24,27 +24,27 @@ import com.koch.ambeth.security.audit.model.Audited;
 
 @Audited(false)
 public interface ISignature {
-	public static final String Algorithm = "Algorithm";
+    String Algorithm = "Algorithm";
 
-	public static final String ChangeAfter = "ChangeAfter";
+    String ChangeAfter = "ChangeAfter";
 
-	public static final String KeySize = "KeySize";
+    String KeySize = "KeySize";
 
-	public static final String User = "User";
+    String User = "User";
 
-	public static final String Value = "Value";
+    String Value = "Value";
 
-	IUser getUser();
+    IUser getUser();
 
-	char[] getPrivateKey();
+    char[] getPrivateKey();
 
-	void setPrivateKey(char[] privateKey);
+    void setPrivateKey(char[] privateKey);
 
-	char[] getPublicKey();
+    char[] getPublicKey();
 
-	void setPublicKey(char[] publicKey);
+    void setPublicKey(char[] publicKey);
 
-	IPBEConfiguration getPBEConfiguration();
+    IPBEConfiguration getPBEConfiguration();
 
-	ISignAndVerify getSignAndVerify();
+    ISignAndVerify getSignAndVerify();
 }

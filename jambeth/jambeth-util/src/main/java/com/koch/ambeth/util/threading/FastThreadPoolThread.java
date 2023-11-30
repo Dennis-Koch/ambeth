@@ -20,91 +20,83 @@ limitations under the License.
  * #L%
  */
 
-import java.util.concurrent.CountDownLatch;
-
+import com.koch.ambeth.util.IClassLoaderProvider;
 import com.koch.ambeth.util.collections.FastList;
 import com.koch.ambeth.util.collections.ListElem;
 
+import java.util.concurrent.CountDownLatch;
+
 public class FastThreadPoolThread extends Thread {
-	private final ListElem<FastThreadPoolThread> freeLE = new ListElem<>(this);
+    private final ListElem<FastThreadPoolThread> freeLE = new ListElem<>(this);
+    private final FastThreadPool asyncQueue;
+    private FastList<FastThreadPoolThread> currentList;
+    private int timeWithoutJob;
 
-	private FastList<FastThreadPoolThread> currentList;
+    private volatile boolean active = true;
 
-	private final FastThreadPool asyncQueue;
+    public FastThreadPoolThread(final FastThreadPool asyncQueue) {
+        this.asyncQueue = asyncQueue;
+        setDaemon(true);
+    }
 
-	private int timeWithoutJob;
+    public void queueOnList(final FastList<FastThreadPoolThread> currentList) {
+        if (this.currentList != currentList) {
+            if (this.currentList != null) {
+                this.currentList.remove(freeLE);
+            }
+            this.currentList = currentList;
+            if (this.currentList != null) {
+                this.currentList.pushLast(freeLE);
+            }
+        }
+    }
 
-	private volatile boolean active = true;
+    @SuppressWarnings("unchecked")
+    @Override
+    public void run() {
+        while (active) {
+            Thread.interrupted(); // clear potential interrupted state
+            try {
+                QueueItem queueItem = asyncQueue.getNextMessage(this);
+                if (queueItem != null) {
+                    timeWithoutJob = 0;
+                    HandlerRunnable<Object, Object> handler = ((HandlerRunnable<Object, Object>) queueItem.getHandler());
+                    CountDownLatch latch = queueItem.getLatch();
+                    if (handler == null) {
+                        var rollback = IClassLoaderProvider.pushClassLoader(queueItem.getContextClassLoader());
+                        try {
+                            ((Runnable) queueItem.getObject()).run();
+                        } finally {
+                            rollback.rollback();
+                        }
+                        if (latch != null) {
+                            latch.countDown();
+                        }
+                    } else {
+                        handler.handle(queueItem.getObject(), queueItem.getContext(), latch);
+                    }
+                    asyncQueue.actionFinished();
+                }
+            } catch (Throwable e) {
+                asyncQueue.shutdownThread(this);
+                e.printStackTrace(System.err);
+            }
+        }
+    }
 
-	public FastThreadPoolThread(final FastThreadPool asyncQueue) {
-		this.asyncQueue = asyncQueue;
-		setDaemon(true);
-	}
+    public boolean isActive() {
+        return active;
+    }
 
-	public void queueOnList(final FastList<FastThreadPoolThread> currentList) {
-		if (this.currentList != currentList) {
-			if (this.currentList != null) {
-				this.currentList.remove(freeLE);
-			}
-			this.currentList = currentList;
-			if (this.currentList != null) {
-				this.currentList.pushLast(freeLE);
-			}
-		}
-	}
+    protected void setActive(boolean active) {
+        this.active = active;
+    }
 
-	@SuppressWarnings("unchecked")
-	@Override
-	public void run() {
-		while (active) {
-			Thread.interrupted(); // clear potential interrupted state
-			try {
-				QueueItem queueItem = asyncQueue.getNextMessage(this);
-				if (queueItem != null) {
-					timeWithoutJob = 0;
-					HandlerRunnable<Object, Object> handler =
-							((HandlerRunnable<Object, Object>) queueItem.getHandler());
-					CountDownLatch latch = queueItem.getLatch();
-					if (handler == null) {
-						Thread currentThread = Thread.currentThread();
-						ClassLoader oldContextClassLoader = currentThread.getContextClassLoader();
-						currentThread.setContextClassLoader(queueItem.getContextClassLoader());
-						try {
-							((Runnable) queueItem.getObject()).run();
-						}
-						finally {
-							currentThread.setContextClassLoader(oldContextClassLoader);
-						}
-						if (latch != null) {
-							latch.countDown();
-						}
-					}
-					else {
-						handler.handle(queueItem.getObject(), queueItem.getContext(), latch);
-					}
-					asyncQueue.actionFinished();
-				}
-			}
-			catch (Throwable e) {
-				asyncQueue.shutdownThread(this);
-				e.printStackTrace(System.err);
-			}
-		}
-	}
+    protected int getTimeWithoutJob() {
+        return timeWithoutJob;
+    }
 
-	public boolean isActive() {
-		return active;
-	}
-
-	protected void setActive(boolean active) {
-		this.active = active;
-	}
-
-	protected int getTimeWithoutJob() {
-		return timeWithoutJob;
-	}
-
-	protected void setTimeWithoutJob(int timeWithoutJob) {
-		this.timeWithoutJob = timeWithoutJob;
-	}
+    protected void setTimeWithoutJob(int timeWithoutJob) {
+        this.timeWithoutJob = timeWithoutJob;
+    }
 }

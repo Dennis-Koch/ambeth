@@ -25,6 +25,7 @@ import com.koch.ambeth.ioc.factory.IBeanContextFactory;
 import com.koch.ambeth.ioc.hierarchy.IBeanContextHolder;
 import com.koch.ambeth.ioc.link.ILinkRuntimeExtendable;
 import com.koch.ambeth.util.IDisposable;
+import com.koch.ambeth.util.IPrintable;
 import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.ISet;
 import com.koch.ambeth.util.function.CheckedConsumer;
@@ -34,7 +35,7 @@ import java.lang.annotation.Annotation;
 /**
  * Interface to access a running jAmbeth IoC context from application code.
  */
-public interface IServiceContext extends IDisposable, ILinkRuntimeExtendable, AutoCloseable {
+public interface IServiceContext extends IDisposable, ILinkRuntimeExtendable, AutoCloseable, IPrintable {
 
     /**
      * Builds a set with all types where a bean instance is wired to in this context. This method does
@@ -290,4 +291,14 @@ public interface IServiceContext extends IDisposable, ILinkRuntimeExtendable, Au
      * @param sb Target StringBuilder.
      */
     void printContent(StringBuilder sb);
+
+    @Override
+    default void toString(StringBuilder sb) {
+        var parent = getParent();
+        if (parent != null) {
+            parent.toString(sb);
+            sb.append('/');
+        }
+        sb.append(getName());
+    }
 }

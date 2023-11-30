@@ -1,8 +1,8 @@
-package com.koch.ambeth.service.rest;
+package com.koch.ambeth.util;
 
 /*-
  * #%L
- * jambeth-service-rest
+ * jambeth-util
  * %%
  * Copyright (C) 2017 Koch Softwaredevelopment
  * %%
@@ -20,8 +20,13 @@ limitations under the License.
  * #L%
  */
 
-public interface IAuthenticationHolder {
-	String[] getAuthentication();
-
-	void setAuthentication(String userName, String password);
+public interface IPreparedConverter<T> {
+    /**
+     * Converts a defined set of types.
+     *
+     * @param value                 Value of class sourceType
+     * @param additionalInformation Optional information if neede for this conversion
+     * @return Value converted to expectedType
+     */
+    T convertValue(Object value, Object additionalInformation);
 }

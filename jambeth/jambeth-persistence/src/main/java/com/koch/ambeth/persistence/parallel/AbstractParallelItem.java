@@ -20,18 +20,16 @@ limitations under the License.
  * #L%
  */
 
-import java.util.Collection;
-
 import com.koch.ambeth.util.collections.LinkedHashMap;
 
+import java.util.Collection;
+
 public abstract class AbstractParallelItem {
-	public final LinkedHashMap<Class<?>, Collection<Object>[]> cascadeTypeToPendingInit =
-			new LinkedHashMap<>();
+    public final LinkedHashMap<Class<?>, Collection<Object>[]> cascadeTypeToPendingInit = new LinkedHashMap<>();
 
-	public final LinkedHashMap<Class<?>, Collection<Object>[]> sharedCascadeTypeToPendingInit;
+    public final LinkedHashMap<Class<?>, Collection<Object>[]> sharedCascadeTypeToPendingInit;
 
-	public AbstractParallelItem(
-			LinkedHashMap<Class<?>, Collection<Object>[]> sharedCascadeTypeToPendingInit) {
-		this.sharedCascadeTypeToPendingInit = sharedCascadeTypeToPendingInit;
-	}
+    public AbstractParallelItem(LinkedHashMap<Class<?>, Collection<Object>[]> sharedCascadeTypeToPendingInit) {
+        this.sharedCascadeTypeToPendingInit = sharedCascadeTypeToPendingInit;
+    }
 }

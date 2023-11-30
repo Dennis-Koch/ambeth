@@ -17,7 +17,6 @@ import com.koch.ambeth.ioc.threadlocal.IForkProcessor;
 import com.koch.ambeth.ioc.threadlocal.IThreadLocalCleanupBean;
 import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
-import com.koch.ambeth.merge.ILightweightTransaction;
 import com.koch.ambeth.merge.IObjRefHelper;
 import com.koch.ambeth.merge.cache.CacheDirective;
 import com.koch.ambeth.merge.cache.ICache;
@@ -71,6 +70,7 @@ import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.function.CheckedRunnable;
 import com.koch.ambeth.util.function.CheckedSupplier;
 import com.koch.ambeth.util.objectcollector.IThreadLocalObjectCollector;
+import com.koch.ambeth.util.transaction.ILightweightTransaction;
 import lombok.SneakyThrows;
 
 import java.io.IOException;
@@ -549,7 +549,8 @@ public class AuditEntryVerifier implements IAuditEntryVerifier, IVerifyOnLoad, I
             PrimitiveMember[] primitiveMembers = metaData.getPrimitiveMembers();
             ISet<String> primitiveMembersSet = primitiveMembers.length > 0 ? HashSet.<String>create(primitiveMembers.length) : EmptySet.<String>emptySet();
             for (PrimitiveMember primitiveMember : primitiveMembers) {
-                if (metaData.getUpdatedByMember() == primitiveMember || metaData.getUpdatedOnMember() == primitiveMember || metaData.getCreatedByMember() == primitiveMember || metaData.getCreatedOnMember() == primitiveMember) {
+                if (metaData.getUpdatedByMember() == primitiveMember || metaData.getUpdatedOnMember() == primitiveMember || metaData.getCreatedByMember() == primitiveMember ||
+                        metaData.getCreatedOnMember() == primitiveMember) {
                     continue;
                 }
                 primitiveMembersSet.add(primitiveMember.getName());
@@ -980,7 +981,7 @@ public class AuditEntryVerifier implements IAuditEntryVerifier, IVerifyOnLoad, I
                         alternateIdToVersionMap.put(alternateIdObjRef.getId(), alternateIdObjRef.getVersion());
                     }
                     var preparedObjRefFactory = objRefFactory.prepareObjRefFactory(metaData.getEntityType(), ObjRef.PRIMARY_KEY_INDEX);
-                    var cursor = table.selectVersion(alternateIdMember.getName(), alternateIdObjRefs);
+                    var cursor = table.selectVersion(idIndex, alternateIdObjRefs);
                     try {
                         for (var item : cursor) {
                             var id = conversionHelper.convertValueToType(idRealType, item.getId());

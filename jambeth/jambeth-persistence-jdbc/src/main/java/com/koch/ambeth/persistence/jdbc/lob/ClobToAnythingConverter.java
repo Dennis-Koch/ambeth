@@ -25,13 +25,12 @@ import com.koch.ambeth.util.IConversionHelper;
 import com.koch.ambeth.util.IDedicatedConverter;
 
 public class ClobToAnythingConverter implements IDedicatedConverter {
-	@Autowired
-	protected IConversionHelper conversionHelper;
+    @Autowired
+    protected IConversionHelper conversionHelper;
 
-	@Override
-	public Object convertValueToType(Class<?> expectedType, Class<?> sourceType, Object value,
-			Object additionalInformation) throws Exception {
-		String stringValue = conversionHelper.convertValueToType(String.class, value);
-		return conversionHelper.convertValueToType(expectedType, stringValue);
-	}
+    @Override
+    public Object convertValueToType(Class<?> expectedType, Class<?> sourceType, Object value, Object additionalInformation) {
+        var stringValue = conversionHelper.convertValueToType(String.class, value);
+        return conversionHelper.convertValueToType(expectedType, stringValue);
+    }
 }

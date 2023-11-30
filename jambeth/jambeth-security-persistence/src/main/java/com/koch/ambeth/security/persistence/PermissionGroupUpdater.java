@@ -32,7 +32,6 @@ import com.koch.ambeth.ioc.threadlocal.IThreadLocalCleanupController;
 import com.koch.ambeth.ioc.util.IMultithreadingHelper;
 import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
-import com.koch.ambeth.merge.ILightweightTransaction;
 import com.koch.ambeth.merge.IMergeProcess;
 import com.koch.ambeth.merge.config.MergeConfigurationConstants;
 import com.koch.ambeth.merge.event.EntityMetaDataAddedEvent;
@@ -98,6 +97,7 @@ import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.function.CheckedSupplier;
 import com.koch.ambeth.util.objectcollector.IThreadLocalObjectCollector;
 import com.koch.ambeth.util.state.StateRollback;
+import com.koch.ambeth.util.transaction.ILightweightTransaction;
 
 import java.sql.Connection;
 import java.sql.ParameterMetaData;

@@ -21,6 +21,7 @@
 		<bytebuddy.version>1.14.9</bytebuddy.version>
 		<lombok.version>1.18.30</lombok.version>
         <spring.version>6.1.0</spring.version>
+        <spi-ap.version>0.11.0</spi-ap.version>
 		<checkstyle.file>${jambeth.path.test}/checkstyle_checks.xml</checkstyle.file>
 		<checkstyle.properties>${jambeth.path.test}/checkstyle.properties</checkstyle.properties>
 		<findbugs.file>${jambeth.path.test}/findbugs_exclude_checks.xml</findbugs.file>
@@ -65,7 +66,18 @@
 	<dependencyManagement>
 		<dependencies>
 			<!-- External dependencies -->
-			<dependency>
+            <dependency>
+                <groupId>io.toolisticon.spiap</groupId>
+                <artifactId>spiap-api</artifactId>
+                <version>${spi-ap.version}</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.bouncycastle</groupId>
+                <artifactId>bcprov-jdk18on</artifactId>
+                <version>1.77</version>
+            </dependency>
+            <dependency>
 				<groupId>org.ow2.asm</groupId>
 				<artifactId>asm</artifactId>
 				<version>9.6</version>
@@ -474,13 +486,21 @@
 					<groupId>biz.aQute.bnd</groupId>
 					<artifactId>bnd-maven-plugin</artifactId>
 					<version>7.0.0</version>
-					<executions>
-						<execution>
-							<goals>
-								<goal>bnd-process</goal>
-							</goals>
-						</execution>
-					</executions>
+                    <extensions>true</extensions>
+                    <executions>
+                        <execution>
+                            <id>bnd-process</id>
+                            <goals>
+                                <goal>bnd-process</goal>
+                            </goals>
+                        </execution>
+                        <execution>
+                            <id>jar</id>
+                            <goals>
+                                <goal>jar</goal>
+                            </goals>
+                        </execution>
+                    </executions>
 				</plugin>
 				<plugin>
 					<groupId>org.eclipse.m2e</groupId>
@@ -528,6 +548,11 @@
 							<artifactId>lombok</artifactId>
 							<version>${lombok.version}</version>
 						</path>
+                        <path>
+                            <groupId>io.toolisticon.spiap</groupId>
+                            <artifactId>spiap-processor</artifactId>
+                            <version>${spi-ap.version}</version>
+                        </path>
 					</annotationProcessorPaths>
 				</configuration>
 			</plugin>
@@ -794,7 +819,7 @@
 						<groupId>org.codehaus.mojo</groupId>
 						<artifactId>license-maven-plugin</artifactId>
 						<configuration>
-							<organizationName>Koch Softwaredevelopment</organizationName>
+							<organizationName>Koch Software Development</organizationName>
 							<inceptionYear>2017</inceptionYear>
 							<licenseName>apache_v2</licenseName>
 							<ignoreNoFileToScan>true</ignoreNoFileToScan>

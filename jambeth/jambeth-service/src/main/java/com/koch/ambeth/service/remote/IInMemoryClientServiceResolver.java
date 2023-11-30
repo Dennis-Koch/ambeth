@@ -1,8 +1,8 @@
-package com.koch.ambeth.ioc.annotation;
+package com.koch.ambeth.service.remote;
 
 /*-
  * #%L
- * jambeth-ioc
+ * jambeth-service
  * %%
  * Copyright (C) 2017 Koch Softwaredevelopment
  * %%
@@ -20,13 +20,16 @@ limitations under the License.
  * #L%
  */
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.lang.reflect.Method;
 
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE)
-public @interface BootstrapModule {
-	// Intended blank
+public interface IInMemoryClientServiceResolver {
+    RemoteServiceContext resolveRemoteServiceContext(String serviceBaseUrl, String serviceName, Method method, Object[] args) throws Throwable;
+
+    interface RemoteServiceContext {
+        Object getRemoteSourceIdentifier();
+
+        Object getServiceByName(String serviceName);
+
+        void cleanupThreadLocal();
+    }
 }

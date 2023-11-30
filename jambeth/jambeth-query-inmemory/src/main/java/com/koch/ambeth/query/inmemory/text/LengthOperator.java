@@ -20,17 +20,17 @@ limitations under the License.
  * #L%
  */
 
-import java.util.Map;
-
 import com.koch.ambeth.query.inmemory.IInMemoryNumericOperand;
 
+import java.util.Map;
+
 public class LengthOperator extends AbstractUnaryTextOperator implements IInMemoryNumericOperand {
-	@Override
-	public Double evaluateNumber(Map<Object, Object> nameToValueMap) {
-		String value = operand.evaluateText(nameToValueMap);
-		if (value == null) {
-			return null;
-		}
-		return Double.valueOf(value.length());
-	}
+    @Override
+    public Number evaluateNumber(Map<Object, Object> nameToValueMap) {
+        var value = operand.evaluateText(nameToValueMap);
+        if (value == null) {
+            return null;
+        }
+        return Double.valueOf(value.length());
+    }
 }

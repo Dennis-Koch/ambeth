@@ -45,6 +45,7 @@ import com.koch.ambeth.util.proxy.MethodInterceptor;
 import com.koch.ambeth.util.state.IStateRollback;
 import com.koch.ambeth.util.state.StateRollback;
 import com.koch.ambeth.util.threading.IGuiThreadHelper;
+import com.koch.ambeth.util.transaction.ILightweightTransaction;
 
 import java.io.StringWriter;
 import java.util.List;

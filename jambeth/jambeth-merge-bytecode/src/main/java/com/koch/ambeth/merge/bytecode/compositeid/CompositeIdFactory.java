@@ -30,133 +30,139 @@ import com.koch.ambeth.merge.compositeid.CompositeIdMember;
 import com.koch.ambeth.merge.compositeid.ICompositeIdFactory;
 import com.koch.ambeth.merge.metadata.IMemberTypeProvider;
 import com.koch.ambeth.service.merge.model.IEntityMetaData;
-import com.koch.ambeth.service.metadata.Member;
 import com.koch.ambeth.service.metadata.PrimitiveMember;
 import com.koch.ambeth.util.IConversionHelper;
-import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
+import lombok.SneakyThrows;
 
 public class CompositeIdFactory implements ICompositeIdFactory, IInitializingBean {
-	@LogInstance
-	private ILogger log;
+    @Autowired(optional = true)
+    protected IBytecodeEnhancer bytecodeEnhancer;
+    @Autowired
+    protected IConversionHelper conversionHelper;
+    @Autowired
+    protected IMemberTypeProvider memberTypeProvider;
+    @LogInstance
+    private ILogger log;
 
-	@Autowired(optional = true)
-	protected IBytecodeEnhancer bytecodeEnhancer;
+    @Override
+    public void afterPropertiesSet() throws Throwable {
+        if (bytecodeEnhancer == null) {
+            log.debug("No bytecodeEnhancer specified: Composite ID feature deactivated");
+        }
+    }
 
-	@Autowired
-	protected IConversionHelper conversionHelper;
+    @Override
+    public PrimitiveMember createCompositeIdMember(IEntityMetaData metaData, PrimitiveMember[] idMembers) {
+        return createCompositeIdMember(metaData.getEntityType(), idMembers);
+    }
 
-	@Autowired
-	protected IMemberTypeProvider memberTypeProvider;
+    @Override
+    public PrimitiveMember createCompositeIdMember(Class<?> entityType, PrimitiveMember[] idMembers) {
+        if (idMembers.length == 1) {
+            return idMembers[0];
+        }
+        if (bytecodeEnhancer == null) {
+            throw new UnsupportedOperationException("No bytecodeEnhancer specified");
+        }
+        var nameSB = new StringBuilder();
+        // order does matter here
+        for (int a = 0, size = idMembers.length; a < size; a++) {
+            var name = idMembers[a].getName();
+            if (a > 0) {
+                nameSB.append('&');
+            }
+            nameSB.append(name);
+        }
+        var compositeIdType = bytecodeEnhancer.getEnhancedType(Object.class, new CompositeIdEnhancementHint(idMembers));
+        return new CompositeIdMember(entityType, compositeIdType, nameSB.toString(), idMembers, memberTypeProvider);
+    }
 
-	@Override
-	public void afterPropertiesSet() throws Throwable {
-		if (bytecodeEnhancer == null) {
-			log.debug("No bytecodeEnhancer specified: Composite ID feature deactivated");
-		}
-	}
+    @SneakyThrows
+    @Override
+    public Object createCompositeId(IEntityMetaData metaData, PrimitiveMember compositeIdMember, Object... ids) {
+        if (ids.length == 1) {
+            var id = ids[0];
+            return conversionHelper.convertValueToType(compositeIdMember.getRealType(), id);
+        }
+        var conversionHelper = this.conversionHelper;
+        var cIdTypeInfoItem = (CompositeIdMember) compositeIdMember;
+        var members = cIdTypeInfoItem.getMembers();
+        for (int a = ids.length; a-- > 0; ) {
+            var id = ids[a];
+            var convertedId = conversionHelper.convertValueToType(members[a].getRealType(), id);
+            if (convertedId != id) {
+                ids[a] = convertedId;
+            }
+        }
+        return cIdTypeInfoItem.getRealTypeConstructorAccess().newInstance(ids);
+    }
 
-	@Override
-	public PrimitiveMember createCompositeIdMember(IEntityMetaData metaData,
-			PrimitiveMember[] idMembers) {
-		return createCompositeIdMember(metaData.getEntityType(), idMembers);
-	}
+    @SneakyThrows
+    @Override
+    public Object createCompositeId(IEntityMetaData metaData, int idIndex, Object... ids) {
+        var idMember = metaData.getIdMemberByIdIndex(idIndex);
+        if (idMember instanceof CompositeIdMember compositeIdMember) {
+            var conversionHelper = this.conversionHelper;
+            var members = compositeIdMember.getMembers();
+            for (int a = members.length; a-- > 0; ) {
+                var id = ids[a];
+                var convertedId = conversionHelper.convertValueToType(members[a].getRealType(), id);
+                if (convertedId != id) {
+                    ids[a] = convertedId;
+                }
+            }
+            return compositeIdMember.getRealTypeConstructorAccess().newInstance(ids);
+        }
+        var id = ids[0];
+        return conversionHelper.convertValueToType(idMember.getRealType(), id);
+    }
 
-	@Override
-	public PrimitiveMember createCompositeIdMember(Class<?> entityType, PrimitiveMember[] idMembers) {
-		if (bytecodeEnhancer == null) {
-			throw new UnsupportedOperationException("No bytecodeEnhancer specified");
-		}
-		StringBuilder nameSB = new StringBuilder();
-		// order does matter here
-		for (int a = 0, size = idMembers.length; a < size; a++) {
-			String name = idMembers[a].getName();
-			if (a > 0) {
-				nameSB.append('&');
-			}
-			nameSB.append(name);
-		}
-		Class<?> compositeIdType =
-				bytecodeEnhancer.getEnhancedType(Object.class, new CompositeIdEnhancementHint(idMembers));
-		try {
-			return new CompositeIdMember(entityType, compositeIdType, nameSB.toString(), idMembers,
-					memberTypeProvider);
-		}
-		catch (Exception e) {
-			throw RuntimeExceptionUtil.mask(e);
-		}
-	}
+    @Override
+    public Object createIdFromPrimitives(IEntityMetaData metaData, int idIndex, Object[] primitives) {
+        var alternateIdMemberIndicesInPrimitives = metaData.getAlternateIdMemberIndicesInPrimitives();
+        var compositeIndex = alternateIdMemberIndicesInPrimitives[idIndex];
 
-	@Override
-	public Object createCompositeId(IEntityMetaData metaData, PrimitiveMember compositeIdMember,
-			Object... ids) {
-		IConversionHelper conversionHelper = this.conversionHelper;
-		CompositeIdMember cIdTypeInfoItem = (CompositeIdMember) compositeIdMember;
-		Member[] members = cIdTypeInfoItem.getMembers();
-		for (int a = ids.length; a-- > 0;) {
-			Object id = ids[a];
-			Object convertedId = conversionHelper.convertValueToType(members[a].getRealType(), id);
-			if (convertedId != id) {
-				ids[a] = convertedId;
-			}
-		}
-		try {
-			return cIdTypeInfoItem.getRealTypeConstructorAccess().newInstance(ids);
-		}
-		catch (Exception e) {
-			throw RuntimeExceptionUtil.mask(e);
-		}
-	}
+        if (compositeIndex.length == 1) {
+            return primitives[compositeIndex[0]];
+        }
+        var compositeIdMember = metaData.getAlternateIdMembers()[idIndex];
+        var ids = new Object[compositeIndex.length];
+        for (int a = compositeIndex.length; a-- > 0; ) {
+            ids[a] = primitives[compositeIndex[a]];
+        }
+        return createCompositeId(metaData, compositeIdMember, ids);
+    }
 
-	@Override
-	public Object createIdFromPrimitives(IEntityMetaData metaData, int idIndex, Object[] primitives) {
-		int[][] alternateIdMemberIndicesInPrimitives =
-				metaData.getAlternateIdMemberIndicesInPrimitives();
-		int[] compositeIndex = alternateIdMemberIndicesInPrimitives[idIndex];
+    @Override
+    public Object createIdFromPrimitives(IEntityMetaData metaData, int idIndex, AbstractCacheValue cacheValue) {
+        int[][] alternateIdMemberIndicesInPrimitives = metaData.getAlternateIdMemberIndicesInPrimitives();
+        int[] compositeIndex = alternateIdMemberIndicesInPrimitives[idIndex];
 
-		if (compositeIndex.length == 1) {
-			return primitives[compositeIndex[0]];
-		}
-		PrimitiveMember compositeIdMember = metaData.getAlternateIdMembers()[idIndex];
-		Object[] ids = new Object[compositeIndex.length];
-		for (int a = compositeIndex.length; a-- > 0;) {
-			ids[a] = primitives[compositeIndex[a]];
-		}
-		return createCompositeId(metaData, compositeIdMember, ids);
-	}
+        if (compositeIndex.length == 1) {
+            return cacheValue.getPrimitive(compositeIndex[0]);
+        }
+        PrimitiveMember compositeIdMember = metaData.getAlternateIdMembers()[idIndex];
+        Object[] ids = new Object[compositeIndex.length];
+        for (int a = compositeIndex.length; a-- > 0; ) {
+            ids[a] = cacheValue.getPrimitive(compositeIndex[a]);
+        }
+        return createCompositeId(metaData, compositeIdMember, ids);
+    }
 
-	@Override
-	public Object createIdFromPrimitives(IEntityMetaData metaData, int idIndex,
-			AbstractCacheValue cacheValue) {
-		int[][] alternateIdMemberIndicesInPrimitives =
-				metaData.getAlternateIdMemberIndicesInPrimitives();
-		int[] compositeIndex = alternateIdMemberIndicesInPrimitives[idIndex];
+    @Override
+    public Object createIdFromEntity(IEntityMetaData metaData, int idIndex, Object entity) {
+        int[][] alternateIdMemberIndicesInPrimitives = metaData.getAlternateIdMemberIndicesInPrimitives();
+        int[] compositeIndex = alternateIdMemberIndicesInPrimitives[idIndex];
 
-		if (compositeIndex.length == 1) {
-			return cacheValue.getPrimitive(compositeIndex[0]);
-		}
-		PrimitiveMember compositeIdMember = metaData.getAlternateIdMembers()[idIndex];
-		Object[] ids = new Object[compositeIndex.length];
-		for (int a = compositeIndex.length; a-- > 0;) {
-			ids[a] = cacheValue.getPrimitive(compositeIndex[a]);
-		}
-		return createCompositeId(metaData, compositeIdMember, ids);
-	}
-
-	@Override
-	public Object createIdFromEntity(IEntityMetaData metaData, int idIndex, Object entity) {
-		int[][] alternateIdMemberIndicesInPrimitives =
-				metaData.getAlternateIdMemberIndicesInPrimitives();
-		int[] compositeIndex = alternateIdMemberIndicesInPrimitives[idIndex];
-
-		if (compositeIndex.length == 1) {
-			return metaData.getPrimitiveMembers()[compositeIndex[0]].getValue(entity);
-		}
-		PrimitiveMember compositeIdMember = metaData.getAlternateIdMembers()[idIndex];
-		PrimitiveMember[] primitiveMembers = metaData.getPrimitiveMembers();
-		Object[] ids = new Object[compositeIndex.length];
-		for (int a = compositeIndex.length; a-- > 0;) {
-			ids[a] = primitiveMembers[compositeIndex[a]].getValue(entity);
-		}
-		return createCompositeId(metaData, compositeIdMember, ids);
-	}
+        if (compositeIndex.length == 1) {
+            return metaData.getPrimitiveMembers()[compositeIndex[0]].getValue(entity);
+        }
+        PrimitiveMember compositeIdMember = metaData.getAlternateIdMembers()[idIndex];
+        PrimitiveMember[] primitiveMembers = metaData.getPrimitiveMembers();
+        Object[] ids = new Object[compositeIndex.length];
+        for (int a = compositeIndex.length; a-- > 0; ) {
+            ids[a] = primitiveMembers[compositeIndex[a]].getValue(entity);
+        }
+        return createCompositeId(metaData, compositeIdMember, ids);
+    }
 }

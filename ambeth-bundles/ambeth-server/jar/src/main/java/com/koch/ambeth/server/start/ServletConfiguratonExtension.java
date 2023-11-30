@@ -20,28 +20,26 @@ limitations under the License.
  * #L%
  */
 
-import jakarta.servlet.ServletContext;
-
 import com.koch.ambeth.core.Ambeth;
 import com.koch.ambeth.core.config.CoreConfigurationConstants;
 import com.koch.ambeth.core.start.IAmbethConfiguration;
 import com.koch.ambeth.core.start.IAmbethConfigurationExtension;
 import com.koch.ambeth.server.webservice.HttpSessionModule;
+import jakarta.servlet.ServletContext;
 
 public class ServletConfiguratonExtension implements IAmbethConfigurationExtension {
-	protected Ambeth ambethConfiguration;
+    protected Ambeth ambethConfiguration;
 
-	@Override
-	public void setAmbethConfiguration(Ambeth ambethConfiguration) {
-		this.ambethConfiguration = ambethConfiguration;
-	}
+    @Override
+    public void setAmbethConfiguration(Ambeth ambethConfiguration) {
+        this.ambethConfiguration = ambethConfiguration;
+    }
 
-	public IAmbethConfiguration withServletContext(ServletContext servletContext) {
-		ambethConfiguration.registerBean(servletContext, ServletContext.class);
-		ambethConfiguration.withProperty(CoreConfigurationConstants.ClasspathInfoClass,
-				ServletClasspathInfo.class.getName());
-		ambethConfiguration.withAmbethModules(HttpSessionModule.class);
+    public IAmbethConfiguration withServletContext(ServletContext servletContext) {
+        ambethConfiguration.registerFrameworkBean(servletContext, ServletContext.class);
+        ambethConfiguration.withProperty(CoreConfigurationConstants.ClasspathInfoClass, ServletClasspathInfo.class.getName());
+        ambethConfiguration.withFrameworkModules(HttpSessionModule.class);
 
-		return ambethConfiguration;
-	}
+        return ambethConfiguration;
+    }
 }

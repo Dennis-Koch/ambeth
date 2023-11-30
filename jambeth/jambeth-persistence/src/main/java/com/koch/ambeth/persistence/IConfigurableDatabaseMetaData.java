@@ -20,16 +20,15 @@ limitations under the License.
  * #L%
  */
 
-import java.sql.Connection;
-import java.sql.SQLException;
-
 import com.koch.ambeth.persistence.api.IFieldMetaData;
 import com.koch.ambeth.persistence.api.ILinkMetaData;
 
+import java.sql.Connection;
+
 public interface IConfigurableDatabaseMetaData {
-	boolean isLinkArchiveTable(String tableName);
+    boolean isLinkArchiveTable(String tableName);
 
-	ILinkMetaData mapLink(ILinkMetaData link);
+    ILinkMetaData mapLink(ILinkMetaData link);
 
-	boolean isFieldNullable(Connection connection, IFieldMetaData field) throws SQLException;
+    boolean isFieldNullable(Connection connection, IFieldMetaData field);
 }

@@ -23,17 +23,17 @@ limitations under the License.
 import com.koch.ambeth.ioc.bytecode.IEnhancementHint;
 
 /**
- * The context for the {@link ImplementAbstractObjectFactory}
+ * The context for {@link com.koch.ambeth.merge.bytecode.abstractobject.ImplementAbstractObjectFactory}
  */
 public enum ImplementAbstractObjectEnhancementHint implements IEnhancementHint {
-	ImplementAbstractObjectEnhancementHint;
+    ImplementAbstractObjectEnhancementHint;
 
-	@SuppressWarnings("unchecked")
-	@Override
-	public <T extends IEnhancementHint> T unwrap(Class<T> includedContextType) {
-		if (ImplementAbstractObjectEnhancementHint.class.isAssignableFrom(includedContextType)) {
-			return (T) this;
-		}
-		return null;
-	}
+    @SuppressWarnings("unchecked")
+    @Override
+    public <T extends IEnhancementHint> T unwrap(Class<T> includedContextType) {
+        if (ImplementAbstractObjectEnhancementHint.class.isAssignableFrom(includedContextType)) {
+            return (T) this;
+        }
+        return null;
+    }
 }

@@ -20,8 +20,6 @@ limitations under the License.
  * #L%
  */
 
-import com.koch.ambeth.persistence.database.IDatabaseLifecycleCallback;
-
 public interface IDatabaseLifecycleCallbackRegistry {
 	IDatabaseLifecycleCallback[] getDatabaseLifecycleCallbacks();
 }

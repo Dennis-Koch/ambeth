@@ -19,6 +19,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
  * #L%
  */
+
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -45,168 +46,138 @@ import com.koch.ambeth.testutil.TestProperties;
 import com.koch.ambeth.util.IPrintable;
 import com.koch.ambeth.util.ParamChecker;
 
-@TestProperties(name = ServiceConfigurationConstants.mappingFile,
-		value = "com/koch/ambeth/persistence/external/compositeid/external_orm.xml")
-@TestFrameworkModule({CompositeIdExternalEntityTestModule.class, EventServerModule.class})
+@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "com/koch/ambeth/persistence/external/compositeid/external_orm.xml")
+@TestFrameworkModule({ CompositeIdExternalEntityTestModule.class, EventServerModule.class })
 public class CompositeIdExternalEntityTest extends AbstractInformationBusTest {
-	@FrameworkModule
-	public static class CompositeIdExternalEntityTestModule implements IInitializingModule {
-		@Override
-		public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
-			beanContextFactory.registerBean(CacheModule.DEFAULT_CACHE_RETRIEVER,
-					CacheRetrieverFake.class);
+    protected ICache cache;
+    protected ICompositeIdFactory compositeIdFactory;
+    protected IEntityFactory entityFactory;
+    protected IEntityMetaDataProvider entityMetaDataProvider;
 
-			IBeanConfiguration bc =
-					beanContextFactory.registerBean(CompositeIdEntityCacheRetriever.class);
-			beanContextFactory.link(bc).to(ICacheRetrieverExtendable.class).with(CompositeIdEntity.class);
-			beanContextFactory.link(bc).to(ICacheRetrieverExtendable.class)
-					.with(CompositeIdEntity2.class);
-		}
-	}
+    @Override
+    public void afterPropertiesSet() throws Throwable {
+        super.afterPropertiesSet();
 
-	protected ICache cache;
+        ParamChecker.assertNotNull(cache, "cache");
+        ParamChecker.assertNotNull(compositeIdFactory, "compositeIdFactory");
+        ParamChecker.assertNotNull(entityFactory, "entityFactory");
+        ParamChecker.assertNotNull(entityMetaDataProvider, "entityMetaDataProvider");
+    }
 
-	protected ICompositeIdFactory compositeIdFactory;
+    public void setCache(ICache cache) {
+        this.cache = cache;
+    }
 
-	protected IEntityFactory entityFactory;
+    public void setCompositeIdFactory(ICompositeIdFactory compositeIdFactory) {
+        this.compositeIdFactory = compositeIdFactory;
+    }
 
-	protected IEntityMetaDataProvider entityMetaDataProvider;
+    public void setEntityFactory(IEntityFactory entityFactory) {
+        this.entityFactory = entityFactory;
+    }
 
-	@Override
-	public void afterPropertiesSet() throws Throwable {
-		super.afterPropertiesSet();
+    public void setEntityMetaDataProvider(IEntityMetaDataProvider entityMetaDataProvider) {
+        this.entityMetaDataProvider = entityMetaDataProvider;
+    }
 
-		ParamChecker.assertNotNull(cache, "cache");
-		ParamChecker.assertNotNull(compositeIdFactory, "compositeIdFactory");
-		ParamChecker.assertNotNull(entityFactory, "entityFactory");
-		ParamChecker.assertNotNull(entityMetaDataProvider, "entityMetaDataProvider");
-	}
+    @Test
+    public void testCompositeIdBehaviorEquals() throws Exception {
+        IEntityMetaData metaData = entityMetaDataProvider.getMetaData(CompositeIdEntity.class);
+        Object left = compositeIdFactory.createCompositeId(metaData, metaData.getIdMember(), CompositeIdEntityCacheRetriever.id1_2_data[0], CompositeIdEntityCacheRetriever.id1_2_data[1]);
+        Object right = compositeIdFactory.createCompositeId(metaData, metaData.getIdMember(), CompositeIdEntityCacheRetriever.id1_2_data[0], CompositeIdEntityCacheRetriever.id1_2_data[1]);
+        Assert.assertNotNull(left);
+        Assert.assertNotNull(right);
+        Assert.assertNotSame(left, right);
+        Assert.assertEquals(left, right);
+        Assert.assertTrue(left instanceof IPrintable);
+        StringBuilder sb = new StringBuilder();
+        ((IPrintable) left).toString(sb);
+        Assert.assertEquals(left.toString(), sb.toString());
+    }
 
-	public void setCache(ICache cache) {
-		this.cache = cache;
-	}
+    @Test
+    public void testCompositeIdBehaviorNotEqual() throws Exception {
+        IEntityMetaData metaData = entityMetaDataProvider.getMetaData(CompositeIdEntity.class);
+        Object left = compositeIdFactory.createCompositeId(metaData, metaData.getIdMember(), CompositeIdEntityCacheRetriever.id1_2_data[0], CompositeIdEntityCacheRetriever.id1_2_data[1]);
+        Object right = compositeIdFactory.createCompositeId(metaData, metaData.getIdMember(), ((Number) CompositeIdEntityCacheRetriever.id1_2_data[0]).intValue() + 2,
+                CompositeIdEntityCacheRetriever.id1_2_data[1]);
+        Assert.assertNotNull(left);
+        Assert.assertNotNull(right);
+        Assert.assertNotSame(left, right);
+        Assert.assertFalse(left.equals(right));
+        int idIndex = 0;
+        Object right2 = compositeIdFactory.createCompositeId(metaData, metaData.getAlternateIdMembers()[idIndex], CompositeIdEntityCacheRetriever.id1_2_data[4],
+                ((Number) CompositeIdEntityCacheRetriever.id1_2_data[3]).shortValue() + 2);
+        Assert.assertNotNull(right2);
+        Assert.assertNotSame(left, right2);
+        Assert.assertFalse(left.equals(right2));
+    }
 
-	public void setCompositeIdFactory(ICompositeIdFactory compositeIdFactory) {
-		this.compositeIdFactory = compositeIdFactory;
-	}
+    @Test
+    public void testPrimaryId() throws Exception {
+        IEntityMetaData metaData = entityMetaDataProvider.getMetaData(CompositeIdEntity.class);
+        Object compositeId = compositeIdFactory.createCompositeId(metaData, metaData.getIdMember(), CompositeIdEntityCacheRetriever.id1_2_data[0], CompositeIdEntityCacheRetriever.id1_2_data[1]);
+        CompositeIdEntity entity = cache.getObject(CompositeIdEntity.class, compositeId);
+        Assert.assertNotNull(entity);
+        Assert.assertEquals(CompositeIdEntityCacheRetriever.id1_2_data[0], entity.getId1());
+        Assert.assertEquals(CompositeIdEntityCacheRetriever.id1_2_data[1], entity.getId2());
+        Assert.assertEquals(CompositeIdEntityCacheRetriever.id1_2_data[2], entity.getName());
+        Assert.assertEquals(CompositeIdEntityCacheRetriever.id1_2_data[3], entity.getAid1());
+        Assert.assertEquals(CompositeIdEntityCacheRetriever.id1_2_data[4], entity.getAid2());
+    }
 
-	public void setEntityFactory(IEntityFactory entityFactory) {
-		this.entityFactory = entityFactory;
-	}
+    @Test
+    public void testAlternateId() throws Exception {
+        int idIndex = 0;
+        IEntityMetaData metaData = entityMetaDataProvider.getMetaData(CompositeIdEntity.class);
+        Object compositeId =
+                compositeIdFactory.createCompositeId(metaData, metaData.getAlternateIdMembers()[idIndex], CompositeIdEntityCacheRetriever.id1_2_data[4], CompositeIdEntityCacheRetriever.id1_2_data[3]);
+        CompositeIdEntity entity = (CompositeIdEntity) cache.getObject(new ObjRef(CompositeIdEntity.class, (byte) idIndex, compositeId, null), CacheDirective.none());
+        Assert.assertNotNull(entity);
+        Assert.assertEquals(CompositeIdEntityCacheRetriever.id1_2_data[0], entity.getId1());
+        Assert.assertEquals(CompositeIdEntityCacheRetriever.id1_2_data[1], entity.getId2());
+        Assert.assertEquals(CompositeIdEntityCacheRetriever.id1_2_data[2], entity.getName());
+        Assert.assertEquals(CompositeIdEntityCacheRetriever.id1_2_data[3], entity.getAid1());
+        Assert.assertEquals(CompositeIdEntityCacheRetriever.id1_2_data[4], entity.getAid2());
+    }
 
-	public void setEntityMetaDataProvider(IEntityMetaDataProvider entityMetaDataProvider) {
-		this.entityMetaDataProvider = entityMetaDataProvider;
-	}
+    @Test
+    public void testPrimaryIdEmbedded() throws Exception {
+        IEntityMetaData metaData = entityMetaDataProvider.getMetaData(CompositeIdEntity2.class);
+        Object compositeId = compositeIdFactory.createCompositeId(metaData, metaData.getIdMember(), CompositeIdEntityCacheRetriever.id1_2_data[0], CompositeIdEntityCacheRetriever.id1_2_data[1]);
+        CompositeIdEntity2 entity = cache.getObject(CompositeIdEntity2.class, compositeId);
+        Assert.assertNotNull(entity);
+        Assert.assertEquals(CompositeIdEntityCacheRetriever.entity2_id1_2_data[0], entity.getId1());
+        Assert.assertEquals(CompositeIdEntityCacheRetriever.entity2_id1_2_data[1], entity.getId2().getSid());
+        Assert.assertEquals(CompositeIdEntityCacheRetriever.entity2_id1_2_data[2], entity.getName());
+        Assert.assertEquals(CompositeIdEntityCacheRetriever.entity2_id1_2_data[3], entity.getAid1());
+        Assert.assertEquals(CompositeIdEntityCacheRetriever.entity2_id1_2_data[4], entity.getAid2().getSid());
+    }
 
-	@Test
-	public void testCompositeIdBehaviorEquals() throws Exception {
-		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(CompositeIdEntity.class);
-		Object left = compositeIdFactory.createCompositeId(metaData, metaData.getIdMember(),
-				CompositeIdEntityCacheRetriever.id1_2_data[0],
-				CompositeIdEntityCacheRetriever.id1_2_data[1]);
-		Object right = compositeIdFactory.createCompositeId(metaData, metaData.getIdMember(),
-				CompositeIdEntityCacheRetriever.id1_2_data[0],
-				CompositeIdEntityCacheRetriever.id1_2_data[1]);
-		Assert.assertNotNull(left);
-		Assert.assertNotNull(right);
-		Assert.assertNotSame(left, right);
-		Assert.assertEquals(left, right);
-		Assert.assertTrue(left instanceof IPrintable);
-		StringBuilder sb = new StringBuilder();
-		((IPrintable) left).toString(sb);
-		Assert.assertEquals(left.toString(), sb.toString());
-	}
+    @Test
+    public void testAlternateIdEmbedded() throws Exception {
+        int idIndex = 0;
+        IEntityMetaData metaData = entityMetaDataProvider.getMetaData(CompositeIdEntity2.class);
+        Object compositeId = compositeIdFactory.createCompositeId(metaData, metaData.getAlternateIdMembers()[idIndex], CompositeIdEntityCacheRetriever.entity2_id1_2_data[4],
+                CompositeIdEntityCacheRetriever.entity2_id1_2_data[3]);
+        CompositeIdEntity2 entity = (CompositeIdEntity2) cache.getObject(new ObjRef(CompositeIdEntity2.class, (byte) idIndex, compositeId, null), CacheDirective.none());
+        Assert.assertNotNull(entity);
+        Assert.assertEquals(CompositeIdEntityCacheRetriever.entity2_id1_2_data[0], entity.getId1());
+        Assert.assertEquals(CompositeIdEntityCacheRetriever.entity2_id1_2_data[1], entity.getId2().getSid());
+        Assert.assertEquals(CompositeIdEntityCacheRetriever.entity2_id1_2_data[2], entity.getName());
+        Assert.assertEquals(CompositeIdEntityCacheRetriever.entity2_id1_2_data[3], entity.getAid1());
+        Assert.assertEquals(CompositeIdEntityCacheRetriever.entity2_id1_2_data[4], entity.getAid2().getSid());
+    }
 
-	@Test
-	public void testCompositeIdBehaviorNotEqual() throws Exception {
-		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(CompositeIdEntity.class);
-		Object left = compositeIdFactory.createCompositeId(metaData, metaData.getIdMember(),
-				CompositeIdEntityCacheRetriever.id1_2_data[0],
-				CompositeIdEntityCacheRetriever.id1_2_data[1]);
-		Object right = compositeIdFactory.createCompositeId(metaData, metaData.getIdMember(),
-				((Number) CompositeIdEntityCacheRetriever.id1_2_data[0]).intValue() + 2,
-				CompositeIdEntityCacheRetriever.id1_2_data[1]);
-		Assert.assertNotNull(left);
-		Assert.assertNotNull(right);
-		Assert.assertNotSame(left, right);
-		Assert.assertFalse(left.equals(right));
-		int idIndex = 0;
-		Object right2 = compositeIdFactory.createCompositeId(metaData,
-				metaData.getAlternateIdMembers()[idIndex], CompositeIdEntityCacheRetriever.id1_2_data[4],
-				((Number) CompositeIdEntityCacheRetriever.id1_2_data[3]).shortValue() + 2);
-		Assert.assertNotNull(right2);
-		Assert.assertNotSame(left, right2);
-		Assert.assertFalse(left.equals(right2));
-	}
+    @FrameworkModule
+    public static class CompositeIdExternalEntityTestModule implements IInitializingModule {
+        @Override
+        public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
+            beanContextFactory.registerBean(CacheModule.DEFAULT_CACHE_RETRIEVER, CacheRetrieverFake.class);
 
-	@Test
-	public void testPrimaryId() throws Exception {
-		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(CompositeIdEntity.class);
-		Object compositeId = compositeIdFactory.createCompositeId(metaData, metaData.getIdMember(),
-				CompositeIdEntityCacheRetriever.id1_2_data[0],
-				CompositeIdEntityCacheRetriever.id1_2_data[1]);
-		CompositeIdEntity entity = cache.getObject(CompositeIdEntity.class, compositeId);
-		Assert.assertNotNull(entity);
-		Assert.assertEquals(CompositeIdEntityCacheRetriever.id1_2_data[0], entity.getId1());
-		Assert.assertEquals(CompositeIdEntityCacheRetriever.id1_2_data[1], entity.getId2());
-		Assert.assertEquals(CompositeIdEntityCacheRetriever.id1_2_data[2], entity.getName());
-		Assert.assertEquals(CompositeIdEntityCacheRetriever.id1_2_data[3], entity.getAid1());
-		Assert.assertEquals(CompositeIdEntityCacheRetriever.id1_2_data[4], entity.getAid2());
-	}
-
-	@Test
-	public void testAlternateId() throws Exception {
-		int idIndex = 0;
-		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(CompositeIdEntity.class);
-		Object compositeId = compositeIdFactory.createCompositeId(metaData,
-				metaData.getAlternateIdMembers()[idIndex], CompositeIdEntityCacheRetriever.id1_2_data[4],
-				CompositeIdEntityCacheRetriever.id1_2_data[3]);
-		CompositeIdEntity entity = (CompositeIdEntity) cache.getObject(
-				new ObjRef(CompositeIdEntity.class, (byte) idIndex, compositeId, null),
-				CacheDirective.none());
-		Assert.assertNotNull(entity);
-		Assert.assertEquals(CompositeIdEntityCacheRetriever.id1_2_data[0], entity.getId1());
-		Assert.assertEquals(CompositeIdEntityCacheRetriever.id1_2_data[1], entity.getId2());
-		Assert.assertEquals(CompositeIdEntityCacheRetriever.id1_2_data[2], entity.getName());
-		Assert.assertEquals(CompositeIdEntityCacheRetriever.id1_2_data[3], entity.getAid1());
-		Assert.assertEquals(CompositeIdEntityCacheRetriever.id1_2_data[4], entity.getAid2());
-	}
-
-	@Test
-	public void testPrimaryIdEmbedded() throws Exception {
-		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(CompositeIdEntity2.class);
-		Object compositeId = compositeIdFactory.createCompositeId(metaData, metaData.getIdMember(),
-				CompositeIdEntityCacheRetriever.id1_2_data[0],
-				CompositeIdEntityCacheRetriever.id1_2_data[1]);
-		CompositeIdEntity2 entity = cache.getObject(CompositeIdEntity2.class, compositeId);
-		Assert.assertNotNull(entity);
-		Assert.assertEquals(CompositeIdEntityCacheRetriever.entity2_id1_2_data[0], entity.getId1());
-		Assert.assertEquals(CompositeIdEntityCacheRetriever.entity2_id1_2_data[1],
-				entity.getId2().getSid());
-		Assert.assertEquals(CompositeIdEntityCacheRetriever.entity2_id1_2_data[2], entity.getName());
-		Assert.assertEquals(CompositeIdEntityCacheRetriever.entity2_id1_2_data[3], entity.getAid1());
-		Assert.assertEquals(CompositeIdEntityCacheRetriever.entity2_id1_2_data[4],
-				entity.getAid2().getSid());
-	}
-
-	@Test
-	public void testAlternateIdEmbedded() throws Exception {
-		int idIndex = 0;
-		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(CompositeIdEntity2.class);
-		Object compositeId =
-				compositeIdFactory.createCompositeId(metaData, metaData.getAlternateIdMembers()[idIndex],
-						CompositeIdEntityCacheRetriever.entity2_id1_2_data[4],
-						CompositeIdEntityCacheRetriever.entity2_id1_2_data[3]);
-		CompositeIdEntity2 entity = (CompositeIdEntity2) cache.getObject(
-				new ObjRef(CompositeIdEntity2.class, (byte) idIndex, compositeId, null),
-				CacheDirective.none());
-		Assert.assertNotNull(entity);
-		Assert.assertEquals(CompositeIdEntityCacheRetriever.entity2_id1_2_data[0], entity.getId1());
-		Assert.assertEquals(CompositeIdEntityCacheRetriever.entity2_id1_2_data[1],
-				entity.getId2().getSid());
-		Assert.assertEquals(CompositeIdEntityCacheRetriever.entity2_id1_2_data[2], entity.getName());
-		Assert.assertEquals(CompositeIdEntityCacheRetriever.entity2_id1_2_data[3], entity.getAid1());
-		Assert.assertEquals(CompositeIdEntityCacheRetriever.entity2_id1_2_data[4],
-				entity.getAid2().getSid());
-	}
+            IBeanConfiguration bc = beanContextFactory.registerBean(CompositeIdEntityCacheRetriever.class);
+            beanContextFactory.link(bc).to(ICacheRetrieverExtendable.class).with(CompositeIdEntity.class);
+            beanContextFactory.link(bc).to(ICacheRetrieverExtendable.class).with(CompositeIdEntity2.class);
+        }
+    }
 }

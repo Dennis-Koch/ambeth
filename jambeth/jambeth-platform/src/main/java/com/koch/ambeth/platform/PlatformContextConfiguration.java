@@ -20,131 +20,117 @@ limitations under the License.
  * #L%
  */
 
-import java.util.Set;
-
 import com.koch.ambeth.ioc.IInitializingModule;
 import com.koch.ambeth.log.config.Properties;
 import com.koch.ambeth.util.collections.HashSet;
 import com.koch.ambeth.util.collections.IdentityHashSet;
 import com.koch.ambeth.util.config.IProperties;
-import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
+import lombok.SneakyThrows;
+
+import java.util.Set;
 
 public class PlatformContextConfiguration implements IPlatformContextConfiguration {
-	public static final String PlatformContextConfigurationType = "ambeth.platform.configurationtype";
+    public static final String PlatformContextConfigurationType = "ambeth.platform.configurationtype";
 
-	public static IPlatformContextConfiguration create() {
-		String platformConfigurationTypeName = Properties.getApplication()
-				.getString(PlatformContextConfigurationType, PlatformContextConfiguration.class.getName());
-		try {
-			Class<?> platformConfigurationType =
-					Thread.currentThread().getContextClassLoader().loadClass(platformConfigurationTypeName);
-			return (IPlatformContextConfiguration) platformConfigurationType.newInstance();
-		}
-		catch (Exception e) {
-			throw RuntimeExceptionUtil.mask(e);
-		}
-	}
+    @SneakyThrows
+    public static IPlatformContextConfiguration create() {
+        var platformConfigurationTypeName = Properties.getApplication().getString(PlatformContextConfigurationType, PlatformContextConfiguration.class.getName());
+        var platformConfigurationType = Thread.currentThread().getContextClassLoader().loadClass(platformConfigurationTypeName);
+        return (IPlatformContextConfiguration) platformConfigurationType.getConstructor().newInstance();
+    }
 
-	protected final Properties properties = new Properties(Properties.getApplication());
+    protected final Properties properties = new Properties(Properties.getApplication());
 
-	protected final Set<Class<?>> providerModuleTypes = new HashSet<>();
+    protected final Set<Class<?>> providerModuleTypes = new HashSet<>();
 
-	protected final Set<IInitializingModule> providerModules =
-			new IdentityHashSet<>();
+    protected final Set<IInitializingModule> providerModules = new IdentityHashSet<>();
 
-	protected final Set<Class<?>> frameworkModuleTypes = new HashSet<>();
+    protected final Set<Class<?>> frameworkModuleTypes = new HashSet<>();
 
-	protected final Set<IInitializingModule> frameworkModules =
-			new IdentityHashSet<>();
+    protected final Set<IInitializingModule> frameworkModules = new IdentityHashSet<>();
 
-	protected final Set<Class<?>> bootstrapModuleTypes = new HashSet<>();
+    protected final Set<Class<?>> applicationModuleTypes = new HashSet<>();
 
-	protected final Set<IInitializingModule> bootstrapModules =
-			new IdentityHashSet<>();
+    protected final Set<IInitializingModule> applicationModules = new IdentityHashSet<>();
 
-	public IPlatformContextConfiguration addProperties(IProperties properties) {
-		this.properties.load(properties);
-		return this;
-	}
+    public IPlatformContextConfiguration addProperties(IProperties properties) {
+        this.properties.load(properties);
+        return this;
+    }
 
-	public IPlatformContextConfiguration addProperties(java.util.Properties properties) {
-		this.properties.load(properties);
-		return this;
-	}
+    public IPlatformContextConfiguration addProperties(java.util.Properties properties) {
+        this.properties.load(properties);
+        return this;
+    }
 
-	@Override
-	public IPlatformContextConfiguration addProviderModule(Class<?>... providerModuleTypes) {
-		for (Class<?> providerModuleType : providerModuleTypes) {
-			this.providerModuleTypes.add(providerModuleType);
-		}
-		return this;
-	}
+    @Override
+    public IPlatformContextConfiguration addProviderModule(Class<?>... providerModuleTypes) {
+        for (var providerModuleType : providerModuleTypes) {
+            this.providerModuleTypes.add(providerModuleType);
+        }
+        return this;
+    }
 
-	@Override
-	public IPlatformContextConfiguration addFrameworkModule(Class<?>... frameworkModuleTypes) {
-		for (Class<?> frameworkModuleType : frameworkModuleTypes) {
-			this.frameworkModuleTypes.add(frameworkModuleType);
-		}
-		return this;
-	}
+    @Override
+    public IPlatformContextConfiguration addFrameworkModule(Class<?>... frameworkModuleTypes) {
+        for (var frameworkModuleType : frameworkModuleTypes) {
+            this.frameworkModuleTypes.add(frameworkModuleType);
+        }
+        return this;
+    }
 
-	@Override
-	public IPlatformContextConfiguration addBootstrapModule(
-			java.lang.Class<?>... bootstrapModuleTypes) {
-		for (Class<?> bootstrapModuleType : bootstrapModuleTypes) {
-			this.bootstrapModuleTypes.add(bootstrapModuleType);
-		}
-		return this;
-	}
+    @Override
+    public IPlatformContextConfiguration addBootstrapModule(java.lang.Class<?>... bootstrapModuleTypes) {
+        for (var bootstrapModuleType : bootstrapModuleTypes) {
+            this.applicationModuleTypes.add(bootstrapModuleType);
+        }
+        return this;
+    }
 
-	@Override
-	public IPlatformContextConfiguration addBootstrapModule(IInitializingModule... bootstrapModules) {
-		for (IInitializingModule bootstrapModule : bootstrapModules) {
-			this.bootstrapModules.add(bootstrapModule);
-		}
-		return this;
-	}
+    @Override
+    public IPlatformContextConfiguration addBootstrapModule(IInitializingModule... bootstrapModules) {
+        for (var bootstrapModule : bootstrapModules) {
+            this.applicationModules.add(bootstrapModule);
+        }
+        return this;
+    }
 
-	@Override
-	public IPlatformContextConfiguration addProviderModule(IInitializingModule... providerModules) {
-		for (IInitializingModule providerModule : providerModules) {
-			this.providerModules.add(providerModule);
-		}
-		return this;
-	}
+    @Override
+    public IPlatformContextConfiguration addProviderModule(IInitializingModule... providerModules) {
+        for (var providerModule : providerModules) {
+            this.providerModules.add(providerModule);
+        }
+        return this;
+    }
 
-	@Override
-	public IPlatformContextConfiguration addFrameworkModule(IInitializingModule... frameworkModules) {
-		for (IInitializingModule frameworkModule : frameworkModules) {
-			this.frameworkModules.add(frameworkModule);
-		}
-		return this;
-	}
+    @Override
+    public IPlatformContextConfiguration addFrameworkModule(IInitializingModule... frameworkModules) {
+        for (var frameworkModule : frameworkModules) {
+            this.frameworkModules.add(frameworkModule);
+        }
+        return this;
+    }
 
-	@Override
-	public IPlatformContextConfiguration addProperties(IProperties... properties) {
-		for (IProperties propertiesItem : properties) {
-			this.properties.load(propertiesItem);
-		}
-		return this;
-	}
+    @Override
+    public IPlatformContextConfiguration addProperties(IProperties... properties) {
+        for (var propertiesItem : properties) {
+            this.properties.load(propertiesItem);
+        }
+        return this;
+    }
 
-	@Override
-	public IPlatformContextConfiguration addProperties(java.util.Properties... properties) {
-		for (java.util.Properties propertiesItem : properties) {
-			this.properties.load(propertiesItem);
-		}
-		return this;
-	}
+    @Override
+    public IPlatformContextConfiguration addProperties(java.util.Properties... properties) {
+        for (var propertiesItem : properties) {
+            this.properties.load(propertiesItem);
+        }
+        return this;
+    }
 
-	@Override
-	public IAmbethPlatformContext createPlatformContext() {
-		return AmbethPlatformContext.create(properties,
-				providerModuleTypes.toArray(new Class<?>[providerModuleTypes.size()]),
-				frameworkModuleTypes.toArray(new Class<?>[frameworkModuleTypes.size()]),
-				bootstrapModuleTypes.toArray(new Class<?>[bootstrapModuleTypes.size()]),
-				providerModules.toArray(new IInitializingModule[providerModules.size()]),
-				frameworkModules.toArray(new IInitializingModule[frameworkModules.size()]),
-				bootstrapModules.toArray(new IInitializingModule[bootstrapModules.size()]));
-	}
+    @Override
+    public IAmbethPlatformContext createPlatformContext() {
+        return AmbethPlatformContext.create(properties, providerModuleTypes.toArray(new Class<?>[providerModuleTypes.size()]), frameworkModuleTypes.toArray(new Class<?>[frameworkModuleTypes.size()]),
+                applicationModuleTypes.toArray(new Class<?>[applicationModuleTypes.size()]), providerModules.toArray(new IInitializingModule[providerModules.size()]),
+                frameworkModules.toArray(new IInitializingModule[frameworkModules.size()]), applicationModules.toArray(new IInitializingModule[applicationModules.size()]));
+    }
 }

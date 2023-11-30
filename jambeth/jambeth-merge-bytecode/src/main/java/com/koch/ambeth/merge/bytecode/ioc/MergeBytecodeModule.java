@@ -20,12 +20,13 @@ limitations under the License.
  * #L%
  */
 
+import io.toolisticon.spiap.api.SpiService;
 import com.koch.ambeth.bytecode.behavior.IBytecodeBehavior;
 import com.koch.ambeth.bytecode.behavior.IBytecodeBehaviorExtendable;
 import com.koch.ambeth.bytecode.ioc.BytecodeModule;
 import com.koch.ambeth.ioc.IDisposableBean;
+import com.koch.ambeth.ioc.IFrameworkModule;
 import com.koch.ambeth.ioc.IInitializingBean;
-import com.koch.ambeth.ioc.IInitializingModule;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.annotation.FrameworkModule;
 import com.koch.ambeth.ioc.config.IBeanConfiguration;
@@ -39,45 +40,43 @@ import com.koch.ambeth.merge.bytecode.compositeid.CompositeIdBehavior;
 import com.koch.ambeth.merge.bytecode.compositeid.CompositeIdFactory;
 import com.koch.ambeth.merge.compositeid.ICompositeIdFactory;
 
+@SpiService(IFrameworkModule.class)
 @FrameworkModule
-public class MergeBytecodeModule implements IInitializingModule {
-	private abstract class DisposeModule implements IInitializingBean, IDisposableBean {
+public class MergeBytecodeModule implements IFrameworkModule {
+    @Override
+    public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
+        beanContextFactory.registerBean("compositeIdFactory", CompositeIdFactory.class).autowireable(ICompositeIdFactory.class);
 
-	}
+        BytecodeModule.addDefaultBytecodeBehavior(beanContextFactory, CompositeIdBehavior.class);
+        BytecodeModule.addDefaultBytecodeBehavior(beanContextFactory, EntityMetaDataMemberBehavior.class);
 
-	@Override
-	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
-		beanContextFactory.registerBean("compositeIdFactory", CompositeIdFactory.class)
-				.autowireable(ICompositeIdFactory.class);
+        BytecodeModule.addDefaultBytecodeBehavior(beanContextFactory, ObjRefBehavior.class);
+        BytecodeModule.addDefaultBytecodeBehavior(beanContextFactory, ObjRefStoreBehavior.class);
+        BytecodeModule.addDefaultBytecodeBehavior(beanContextFactory, ObjRefTypeBehavior.class);
 
-		BytecodeModule.addDefaultBytecodeBehavior(beanContextFactory, CompositeIdBehavior.class);
-		BytecodeModule.addDefaultBytecodeBehavior(beanContextFactory,
-				EntityMetaDataMemberBehavior.class);
+        // small trick: we need the DelegateBehavior as a very-early-registered extension to the
+        // BytecodeEnhancer
+        // in the ordinary "link" phase it is already too late
+        final IBeanConfiguration delegateBehavior = beanContextFactory.registerBean(DelegateBehavior.class);
+        beanContextFactory.registerWithLifecycle(new DisposeModule() {
+            @Autowired
+            protected IBytecodeBehaviorExtendable bytecodeBehaviorExtendable;
+            private IBytecodeBehavior instance;
 
-		BytecodeModule.addDefaultBytecodeBehavior(beanContextFactory, ObjRefBehavior.class);
-		BytecodeModule.addDefaultBytecodeBehavior(beanContextFactory, ObjRefStoreBehavior.class);
-		BytecodeModule.addDefaultBytecodeBehavior(beanContextFactory, ObjRefTypeBehavior.class);
+            @Override
+            public void afterPropertiesSet() throws Throwable {
+                instance = (IBytecodeBehavior) delegateBehavior.getInstance();
+                bytecodeBehaviorExtendable.registerBytecodeBehavior(instance);
+            }
 
-		// small trick: we need the DelegateBehavior as a very-early-registered extension to the
-		// BytecodeEnhancer
-		// in the ordinary "link" phase it is already too late
-		final IBeanConfiguration delegateBehavior =
-				beanContextFactory.registerBean(DelegateBehavior.class);
-		beanContextFactory.registerWithLifecycle(new DisposeModule() {
-			@Autowired
-			protected IBytecodeBehaviorExtendable bytecodeBehaviorExtendable;
-			private IBytecodeBehavior instance;
+            @Override
+            public void destroy() throws Throwable {
+                bytecodeBehaviorExtendable.unregisterBytecodeBehavior(instance);
+            }
+        });
+    }
 
-			@Override
-			public void afterPropertiesSet() throws Throwable {
-				instance = (IBytecodeBehavior) delegateBehavior.getInstance();
-				bytecodeBehaviorExtendable.registerBytecodeBehavior(instance);
-			}
+    private abstract class DisposeModule implements IInitializingBean, IDisposableBean {
 
-			@Override
-			public void destroy() throws Throwable {
-				bytecodeBehaviorExtendable.unregisterBytecodeBehavior(instance);
-			}
-		});
-	}
+    }
 }

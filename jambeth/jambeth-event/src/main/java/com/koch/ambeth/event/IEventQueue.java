@@ -20,56 +20,17 @@ limitations under the License.
  * #L%
  */
 
-public interface IEventQueue {
-    /**
-     * Used together with {@link #flushEventQueue()} to prepare bulk-dispatching operations. After
-     * invoking this method all dispatching operations to
-     * {@link IEventDispatcher#dispatchEvent(Object)} and its overloads are queued up and wait for a
-     * {@link #flushEventQueue()}.<br>
-     * </br>
-     * This method stacks: Multiple "enable" calls need the same amount of "flush" calls till a real
-     * flush is done and the right {@link IEventListener}s are notified. See also
-     * {@link #flushEventQueue()} for more details about whats happening during the flush. It is
-     * recommended to use it consistently in a try-finally statement:
-     *
-     * <pre>
-     * <code>
-     * eventQueue.enableEventQueue();
-     * try
-     * {
-     *   // do stuff
-     * }
-     * finally
-     * {
-     *   eventQueue.flushEventQueue();
-     * }
-     * </code>
-     * </pre>
-     */
-    void enableEventQueue();
+import com.koch.ambeth.util.event.ILightweightEventQueue;
 
-    /**
-     * Used together with {@link #enableEventQueue()} to prepare bulk-dispatching operations. If the
-     * internal stack count (together with {@link #enableEventQueue()}) reaches zero the queued events
-     * are "batched" together: This means some optional compact algorithm may process the events -
-     * e.g. to reduce potential redundancy of events which somehow "outdate" previous events. After
-     * the batch sequence the remaining (or newly created, compacted) events get dispatched to the
-     * registered {@link IEventListener}s.<br>
-     * <br>
-     * Custom event batchers can be defined by implementing {@link IEventBatcher} and linking them to
-     * {@link IEventBatcherExtendable}
-     *
-     * @see #enableEventQueue()
-     */
-    void flushEventQueue();
+public interface IEventQueue extends ILightweightEventQueue {
 
     /**
      * Propagates that the given eventTarget is now "paused" for the eventqueue-dispatching engine.
      * However the method blocks if the eventqueue-dispatching engine is already processing an event
      * correlating to the given eventTarget by using the
      * {@link IEventDispatcher#waitEventToResume(Object, long,
-     * com.koch.ambeth.util.threading.CheckedConsumer,
-     * com.koch.ambeth.util.threading.CheckedConsumer)} method.<br>
+     * com.koch.ambeth.util.function.CheckedConsumer,
+     * com.koch.ambeth.util.function.CheckedConsumer)} method.<br>
      * <br>
      * If the given eventTarget is a proxy instance of something then there might be a need for an
      * instance of {@link IEventTargetExtractor} which is to be registered to

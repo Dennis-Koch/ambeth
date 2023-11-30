@@ -20,86 +20,73 @@ limitations under the License.
  * #L%
  */
 
-import java.sql.Clob;
-
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.merge.event.EntityMetaDataAddedEvent;
 import com.koch.ambeth.merge.event.EntityMetaDataRemovedEvent;
 import com.koch.ambeth.service.merge.IEntityMetaDataProvider;
-import com.koch.ambeth.service.merge.model.IEntityMetaData;
-import com.koch.ambeth.service.metadata.PrimitiveMember;
 import com.koch.ambeth.util.IDedicatedConverterExtendable;
 import com.koch.ambeth.util.collections.HashMap;
 import com.koch.ambeth.util.collections.SmartCopyMap;
 
+import java.sql.Clob;
+
 public class ClobToEnumConverter extends ClobToAnythingConverter {
-	public static final String HANDLE_ENTITY_META_DATA_ADDED_EVENT = "handleEntityMetaDataAddedEvent";
+    public static final String HANDLE_ENTITY_META_DATA_ADDED_EVENT = "handleEntityMetaDataAddedEvent";
 
-	public static final String HANDLE_ENTITY_META_DATA_REMOVED_EVENT = "handleEntityMetaDataRemovedEvent";
+    public static final String HANDLE_ENTITY_META_DATA_REMOVED_EVENT = "handleEntityMetaDataRemovedEvent";
+    protected final SmartCopyMap<Class<?>, Integer> propertyTypeToUsageCountMap = new SmartCopyMap<>(0.5f);
+    @Autowired
+    protected IDedicatedConverterExtendable dedicatedConverterExtendable;
+    @Autowired
+    protected IEntityMetaDataProvider entityMetaDataProvider;
+    protected HashMap<Class<?>, Runnable> deregisterRunnables = new HashMap<>();
 
-	@Autowired
-	protected IDedicatedConverterExtendable dedicatedConverterExtendable;
+    public void handleEntityMetaDataAddedEvent(EntityMetaDataAddedEvent evnt) {
+        for (var entityType : evnt.getEntityTypes()) {
+            final var metaData = entityMetaDataProvider.getMetaData(entityType);
+            for (var member : metaData.getPrimitiveMembers()) {
+                var elementType = member.getElementType();
+                if (!elementType.isEnum()) {
+                    continue;
+                }
+                var usageCount = propertyTypeToUsageCountMap.get(elementType);
+                if (usageCount == null) {
+                    usageCount = Integer.valueOf(1);
+                    dedicatedConverterExtendable.registerDedicatedConverter(this, Clob.class, elementType);
+                    dedicatedConverterExtendable.registerDedicatedConverter(this, elementType, Clob.class);
+                } else {
+                    usageCount = Integer.valueOf(usageCount.intValue() + 1);
+                }
+                propertyTypeToUsageCountMap.put(elementType, usageCount);
+            }
+            deregisterRunnables.put(entityType, () -> {
+                for (var member : metaData.getPrimitiveMembers()) {
+                    var elementType = member.getElementType();
+                    if (!elementType.isEnum()) {
+                        continue;
+                    }
+                    var usageCount = propertyTypeToUsageCountMap.get(elementType);
+                    if (usageCount == null) {
+                        throw new IllegalStateException("Must never happen");
+                    }
+                    usageCount = Integer.valueOf(usageCount.intValue() - 1);
+                    if (usageCount.intValue() > 0) {
+                        dedicatedConverterExtendable.unregisterDedicatedConverter(ClobToEnumConverter.this, Clob.class, elementType);
+                        dedicatedConverterExtendable.unregisterDedicatedConverter(ClobToEnumConverter.this, elementType, Clob.class);
+                    }
+                    propertyTypeToUsageCountMap.put(elementType, usageCount);
+                }
+            });
+        }
+    }
 
-	@Autowired
-	protected IEntityMetaDataProvider entityMetaDataProvider;
-
-	protected final SmartCopyMap<Class<?>, Integer> propertyTypeToUsageCountMap = new SmartCopyMap<>(
-			0.5f);
-
-	protected HashMap<Class<?>, Runnable> deregisterRunnables = new HashMap<>();
-
-	public void handleEntityMetaDataAddedEvent(EntityMetaDataAddedEvent evnt) {
-		for (Class<?> entityType : evnt.getEntityTypes()) {
-			final IEntityMetaData metaData = entityMetaDataProvider.getMetaData(entityType);
-			for (PrimitiveMember member : metaData.getPrimitiveMembers()) {
-				Class<?> elementType = member.getElementType();
-				if (!elementType.isEnum()) {
-					continue;
-				}
-				Integer usageCount = propertyTypeToUsageCountMap.get(elementType);
-				if (usageCount == null) {
-					usageCount = Integer.valueOf(1);
-					dedicatedConverterExtendable.registerDedicatedConverter(this, Clob.class, elementType);
-					dedicatedConverterExtendable.registerDedicatedConverter(this, elementType, Clob.class);
-				}
-				else {
-					usageCount = Integer.valueOf(usageCount.intValue() + 1);
-				}
-				propertyTypeToUsageCountMap.put(elementType, usageCount);
-			}
-			deregisterRunnables.put(entityType, new Runnable() {
-				@Override
-				public void run() {
-					for (PrimitiveMember member : metaData.getPrimitiveMembers()) {
-						Class<?> elementType = member.getElementType();
-						if (!elementType.isEnum()) {
-							continue;
-						}
-						Integer usageCount = propertyTypeToUsageCountMap.get(elementType);
-						if (usageCount == null) {
-							throw new IllegalStateException("Must never happen");
-						}
-						usageCount = Integer.valueOf(usageCount.intValue() - 1);
-						if (usageCount.intValue() > 0) {
-							dedicatedConverterExtendable.unregisterDedicatedConverter(ClobToEnumConverter.this,
-									Clob.class, elementType);
-							dedicatedConverterExtendable.unregisterDedicatedConverter(ClobToEnumConverter.this,
-									elementType, Clob.class);
-						}
-						propertyTypeToUsageCountMap.put(elementType, usageCount);
-					}
-				}
-			});
-		}
-	}
-
-	public void handleEntityMetaDataRemovedEvent(EntityMetaDataRemovedEvent evnt) {
-		for (Class<?> entityType : evnt.getEntityTypes()) {
-			Runnable runnable = deregisterRunnables.get(entityType);
-			if (runnable != null) {
-				runnable.run();
-			}
-			deregisterRunnables.remove(entityType);
-		}
-	}
+    public void handleEntityMetaDataRemovedEvent(EntityMetaDataRemovedEvent evnt) {
+        for (var entityType : evnt.getEntityTypes()) {
+            var runnable = deregisterRunnables.get(entityType);
+            if (runnable != null) {
+                runnable.run();
+            }
+            deregisterRunnables.remove(entityType);
+        }
+    }
 }

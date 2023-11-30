@@ -14,7 +14,7 @@
     <dependencies>
         <dependency>
             <groupId>com.koch.ambeth</groupId>
-            <artifactId>jambeth-ioc</artifactId>
+            <artifactId>jambeth-core</artifactId>
         </dependency>
         <dependency>
             <groupId>com.koch.ambeth</groupId>

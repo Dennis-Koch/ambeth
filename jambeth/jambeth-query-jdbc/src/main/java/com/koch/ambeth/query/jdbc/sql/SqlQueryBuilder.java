@@ -386,8 +386,8 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
                         Class<?> nextEntityType = null;
                         Class<?>[] typesRelatingToThis = metaData.getTypesRelatingToThis();
                         for (Class<?> other : typesRelatingToThis) {
-                            if ((targetEntityType == null && targetEntityName != null && !targetEntityName.equals(other.getSimpleName()) && !targetEntityName.equals(
-                                    other.getName())) || (targetEntityType != null && !targetEntityType.equals(other))) {
+                            if ((targetEntityType == null && targetEntityName != null && !targetEntityName.equals(other.getSimpleName()) && !targetEntityName.equals(other.getName())) ||
+                                    (targetEntityType != null && !targetEntityType.equals(other))) {
                                 continue;
                             }
                             IEntityMetaData metaData2 = entityMetaDataProvider.getMetaData(other);

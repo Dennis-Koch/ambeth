@@ -281,11 +281,11 @@ public class AuditTamperTest extends AbstractInformationBusWithPersistenceTest {
     }
 
     @Test
-    public void tamperAuditEntry_Signature() throws Exception {
+    public void tamperAuditEntry_SignedValue() throws Exception {
         before();
         java.security.Signature signature = privateKeyProvider.getSigningHandle(auditTamperDataBuilder.defaultUser, AuditTamperDataBuilder.DEFAULT_PASSWORD.toCharArray());
         signature.update("other-signature".getBytes("UTF-8"));
-        simpleManipulation("AUDIT_ENTRY", "\"SIGNATURE\"='" + Base64.encodeBytes(signature.sign()) + "'", auditEntry);
+        simpleManipulation("AUDIT_ENTRY", "\"SIGNED_VALUE\"='" + Base64.encodeBytes(signature.sign()) + "'", auditEntry);
         verify(auditEntry, false);
     }
 
@@ -348,11 +348,11 @@ public class AuditTamperTest extends AbstractInformationBusWithPersistenceTest {
     }
 
     @Test
-    public void tamperAuditedEntity_Signature() throws Exception {
+    public void tamperAuditedEntity_SignedValue() throws Exception {
         before();
         java.security.Signature signature = privateKeyProvider.getSigningHandle(auditTamperDataBuilder.defaultUser, AuditTamperDataBuilder.DEFAULT_PASSWORD.toCharArray());
         signature.update("other-signature".getBytes("UTF-8"));
-        simpleManipulation("AUDITED_ENTITY", "\"SIGNATURE\"='" + Base64.encodeBytes(signature.sign()) + "'", auditedEntity);
+        simpleManipulation("AUDITED_ENTITY", "\"SIGNED_VALUE\"='" + Base64.encodeBytes(signature.sign()) + "'", auditedEntity);
         verify(auditEntry, false);
     }
 

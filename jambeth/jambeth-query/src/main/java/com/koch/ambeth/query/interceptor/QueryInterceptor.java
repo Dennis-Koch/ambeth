@@ -29,7 +29,6 @@ import com.koch.ambeth.ioc.config.Property;
 import com.koch.ambeth.ioc.typeinfo.TypeInfoItemUtil;
 import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
-import com.koch.ambeth.merge.ILightweightTransaction;
 import com.koch.ambeth.merge.IObjRefHelper;
 import com.koch.ambeth.merge.cache.ICache;
 import com.koch.ambeth.merge.transfer.ObjRef;
@@ -51,6 +50,7 @@ import com.koch.ambeth.util.annotation.SmartQuery;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.proxy.CascadedInterceptor;
 import com.koch.ambeth.util.proxy.MethodProxy;
+import com.koch.ambeth.util.transaction.ILightweightTransaction;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;

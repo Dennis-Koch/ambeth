@@ -26,7 +26,6 @@ import com.koch.ambeth.ioc.exception.BeanContextInitException;
 import com.koch.ambeth.ioc.factory.BeanContextFactory;
 import com.koch.ambeth.ioc.factory.BeanContextInitializer;
 import com.koch.ambeth.ioc.factory.IBeanContextFactory;
-import com.koch.ambeth.ioc.factory.IBeanContextInitializer;
 import com.koch.ambeth.ioc.hierarchy.IBeanContextHolder;
 import com.koch.ambeth.ioc.hierarchy.SearchType;
 import com.koch.ambeth.ioc.link.ILinkContainer;
@@ -34,7 +33,6 @@ import com.koch.ambeth.ioc.link.ILinkRegistryNeededRuntime;
 import com.koch.ambeth.ioc.log.ILoggerCache;
 import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.util.IDisposable;
-import com.koch.ambeth.util.IPrintable;
 import com.koch.ambeth.util.ListUtil;
 import com.koch.ambeth.util.Lock;
 import com.koch.ambeth.util.LockState;
@@ -62,8 +60,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.function.Consumer;
 
-public class ServiceContext implements IServiceContext, IServiceContextIntern, IDisposable, IPrintable {
+public class ServiceContext implements IServiceContext, IServiceContextIntern, IDisposable {
     public static RuntimeException createDuplicateAutowireableException(Class<?> autowireableType, Object bean1, Object bean2) {
         return new IllegalArgumentException("A bean is already bound to type " + autowireableType.getName() + ".\nBean 1: " + bean1 + "\nBean 2: " + bean2);
     }
@@ -352,7 +351,7 @@ public class ServiceContext implements IServiceContext, IServiceContextIntern, I
         }
         ILogger log;
         IServiceContext[] childrenCopy = null;
-        Lock writeLock = this.writeLock;
+        var writeLock = this.writeLock;
         writeLock.lock();
         try {
             if (disposed || disposing) {
@@ -361,10 +360,9 @@ public class ServiceContext implements IServiceContext, IServiceContextIntern, I
             log = getService(ILoggerCache.class).getCachedLogger(this, ServiceContext.class);
             if (log.isDebugEnabled()) {
                 // Safe the toString-method for debugging purpose. Because this is not possible anymore if
-                // the context
-                // has been disposed and all bean-references have been cleared
-                IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
-                StringBuilder sb = tlObjectCollector.create(StringBuilder.class);
+                // the context has been disposed and all bean-references have been cleared
+                var tlObjectCollector = objectCollector.getCurrent();
+                var sb = tlObjectCollector.create(StringBuilder.class);
                 printContent(sb);
                 toStringBackup = sb.toString();
                 tlObjectCollector.dispose(sb);
@@ -383,7 +381,7 @@ public class ServiceContext implements IServiceContext, IServiceContextIntern, I
         }
         if (childrenCopy != null) {
             for (int a = childrenCopy.length; a-- > 0; ) {
-                IServiceContext childContext = childrenCopy[a];
+                var childContext = childrenCopy[a];
                 try {
                     childContext.dispose();
                 } catch (Throwable e) {
@@ -399,10 +397,10 @@ public class ServiceContext implements IServiceContext, IServiceContextIntern, I
                 parent.childContextDisposed(this);
             }
             if (linkContainers != null) {
-                IList<ILinkContainer> linkContainers = this.linkContainers;
+                var linkContainers = this.linkContainers;
                 this.linkContainers = null;
                 for (int a = linkContainers.size(); a-- > 0; ) {
-                    ILinkContainer listenerContainer = linkContainers.get(a);
+                    var listenerContainer = linkContainers.get(a);
                     try {
                         listenerContainer.unlink();
                     } catch (Throwable e) {
@@ -416,10 +414,10 @@ public class ServiceContext implements IServiceContext, IServiceContextIntern, I
                 }
             }
             if (disposableObjects != null) {
-                IList<Object> disposableObjects = this.disposableObjects;
+                var disposableObjects = this.disposableObjects;
                 this.disposableObjects = null;
                 for (int a = disposableObjects.size(); a-- > 0; ) {
-                    Object disposableObject = disposableObjects.get(a);
+                    var disposableObject = disposableObjects.get(a);
                     if (disposableObject instanceof Reference) {
                         disposableObject = ((Reference<?>) disposableObject).get();
                     }
@@ -512,24 +510,29 @@ public class ServiceContext implements IServiceContext, IServiceContextIntern, I
 
     public <I> I createService(String contextName, Class<I> serviceClass, CheckedConsumer<IBeanContextFactory> registerPhaseDelegate, Class<?>... serviceModuleTypes) {
         checkNotDisposed();
-        IBeanContextInitializer beanContextInitializer = registerBean(BeanContextInitializer.class).finish();
+        var beanContextInitializer = registerBean(BeanContextInitializer.class).finish();
 
         if (contextName == null && registerPhaseDelegate == null && serviceModuleTypes.length == 1) {
             contextName = serviceModuleTypes[0].getSimpleName();
         }
-        BeanContextFactory childBeanContextFactory = beanContextFactory.createChildContextFactory(beanContextInitializer, this);
-        IServiceContext childContext = childBeanContextFactory.create(contextName, this, registerPhaseDelegate, serviceModuleTypes);
+        var childBeanContextFactory = beanContextFactory.createChildContextFactory(beanContextInitializer, this);
+        var childContext = childBeanContextFactory.create(contextName, this, registerPhaseDelegate, serviceModuleTypes);
 
-        writeLock.lock();
+        var allLocks = readLock.releaseAllLocks();
         try {
-            if (children == null) {
-                children = new IdentityHashSet<>();
+            writeLock.lock();
+            try {
+                if (children == null) {
+                    children = new IdentityHashSet<>();
+                }
+                children.add(childContext);
+                return childContext.getService(serviceClass);
+            } finally {
+                writeLock.unlock();
             }
-            children.add(childContext);
         } finally {
-            writeLock.unlock();
+            readLock.reacquireLocks(allLocks);
         }
-        return childContext.getService(serviceClass);
     }
 
     @Override
@@ -583,18 +586,18 @@ public class ServiceContext implements IServiceContext, IServiceContextIntern, I
         };
     }
 
-    protected void handleObjects(final HandleObjectsDelegate handleObjectsDelegate) {
-        final Set<Object> alreadyHandledSet = IdentityHashSet.create(typeToServiceDict.size() + nameToServiceDict.size());
-        for (Entry<Class<?>, Object> entry : typeToServiceDict) {
-            Object obj = entry.getValue();
+    protected void handleObjects(final Consumer<Object> handleObjectsDelegate) {
+        var alreadyHandledSet = IdentityHashSet.create(typeToServiceDict.size() + nameToServiceDict.size());
+        for (var entry : typeToServiceDict) {
+            var obj = entry.getValue();
             if (alreadyHandledSet.add(obj)) {
-                handleObjectsDelegate.invoke(obj);
+                handleObjectsDelegate.accept(obj);
             }
         }
-        for (Entry<String, Object> entry : nameToServiceDict) {
-            Object obj = entry.getValue();
+        for (var entry : nameToServiceDict) {
+            var obj = entry.getValue();
             if (alreadyHandledSet.add(obj)) {
-                handleObjectsDelegate.invoke(obj);
+                handleObjectsDelegate.accept(obj);
             }
         }
     }
@@ -981,13 +984,9 @@ public class ServiceContext implements IServiceContext, IServiceContextIntern, I
         Lock readLock = this.readLock;
         readLock.lock();
         try {
-            handleObjects(new HandleObjectsDelegate() {
-                @SuppressWarnings("unchecked")
-                @Override
-                public void invoke(Object obj) {
-                    if (type.isAssignableFrom(obj.getClass())) {
-                        result.add((T) obj);
-                    }
+            handleObjects(obj -> {
+                if (type.isAssignableFrom(obj.getClass())) {
+                    result.add((T) obj);
                 }
             });
             return result.toList();
@@ -998,17 +997,14 @@ public class ServiceContext implements IServiceContext, IServiceContextIntern, I
 
     @Override
     public <T extends Annotation> IList<Object> getAnnotatedObjects(final Class<T> annoType) {
-        final ISet<Object> set = new IdentityHashSet<>();
-        Lock readLock = this.readLock;
+        var set = new IdentityHashSet<>();
+        var readLock = this.readLock;
         readLock.lock();
         try {
-            handleObjects(new HandleObjectsDelegate() {
-                @Override
-                public void invoke(Object obj) {
-                    Annotation anno = obj.getClass().getAnnotation(annoType);
-                    if (anno != null) {
-                        set.add(obj);
-                    }
+            handleObjects(obj -> {
+                var anno = obj.getClass().getAnnotation(annoType);
+                if (anno != null) {
+                    set.add(obj);
                 }
             });
             return set.toList();
@@ -1019,17 +1015,13 @@ public class ServiceContext implements IServiceContext, IServiceContextIntern, I
 
     @Override
     public <T> IList<T> getImplementingObjects(final Class<T> interfaceType) {
-        final IdentityHashSet<T> set = new IdentityHashSet<>();
-        Lock readLock = this.readLock;
+        var set = new IdentityHashSet<T>();
+        var readLock = this.readLock;
         readLock.lock();
         try {
-            handleObjects(new HandleObjectsDelegate() {
-                @SuppressWarnings("unchecked")
-                @Override
-                public void invoke(Object obj) {
-                    if (interfaceType.isAssignableFrom(obj.getClass())) {
-                        set.add((T) obj);
-                    }
+            handleObjects(obj -> {
+                if (interfaceType.isAssignableFrom(obj.getClass())) {
+                    set.add((T) obj);
                 }
             });
             return ListUtil.anyToList(objectCollector, set);
@@ -1073,11 +1065,6 @@ public class ServiceContext implements IServiceContext, IServiceContextIntern, I
         StringBuilder sb = new StringBuilder();
         toString(sb);
         return sb.toString();
-    }
-
-    @Override
-    public void toString(StringBuilder sb) {
-        printContent(sb);
     }
 
     @Override

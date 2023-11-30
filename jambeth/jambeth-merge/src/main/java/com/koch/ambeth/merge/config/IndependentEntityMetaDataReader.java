@@ -27,21 +27,18 @@ import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.orm.IOrmConfigGroup;
 import com.koch.ambeth.service.config.ServiceConfigurationConstants;
 
-public class IndependentEntityMetaDataReader extends AbstractEntityMetaDataReader
-		implements IStartingBean {
-	public static final String P_FILE_NAME = "FileName";
+public class IndependentEntityMetaDataReader extends AbstractEntityMetaDataReader implements IStartingBean {
+    public static final String P_FILE_NAME = "FileName";
+    @Property(name = ServiceConfigurationConstants.mappingFile, mandatory = false)
+    protected String fileName;
+    @LogInstance
+    private ILogger log;
 
-	@LogInstance
-	private ILogger log;
-
-	@Property(name = ServiceConfigurationConstants.mappingFile, mandatory = false)
-	protected String fileName;
-
-	@Override
-	public void afterStarted() throws Throwable {
-		if (fileName != null) {
-			IOrmConfigGroup ormConfigGroup = ormConfigGroupProvider.getOrmConfigGroup(fileName);
-			readConfig(ormConfigGroup);
-		}
-	}
+    @Override
+    public void afterStarted() throws Throwable {
+        if (fileName != null) {
+            IOrmConfigGroup ormConfigGroup = ormConfigGroupProvider.getOrmConfigGroup(fileName);
+            readConfig(ormConfigGroup);
+        }
+    }
 }

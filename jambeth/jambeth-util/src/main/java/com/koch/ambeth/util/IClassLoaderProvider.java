@@ -23,7 +23,16 @@ limitations under the License.
  */
 
 public interface IClassLoaderProvider {
+
+    static IStateRollback pushClassLoader(ClassLoader classLoader) {
+        var oldCL = Thread.currentThread().getContextClassLoader();
+        Thread.currentThread().setContextClassLoader(classLoader);
+        return () -> Thread.currentThread().setContextClassLoader(oldCL);
+    }
+
     ClassLoader getClassLoader();
 
-    IStateRollback pushClassLoader();
+    default IStateRollback pushClassLoader() {
+        return pushClassLoader(getClassLoader());
+    }
 }

@@ -21,14 +21,15 @@ limitations under the License.
  */
 
 import com.koch.ambeth.util.collections.IList;
-import com.koch.ambeth.util.collections.IMap;
+
+import java.util.Map;
 
 public interface IStringQuery {
-	boolean isJoinQuery();
+    boolean isJoinQuery();
 
-	String fillQuery(IList<Object> parameters);
+    String fillQuery(IList<Object> parameters);
 
-	String fillQuery(IMap<Object, Object> nameToValueMap, IList<Object> parameters);
+    String fillQuery(Map<Object, Object> nameToValueMap, IList<Object> parameters);
 
-	String[] fillJoinQuery(IMap<Object, Object> nameToValueMap, IList<Object> parameters);
+    String[] fillJoinQuery(Map<Object, Object> nameToValueMap, IList<Object> parameters);
 }

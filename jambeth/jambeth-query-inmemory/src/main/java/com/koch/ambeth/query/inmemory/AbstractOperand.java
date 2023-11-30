@@ -22,12 +22,12 @@ limitations under the License.
 
 import com.koch.ambeth.util.appendable.IAppendable;
 import com.koch.ambeth.util.collections.IList;
-import com.koch.ambeth.util.collections.IMap;
+
+import java.util.Map;
 
 public abstract class AbstractOperand implements IInMemoryBooleanOperand {
-	@Override
-	public final void expandQuery(IAppendable querySB, IMap<Object, Object> nameToValueMap,
-			boolean joinQuery, IList<Object> parameters) {
-		throw new UnsupportedOperationException();
-	}
+    @Override
+    public final void expandQuery(IAppendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, IList<Object> parameters) {
+        throw new UnsupportedOperationException();
+    }
 }

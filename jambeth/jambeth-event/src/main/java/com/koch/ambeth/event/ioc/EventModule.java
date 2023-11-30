@@ -20,6 +20,7 @@ limitations under the License.
  * #L%
  */
 
+import io.toolisticon.spiap.api.SpiService;
 import com.koch.ambeth.event.EventListenerRegistry;
 import com.koch.ambeth.event.EventPoller;
 import com.koch.ambeth.event.IEventBatcher;
@@ -33,9 +34,8 @@ import com.koch.ambeth.event.IEventTargetExtractorExtendable;
 import com.koch.ambeth.event.IEventTargetListenerExtendable;
 import com.koch.ambeth.event.config.EventConfigurationConstants;
 import com.koch.ambeth.event.service.IEventService;
-import com.koch.ambeth.ioc.IInitializingModule;
+import com.koch.ambeth.ioc.IFrameworkModule;
 import com.koch.ambeth.ioc.annotation.FrameworkModule;
-import com.koch.ambeth.ioc.config.IBeanConfiguration;
 import com.koch.ambeth.ioc.config.Property;
 import com.koch.ambeth.ioc.factory.IBeanContextFactory;
 import com.koch.ambeth.log.ILogger;
@@ -43,45 +43,39 @@ import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.service.IOfflineListenerExtendable;
 import com.koch.ambeth.service.config.ServiceConfigurationConstants;
 import com.koch.ambeth.service.remote.ClientServiceBean;
+import com.koch.ambeth.util.event.ILightweightEventQueue;
 
+@SpiService(IFrameworkModule.class)
 @FrameworkModule
-public class EventModule implements IInitializingModule {
-	@LogInstance
-	private ILogger log;
+public class EventModule implements IFrameworkModule {
+    @Property(name = ServiceConfigurationConstants.NetworkClientMode, defaultValue = "false")
+    protected boolean isNetworkClientMode;
+    @Property(name = EventConfigurationConstants.PollingActive, defaultValue = "true")
+    protected boolean isPollingActive;
+    @Property(name = EventConfigurationConstants.EventServiceBeanActive, defaultValue = "true")
+    protected boolean isEventServiceBeanActive;
+    @LogInstance
+    private ILogger log;
 
-	@Property(name = ServiceConfigurationConstants.NetworkClientMode, defaultValue = "false")
-	protected boolean isNetworkClientMode;
+    @Override
+    public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
+        beanContextFactory.registerBean(EventListenerRegistry.class)
+                          .autowireable(IEventListenerExtendable.class, IEventTargetListenerExtendable.class, IEventBatcherExtendable.class, IEventTargetExtractorExtendable.class, IEventBatcher.class,
+                                  IEventDispatcher.class, IEventListener.class, IEventQueue.class, ILightweightEventQueue.class);
 
-	@Property(name = EventConfigurationConstants.PollingActive, defaultValue = "true")
-	protected boolean isPollingActive;
+        if (isNetworkClientMode && isEventServiceBeanActive) {
+            beanContextFactory.registerBean("eventService.external", ClientServiceBean.class)
+                              .propertyValue(ClientServiceBean.INTERFACE_PROP_NAME, IEventService.class)
+                              .autowireable(IEventService.class);
 
-	@Property(name = EventConfigurationConstants.EventServiceBeanActive, defaultValue = "true")
-	protected boolean isEventServiceBeanActive;
-
-
-	@Override
-	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
-		beanContextFactory.registerBean(EventListenerRegistry.class).autowireable(
-				IEventListenerExtendable.class, IEventTargetListenerExtendable.class,
-				IEventBatcherExtendable.class, IEventTargetExtractorExtendable.class, IEventBatcher.class,
-				IEventDispatcher.class, IEventListener.class, IEventQueue.class);
-
-		if (isNetworkClientMode && isEventServiceBeanActive) {
-			beanContextFactory.registerBean("eventService.external", ClientServiceBean.class)
-					.propertyValue(ClientServiceBean.INTERFACE_PROP_NAME, IEventService.class)
-					.autowireable(IEventService.class);
-
-			if (isPollingActive) {
-				IBeanConfiguration eventPoller =
-						beanContextFactory.registerBean(EventPoller.class).autowireable(IEventPoller.class);
-				beanContextFactory.link(eventPoller).to(IOfflineListenerExtendable.class);
-			}
-			else {
-				if (log.isInfoEnabled()) {
-					log.info("Event polling disabled. Reason: property '"
-							+ EventConfigurationConstants.PollingActive + "' set to '" + isPollingActive + "'");
-				}
-			}
-		}
-	}
+            if (isPollingActive) {
+                var eventPoller = beanContextFactory.registerBean(EventPoller.class).autowireable(IEventPoller.class);
+                beanContextFactory.link(eventPoller).to(IOfflineListenerExtendable.class);
+            } else {
+                if (log.isInfoEnabled()) {
+                    log.info("Event polling disabled. Reason: property '" + EventConfigurationConstants.PollingActive + "' set to '" + isPollingActive + "'");
+                }
+            }
+        }
+    }
 }

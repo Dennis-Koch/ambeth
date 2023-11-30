@@ -22,11 +22,12 @@ limitations under the License.
 
 import com.koch.ambeth.query.inmemory.AbstractOperator;
 import com.koch.ambeth.query.inmemory.IInMemoryBooleanOperand;
-import com.koch.ambeth.util.collections.IMap;
+
+import java.util.Map;
 
 public class FalseOperator extends AbstractOperator implements IInMemoryBooleanOperand {
-	@Override
-	public Boolean evaluate(IMap<Object, Object> nameToValueMap) {
-		return Boolean.FALSE;
-	}
+    @Override
+    public Boolean evaluate(Map<Object, Object> nameToValueMap) {
+        return Boolean.FALSE;
+    }
 }

@@ -20,7 +20,8 @@ limitations under the License.
  * #L%
  */
 
-import com.koch.ambeth.ioc.IInitializingModule;
+import io.toolisticon.spiap.api.SpiService;
+import com.koch.ambeth.ioc.IFrameworkModule;
 import com.koch.ambeth.ioc.annotation.FrameworkModule;
 import com.koch.ambeth.ioc.factory.IBeanContextFactory;
 import com.koch.ambeth.query.IQueryBuilderExtensionExtendable;
@@ -30,14 +31,13 @@ import com.koch.ambeth.query.jdbc.sql.ListToSqlUtil;
 import com.koch.ambeth.query.jdbc.sql.SqlQueryBuilderFactory;
 import com.koch.ambeth.query.jdbc.sql.TableAliasProviderFactory;
 
+@SpiService(IFrameworkModule.class)
 @FrameworkModule
-public class QueryJdbcModule implements IInitializingModule {
-	@Override
-	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
-		beanContextFactory.registerBean(SqlQueryBuilderFactory.class)
-				.autowireable(IQueryBuilderFactory.class, IQueryBuilderExtensionExtendable.class);
-		beanContextFactory.registerBean(ListToSqlUtil.class).autowireable(ListToSqlUtil.class);
-		beanContextFactory.registerBean(TableAliasProviderFactory.class)
-				.autowireable(ITableAliasProvider.class);
-	}
+public class QueryJdbcModule implements IFrameworkModule {
+    @Override
+    public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
+        beanContextFactory.registerBean(SqlQueryBuilderFactory.class).autowireable(IQueryBuilderFactory.class, IQueryBuilderExtensionExtendable.class);
+        beanContextFactory.registerBean(ListToSqlUtil.class).autowireable(ListToSqlUtil.class);
+        beanContextFactory.registerBean(TableAliasProviderFactory.class).autowireable(ITableAliasProvider.class);
+    }
 }

@@ -24,28 +24,28 @@ import com.koch.ambeth.ioc.config.Property;
 import com.koch.ambeth.query.inmemory.AbstractOperator;
 import com.koch.ambeth.query.inmemory.IInMemoryBooleanOperand;
 import com.koch.ambeth.query.inmemory.IInMemoryNumericOperand;
-import com.koch.ambeth.util.collections.IMap;
 
-public abstract class AbstractBinaryOrdinalOperator extends AbstractOperator
-		implements IInMemoryBooleanOperand {
-	@Property
-	protected IInMemoryNumericOperand leftOperand;
+import java.util.Map;
 
-	@Property
-	protected IInMemoryNumericOperand rightOperand;
+public abstract class AbstractBinaryOrdinalOperator extends AbstractOperator implements IInMemoryBooleanOperand {
+    @Property
+    protected IInMemoryNumericOperand leftOperand;
 
-	@Override
-	public Boolean evaluate(IMap<Object, Object> nameToValueMap) {
-		Double leftValue = leftOperand.evaluateNumber(nameToValueMap);
-		if (leftValue == null) {
-			return null;
-		}
-		Double rightValue = rightOperand.evaluateNumber(nameToValueMap);
-		if (rightValue == null) {
-			return null;
-		}
-		return evaluateIntern(leftValue.doubleValue(), rightValue.doubleValue());
-	}
+    @Property
+    protected IInMemoryNumericOperand rightOperand;
 
-	protected abstract Boolean evaluateIntern(double leftValue, double rightValue);
+    @Override
+    public Boolean evaluate(Map<Object, Object> nameToValueMap) {
+        var leftValue = leftOperand.evaluateNumber(nameToValueMap);
+        if (leftValue == null) {
+            return null;
+        }
+        var rightValue = rightOperand.evaluateNumber(nameToValueMap);
+        if (rightValue == null) {
+            return null;
+        }
+        return evaluateIntern(leftValue.doubleValue(), rightValue.doubleValue());
+    }
+
+    protected abstract Boolean evaluateIntern(double leftValue, double rightValue);
 }

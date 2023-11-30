@@ -20,7 +20,8 @@ limitations under the License.
  * #L%
  */
 
-import com.koch.ambeth.ioc.IInitializingModule;
+import io.toolisticon.spiap.api.SpiService;
+import com.koch.ambeth.ioc.IFrameworkModule;
 import com.koch.ambeth.ioc.annotation.FrameworkModule;
 import com.koch.ambeth.ioc.factory.IBeanContextFactory;
 import com.koch.ambeth.security.server.privilege.IEntityPermissionRuleExtendable;
@@ -30,14 +31,15 @@ import com.koch.ambeth.security.server.privilege.IEntityTypePermissionRuleProvid
 import com.koch.ambeth.security.server.service.PrivilegeService;
 import com.koch.ambeth.security.service.IPrivilegeService;
 
+@SpiService(IFrameworkModule.class)
 @FrameworkModule
-public class PrivilegeServerModule implements IInitializingModule {
-	@Override
-	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
-		beanContextFactory.registerBean(PrivilegeService.class).autowireable(//
-				IPrivilegeService.class, //
-				IEntityPermissionRuleExtendable.class, IEntityTypePermissionRuleExtendable.class, //
-				IEntityPermissionRuleProvider.class, IEntityTypePermissionRuleProvider.class);
+public class PrivilegeServerModule implements IFrameworkModule {
+    @Override
+    public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
+        beanContextFactory.registerBean(PrivilegeService.class).autowireable(//
+                IPrivilegeService.class, //
+                IEntityPermissionRuleExtendable.class, IEntityTypePermissionRuleExtendable.class, //
+                IEntityPermissionRuleProvider.class, IEntityTypePermissionRuleProvider.class);
 
-	}
+    }
 }

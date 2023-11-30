@@ -22,8 +22,9 @@ limitations under the License.
 
 public interface IResultSetProvider {
 
-	IResultSet getResultSet();
+    IResultSet acquireResultSet();
 
-	void skipResultSet();
-
+    default void skipResultSet() {
+        // intended blank
+    }
 }

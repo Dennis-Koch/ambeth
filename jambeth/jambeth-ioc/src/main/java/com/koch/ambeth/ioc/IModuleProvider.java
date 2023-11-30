@@ -21,7 +21,7 @@ limitations under the License.
  */
 
 public interface IModuleProvider {
-	Class<?>[] getFrameworkModules();
+    Class<?>[] getFrameworkModules();
 
-	Class<?>[] getBootstrapModules();
+    Class<?>[] getApplicationModules();
 }

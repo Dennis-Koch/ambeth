@@ -99,7 +99,7 @@ public class PersistenceContextInterceptor extends CascadedInterceptor {
             }
             return transaction.processAndCommitWithResult(persistenceUnitToDatabaseMap -> {
                 return invokeTarget(obj, method, args, proxy);
-            }, false, false);
+            }, false, false, false);
         });
         typeToLogicMap.put(PersistenceContextType.REQUIRED_READ_ONLY, (obj, method, args, proxy) -> {
             if (transactionState.isTransactionActive()) {
@@ -107,7 +107,7 @@ public class PersistenceContextInterceptor extends CascadedInterceptor {
             }
             return transaction.processAndCommitWithResult(persistenceUnitToDatabaseMap -> {
                 return invokeTarget(obj, method, args, proxy);
-            }, false, true);
+            }, false, true, false);
         });
         this.typeToLogicMap = typeToLogicMap;
         return typeToLogicMap.get(behaviourOfMethod);

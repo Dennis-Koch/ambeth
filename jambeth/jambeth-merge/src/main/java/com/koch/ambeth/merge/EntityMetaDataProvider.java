@@ -1,8 +1,6 @@
 package com.koch.ambeth.merge;
 
 import com.koch.ambeth.dot.DotWriter;
-import com.koch.ambeth.dot.IDotNode;
-import com.koch.ambeth.dot.IDotWriter;
 import com.koch.ambeth.event.IEventDispatcher;
 import com.koch.ambeth.ioc.DefaultExtendableContainer;
 import com.koch.ambeth.ioc.IInitializingBean;
@@ -46,7 +44,6 @@ import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.IMap;
 import com.koch.ambeth.util.collections.ISet;
 import com.koch.ambeth.util.collections.IdentityHashSet;
-import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.model.IEmbeddedType;
 import com.koch.ambeth.util.objectcollector.IThreadLocalObjectCollector;
 import com.koch.ambeth.util.proxy.IProxyFactory;
@@ -56,6 +53,7 @@ import com.koch.ambeth.util.typeinfo.ITypeInfoItem;
 import com.koch.ambeth.util.typeinfo.ITypeInfoProvider;
 import jakarta.persistence.PostLoad;
 import jakarta.persistence.PrePersist;
+import lombok.SneakyThrows;
 
 import java.io.Writer;
 import java.lang.annotation.Annotation;
@@ -69,7 +67,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.function.Consumer;
 
 public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMetaData>
         implements IEntityMetaDataProvider, IEntityMetaDataRefresher, IEntityMetaDataExtendable, IEntityLifecycleExtendable, ITechnicalEntityTypeExtendable, IEntityInstantiationExtensionExtendable,
@@ -321,8 +318,8 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 
     @Override
     public IEntityMetaData getExtensionHardKey(Class<?> key) {
-        if (key == null || immutableTypeSet.isImmutableType(key) || key.isArray() || IDTOType.class.isAssignableFrom(key) || Collection.class.isAssignableFrom(
-                key) || IEmbeddedType.class.isAssignableFrom(key)) {
+        if (key == null || immutableTypeSet.isImmutableType(key) || key.isArray() || IDTOType.class.isAssignableFrom(key) || Collection.class.isAssignableFrom(key) ||
+                IEmbeddedType.class.isAssignableFrom(key)) {
             return alreadyHandled;
         }
         IEntityMetaData metaData = super.getExtensionHardKey(key);
@@ -746,25 +743,25 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
     public void refreshMembers(IEntityMetaData metaData) {
         if (metaData.getEnhancedType() == null) {
             ((EntityMetaData) metaData).initialize(cacheModification, entityFactory);
-            IEntityInstantiationExtension eie = entityInstantiationExtensions.getExtension(metaData.getEntityType());
-            Class<?> baseType = eie != null ? eie.getMappedEntityType(metaData.getEntityType()) : metaData.getEntityType();
+            var eie = entityInstantiationExtensions.getExtension(metaData.getEntityType());
+            var baseType = eie != null ? eie.getMappedEntityType(metaData.getEntityType()) : metaData.getEntityType();
             ((EntityMetaData) metaData).setEnhancedType(bytecodeEnhancer.getEnhancedType(baseType, EntityEnhancementHint.Instance));
         }
-        RelationMember[] relationMembers = metaData.getRelationMembers();
+        var relationMembers = metaData.getRelationMembers();
         for (int a = relationMembers.length; a-- > 0; ) {
             relationMembers[a] = (RelationMember) refreshMember(metaData, relationMembers[a]);
         }
-        PrimitiveMember[] primitiveMembers = metaData.getPrimitiveMembers();
+        var primitiveMembers = metaData.getPrimitiveMembers();
         for (int a = primitiveMembers.length; a-- > 0; ) {
             primitiveMembers[a] = (PrimitiveMember) refreshMember(metaData, primitiveMembers[a]);
         }
 
-        HashMap<String, PrimitiveMember> nameToPrimitiveMember = new HashMap<>();
+        var nameToPrimitiveMember = new HashMap<String, PrimitiveMember>();
         for (int a = primitiveMembers.length; a-- > 0; ) {
-            PrimitiveMember member = primitiveMembers[a];
+            var member = primitiveMembers[a];
             nameToPrimitiveMember.put(member.getName(), member);
         }
-        PrimitiveMember[] alternateIdMembers = metaData.getAlternateIdMembers();
+        var alternateIdMembers = metaData.getAlternateIdMembers();
         for (int a = alternateIdMembers.length; a-- > 0; ) {
             alternateIdMembers[a] = (PrimitiveMember) refreshMember(metaData, alternateIdMembers[a]);
         }
@@ -789,12 +786,12 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 
     @Override
     public void register(IEntityMetaData extension, Class<?> entityType) {
-        Lock writeLock = getWriteLock();
+        var writeLock = getWriteLock();
         writeLock.lock();
         try {
             super.register(extension, entityType);
             updateEntityMetaDataWithLifecycleExtensions(extension);
-            Class<?> technicalEntityType = technicalEntityTypes.getExtension(entityType);
+            var technicalEntityType = technicalEntityTypes.getExtension(entityType);
             if (technicalEntityType != null) {
                 super.register(extension, technicalEntityType);
             }
@@ -811,7 +808,7 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 
     @Override
     public void registerEntityLifecycleExtension(IEntityLifecycleExtension entityLifecycleExtension, Class<?> entityType) {
-        Lock writeLock = getWriteLock();
+        var writeLock = getWriteLock();
         writeLock.lock();
         try {
             entityLifecycleExtensions.register(entityLifecycleExtension, entityType);
@@ -828,7 +825,7 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 
     @Override
     public void registerEntityMetaData(IEntityMetaData entityMetaData, Class<?> entityType) {
-        Lock writeLock = getWriteLock();
+        var writeLock = getWriteLock();
         writeLock.lock();
         try {
             register(entityMetaData, entityType);
@@ -846,7 +843,7 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 
     @Override
     public void registerTechnicalEntityType(Class<?> technicalEntityType, Class<?> entityType) {
-        Lock writeLock = getWriteLock();
+        var writeLock = getWriteLock();
         writeLock.lock();
         try {
             technicalEntityTypes.register(technicalEntityType, entityType);
@@ -864,13 +861,14 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
         valueObjectMap.register(config, config.getValueType());
     }
 
+    @SneakyThrows
     @Override
     public void toDotGraph(Writer writer) {
         if (remoteEntityMetaDataProvider != null) {
             remoteEntityMetaDataProvider.toDotGraph(writer);
             return;
         }
-        IEntityMetaData[] extensions = new IdentityHashSet<>(getExtensions().values()).toArray(IEntityMetaData.class);
+        var extensions = new IdentityHashSet<>(getExtensions().values()).toArray(IEntityMetaData.class);
 
         Arrays.sort(extensions, new Comparator<IEntityMetaData>() {
             @Override
@@ -879,7 +877,7 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
             }
         });
 
-        ClassTupleExtendableContainer<IEntityMetaData> metaDataInheritanceMap = new ClassTupleExtendableContainer<>("metaData", "entityType", true);
+        var metaDataInheritanceMap = new ClassTupleExtendableContainer<IEntityMetaData>("metaData", "entityType", true);
         for (IEntityMetaData metaData : extensions) {
             if (metaData == alreadyHandled) {
                 continue;
@@ -887,27 +885,27 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
             metaDataInheritanceMap.register(metaData, Object.class, metaData.getEntityType());
         }
 
-        try (IDotWriter dot = new DotWriter(writer)) {
+        try (var dot = new DotWriter(writer)) {
             writer.write("\n\tgraph [truecolor=true start=1];");
             // writer.write("\n\tedge [len=4];");
-            IFimExtension[] fimEntityExtensions = federatedInformationModelExtensions.getExtensionsShared();
+            var fimEntityExtensions = federatedInformationModelExtensions.getExtensionsShared();
 
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder();
 
             for (IEntityMetaData metaData : extensions) {
                 if (metaData == alreadyHandled) {
                     continue;
                 }
                 {
-                    IDotNode node = dot.openNode(metaData);
+                    var node = dot.openNode(metaData);
                     sb.setLength(0);
                     sb.append(metaData.getEntityType().getSimpleName());
                     node.attribute("shape", "rectangle");
                     node.attribute("style", "filled");
                     node.attribute("fontcolor", "#ffffffff");
                     node.attribute("fillcolor", metaData.isLocalEntity() ? "#d0771eaa" : "#777700cc");
-                    for (IFimExtension fimEntityExtension : fimEntityExtensions) {
-                        IDotNodeCallback consumer = fimEntityExtension.extendEntityMetaDataNode(metaData);
+                    for (var fimEntityExtension : fimEntityExtensions) {
+                        var consumer = fimEntityExtension.extendEntityMetaDataNode(metaData);
                         if (consumer != null) {
                             consumer.accept(node, sb);
                         }
@@ -916,8 +914,8 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
                     node.endNode();
                 }
 
-                for (Member member : metaData.getPrimitiveMembers()) {
-                    IDotNode node = dot.openNode(member);
+                for (var member : metaData.getPrimitiveMembers()) {
+                    var node = dot.openNode(member);
                     sb.setLength(0);
                     sb.append(member.getName()).append("::").append(member.getRealType().getSimpleName());
                     node.attribute("shape", "rectangle");
@@ -933,8 +931,8 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
                     node.attribute("label", sb.toString());
                     node.endNode();
                 }
-                for (Member member : metaData.getRelationMembers()) {
-                    IDotNode node = dot.openNode(member);
+                for (var member : metaData.getRelationMembers()) {
+                    var node = dot.openNode(member);
                     sb.setLength(0);
                     sb.append(member.getName());
                     node.attribute("label", member.getName());
@@ -942,9 +940,9 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
                     node.attribute("style", "filled");
                     node.attribute("fontcolor", "#ffffffff");
                     node.attribute("fillcolor", "#0033ffcc");
-                    IEntityMetaData targetMetaData = metaDataInheritanceMap.getExtension(Object.class, member.getElementType());
-                    for (IFimExtension fimEntityExtension : fimEntityExtensions) {
-                        IDotNodeCallback consumer = fimEntityExtension.extendRelationMemberNode(metaData, member, targetMetaData);
+                    var targetMetaData = metaDataInheritanceMap.getExtension(Object.class, member.getElementType());
+                    for (var fimEntityExtension : fimEntityExtensions) {
+                        var consumer = fimEntityExtension.extendRelationMemberNode(metaData, member, targetMetaData);
                         if (consumer != null) {
                             consumer.accept(node, sb);
                         }
@@ -953,51 +951,49 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
                     node.endNode();
                 }
             }
-            for (IEntityMetaData metaData : extensions) {
+            for (var metaData : extensions) {
                 if (metaData == alreadyHandled) {
                     continue;
                 }
-                for (IFimExtension fimEntityExtension : fimEntityExtensions) {
-                    Consumer<IDotWriter> consumer = fimEntityExtension.extendEntityMetaDataGraph(metaData);
+                for (var fimEntityExtension : fimEntityExtensions) {
+                    var consumer = fimEntityExtension.extendEntityMetaDataGraph(metaData);
                     if (consumer != null) {
                         consumer.accept(dot);
                     }
                 }
-                for (Member member : metaData.getPrimitiveMembers()) {
+                for (var member : metaData.getPrimitiveMembers()) {
                     dot.openEdge(metaData, member).attribute("arrowhead", "none").endEdge();
-                    for (IFimExtension fimEntityExtension : fimEntityExtensions) {
-                        Consumer<IDotWriter> consumer = fimEntityExtension.extendPrimitiveMemberGraph(metaData, member);
+                    for (var fimEntityExtension : fimEntityExtensions) {
+                        var consumer = fimEntityExtension.extendPrimitiveMemberGraph(metaData, member);
                         if (consumer != null) {
                             consumer.accept(dot);
                         }
                     }
                 }
-                for (Member member : metaData.getRelationMembers()) {
+                for (var member : metaData.getRelationMembers()) {
                     dot.openEdge(metaData, member).endEdge();
 
-                    IEntityMetaData targetMetaData = metaDataInheritanceMap.getExtension(Object.class, member.getElementType());
+                    var targetMetaData = metaDataInheritanceMap.getExtension(Object.class, member.getElementType());
                     if (targetMetaData != null) {
                         dot.openEdge(member, targetMetaData).endEdge();
                     }
-                    for (IFimExtension fimEntityExtension : fimEntityExtensions) {
-                        Consumer<IDotWriter> consumer = fimEntityExtension.extendRelationMemberGraph(metaData, member, targetMetaData);
+                    for (var fimEntityExtension : fimEntityExtensions) {
+                        var consumer = fimEntityExtension.extendRelationMemberGraph(metaData, member, targetMetaData);
                         if (consumer != null) {
                             consumer.accept(dot);
                         }
                     }
                 }
             }
-        } catch (Exception e) {
-            throw RuntimeExceptionUtil.mask(e);
         }
     }
 
     @Override
     public void unregister(IEntityMetaData extension, Class<?> entityType) {
-        Lock writeLock = getWriteLock();
+        var writeLock = getWriteLock();
         writeLock.lock();
         try {
-            Class<?> technicalEntityType = technicalEntityTypes.getExtension(entityType);
+            var technicalEntityType = technicalEntityTypes.getExtension(entityType);
             if (technicalEntityType != null) {
                 super.unregister(extension, technicalEntityType);
             }
@@ -1016,7 +1012,7 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 
     @Override
     public void unregisterEntityLifecycleExtension(IEntityLifecycleExtension entityLifecycleExtension, Class<?> entityType) {
-        Lock writeLock = getWriteLock();
+        var writeLock = getWriteLock();
         writeLock.lock();
         try {
             entityLifecycleExtensions.unregister(entityLifecycleExtension, entityType);
@@ -1033,7 +1029,7 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 
     @Override
     public void unregisterEntityMetaData(IEntityMetaData entityMetaData, Class<?> entityType) {
-        Lock writeLock = getWriteLock();
+        var writeLock = getWriteLock();
         writeLock.lock();
         try {
             unregister(entityMetaData, entityType);
@@ -1057,7 +1053,7 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 
     @Override
     public void unregisterTechnicalEntityType(Class<?> technicalEntityType, Class<?> entityType) {
-        Lock writeLock = getWriteLock();
+        var writeLock = getWriteLock();
         writeLock.lock();
         try {
             technicalEntityTypes.unregister(technicalEntityType, entityType);
@@ -1076,8 +1072,8 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
     }
 
     protected void updateAllEntityMetaDataWithLifecycleExtensions() {
-        ILinkedMap<Class<?>, IEntityMetaData> typeToMetaDataMap = getExtensions();
-        for (Entry<Class<?>, IEntityMetaData> entry : typeToMetaDataMap) {
+        var typeToMetaDataMap = getExtensions();
+        for (var entry : typeToMetaDataMap) {
             updateEntityMetaDataWithLifecycleExtensions(entry.getValue());
         }
     }
@@ -1090,20 +1086,20 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
         if (entityMetaData.getEnhancedType() == null) {
             return;
         }
-        IList<IEntityLifecycleExtension> extensionList = entityLifecycleExtensions.getExtensions(entityMetaData.getEnhancedType());
-        ArrayList<IEntityLifecycleExtension> allExtensions = new ArrayList<>(extensionList);
-        ArrayList<Method> prePersistMethods = new ArrayList<>();
+        var extensionList = entityLifecycleExtensions.getExtensions(entityMetaData.getEnhancedType());
+        var allExtensions = new ArrayList<>(extensionList);
+        var prePersistMethods = new ArrayList<Method>();
         fillMethodsAnnotatedWith(entityMetaData.getEnhancedType(), prePersistMethods, PrePersist.class);
 
-        ArrayList<Method> postLoadMethods = new ArrayList<>();
+        var postLoadMethods = new ArrayList<Method>();
         fillMethodsAnnotatedWith(entityMetaData.getEnhancedType(), postLoadMethods, PostLoad.class);
 
-        for (Method prePersistMethod : prePersistMethods) {
-            PrePersistMethodLifecycleExtension extension = beanContext.registerBean(PrePersistMethodLifecycleExtension.class).propertyValue("Method", prePersistMethod).finish();
+        for (var prePersistMethod : prePersistMethods) {
+            var extension = beanContext.registerBean(PrePersistMethodLifecycleExtension.class).propertyValue("Method", prePersistMethod).finish();
             allExtensions.add(extension);
         }
-        for (Method postLoadMethod : postLoadMethods) {
-            PostLoadMethodLifecycleExtension extension = beanContext.registerBean(PostLoadMethodLifecycleExtension.class).propertyValue("Method", postLoadMethod).finish();
+        for (var postLoadMethod : postLoadMethods) {
+            var extension = beanContext.registerBean(PostLoadMethodLifecycleExtension.class).propertyValue("Method", postLoadMethod).finish();
             allExtensions.add(extension);
         }
         ((EntityMetaData) entityMetaData).setEntityLifecycleExtensions(allExtensions.toArray(IEntityLifecycleExtension.class));

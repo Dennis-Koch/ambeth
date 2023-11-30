@@ -157,8 +157,8 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
     }
 
     protected void cleanupSecondLevelCachesIntern(CacheDependencyNode node, IList<IObjRef> deletesList, ArrayList<IObjRef> objRefsRemovePriorVersions) {
-        IRootCache rootCache = node.rootCache;
-        Lock writeLock = rootCache.getWriteLock();
+        var rootCache = node.rootCache;
+        var writeLock = rootCache.getWriteLock();
         writeLock.lock();
         try {
             rootCache.remove(deletesList);
@@ -166,7 +166,7 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
         } finally {
             writeLock.unlock();
         }
-        ArrayList<CacheDependencyNode> childNodes = node.childNodes;
+        var childNodes = node.childNodes;
         for (int a = childNodes.size(); a-- > 0; ) {
             cleanupSecondLevelCachesIntern(childNodes.get(a), deletesList, objRefsRemovePriorVersions);
         }

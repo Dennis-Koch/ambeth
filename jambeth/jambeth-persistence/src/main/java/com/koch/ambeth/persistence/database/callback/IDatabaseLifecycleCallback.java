@@ -1,4 +1,4 @@
-package com.koch.ambeth.persistence.database;
+package com.koch.ambeth.persistence.database.callback;
 
 /*-
  * #%L
@@ -24,16 +24,16 @@ import com.koch.ambeth.persistence.api.IDatabase;
 
 public interface IDatabaseLifecycleCallback {
 
-	void databaseNotFound(Object databaseHandle, String dbName);
+    void databaseNotFound(Object databaseHandle, String dbName);
 
-	void databaseEmpty(Object databaseHandle);
+    void databaseEmpty(Object databaseHandle);
 
-	void databaseConnected(IDatabase database);
+    void databaseConnected(IDatabase database);
 
-	void databaseActivated(IDatabase database);
+    void databaseActivated(IDatabase database);
 
-	void databasePassivated(IDatabase database);
+    void databasePassivated(IDatabase database);
 
-	void databaseClosed(IDatabase database);
+    void databaseClosed(IDatabase database);
 
 }

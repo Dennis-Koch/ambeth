@@ -30,14 +30,24 @@ import com.koch.ambeth.log.config.Properties;
 import com.koch.ambeth.log.slf4j.Slf4jLogger;
 import com.koch.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationConstants;
 import com.koch.ambeth.persistence.jdbc.connector.DatabaseProtocolResolver;
-import org.burningwave.core.assembler.StaticComponentContainer;
+import lombok.SneakyThrows;
+import org.burningwave.core.classes.Modules;
 import org.testcontainers.containers.PostgreSQLContainer;
+
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 @SQLStructure(schemaFileProvider = Main.HelloWorldSchemaFileProvider.class)
 public class Main {
-    public static void main(String[] args) throws Throwable {
-        new StaticComponentContainer();
+    private static Class<?> moduleClass = Module.class;
+    private static Set<Object> allSet = new HashSet<>();
+    private static Set<Object> everyOneSet = new HashSet<>();
+    private static Set<Object> allUnnamedSet = new HashSet<>();
 
+    public static void main(String[] args) throws Throwable {
+        Modules.create().exportAllToAll();
         var dbContainer = new PostgreSQLContainer<>("postgres:15-alpine");
         dbContainer.start();
 
@@ -52,6 +62,21 @@ public class Main {
         persistenceSetup.executeSetup(Main.class.getMethod("main", String[].class));
 
         JettyApplication.run();
+    }
+
+    @SneakyThrows
+    public static void exportToAll(String fieldName, Object module, String pkgName) {
+        var field = module.getClass().getDeclaredField(fieldName);
+        Map<String, Set<?>> pckgForModule = (Map<String, Set<?>>) field.get(module);
+        if (pckgForModule == null) {
+            pckgForModule = new HashMap<>();
+            field.set(module, pckgForModule);
+        }
+        pckgForModule.put(pkgName, allSet);
+        if (fieldName.startsWith("exported")) {
+            var method = moduleClass.getDeclaredMethod("addExportsToAll0", moduleClass, String.class);
+            method.invoke(null, module, pkgName);
+        }
     }
 
     public static class HelloWorldSchemaFileProvider implements ISchemaFileProvider {

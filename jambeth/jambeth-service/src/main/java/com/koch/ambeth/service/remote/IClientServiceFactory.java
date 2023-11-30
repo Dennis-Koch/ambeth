@@ -20,15 +20,26 @@ limitations under the License.
  * #L%
  */
 
+import com.koch.ambeth.ioc.config.IBeanConfiguration;
 import com.koch.ambeth.ioc.factory.IBeanContextFactory;
 
 public interface IClientServiceFactory {
-	Class<?> getTargetProviderType(Class<?> clientInterface);
+    Class<?> getTargetProviderType(Class<?> clientInterface);
 
-	Class<?> getSyncInterceptorType(Class<?> clientInterface);
+    Class<?> getSyncInterceptorType(Class<?> clientInterface);
 
-	String getServiceName(Class<?> clientInterface);
+    default String getServiceName(Class<?> clientInterface) {
+        var name = clientInterface.getSimpleName();
+        if (name.endsWith("Client")) {
+            name = name.substring(0, name.length() - 6) + "Service";
+        } else if (name.endsWith("WCF")) {
+            name = name.substring(0, name.length() - 3);
+        }
+        if (name.startsWith("I")) {
+            return name.substring(1);
+        }
+        return name;
+    }
 
-	void postProcessTargetProviderBean(String targetProviderBeanName,
-			IBeanContextFactory beanContextFactory);
+    void postProcessTargetProviderBean(String serviceName, IBeanConfiguration bean, IBeanContextFactory beanContextFactory);
 }

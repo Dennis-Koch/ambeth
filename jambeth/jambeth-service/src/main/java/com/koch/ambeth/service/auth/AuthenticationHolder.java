@@ -1,4 +1,4 @@
-package com.koch.ambeth.service.rest;
+package com.koch.ambeth.service.auth;
 
 /*-
  * #%L
@@ -25,26 +25,26 @@ import com.koch.ambeth.ioc.config.Property;
 import com.koch.ambeth.service.config.ServiceConfigurationConstants;
 
 public class AuthenticationHolder implements IAuthenticationHolder, IInitializingBean {
-	@Property(name = ServiceConfigurationConstants.UserName, mandatory = false)
-	protected String userName;
+    @Property(name = ServiceConfigurationConstants.UserName, mandatory = false)
+    protected String userName;
 
-	@Property(name = ServiceConfigurationConstants.Password, mandatory = false)
-	protected String password;
+    @Property(name = ServiceConfigurationConstants.Password, mandatory = false)
+    protected String password;
 
-	protected String[] auth;
+    protected String[] auth;
 
-	@Override
-	public void afterPropertiesSet() throws Throwable {
-		setAuthentication(userName, password);
-	}
+    @Override
+    public void afterPropertiesSet() throws Throwable {
+        setAuthentication(userName, password);
+    }
 
-	@Override
-	public String[] getAuthentication() {
-		return auth.clone();
-	}
+    @Override
+    public String[] getAuthentication() {
+        return auth.clone();
+    }
 
-	@Override
-	public void setAuthentication(String userName, String password) {
-		auth = new String[] {userName, password};
-	}
+    @Override
+    public void setAuthentication(String userName, String password) {
+        auth = new String[] { userName, password };
+    }
 }

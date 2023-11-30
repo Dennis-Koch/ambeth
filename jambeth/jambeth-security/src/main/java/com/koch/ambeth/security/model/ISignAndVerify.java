@@ -23,13 +23,23 @@ limitations under the License.
  */
 
 public interface ISignAndVerify {
-	@Interning
-	String getSignatureAlgorithm();
+    @Interning
+    String getSignatureProvider();
 
-	void setSignatureAlgorithm(String signatureAlgorithm);
+    void setSignatureProvider(String signatureProvider);
 
-	@Interning
-	String getKeyFactoryAlgorithm();
+    @Interning
+    String getSignatureAlgorithm();
 
-	void setKeyFactoryAlgorithm(String keyFactoryAlgorithm);
+    void setSignatureAlgorithm(String signatureAlgorithm);
+
+    @Interning
+    String getKeyFactoryProvider();
+
+    void setKeyFactoryProvider(String keyFactoryProvider);
+
+    @Interning
+    String getKeyFactoryAlgorithm();
+
+    void setKeyFactoryAlgorithm(String keyFactoryAlgorithm);
 }

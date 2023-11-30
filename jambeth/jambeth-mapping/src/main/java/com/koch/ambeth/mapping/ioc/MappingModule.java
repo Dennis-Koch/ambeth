@@ -21,7 +21,7 @@ limitations under the License.
  */
 
 import com.koch.ambeth.event.IEventListenerExtendable;
-import com.koch.ambeth.ioc.IInitializingModule;
+import com.koch.ambeth.ioc.IFrameworkModule;
 import com.koch.ambeth.ioc.annotation.FrameworkModule;
 import com.koch.ambeth.ioc.config.IBeanConfiguration;
 import com.koch.ambeth.ioc.config.Property;
@@ -40,38 +40,30 @@ import com.koch.ambeth.mapping.PropertyExpansionProvider;
 import com.koch.ambeth.merge.config.ValueObjectConfigReader;
 import com.koch.ambeth.merge.event.EntityMetaDataAddedEvent;
 import com.koch.ambeth.service.config.ServiceConfigurationConstants;
+import io.toolisticon.spiap.api.SpiService;
 
+@SpiService(IFrameworkModule.class)
 @FrameworkModule
-public class MappingModule implements IInitializingModule {
-	@Property(name = ServiceConfigurationConstants.GenericTransferMapping, defaultValue = "false")
-	protected boolean genericTransferMapping;
+public class MappingModule implements IFrameworkModule {
+    @Property(name = ServiceConfigurationConstants.GenericTransferMapping, defaultValue = "false")
+    protected boolean genericTransferMapping;
 
-	@Override
-	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
-		if (genericTransferMapping) {
-			IBeanConfiguration valueObjectConfigReader =
-					beanContextFactory.registerBean(ValueObjectConfigReader.class);
-			beanContextFactory.link(valueObjectConfigReader).to(IEventListenerExtendable.class)
-					.with(EntityMetaDataAddedEvent.class);
+    @Override
+    public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
+        if (genericTransferMapping) {
+            IBeanConfiguration valueObjectConfigReader = beanContextFactory.registerBean(ValueObjectConfigReader.class);
+            beanContextFactory.link(valueObjectConfigReader).to(IEventListenerExtendable.class).with(EntityMetaDataAddedEvent.class);
 
-			beanContextFactory.registerBean(ListTypeHelper.class).autowireable(IListTypeHelper.class);
-			beanContextFactory.registerBean(MapperServiceFactory.class)
-					.autowireable(IMapperServiceFactory.class);
+            beanContextFactory.registerBean(ListTypeHelper.class).autowireable(IListTypeHelper.class);
+            beanContextFactory.registerBean(MapperServiceFactory.class).autowireable(IMapperServiceFactory.class);
 
-			IBeanConfiguration expansionEntityMapper =
-					beanContextFactory.registerBean(ExpansionEntityMapper.class)
-							.autowireable(IPropertyExpansionExtendable.class);
-			beanContextFactory.link(expansionEntityMapper).to(IDedicatedMapperExtendable.class)
-					.with(Object.class);
+            IBeanConfiguration expansionEntityMapper = beanContextFactory.registerBean(ExpansionEntityMapper.class).autowireable(IPropertyExpansionExtendable.class);
+            beanContextFactory.link(expansionEntityMapper).to(IDedicatedMapperExtendable.class).with(Object.class);
 
-			ExtendableBean
-					.registerExtendableBean(beanContextFactory, "mapperExtensionRegistry",
-							IDedicatedMapperRegistry.class, IDedicatedMapperExtendable.class,
-							IDedicatedMapperRegistry.class.getClassLoader())
-					.propertyValue(ExtendableBean.P_ALLOW_MULTI_VALUE, true);
-		}
+            ExtendableBean.registerExtendableBean(beanContextFactory, "mapperExtensionRegistry", IDedicatedMapperRegistry.class, IDedicatedMapperExtendable.class,
+                    IDedicatedMapperRegistry.class.getClassLoader()).propertyValue(ExtendableBean.P_ALLOW_MULTI_VALUE, true);
+        }
 
-		beanContextFactory.registerBean(PropertyExpansionProvider.class)
-				.autowireable(IPropertyExpansionProvider.class);
-	}
+        beanContextFactory.registerBean(PropertyExpansionProvider.class).autowireable(IPropertyExpansionProvider.class);
+    }
 }

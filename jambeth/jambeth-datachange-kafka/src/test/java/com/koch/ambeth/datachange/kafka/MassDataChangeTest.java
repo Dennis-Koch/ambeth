@@ -118,13 +118,13 @@ public class MassDataChangeTest extends AbstractIocTest {
         props.put(ServiceConfigurationConstants.mappingFile, "orm.xml");
 
         IAmbethApplication app1 = Ambeth.createBundle(InformationBus.class)
-                                        .withAmbethModules(EventKafkaModule.class, DataChangeKafkaModule.class, KafkaTestModule.class, XmlModule.class)
+                                        .withFrameworkModules(EventKafkaModule.class, DataChangeKafkaModule.class, KafkaTestModule.class, XmlModule.class)
                                         .withoutPropertiesFileSearch()
                                         .withProperties(props)
                                         .start();
         try {
             IAmbethApplication app2 = Ambeth.createBundle(InformationBus.class)
-                                            .withAmbethModules(EventKafkaModule.class, DataChangeKafkaModule.class, KafkaTestModule.class, XmlModule.class)
+                                            .withFrameworkModules(EventKafkaModule.class, DataChangeKafkaModule.class, KafkaTestModule.class, XmlModule.class)
                                             .withoutPropertiesFileSearch()
                                             .withProperties(props)
                                             .start();

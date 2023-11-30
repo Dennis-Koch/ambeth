@@ -39,88 +39,78 @@ import lombok.SneakyThrows;
 import java.sql.Connection;
 
 public abstract class AbstractConnectionFactory implements IConnectionFactory, IInitializingBean {
-	@Autowired
-	protected IServiceContext beanContext;
+    protected final IConnectionKeyHandle connectionKeyHandle = new DefaultConnectionKeyHandle();
+    @Autowired
+    protected IServiceContext beanContext;
+    @Autowired
+    protected IConnectionDialect connectionDialect;
+    @Autowired(optional = true)
+    protected IEventDispatcher eventDispatcher;
+    @Autowired
+    protected IProxyFactory proxyFactory;
+    @Property(name = PersistenceJdbcConfigurationConstants.PreparedConnectionInstances, mandatory = false)
+    protected ArrayList<Connection> preparedConnectionInstances;
+    @Property(name = PersistenceJdbcConfigurationConstants.DatabaseSchemaName)
+    protected String schemaName;
+    protected String[] schemaNames;
 
-	@Autowired
-	protected IConnectionDialect connectionDialect;
+    @Override
+    public void afterPropertiesSet() throws Throwable {
+        ParamChecker.assertNotNull(schemaName, "schemaName");
 
-	@Autowired(optional = true)
-	protected IEventDispatcher eventDispatcher;
+        schemaNames = connectionDialect.toDefaultCase(schemaName).split("[:;]");
+    }
 
-	@Autowired
-	protected IProxyFactory proxyFactory;
+    @SneakyThrows
+    @Override
+    public final Connection create() {
+        while (preparedConnectionInstances != null && !preparedConnectionInstances.isEmpty()) {
+            var preparedConnection = preparedConnectionInstances.remove(preparedConnectionInstances.size() - 1);
+            if (preparedConnection.isClosed()) {
+                continue;
+            }
+            connectionDialect.preProcessConnection(preparedConnection, schemaNames, false);
 
-	@Property(name = PersistenceJdbcConfigurationConstants.PreparedConnectionInstances, mandatory = false)
-	protected ArrayList<Connection> preparedConnectionInstances;
+            if (eventDispatcher != null) {
+                eventDispatcher.dispatchEvent(new ConnectionCreatedEvent(preparedConnection));
+            }
+            return preparedConnection;
+        }
+        var connection = createIntern();
+        connection.setAutoCommit(false);
 
-	@Property(name = PersistenceJdbcConfigurationConstants.DatabaseSchemaName)
-	protected String schemaName;
+        var logConnectionInterceptor = beanContext.registerExternalBean(new LogConnectionInterceptor(connectionKeyHandle)).propertyValue("Connection", connection).finish();
+        var conn = proxyFactory.createProxy(Connection.class, connectionDialect.getConnectionInterfaces(connection), logConnectionInterceptor);
 
-	protected String[] schemaNames;
+        connectionDialect.preProcessConnection(conn, schemaNames, false);
 
-	protected final IConnectionKeyHandle connectionKeyHandle = new DefaultConnectionKeyHandle();
+        if (eventDispatcher != null) {
+            eventDispatcher.dispatchEvent(new ConnectionCreatedEvent(conn));
+        }
+        return conn;
+    }
 
-	@Override
-	public void afterPropertiesSet() throws Throwable {
-		ParamChecker.assertNotNull(schemaName, "schemaName");
+    @SneakyThrows
+    @Override
+    public final void create(Connection reusableConnection) {
+        if (!(reusableConnection instanceof Factory)) {
+            throw new IllegalArgumentException("Connection is not reusable");
+        }
+        var callback = ((Factory) reusableConnection).getCallback(0);
+        if (!(callback instanceof LogConnectionInterceptor)) {
+            throw new IllegalArgumentException("Connection is not reusable");
+        }
+        var lci = (LogConnectionInterceptor) callback;
+        if (lci.getConnection() != null) {
+            return;
+        }
+        var connection = createIntern();
+        connection.setAutoCommit(false);
+        ((LogConnectionInterceptor) callback).setConnection(connection);
+        if (eventDispatcher != null) {
+            eventDispatcher.dispatchEvent(new ConnectionCreatedEvent(reusableConnection));
+        }
+    }
 
-		schemaNames = connectionDialect.toDefaultCase(schemaName).split("[:;]");
-	}
-
-	@SneakyThrows
-	@Override
-	public final Connection create() {
-		while (preparedConnectionInstances != null && !preparedConnectionInstances.isEmpty()) {
-			var preparedConnection = preparedConnectionInstances
-					.remove(preparedConnectionInstances.size() - 1);
-			if (preparedConnection.isClosed()) {
-				continue;
-			}
-			connectionDialect.preProcessConnection(preparedConnection, schemaNames, false);
-
-			if (eventDispatcher != null) {
-				eventDispatcher.dispatchEvent(new ConnectionCreatedEvent(preparedConnection));
-			}
-			return preparedConnection;
-		}
-		var connection = createIntern();
-		connection.setAutoCommit(false);
-
-		var logConnectionInterceptor = beanContext
-				.registerExternalBean(new LogConnectionInterceptor(connectionKeyHandle))
-				.propertyValue("Connection", connection).finish();
-		var conn = proxyFactory.createProxy(Connection.class,
-				connectionDialect.getConnectionInterfaces(connection), logConnectionInterceptor);
-
-		connectionDialect.preProcessConnection(conn, schemaNames, false);
-
-		if (eventDispatcher != null) {
-			eventDispatcher.dispatchEvent(new ConnectionCreatedEvent(conn));
-		}
-		return conn;
-	}
-
-	@SneakyThrows
-	@Override
-	public final void create(Connection reusableConnection) {
-		if (!(reusableConnection instanceof Factory)) {
-			throw new IllegalArgumentException("Connection is not reusable");
-		}
-		var callback = ((Factory) reusableConnection).getCallback(0);
-		if (!(callback instanceof LogConnectionInterceptor)) {
-			throw new IllegalArgumentException("Connection is not reusable");
-		}
-		var lci = (LogConnectionInterceptor) callback;
-		if (lci.getConnection() != null) {
-			return;
-		}
-		var connection = createIntern();
-		((LogConnectionInterceptor) callback).setConnection(connection);
-		if (eventDispatcher != null) {
-			eventDispatcher.dispatchEvent(new ConnectionCreatedEvent(reusableConnection));
-		}
-	}
-
-	protected abstract Connection createIntern() throws Exception;
+    protected abstract Connection createIntern() throws Exception;
 }

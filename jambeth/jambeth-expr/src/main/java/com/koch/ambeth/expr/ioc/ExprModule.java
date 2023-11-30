@@ -20,20 +20,21 @@ limitations under the License.
  * #L%
  */
 
+import io.toolisticon.spiap.api.SpiService;
 import com.koch.ambeth.bytecode.ioc.BytecodeModule;
 import com.koch.ambeth.expr.bytecode.PropertyExpressionBehavior;
 import com.koch.ambeth.expr.bytecode.PropertyExpressionMixin;
-import com.koch.ambeth.ioc.IInitializingModule;
+import com.koch.ambeth.ioc.IFrameworkModule;
 import com.koch.ambeth.ioc.annotation.FrameworkModule;
 import com.koch.ambeth.ioc.factory.IBeanContextFactory;
 
+@SpiService(IFrameworkModule.class)
 @FrameworkModule
-public class ExprModule implements IInitializingModule {
-	@Override
-	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
-		BytecodeModule.addDefaultBytecodeBehavior(beanContextFactory, PropertyExpressionBehavior.class);
+public class ExprModule implements IFrameworkModule {
+    @Override
+    public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
+        BytecodeModule.addDefaultBytecodeBehavior(beanContextFactory, PropertyExpressionBehavior.class);
 
-		beanContextFactory.registerBean(PropertyExpressionMixin.class)
-				.autowireable(PropertyExpressionMixin.class);
-	}
+        beanContextFactory.registerBean(PropertyExpressionMixin.class).autowireable(PropertyExpressionMixin.class);
+    }
 }

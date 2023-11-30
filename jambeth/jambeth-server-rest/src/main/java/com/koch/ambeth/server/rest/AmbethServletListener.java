@@ -15,7 +15,6 @@ import com.koch.ambeth.server.rest.config.WebServiceConfigurationConstants;
 import com.koch.ambeth.server.start.ServletConfiguratonExtension;
 import com.koch.ambeth.util.ClassLoaderUtil;
 import com.koch.ambeth.util.IConversionHelper;
-import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.config.IProperties;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletContextEvent;
@@ -26,7 +25,6 @@ import jakarta.servlet.http.HttpSessionListener;
 import jakarta.ws.rs.ext.Provider;
 import lombok.SneakyThrows;
 
-import java.sql.Driver;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Enumeration;
@@ -41,22 +39,25 @@ public class AmbethServletListener implements ServletContextListener, HttpSessio
     public static final String ATTRIBUTE_I_SERVICE_CONTEXT = "ambeth.IServiceContext";
 
     public static final String ATTRIBUTE_I_APPLICATION = "ambeth.Application";
-    protected final ThreadLocal<ArrayList<Boolean>> authorizationChangeActiveTL = new ThreadLocal<>();
+
     protected ServletContext servletContext;
+
     private ILogger log;
 
+    @SneakyThrows
     @Override
     public void contextInitialized(ServletContextEvent event) {
         servletContext = event.getServletContext();
         Enumeration<String> initParameterNames = servletContext.getInitParameterNames();
 
-        Properties properties = Properties.getApplication();
+        var properties = new Properties(Properties.getApplication());
         while (initParameterNames.hasMoreElements()) {
-            String initParamName = initParameterNames.nextElement();
-            Object initParamValue = servletContext.getInitParameter(initParamName);
+            var initParamName = initParameterNames.nextElement();
+            var initParamValue = servletContext.getInitParameter(initParamName);
             properties.put(initParamName, initParamValue);
         }
-        Properties.loadBootstrapPropertyFile();
+
+        Properties.loadBootstrapPropertyFile(properties);
         log = LoggerFactory.getLogger(AmbethServletListener.class, properties);
 
         IAmbethApplication ambethApp = null;
@@ -65,29 +66,29 @@ public class AmbethServletListener implements ServletContextListener, HttpSessio
                 log.info("Starting...");
             }
 
-            String classpathScanning = properties.getString(WebServiceConfigurationConstants.ClasspathScanning);
+            var classpathScanning = properties.getString(WebServiceConfigurationConstants.ClasspathScanning, "true");
             boolean scanClasspath = (classpathScanning == null ? true : Boolean.parseBoolean(classpathScanning));
 
-            String bundle = properties.getString(WebServiceConfigurationConstants.FrameworkBundle);
+            var bundle = properties.getString(WebServiceConfigurationConstants.FrameworkBundle);
             if (scanClasspath && bundle != null) {
                 throw new RuntimeException(WebServiceConfigurationConstants.FrameworkBundle + " must not be set if " + WebServiceConfigurationConstants.ClasspathScanning + " is set to true");
             }
 
-            IAmbethConfiguration ambethConfiguration = null;
+            IAmbethConfiguration ambethConfiguration;
             if (scanClasspath) {
-                ambethConfiguration = Ambeth.createDefault() //
-                                            .withExtension(ServletConfiguratonExtension.class).withServletContext(servletContext);
+                ambethConfiguration =
+                        Ambeth.createDefault().withExtension(ServletConfiguratonExtension.class).withServletContext(servletContext).withProperties(properties).withoutPropertiesFileSearch();
             } else if (bundle != null) {
                 @SuppressWarnings("unchecked") Class<IBundleModule> bundleClass = (Class<IBundleModule>) findClass(bundle);
-                ambethConfiguration = Ambeth.createBundle(bundleClass) //
-                                            .withExtension(ServletConfiguratonExtension.class).withServletContext(servletContext);
+                ambethConfiguration =
+                        Ambeth.createBundle(bundleClass).withExtension(ServletConfiguratonExtension.class).withServletContext(servletContext).withProperties(properties).withoutPropertiesFileSearch();
             } else {
                 ambethConfiguration = Ambeth.createEmpty();
             }
             ambethConfiguration.withoutPropertiesFileSearch();
 
-            String frameworkModules = properties.getString(WebServiceConfigurationConstants.FrameworkModules);
-            String applicationModules = properties.getString(WebServiceConfigurationConstants.ApplicationModules);
+            var frameworkModules = properties.getString(WebServiceConfigurationConstants.FrameworkModules);
+            var applicationModules = properties.getString(WebServiceConfigurationConstants.ApplicationModules);
 
             addModules(ambethConfiguration, frameworkModules, true);
             addModules(ambethConfiguration, applicationModules, false);
@@ -101,7 +102,7 @@ public class AmbethServletListener implements ServletContextListener, HttpSessio
             if (log.isInfoEnabled()) {
                 log.info("Start completed");
             }
-        } catch (RuntimeException e) {
+        } catch (Throwable e) {
             if (log.isErrorEnabled()) {
                 log.error(e);
             }
@@ -120,7 +121,7 @@ public class AmbethServletListener implements ServletContextListener, HttpSessio
         // remove the instance of IServiceContext in servlet context
         event.getServletContext().removeAttribute(ATTRIBUTE_I_SERVICE_CONTEXT);
 
-        IAmbethApplication ambethApp = (IAmbethApplication) event.getServletContext().getAttribute(ATTRIBUTE_I_APPLICATION);
+        var ambethApp = (IAmbethApplication) event.getServletContext().getAttribute(ATTRIBUTE_I_APPLICATION);
         event.getServletContext().removeAttribute(ATTRIBUTE_I_APPLICATION);
 
         // dispose the IServiceContext
@@ -131,11 +132,11 @@ public class AmbethServletListener implements ServletContextListener, HttpSessio
                 log.error("Could not close ambeth application", e);
             }
         }
-        ClassLoader currentCL = Thread.currentThread().getContextClassLoader();
-        Enumeration<Driver> drivers = DriverManager.getDrivers();
+        var currentCL = Thread.currentThread().getContextClassLoader();
+        var drivers = DriverManager.getDrivers();
         while (drivers.hasMoreElements()) {
-            Driver driver = drivers.nextElement();
-            ClassLoader driverCL = driver.getClass().getClassLoader();
+            var driver = drivers.nextElement();
+            var driverCL = driver.getClass().getClassLoader();
             if (!ClassLoaderUtil.isParentOf(currentCL, driverCL)) {
                 // this driver is not associated to the current CL
                 continue;
@@ -154,7 +155,7 @@ public class AmbethServletListener implements ServletContextListener, HttpSessio
     }
 
     protected <T> T getProperty(ServletContext servletContext, Class<T> propertyType, String propertyName) {
-        Object value = getService(servletContext, IProperties.class).get(propertyName);
+        var value = getService(servletContext, IProperties.class).get(propertyName);
         return getService(servletContext, IConversionHelper.class).convertValueToType(propertyType, value);
     }
 
@@ -200,7 +201,7 @@ public class AmbethServletListener implements ServletContextListener, HttpSessio
             @SuppressWarnings("unchecked") Class<IInitializingModule> clazz = (Class<IInitializingModule>) findClass(st.nextToken());
 
             if (framework) {
-                ambethConfiguration.withAmbethModules(clazz);
+                ambethConfiguration.withFrameworkModules(clazz);
             } else {
                 ambethConfiguration.withApplicationModules(clazz);
             }
@@ -209,8 +210,8 @@ public class AmbethServletListener implements ServletContextListener, HttpSessio
 
     @SneakyThrows
     private Class<?> findClass(String fullQualifiedName) {
-        ClassLoader cl = this.getClass().getClassLoader();
-        Class<?> clazz = cl.loadClass(fullQualifiedName);
+        var cl = getClass().getClassLoader();
+        var clazz = cl.loadClass(fullQualifiedName);
         return clazz;
     }
 }

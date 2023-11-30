@@ -20,9 +20,6 @@ limitations under the License.
  * #L%
  */
 
-import java.util.HashMap;
-import java.util.List;
-
 import com.koch.ambeth.ioc.IInitializingBean;
 import com.koch.ambeth.ioc.IServiceContext;
 import com.koch.ambeth.ioc.annotation.Autowired;
@@ -44,206 +41,175 @@ import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.ILinkedMap;
 import com.koch.ambeth.util.objectcollector.IThreadLocalObjectCollector;
 
+import java.util.HashMap;
+import java.util.List;
+
 public class Table implements ITable, IInitializingBean {
-	public static final short[] EMPTY_SHORT_ARRAY = new short[0];
+    public static final short[] EMPTY_SHORT_ARRAY = new short[0];
+    protected final ArrayList<IDirectedLink> links = new ArrayList<>();
+    protected final HashMap<String, IDirectedLink> fieldNameToLinkDict = new HashMap<>();
+    protected final HashMap<String, IDirectedLink> linkNameToLinkDict = new HashMap<>();
+    protected final HashMap<String, IDirectedLink> memberNameToLinkDict = new HashMap<>();
+    @Autowired
+    protected IAlreadyLinkedCache alreadyLinkedCache;
+    @Autowired
+    protected IServiceContext beanContext;
+    @Autowired
+    protected IThreadLocalObjectCollector objectCollector;
+    @Property
+    protected ITableMetaData metaData;
+    @LogInstance
+    private ILogger log;
 
-	@LogInstance
-	private ILogger log;
+    @Override
+    public void afterPropertiesSet() throws Throwable {
+    }
 
-	@Autowired
-	protected IAlreadyLinkedCache alreadyLinkedCache;
+    @Override
+    public ITableMetaData getMetaData() {
+        return metaData;
+    }
 
-	@Autowired
-	protected IServiceContext beanContext;
+    @Override
+    public List<IDirectedLink> getLinks() {
+        return links;
+    }
 
-	@Autowired
-	protected IThreadLocalObjectCollector objectCollector;
+    @Override
+    public IVersionCursor selectVersion(int idIndex, List<?> ids) {
+        throw new UnsupportedOperationException("Not implemented");
+    }
 
-	@Property
-	protected ITableMetaData metaData;
+    @Override
+    public IVersionCursor selectVersionWhere(CharSequence whereSql) {
+        return selectVersionWhere(null, whereSql, null, null, null);
+    }
 
-	protected final ArrayList<IDirectedLink> links = new ArrayList<>();
+    @Override
+    public IVersionCursor selectVersionWhere(List<String> additionalSelectColumnList, CharSequence whereSql, CharSequence orderBySql, CharSequence limitSql, List<Object> parameters) {
+        throw new UnsupportedOperationException("Not implemented");
+    }
 
-	protected final HashMap<String, IDirectedLink> fieldNameToLinkDict =
-			new HashMap<>();
+    public IVersionCursor selectVersionJoin(List<String> additionalSelectColumnList, CharSequence joinSql, CharSequence whereSql, CharSequence orderBySql, CharSequence limitSql,
+            List<Object> parameters) {
+        throw new UnsupportedOperationException("Not implemented");
+    }
 
-	protected final HashMap<String, IDirectedLink> linkNameToLinkDict =
-			new HashMap<>();
+    public IVersionCursor selectVersionJoin(List<String> additionalSelectColumnList, CharSequence joinSql, CharSequence whereSql, CharSequence orderBySql, CharSequence limitSql,
+            List<Object> parameters, String tableAlias, boolean retrieveAlternateIds) {
+        throw new UnsupportedOperationException("Not implemented");
+    }
 
-	protected final HashMap<String, IDirectedLink> memberNameToLinkDict =
-			new HashMap<>();
+    public IVersionCursor selectVersionPaging(List<String> additionalSelectColumnList, CharSequence joinSql, CharSequence whereSql, CharSequence orderBySql, CharSequence limitSql, int offset,
+            int length, List<Object> parameters) {
+        throw new UnsupportedOperationException("Not implemented");
+    }
 
-	@Override
-	public void afterPropertiesSet() throws Throwable {
-	}
+    public IVersionCursor selectVersionPaging(List<String> additionalSelectColumnList, CharSequence joinSql, CharSequence whereSql, CharSequence orderBySql, CharSequence limitSql, int offset,
+            int length, List<Object> parameters, String tableAlias, boolean retrieveAlternateIds) {
+        throw new UnsupportedOperationException("Not implemented");
+    }
 
-	@Override
-	public ITableMetaData getMetaData() {
-		return metaData;
-	}
+    public long selectCountJoin(CharSequence joinSql, CharSequence whereSql, CharSequence orderBySql, List<Object> parameters, String tableAlias) {
+        throw new UnsupportedOperationException("Not implemented");
+    }
 
-	@Override
-	public List<IDirectedLink> getLinks() {
-		return links;
-	}
+    public IDataCursor selectDataJoin(List<String> selectColumnList, CharSequence joinSql, CharSequence whereSql, CharSequence orderBySql, CharSequence limitSql, List<Object> parameters) {
+        throw new UnsupportedOperationException("Not implemented");
+    }
 
-	@Override
-	public IVersionCursor selectVersion(List<?> ids) {
-		throw new UnsupportedOperationException("Not implemented");
-	}
+    public IDataCursor selectDataJoin(List<String> selectColumnList, CharSequence joinSql, CharSequence whereSql, CharSequence orderBySql, CharSequence limitSql, List<Object> parameters,
+            String tableAlias) {
+        throw new UnsupportedOperationException("Not implemented");
+    }
 
-	@Override
-	public IVersionCursor selectVersion(String alternateIdMemberName, List<?> alternateIds) {
-		throw new UnsupportedOperationException("Not implemented");
-	}
+    public IDataCursor selectDataPaging(List<String> selectColumnList, CharSequence joinSql, CharSequence whereSql, CharSequence orderBySql, CharSequence limitSql, int offset, int length,
+            List<Object> parameters) {
+        throw new UnsupportedOperationException("Not implemented");
+    }
 
-	@Override
-	public IVersionCursor selectVersionWhere(CharSequence whereSql) {
-		return selectVersionWhere(null, whereSql, null, null, null);
-	}
+    @Override
+    public IVersionCursor selectAll() {
+        throw new UnsupportedOperationException("Not implemented");
+    }
 
-	@Override
-	public IVersionCursor selectVersionWhere(List<String> additionalSelectColumnList,
-			CharSequence whereSql, CharSequence orderBySql, CharSequence limitSql,
-			List<Object> parameters) {
-		throw new UnsupportedOperationException("Not implemented");
-	}
+    @Override
+    public ICursor selectValues(int idIndex, List<?> alternateIds) {
+        throw new UnsupportedOperationException("Not implemented");
+    }
 
-	public IVersionCursor selectVersionJoin(List<String> additionalSelectColumnList,
-			CharSequence joinSql, CharSequence whereSql, CharSequence orderBySql, CharSequence limitSql,
-			List<Object> parameters) {
-		throw new UnsupportedOperationException("Not implemented");
-	}
+    @Override
+    public IDirectedLink getLinkByName(String linkName) {
+        return linkNameToLinkDict.get(linkName);
+    }
 
-	public IVersionCursor selectVersionJoin(List<String> additionalSelectColumnList,
-			CharSequence joinSql, CharSequence whereSql, CharSequence orderBySql, CharSequence limitSql,
-			List<Object> parameters, String tableAlias, boolean retrieveAlternateIds) {
-		throw new UnsupportedOperationException("Not implemented");
-	}
+    @Override
+    public IDirectedLink getLinkByFieldName(String fieldName) {
+        return fieldNameToLinkDict.get(fieldName);
+    }
 
-	public IVersionCursor selectVersionPaging(List<String> additionalSelectColumnList,
-			CharSequence joinSql, CharSequence whereSql, CharSequence orderBySql, CharSequence limitSql,
-			int offset, int length, List<Object> parameters) {
-		throw new UnsupportedOperationException("Not implemented");
-	}
+    @Override
+    public IDirectedLink getLinkByMemberName(String memberName) {
+        return memberNameToLinkDict.get(memberName);
+    }
 
-	public IVersionCursor selectVersionPaging(List<String> additionalSelectColumnList,
-			CharSequence joinSql, CharSequence whereSql, CharSequence orderBySql, CharSequence limitSql,
-			int offset, int length, List<Object> parameters, String tableAlias,
-			boolean retrieveAlternateIds) {
-		throw new UnsupportedOperationException("Not implemented");
-	}
+    @Override
+    public void delete(List<IObjRef> oris) {
+        throw new UnsupportedOperationException("Not implemented");
+    }
 
-	public long selectCountJoin(CharSequence joinSql, CharSequence whereSql, CharSequence orderBySql,
-			List<Object> parameters, String tableAlias) {
-		throw new UnsupportedOperationException("Not implemented");
-	}
+    @Override
+    public void deleteAll() {
+        throw new UnsupportedOperationException("Not implemented");
+    }
 
-	public IDataCursor selectDataJoin(List<String> selectColumnList, CharSequence joinSql,
-			CharSequence whereSql, CharSequence orderBySql, CharSequence limitSql,
-			List<Object> parameters) {
-		throw new UnsupportedOperationException("Not implemented");
-	}
+    @Override
+    public void startBatch() {
+        throw new UnsupportedOperationException("Not implemented");
+    }
 
-	public IDataCursor selectDataJoin(List<String> selectColumnList, CharSequence joinSql,
-			CharSequence whereSql, CharSequence orderBySql, CharSequence limitSql,
-			List<Object> parameters, String tableAlias) {
-		throw new UnsupportedOperationException("Not implemented");
-	}
+    @Override
+    public int[] finishBatch() {
+        throw new UnsupportedOperationException("Not implemented");
+    }
 
-	public IDataCursor selectDataPaging(List<String> selectColumnList, CharSequence joinSql,
-			CharSequence whereSql, CharSequence orderBySql, CharSequence limitSql, int offset, int length,
-			List<Object> parameters) {
-		throw new UnsupportedOperationException("Not implemented");
-	}
+    @Override
+    public void clearBatch() {
+        throw new UnsupportedOperationException("Not implemented");
+    }
 
-	@Override
-	public IVersionCursor selectAll() {
-		throw new UnsupportedOperationException("Not implemented");
-	}
+    @Override
+    public Object insert(Object id, ILinkedMap<IFieldMetaData, Object> puis) {
+        throw new UnsupportedOperationException("Not implemented");
+    }
 
-	@Override
-	public ICursor selectValues(List<?> ids) {
-		throw new UnsupportedOperationException("Not implemented");
-	}
+    @Override
+    public Object update(Object id, Object version, ILinkedMap<IFieldMetaData, Object> puis) {
+        throw new UnsupportedOperationException("Not implemented");
+    }
 
-	@Override
-	public ICursor selectValues(String alternateIdMemberName, List<?> alternateIds) {
-		throw new UnsupportedOperationException("Not implemented");
-	}
+    protected void deleteLinksToId(Object id) {
+        for (IDirectedLink relatedLink : links) {
+            relatedLink.unlinkAllIds(id);
+        }
+    }
 
-	@Override
-	public IDirectedLink getLinkByName(String linkName) {
-		return linkNameToLinkDict.get(linkName);
-	}
+    @Override
+    public String toString() {
+        return "Table: " + getMetaData().getName();
+    }
 
-	@Override
-	public IDirectedLink getLinkByFieldName(String fieldName) {
-		return fieldNameToLinkDict.get(fieldName);
-	}
+    @Override
+    public void updateLinks() {
+        for (IDirectedLinkMetaData directedLinkMD : metaData.getLinks()) {
+            RelationMember member = directedLinkMD.getMember();
 
-	@Override
-	public IDirectedLink getLinkByMemberName(String memberName) {
-		return memberNameToLinkDict.get(memberName);
-	}
+            if (member == null || memberNameToLinkDict.containsKey(member.getName())) {
+                continue;
+            }
 
-	@Override
-	public void delete(List<IObjRef> oris) {
-		throw new UnsupportedOperationException("Not implemented");
-	}
-
-	@Override
-	public void deleteAll() {
-		throw new UnsupportedOperationException("Not implemented");
-	}
-
-	@Override
-	public void startBatch() {
-		throw new UnsupportedOperationException("Not implemented");
-	}
-
-	@Override
-	public int[] finishBatch() {
-		throw new UnsupportedOperationException("Not implemented");
-	}
-
-	@Override
-	public void clearBatch() {
-		throw new UnsupportedOperationException("Not implemented");
-	}
-
-	@Override
-	public Object insert(Object id, ILinkedMap<IFieldMetaData, Object> puis) {
-		throw new UnsupportedOperationException("Not implemented");
-	}
-
-	@Override
-	public Object update(Object id, Object version, ILinkedMap<IFieldMetaData, Object> puis) {
-		throw new UnsupportedOperationException("Not implemented");
-	}
-
-	protected void deleteLinksToId(Object id) {
-		for (IDirectedLink relatedLink : links) {
-			relatedLink.unlinkAllIds(id);
-		}
-	}
-
-	@Override
-	public String toString() {
-		return "Table: " + getMetaData().getName();
-	}
-
-	@Override
-	public void updateLinks() {
-		for (IDirectedLinkMetaData directedLinkMD : metaData.getLinks()) {
-			RelationMember member = directedLinkMD.getMember();
-
-			if (member == null || memberNameToLinkDict.containsKey(member.getName())) {
-				continue;
-			}
-
-			IDirectedLink directedLink = linkNameToLinkDict.get(directedLinkMD.getName());
-			memberNameToLinkDict.put(member.getName(), directedLink);
-		}
-	}
+            IDirectedLink directedLink = linkNameToLinkDict.get(directedLinkMD.getName());
+            memberNameToLinkDict.put(member.getName(), directedLink);
+        }
+    }
 }

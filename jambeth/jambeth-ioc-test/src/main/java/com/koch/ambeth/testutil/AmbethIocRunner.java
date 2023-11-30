@@ -20,10 +20,10 @@ limitations under the License.
  * #L%
  */
 
+import com.koch.ambeth.core.Ambeth;
+import com.koch.ambeth.core.start.IAmbethApplication;
 import com.koch.ambeth.ioc.IInitializingModule;
 import com.koch.ambeth.ioc.IServiceContext;
-import com.koch.ambeth.ioc.IocModule;
-import com.koch.ambeth.ioc.factory.BeanContextFactory;
 import com.koch.ambeth.ioc.factory.IBeanContextFactory;
 import com.koch.ambeth.ioc.threadlocal.IThreadLocalCleanupController;
 import com.koch.ambeth.ioc.util.IPropertiesProvider;
@@ -31,16 +31,15 @@ import com.koch.ambeth.log.LoggerFactory;
 import com.koch.ambeth.log.config.Properties;
 import com.koch.ambeth.log.io.FileUtil;
 import com.koch.ambeth.log.slf4j.Slf4jLogger;
-import com.koch.ambeth.util.NullPrintStream;
 import com.koch.ambeth.util.annotation.AnnotationInfo;
 import com.koch.ambeth.util.annotation.IAnnotationInfo;
 import com.koch.ambeth.util.collections.ArrayList;
-import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.LinkedHashMap;
 import com.koch.ambeth.util.collections.LinkedHashSet;
 import com.koch.ambeth.util.config.IProperties;
-import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
+import com.koch.ambeth.util.config.UtilConfigurationConstants;
 import com.koch.ambeth.util.state.IStateRollback;
+import lombok.SneakyThrows;
 import org.junit.Ignore;
 import org.junit.runner.notification.RunNotifier;
 import org.junit.runners.BlockJUnit4ClassRunner;
@@ -53,12 +52,12 @@ import java.lang.reflect.Method;
 import java.util.List;
 
 public class AmbethIocRunner extends BlockJUnit4ClassRunner {
-    protected static List<TestProperties> getAllTestProperties(Class<?> testClass, FrameworkMethod frameworkMethod) {
-        List<IAnnotationInfo<?>> testPropertiesList = findAnnotations(testClass, frameworkMethod != null ? frameworkMethod.getMethod() : null, TestPropertiesList.class, TestProperties.class);
+    protected static List<TestProperties> getAllTestProperties(Class<?> testClass, Method testMethod) {
+        var testPropertiesList = findAnnotations(testClass, testMethod, TestPropertiesList.class, TestProperties.class);
 
-        LinkedHashMap<String, TestProperties> allTestProperties = new LinkedHashMap<>();
+        var allTestProperties = new LinkedHashMap<String, TestProperties>();
 
-        ArrayList<TestProperties> additionalProperties = new ArrayList<>();
+        var additionalProperties = new ArrayList<TestProperties>();
 
         for (int a = 0, size = testPropertiesList.size(); a < size; a++) {
             IAnnotationInfo<?> annotationInfo = testPropertiesList.get(a);
@@ -82,27 +81,28 @@ public class AmbethIocRunner extends BlockJUnit4ClassRunner {
                 allTestProperties.put(testProperties.name(), testProperties);
             }
         }
-        IList<TestProperties> list = allTestProperties.values();
+        var list = allTestProperties.values();
         list.addAll(additionalProperties);
         return list;
     }
 
-    public static void extendProperties(Class<?> testClass, FrameworkMethod frameworkMethod, Properties props) {
-        List<TestProperties> allTestProperties = getAllTestProperties(testClass, frameworkMethod);
+    @SneakyThrows
+    public static void extendProperties(Class<?> testClass, Method testMethod, Properties props) {
+        var allTestProperties = getAllTestProperties(testClass, testMethod);
 
-        ArrayList<TestProperties> additionalTestProperties = new ArrayList<>();
+        var additionalTestProperties = new ArrayList<TestProperties>();
         for (int a = 0, size = allTestProperties.size(); a < size; a++) {
-            TestProperties testProperties = allTestProperties.get(a);
-            Class<? extends IPropertiesProvider> testPropertiesType = testProperties.type();
+            var testProperties = allTestProperties.get(a);
+            var testPropertiesType = testProperties.type();
             if (testPropertiesType != null && !IPropertiesProvider.class.equals(testPropertiesType)) {
                 additionalTestProperties.add(testProperties);
             }
-            String testPropertiesFile = testProperties.file();
+            var testPropertiesFile = testProperties.file();
             if (testPropertiesFile != null && testPropertiesFile.length() > 0) {
                 props.load(testPropertiesFile);
             }
-            String testPropertyName = testProperties.name();
-            String testPropertyValue = testProperties.value();
+            var testPropertyName = testProperties.name();
+            var testPropertyValue = testProperties.value();
             if (testPropertyName != null && testPropertyName.length() > 0) {
                 if (testPropertyValue != null) {
                     if (testProperties.overrideIfExists() || props.get(testPropertyName) == null) {
@@ -112,13 +112,8 @@ public class AmbethIocRunner extends BlockJUnit4ClassRunner {
                 }
             }
         }
-        for (TestProperties testProperties : additionalTestProperties) {
-            IPropertiesProvider propertiesProvider;
-            try {
-                propertiesProvider = testProperties.type().newInstance();
-            } catch (Exception e) {
-                throw RuntimeExceptionUtil.mask(e);
-            }
+        for (var testProperties : additionalTestProperties) {
+            var propertiesProvider = testProperties.type().newInstance();
             propertiesProvider.fillProperties(props);
         }
     }
@@ -169,8 +164,8 @@ public class AmbethIocRunner extends BlockJUnit4ClassRunner {
     protected final ThreadLocal<Object> targetProxyTL = new ThreadLocal<>();
     protected boolean hasContextBeenRebuildForThisTest;
     protected boolean isRebuildContextForThisTestRecommended;
-    protected IServiceContext testClassLevelContext;
-    protected IServiceContext beanContext;
+
+    protected IAmbethApplication ambeth;
 
     public AmbethIocRunner(Class<?> testClass) throws InitializationError {
         super(testClass);
@@ -178,23 +173,26 @@ public class AmbethIocRunner extends BlockJUnit4ClassRunner {
 
     @Override
     protected void finalize() throws Throwable {
-        if (beanContext != null) {
-            beanContext.getRoot().dispose();
-            beanContext = null;
-        }
-        if (testClassLevelContext != null) {
-            testClassLevelContext.getRoot().dispose();
-            testClassLevelContext = null;
-        }
+        disposeContext();
         super.finalize();
     }
 
     public IServiceContext getBeanContext() {
-        return beanContext;
+        if (ambeth != null) {
+            return ambeth.getApplicationContext();
+        }
+        return null;
+    }
+
+    public IServiceContext getRootContext() {
+        if (ambeth != null) {
+            return ambeth.getApplicationContext().getRoot();
+        }
+        return null;
     }
 
     public void cleanupThreadLocals() {
-        beanContext.getService(IThreadLocalCleanupController.class).cleanupThreadLocal();
+        getBeanContext().getService(IThreadLocalCleanupController.class).cleanupThreadLocal();
     }
 
     public void rebuildContext() {
@@ -202,93 +200,80 @@ public class AmbethIocRunner extends BlockJUnit4ClassRunner {
     }
 
     public void disposeContext() {
-        if (testClassLevelContext != null) {
-            IThreadLocalCleanupController tlCleanupController = testClassLevelContext.getService(IThreadLocalCleanupController.class);
-            testClassLevelContext.getRoot().dispose();
-            testClassLevelContext = null;
-            beanContext = null;
+        if (ambeth != null) {
+            var bootstrapContext = ambeth.getApplicationContext().getRoot();
+            IThreadLocalCleanupController tlCleanupController = bootstrapContext.getService(IThreadLocalCleanupController.class);
+            ambeth.close();
+            ambeth = null;
             tlCleanupController.cleanupThreadLocal();
         }
     }
 
-    protected List<Class<? extends IInitializingModule>> buildTestModuleList(FrameworkMethod frameworkMethod) {
-        List<IAnnotationInfo<?>> testModulesList = findAnnotations(getTestClass().getJavaClass(), frameworkMethod != null ? frameworkMethod.getMethod() : null, TestModule.class);
+    protected List<Class<? extends IInitializingModule>> buildTestModuleList(Method testMethod) {
+        var testModulesList = findAnnotations(getTestClass().getJavaClass(), testMethod, TestModule.class);
 
-        ArrayList<Class<? extends IInitializingModule>> moduleList = new ArrayList<>();
-        for (IAnnotationInfo<?> testModuleItem : testModulesList) {
-            TestModule testFrameworkModule = (TestModule) testModuleItem.getAnnotation();
+        var moduleList = new ArrayList<Class<? extends IInitializingModule>>();
+        for (var testModuleItem : testModulesList) {
+            var testFrameworkModule = (TestModule) testModuleItem.getAnnotation();
             moduleList.addAll(testFrameworkModule.value());
         }
         return moduleList;
     }
 
-    protected List<Class<? extends IInitializingModule>> buildFrameworkTestModuleList(FrameworkMethod frameworkMethod) {
-        List<IAnnotationInfo<?>> testFrameworkModulesList = findAnnotations(getTestClass().getJavaClass(), frameworkMethod != null ? frameworkMethod.getMethod() : null, TestFrameworkModule.class);
+    protected List<Class<? extends IInitializingModule>> buildFrameworkTestModuleList(Method testMethod) {
+        var testFrameworkModulesList = findAnnotations(getTestClass().getJavaClass(), testMethod, TestFrameworkModule.class);
 
-        ArrayList<Class<? extends IInitializingModule>> frameworkModuleList = new ArrayList<>();
-        for (IAnnotationInfo<?> testModuleItem : testFrameworkModulesList) {
-            TestFrameworkModule testFrameworkModule = (TestFrameworkModule) testModuleItem.getAnnotation();
+        var frameworkModuleList = new ArrayList<Class<? extends IInitializingModule>>();
+        for (var testModuleItem : testFrameworkModulesList) {
+            var testFrameworkModule = (TestFrameworkModule) testModuleItem.getAnnotation();
             frameworkModuleList.addAll(testFrameworkModule.value());
         }
         return frameworkModuleList;
     }
 
     @SuppressWarnings("unchecked")
-    protected void rebuildContext(FrameworkMethod frameworkMethod) {
+    protected void rebuildContext(Method testMethod) {
         disposeContext();
-        Properties.resetApplication();
 
-        var rollback = Properties.pushSystemOutStream(NullPrintStream.INSTANCE);
+        LoggerFactory.setLoggerType(Slf4jLogger.class);
+
+        var props = new Properties(Properties.getApplication());
+        var propertyFileKey = UtilConfigurationConstants.BootstrapPropertyFile;
+        var bootstrapPropertyFile = props.getString(propertyFileKey);
+        if (bootstrapPropertyFile == null) {
+            propertyFileKey = UtilConfigurationConstants.BootstrapPropertyFile.toUpperCase();
+            bootstrapPropertyFile = props.getString(propertyFileKey);
+        }
+        if (bootstrapPropertyFile != null) {
+            LoggerFactory.getLogger(getClass(), props).info("Environment property '" + UtilConfigurationConstants.BootstrapPropertyFile + "' found with value '" + bootstrapPropertyFile + "'");
+            props.load(bootstrapPropertyFile, false);
+        }
+        extendPropertiesInstance(testMethod, props);
+
+        var testClassLevelTestFrameworkModulesList = new LinkedHashSet<Class<? extends IInitializingModule>>();
+        var testClassLevelTestModulesList = new LinkedHashSet<Class<? extends IInitializingModule>>();
+
+        testClassLevelTestModulesList.addAll(buildTestModuleList(testMethod));
+        testClassLevelTestFrameworkModulesList.addAll(buildFrameworkTestModuleList(testMethod));
+
+        var frameworkModules = testClassLevelTestFrameworkModulesList.toArray(Class.class);
+        var applicationModules = testClassLevelTestModulesList.toArray(Class.class);
+
+        var rollback = FileUtil.pushCurrentTypeScope(getTestClass().getJavaClass());
         try {
-            Properties.loadBootstrapPropertyFile();
+            ambeth = Ambeth.createEmpty()
+                           .withFrameworkModules(frameworkModules)
+                           .withFrameworkModules(this::rebuildContextDetails)
+                           .withApplicationModules(applicationModules)
+                           .withProperties(props)
+                           .start();
         } finally {
             rollback.rollback();
         }
-        LoggerFactory.setLoggerType(Slf4jLogger.class);
-
-        var baseProps = new Properties(Properties.getApplication());
-
-        extendPropertiesInstance(frameworkMethod, baseProps);
-
-        LinkedHashSet<Class<? extends IInitializingModule>> testClassLevelTestFrameworkModulesList = new LinkedHashSet<>();
-        LinkedHashSet<Class<? extends IInitializingModule>> testClassLevelTestModulesList = new LinkedHashSet<>();
-
-        testClassLevelTestModulesList.addAll(buildTestModuleList(frameworkMethod));
-        testClassLevelTestFrameworkModulesList.addAll(buildFrameworkTestModuleList(frameworkMethod));
-
-        final Class<? extends IInitializingModule>[] frameworkModules = testClassLevelTestFrameworkModulesList.toArray(Class.class);
-        Class<? extends IInitializingModule>[] applicationModules = testClassLevelTestModulesList.toArray(Class.class);
-
-        testClassLevelContext = BeanContextFactory.createBootstrap(baseProps, IocModule.class);
-        boolean success = false;
-        try {
-            rollback = FileUtil.pushCurrentTypeScope(getTestClass().getJavaClass());
-            try {
-                IServiceContext currentBeanContext = testClassLevelContext;
-                if (frameworkModules.length > 0) {
-                    currentBeanContext = currentBeanContext.createService("framework", childContextFactory -> rebuildContextDetails(childContextFactory), frameworkModules);
-                }
-                if (applicationModules.length > 0 || frameworkModules.length == 0) {
-                    currentBeanContext = currentBeanContext.createService("application", childContextFactory -> {
-                        if (frameworkModules.length == 0) {
-                            rebuildContextDetails(childContextFactory);
-                        }
-                    }, applicationModules);
-                }
-                beanContext = currentBeanContext;
-            } finally {
-                rollback.rollback();
-            }
-            success = true;
-        } finally {
-            if (!success && testClassLevelContext != null) {
-                testClassLevelContext.getService(IThreadLocalCleanupController.class).cleanupThreadLocal();
-            }
-        }
     }
 
-    protected void extendPropertiesInstance(FrameworkMethod frameworkMethod, Properties props) {
-        extendProperties(getTestClass().getJavaClass(), frameworkMethod, props);
+    protected void extendPropertiesInstance(Method testMethod, Properties props) {
+        extendProperties(getTestClass().getJavaClass(), testMethod, props);
     }
 
     protected void rebuildContextDetails(IBeanContextFactory childContextFactory) {
@@ -324,6 +309,7 @@ public class AmbethIocRunner extends BlockJUnit4ClassRunner {
         return new Statement() {
             @Override
             public void evaluate() throws Throwable {
+                var beanContext = getBeanContext();
                 Object targetProxy;
                 if (IRunnerAware.class.isAssignableFrom(target.getClass())) {
                     targetProxy = beanContext.registerWithLifecycle(target).propertyValue("Runner", AmbethIocRunner.this).finish();
@@ -336,7 +322,7 @@ public class AmbethIocRunner extends BlockJUnit4ClassRunner {
                     returningStatement.evaluate();
                 } catch (RuntimeException e) {
                     if (beanContext != null && beanContext.isRunning()) {
-                        IProperties props = beanContext.getService(IProperties.class);
+                        var props = beanContext.getService(IProperties.class);
                         LoggerFactory.getLogger(AmbethIocRunner.this.getClass(), props).error(e);
                     }
                     throw e;
@@ -348,9 +334,6 @@ public class AmbethIocRunner extends BlockJUnit4ClassRunner {
                         if (cleanupAfter != null) {
                             cleanupAfter.cleanup();
                         }
-                    } else if (testClassLevelContext != null) {
-                        var tlCleanupController = testClassLevelContext.getService(IThreadLocalCleanupController.class);
-                        tlCleanupController.cleanupThreadLocal();
                     }
                 }
             }
@@ -391,7 +374,7 @@ public class AmbethIocRunner extends BlockJUnit4ClassRunner {
                         if (!rebuildContextList.isEmpty()) {
                             boolean rebuildContext = ((TestRebuildContext) rebuildContextList.get(rebuildContextList.size() - 1).getAnnotation()).value();
                             if (rebuildContext) {
-                                rebuildContext(method);
+                                rebuildContext(method != null ? method.getMethod() : null);
                                 hasContextBeenRebuildForThisTest = true;
                                 isRebuildContextForThisTestRecommended = false;
                             }
@@ -401,15 +384,15 @@ public class AmbethIocRunner extends BlockJUnit4ClassRunner {
 
                             if (targetMethod.isAnnotationPresent(TestModule.class) || targetMethod.isAnnotationPresent(TestFrameworkModule.class) || targetMethod.isAnnotationPresent(
                                     TestPropertiesList.class) || targetMethod.isAnnotationPresent(TestProperties.class)) {
-                                rebuildContext(method);
+                                rebuildContext(method != null ? method.getMethod() : null);
                                 hasContextBeenRebuildForThisTest = true;
                                 isRebuildContextForThisTestRecommended = false;
                             }
                         }
                     }
                 }
-                if (beanContext == null || isRebuildContextForThisTestRecommended) {
-                    rebuildContext(method);
+                if (ambeth == null || isRebuildContextForThisTestRecommended) {
+                    rebuildContext(method != null ? method.getMethod() : null);
                 }
                 statement.evaluate();
             }

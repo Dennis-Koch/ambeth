@@ -21,18 +21,18 @@ limitations under the License.
  */
 
 import com.koch.ambeth.audit.server.config.AuditConfigurationConstants;
+import com.koch.ambeth.ioc.IInitializingBean;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.config.Property;
-import com.koch.ambeth.merge.ILightweightTransaction;
 import com.koch.ambeth.merge.ITransactionState;
-import com.koch.ambeth.security.audit.model.AuditedArg;
 import com.koch.ambeth.service.proxy.IMethodLevelBehavior;
 import com.koch.ambeth.util.proxy.CascadedInterceptor;
 import com.koch.ambeth.util.proxy.MethodProxy;
+import com.koch.ambeth.util.transaction.ILightweightTransaction;
 
 import java.lang.reflect.Method;
 
-public class AuditMethodCallInterceptor extends CascadedInterceptor {
+public class AuditMethodCallInterceptor extends CascadedInterceptor implements IInitializingBean {
     public static final String P_METHOD_LEVEL_BEHAVIOUR = "MethodLevelBehaviour";
 
     @Autowired
@@ -53,18 +53,28 @@ public class AuditMethodCallInterceptor extends CascadedInterceptor {
     @Property(name = AuditConfigurationConstants.AuditedServiceArgDefaultModeActive, defaultValue = "false")
     protected boolean auditedServiceArgDefaultModeActive;
 
+    protected boolean initialized;
+
+    @Override
+    public void afterPropertiesSet() throws Throwable {
+        initialized = true;
+    }
+
     @Override
     protected Object interceptIntern(final Object obj, final Method method, final Object[] args, final MethodProxy proxy) throws Throwable {
+        if (!initialized) {
+            return invokeTarget(obj, method, args, proxy);
+        }
         final AuditInfo auditInfo = methodLevelBehaviour.getBehaviourOfMethod(method);
         if ((auditInfo == null && !auditedServiceDefaultModeActive) || (auditInfo != null && !auditInfo.getAudited().value())) {
             return invokeTarget(obj, method, args, proxy);
         }
 
         // filter the args by audit configuration
-        AuditedArg[] auditedArgs = auditInfo.getAuditedArgs();
-        final Object[] filteredArgs = new Object[args.length];
+        var auditedArgs = auditInfo.getAuditedArgs();
+        var filteredArgs = new Object[args.length];
         for (int i = 0; i < filteredArgs.length; i++) {
-            AuditedArg auditedArg = auditedArgs != null ? auditedArgs[i] : null;
+            var auditedArg = auditedArgs != null ? auditedArgs[i] : null;
             if ((auditedArg == null && auditedServiceArgDefaultModeActive) || (auditedArg != null && auditedArg.value())) {
                 filteredArgs[i] = args[i];
             } else {
@@ -72,7 +82,7 @@ public class AuditMethodCallInterceptor extends CascadedInterceptor {
             }
         }
         if (transactionState.isTransactionActive()) {
-            IMethodCallHandle methodCallHandle = methodCallLogger.logMethodCallStart(method, filteredArgs);
+            var methodCallHandle = methodCallLogger.logMethodCallStart(method, filteredArgs);
             try {
                 return invokeTarget(obj, method, args, proxy);
             } finally {

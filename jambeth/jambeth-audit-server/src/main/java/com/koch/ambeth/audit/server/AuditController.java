@@ -40,7 +40,6 @@ import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.ICUDResultApplier;
 import com.koch.ambeth.merge.ICUDResultHelper;
-import com.koch.ambeth.merge.ILightweightTransaction;
 import com.koch.ambeth.merge.IMergeListener;
 import com.koch.ambeth.merge.IObjRefHelper;
 import com.koch.ambeth.merge.MergeProcess;
@@ -91,6 +90,7 @@ import com.koch.ambeth.util.format.XmlHint;
 import com.koch.ambeth.util.objectcollector.IThreadLocalObjectCollector;
 import com.koch.ambeth.util.state.IStateRollback;
 import com.koch.ambeth.util.state.StateRollback;
+import com.koch.ambeth.util.transaction.ILightweightTransaction;
 
 import java.io.IOException;
 import java.lang.reflect.Method;

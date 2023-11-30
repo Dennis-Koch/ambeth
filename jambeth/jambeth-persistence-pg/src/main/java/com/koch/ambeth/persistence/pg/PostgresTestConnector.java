@@ -25,7 +25,9 @@ import com.koch.ambeth.persistence.IConnectionDialect;
 import com.koch.ambeth.persistence.jdbc.IConnectionTestDialect;
 import com.koch.ambeth.persistence.jdbc.connection.IDatabaseConnectionUrlProvider;
 import com.koch.ambeth.persistence.jdbc.testconnector.ITestConnector;
+import io.toolisticon.spiap.api.SpiService;
 
+@SpiService(ITestConnector.class)
 public class PostgresTestConnector implements ITestConnector {
     @Override
     public boolean supports(String databaseProtocol) {
@@ -34,12 +36,9 @@ public class PostgresTestConnector implements ITestConnector {
 
     @Override
     public void handleTestSetup(IBeanContextFactory beanContextFactory, String databaseProtocol) {
-        beanContextFactory.registerBean(PostgresConnectionUrlProvider.class)
-                          .autowireable(IDatabaseConnectionUrlProvider.class);
-        beanContextFactory.registerBean(PostgresDialect.class)
-                          .autowireable(IConnectionDialect.class);
-        beanContextFactory.registerBean(PostgresTestDialect.class)
-                          .autowireable(IConnectionTestDialect.class);
+        beanContextFactory.registerBean(PostgresConnectionUrlProvider.class).autowireable(IDatabaseConnectionUrlProvider.class);
+        beanContextFactory.registerBean(PostgresDialect.class).autowireable(IConnectionDialect.class);
+        beanContextFactory.registerBean(PostgresTestDialect.class).autowireable(IConnectionTestDialect.class);
     }
 
     @Override

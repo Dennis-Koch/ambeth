@@ -26,9 +26,9 @@ import com.koch.ambeth.query.persistence.IVersionCursor;
 import com.koch.ambeth.service.merge.model.IObjRef;
 import com.koch.ambeth.util.collections.HashMap;
 import com.koch.ambeth.util.collections.IList;
-import com.koch.ambeth.util.collections.IMap;
 
 import java.util.List;
+import java.util.Map;
 
 public class StatefulQuery<T> implements IQuery<T> {
     protected final HashMap<Object, Object> paramMap = new HashMap<>();
@@ -49,7 +49,7 @@ public class StatefulQuery<T> implements IQuery<T> {
     }
 
     @Override
-    public IQueryKey getQueryKey(IMap<Object, Object> nameToValueMap) {
+    public IQueryKey getQueryKey(Map<Object, Object> nameToValueMap) {
         return query.getQueryKey(nameToValueMap);
     }
 
@@ -75,7 +75,7 @@ public class StatefulQuery<T> implements IQuery<T> {
     }
 
     @Override
-    public IVersionCursor retrieveAsVersions(IMap<Object, Object> nameToValueMap) {
+    public IVersionCursor retrieveAsVersions(Map<Object, Object> nameToValueMap) {
         throw new UnsupportedOperationException("Only retrieveAsVersions() allowed");
     }
 
@@ -90,7 +90,7 @@ public class StatefulQuery<T> implements IQuery<T> {
     }
 
     @Override
-    public IEntityCursor<T> retrieveAsCursor(IMap<Object, Object> nameToValueMap) {
+    public IEntityCursor<T> retrieveAsCursor(Map<Object, Object> nameToValueMap) {
         throw new UnsupportedOperationException("Only retrieveAsCursor() allowed");
     }
 
@@ -100,7 +100,7 @@ public class StatefulQuery<T> implements IQuery<T> {
     }
 
     @Override
-    public IList<T> retrieve(IMap<Object, Object> nameToValueMap) {
+    public IList<T> retrieve(Map<Object, Object> nameToValueMap) {
         throw new UnsupportedOperationException();
     }
 

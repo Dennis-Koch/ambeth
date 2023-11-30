@@ -20,41 +20,40 @@ limitations under the License.
  * #L%
  */
 
-import java.util.List;
-
 import com.koch.ambeth.query.persistence.IDataCursor;
 import com.koch.ambeth.query.persistence.IEntityCursor;
 import com.koch.ambeth.query.persistence.IVersionCursor;
 import com.koch.ambeth.service.merge.model.IObjRef;
 import com.koch.ambeth.util.IDisposable;
 import com.koch.ambeth.util.collections.IList;
-import com.koch.ambeth.util.collections.IMap;
+
+import java.util.List;
+import java.util.Map;
 
 public interface IQueryIntern<T> extends IDisposable {
-	IVersionCursor retrieveAsVersions();
+    IVersionCursor retrieveAsVersions();
 
-	IDataCursor retrieveAsData(IMap<Object, Object> paramNameToValueMap);
+    IDataCursor retrieveAsData(Map<Object, Object> paramNameToValueMap);
 
-	IVersionCursor retrieveAsVersions(IMap<Object, Object> paramNameToValueMap,
-			boolean retrieveAlternateIds);
+    IVersionCursor retrieveAsVersions(Map<Object, Object> paramNameToValueMap, boolean retrieveAlternateIds);
 
-	IList<IObjRef> retrieveAsObjRefs(IMap<Object, Object> paramNameToValueMap, int idIndex);
+    IList<IObjRef> retrieveAsObjRefs(Map<Object, Object> paramNameToValueMap, int idIndex);
 
-	IEntityCursor<T> retrieveAsCursor();
+    IEntityCursor<T> retrieveAsCursor();
 
-	IEntityCursor<T> retrieveAsCursor(IMap<Object, Object> paramNameToValueMap);
+    IEntityCursor<T> retrieveAsCursor(Map<Object, Object> paramNameToValueMap);
 
-	IList<T> retrieve();
+    IList<T> retrieve();
 
-	IList<T> retrieve(IMap<Object, Object> paramNameToValueMap);
+    IList<T> retrieve(Map<Object, Object> paramNameToValueMap);
 
-	Class<T> getEntityType();
+    Class<T> getEntityType();
 
-	void fillRelatedEntityTypes(List<Class<?>> relatedEntityTypes);
+    void fillRelatedEntityTypes(List<Class<?>> relatedEntityTypes);
 
-	IQueryKey getQueryKey(IMap<Object, Object> paramNameToValueMap);
+    IQueryKey getQueryKey(Map<Object, Object> paramNameToValueMap);
 
-	long count(IMap<Object, Object> paramNameToValueMap);
+    long count(Map<Object, Object> paramNameToValueMap);
 
-	boolean isEmpty(IMap<Object, Object> paramNameToValueMap);
+    boolean isEmpty(Map<Object, Object> paramNameToValueMap);
 }

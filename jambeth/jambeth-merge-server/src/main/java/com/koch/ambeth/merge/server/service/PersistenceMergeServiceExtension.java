@@ -107,7 +107,6 @@ import com.koch.ambeth.util.function.CheckedRunnable;
 import com.koch.ambeth.util.model.IMethodDescription;
 import com.koch.ambeth.util.objectcollector.IThreadLocalObjectCollector;
 import com.koch.ambeth.util.state.IStateRollback;
-
 import jakarta.persistence.OptimisticLockException;
 import jakarta.persistence.PersistenceException;
 

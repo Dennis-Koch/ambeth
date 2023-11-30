@@ -26,13 +26,13 @@ import com.koch.ambeth.ioc.IServiceContext;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.garbageproxy.IGarbageProxyConstructor;
 import com.koch.ambeth.ioc.garbageproxy.IGarbageProxyFactory;
-import com.koch.ambeth.merge.ILightweightTransaction;
 import com.koch.ambeth.query.IQueryBuilder;
 import com.koch.ambeth.query.IQueryBuilderExtension;
 import com.koch.ambeth.query.IQueryBuilderExtensionExtendable;
 import com.koch.ambeth.query.IQueryBuilderFactory;
 import com.koch.ambeth.service.merge.IEntityMetaDataProvider;
 import com.koch.ambeth.service.merge.model.IEntityMetaData;
+import com.koch.ambeth.util.transaction.ILightweightTransaction;
 
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;

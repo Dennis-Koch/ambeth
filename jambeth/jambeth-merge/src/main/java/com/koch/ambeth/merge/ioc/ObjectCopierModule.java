@@ -20,7 +20,8 @@ limitations under the License.
  * #L%
  */
 
-import com.koch.ambeth.ioc.IInitializingModule;
+import io.toolisticon.spiap.api.SpiService;
+import com.koch.ambeth.ioc.IFrameworkModule;
 import com.koch.ambeth.ioc.annotation.FrameworkModule;
 import com.koch.ambeth.ioc.config.IBeanConfiguration;
 import com.koch.ambeth.ioc.factory.IBeanContextFactory;
@@ -34,17 +35,16 @@ import com.koch.ambeth.merge.copy.StringBuilderOCE;
  * IOC container to gain access to <code>IObjectCopier</code> & <code>IObjectCopierExtendable</code>
  * functionality
  */
+@SpiService(IFrameworkModule.class)
 @FrameworkModule
-public class ObjectCopierModule implements IInitializingModule {
-	@Override
-	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
-		// Default ObjectCopier implementation
-		beanContextFactory.registerBean(ObjectCopier.class).autowireable(IObjectCopier.class,
-				IObjectCopierExtendable.class);
+public class ObjectCopierModule implements IFrameworkModule {
+    @Override
+    public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
+        // Default ObjectCopier implementation
+        beanContextFactory.registerBean(ObjectCopier.class).autowireable(IObjectCopier.class, IObjectCopierExtendable.class);
 
-		// Default ObjectCopier extensions
-		IBeanConfiguration stringBuilderOCE = beanContextFactory.registerBean(StringBuilderOCE.class);
-		beanContextFactory.link(stringBuilderOCE).to(IObjectCopierExtendable.class)
-				.with(StringBuilder.class);
-	}
+        // Default ObjectCopier extensions
+        IBeanConfiguration stringBuilderOCE = beanContextFactory.registerBean(StringBuilderOCE.class);
+        beanContextFactory.link(stringBuilderOCE).to(IObjectCopierExtendable.class).with(StringBuilder.class);
+    }
 }

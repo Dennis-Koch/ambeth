@@ -21,49 +21,55 @@ limitations under the License.
  */
 
 public class AppendableStringBuilder implements IAppendable, CharSequence {
-	protected final StringBuilder sb;
+    protected final StringBuilder sb;
 
-	public AppendableStringBuilder() {
-		this(new StringBuilder());
-	}
+    public AppendableStringBuilder() {
+        this(new StringBuilder());
+    }
 
-	public AppendableStringBuilder(StringBuilder sb) {
-		this.sb = sb;
-	}
+    public AppendableStringBuilder(StringBuilder sb) {
+        this.sb = sb;
+    }
 
-	public void reset() {
-		sb.setLength(0);
-	}
+    public void reset() {
+        sb.setLength(0);
+    }
 
-	@Override
-	public IAppendable append(char value) {
-		sb.append(value);
-		return this;
-	}
+    @Override
+    public IAppendable append(char value) {
+        sb.append(value);
+        return this;
+    }
 
-	@Override
-	public IAppendable append(CharSequence value) {
-		sb.append(value);
-		return this;
-	}
+    @Override
+    public IAppendable append(int value) {
+        sb.append(value);
+        return this;
+    }
 
-	@Override
-	public char charAt(int index) {
-		return sb.charAt(index);
-	}
+    @Override
+    public IAppendable append(CharSequence value) {
+        sb.append(value);
+        return this;
+    }
 
-	@Override
-	public int length() {
-		return sb.length();
-	}
+    @Override
+    public char charAt(int index) {
+        return sb.charAt(index);
+    }
 
-	@Override
-	public CharSequence subSequence(int start, int end) {
-		return sb.subSequence(start, end);
-	}
+    @Override
+    public int length() {
+        return sb.length();
+    }
 
-	@Override
-	public String toString() {
-		return sb.toString();
-	}
+    @Override
+    public CharSequence subSequence(int start, int end) {
+        return sb.subSequence(start, end);
+    }
+
+    @Override
+    public String toString() {
+        return sb.toString();
+    }
 }

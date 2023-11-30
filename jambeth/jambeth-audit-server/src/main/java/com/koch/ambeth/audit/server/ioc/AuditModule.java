@@ -20,6 +20,7 @@ limitations under the License.
  * #L%
  */
 
+import io.toolisticon.spiap.api.SpiService;
 import com.koch.ambeth.audit.IAuditEntryVerifier;
 import com.koch.ambeth.audit.server.AuditConfigurationProvider;
 import com.koch.ambeth.audit.server.AuditController;
@@ -41,7 +42,7 @@ import com.koch.ambeth.audit.server.IMethodCallLogger;
 import com.koch.ambeth.audit.server.config.AuditConfigurationConstants;
 import com.koch.ambeth.cache.audit.IVerifyOnLoad;
 import com.koch.ambeth.event.IEventListenerExtendable;
-import com.koch.ambeth.ioc.IInitializingModule;
+import com.koch.ambeth.ioc.IFrameworkModule;
 import com.koch.ambeth.ioc.annotation.FrameworkModule;
 import com.koch.ambeth.ioc.config.IBeanConfiguration;
 import com.koch.ambeth.ioc.config.Property;
@@ -51,52 +52,42 @@ import com.koch.ambeth.merge.IMergeListenerExtendable;
 import com.koch.ambeth.persistence.api.database.ITransactionListenerExtendable;
 import com.koch.ambeth.service.cache.ClearAllCachesEvent;
 
+@SpiService(IFrameworkModule.class)
 @FrameworkModule
-public class AuditModule implements IInitializingModule {
-	@Property(name = AuditConfigurationConstants.AuditActive, defaultValue = "false")
-	protected boolean auditActive;
+public class AuditModule implements IFrameworkModule {
+    @Property(name = AuditConfigurationConstants.AuditActive, defaultValue = "false")
+    protected boolean auditActive;
 
-	@Property(name = AuditConfigurationConstants.VerifierCrontab, mandatory = false)
-	protected String auditVerifierCrontab;
+    @Property(name = AuditConfigurationConstants.VerifierCrontab, mandatory = false)
+    protected String auditVerifierCrontab;
 
-	@Override
-	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
-		beanContextFactory.registerBean(AuditConfigurationProvider.class)
-				.autowireable(IAuditConfigurationProvider.class, IAuditConfigurationExtendable.class);
+    @Override
+    public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
+        beanContextFactory.registerBean(AuditConfigurationProvider.class).autowireable(IAuditConfigurationProvider.class, IAuditConfigurationExtendable.class);
 
-		IBeanConfiguration auditEntryController = beanContextFactory.registerBean(AuditController.class)
-				.autowireable(IMethodCallLogger.class, IAuditInfoController.class);
+        IBeanConfiguration auditEntryController = beanContextFactory.registerBean(AuditController.class).autowireable(IMethodCallLogger.class, IAuditInfoController.class);
 
-		if (auditActive) {
-			beanContextFactory.registerBean(AuditEntryReader.class).autowireable(IAuditEntryReader.class);
+        if (auditActive) {
+            beanContextFactory.registerBean(AuditEntryReader.class).autowireable(IAuditEntryReader.class);
 
-			if (auditVerifierCrontab != null) {
-				IBeanConfiguration auditVerifierJob = beanContextFactory
-						.registerBean(AuditVerifierJob.class);
-				beanContextFactory.link(auditVerifierJob).to(IJobExtendable.class)
-						.with(AuditVerifierJob.class.getSimpleName(), auditVerifierCrontab).optional();
-			}
+            if (auditVerifierCrontab != null) {
+                IBeanConfiguration auditVerifierJob = beanContextFactory.registerBean(AuditVerifierJob.class);
+                beanContextFactory.link(auditVerifierJob).to(IJobExtendable.class).with(AuditVerifierJob.class.getSimpleName(), auditVerifierCrontab).optional();
+            }
 
-			IBeanConfiguration auditEntryVerifier = beanContextFactory
-					.registerBean(AuditEntryVerifier.class)
-					.autowireable(IAuditEntryVerifier.class, IVerifyOnLoad.class);
-			beanContextFactory.link(auditEntryVerifier, AuditEntryVerifier.HANDLE_CLEAR_ALL_CACHES_EVENT)
-					.to(IEventListenerExtendable.class).with(ClearAllCachesEvent.class);
+            IBeanConfiguration auditEntryVerifier = beanContextFactory.registerBean(AuditEntryVerifier.class).autowireable(IAuditEntryVerifier.class, IVerifyOnLoad.class);
+            beanContextFactory.link(auditEntryVerifier, AuditEntryVerifier.HANDLE_CLEAR_ALL_CACHES_EVENT).to(IEventListenerExtendable.class).with(ClearAllCachesEvent.class);
 
-			beanContextFactory.registerBean(AuditVerifyOnLoadTask.class)
-					.autowireable(IAuditVerifyOnLoadTask.class);
+            beanContextFactory.registerBean(AuditVerifyOnLoadTask.class).autowireable(IAuditVerifyOnLoadTask.class);
 
-			beanContextFactory.registerBean(AuditEntryToSignature.class)
-					.autowireable(IAuditEntryToSignature.class, IAuditEntryWriterExtendable.class);
+            beanContextFactory.registerBean(AuditEntryToSignature.class).autowireable(IAuditEntryToSignature.class, IAuditEntryWriterExtendable.class);
 
-			IBeanConfiguration auditEntryWriterV1 = beanContextFactory
-					.registerBean(AuditEntryWriterV1.class);
-			beanContextFactory.link(auditEntryWriterV1).to(IAuditEntryWriterExtendable.class)
-					.with(Integer.valueOf(1));
+            IBeanConfiguration auditEntryWriterV1 = beanContextFactory.registerBean(AuditEntryWriterV1.class);
+            beanContextFactory.link(auditEntryWriterV1).to(IAuditEntryWriterExtendable.class).with(Integer.valueOf(1));
 
-			beanContextFactory.registerBean(AuditMethodCallPostProcessor.class);
-			beanContextFactory.link(auditEntryController).to(ITransactionListenerExtendable.class);
-			beanContextFactory.link(auditEntryController).to(IMergeListenerExtendable.class);
-		}
-	}
+            beanContextFactory.registerBean(AuditMethodCallPostProcessor.class);
+            beanContextFactory.link(auditEntryController).to(ITransactionListenerExtendable.class);
+            beanContextFactory.link(auditEntryController).to(IMergeListenerExtendable.class);
+        }
+    }
 }

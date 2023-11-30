@@ -39,7 +39,7 @@
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-core</artifactId>
-            <scope>provided</scope>
+            <optional>true</optional>
         </dependency>
     </dependencies>
 
@@ -63,15 +63,17 @@
                     </execution>
                 </executions>
             </plugin>
+            <!--
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
                     <compilerArgs>
-                        <arg>--add-exports</arg>
+                        <arg>- -add-exports</arg>
                         <arg>java.base/java.lang=ALL-UNNAMED</arg>
                     </compilerArgs>
                 </configuration>
             </plugin>
+            -->
         </plugins>
     </build>
 </project>

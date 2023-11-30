@@ -20,24 +20,25 @@ limitations under the License.
  * #L%
  */
 
+import io.toolisticon.spiap.api.SpiService;
 import com.koch.ambeth.datachange.model.IDataChange;
 import com.koch.ambeth.event.IEventListenerExtendable;
 import com.koch.ambeth.event.config.EventConfigurationConstants;
-import com.koch.ambeth.ioc.IInitializingModule;
+import com.koch.ambeth.ioc.IFrameworkModule;
 import com.koch.ambeth.ioc.annotation.FrameworkModule;
 import com.koch.ambeth.ioc.config.Property;
 import com.koch.ambeth.ioc.factory.IBeanContextFactory;
 
+@SpiService(IFrameworkModule.class)
 @FrameworkModule
-public class EventDataChangeModule implements IInitializingModule {
-	@Property(name = EventConfigurationConstants.EventManagerName, mandatory = false)
-	protected String eventManagerName;
+public class EventDataChangeModule implements IFrameworkModule {
+    @Property(name = EventConfigurationConstants.EventManagerName, mandatory = false)
+    protected String eventManagerName;
 
-	@Override
-	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
-		if (eventManagerName != null) {
-			beanContextFactory.link(eventManagerName).to(IEventListenerExtendable.class)
-					.with(IDataChange.class);
-		}
-	}
+    @Override
+    public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
+        if (eventManagerName != null) {
+            beanContextFactory.link(eventManagerName).to(IEventListenerExtendable.class).with(IDataChange.class);
+        }
+    }
 }

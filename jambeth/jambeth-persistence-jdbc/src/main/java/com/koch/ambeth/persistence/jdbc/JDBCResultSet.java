@@ -20,6 +20,13 @@ limitations under the License.
  * #L%
  */
 
+import com.koch.ambeth.ioc.IInitializingBean;
+import com.koch.ambeth.persistence.sql.IResultSet;
+import com.koch.ambeth.util.ParamChecker;
+import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
+import com.koch.ambeth.util.sensor.ISensor;
+import lombok.SneakyThrows;
+
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
@@ -27,131 +34,117 @@ import java.sql.Statement;
 import java.sql.Types;
 import java.util.Iterator;
 
-import com.koch.ambeth.ioc.IInitializingBean;
-import com.koch.ambeth.persistence.sql.IResultSet;
-import com.koch.ambeth.util.ParamChecker;
-import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
-import com.koch.ambeth.util.sensor.ISensor;
-
 public class JDBCResultSet implements IResultSet, Iterator<Object[]>, IInitializingBean {
-	public static final String SENSOR_NAME = "com.koch.ambeth.persistence.jdbc.JDBCResultSet";
+    public static final String SENSOR_NAME = "com.koch.ambeth.persistence.jdbc.JDBCResultSet";
 
-	protected ResultSet resultSet;
+    protected ResultSet resultSet;
 
-	protected String sql;
+    protected String sql;
 
-	protected ISensor sensor;
+    protected ISensor sensor;
 
-	protected Object[] values;
+    protected Object[] values;
 
-	protected boolean[] isClob;
+    protected boolean[] isClob;
 
-	private Boolean hasNext;
+    private Boolean hasNext;
 
-	@Override
-	public void afterPropertiesSet() {
-		ParamChecker.assertNotNull(resultSet, "resultSet");
-		ParamChecker.assertNotNull(sql, "sql");
-		try {
-			ResultSetMetaData rsMetaData = resultSet.getMetaData();
-			int numberOfColumns = rsMetaData.getColumnCount();
-			values = new Object[numberOfColumns];
-			isClob = new boolean[numberOfColumns];
+    @Override
+    public void afterPropertiesSet() {
+        ParamChecker.assertNotNull(resultSet, "resultSet");
+        ParamChecker.assertNotNull(sql, "sql");
+        try {
+            ResultSetMetaData rsMetaData = resultSet.getMetaData();
+            int numberOfColumns = rsMetaData.getColumnCount();
+            values = new Object[numberOfColumns];
+            isClob = new boolean[numberOfColumns];
 
-			for (int i = 0; i < numberOfColumns; i++) {
-				int columnType = rsMetaData.getColumnType(i + 1);
-				isClob[i] = columnType == Types.CLOB;
-			}
-		}
-		catch (SQLException e) {
-			throw RuntimeExceptionUtil.mask(e);
-		}
-		ISensor sensor = this.sensor;
-		if (sensor != null) {
-			sensor.on(sql);
-		}
-	}
+            for (int i = 0; i < numberOfColumns; i++) {
+                int columnType = rsMetaData.getColumnType(i + 1);
+                isClob[i] = columnType == Types.CLOB;
+            }
+        } catch (SQLException e) {
+            throw RuntimeExceptionUtil.mask(e);
+        }
+        ISensor sensor = this.sensor;
+        if (sensor != null) {
+            sensor.on(sql);
+        }
+    }
 
-	public void setResultSet(ResultSet resultSet) {
-		this.resultSet = resultSet;
-	}
+    public void setResultSet(ResultSet resultSet) {
+        this.resultSet = resultSet;
+    }
 
-	public void setSensor(ISensor sensor) {
-		this.sensor = sensor;
-	}
+    public void setSensor(ISensor sensor) {
+        this.sensor = sensor;
+    }
 
-	public void setSql(String sql) {
-		this.sql = sql;
-	}
+    public void setSql(String sql) {
+        this.sql = sql;
+    }
 
-	@Override
-	public void dispose() {
-		if (resultSet == null) {
-			return;
-		}
-		Statement stm = null;
-		try {
-			stm = resultSet.getStatement();
-		}
-		catch (Throwable e) {
-			// Intended blank
-		}
-		finally {
-			JdbcUtil.close(stm, resultSet);
-		}
-		resultSet = null;
-		ISensor sensor = this.sensor;
-		if (sensor != null) {
-			sensor.off();
-		}
-	}
+    @Override
+    public void dispose() {
+        if (resultSet == null) {
+            return;
+        }
+        Statement stm = null;
+        try {
+            stm = resultSet.getStatement();
+        } catch (Throwable e) {
+            // Intended blank
+        } finally {
+            JdbcUtil.close(stm, resultSet);
+        }
+        resultSet = null;
+        ISensor sensor = this.sensor;
+        if (sensor != null) {
+            sensor.off();
+        }
+    }
 
-	@Override
-	public boolean hasNext() {
-		if (hasNext != null) {
-			return hasNext.booleanValue();
-		}
-		try {
-			ResultSet resultSet = this.resultSet;
-			if (resultSet == null) {
-				hasNext = Boolean.FALSE;
-				return false;
-			}
-			Object[] values = this.values;
-			if (!resultSet.next()) {
-				for (int a = values.length; a-- > 0;) {
-					values[a] = null;
-				}
-				hasNext = Boolean.FALSE;
-				return false;
-			}
-			for (int a = values.length; a-- > 0;) {
-				if (!isClob[a]) {
-					values[a] = resultSet.getObject(a + 1);
-				}
-				else {
-					values[a] = resultSet.getClob(a + 1);
-				}
-			}
-			hasNext = Boolean.TRUE;
-			return true;
-		}
-		catch (SQLException e) {
-			throw RuntimeExceptionUtil.mask(e);
-		}
-	}
+    @SneakyThrows
+    @Override
+    public boolean hasNext() {
+        if (hasNext != null) {
+            return hasNext.booleanValue();
+        }
+        var resultSet = this.resultSet;
+        if (resultSet == null) {
+            hasNext = Boolean.FALSE;
+            return false;
+        }
+        var values = this.values;
+        if (!resultSet.next()) {
+            for (int a = values.length; a-- > 0; ) {
+                values[a] = null;
+            }
+            hasNext = Boolean.FALSE;
+            return false;
+        }
+        for (int a = values.length; a-- > 0; ) {
+            if (!isClob[a]) {
+                values[a] = resultSet.getObject(a + 1);
+            } else {
+                values[a] = resultSet.getClob(a + 1);
+            }
+        }
+        hasNext = Boolean.TRUE;
+        return true;
+    }
 
-	@Override
-	public Object[] next() {
-		if (!hasNext()) {
-			return null;
-		}
-		hasNext = null;
-		return values;
-	}
+    @Override
+    public Object[] next() {
+        if (!hasNext()) {
+            return null;
+        }
+        hasNext = null;
+        return values;
+    }
 
-	@Override
-	public Iterator<Object[]> iterator() {
-		return this;
-	}
+    @Override
+    public Iterator<Object[]> iterator() {
+        return this;
+    }
 }

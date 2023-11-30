@@ -20,17 +20,18 @@ limitations under the License.
  * #L%
  */
 
+import io.toolisticon.spiap.api.SpiService;
 import com.koch.ambeth.expr.IEntityPropertyExpressionResolver;
 import com.koch.ambeth.expr.exp4j.EntityPropertyExpressionResolver;
-import com.koch.ambeth.ioc.IInitializingModule;
+import com.koch.ambeth.ioc.IFrameworkModule;
 import com.koch.ambeth.ioc.annotation.FrameworkModule;
 import com.koch.ambeth.ioc.factory.IBeanContextFactory;
 
+@SpiService(IFrameworkModule.class)
 @FrameworkModule
-public class Exp4jModule implements IInitializingModule {
-	@Override
-	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
-		beanContextFactory.registerBean(EntityPropertyExpressionResolver.class)
-				.autowireable(IEntityPropertyExpressionResolver.class);
-	}
+public class Exp4jModule implements IFrameworkModule {
+    @Override
+    public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
+        beanContextFactory.registerBean(EntityPropertyExpressionResolver.class).autowireable(IEntityPropertyExpressionResolver.class);
+    }
 }

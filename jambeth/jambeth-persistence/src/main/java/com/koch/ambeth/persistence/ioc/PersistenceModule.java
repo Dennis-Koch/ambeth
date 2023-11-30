@@ -20,7 +20,8 @@ limitations under the License.
  * #L%
  */
 
-import com.koch.ambeth.ioc.IInitializingModule;
+import io.toolisticon.spiap.api.SpiService;
+import com.koch.ambeth.ioc.IFrameworkModule;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.annotation.FrameworkModule;
 import com.koch.ambeth.ioc.config.PrecedenceType;
@@ -57,8 +58,9 @@ import com.koch.ambeth.persistence.util.PersistenceExceptionUtil;
 import com.koch.ambeth.util.proxy.IProxyFactory;
 import com.koch.ambeth.util.proxy.TargetingInterceptor;
 
+@SpiService(IFrameworkModule.class)
 @FrameworkModule
-public class PersistenceModule implements IInitializingModule {
+public class PersistenceModule implements IFrameworkModule {
     @Autowired
     protected IProxyFactory proxyFactory;
 

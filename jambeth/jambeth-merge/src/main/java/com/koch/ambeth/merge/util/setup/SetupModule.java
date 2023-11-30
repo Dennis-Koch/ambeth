@@ -20,27 +20,27 @@ limitations under the License.
  * #L%
  */
 
-import com.koch.ambeth.ioc.IInitializingModule;
+import io.toolisticon.spiap.api.SpiService;
+import com.koch.ambeth.ioc.IFrameworkModule;
 import com.koch.ambeth.ioc.annotation.FrameworkModule;
 import com.koch.ambeth.ioc.config.IBeanConfiguration;
 import com.koch.ambeth.ioc.factory.IBeanContextFactory;
 import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
 
+@SpiService(IFrameworkModule.class)
 @FrameworkModule
-public class SetupModule implements IInitializingModule {
-	@LogInstance
-	private ILogger log;
+public class SetupModule implements IFrameworkModule {
+    public static void registerDataSetBuilder(IBeanContextFactory beanContextFactory, Class<? extends IDatasetBuilder> type) {
+        IBeanConfiguration builder = beanContextFactory.registerBean(type).autowireable(type);
+        beanContextFactory.link(builder).to(IDatasetBuilderExtendable.class);
+    }
 
-	@Override
-	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
-		beanContextFactory.registerBean(DataSetup.class).autowireable(IDataSetup.class,
-				IDatasetBuilderExtendable.class);
-	}
+    @LogInstance
+    private ILogger log;
 
-	public static void registerDataSetBuilder(IBeanContextFactory beanContextFactory,
-			Class<? extends IDatasetBuilder> type) {
-		IBeanConfiguration builder = beanContextFactory.registerBean(type).autowireable(type);
-		beanContextFactory.link(builder).to(IDatasetBuilderExtendable.class);
-	}
+    @Override
+    public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
+        beanContextFactory.registerBean(DataSetup.class).autowireable(IDataSetup.class, IDatasetBuilderExtendable.class);
+    }
 }

@@ -20,16 +20,6 @@ limitations under the License.
  * #L%
  */
 
-import java.sql.Blob;
-import java.sql.Clob;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Savepoint;
-import java.util.List;
-
-import jakarta.persistence.PersistenceException;
-
 import com.koch.ambeth.persistence.api.IDatabase;
 import com.koch.ambeth.persistence.api.IFieldMetaData;
 import com.koch.ambeth.query.IOperand;
@@ -39,6 +29,17 @@ import com.koch.ambeth.util.collections.ILinkedMap;
 import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.IMap;
 import com.koch.ambeth.util.state.IStateRollback;
+import jakarta.persistence.PersistenceException;
+
+import java.sql.Blob;
+import java.sql.Clob;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Savepoint;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
 
 public interface IConnectionDialect {
     String escapeName(CharSequence symbolName);
@@ -119,7 +120,7 @@ public interface IConnectionDialect {
 
     boolean isCompactMultiValueRecommended(IList<Object> values);
 
-    void handleWithMultiValueLeftField(IAppendable querySB, IMap<Object, Object> nameToValueMap, IList<Object> parameters, IList<IList<Object>> splitValues, boolean caseSensitive,
+    void handleWithMultiValueLeftField(IAppendable querySB, Map<Object, Object> nameToValueMap, IList<Object> parameters, IList<IList<Object>> splitValues, boolean caseSensitive,
             Class<?> leftOperandFieldType);
 
     /**
@@ -130,8 +131,9 @@ public interface IConnectionDialect {
      * @param sb
      * @param fieldType
      * @param splittedIds
+     * @param idDecompositor
      */
-    void appendListClause(List<Object> parameters, IAppendable sb, Class<?> fieldType, IList<Object> splittedIds);
+    void appendListClause(List<Object> parameters, IAppendable sb, Class<?> fieldType, IList<Object> splittedIds, Function<Object, Object> idDecompositor);
 
     /**
      * Replace Oracle SQL with connection dialect specific SQL

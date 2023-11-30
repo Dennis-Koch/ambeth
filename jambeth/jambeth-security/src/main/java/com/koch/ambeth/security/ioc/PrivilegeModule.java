@@ -20,10 +20,11 @@ limitations under the License.
  * #L%
  */
 
+import io.toolisticon.spiap.api.SpiService;
 import com.koch.ambeth.datachange.UnfilteredDataChangeListener;
 import com.koch.ambeth.datachange.model.IDataChange;
 import com.koch.ambeth.event.IEventListenerExtendable;
-import com.koch.ambeth.ioc.IInitializingModule;
+import com.koch.ambeth.ioc.IFrameworkModule;
 import com.koch.ambeth.ioc.annotation.FrameworkModule;
 import com.koch.ambeth.ioc.config.IBeanConfiguration;
 import com.koch.ambeth.ioc.config.Property;
@@ -42,39 +43,33 @@ import com.koch.ambeth.service.cache.ClearAllCachesEvent;
 import com.koch.ambeth.service.config.ServiceConfigurationConstants;
 import com.koch.ambeth.service.remote.ClientServiceBean;
 
+@SpiService(IFrameworkModule.class)
 @FrameworkModule
-public class PrivilegeModule implements IInitializingModule {
-	public static final String PRIVILEGE_PROVIDER_BEAN_NAME = "privilegeProvider";
+public class PrivilegeModule implements IFrameworkModule {
+    public static final String PRIVILEGE_PROVIDER_BEAN_NAME = "privilegeProvider";
 
-	@Property(name = ServiceConfigurationConstants.NetworkClientMode, defaultValue = "false")
-	protected boolean isNetworkClientMode;
+    @Property(name = ServiceConfigurationConstants.NetworkClientMode, defaultValue = "false")
+    protected boolean isNetworkClientMode;
 
-	@Property(name = SecurityConfigurationConstants.PrivilegeServiceBeanActive, defaultValue = "true")
-	protected boolean isPrivilegeServiceBeanActive;
+    @Property(name = SecurityConfigurationConstants.PrivilegeServiceBeanActive, defaultValue = "true")
+    protected boolean isPrivilegeServiceBeanActive;
 
-	@Override
-	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
-		IBeanConfiguration privilegeProvider = beanContextFactory
-				.registerBean(PRIVILEGE_PROVIDER_BEAN_NAME, PrivilegeProvider.class)
-				.autowireable(IPrivilegeProvider.class, IPrivilegeProviderIntern.class);
-		IBeanConfiguration ppEventListener = beanContextFactory
-				.registerBean(UnfilteredDataChangeListener.class).propertyRefs(privilegeProvider);
-		beanContextFactory.link(ppEventListener).to(IEventListenerExtendable.class)
-				.with(IDataChange.class);
-		beanContextFactory.link(privilegeProvider, PrivilegeProvider.HANDLE_CLEAR_ALL_CACHES)
-				.to(IEventListenerExtendable.class).with(ClearAllCachesEvent.class);
-		beanContextFactory.link(privilegeProvider, PrivilegeProvider.HANDLE_CLEAR_ALL_PRIVILEGES)
-				.to(IEventListenerExtendable.class).with(ClearAllCachedPrivilegesEvent.class);
+    @Override
+    public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
+        IBeanConfiguration privilegeProvider =
+                beanContextFactory.registerBean(PRIVILEGE_PROVIDER_BEAN_NAME, PrivilegeProvider.class).autowireable(IPrivilegeProvider.class, IPrivilegeProviderIntern.class);
+        IBeanConfiguration ppEventListener = beanContextFactory.registerBean(UnfilteredDataChangeListener.class).propertyRefs(privilegeProvider);
+        beanContextFactory.link(ppEventListener).to(IEventListenerExtendable.class).with(IDataChange.class);
+        beanContextFactory.link(privilegeProvider, PrivilegeProvider.HANDLE_CLEAR_ALL_CACHES).to(IEventListenerExtendable.class).with(ClearAllCachesEvent.class);
+        beanContextFactory.link(privilegeProvider, PrivilegeProvider.HANDLE_CLEAR_ALL_PRIVILEGES).to(IEventListenerExtendable.class).with(ClearAllCachedPrivilegesEvent.class);
 
-		beanContextFactory.registerBean(EntityPrivilegeFactoryProvider.class)
-				.autowireable(IEntityPrivilegeFactoryProvider.class);
-		beanContextFactory.registerBean(EntityTypePrivilegeFactoryProvider.class)
-				.autowireable(IEntityTypePrivilegeFactoryProvider.class);
+        beanContextFactory.registerBean(EntityPrivilegeFactoryProvider.class).autowireable(IEntityPrivilegeFactoryProvider.class);
+        beanContextFactory.registerBean(EntityTypePrivilegeFactoryProvider.class).autowireable(IEntityTypePrivilegeFactoryProvider.class);
 
-		if (isNetworkClientMode && isPrivilegeServiceBeanActive) {
-			beanContextFactory.registerBean("privilegeService.external", ClientServiceBean.class)
-					.propertyValue(ClientServiceBean.INTERFACE_PROP_NAME, IPrivilegeService.class)
-					.autowireable(IPrivilegeService.class);
-		}
-	}
+        if (isNetworkClientMode && isPrivilegeServiceBeanActive) {
+            beanContextFactory.registerBean("privilegeService.external", ClientServiceBean.class)
+                              .propertyValue(ClientServiceBean.INTERFACE_PROP_NAME, IPrivilegeService.class)
+                              .autowireable(IPrivilegeService.class);
+        }
+    }
 }

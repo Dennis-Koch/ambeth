@@ -20,12 +20,6 @@ limitations under the License.
  * #L%
  */
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.AnnotatedElement;
-import java.lang.reflect.Method;
-import java.util.Set;
-
-import com.koch.ambeth.ioc.IBeanRuntime;
 import com.koch.ambeth.ioc.IOrderedBeanProcessor;
 import com.koch.ambeth.ioc.IServiceContext;
 import com.koch.ambeth.ioc.ProcessorOrder;
@@ -35,72 +29,71 @@ import com.koch.ambeth.security.audit.model.Audited;
 import com.koch.ambeth.security.audit.model.AuditedArg;
 import com.koch.ambeth.service.proxy.AbstractCascadePostProcessor;
 import com.koch.ambeth.service.proxy.IBehaviorTypeExtractor;
-import com.koch.ambeth.service.proxy.IMethodLevelBehavior;
 import com.koch.ambeth.service.proxy.MethodLevelBehavior;
 import com.koch.ambeth.util.annotation.AnnotationCache;
 import com.koch.ambeth.util.proxy.ICascadedInterceptor;
 
-public class AuditMethodCallPostProcessor extends AbstractCascadePostProcessor
-		implements IOrderedBeanProcessor {
-	protected final AnnotationCache<Audited> annotationCache = new AnnotationCache<Audited>(
-			Audited.class) {
-		@Override
-		protected boolean annotationEquals(Audited left, Audited right) {
-			return true;
-		}
-	};
+import java.lang.annotation.Annotation;
+import java.lang.reflect.AnnotatedElement;
+import java.lang.reflect.Method;
+import java.util.Set;
 
-	protected final IBehaviorTypeExtractor<Audited, AuditInfo> auditMethodExtractor = new IBehaviorTypeExtractor<Audited, AuditInfo>() {
-		@Override
-		public AuditInfo extractBehaviorType(Audited annotation, AnnotatedElement annotatedElement) {
-			if (annotation == null) {
-				return null;
-			}
-			AuditInfo auditInfo = new AuditInfo(annotation);
+public class AuditMethodCallPostProcessor extends AbstractCascadePostProcessor implements IOrderedBeanProcessor {
+    protected final AnnotationCache<Audited> annotationCache = new AnnotationCache<Audited>(Audited.class) {
+        @Override
+        protected boolean annotationEquals(Audited left, Audited right) {
+            return true;
+        }
+    };
 
-			if (annotatedElement instanceof Method) {
-				Method method = (Method) annotatedElement;
-				Annotation[][] parameterAnnotations = method.getParameterAnnotations();
-				AuditedArg[] auditedArgs = new AuditedArg[parameterAnnotations.length];
-				for (int i = 0; i < parameterAnnotations.length; i++) {
-					AuditedArg aaa = null;
-					for (Annotation parameterAnnotation : parameterAnnotations[i]) {
-						if (parameterAnnotation instanceof AuditedArg) {
-							aaa = (AuditedArg) parameterAnnotation;
-							break;
-						}
-					}
-					auditedArgs[i] = aaa;
-				}
-				auditInfo.setAuditedArgs(auditedArgs);
-			}
-			return auditInfo;
-		}
-	};
+    protected final IBehaviorTypeExtractor<Audited, AuditInfo> auditMethodExtractor = new IBehaviorTypeExtractor<Audited, AuditInfo>() {
+        @Override
+        public AuditInfo extractBehaviorType(Audited annotation, AnnotatedElement annotatedElement) {
+            if (annotation == null) {
+                return null;
+            }
+            AuditInfo auditInfo = new AuditInfo(annotation);
 
-	@Override
-	protected ICascadedInterceptor handleServiceIntern(IBeanContextFactory beanContextFactory,
-			IServiceContext beanContext, IBeanConfiguration beanConfiguration, Class<?> type,
-			Set<Class<?>> requestedTypes) {
-		IMethodLevelBehavior<AuditInfo> behaviour = MethodLevelBehavior.create(type, annotationCache,
-				AuditInfo.class, auditMethodExtractor, beanContextFactory, beanContext);
-		if (behaviour == null) {
-			return null;
-		}
-		AuditMethodCallInterceptor interceptor = new AuditMethodCallInterceptor();
-		if (beanContext.isRunning()) {
-			IBeanRuntime<AuditMethodCallInterceptor> interceptorBC = beanContext
-					.registerWithLifecycle(interceptor);
-			interceptorBC.propertyValue(AuditMethodCallInterceptor.P_METHOD_LEVEL_BEHAVIOUR, behaviour);
-			return interceptorBC.finish();
-		}
-		IBeanConfiguration interceptorBC = beanContextFactory.registerWithLifecycle(interceptor);
-		interceptorBC.propertyValue(AuditMethodCallInterceptor.P_METHOD_LEVEL_BEHAVIOUR, behaviour);
-		return interceptor;
-	}
+            if (annotatedElement instanceof Method) {
+                Method method = (Method) annotatedElement;
+                Annotation[][] parameterAnnotations = method.getParameterAnnotations();
+                AuditedArg[] auditedArgs = new AuditedArg[parameterAnnotations.length];
+                for (int i = 0; i < parameterAnnotations.length; i++) {
+                    AuditedArg aaa = null;
+                    for (Annotation parameterAnnotation : parameterAnnotations[i]) {
+                        if (parameterAnnotation instanceof AuditedArg) {
+                            aaa = (AuditedArg) parameterAnnotation;
+                            break;
+                        }
+                    }
+                    auditedArgs[i] = aaa;
+                }
+                auditInfo.setAuditedArgs(auditedArgs);
+            }
+            return auditInfo;
+        }
+    };
 
-	@Override
-	public ProcessorOrder getOrder() {
-		return ProcessorOrder.LOW;
-	}
+    @Override
+    protected ICascadedInterceptor handleServiceIntern(IBeanContextFactory beanContextFactory, IServiceContext beanContext, IBeanConfiguration beanConfiguration, Class<?> type,
+            Set<Class<?>> requestedTypes) {
+        var behaviour = MethodLevelBehavior.create(type, annotationCache, AuditInfo.class, auditMethodExtractor, beanContextFactory, beanContext);
+        if (behaviour == null) {
+            return null;
+        }
+        var interceptor = new AuditMethodCallInterceptor();
+        if (beanContext.isRunning()) {
+            var interceptorBC = beanContext.registerWithLifecycle(interceptor);
+            interceptorBC.propertyValue(AuditMethodCallInterceptor.P_METHOD_LEVEL_BEHAVIOUR, behaviour);
+            return interceptorBC.finish();
+        }
+        var interceptorBC = beanContextFactory.registerWithLifecycle(interceptor);
+        interceptorBC.propertyValue(AuditMethodCallInterceptor.P_METHOD_LEVEL_BEHAVIOUR, behaviour);
+        return interceptor;
+    }
+
+    @Override
+    public ProcessorOrder getOrder() {
+        return ProcessorOrder.LOW;
+    }
 }

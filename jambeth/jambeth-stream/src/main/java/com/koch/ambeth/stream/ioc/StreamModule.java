@@ -20,7 +20,7 @@ limitations under the License.
  * #L%
  */
 
-import com.koch.ambeth.ioc.IInitializingModule;
+import com.koch.ambeth.ioc.IFrameworkModule;
 import com.koch.ambeth.ioc.annotation.FrameworkModule;
 import com.koch.ambeth.ioc.config.IBeanConfiguration;
 import com.koch.ambeth.ioc.factory.IBeanContextFactory;
@@ -51,49 +51,37 @@ import com.koch.ambeth.stream.strings.IStringInputStream;
 import com.koch.ambeth.util.IDedicatedConverter;
 import com.koch.ambeth.util.IDedicatedConverterExtendable;
 import com.koch.ambeth.util.typeinfo.INoEntityTypeExtendable;
+import io.toolisticon.spiap.api.SpiService;
 
+@SpiService(IFrameworkModule.class)
 @FrameworkModule
-public class StreamModule implements IInitializingModule {
-	@LogInstance
-	private ILogger log;
+public class StreamModule implements IFrameworkModule {
+    public static IBeanConfiguration registerConverter(IBeanContextFactory beanContextFactory, Class<? extends IDedicatedConverter> type, Class<?> fromType,
+            Class<? extends IInputStream> inputStreamType, Class<? extends IInputSource> inputSourceType) {
+        IBeanConfiguration converterBC = beanContextFactory.registerBean(type);
+        beanContextFactory.link(converterBC).to(IDedicatedConverterExtendable.class).with(fromType, IBinaryInputStream.class);
+        beanContextFactory.link(converterBC).to(IDedicatedConverterExtendable.class).with(fromType, inputStreamType);
+        beanContextFactory.link(converterBC).to(IDedicatedConverterExtendable.class).with(inputSourceType, inputStreamType);
+        beanContextFactory.link(converterBC).to(IDedicatedConverterExtendable.class).with(inputSourceType, IBinaryInputStream.class);
+        return converterBC;
+    }
 
-	@Override
-	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
-		beanContextFactory.link(IInputSource.class).to(INoEntityTypeExtendable.class);
+    @LogInstance
+    private ILogger log;
 
-		IBeanConfiguration genericConverterBC =
-				beanContextFactory.registerBean(GenericInputSourceConverter.class);
-		beanContextFactory.link(genericConverterBC).to(IDedicatedConverterExtendable.class)
-				.with(IInputSource.class, IInputStream.class);
+    @Override
+    public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
+        beanContextFactory.link(IInputSource.class).to(INoEntityTypeExtendable.class);
 
-		registerConverter(beanContextFactory, BinaryBooleanConverter.class, boolean[].class,
-				IBooleanInputStream.class, IBooleanInputSource.class);
-		registerConverter(beanContextFactory, BinaryDoubleConverter.class, double[].class,
-				IDoubleInputStream.class, IDoubleInputSource.class);
-		registerConverter(beanContextFactory, BinaryFloatConverter.class, float[].class,
-				IFloatInputStream.class, IFloatInputSource.class);
-		registerConverter(beanContextFactory, BinaryIntConverter.class, int[].class,
-				IIntInputStream.class, IIntInputSource.class);
-		registerConverter(beanContextFactory, BinaryLongConverter.class, long[].class,
-				ILongInputStream.class, ILongInputSource.class);
-		registerConverter(beanContextFactory, BinaryStringConverter.class, String[].class,
-				IStringInputStream.class, IStringInputSource.class);
-	}
+        IBeanConfiguration genericConverterBC = beanContextFactory.registerBean(GenericInputSourceConverter.class);
+        beanContextFactory.link(genericConverterBC).to(IDedicatedConverterExtendable.class).with(IInputSource.class, IInputStream.class);
 
-	public static IBeanConfiguration registerConverter(IBeanContextFactory beanContextFactory,
-			Class<? extends IDedicatedConverter> type, Class<?> fromType,
-			Class<? extends IInputStream> inputStreamType,
-			Class<? extends IInputSource> inputSourceType) {
-		IBeanConfiguration converterBC = beanContextFactory.registerBean(type);
-		beanContextFactory.link(converterBC).to(IDedicatedConverterExtendable.class).with(fromType,
-				IBinaryInputStream.class);
-		beanContextFactory.link(converterBC).to(IDedicatedConverterExtendable.class).with(fromType,
-				inputStreamType);
-		beanContextFactory.link(converterBC).to(IDedicatedConverterExtendable.class)
-				.with(inputSourceType, inputStreamType);
-		beanContextFactory.link(converterBC).to(IDedicatedConverterExtendable.class)
-				.with(inputSourceType, IBinaryInputStream.class);
-		return converterBC;
-	}
+        registerConverter(beanContextFactory, BinaryBooleanConverter.class, boolean[].class, IBooleanInputStream.class, IBooleanInputSource.class);
+        registerConverter(beanContextFactory, BinaryDoubleConverter.class, double[].class, IDoubleInputStream.class, IDoubleInputSource.class);
+        registerConverter(beanContextFactory, BinaryFloatConverter.class, float[].class, IFloatInputStream.class, IFloatInputSource.class);
+        registerConverter(beanContextFactory, BinaryIntConverter.class, int[].class, IIntInputStream.class, IIntInputSource.class);
+        registerConverter(beanContextFactory, BinaryLongConverter.class, long[].class, ILongInputStream.class, ILongInputSource.class);
+        registerConverter(beanContextFactory, BinaryStringConverter.class, String[].class, IStringInputStream.class, IStringInputSource.class);
+    }
 
 }

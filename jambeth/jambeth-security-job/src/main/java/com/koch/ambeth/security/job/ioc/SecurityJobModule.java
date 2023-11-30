@@ -20,7 +20,8 @@ limitations under the License.
  * #L%
  */
 
-import com.koch.ambeth.ioc.IInitializingModule;
+import io.toolisticon.spiap.api.SpiService;
+import com.koch.ambeth.ioc.IFrameworkModule;
 import com.koch.ambeth.ioc.IocModule;
 import com.koch.ambeth.ioc.annotation.FrameworkModule;
 import com.koch.ambeth.ioc.config.IBeanConfiguration;
@@ -28,14 +29,13 @@ import com.koch.ambeth.ioc.factory.IBeanContextFactory;
 import com.koch.ambeth.job.IJobExtendable;
 import com.koch.ambeth.security.job.threading.ThreadPoolRefreshJob;
 
+@SpiService(IFrameworkModule.class)
 @FrameworkModule
-public class SecurityJobModule implements IInitializingModule {
-	@Override
-	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
-		IBeanConfiguration threadPoolRefreshJob =
-				beanContextFactory.registerBean(ThreadPoolRefreshJob.class)//
-						.propertyRef("ThreadPool", IocModule.THREAD_POOL_NAME);
-		beanContextFactory.link(threadPoolRefreshJob).to(IJobExtendable.class)
-				.with("threadPool-refresh", "* * * * * *").optional();
-	}
+public class SecurityJobModule implements IFrameworkModule {
+    @Override
+    public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
+        IBeanConfiguration threadPoolRefreshJob = beanContextFactory.registerBean(ThreadPoolRefreshJob.class)//
+                                                                    .propertyRef("ThreadPool", IocModule.THREAD_POOL_NAME);
+        beanContextFactory.link(threadPoolRefreshJob).to(IJobExtendable.class).with("threadPool-refresh", "* * * * * *").optional();
+    }
 }

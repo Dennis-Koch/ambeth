@@ -22,15 +22,15 @@ limitations under the License.
 
 import com.koch.ambeth.util.IDisposable;
 import com.koch.ambeth.util.collections.IList;
-import com.koch.ambeth.util.collections.IMap;
+
+import java.util.Map;
 
 public interface ISubQuery<T> extends IDisposable {
-	Class<?> getEntityType();
+    Class<?> getEntityType();
 
-	String[] getSqlParts(IMap<Object, Object> nameToValueMap, IList<Object> parameters,
-			IList<String> additionalSelectColumnList);
+    String[] getSqlParts(Map<Object, Object> nameToValueMap, IList<Object> parameters, IList<String> additionalSelectColumnList);
 
-	String getMainTableAlias();
+    String getMainTableAlias();
 
-	void setMainTableAlias(String alias);
+    void setMainTableAlias(String alias);
 }

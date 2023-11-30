@@ -20,17 +20,16 @@ limitations under the License.
  * #L%
  */
 
-import java.nio.charset.Charset;
-
 import com.koch.ambeth.util.IDedicatedConverter;
 
+import java.nio.charset.Charset;
+
 public class StringToCharsetConverter implements IDedicatedConverter {
-	@Override
-	public Object convertValueToType(Class<?> expectedType, Class<?> sourceType, Object value,
-			Object additionalInformation) {
-		if (expectedType.equals(Charset.class)) {
-			return Charset.forName((String) value);
-		}
-		return ((Charset) value).name();
-	}
+    @Override
+    public Object convertValueToType(Class<?> expectedType, Class<?> sourceType, Object value, Object additionalInformation) {
+        if (expectedType.equals(Charset.class)) {
+            return Charset.forName((String) value);
+        }
+        return ((Charset) value).name();
+    }
 }

@@ -20,8 +20,6 @@ limitations under the License.
  * #L%
  */
 
-import org.junit.runner.RunWith;
-
 import com.koch.ambeth.bytecode.ioc.BytecodeModule;
 import com.koch.ambeth.cache.bytecode.ioc.CacheBytecodeModule;
 import com.koch.ambeth.cache.datachange.ioc.CacheDataChangeModule;
@@ -31,6 +29,7 @@ import com.koch.ambeth.datachange.ioc.DataChangeModule;
 import com.koch.ambeth.event.datachange.ioc.EventDataChangeModule;
 import com.koch.ambeth.event.ioc.EventModule;
 import com.koch.ambeth.expr.ioc.ExprModule;
+import com.koch.ambeth.ioc.IocModule;
 import com.koch.ambeth.mapping.ioc.MappingModule;
 import com.koch.ambeth.merge.bytecode.ioc.MergeBytecodeModule;
 import com.koch.ambeth.merge.ioc.ChangeControllerModule;
@@ -41,13 +40,30 @@ import com.koch.ambeth.security.ioc.SecurityModule;
 import com.koch.ambeth.sensor.ioc.SensorModule;
 import com.koch.ambeth.service.ioc.ServiceModule;
 import com.koch.ambeth.stream.ioc.StreamModule;
+import org.junit.runner.RunWith;
 
 @RunWith(AmbethInformationBusRunner.class)
-@TestFrameworkModule({ BytecodeModule.class, CacheModule.class, CacheBytecodeModule.class,
-		CacheDataChangeModule.class, CacheStreamModule.class, ChangeControllerModule.class,
-		DataChangeModule.class, EventModule.class, EventDataChangeModule.class, ExprModule.class,
-		MappingModule.class, MergeModule.class, MergeBytecodeModule.class, ObjectCopierModule.class,
-		SecurityModule.class, SecurityBytecodeModule.class, SensorModule.class, ServiceModule.class,
-		StreamModule.class })
+@TestFrameworkModule({
+        BytecodeModule.class,
+        CacheModule.class,
+        CacheBytecodeModule.class,
+        CacheDataChangeModule.class,
+        CacheStreamModule.class,
+        ChangeControllerModule.class,
+        DataChangeModule.class,
+        EventModule.class,
+        EventDataChangeModule.class,
+        ExprModule.class,
+        IocModule.class,
+        MappingModule.class,
+        MergeModule.class,
+        MergeBytecodeModule.class,
+        ObjectCopierModule.class,
+        SecurityModule.class,
+        SecurityBytecodeModule.class,
+        SensorModule.class,
+        ServiceModule.class,
+        StreamModule.class
+})
 public abstract class AbstractInformationBusTest extends AbstractIocTest {
 }

@@ -20,135 +20,149 @@ limitations under the License.
  * #L%
  */
 
-import java.security.KeyFactory;
-import java.security.KeyPair;
-import java.security.KeyPairGenerator;
-import java.security.PrivateKey;
-import java.security.PublicKey;
-import java.security.Signature;
-import java.security.spec.PKCS8EncodedKeySpec;
-import java.security.spec.X509EncodedKeySpec;
-
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.config.Property;
-import com.koch.ambeth.security.model.IPBEConfiguration;
 import com.koch.ambeth.security.model.ISignAndVerify;
 import com.koch.ambeth.security.model.ISignature;
 import com.koch.ambeth.security.server.config.SecurityServerConfigurationConstants;
 import com.koch.ambeth.util.ParamChecker;
 import com.koch.ambeth.util.codec.Base64;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
+import lombok.Getter;
+import lombok.SneakyThrows;
+
+import java.security.KeyFactory;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.Signature;
+import java.security.spec.PKCS8EncodedKeySpec;
+import java.security.spec.X509EncodedKeySpec;
 
 public class SignatureUtil implements ISignatureUtil {
-	@Autowired
-	protected IPBEncryptor pbEncryptor;
 
-	@Autowired
-	protected ISecureRandom secureRandom;
+    protected final Object semaphore = new Object();
 
-	@Property(name = SecurityServerConfigurationConstants.SignatureAlgorithmName, defaultValue = "SHA1withECDSA")
-	protected String algorithm;
+    @Autowired
+    protected IPBEncryptor pbEncryptor;
+    @Autowired
+    protected ISecureRandom secureRandom;
 
-	@Property(name = SecurityServerConfigurationConstants.SignatureKeyAlgorithmName, defaultValue = "EC")
-	protected String keyFactoryAlgorithm;
+    @Property(name = SecurityServerConfigurationConstants.SignatureAlgorithmName, defaultValue = "SHA1withECDSA")
+    protected String algorithm;
 
-	@Property(name = SecurityServerConfigurationConstants.SignatureKeySize, defaultValue = "384")
-	protected int keySize;
+    @Property(name = SecurityServerConfigurationConstants.SignatureProviderName, defaultValue = "BC")
+    protected String providerName;
 
-	protected KeyPairGenerator keyGen;
+    @Property(name = SecurityServerConfigurationConstants.SignatureKeyAlgorithmName, defaultValue = "ECDSA")
+    protected String keyFactoryAlgorithm;
 
-	@Override
-	public void generateNewSignature(ISignature newEmptySignature, char[] clearTextPassword) {
-		ParamChecker.assertParamNotNull(clearTextPassword, "clearTextPassword");
+    @Property(name = SecurityServerConfigurationConstants.SignatureKeyProviderName, defaultValue = "BC")
+    protected String keyFactoryProviderName;
 
-		try {
-			if (keyGen == null) {
-				synchronized (this) {
-					if (keyGen == null) {
-						keyGen = KeyPairGenerator.getInstance(keyFactoryAlgorithm);
-						keyGen.initialize(keySize, secureRandom.getSecureRandomHandle());
-					}
-				}
-			}
-			newEmptySignature.getSignAndVerify().setSignatureAlgorithm(algorithm);
-			// important that the keyFactoryAlgorithm matches the keyGenerator algorithm here
-			newEmptySignature.getSignAndVerify().setKeyFactoryAlgorithm(keyFactoryAlgorithm);
+    @Property(name = SecurityServerConfigurationConstants.SignatureKeySize, defaultValue = "384")
+    protected int keySize;
 
-			KeyPair pair;
-			synchronized (keyGen) {
-				// cannot be 100 percent sure if the keyGen is thread-safe, so we synchronize it here
-				pair = keyGen.generateKeyPair();
-			}
+    @Getter(lazy = true)
+    private final KeyPairGenerator keyGen = createKeyGen();
 
-			byte[] unencryptedPrivateKey = pair.getPrivate().getEncoded();
-			byte[] encryptedPrivateKey = pbEncryptor.encrypt(newEmptySignature.getPBEConfiguration(),
-					true, clearTextPassword, unencryptedPrivateKey);
+    protected KeyPairGenerator createKeyGen() {
+        KeyPairGenerator keyGen;
+        try {
+            if (keyFactoryProviderName == null) {
+                keyGen = KeyPairGenerator.getInstance(keyFactoryAlgorithm);
+            } else {
+                keyGen = KeyPairGenerator.getInstance(keyFactoryAlgorithm, keyFactoryProviderName);
+            }
+        } catch (Throwable e) {
+            throw RuntimeExceptionUtil.mask(e,
+                    "Error occurred while trying to create " + KeyPairGenerator.class.getSimpleName() + ": " + SecurityServerConfigurationConstants.SignatureKeyAlgorithmName + "='" +
+                            keyFactoryAlgorithm + "', " + SecurityServerConfigurationConstants.SignatureKeyProviderName + "='" + keyFactoryProviderName + "'");
+        }
+        try {
+            keyGen.initialize(keySize, secureRandom.getSecureRandomHandle());
+            return keyGen;
+        } catch (Throwable e) {
+            throw RuntimeExceptionUtil.mask(e,
+                    "Error occurred while trying to initialize " + keyGen + ": " + SecurityServerConfigurationConstants.SignatureKeyAlgorithmName + "='" + keyFactoryAlgorithm + "', " +
+                            SecurityServerConfigurationConstants.SignatureKeyProviderName + "='" + keyFactoryProviderName + "', " + SecurityServerConfigurationConstants.SignatureKeySize + "=" +
+                            keySize);
+        }
+    }
 
-			newEmptySignature
-					.setPublicKey(Base64.encodeBytes(pair.getPublic().getEncoded()).toCharArray());
-			newEmptySignature.setPrivateKey(Base64.encodeBytes(encryptedPrivateKey).toCharArray());
-		}
-		catch (Exception e) {
-			throw RuntimeExceptionUtil.mask(e);
-		}
-	}
+    @SneakyThrows
+    @Override
+    public void generateNewSignature(ISignature newEmptySignature, char[] clearTextPassword) {
+        ParamChecker.assertParamNotNull(clearTextPassword, "clearTextPassword");
 
-	@Override
-	public void reencryptSignature(ISignature signature, char[] oldClearTextPassword,
-			char[] newClearTextPassword) {
-		try {
-			byte[] encryptedPrivateKey = Base64.decode(signature.getPrivateKey());
-			IPBEConfiguration pbec = signature.getPBEConfiguration();
-			byte[] decryptedPrivateKey = pbEncryptor.decrypt(pbec, oldClearTextPassword,
-					encryptedPrivateKey);
-			pbec.setPaddedKeyAlgorithm(null);
-			pbec.setPaddedKeyIterations(0);
-			pbec.setPaddedKeySize(0);
-			pbec.setPaddedKeySaltSize(0);
-			pbec.setPaddedKeySalt(null);
-			pbec.setEncryptionAlgorithm(null);
-			pbec.setEncryptionKeySpec(null);
-			pbec.setEncryptionKeyIV(null);
-			encryptedPrivateKey = pbEncryptor.encrypt(pbec, true, newClearTextPassword,
-					decryptedPrivateKey);
-			signature.setPrivateKey(Base64.encodeBytes(encryptedPrivateKey).toCharArray());
-		}
-		catch (Exception e) {
-			throw RuntimeExceptionUtil.mask(e);
-		}
-	}
+        var keyGen = getKeyGen();
+        
+        newEmptySignature.getSignAndVerify().setSignatureAlgorithm(algorithm);
+        newEmptySignature.getSignAndVerify().setSignatureProvider(providerName);
+        newEmptySignature.getSignAndVerify().setKeyFactoryAlgorithm(keyFactoryAlgorithm);
+        newEmptySignature.getSignAndVerify().setKeyFactoryProvider(keyFactoryProviderName);
 
-	@Override
-	public Signature createSignatureHandle(ISignAndVerify signAndVerify, byte[] privateKey) {
-		try {
-			// use the private key to create the signature handle
-			PKCS8EncodedKeySpec decryptedPrivateKeySpec = new PKCS8EncodedKeySpec(privateKey);
-			KeyFactory keyFactory = KeyFactory.getInstance(signAndVerify.getKeyFactoryAlgorithm());
-			PrivateKey privateKeyHandle = keyFactory.generatePrivate(decryptedPrivateKeySpec);
-			Signature jSignature = java.security.Signature
-					.getInstance(signAndVerify.getSignatureAlgorithm());
-			jSignature.initSign(privateKeyHandle, secureRandom.getSecureRandomHandle());
-			return jSignature;
-		}
-		catch (Exception e) {
-			throw RuntimeExceptionUtil.mask(e);
-		}
-	}
+        KeyPair pair;
+        synchronized (semaphore) {
+            // cannot be 100 percent sure if the keyGen is thread-safe, so we synchronize it here
+            pair = keyGen.generateKeyPair();
+        }
 
-	@Override
-	public Signature createVerifyHandle(ISignAndVerify signAndVerify, byte[] publicKey) {
-		try {
-			// use the public key to create the signature handle
-			X509EncodedKeySpec keySpec = new X509EncodedKeySpec(publicKey);
-			KeyFactory keyFactory = KeyFactory.getInstance(signAndVerify.getKeyFactoryAlgorithm());
-			PublicKey publicKeyHandle = keyFactory.generatePublic(keySpec);
-			Signature jSignature = java.security.Signature
-					.getInstance(signAndVerify.getSignatureAlgorithm());
-			jSignature.initVerify(publicKeyHandle);
-			return jSignature;
-		}
-		catch (Exception e) {
-			throw RuntimeExceptionUtil.mask(e);
-		}
-	}
+        var unencryptedPrivateKey = pair.getPrivate().getEncoded();
+        var encryptedPrivateKey = pbEncryptor.encrypt(newEmptySignature.getPBEConfiguration(), true, clearTextPassword, unencryptedPrivateKey);
+
+        newEmptySignature.setPublicKey(Base64.encodeBytes(pair.getPublic().getEncoded()).toCharArray());
+        newEmptySignature.setPrivateKey(Base64.encodeBytes(encryptedPrivateKey).toCharArray());
+    }
+
+    @SneakyThrows
+    @Override
+    public void reencryptSignature(ISignature signature, char[] oldClearTextPassword, char[] newClearTextPassword) {
+        var encryptedPrivateKey = Base64.decode(signature.getPrivateKey());
+        var pbec = signature.getPBEConfiguration();
+        var decryptedPrivateKey = pbEncryptor.decrypt(pbec, oldClearTextPassword, encryptedPrivateKey);
+        pbec.setPaddedKeyAlgorithm(null);
+        pbec.setPaddedKeyIterations(0);
+        pbec.setPaddedKeySize(0);
+        pbec.setPaddedKeySaltSize(0);
+        pbec.setPaddedKeySalt(null);
+        pbec.setEncryptionAlgorithm(null);
+        pbec.setEncryptionKeySpec(null);
+        pbec.setEncryptionKeyIV(null);
+        encryptedPrivateKey = pbEncryptor.encrypt(pbec, true, newClearTextPassword, decryptedPrivateKey);
+        signature.setPrivateKey(Base64.encodeBytes(encryptedPrivateKey).toCharArray());
+    }
+
+    @SneakyThrows
+    @Override
+    public Signature createSignatureHandle(ISignAndVerify signAndVerify, byte[] privateKey) {
+        // use the private key to create the signature handle
+        var decryptedPrivateKeySpec = new PKCS8EncodedKeySpec(privateKey);
+        var keyFactoryProvider = signAndVerify.getKeyFactoryProvider();
+        var keyFactory =
+                keyFactoryProvider != null ? KeyFactory.getInstance(signAndVerify.getKeyFactoryAlgorithm(), keyFactoryProvider) : KeyFactory.getInstance(signAndVerify.getKeyFactoryAlgorithm());
+        var privateKeyHandle = keyFactory.generatePrivate(decryptedPrivateKeySpec);
+        var signatureProvider = signAndVerify.getSignatureProvider();
+        var signature = signatureProvider != null ? java.security.Signature.getInstance(signAndVerify.getSignatureAlgorithm(), signatureProvider) :
+                java.security.Signature.getInstance(signAndVerify.getSignatureAlgorithm());
+        signature.initSign(privateKeyHandle, secureRandom.getSecureRandomHandle());
+        return signature;
+    }
+
+    @SneakyThrows
+    @Override
+    public Signature createVerifyHandle(ISignAndVerify signAndVerify, byte[] publicKey) {
+        // use the public key to create the signature handle
+        var keySpec = new X509EncodedKeySpec(publicKey);
+        var keyFactoryProvider = signAndVerify.getKeyFactoryProvider();
+        var keyFactory =
+                keyFactoryProvider != null ? KeyFactory.getInstance(signAndVerify.getKeyFactoryAlgorithm(), keyFactoryProvider) : KeyFactory.getInstance(signAndVerify.getKeyFactoryAlgorithm());
+        var publicKeyHandle = keyFactory.generatePublic(keySpec);
+        var signatureProvider = signAndVerify.getSignatureProvider();
+        var signature = signatureProvider != null ? java.security.Signature.getInstance(signAndVerify.getSignatureAlgorithm(), signatureProvider) :
+                java.security.Signature.getInstance(signAndVerify.getSignatureAlgorithm());
+        signature.initVerify(publicKeyHandle);
+        return signature;
+    }
+
+
 }

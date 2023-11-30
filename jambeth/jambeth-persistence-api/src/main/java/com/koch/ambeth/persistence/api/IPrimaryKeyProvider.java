@@ -21,8 +21,9 @@ limitations under the License.
  */
 
 import com.koch.ambeth.service.merge.model.IObjRef;
-import com.koch.ambeth.util.collections.IList;
+
+import java.util.List;
 
 public interface IPrimaryKeyProvider {
-	void acquireIds(ITableMetaData table, IList<IObjRef> idlessObjRefs);
+    void acquireIds(ITableMetaData table, List<IObjRef> idlessObjRefs);
 }

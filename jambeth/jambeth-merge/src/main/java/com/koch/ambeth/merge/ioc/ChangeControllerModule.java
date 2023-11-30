@@ -20,7 +20,8 @@ limitations under the License.
  * #L%
  */
 
-import com.koch.ambeth.ioc.IInitializingModule;
+import io.toolisticon.spiap.api.SpiService;
+import com.koch.ambeth.ioc.IFrameworkModule;
 import com.koch.ambeth.ioc.annotation.FrameworkModule;
 import com.koch.ambeth.ioc.config.IBeanConfiguration;
 import com.koch.ambeth.ioc.config.Property;
@@ -32,26 +33,26 @@ import com.koch.ambeth.merge.changecontroller.IChangeController;
 import com.koch.ambeth.merge.changecontroller.IChangeControllerExtendable;
 import com.koch.ambeth.merge.config.MergeConfigurationConstants;
 
+@SpiService(IFrameworkModule.class)
 @FrameworkModule
-public class ChangeControllerModule implements IInitializingModule {
-	@Property(name = MergeConfigurationConstants.edblActive, defaultValue = "true")
-	protected Boolean edblActive;
+public class ChangeControllerModule implements IFrameworkModule {
+    public static <T> IBeanConfiguration registerRule(IBeanContextFactory contextFactory, Class<? extends AbstractRule<T>> validatorClass, Class<T> validatedEntity) {
+        IBeanConfiguration beanConfig = contextFactory.registerBean(validatorClass);
+        contextFactory.link(beanConfig).to(IChangeControllerExtendable.class).with(validatedEntity);
+        return beanConfig;
+    }
 
-	@Override
-	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
-		if (Boolean.TRUE.equals(edblActive)) {
-			IBeanConfiguration ccBean = beanContextFactory.registerAnonymousBean(ChangeController.class);
-			ccBean.autowireable(IChangeController.class, IChangeControllerExtendable.class);
-			beanContextFactory.link(ccBean).to(IMergeListenerExtendable.class);
-		}
+    @Property(name = MergeConfigurationConstants.edblActive, defaultValue = "true")
+    protected Boolean edblActive;
 
-	}
+    @Override
+    public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
+        if (Boolean.TRUE.equals(edblActive)) {
+            IBeanConfiguration ccBean = beanContextFactory.registerAnonymousBean(ChangeController.class);
+            ccBean.autowireable(IChangeController.class, IChangeControllerExtendable.class);
+            beanContextFactory.link(ccBean).to(IMergeListenerExtendable.class);
+        }
 
-	public static <T> IBeanConfiguration registerRule(IBeanContextFactory contextFactory,
-			Class<? extends AbstractRule<T>> validatorClass, Class<T> validatedEntity) {
-		IBeanConfiguration beanConfig = contextFactory.registerBean(validatorClass);
-		contextFactory.link(beanConfig).to(IChangeControllerExtendable.class).with(validatedEntity);
-		return beanConfig;
-	}
+    }
 
 }

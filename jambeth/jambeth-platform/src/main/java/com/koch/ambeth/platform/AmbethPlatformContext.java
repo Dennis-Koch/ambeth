@@ -28,15 +28,13 @@ import com.koch.ambeth.ioc.factory.BeanContextFactory;
 import com.koch.ambeth.ioc.factory.IBeanContextFactory;
 import com.koch.ambeth.ioc.threadlocal.IThreadLocalCleanupController;
 import com.koch.ambeth.ioc.util.ModuleUtil;
-import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LoggerFactory;
 import com.koch.ambeth.log.config.Properties;
-import com.koch.ambeth.merge.ILightweightTransaction;
 import com.koch.ambeth.util.ParamChecker;
-import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.objectcollector.IThreadLocalObjectCollector;
 import com.koch.ambeth.util.objectcollector.ThreadLocalObjectCollector;
+import com.koch.ambeth.util.transaction.ILightweightTransaction;
 
 public class AmbethPlatformContext implements IAmbethPlatformContext {
     private static DisposeDatabaseExtension disposeDatabaseExtension;
@@ -49,29 +47,29 @@ public class AmbethPlatformContext implements IAmbethPlatformContext {
         }
     }
 
-    public static IAmbethPlatformContext create(Properties props, Class<?>[] providerModules, Class<?>[] frameworkModules, Class<?>[] bootstrapModules, IInitializingModule[] providerModuleInstances,
+    public static IAmbethPlatformContext create(Properties props, Class<?>[] providerModules, Class<?>[] frameworkModules, Class<?>[] applicationModules, IInitializingModule[] providerModuleInstances,
             final IInitializingModule[] frameworkModuleInstances, final IInitializingModule[] bootstrapModuleInstances) {
         ParamChecker.assertParamNotNull(props, "props");
 
         IServiceContext bootstrapContext = null;
-        final AmbethPlatformContext apc = new AmbethPlatformContext();
+        var apc = new AmbethPlatformContext();
         try {
-            IInitializingModule[] providerModuleInstancesCopy = new IInitializingModule[providerModuleInstances.length + 1];
+            var providerModuleInstancesCopy = new IInitializingModule[providerModuleInstances.length + 1];
             System.arraycopy(providerModuleInstances, 0, providerModuleInstancesCopy, 0, providerModuleInstances.length);
             providerModuleInstancesCopy[providerModuleInstancesCopy.length - 1] = apc.new AmbethPlatformContextModule(apc);
             providerModuleInstances = providerModuleInstancesCopy;
 
             bootstrapContext = BeanContextFactory.createBootstrap(props, providerModules, providerModuleInstances);
 
-            IList<IModuleProvider> moduleProviders = bootstrapContext.getImplementingObjects(IModuleProvider.class);
+            var moduleProviders = bootstrapContext.getImplementingObjects(IModuleProvider.class);
             for (int a = moduleProviders.size(); a-- > 0; ) {
-                IModuleProvider moduleProvider = moduleProviders.get(a);
-                Class<?>[] mpFrameworkModules = moduleProvider.getFrameworkModules();
-                Class<?>[] mpBootstrapModules = moduleProvider.getBootstrapModules();
+                var moduleProvider = moduleProviders.get(a);
+                var mpFrameworkModules = moduleProvider.getFrameworkModules();
+                var mpApplicationModules = moduleProvider.getApplicationModules();
                 frameworkModules = ModuleUtil.mergeModules(mpFrameworkModules, frameworkModules);
-                bootstrapModules = ModuleUtil.mergeModules(mpBootstrapModules, bootstrapModules);
+                applicationModules = ModuleUtil.mergeModules(mpApplicationModules, applicationModules);
             }
-            IServiceContext frameworkBeanContext = bootstrapContext;
+            var frameworkBeanContext = bootstrapContext;
 
             if (frameworkModules.length > 0 || frameworkModuleInstances.length > 0) {
                 frameworkBeanContext = bootstrapContext.createService("framework", childContextFactory -> {
@@ -81,9 +79,9 @@ public class AmbethPlatformContext implements IAmbethPlatformContext {
                 }, frameworkModules);
             }
 
-            ILightweightTransaction transaction = frameworkBeanContext.getService(ILightweightTransaction.class, false);
+            var transaction = frameworkBeanContext.getService(ILightweightTransaction.class, false);
             if (transaction != null) {
-                ILogger log = LoggerFactory.getLogger(AmbethPlatformContext.class, props);
+                var log = LoggerFactory.getLogger(AmbethPlatformContext.class, props);
                 if (log.isInfoEnabled()) {
                     log.info("Starting initial database transaction to receive metadata for OR-Mappings...");
                 }
@@ -94,20 +92,20 @@ public class AmbethPlatformContext implements IAmbethPlatformContext {
                     log.info("Initial database transaction processed successfully");
                 }
             }
-            IServiceContext applicationBeanContext = frameworkBeanContext;
+            var applicationBeanContext = frameworkBeanContext;
 
-            if (bootstrapModules.length > 0 || bootstrapModuleInstances.length > 0) {
+            if (applicationModules.length > 0 || bootstrapModuleInstances.length > 0) {
                 applicationBeanContext = frameworkBeanContext.createService("application", childContextFactory -> {
                     for (int a = bootstrapModuleInstances.length; a-- > 0; ) {
                         childContextFactory.registerExternalBean(bootstrapModuleInstances[a]);
                     }
-                }, bootstrapModules);
+                }, applicationModules);
             }
             apc.beanContext = applicationBeanContext;
             return apc;
         } catch (Throwable e) {
             if (bootstrapContext != null) {
-                IThreadLocalCleanupController tlCleanupController = bootstrapContext.getService(IThreadLocalCleanupController.class);
+                var tlCleanupController = bootstrapContext.getService(IThreadLocalCleanupController.class);
                 bootstrapContext.dispose();
                 tlCleanupController.cleanupThreadLocal();
             }
@@ -123,8 +121,8 @@ public class AmbethPlatformContext implements IAmbethPlatformContext {
         if (beanContext == null) {
             return;
         }
-        IServiceContext rootContext = beanContext.getRoot();
-        IThreadLocalObjectCollector tlObjectCollector = rootContext.getService(IThreadLocalObjectCollector.class);
+        var rootContext = beanContext.getRoot();
+        var tlObjectCollector = rootContext.getService(IThreadLocalObjectCollector.class);
         beanContext.getService(IThreadLocalCleanupController.class).cleanupThreadLocal();
         rootContext.dispose();
         beanContext = null;

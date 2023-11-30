@@ -27,16 +27,16 @@ public interface IAmbethConfigurationIntern extends IAmbethConfiguration {
     /**
      * Adds the provided module classes to the list of modules to start with the framework context.
      *
-     * @param modules Ambeth modules
+     * @param moduleDelegates Ambeth modules
      * @return This configuration object
      */
     @SuppressWarnings("unchecked")
-    IAmbethConfigurationIntern withAmbethModules(CheckedConsumer<IBeanContextFactory>... moduleDelegates);
+    IAmbethConfigurationIntern withFrameworkModules(CheckedConsumer<IBeanContextFactory>... moduleDelegates);
 
     /**
      * Adds the provided module classes to the list of modules to start with the application context.
      *
-     * @param modules Application modules
+     * @param moduleDelegates Application modules
      * @return This configuration object
      */
     @SuppressWarnings("unchecked")

@@ -24,170 +24,49 @@ import com.koch.ambeth.security.model.IPBEConfiguration;
 import com.koch.ambeth.security.model.ISignAndVerify;
 import com.koch.ambeth.security.model.ISignature;
 import com.koch.ambeth.security.model.IUser;
+import lombok.Getter;
+import lombok.Setter;
 
+@Getter
+@Setter
 public class PojoSignature implements ISignature, IPBEConfiguration, ISignAndVerify {
-	protected IUser user;
+    private IUser user;
 
-	protected char[] privateKey;
+    private char[] privateKey;
 
-	protected char[] publicKey;
+    private char[] publicKey;
 
-	private String signatureAlgorithm;
+    private String signatureAlgorithm;
 
-	private String keyFactoryAlgorithm;
+    private String signatureProvider;
 
-	private String encryptionAlgorithm;
+    private String keyFactoryAlgorithm;
 
-	private String encryptionKeySpec;
+    private String keyFactoryProvider;
 
-	private char[] encryptionKeyIV;
+    private String encryptionAlgorithm;
 
-	private char[] paddedKeySalt;
+    private String encryptionKeySpec;
 
-	private int paddedKeySaltSize;
+    private char[] encryptionKeyIV;
 
-	private String paddedKeyAlgorithm;
+    private char[] paddedKeySalt;
 
-	private int paddedKeySize;
+    private int paddedKeySaltSize;
 
-	private int paddedKeyIterations;
+    private String paddedKeyAlgorithm;
 
-	@Override
-	public IUser getUser() {
-		return user;
-	}
+    private int paddedKeySize;
 
-	public void setUser(IUser user) {
-		this.user = user;
-	}
+    private int paddedKeyIterations;
 
-	@Override
-	public char[] getPrivateKey() {
-		return privateKey;
-	}
+    @Override
+    public IPBEConfiguration getPBEConfiguration() {
+        return this;
+    }
 
-	@Override
-	public void setPrivateKey(char[] privateKey) {
-		this.privateKey = privateKey;
-	}
-
-	@Override
-	public char[] getPublicKey() {
-		return publicKey;
-	}
-
-	@Override
-	public void setPublicKey(char[] publicKey) {
-		this.publicKey = publicKey;
-	}
-
-	@Override
-	public IPBEConfiguration getPBEConfiguration() {
-		return this;
-	}
-
-	@Override
-	public ISignAndVerify getSignAndVerify() {
-		return this;
-	}
-
-	@Override
-	public String getSignatureAlgorithm() {
-		return signatureAlgorithm;
-	}
-
-	@Override
-	public void setSignatureAlgorithm(String signatureAlgorithm) {
-		this.signatureAlgorithm = signatureAlgorithm;
-	}
-
-	@Override
-	public String getKeyFactoryAlgorithm() {
-		return keyFactoryAlgorithm;
-	}
-
-	@Override
-	public void setKeyFactoryAlgorithm(String keyFactoryAlgorithm) {
-		this.keyFactoryAlgorithm = keyFactoryAlgorithm;
-	}
-
-	@Override
-	public String getEncryptionAlgorithm() {
-		return encryptionAlgorithm;
-	}
-
-	@Override
-	public void setEncryptionAlgorithm(String encryptionAlgorithm) {
-		this.encryptionAlgorithm = encryptionAlgorithm;
-	}
-
-	@Override
-	public String getEncryptionKeySpec() {
-		return encryptionKeySpec;
-	}
-
-	@Override
-	public void setEncryptionKeySpec(String encryptionKeySpec) {
-		this.encryptionKeySpec = encryptionKeySpec;
-	}
-
-	@Override
-	public char[] getEncryptionKeyIV() {
-		return encryptionKeyIV;
-	}
-
-	@Override
-	public void setEncryptionKeyIV(char[] encryptionKeyIV) {
-		this.encryptionKeyIV = encryptionKeyIV;
-	}
-
-	@Override
-	public String getPaddedKeyAlgorithm() {
-		return paddedKeyAlgorithm;
-	}
-
-	@Override
-	public void setPaddedKeyAlgorithm(String paddedKeyAlgorithm) {
-		this.paddedKeyAlgorithm = paddedKeyAlgorithm;
-	}
-
-	@Override
-	public int getPaddedKeySize() {
-		return paddedKeySize;
-	}
-
-	@Override
-	public void setPaddedKeySize(int paddedKeySize) {
-		this.paddedKeySize = paddedKeySize;
-	}
-
-	@Override
-	public int getPaddedKeyIterations() {
-		return paddedKeyIterations;
-	}
-
-	@Override
-	public void setPaddedKeyIterations(int paddedKeyIterations) {
-		this.paddedKeyIterations = paddedKeyIterations;
-	}
-
-	@Override
-	public int getPaddedKeySaltSize() {
-		return paddedKeySaltSize;
-	}
-
-	@Override
-	public void setPaddedKeySaltSize(int paddedKeySaltSize) {
-		this.paddedKeySaltSize = paddedKeySaltSize;
-	}
-
-	@Override
-	public char[] getPaddedKeySalt() {
-		return paddedKeySalt;
-	}
-
-	@Override
-	public void setPaddedKeySalt(char[] paddedKeySalt) {
-		this.paddedKeySalt = paddedKeySalt;
-	}
+    @Override
+    public ISignAndVerify getSignAndVerify() {
+        return this;
+    }
 }

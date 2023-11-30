@@ -9,14 +9,16 @@ import com.koch.ambeth.core.start.IAmbethConfigurationIntern;
 import com.koch.ambeth.ioc.IInitializingModule;
 import com.koch.ambeth.ioc.IServiceContext;
 import com.koch.ambeth.ioc.IocModule;
-import com.koch.ambeth.ioc.annotation.BootstrapModule;
+import com.koch.ambeth.ioc.annotation.ApplicationModule;
 import com.koch.ambeth.ioc.annotation.FrameworkModule;
 import com.koch.ambeth.ioc.config.IocConfigurationConstants;
 import com.koch.ambeth.ioc.factory.BeanContextFactory;
 import com.koch.ambeth.ioc.factory.IBeanContextFactory;
 import com.koch.ambeth.log.config.Properties;
+import com.koch.ambeth.util.IClassLoaderProvider;
 import com.koch.ambeth.util.ParamChecker;
 import com.koch.ambeth.util.collections.ArrayList;
+import com.koch.ambeth.util.collections.HashSet;
 import com.koch.ambeth.util.collections.IdentityLinkedSet;
 import com.koch.ambeth.util.collections.LinkedHashMap;
 import com.koch.ambeth.util.collections.LinkedHashSet;
@@ -25,8 +27,35 @@ import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.function.CheckedConsumer;
 
 import java.util.List;
+import java.util.Set;
 
 public class Ambeth implements IAmbethConfiguration, IAmbethConfigurationIntern, IAmbethApplication {
+
+    protected static final Set<IServiceContext> ACTIVE_APPLICATIONS = new HashSet<>();
+
+    protected static final CheckedConsumer<IServiceContext> DISPOSE_HOOK = beanContext -> {
+        synchronized (ACTIVE_APPLICATIONS) {
+            ACTIVE_APPLICATIONS.remove(beanContext);
+        }
+    };
+
+    static {
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            IServiceContext[] contexts;
+            synchronized (ACTIVE_APPLICATIONS) {
+                contexts = ACTIVE_APPLICATIONS.toArray(IServiceContext[]::new);
+                ACTIVE_APPLICATIONS.clear();
+            }
+            for (var serviceContext : contexts) {
+                try {
+                    serviceContext.getRoot().dispose();
+                } catch (Throwable e) {
+                    e.printStackTrace();
+                }
+            }
+        }));
+    }
+
     /**
      * Creates an Ambeth context and scans for Ambeth and application modules.
      *
@@ -73,29 +102,29 @@ public class Ambeth implements IAmbethConfiguration, IAmbethConfigurationIntern,
         try {
             IBundleModule bundleModuleInstance = bundleModule.newInstance();
             Class<? extends IInitializingModule>[] bundleModules = bundleModuleInstance.getBundleModules();
-            ambeth.withAmbethModules(bundleModules);
+            ambeth.withFrameworkModules(bundleModules);
         } catch (Exception e) {
             throw RuntimeExceptionUtil.mask(e);
         }
     }
 
-    protected final boolean scanForAmbethModules;
+    protected final boolean scanForFrameworkModules;
     protected final boolean scanForApplicationModules;
     protected Properties properties = new Properties();
     protected boolean scanForPropertiesFile = true;
-    protected IdentityLinkedSet<CheckedConsumer<IBeanContextFactory>> ambethModuleDelegates = new IdentityLinkedSet<>();
-    protected LinkedHashSet<Class<?>> ambethModules = new LinkedHashSet<>();
+    protected IdentityLinkedSet<CheckedConsumer<IBeanContextFactory>> frameworkModuleDelegates = new IdentityLinkedSet<>();
+    protected LinkedHashSet<Class<? extends IInitializingModule>> frameworkModules = new LinkedHashSet<>();
     protected IdentityLinkedSet<CheckedConsumer<IBeanContextFactory>> applicationModuleDelegates = new IdentityLinkedSet<>();
-    protected LinkedHashSet<Class<?>> applicationModules = new LinkedHashSet<>();
-    protected LinkedHashMap<Class<?>, Object> autowiredInstances = new LinkedHashMap<>();
+    protected LinkedHashSet<Class<? extends IInitializingModule>> applicationModules = new LinkedHashSet<>();
+    protected LinkedHashMap<Class<?>, Object> autowiredFrameworkBeans = new LinkedHashMap<>();
     protected ClassLoader classLoader;
     private ArrayList<String> propertiesFiles = new ArrayList<>();
     private IServiceContext rootContext;
 
-    private IServiceContext serviceContext;
+    private IServiceContext applicationContext;
 
-    private Ambeth(boolean scanForAmbethModules, boolean scanForApplicationModules) {
-        this.scanForAmbethModules = scanForAmbethModules;
+    private Ambeth(boolean scanForFrameworkModules, boolean scanForApplicationModules) {
+        this.scanForFrameworkModules = scanForFrameworkModules;
         this.scanForApplicationModules = scanForApplicationModules;
     }
 
@@ -173,8 +202,14 @@ public class Ambeth implements IAmbethConfiguration, IAmbethConfigurationIntern,
      * {@inheritDoc}
      */
     @Override
-    public IAmbethConfiguration withAmbethModules(Class<?>... modules) {
-        ambethModules.addAll(modules);
+    public IAmbethConfiguration withFrameworkModules(Class<? extends IInitializingModule>... frameworkModuleTypes) {
+        frameworkModules.addAll(frameworkModuleTypes);
+        return this;
+    }
+
+    @Override
+    public IAmbethConfiguration withFrameworkModules(List<Class<? extends IInitializingModule>> frameworkModuleTypes) {
+        frameworkModules.addAll(frameworkModuleTypes);
         return this;
     }
 
@@ -183,8 +218,8 @@ public class Ambeth implements IAmbethConfiguration, IAmbethConfigurationIntern,
      */
     @SuppressWarnings("unchecked")
     @Override
-    public IAmbethConfigurationIntern withAmbethModules(CheckedConsumer<IBeanContextFactory>... moduleDelegates) {
-        ambethModuleDelegates.addAll(moduleDelegates);
+    public IAmbethConfigurationIntern withFrameworkModules(CheckedConsumer<IBeanContextFactory>... moduleDelegates) {
+        frameworkModuleDelegates.addAll(moduleDelegates);
         return this;
     }
 
@@ -192,8 +227,14 @@ public class Ambeth implements IAmbethConfiguration, IAmbethConfigurationIntern,
      * {@inheritDoc}
      */
     @Override
-    public IAmbethConfiguration withApplicationModules(Class<?>... modules) {
-        applicationModules.addAll(modules);
+    public IAmbethConfiguration withApplicationModules(Class<? extends IInitializingModule>... applicationModuleTypes) {
+        applicationModules.addAll(applicationModuleTypes);
+        return this;
+    }
+
+    @Override
+    public IAmbethConfiguration withApplicationModules(List<Class<? extends IInitializingModule>> applicationModuleTypes) {
+        applicationModules.addAll(applicationModuleTypes);
         return this;
     }
 
@@ -240,68 +281,77 @@ public class Ambeth implements IAmbethConfiguration, IAmbethConfigurationIntern,
     }
 
     protected void startInternal(boolean andClose) {
-        Properties properties = new Properties(Properties.getApplication());
+        var properties = new Properties(this.properties);
         if (scanForPropertiesFile) {
             Properties.loadBootstrapPropertyFile(properties);
         }
-        properties.load(this.properties);
         for (int i = 0, size = propertiesFiles.size(); i < size; i++) {
-            String filename = propertiesFiles.get(i);
+            var filename = propertiesFiles.get(i);
             properties.load(filename);
         }
         if (classLoader != null) {
             properties.put(IocConfigurationConstants.ExplicitClassLoader, classLoader);
         } else {
-            classLoader = (ClassLoader) properties.get(IocConfigurationConstants.ExplicitClassLoader);
+            classLoader = properties.get(IocConfigurationConstants.ExplicitClassLoader);
             if (classLoader == null) {
                 classLoader = Thread.currentThread().getContextClassLoader();
                 properties.put(IocConfigurationConstants.ExplicitClassLoader, classLoader);
             }
         }
-        ClassLoader oldCL = Thread.currentThread().getContextClassLoader();
-        Thread.currentThread().setContextClassLoader(classLoader);
+        IServiceContext currentApplicationContext = null;
+        boolean success = false;
+        var rollback = IClassLoaderProvider.pushClassLoader(classLoader);
         try {
-            if (ambethModules.remove(IocModule.class)) {
-                rootContext = BeanContextFactory.createBootstrap(properties, IocModule.class);
-            } else {
-                rootContext = BeanContextFactory.createBootstrap(properties);
-            }
-
-            if (andClose) {
-                registerShutdownHook();
-            }
-
-            scanForModules();
-
-            final IAmbethApplication ambethApplication = this;
-            var frameworkContext = rootContext.createService(childContextFactory -> {
-                childContextFactory.registerExternalBean(ambethApplication).autowireable(IAmbethApplication.class);
-
-                for (var moduleDelegate : ambethModuleDelegates) {
-                    if (moduleDelegate == null) {
-                        continue;
-                    }
-                    CheckedConsumer.invoke(moduleDelegate, childContextFactory);
+            try {
+                if (frameworkModules.remove(IocModule.class)) {
+                    currentApplicationContext = BeanContextFactory.createBootstrap(properties, IocModule.class);
+                } else {
+                    currentApplicationContext = BeanContextFactory.createBootstrap(properties);
                 }
-                for (var autowiring : autowiredInstances) {
-                    var typeToPublish = autowiring.getKey();
-                    var externalBean = autowiring.getValue();
-                    childContextFactory.registerExternalBean(externalBean).autowireable(typeToPublish);
-                }
-            }, ambethModules.toArray(Class.class));
+                var allFrameworkModules = new HashSet<>(this.frameworkModules);
+                var allApplicationModules = new HashSet<>(this.applicationModules);
+                scanForModules(currentApplicationContext, allFrameworkModules, allApplicationModules);
 
-            if (!applicationModules.isEmpty() || !applicationModuleDelegates.isEmpty()) {
-                serviceContext = frameworkContext.createService(childContextFactory -> {
-                    for (var moduleDelegate : applicationModuleDelegates) {
+                var ambethApplication = this;
+                currentApplicationContext = currentApplicationContext.createService("framework", childContextFactory -> {
+                    childContextFactory.registerExternalBean(ambethApplication).autowireable(IAmbethApplication.class);
+
+                    for (var moduleDelegate : frameworkModuleDelegates) {
+                        if (moduleDelegate == null) {
+                            continue;
+                        }
                         CheckedConsumer.invoke(moduleDelegate, childContextFactory);
                     }
-                }, applicationModules.toArray(Class.class));
-            } else {
-                serviceContext = frameworkContext;
+                    for (var autowiredFrameworkBean : autowiredFrameworkBeans) {
+                        var typeToPublish = autowiredFrameworkBean.getKey();
+                        var externalBean = autowiredFrameworkBean.getValue();
+                        childContextFactory.registerExternalBean(externalBean).autowireable(typeToPublish);
+                    }
+                }, allFrameworkModules.toArray(Class.class));
+
+                if (!allApplicationModules.isEmpty() || !applicationModuleDelegates.isEmpty()) {
+                    currentApplicationContext = currentApplicationContext.createService("application", childContextFactory -> {
+                        for (var moduleDelegate : applicationModuleDelegates) {
+                            CheckedConsumer.invoke(moduleDelegate, childContextFactory);
+                        }
+                    }, allApplicationModules.toArray(Class.class));
+                }
+                success = true;
+            } finally {
+                if (!success && currentApplicationContext != null) {
+                    currentApplicationContext.getRoot().dispose();
+                }
             }
         } finally {
-            Thread.currentThread().setContextClassLoader(oldCL);
+            rollback.rollback();
         }
+        this.applicationContext = currentApplicationContext;
+        this.rootContext = currentApplicationContext.getRoot();
+    }
+
+    @Override
+    public boolean isClosed() {
+        return rootContext.isDisposing() || rootContext.isDisposed();
     }
 
     /**
@@ -309,7 +359,7 @@ public class Ambeth implements IAmbethConfiguration, IAmbethConfigurationIntern,
      */
     @Override
     public IServiceContext getApplicationContext() {
-        return serviceContext;
+        return applicationContext;
     }
 
     /**
@@ -327,35 +377,33 @@ public class Ambeth implements IAmbethConfiguration, IAmbethConfigurationIntern,
      * @param instance   Bean instance to add to the framework and classpath scanner contexts
      * @param autowiring Type to autowire the bean to
      */
-    public <T> void registerBean(T instance, Class<T> autowiring) {
-        autowiredInstances.put(autowiring, instance);
+    public <T> void registerFrameworkBean(T instance, Class<T> autowiring) {
+        autowiredFrameworkBeans.put(autowiring, instance);
     }
 
-    protected void registerShutdownHook() {
-        final IServiceContext rootContext = this.rootContext;
-        Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
-            @Override
-            public void run() {
-                rootContext.dispose();
-            }
-        }));
-    }
-
-    protected void scanForModules() {
-        if (!scanForAmbethModules && !scanForApplicationModules) {
+    protected void scanForModules(IServiceContext currentContext, Set<Class<? extends IInitializingModule>> frameworkModules, Set<Class<? extends IInitializingModule>> applicationModules) {
+        if (!scanForFrameworkModules && !scanForApplicationModules) {
             return;
         }
-
-        ConfigurableClasspathScanner classpathScanner = rootContext.registerBean(ConfigurableClasspathScanner.class).propertyValue("AutowiredInstances", autowiredInstances).finish();
+        var classpathScanner = currentContext.registerBean(ConfigurableClasspathScanner.class).propertyValue("AutowiredInstances", autowiredFrameworkBeans).finish();
         try {
-            if (scanForAmbethModules) {
-                List<Class<?>> ambethModules = classpathScanner.scanClassesAnnotatedWith(FrameworkModule.class);
-                this.ambethModules.addAll(ambethModules);
+            if (scanForFrameworkModules) {
+                classpathScanner.scanClassesAnnotatedWith(FrameworkModule.class).stream().map(frameworkModule -> {
+                    if (!(IInitializingModule.class.isAssignableFrom(frameworkModule))) {
+                        throw new IllegalStateException(
+                                "Class annotated with " + FrameworkModule.class.getName() + " but does not implement " + IInitializingModule.class.getName() + ": " + frameworkModule.getName());
+                    }
+                    return (Class<? extends IInitializingModule>) frameworkModule;
+                }).forEach(frameworkModules::add);
             }
             if (scanForApplicationModules) {
-                // TODO replace with @ApplicationModule and mark @BootstrapModule as deprecated
-                List<Class<?>> applicationModules = classpathScanner.scanClassesAnnotatedWith(BootstrapModule.class);
-                this.applicationModules.addAll(applicationModules);
+                classpathScanner.scanClassesAnnotatedWith(ApplicationModule.class).stream().map(applicationModule -> {
+                    if (!(IInitializingModule.class.isAssignableFrom(applicationModule))) {
+                        throw new IllegalStateException(
+                                "Class annotated with " + ApplicationModule.class.getName() + " but does not implement " + IInitializingModule.class.getName() + ": " + applicationModule.getName());
+                    }
+                    return (Class<? extends IInitializingModule>) applicationModule;
+                }).forEach(applicationModules::add);
             }
         } finally {
             classpathScanner.dispose();

@@ -20,18 +20,20 @@ limitations under the License.
  * #L%
  */
 
-import java.io.Closeable;
-
 import com.koch.ambeth.ioc.IServiceContext;
 
-public interface IAmbethApplication extends Closeable {
-	/**
-	 * Accessor for the application level jAmbeth context.
-	 *
-	 * @return Application context
-	 */
-	IServiceContext getApplicationContext();
+import java.io.Closeable;
 
-	@Override
-	void close();
+public interface IAmbethApplication extends Closeable {
+    /**
+     * Accessor for the application level jAmbeth context.
+     *
+     * @return Application context
+     */
+    IServiceContext getApplicationContext();
+
+    boolean isClosed();
+
+    @Override
+    void close();
 }

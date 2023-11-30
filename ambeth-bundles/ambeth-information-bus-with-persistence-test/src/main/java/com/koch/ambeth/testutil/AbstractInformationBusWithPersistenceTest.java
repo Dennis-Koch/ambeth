@@ -26,6 +26,7 @@ import com.koch.ambeth.cache.server.ioc.CacheServerModule;
 import com.koch.ambeth.event.datachange.ioc.EventDataChangeModule;
 import com.koch.ambeth.event.server.ioc.EventServerModule;
 import com.koch.ambeth.expr.ioc.ExprModule;
+import com.koch.ambeth.ioc.IocModule;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.config.IocConfigurationConstants;
 import com.koch.ambeth.ioc.util.IPropertiesProvider;
@@ -59,6 +60,7 @@ import org.junit.runner.RunWith;
         EventServerModule.class,
         EventDataChangeModule.class,
         ExprModule.class,
+        IocModule.class,
         MergeServerModule.class,
         PersistenceModule.class,
         PersistenceJdbcModule.class,

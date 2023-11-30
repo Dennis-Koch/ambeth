@@ -20,12 +20,6 @@ limitations under the License.
  * #L%
  */
 
-import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import jakarta.persistence.OptimisticLockException;
-
 import com.koch.ambeth.ioc.IInitializingBean;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.persistence.IConnectionDialect;
@@ -35,8 +29,11 @@ import com.koch.ambeth.persistence.api.sql.ISqlBuilder;
 import com.koch.ambeth.util.IConversionHelper;
 import com.koch.ambeth.util.appendable.AppendableStringBuilder;
 import com.koch.ambeth.util.collections.ArrayList;
-import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.objectcollector.IThreadLocalObjectCollector;
+import jakarta.persistence.OptimisticLockException;
+
+import java.util.List;
+import java.util.regex.Pattern;
 
 public abstract class SqlConnection implements ISqlConnection, IInitializingBean {
     // RegEx to add field aliases to paging subselects, e.g. S_A."ID":
@@ -94,8 +91,8 @@ public abstract class SqlConnection implements ISqlConnection, IInitializingBean
 
     @Override
     public void queueDelete(String tableName, CharSequence whereSql, List<Object> parameters) {
-        IThreadLocalObjectCollector objectCollector = this.objectCollector.getCurrent();
-        AppendableStringBuilder sb = objectCollector.create(AppendableStringBuilder.class);
+        var objectCollector = this.objectCollector.getCurrent();
+        var sb = objectCollector.create(AppendableStringBuilder.class);
         try {
             sb.append("DELETE FROM ");
             sqlBuilder.appendName(tableName, sb);
@@ -108,14 +105,14 @@ public abstract class SqlConnection implements ISqlConnection, IInitializingBean
 
     @Override
     public void queueDelete(String tableName, CharSequence[] whereSql) {
-        IThreadLocalObjectCollector objectCollector = this.objectCollector.getCurrent();
-        AppendableStringBuilder sb = objectCollector.create(AppendableStringBuilder.class);
-        String[] sqls = new String[whereSql.length];
+        var objectCollector = this.objectCollector.getCurrent();
+        var sb = objectCollector.create(AppendableStringBuilder.class);
+        var sqls = new String[whereSql.length];
         try {
             sb.append("DELETE FROM ");
             sqlBuilder.appendName(tableName, sb);
             sb.append(" WHERE ");
-            String sqlBase = sb.toString();
+            var sqlBase = sb.toString();
             for (int i = whereSql.length; i-- > 0; ) {
                 sb.reset();
                 sb.append(sqlBase).append(whereSql[i]);
@@ -129,8 +126,8 @@ public abstract class SqlConnection implements ISqlConnection, IInitializingBean
 
     @Override
     public void queueDeleteAll(String tableName) {
-        IThreadLocalObjectCollector objectCollector = this.objectCollector.getCurrent();
-        AppendableStringBuilder sb = objectCollector.create(AppendableStringBuilder.class);
+        var objectCollector = this.objectCollector.getCurrent();
+        var sb = objectCollector.create(AppendableStringBuilder.class);
         try {
             sb.append("DELETE FROM ");
             sqlBuilder.appendName(tableName, sb);
@@ -142,8 +139,8 @@ public abstract class SqlConnection implements ISqlConnection, IInitializingBean
 
     @Override
     public void queueUpdate(String tableName, CharSequence valueAndNamesSql, CharSequence whereSql) {
-        IThreadLocalObjectCollector objectCollector = this.objectCollector.getCurrent();
-        AppendableStringBuilder sb = objectCollector.create(AppendableStringBuilder.class);
+        var objectCollector = this.objectCollector.getCurrent();
+        var sb = objectCollector.create(AppendableStringBuilder.class);
         try {
             sb.append("UPDATE ");
             sqlBuilder.appendName(tableName, sb);
@@ -164,25 +161,25 @@ public abstract class SqlConnection implements ISqlConnection, IInitializingBean
 
     @Override
     public IResultSet selectFields(String tableName, CharSequence fieldNamesSql, CharSequence joinSql, CharSequence whereSql, CharSequence orderBySql, CharSequence limitSql, List<Object> parameters) {
-        boolean join = joinSql != null && joinSql.length() > 0;
-        String tableAlias = join ? "A" : null;
+        var join = joinSql != null && joinSql.length() > 0;
+        var tableAlias = join ? "A" : null;
         return selectFields(tableName, fieldNamesSql, joinSql, whereSql, orderBySql, limitSql, parameters, tableAlias);
     }
 
     @Override
     public IResultSet selectFields(String tableName, CharSequence fieldNamesSql, CharSequence joinSql, CharSequence whereSql, CharSequence orderBySql, CharSequence limitSql, List<Object> parameters,
             String tableAlias) {
-        boolean hasJoin = joinSql != null && joinSql.length() > 0;
-        boolean hasWhere = whereSql != null && whereSql.length() > 0;
-        boolean hasOrderBy = orderBySql != null && orderBySql.length() > 0;
-        boolean hasLimit = limitSql != null && limitSql.length() > 0;
-        boolean needsSubselectForLimit = false;
-        SelectPosition limitPosition = connectionDialect.getLimitPosition();
+        var hasJoin = joinSql != null && joinSql.length() > 0;
+        var hasWhere = whereSql != null && whereSql.length() > 0;
+        var hasOrderBy = orderBySql != null && orderBySql.length() > 0;
+        var hasLimit = limitSql != null && limitSql.length() > 0;
+        var needsSubselectForLimit = false;
+        var limitPosition = connectionDialect.getLimitPosition();
         if (SelectPosition.AS_WHERE_CLAUSE.equals(limitPosition)) {
             needsSubselectForLimit = hasOrderBy && hasLimit;
         }
-        IThreadLocalObjectCollector objectCollector = this.objectCollector.getCurrent();
-        AppendableStringBuilder sb = objectCollector.create(AppendableStringBuilder.class);
+        var objectCollector = this.objectCollector.getCurrent();
+        var sb = objectCollector.create(AppendableStringBuilder.class);
         try {
             if (needsSubselectForLimit) {
                 // sub select needed for the rownum criteria
@@ -236,25 +233,25 @@ public abstract class SqlConnection implements ISqlConnection, IInitializingBean
     @Override
     public IResultSet selectFields(String tableName, CharSequence fieldNamesSql, CharSequence joinSql, CharSequence whereSql, List<String> additionalSelectColumnList, CharSequence orderBySql,
             CharSequence limitSql, int offset, int length, List<Object> parameters) {
-        boolean join = joinSql != null && joinSql.length() > 0;
-        String tableAlias = join ? "A" : null;
+        var join = joinSql != null && joinSql.length() > 0;
+        var tableAlias = join ? "A" : null;
         return selectFields(tableName, fieldNamesSql, joinSql, whereSql, additionalSelectColumnList, orderBySql, limitSql, offset, length, parameters, tableAlias);
     }
 
     @Override
     public IResultSet selectFields(String tableName, CharSequence fieldNamesSql, CharSequence joinSql, CharSequence whereSql, List<String> additionalSelectColumnList, CharSequence orderBySql,
             CharSequence limitSql, int offset, int length, List<Object> parameters, String tableAlias) {
-        boolean join = joinSql != null && joinSql.length() > 0;
-        IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
+        var join = joinSql != null && joinSql.length() > 0;
+        var tlObjectCollector = objectCollector.getCurrent();
 
-        AppendableStringBuilder sb = tlObjectCollector.create(AppendableStringBuilder.class);
+        var sb = tlObjectCollector.create(AppendableStringBuilder.class);
 
         CharSequence outerFieldNamesSql, innerFieldNamesSql;
         if (tableAlias == null) {
             outerFieldNamesSql = fieldNamesSql;
             innerFieldNamesSql = fieldNamesSql;
         } else {
-            Matcher fieldWithAliasMatcher = fieldWithAlias.matcher(fieldNamesSql);
+            var fieldWithAliasMatcher = fieldWithAlias.matcher(fieldNamesSql);
             outerFieldNamesSql = fieldWithAliasMatcher.replaceAll(outerFieldPattern);
             innerFieldNamesSql = fieldWithAliasMatcher.replaceAll(innerFieldPattern);
         }
@@ -274,7 +271,7 @@ public abstract class SqlConnection implements ISqlConnection, IInitializingBean
 
             if (additionalSelectColumnList != null) {
                 for (int a = 0, size = additionalSelectColumnList.size(); a < size; a++) {
-                    String additionalSelectColumn = additionalSelectColumnList.get(a);
+                    var additionalSelectColumn = additionalSelectColumnList.get(a);
                     // additionalSelectColumn is expected to be already escaped at this point. No need to
                     // double escape
                     sb.append(',').append(additionalSelectColumn);
@@ -303,55 +300,43 @@ public abstract class SqlConnection implements ISqlConnection, IInitializingBean
     }
 
     @Override
-    public IResultSet createResultSet(final String tableName, final String idFieldName, final Class<?> idFieldType, CharSequence fieldsSql, CharSequence additionalWhereSql, CharSequence orderBySql,
-            List<?> ids) {
-        if (ids == null || ids.isEmpty()) {
+    public IResultSet createResultSet(String tableName, CharSequence fieldsSql, CharSequence additionalWhereSql, CharSequence orderBySql, IdContainer idContainer) {
+        var amountOfIds = idContainer.getAmountOfIds();
+        if (amountOfIds == 0) {
             return EmptyResultSet.instance;
         }
-        if (ids.size() <= maxInClauseBatchThreshold) {
-            return createResultSetIntern(tableName, idFieldName, idFieldType, fieldsSql, additionalWhereSql, orderBySql, ids);
+        if (amountOfIds <= maxInClauseBatchThreshold) {
+            return createResultSetIntern(tableName, fieldsSql, additionalWhereSql, orderBySql, idContainer);
         }
-        IList<IList<Object>> splitValues = persistenceHelper.splitValues(ids, maxInClauseBatchThreshold);
-
-        ArrayList<IResultSetProvider> resultSetProviderStack = new ArrayList<>(splitValues.size());
-        // Stack gets evaluated last->first so back iteration is correct to execute the sql in order
-        // later
-        final String unmod_fieldsSql = fieldsSql != null ? fieldsSql.toString() : null;
-        final String unmod_additionalWhereSql = additionalWhereSql != null ? additionalWhereSql.toString() : null;
-        final String unmod_orderBySql = orderBySql != null ? orderBySql.toString() : null;
-        for (int a = splitValues.size(); a-- > 0; ) {
-            final IList<Object> values = splitValues.get(a);
-            resultSetProviderStack.add(new IResultSetProvider() {
-                @Override
-                public void skipResultSet() {
-                    // Intended blank
-                }
-
-                @Override
-                public IResultSet getResultSet() {
-                    return createResultSetIntern(tableName, idFieldName, idFieldType, unmod_fieldsSql, unmod_additionalWhereSql, unmod_orderBySql, values);
-                }
-            });
+        var idsInChunks = persistenceHelper.splitValues(idContainer.getValues(), maxInClauseBatchThreshold);
+        var resultSetProviderStack = new ArrayList<IResultSetProvider>(idsInChunks.size());
+        // Stack gets evaluated last->first so back iteration is correct to execute the sql in order later
+        var unmod_fieldsSql = fieldsSql != null ? fieldsSql.toString() : null;
+        var unmod_additionalWhereSql = additionalWhereSql != null ? additionalWhereSql.toString() : null;
+        var unmod_orderBySql = orderBySql != null ? orderBySql.toString() : null;
+        for (int chunkIndex = idsInChunks.size(); chunkIndex-- > 0; ) {
+            var idsOfChunk = idsInChunks.get(chunkIndex);
+            var idContainerOfChunk = IdContainerImpl.ofChunk(idContainer, idsOfChunk);
+            resultSetProviderStack.add(() -> createResultSetIntern(tableName, unmod_fieldsSql, unmod_additionalWhereSql, unmod_orderBySql, idContainerOfChunk));
         }
-        CompositeResultSet compositeResultSet = new CompositeResultSet();
+        var compositeResultSet = new CompositeResultSet();
         compositeResultSet.setResultSetProviderStack(resultSetProviderStack);
         compositeResultSet.afterPropertiesSet();
         return compositeResultSet;
     }
 
-    protected IResultSet createResultSetIntern(String tableName, String idFieldName, Class<?> idFieldType, CharSequence fieldsSQL, CharSequence additionalWhereSQL, CharSequence orderBySQL,
-            List<?> ids) {
-        IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
-        ArrayList<Object> parameters = new ArrayList<>();
-        AppendableStringBuilder whereSB = tlObjectCollector.create(AppendableStringBuilder.class);
+    protected IResultSet createResultSetIntern(String tableName, CharSequence fieldsSQL, CharSequence additionalWhereSQL, CharSequence orderBySQL, IdContainer idContainer) {
+        var objectCollector = this.objectCollector.getCurrent();
+        var parameters = new ArrayList<>();
+        var whereSB = objectCollector.create(AppendableStringBuilder.class);
         try {
-            persistenceHelper.appendSplittedValues(idFieldName, idFieldType, ids, parameters, whereSB);
+            persistenceHelper.appendSplittedValues(idContainer, parameters, whereSB);
             if (additionalWhereSQL != null) {
                 whereSB.append(" AND ").append(additionalWhereSQL);
             }
             return selectFields(tableName, fieldsSQL, whereSB, orderBySQL, null, parameters);
         } finally {
-            tlObjectCollector.dispose(whereSB);
+            objectCollector.dispose(whereSB);
         }
     }
 

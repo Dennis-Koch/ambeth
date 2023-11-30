@@ -20,80 +20,78 @@ limitations under the License.
  * #L%
  */
 
-import java.util.List;
-
 import com.koch.ambeth.ioc.IInitializingBean;
 import com.koch.ambeth.merge.proxy.PersistenceContext;
 import com.koch.ambeth.model.BlobObject;
 import com.koch.ambeth.persistence.IServiceUtil;
 import com.koch.ambeth.persistence.api.IDatabase;
-import com.koch.ambeth.persistence.api.ITable;
+import com.koch.ambeth.service.merge.model.IObjRef;
 import com.koch.ambeth.service.proxy.Service;
 import com.koch.ambeth.util.ParamChecker;
 import com.koch.ambeth.util.collections.ArrayList;
 
+import java.util.List;
+
 @Service(IBlobObjectService.class)
 @PersistenceContext
 public class BlobObjectService implements IBlobObjectService, IInitializingBean {
-	protected IDatabase database;
+    protected IDatabase database;
 
-	protected IServiceUtil serviceUtil;
+    protected IServiceUtil serviceUtil;
 
-	@Override
-	public void afterPropertiesSet() throws Throwable {
-		ParamChecker.assertNotNull(database, "database");
-		ParamChecker.assertNotNull(serviceUtil, "serviceUtil");
-	}
+    @Override
+    public void afterPropertiesSet() throws Throwable {
+        ParamChecker.assertNotNull(database, "database");
+        ParamChecker.assertNotNull(serviceUtil, "serviceUtil");
+    }
 
-	public void setDatabase(IDatabase database) {
-		this.database = database;
-	}
+    public void setDatabase(IDatabase database) {
+        this.database = database;
+    }
 
-	public void setServiceUtil(IServiceUtil serviceUtil) {
-		this.serviceUtil = serviceUtil;
-	}
+    public void setServiceUtil(IServiceUtil serviceUtil) {
+        this.serviceUtil = serviceUtil;
+    }
 
-	@Override
-	public List<BlobObject> getAllBlobObjects() {
-		ITable blobObjectTable = database.getTableByType(BlobObject.class);
+    @Override
+    public List<BlobObject> getAllBlobObjects() {
+        var blobObjectTable = database.getTableByType(BlobObject.class);
 
-		ArrayList<BlobObject> list = new ArrayList<>();
-		serviceUtil.loadObjectsIntoCollection(list, BlobObject.class, blobObjectTable.selectAll());
-		return list;
-	}
+        var list = new ArrayList<BlobObject>();
+        serviceUtil.loadObjectsIntoCollection(list, BlobObject.class, blobObjectTable.selectAll());
+        return list;
+    }
 
-	@Override
-	public BlobObject getBlobObject(Integer id) {
-		ITable blobObjectTable = database.getTableByType(BlobObject.class);
+    @Override
+    public BlobObject getBlobObject(Integer id) {
+        var blobObjectTable = database.getTableByType(BlobObject.class);
 
-		ArrayList<BlobObject> list = new ArrayList<>(1);
-		List<Object> ids = new ArrayList<>();
-		ids.add(id);
-		serviceUtil.loadObjectsIntoCollection(list, BlobObject.class,
-				blobObjectTable.selectVersion(ids));
-		if (!list.isEmpty()) {
-			return list.get(0);
-		}
-		return null;
-	}
+        var list = new ArrayList<BlobObject>(1);
+        var ids = new ArrayList<>();
+        ids.add(id);
+        serviceUtil.loadObjectsIntoCollection(list, BlobObject.class, blobObjectTable.selectVersion(IObjRef.PRIMARY_KEY_INDEX, ids));
+        if (!list.isEmpty()) {
+            return list.get(0);
+        }
+        return null;
+    }
 
-	@Override
-	public List<BlobObject> getBlobObjects(Integer... id) {
-		ITable blobObjectTable = database.getTableByType(BlobObject.class);
+    @Override
+    public List<BlobObject> getBlobObjects(Integer... id) {
+        var blobObjectTable = database.getTableByType(BlobObject.class);
 
-		ArrayList<BlobObject> list = new ArrayList<>(id.length);
-		serviceUtil.loadObjectsIntoCollection(list, BlobObject.class,
-				blobObjectTable.selectVersion(new ArrayList<>(id)));
-		return list;
-	}
+        var list = new ArrayList<BlobObject>(id.length);
+        serviceUtil.loadObjectsIntoCollection(list, BlobObject.class, blobObjectTable.selectVersion(IObjRef.PRIMARY_KEY_INDEX, new ArrayList<>(id)));
+        return list;
+    }
 
-	@Override
-	public void updateBlobObject(BlobObject blobObject) {
-		throw new UnsupportedOperationException();
-	}
+    @Override
+    public void updateBlobObject(BlobObject blobObject) {
+        throw new UnsupportedOperationException();
+    }
 
-	@Override
-	public void deleteBlobObject(BlobObject blobObject) {
-		throw new UnsupportedOperationException();
-	}
+    @Override
+    public void deleteBlobObject(BlobObject blobObject) {
+        throw new UnsupportedOperationException();
+    }
 }

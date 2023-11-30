@@ -6,7 +6,7 @@ import com.koch.ambeth.filter.IPagingResponse;
 import com.koch.ambeth.filter.ISortDescriptor;
 import com.koch.ambeth.filter.query.service.IGenericQueryService;
 import com.koch.ambeth.ioc.annotation.Autowired;
-import com.koch.ambeth.merge.ILightweightTransaction;
+import com.koch.ambeth.util.transaction.ILightweightTransaction;
 
 public class GenericQueryService implements IGenericQueryService {
     @Autowired

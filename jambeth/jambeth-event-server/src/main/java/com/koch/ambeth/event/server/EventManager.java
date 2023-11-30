@@ -94,10 +94,10 @@ public class EventManager implements IEventProvider, IEventStore, IEventListener
             IListElem<IQueuedEvent> queuedEventLE = null;
             long sequenceNumber = ++eventSequence;
             if (eventObject instanceof IListElem) {
-                Object listElemTarget = ((IListElem<?>) eventObject).getElemValue();
+                var listElemTarget = ((IListElem<?>) eventObject).getElemValue();
                 if (listElemTarget instanceof IQueuedEvent) {
                     queuedEventLE = (IListElem<IQueuedEvent>) listElemTarget;
-                    IQueuedEvent queuedEvent = ((IQueuedEvent) listElemTarget);
+                    var queuedEvent = ((IQueuedEvent) listElemTarget);
                     queuedEvent.setDispatchTime(dispatchTime);
                     queuedEvent.setSequenceNumber(sequenceNumber);
                 }
@@ -116,7 +116,7 @@ public class EventManager implements IEventProvider, IEventStore, IEventListener
     @Override
     public void addEvents(List<Object> eventObjects) {
         for (int i = eventObjects.size(); i-- > 0; ) {
-            Object eventObject = eventObjects.get(i);
+            var eventObject = eventObjects.get(i);
             eventObject = preSaveToStore(eventObject);
             eventObjects.set(i, eventObject);
         }
@@ -129,10 +129,10 @@ public class EventManager implements IEventProvider, IEventStore, IEventListener
                 IListElem<IQueuedEvent> queuedEventLE = null;
                 long sequenceNumber = ++eventSequence;
                 if (eventObject instanceof IListElem) {
-                    Object listElemTarget = ((IListElem<?>) eventObject).getElemValue();
+                    var listElemTarget = ((IListElem<?>) eventObject).getElemValue();
                     if (listElemTarget instanceof IQueuedEvent) {
                         queuedEventLE = (IListElem<IQueuedEvent>) listElemTarget;
-                        IQueuedEvent queuedEvent = ((IQueuedEvent) listElemTarget);
+                        var queuedEvent = ((IQueuedEvent) listElemTarget);
                         queuedEvent.setDispatchTime(dispatchTime);
                         queuedEvent.setSequenceNumber(sequenceNumber);
                     }
@@ -179,12 +179,12 @@ public class EventManager implements IEventProvider, IEventStore, IEventListener
         } else {
             eventType = eventObject.getClass();
         }
-        IEventStoreHandler eventStoreHandler = eventStoreHandlers.getExtension(eventType);
+        var eventStoreHandler = eventStoreHandlers.getExtension(eventType);
         if (eventStoreHandler == null) {
             return eventObject;
         }
         // Replace object if necessary
-        Object replacedEventObject = eventStoreHandler.preSaveInStore(eventObject);
+        var replacedEventObject = eventStoreHandler.preSaveInStore(eventObject);
         if (replacedEventObject == null || replacedEventObject == eventObject) {
             // Nothing to do
             return eventObject;
@@ -194,20 +194,20 @@ public class EventManager implements IEventProvider, IEventStore, IEventListener
 
     protected void postLoadFromStore(List<IQueuedEvent> selectedEvents) {
         for (int a = selectedEvents.size(); a-- > 0; ) {
-            IQueuedEvent selectedEvent = selectedEvents.get(a);
-            Object eventObject = selectedEvent.getEventObject();
+            var selectedEvent = selectedEvents.get(a);
+            var eventObject = selectedEvent.getEventObject();
             Class<?> eventType;
             if (eventObject instanceof IReplacedEvent) {
                 eventType = ((IReplacedEvent) eventObject).getOriginalEventType();
             } else {
                 eventType = eventObject.getClass();
             }
-            IEventStoreHandler eventStoreHandler = eventStoreHandlers.getExtension(eventType);
+            var eventStoreHandler = eventStoreHandlers.getExtension(eventType);
             if (eventStoreHandler == null) {
                 continue;
             }
             // Replace object if necessary
-            Object replacedEventObject = eventStoreHandler.postLoadFromStore(eventObject);
+            var replacedEventObject = eventStoreHandler.postLoadFromStore(eventObject);
             if (replacedEventObject == null || replacedEventObject == eventObject) {
                 // Nothing to do
                 continue;
@@ -228,10 +228,10 @@ public class EventManager implements IEventProvider, IEventStore, IEventListener
 
     protected void selectEvents(long startedTime, long eventSequenceSince, long maximumWaitTime, List<IQueuedEvent> selectedEvents) {
         while (true) {
-            IListElem<IQueuedEvent> currentLE = eventQueue.last();
+            var currentLE = eventQueue.last();
             IListElem<IQueuedEvent> startLE = null;
             while (currentLE != null) {
-                IQueuedEvent eventItem = currentLE.getElemValue();
+                var eventItem = currentLE.getElemValue();
                 if (eventItem.getSequenceNumber() <= eventSequenceSince) {
                     // This event is now older than the events we are interested in
                     // Since all events are ordered we can go one step further
@@ -243,7 +243,7 @@ public class EventManager implements IEventProvider, IEventStore, IEventListener
             if (startLE != null) {
                 currentLE = startLE;
                 while (currentLE != null) {
-                    IQueuedEvent eventItem = currentLE.getElemValue();
+                    var eventItem = currentLE.getElemValue();
                     selectedEvents.add(eventItem);
                     currentLE = currentLE.getNext();
                 }
@@ -279,9 +279,9 @@ public class EventManager implements IEventProvider, IEventStore, IEventListener
     public long findEventSequenceNumber(long time) {
         long requestedSequenceNumber = 0;
 
-        IListElem<IQueuedEvent> currentLE = eventQueue.last();
+        var currentLE = eventQueue.last();
         while (currentLE != null) {
-            IQueuedEvent eventItem = currentLE.getElemValue();
+            var eventItem = currentLE.getElemValue();
             if (eventItem.getDispatchTime() < time) {
                 // This event is now older than the event sequence number we are interested in
                 // Since all events are ordered we can go one stop further
@@ -310,12 +310,12 @@ public class EventManager implements IEventProvider, IEventStore, IEventListener
         }
         lastCleanup = now;
         long timeToDelete = now - getMaxEventHistoryTime();
-        IListElem<IQueuedEvent> currentLE = eventQueue.first();
+        var currentLE = eventQueue.first();
         while (currentLE != null) {
-            IQueuedEvent eventItem = currentLE.getElemValue();
+            var eventItem = currentLE.getElemValue();
 
             // Store next pointer as first thing
-            IListElem<IQueuedEvent> nextLE = currentLE.getNext();
+            var nextLE = currentLE.getNext();
 
             if (eventItem.getDispatchTime() >= timeToDelete) {
                 // Event is not old enough to get killed, but the queue is
@@ -324,14 +324,14 @@ public class EventManager implements IEventProvider, IEventStore, IEventListener
             }
             eventQueue.remove(currentLE);
             currentLE = nextLE;
-            Object eventObject = eventItem.getEventObject();
+            var eventObject = eventItem.getEventObject();
             Class<?> eventType;
             if (eventObject instanceof IReplacedEvent) {
                 eventType = ((IReplacedEvent) eventObject).getOriginalEventType();
             } else {
                 eventType = eventObject.getClass();
             }
-            IEventStoreHandler eventStoreHandler = eventStoreHandlers.getExtension(eventType);
+            var eventStoreHandler = eventStoreHandlers.getExtension(eventType);
             if (eventStoreHandler == null) {
                 continue;
             }

@@ -1,109 +1,108 @@
 package com.koch.ambeth.persistence.sql;
 
-import java.util.Iterator;
-
-/*-
- * #%L
- * jambeth-persistence
- * %%
- * Copyright (C) 2017 Koch Softwaredevelopment
- * %%
- * Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-     http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
- * #L%
- */
-
 import com.koch.ambeth.ioc.IInitializingBean;
 import com.koch.ambeth.merge.transfer.ObjRef;
 import com.koch.ambeth.query.persistence.IVersionItem;
 import com.koch.ambeth.util.ParamChecker;
+import lombok.Setter;
 
-public class ResultSetPkVersionCursorBase
-		implements IInitializingBean, IVersionItem {
-	protected IResultSet resultSet;
+import java.util.Iterator;
 
-	protected Iterator<Object[]> resultSetIter;
+public class ResultSetPkVersionCursorBase implements IInitializingBean, IVersionItem {
 
-	protected Object id, version;
+    @Setter
+    protected IResultSet resultSet;
 
-	protected boolean containsVersion = true;
+    protected Iterator<Object[]> resultSetIter;
 
-	@Override
-	public void afterPropertiesSet() {
-		ParamChecker.assertNotNull(resultSet, "ResultSet");
-	}
+    protected Object[] ids;
 
-	public void setContainsVersion(boolean containsVersion) {
-		this.containsVersion = containsVersion;
-	}
+    protected Object version;
 
-	public void setResultSet(IResultSet resultSet) {
-		this.resultSet = resultSet;
-	}
+    @Setter
+    protected int compositeIdCount = 1;
 
-	@Override
-	public Object getId() {
-		return id;
-	}
+    @Setter
+    protected int versionIndex;
 
-	@Override
-	public Object getId(int idIndex) {
-		if (idIndex == ObjRef.PRIMARY_KEY_INDEX) {
-			return getId();
-		}
-		throw new UnsupportedOperationException("No alternate ids have been fetched");
-	}
+    @Override
+    public void afterPropertiesSet() {
+        ParamChecker.assertNotNull(resultSet, "ResultSet");
+        ids = new Object[compositeIdCount];
+    }
 
-	@Override
-	public Object getVersion() {
-		return version;
-	}
+    @Override
+    public Object getId() {
+        var ids = this.ids;
+        if (ids.length == 1) {
+            return ids[0];
+        }
+        return ids;
+    }
 
-	@Override
-	public int getAlternateIdCount() {
-		return 0;
-	}
+    @Override
+    public Object getId(int idIndex) {
+        if (idIndex == ObjRef.PRIMARY_KEY_INDEX) {
+            return getId();
+        }
+        throw new UnsupportedOperationException("No alternate ids have been fetched");
+    }
 
-	public boolean hasNext() {
-		if (resultSetIter == null) {
-			resultSetIter = resultSet.iterator();
-		}
-		return resultSetIter.hasNext();
-	}
+    @Override
+    public Object getVersion() {
+        return version;
+    }
 
-	public IVersionItem next() {
-		if (resultSetIter == null) {
-			resultSetIter = resultSet.iterator();
-		}
-		Iterator<Object[]> resultSetIter = this.resultSetIter;
-		Object[] current = resultSetIter.next();
-		if (current != null) {
-			id = current[0];
-			if (containsVersion) {
-				version = current[1];
-			}
-		}
-		else {
-			id = null;
-			version = null;
-		}
-		return this;
-	}
+    @Override
+    public int getAlternateIdCount() {
+        return 0;
+    }
 
-	public void dispose() {
-		if (resultSet != null) {
-			resultSetIter = null;
-			resultSet.dispose();
-			resultSet = null;
-		}
-	}
+    public boolean hasNext() {
+        if (resultSetIter == null) {
+            resultSetIter = resultSet.iterator();
+        }
+        return resultSetIter.hasNext();
+    }
+
+    public IVersionItem next() {
+        if (resultSetIter == null) {
+            resultSetIter = resultSet.iterator();
+        }
+        var resultSetIter = this.resultSetIter;
+        var current = resultSetIter.next();
+        processResultSetItem(current);
+        return this;
+    }
+
+    protected void processResultSetItem(Object[] current) {
+        var ids = this.ids;
+        if (current != null) {
+            if (ids.length == 1) {
+                ids[0] = current[0];
+            } else {
+                for (int a = ids.length; a-- > 0; ) {
+                    ids[a] = current[a];
+                }
+            }
+            version = versionIndex != -1 ? current[versionIndex] : null;
+        } else {
+            if (ids.length == 1) {
+                ids[0] = null;
+            } else {
+                for (int a = ids.length; a-- > 0; ) {
+                    ids[a] = null;
+                }
+            }
+            version = null;
+        }
+    }
+
+    public void dispose() {
+        if (resultSet != null) {
+            resultSetIter = null;
+            resultSet.dispose();
+            resultSet = null;
+        }
+    }
 }

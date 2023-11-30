@@ -57,196 +57,185 @@ import com.koch.ambeth.util.state.IStateRollback;
 @SQLData("alternateid_data.sql")
 @SQLStructure("alternateid_structure.sql")
 @TestModule(AlternateIdModule.class)
-@TestProperties(name = ServiceConfigurationConstants.mappingFile,
-		value = "com/koch/ambeth/persistence/jdbc/alternateid/alternateid_orm.xml")
+@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "com/koch/ambeth/persistence/jdbc/alternateid/alternateid_orm.xml")
 public class AlternateIdTest extends AbstractInformationBusWithPersistenceTest {
-	public static class AlternateIdModule implements IInitializingModule {
-		@Override
-		public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
-			beanContextFactory.registerAutowireableBean(IAlternateIdEntityService.class,
-					AlternateIdEntityService.class);
-		}
-	}
+    protected String name = "myNameIs";
+    @Autowired
+    protected IAlternateIdEntityService service;
+    @Autowired(CacheNamedBeans.CacheProviderSingleton)
+    protected ICacheProvider cacheProvider;
 
-	protected String name = "myNameIs";
+    protected AlternateIdEntity createEntity() {
+        AlternateIdEntity aie = entityFactory.createEntity(AlternateIdEntity.class);
+        aie.setName(name);
 
-	@Autowired
-	protected IAlternateIdEntityService service;
+        service.updateAlternateIdEntity(aie);
+        return aie;
+    }
 
-	@Autowired(CacheNamedBeans.CacheProviderSingleton)
-	protected ICacheProvider cacheProvider;
+    @Test
+    public void createAlternateIdEntity() {
+        AlternateIdEntity aie = createEntity();
 
-	protected AlternateIdEntity createEntity() {
-		AlternateIdEntity aie = entityFactory.createEntity(AlternateIdEntity.class);
-		aie.setName(name);
+        Assert.assertFalse("Wrong id", aie.getId() == 0);
+        Assert.assertEquals("Wrong version!", (short) 1, aie.getVersion());
+    }
 
-		service.updateAlternateIdEntity(aie);
-		return aie;
-	}
+    @Test
+    public void createAlternateIdEntity_emptyAlternateId() {
+        AlternateIdEntity aie = entityFactory.createEntity(AlternateIdEntity.class);
 
-	@Test
-	public void createAlternateIdEntity() {
-		AlternateIdEntity aie = createEntity();
+        service.updateAlternateIdEntity(aie);
 
-		Assert.assertFalse("Wrong id", aie.getId() == 0);
-		Assert.assertEquals("Wrong version!", (short) 1, aie.getVersion());
-	}
+        Assert.assertFalse("Wrong id", aie.getId() == 0);
+        Assert.assertEquals("Wrong version!", (short) 1, aie.getVersion());
+    }
 
-	@Test
-	public void createAlternateIdEntity_emptyAlternateId() {
-		AlternateIdEntity aie = entityFactory.createEntity(AlternateIdEntity.class);
+    @Test
+    public void selectByPrimitive() {
+        String name = createEntity().getName();
+        AlternateIdEntity aieReloaded = service.getAlternateIdEntityByName(name);
+        Assert.assertNotNull("Entity must be valid", aieReloaded);
+    }
 
-		service.updateAlternateIdEntity(aie);
+    @Test
+    public void alternateIdSimpleRead() {
+        AlternateIdEntity entity = createEntity();
 
-		Assert.assertFalse("Wrong id", aie.getId() == 0);
-		Assert.assertEquals("Wrong version!", (short) 1, aie.getVersion());
-	}
+        ICache cache = cacheProvider.getCurrentCache();
 
-	@Test
-	public void selectByPrimitive() {
-		String name = createEntity().getName();
-		AlternateIdEntity aieReloaded = service.getAlternateIdEntityByName(name);
-		Assert.assertNotNull("Entity must be valid", aieReloaded);
-	}
+        AlternateIdEntity entityFromCacheById = cache.getObject(entity.getClass(), entity.getId());
+        AlternateIdEntity entityFromCacheById2 = cache.getObject(entity.getClass(), "Id", entity.getId());
+        AlternateIdEntity entityFromCacheByName = cache.getObject(entity.getClass(), "Name", entity.getName());
 
-	@Test
-	public void alternateIdSimpleRead() {
-		AlternateIdEntity entity = createEntity();
+        Assert.assertSame(entityFromCacheById, entityFromCacheById2);
+        Assert.assertSame(entityFromCacheById, entityFromCacheByName);
+    }
 
-		ICache cache = cacheProvider.getCurrentCache();
+    @Test
+    public void alternateIdChange() {
+        AlternateIdEntity entity = createEntity();
 
-		AlternateIdEntity entityFromCacheById = cache.getObject(entity.getClass(), entity.getId());
-		AlternateIdEntity entityFromCacheById2 = cache.getObject(entity.getClass(), "Id",
-				entity.getId());
-		AlternateIdEntity entityFromCacheByName = cache.getObject(entity.getClass(), "Name",
-				entity.getName());
+        ICache cache = cacheProvider.getCurrentCache();
+        // rootCache.clear();
+        entity.setName(entity.getName() + "_2");
 
-		Assert.assertSame(entityFromCacheById, entityFromCacheById2);
-		Assert.assertSame(entityFromCacheById, entityFromCacheByName);
-	}
+        AlternateIdEntity entityFromCacheById = cache.getObject(entity.getClass(), entity.getId());
 
-	@Test
-	public void alternateIdChange() {
-		AlternateIdEntity entity = createEntity();
+        service.updateAlternateIdEntity(entity);
 
-		ICache cache = cacheProvider.getCurrentCache();
-		// rootCache.clear();
-		entity.setName(entity.getName() + "_2");
+        AlternateIdEntity entityFromCacheByIdAfterChange = cache.getObject(entity.getClass(), entity.getId());
 
-		AlternateIdEntity entityFromCacheById = cache.getObject(entity.getClass(), entity.getId());
+        Assert.assertSame(entityFromCacheById, entityFromCacheByIdAfterChange);
+    }
 
-		service.updateAlternateIdEntity(entity);
+    @Test
+    public void selectByArray() {
+        String name = createEntity().getName();
+        AlternateIdEntity aieReloaded2 = service.getAlternateIdEntityByNames(name);
+        Assert.assertNotNull("Entity must be valid", aieReloaded2);
+    }
 
-		AlternateIdEntity entityFromCacheByIdAfterChange = cache.getObject(entity.getClass(),
-				entity.getId());
+    @Test
+    public void selectByList() {
+        String name = createEntity().getName();
+        ArrayList<String> namesList = new ArrayList<>();
+        namesList.add(name);
+        AlternateIdEntity aieReloaded3 = service.getAlternateIdEntityByNames(namesList);
+        Assert.assertNotNull("Entity must be valid", aieReloaded3);
+    }
 
-		Assert.assertSame(entityFromCacheById, entityFromCacheByIdAfterChange);
-	}
+    @Test
+    public void selectBySet() {
+        String name = createEntity().getName();
+        HashSet<String> namesSet = new HashSet<>();
+        namesSet.add(name);
+        AlternateIdEntity aieReloaded4 = service.getAlternateIdEntityByNames(namesSet);
+        Assert.assertNotNull("Entity must be valid", aieReloaded4);
+    }
 
-	@Test
-	public void selectByArray() {
-		String name = createEntity().getName();
-		AlternateIdEntity aieReloaded2 = service.getAlternateIdEntityByNames(name);
-		Assert.assertNotNull("Entity must be valid", aieReloaded2);
-	}
+    @Test
+    public void selectListByArray() {
+        String name = createEntity().getName();
+        List<AlternateIdEntity> list = service.getAlternateIdEntitiesByNamesReturnList(name);
+        Assert.assertNotNull("List must be valid", list);
+        Assert.assertEquals("Size is wrong", 1, list.size());
+        Assert.assertNotNull("Entity must be valid", list.get(0));
+    }
 
-	@Test
-	public void selectByList() {
-		String name = createEntity().getName();
-		ArrayList<String> namesList = new ArrayList<>();
-		namesList.add(name);
-		AlternateIdEntity aieReloaded3 = service.getAlternateIdEntityByNames(namesList);
-		Assert.assertNotNull("Entity must be valid", aieReloaded3);
-	}
+    @Test
+    public void selectSetByArray() {
+        String name = createEntity().getName();
+        Set<AlternateIdEntity> set = service.getAlternateIdEntitiesByNamesReturnSet(name);
+        Assert.assertNotNull("List must be valid", set);
+        Assert.assertEquals("Size is wrong", 1, set.size());
+        Assert.assertNotNull("Entity must be valid", set.iterator().next());
+    }
 
-	@Test
-	public void selectBySet() {
-		String name = createEntity().getName();
-		HashSet<String> namesSet = new HashSet<>();
-		namesSet.add(name);
-		AlternateIdEntity aieReloaded4 = service.getAlternateIdEntityByNames(namesSet);
-		Assert.assertNotNull("Entity must be valid", aieReloaded4);
-	}
+    @Test
+    public void selectArrayByArray() {
+        String name = createEntity().getName();
+        AlternateIdEntity[] array = service.getAlternateIdEntitiesByNamesReturnArray(name);
+        Assert.assertNotNull("Array must be valid", array);
+        Assert.assertEquals("Size is wrong", 1, array.length);
+        Assert.assertNotNull("Entity must be valid", array[0]);
+    }
 
-	@Test
-	public void selectListByArray() {
-		String name = createEntity().getName();
-		List<AlternateIdEntity> list = service.getAlternateIdEntitiesByNamesReturnList(name);
-		Assert.assertNotNull("List must be valid", list);
-		Assert.assertEquals("Size is wrong", 1, list.size());
-		Assert.assertNotNull("Entity must be valid", list.get(0));
-	}
+    /**
+     * BaseEntity2 has two unique fields (aka alternate id fields). One of them is a foreign key field
+     * and so should not be used as an alternate id field.
+     */
+    @Test
+    public void testBaseEntity2() {
+        IEntityMetaData metaData = beanContext.getService(IEntityMetaDataProvider.class).getMetaData(BaseEntity2.class);
 
-	@Test
-	public void selectSetByArray() {
-		String name = createEntity().getName();
-		Set<AlternateIdEntity> set = service.getAlternateIdEntitiesByNamesReturnSet(name);
-		Assert.assertNotNull("List must be valid", set);
-		Assert.assertEquals("Size is wrong", 1, set.size());
-		Assert.assertNotNull("Entity must be valid", set.iterator().next());
-	}
+        Assert.assertEquals(1, metaData.getAlternateIdMembers().length);
+    }
 
-	@Test
-	public void selectArrayByArray() {
-		String name = createEntity().getName();
-		AlternateIdEntity[] array = service.getAlternateIdEntitiesByNamesReturnArray(name);
-		Assert.assertNotNull("Array must be valid", array);
-		Assert.assertEquals("Size is wrong", 1, array.length);
-		Assert.assertNotNull("Entity must be valid", array[0]);
-	}
+    @Test
+    public void testLazyValueHolderReferringToAlternateId() throws Throwable {
+        ICacheFactory cacheFactory = beanContext.getService(ICacheFactory.class);
+        ICacheContext cacheContext = beanContext.getService(ICacheContext.class);
 
-	/**
-	 * BaseEntity2 has two unique fields (aka alternate id fields). One of them is a foreign key field
-	 * and so should not be used as an alternate id field.
-	 */
-	@Test
-	public void testBaseEntity2() {
-		IEntityMetaData metaData = beanContext.getService(IEntityMetaDataProvider.class)
-				.getMetaData(BaseEntity2.class);
+        final AlternateIdEntity aeEntity = entityFactory.createEntity(AlternateIdEntity.class);
+        BaseEntity2 be2 = entityFactory.createEntity(BaseEntity2.class);
+        aeEntity.getBaseEntities2().add(be2);
 
-		Assert.assertEquals(1, metaData.getAlternateIdMembers().length);
-	}
+        aeEntity.setName("AE_1");
+        be2.setName("BE_2");
+        IDisposableCache cache = cacheFactory.create(CacheFactoryDirective.NoDCE, "test");
+        IStateRollback rollback = cacheContext.pushCache(cache);
+        try {
+            IMergeProcess mergeProcess = beanContext.getService(IMergeProcess.class);
+            mergeProcess.process(aeEntity);
+        } finally {
+            rollback.rollback();
+            cache.dispose();
+        }
+        cache = cacheFactory.create(CacheFactoryDirective.NoDCE, "test");
+        rollback = cacheContext.pushCache(cache);
+        try {
+            IQueryBuilder<AlternateIdEntity> qb = queryBuilderFactory.create(AlternateIdEntity.class);
+            IQuery<AlternateIdEntity> query = qb.build(qb.let(qb.property("Id")).isEqualTo(qb.value(aeEntity.getId())));
+            IList<AlternateIdEntity> result = query.retrieve();
+            Assert.assertEquals(1, result.size());
+            AlternateIdEntity item = result.get(0);
+            IEntityMetaData metaData = entityMetaDataProvider.getMetaData(AlternateIdEntity.class);
+            int relationIndex = metaData.getIndexByRelationName("BaseEntities2");
+            Assert.assertTrue(!((IObjRefContainer) item).is__Initialized(relationIndex));
+            List<BaseEntity2> baseEntities2 = item.getBaseEntities2();
+            BaseEntity2 baseEntity2 = baseEntities2.get(0);
+            Assert.assertNotNull(baseEntity2);
+        } finally {
+            rollback.rollback();
+            cache.dispose();
+        }
+    }
 
-	@Test
-	public void testLazyValueHolderReferringToAlternateId() throws Throwable {
-		ICacheFactory cacheFactory = beanContext.getService(ICacheFactory.class);
-		ICacheContext cacheContext = beanContext.getService(ICacheContext.class);
-
-		final AlternateIdEntity aeEntity = entityFactory.createEntity(AlternateIdEntity.class);
-		BaseEntity2 be2 = entityFactory.createEntity(BaseEntity2.class);
-		aeEntity.getBaseEntities2().add(be2);
-
-		aeEntity.setName("AE_1");
-		be2.setName("BE_2");
-		IDisposableCache cache = cacheFactory.create(CacheFactoryDirective.NoDCE, "test");
-		IStateRollback rollback = cacheContext.pushCache(cache);
-		try {
-			IMergeProcess mergeProcess = beanContext.getService(IMergeProcess.class);
-			mergeProcess.process(aeEntity);
-		}
-		finally {
-			rollback.rollback();
-			cache.dispose();
-		}
-		cache = cacheFactory.create(CacheFactoryDirective.NoDCE, "test");
-		rollback = cacheContext.pushCache(cache);
-		try {
-			IQueryBuilder<AlternateIdEntity> qb = queryBuilderFactory.create(AlternateIdEntity.class);
-			IQuery<AlternateIdEntity> query = qb
-					.build(qb.let(qb.property("Id")).isEqualTo(qb.value(aeEntity.getId())));
-			IList<AlternateIdEntity> result = query.retrieve();
-			Assert.assertEquals(1, result.size());
-			AlternateIdEntity item = result.get(0);
-			IEntityMetaData metaData = entityMetaDataProvider.getMetaData(AlternateIdEntity.class);
-			int relationIndex = metaData.getIndexByRelationName("BaseEntities2");
-			Assert.assertTrue(!((IObjRefContainer) item).is__Initialized(relationIndex));
-			List<BaseEntity2> baseEntities2 = item.getBaseEntities2();
-			BaseEntity2 baseEntity2 = baseEntities2.get(0);
-			Assert.assertNotNull(baseEntity2);
-		}
-		finally {
-			rollback.rollback();
-			cache.dispose();
-		}
-	}
+    public static class AlternateIdModule implements IInitializingModule {
+        @Override
+        public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
+            beanContextFactory.registerAutowireableBean(IAlternateIdEntityService.class, AlternateIdEntityService.class);
+        }
+    }
 }

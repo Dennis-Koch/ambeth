@@ -20,7 +20,7 @@ limitations under the License.
  * #L%
  */
 
-import com.koch.ambeth.merge.ILightweightTransaction;
+import com.koch.ambeth.util.transaction.ILightweightTransaction;
 
 public interface ITransaction extends ILightweightTransaction {
     ITransactionInfo getTransactionInfo();
@@ -33,9 +33,9 @@ public interface ITransaction extends ILightweightTransaction {
 
     void processAndCommit(DatabaseCallback databaseCallback);
 
-    void processAndCommit(DatabaseCallback databaseCallback, boolean expectOwnDatabaseSession, boolean readOnly);
+    void processAndCommit(DatabaseCallback databaseCallback, boolean expectOwnDatabaseSession, boolean readOnly, boolean lazyTransaction);
 
     <R> R processAndCommitWithResult(ResultingDatabaseCallback<R> databaseCallback);
 
-    <R> R processAndCommitWithResult(ResultingDatabaseCallback<R> databaseCallback, boolean expectOwnDatabaseSession, boolean readOnly);
+    <R> R processAndCommitWithResult(ResultingDatabaseCallback<R> databaseCallback, boolean expectOwnDatabaseSession, boolean readOnly, boolean lazyTransaction);
 }

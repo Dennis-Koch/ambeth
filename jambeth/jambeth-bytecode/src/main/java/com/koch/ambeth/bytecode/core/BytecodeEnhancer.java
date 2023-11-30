@@ -63,6 +63,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.nio.charset.Charset;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.Lock;
@@ -199,17 +200,17 @@ public class BytecodeEnhancer implements IBytecodeEnhancer, IBytecodeBehaviorExt
 
     @Override
     public Class<?> getEnhancedType(Class<?> typeToEnhance, String newTypeNamePrefix, IEnhancementHint hint) {
-        ClassLoader clpClassLoader = classLoaderProvider.getClassLoader();
-        Class<?> extendedType = getEnhancedTypeIntern(typeToEnhance, hint, clpClassLoader);
+        var clpClassLoader = classLoaderProvider.getClassLoader();
+        var extendedType = getEnhancedTypeIntern(typeToEnhance, hint, clpClassLoader);
         if (extendedType != null) {
             return extendedType;
         }
-        ClassLoader typeClassLoader = typeToEnhance.getClassLoader();
+        var typeClassLoader = typeToEnhance.getClassLoader();
         extendedType = getEnhancedTypeIntern(typeToEnhance, hint, typeClassLoader);
         if (extendedType != null) {
             return extendedType;
         }
-        Lock writeLock = this.writeLock;
+        var writeLock = this.writeLock;
         writeLock.lock();
         try {
             // Concurrent thread may have been faster
@@ -232,10 +233,13 @@ public class BytecodeEnhancer implements IBytecodeEnhancer, IBytecodeBehaviorExt
                 valueType.addChangeCount();
                 newTypeNamePrefix += "_O" + valueType.getChangeCount();
             }
-            ArrayList<IBytecodeBehavior> pendingBehaviors = new ArrayList<>();
+            var pendingBehaviors = new ArrayList<IBytecodeBehavior>();
 
-            IBytecodeBehavior[] allBehaviors = bytecodeBehaviorExtensions.getExtensions();
+            var allBehaviors = bytecodeBehaviorExtensions.getExtensions();
             pendingBehaviors.addAll(allBehaviors);
+            Collections.sort(pendingBehaviors, (left, right) -> {
+                return left.getClass().getName().compareTo(right.getClass().getName());
+            });
 
             ClassLoader classLoader = null;
             ArrayList<Class<?>> enhancedTypesPipeline = new ArrayList<>();

@@ -20,7 +20,8 @@ limitations under the License.
  * #L%
  */
 
-import com.koch.ambeth.ioc.IInitializingModule;
+import io.toolisticon.spiap.api.SpiService;
+import com.koch.ambeth.ioc.IFrameworkModule;
 import com.koch.ambeth.ioc.annotation.FrameworkModule;
 import com.koch.ambeth.ioc.factory.IBeanContextFactory;
 import com.koch.ambeth.security.IAuthorizationManager;
@@ -28,12 +29,12 @@ import com.koch.ambeth.security.server.IUserResolver;
 import com.koch.ambeth.server.helloworld.security.HelloWorldAuthorizationManager;
 import com.koch.ambeth.server.helloworld.security.HelloworldUserResolver;
 
+@SpiService(IFrameworkModule.class)
 @FrameworkModule
-public class HelloWorldFrameworkModule implements IInitializingModule {
-	@Override
-	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
-		beanContextFactory.registerBean("userHandleFactory", HelloWorldAuthorizationManager.class)
-				.autowireable(IAuthorizationManager.class);
-		beanContextFactory.registerBean(HelloworldUserResolver.class).autowireable(IUserResolver.class);
-	}
+public class HelloWorldFrameworkModule implements IFrameworkModule {
+    @Override
+    public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
+        beanContextFactory.registerBean("userHandleFactory", HelloWorldAuthorizationManager.class).autowireable(IAuthorizationManager.class);
+        beanContextFactory.registerBean(HelloworldUserResolver.class).autowireable(IUserResolver.class);
+    }
 }

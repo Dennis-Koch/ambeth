@@ -20,11 +20,13 @@ limitations under the License.
  * #L%
  */
 
+import io.toolisticon.spiap.api.SpiService;
 import com.koch.ambeth.ioc.factory.IBeanContextFactory;
 import com.koch.ambeth.log.config.Properties;
 import com.koch.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationConstants;
 import com.koch.ambeth.persistence.jdbc.connector.IConnector;
 
+@SpiService(IConnector.class)
 public class MariaConnector implements IConnector {
     @Override
     public boolean supports(String databaseProtocol) {

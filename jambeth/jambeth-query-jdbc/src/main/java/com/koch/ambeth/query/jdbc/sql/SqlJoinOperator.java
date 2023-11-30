@@ -20,16 +20,16 @@ limitations under the License.
  * #L%
  */
 
-import jakarta.persistence.criteria.JoinType;
-
 import com.koch.ambeth.ioc.IInitializingBean;
 import com.koch.ambeth.query.IOperand;
 import com.koch.ambeth.query.ISqlJoin;
 import com.koch.ambeth.util.ParamChecker;
 import com.koch.ambeth.util.appendable.IAppendable;
 import com.koch.ambeth.util.collections.IList;
-import com.koch.ambeth.util.collections.IMap;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
+import jakarta.persistence.criteria.JoinType;
+
+import java.util.Map;
 
 public class SqlJoinOperator implements ISqlJoin, IInitializingBean {
     protected JoinType joinType = JoinType.LEFT;
@@ -97,12 +97,12 @@ public class SqlJoinOperator implements ISqlJoin, IInitializingBean {
     }
 
     @Override
-    public void expandQuery(IAppendable querySB, IMap<Object, Object> nameToValueMap, boolean joinQuery, IList<Object> parameters) {
+    public void expandQuery(IAppendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, IList<Object> parameters) {
         operate(querySB, nameToValueMap, joinQuery, parameters);
     }
 
     @Override
-    public void operate(IAppendable querySB, IMap<Object, Object> nameToValueMap, boolean joinQuery, IList<Object> parameters) {
+    public void operate(IAppendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, IList<Object> parameters) {
         if (!joinQuery) {
             throw new IllegalStateException("Join clause in non-join statement!");
         }

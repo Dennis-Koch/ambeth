@@ -26,50 +26,31 @@ import com.koch.ambeth.ioc.config.Property;
 import com.koch.ambeth.ioc.factory.IBeanContextFactory;
 import com.koch.ambeth.service.ISSLContextFactory;
 import com.koch.ambeth.service.remote.IClientServiceFactory;
-import com.koch.ambeth.service.rest.AuthenticationHolder;
 import com.koch.ambeth.service.rest.HttpClientProvider;
-import com.koch.ambeth.service.rest.IAuthenticationHolder;
 import com.koch.ambeth.service.rest.IHttpClientProvider;
 import com.koch.ambeth.service.rest.RESTClientServiceFactory;
 import com.koch.ambeth.service.rest.SSLContextFactory;
 import com.koch.ambeth.service.rest.config.RESTConfigurationConstants;
 
 public class ServiceRESTModule implements IInitializingModule {
-	@Autowired(optional = true)
-	protected IAuthenticationHolder authenticationHolder;
 
-	@Autowired(optional = true)
-	protected ISSLContextFactory sslContextFactory;
+    @Autowired(optional = true)
+    protected ISSLContextFactory sslContextFactory;
 
-	@Property(name = RESTConfigurationConstants.AuthenticationHolderType, mandatory = false)
-	protected Class<?> authenticationHolderType;
+    @Property(name = RESTConfigurationConstants.SslContextFactoryType, mandatory = false)
+    protected Class<?> sslContextFactoryType;
 
-	@Property(name = RESTConfigurationConstants.SslContextFactoryType, mandatory = false)
-	protected Class<?> sslContextFactoryType;
+    @Override
+    public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
+        beanContextFactory.registerBean(RESTClientServiceFactory.class).autowireable(IClientServiceFactory.class);
 
-	@Override
-	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
-		beanContextFactory.registerBean(RESTClientServiceFactory.class)
-				.autowireable(IClientServiceFactory.class);
+        beanContextFactory.registerBean(HttpClientProvider.class).autowireable(IHttpClientProvider.class);
 
-		if (authenticationHolder == null) {
-			if (authenticationHolderType == null) {
-				authenticationHolderType = AuthenticationHolder.class;
-			}
-			if (!Object.class.equals(authenticationHolderType)) {
-				beanContextFactory.registerBean(authenticationHolderType)
-						.autowireable(IAuthenticationHolder.class);
-			}
-		}
-		beanContextFactory.registerBean(HttpClientProvider.class)
-				.autowireable(IHttpClientProvider.class);
-
-		if (sslContextFactory == null) {
-			if (sslContextFactoryType == null) {
-				sslContextFactoryType = SSLContextFactory.class;
-			}
-			beanContextFactory.registerBean(sslContextFactoryType)
-					.autowireable(ISSLContextFactory.class);
-		}
-	}
+        if (sslContextFactory == null) {
+            if (sslContextFactoryType == null) {
+                sslContextFactoryType = SSLContextFactory.class;
+            }
+            beanContextFactory.registerBean(sslContextFactoryType).autowireable(ISSLContextFactory.class);
+        }
+    }
 }

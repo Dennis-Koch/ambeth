@@ -20,7 +20,8 @@ limitations under the License.
  * #L%
  */
 
-import com.koch.ambeth.ioc.IInitializingModule;
+import io.toolisticon.spiap.api.SpiService;
+import com.koch.ambeth.ioc.IFrameworkModule;
 import com.koch.ambeth.ioc.annotation.FrameworkModule;
 import com.koch.ambeth.ioc.config.Property;
 import com.koch.ambeth.ioc.factory.IBeanContextFactory;
@@ -36,27 +37,26 @@ import com.koch.ambeth.security.service.ISecurityService;
 import com.koch.ambeth.service.config.ServiceConfigurationConstants;
 import com.koch.ambeth.service.remote.ClientServiceBean;
 
+@SpiService(IFrameworkModule.class)
 @FrameworkModule
-public class SecurityModule implements IInitializingModule {
-	@Property(name = ServiceConfigurationConstants.NetworkClientMode, defaultValue = "false")
-	protected boolean isNetworkClientMode;
+public class SecurityModule implements IFrameworkModule {
+    @Property(name = ServiceConfigurationConstants.NetworkClientMode, defaultValue = "false")
+    protected boolean isNetworkClientMode;
 
-	@Property(name = SecurityConfigurationConstants.SecurityServiceBeanActive, defaultValue = "true")
-	protected boolean isSecurityBeanActive;
+    @Property(name = SecurityConfigurationConstants.SecurityServiceBeanActive, defaultValue = "true")
+    protected boolean isSecurityBeanActive;
 
-	@Override
-	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
-		beanContextFactory.registerBean(AuthenticatedUserHolder.class)
-				.autowireable(IAuthenticatedUserHolder.class);
+    @Override
+    public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
+        beanContextFactory.registerBean(AuthenticatedUserHolder.class).autowireable(IAuthenticatedUserHolder.class);
 
-		beanContextFactory.registerBean(SecurityContextHolder.class).autowireable(
-				ISecurityContextHolder.class, IAuthorizationChangeListenerExtendable.class,
-				ILightweightSecurityContext.class, ISecurityContextFactory.class);
+        beanContextFactory.registerBean(SecurityContextHolder.class)
+                          .autowireable(ISecurityContextHolder.class, IAuthorizationChangeListenerExtendable.class, ILightweightSecurityContext.class, ISecurityContextFactory.class);
 
-		if (isNetworkClientMode && isSecurityBeanActive) {
-			beanContextFactory.registerBean("securityService.external", ClientServiceBean.class)
-					.propertyValue(ClientServiceBean.INTERFACE_PROP_NAME, ISecurityService.class)
-					.autowireable(ISecurityService.class);
-		}
-	}
+        if (isNetworkClientMode && isSecurityBeanActive) {
+            beanContextFactory.registerBean("securityService.external", ClientServiceBean.class)
+                              .propertyValue(ClientServiceBean.INTERFACE_PROP_NAME, ISecurityService.class)
+                              .autowireable(ISecurityService.class);
+        }
+    }
 }

@@ -20,10 +20,6 @@ limitations under the License.
  * #L%
  */
 
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.util.Map.Entry;
-
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
@@ -39,297 +35,266 @@ import com.koch.ambeth.persistence.api.ITable;
 import com.koch.ambeth.persistence.api.ITableMetaData;
 import com.koch.ambeth.persistence.util.IAlreadyLinkedCache;
 import com.koch.ambeth.util.collections.IdentityHashMap;
-import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.state.IStateRollback;
-import lombok.SneakyThrows;
+
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.Map.Entry;
 
 public class JDBCDatabaseWrapper extends Database {
-	@LogInstance
-	private ILogger log;
+    @Autowired
+    protected Connection connection;
+    @Autowired
+    protected IAlreadyLinkedCache alreadyLinkedCache;
+    @Autowired
+    protected IConnectionDialect connectionDialect;
+    protected long lastTestTime = System.currentTimeMillis(), trustTime = 10000;
+    protected IdentityHashMap<ITableMetaData, ITable> alreadyCreatedTableMap;
+    @LogInstance
+    private ILogger log;
+    private IdentityHashMap<ILinkMetaData, ILink> alreadyCreatedLinkMap;
 
-	@Autowired
-	protected Connection connection;
+    private IdentityHashMap<IDirectedLinkMetaData, IDirectedLink> alreadyCreatedDirectedLinkMap;
 
-	@Autowired
-	protected IAlreadyLinkedCache alreadyLinkedCache;
+    @Override
+    public void afterPropertiesSet() throws Throwable {
+        super.afterPropertiesSet();
 
-	@Autowired
-	protected IConnectionDialect connectionDialect;
+        alreadyCreatedLinkMap = new IdentityHashMap<>();
+        alreadyCreatedDirectedLinkMap = new IdentityHashMap<>();
+        alreadyCreatedTableMap = new IdentityHashMap<>();
 
-	protected long lastTestTime = System.currentTimeMillis(), trustTime = 10000;
+        for (var tableMD : metaData.getTables()) {
+            var table = new JdbcTable();
+            tables.add(table);
+            alreadyCreatedTableMap.put(tableMD, table);
+        }
+        for (var linkMD : metaData.getLinks()) {
+            var link = new JdbcLink();
+            links.add(link);
+            alreadyCreatedLinkMap.put(linkMD, link);
 
-	protected IdentityHashMap<ITableMetaData, ITable> alreadyCreatedTableMap;
+            alreadyCreatedDirectedLinkMap.put(linkMD.getDirectedLink(), new DirectedLink());
+            alreadyCreatedDirectedLinkMap.put(linkMD.getReverseDirectedLink(), new DirectedLink());
+        }
+        for (var entry : alreadyCreatedTableMap) {
+            var tableMD = entry.getKey();
+            var table = (JdbcTable) entry.getValue();
 
-	private IdentityHashMap<ILinkMetaData, ILink> alreadyCreatedLinkMap;
+            table.init(tableMD, alreadyCreatedDirectedLinkMap);
 
-	private IdentityHashMap<IDirectedLinkMetaData, IDirectedLink> alreadyCreatedDirectedLinkMap;
+            table = serviceContext.registerWithLifecycle(table)//
+                                  .propertyValue("MetaData", tableMD)//
+                                  .finish();
+        }
+        for (var entry : alreadyCreatedDirectedLinkMap) {
+            var directedLinkMD = entry.getKey();
+            var directedLink = (DirectedLink) entry.getValue();
 
-	@Override
-	public void afterPropertiesSet() throws Throwable {
-		super.afterPropertiesSet();
+            directedLink = serviceContext.registerWithLifecycle(directedLink)//
+                                         .propertyValue("MetaData", directedLinkMD)//
+                                         .propertyValue("FromTable", getExistingValue(alreadyCreatedTableMap, directedLinkMD.getFromTable()))//
+                                         .propertyValue("ToTable", getExistingValue(alreadyCreatedTableMap, directedLinkMD.getToTable()))//
+                                         .propertyValue("Link", getExistingValue(alreadyCreatedLinkMap, directedLinkMD.getLink()))//
+                                         .propertyValue("Reverse", getExistingValue(alreadyCreatedDirectedLinkMap, directedLinkMD.getReverseLink()))//
+                                         .finish();
+        }
+        for (var entry : alreadyCreatedLinkMap) {
+            var linkMD = entry.getKey();
+            var link = (JdbcLink) entry.getValue();
 
-		alreadyCreatedLinkMap = new IdentityHashMap<>();
-		alreadyCreatedDirectedLinkMap = new IdentityHashMap<>();
-		alreadyCreatedTableMap = new IdentityHashMap<>();
+            link = serviceContext.registerWithLifecycle(link)//
+                                 .propertyValue("MetaData", linkMD)//
+                                 .propertyValue("FromTable", getExistingValue(alreadyCreatedTableMap, linkMD.getFromTable()))//
+                                 .propertyValue("ToTable", getExistingValue(alreadyCreatedTableMap, linkMD.getToTable()))//
+                                 .propertyValue("DirectedLink", getExistingValue(alreadyCreatedDirectedLinkMap, linkMD.getDirectedLink()))//
+                                 .propertyValue("ReverseDirectedLink", getExistingValue(alreadyCreatedDirectedLinkMap, linkMD.getReverseDirectedLink()))//
+                                 .finish();
+        }
+        for (var table : tables) {
+            var entityType = table.getMetaData().getEntityType();
+            nameToTableDict.put(table.getMetaData().getName(), table);
 
-		for (ITableMetaData tableMD : metaData.getTables()) {
-			JdbcTable table = new JdbcTable();
-			tables.add(table);
-			alreadyCreatedTableMap.put(tableMD, table);
-		}
-		for (ILinkMetaData linkMD : metaData.getLinks()) {
-			JdbcLink link = new JdbcLink();
-			links.add(link);
-			alreadyCreatedLinkMap.put(linkMD, link);
+            if (entityType == null) {
+                continue;
+            }
+            if (table.getMetaData().isArchive()) {
+                typeToArchiveTableDict.put(entityType, table);
+            } else {
+                typeToTableDict.put(entityType, table);
+            }
+        }
+    }
 
-			alreadyCreatedDirectedLinkMap.put(linkMD.getDirectedLink(), new DirectedLink());
-			alreadyCreatedDirectedLinkMap.put(linkMD.getReverseDirectedLink(), new DirectedLink());
-		}
-		for (Entry<ITableMetaData, ITable> entry : alreadyCreatedTableMap) {
-			ITableMetaData tableMD = entry.getKey();
-			JdbcTable table = (JdbcTable) entry.getValue();
+    @Override
+    public void destroy() throws Throwable {
+        connection = null;
+        super.destroy();
+    }
 
-			table.init(tableMD, alreadyCreatedDirectedLinkMap);
+    protected <K, V> V getExistingValue(IdentityHashMap<K, V> map, K key) {
+        if (key == null) {
+            return null;
+        }
+        V value = map.get(key);
+        if (value != null) {
+            return value;
+        }
+        throw new IllegalStateException("No value for key: " + key);
+    }
 
-			table = serviceContext.registerWithLifecycle(table)//
-					.propertyValue("MetaData", tableMD)//
-					.finish();
-		}
-		for (Entry<IDirectedLinkMetaData, IDirectedLink> entry : alreadyCreatedDirectedLinkMap) {
-			IDirectedLinkMetaData directedLinkMD = entry.getKey();
-			DirectedLink directedLink = (DirectedLink) entry.getValue();
+    @Override
+    public void flush() {
+        try {
+            connectionDialect.commit(connection);
+        } catch (Exception e) {
+            if (e instanceof SQLException) {
+                throw connectionDialect.createPersistenceException((SQLException) e, null);
+            }
+            throw e;
+        }
+    }
 
-			directedLink = serviceContext.registerWithLifecycle(directedLink)//
-					.propertyValue("MetaData", directedLinkMD)//
-					.propertyValue("FromTable",
-							getExistingValue(alreadyCreatedTableMap, directedLinkMD.getFromTable()))//
-					.propertyValue("ToTable",
-							getExistingValue(alreadyCreatedTableMap, directedLinkMD.getToTable()))//
-					.propertyValue("Link", getExistingValue(alreadyCreatedLinkMap, directedLinkMD.getLink()))//
-					.propertyValue("Reverse",
-							getExistingValue(alreadyCreatedDirectedLinkMap, directedLinkMD.getReverseLink()))//
-					.finish();
-		}
-		for (Entry<ILinkMetaData, ILink> entry : alreadyCreatedLinkMap) {
-			ILinkMetaData linkMD = entry.getKey();
-			JdbcLink link = (JdbcLink) entry.getValue();
+    @Override
+    public void revert() {
+        alreadyLinkedCache.clear();
+        try {
+            connectionDialect.rollback(connection);
+        } catch (Exception e) {
+            if (e instanceof SQLException) {
+                throw connectionDialect.createPersistenceException((SQLException) e, null);
+            }
+            throw e;
+        }
+    }
 
-			link = serviceContext.registerWithLifecycle(link)//
-					.propertyValue("MetaData", linkMD)//
-					.propertyValue("FromTable",
-							getExistingValue(alreadyCreatedTableMap, linkMD.getFromTable()))//
-					.propertyValue("ToTable", getExistingValue(alreadyCreatedTableMap, linkMD.getToTable()))//
-					.propertyValue("DirectedLink",
-							getExistingValue(alreadyCreatedDirectedLinkMap, linkMD.getDirectedLink()))//
-					.propertyValue("ReverseDirectedLink",
-							getExistingValue(alreadyCreatedDirectedLinkMap, linkMD.getReverseDirectedLink()))//
-					.finish();
-		}
-		for (ITable table : tables) {
-			Class<?> entityType = table.getMetaData().getEntityType();
-			nameToTableDict.put(table.getMetaData().getName(), table);
+    @Override
+    public void revert(ISavepoint savepoint) {
+        alreadyLinkedCache.clear();
+        try {
+            rollback(savepoint);
+        } catch (Exception e) {
+            if (e instanceof SQLException) {
+                throw connectionDialect.createPersistenceException((SQLException) e, null);
+            }
+            throw e;
+        }
+    }
 
-			if (entityType == null) {
-				continue;
-			}
-			if (table.getMetaData().isArchive()) {
-				typeToArchiveTableDict.put(entityType, table);
-			}
-			else {
-				typeToTableDict.put(entityType, table);
-			}
-		}
-	}
+    @Override
+    public boolean test() {
+        if (System.currentTimeMillis() - lastTestTime <= trustTime) {
+            return true;
+        }
+        try {
+            try {
+                return connection.isValid(0);
+            } catch (AbstractMethodError e) {
+                // Oracle driver does not support this operation
+                return !connection.isClosed();
+            }
+        } catch (SQLException e) {
+            return false;
+        } finally {
+            lastTestTime = System.currentTimeMillis();
+        }
+    }
 
-	@Override
-	public void destroy() throws Throwable {
-		connection = null;
-		super.destroy();
-	}
+    @Override
+    public ISavepoint setSavepoint() {
+        try {
+            return new JdbcSavepoint(connection.setSavepoint());
+        } catch (SQLException e) {
+            throw connectionDialect.createPersistenceException(e, null);
+        }
+    }
 
-	protected <K, V> V getExistingValue(IdentityHashMap<K, V> map, K key) {
-		if (key == null) {
-			return null;
-		}
-		V value = map.get(key);
-		if (value != null) {
-			return value;
-		}
-		throw new IllegalStateException("No value for key: " + key);
-	}
+    @Override
+    public void releaseSavepoint(ISavepoint savepoint) {
+        try {
+            connectionDialect.releaseSavepoint(((JdbcSavepoint) savepoint).getSavepoint(), connection);
+        } catch (Exception e) {
+            if (e instanceof SQLException) {
+                throw connectionDialect.createPersistenceException((SQLException) e, null);
+            }
+            throw e;
+        }
+    }
 
-	@Override
-	public void flush() {
-		try {
-			connectionDialect.commit(connection);
-		}
-		catch (Exception e) {
-			if (e instanceof SQLException) {
-				throw connectionDialect.createPersistenceException((SQLException) e, null);
-			}
-			throw e;
-		}
-	}
+    @Override
+    public void rollback(ISavepoint savepoint) {
+        try {
+            connection.rollback(((JdbcSavepoint) savepoint).getSavepoint());
+        } catch (SQLException e) {
+            throw connectionDialect.createPersistenceException(e, null);
+        }
+    }
 
-	@Override
-	public void revert() {
-		alreadyLinkedCache.clear();
-		try {
-			connectionDialect.rollback(connection);
-		}
-		catch (Exception e) {
-			if (e instanceof SQLException) {
-				throw connectionDialect.createPersistenceException((SQLException) e, null);
-			}
-			throw e;
-		}
-	}
+    @Override
+    public IStateRollback disableConstraints() {
+        return connectionDialect.disableConstraints(connection);
+    }
 
-	@Override
-	public void revert(ISavepoint savepoint) {
-		alreadyLinkedCache.clear();
-		try {
-			rollback(savepoint);
-		}
-		catch (Exception e) {
-			if (e instanceof SQLException) {
-				throw connectionDialect.createPersistenceException((SQLException) e, null);
-			}
-			throw e;
-		}
-	}
+    @Override
+    public void registerNewTable(String tableName) {
+        ITableMetaData tableMD = ((JDBCDatabaseMetaData) metaData).getTableByName(tableName);
+        String fqTableName = tableMD.getName();
+        JdbcTable table = new JdbcTable();
+        tables.add(table);
 
-	@Override
-	public boolean test() {
-		if (System.currentTimeMillis() - lastTestTime <= trustTime) {
-			return true;
-		}
-		try {
-			try {
-				return connection.isValid(0);
-			}
-			catch (AbstractMethodError e) {
-				// Oracle driver does not support this operation
-				return !connection.isClosed();
-			}
-		}
-		catch (SQLException e) {
-			return false;
-		}
-		finally {
-			lastTestTime = System.currentTimeMillis();
-		}
-	}
+        IdentityHashMap<ILinkMetaData, ILink> newlyCreatedLinkMap = new IdentityHashMap<>();
+        IdentityHashMap<IDirectedLinkMetaData, IDirectedLink> newlyCreatedDirectedLinkMap = new IdentityHashMap<>();
+        for (ILinkMetaData linkMD : metaData.getLinks()) {
+            JdbcLink link = new JdbcLink();
+            if (alreadyCreatedLinkMap.containsKey(linkMD)) {
+                continue;
+            }
+            links.add(link);
+            newlyCreatedLinkMap.put(linkMD, link);
 
-	@Override
-	public ISavepoint setSavepoint() {
-		try {
-			return new JdbcSavepoint(connection.setSavepoint());
-		}
-		catch (SQLException e) {
-			throw connectionDialect.createPersistenceException(e, null);
-		}
-	}
+            newlyCreatedDirectedLinkMap.put(linkMD.getDirectedLink(), new DirectedLink());
+            newlyCreatedDirectedLinkMap.put(linkMD.getReverseDirectedLink(), new DirectedLink());
+        }
+        table.init(tableMD, newlyCreatedDirectedLinkMap);
+        table = serviceContext.registerWithLifecycle(table)//
+                              .propertyValue("MetaData", tableMD)//
+                              .finish();
+        alreadyCreatedTableMap.put(tableMD, table);
 
-	@Override
-	public void releaseSavepoint(ISavepoint savepoint) {
-		try {
-			connectionDialect.releaseSavepoint(((JdbcSavepoint) savepoint).getSavepoint(), connection);
-		}
-		catch (Exception e) {
-			if (e instanceof SQLException) {
-				throw connectionDialect.createPersistenceException((SQLException) e, null);
-			}
-			throw e;
-		}
-	}
+        for (Entry<IDirectedLinkMetaData, IDirectedLink> entry : newlyCreatedDirectedLinkMap) {
+            IDirectedLinkMetaData directedLinkMD = entry.getKey();
+            if (directedLinkMD.getFromTable().getName().equals(fqTableName) || directedLinkMD.getToTable().getName().equals(fqTableName)) {
+                DirectedLink directedLink = (DirectedLink) entry.getValue();
+                directedLink = serviceContext.registerWithLifecycle(directedLink)//
+                                             .propertyValue("MetaData", directedLinkMD)//
+                                             .propertyValue("FromTable", getExistingValue(alreadyCreatedTableMap, directedLinkMD.getFromTable()))//
+                                             .propertyValue("ToTable", getExistingValue(alreadyCreatedTableMap, directedLinkMD.getToTable()))//
+                                             .propertyValue("Link", getExistingValue(newlyCreatedLinkMap, directedLinkMD.getLink()))//
+                                             .propertyValue("Reverse", getExistingValue(newlyCreatedDirectedLinkMap, directedLinkMD.getReverseLink()))//
+                                             .finish();
+            }
+        }
+        for (Entry<ILinkMetaData, ILink> entry : newlyCreatedLinkMap) {
+            ILinkMetaData linkMD = entry.getKey();
+            if (linkMD.getFromTable().getName().equals(fqTableName) || linkMD.getToTable().getName().equals(fqTableName)) {
+                JdbcLink link = (JdbcLink) entry.getValue();
+                link = serviceContext.registerWithLifecycle(link)//
+                                     .propertyValue("MetaData", linkMD)//
+                                     .propertyValue("FromTable", getExistingValue(alreadyCreatedTableMap, linkMD.getFromTable()))//
+                                     .propertyValue("ToTable", getExistingValue(alreadyCreatedTableMap, linkMD.getToTable()))//
+                                     .propertyValue("DirectedLink", getExistingValue(newlyCreatedDirectedLinkMap, linkMD.getDirectedLink()))//
+                                     .propertyValue("ReverseDirectedLink", getExistingValue(newlyCreatedDirectedLinkMap, linkMD.getReverseDirectedLink()))//
+                                     .finish();
+            }
+        }
 
-	@Override
-	public void rollback(ISavepoint savepoint) {
-		try {
-			connection.rollback(((JdbcSavepoint) savepoint).getSavepoint());
-		}
-		catch (SQLException e) {
-			throw connectionDialect.createPersistenceException(e, null);
-		}
-	}
+        Class<?> entityType = table.getMetaData().getEntityType();
+        nameToTableDict.put(table.getMetaData().getName(), table);
 
-	@Override
-	public IStateRollback disableConstraints() {
-		return connectionDialect.disableConstraints(connection);
-	}
-
-	@Override
-	public void registerNewTable(String tableName) {
-		ITableMetaData tableMD = ((JDBCDatabaseMetaData) metaData).getTableByName(tableName);
-		String fqTableName = tableMD.getName();
-		JdbcTable table = new JdbcTable();
-		tables.add(table);
-
-		IdentityHashMap<ILinkMetaData, ILink> newlyCreatedLinkMap =
-				new IdentityHashMap<>();
-		IdentityHashMap<IDirectedLinkMetaData, IDirectedLink> newlyCreatedDirectedLinkMap =
-				new IdentityHashMap<>();
-		for (ILinkMetaData linkMD : metaData.getLinks()) {
-			JdbcLink link = new JdbcLink();
-			if (alreadyCreatedLinkMap.containsKey(linkMD)) {
-				continue;
-			}
-			links.add(link);
-			newlyCreatedLinkMap.put(linkMD, link);
-
-			newlyCreatedDirectedLinkMap.put(linkMD.getDirectedLink(), new DirectedLink());
-			newlyCreatedDirectedLinkMap.put(linkMD.getReverseDirectedLink(), new DirectedLink());
-		}
-		table.init(tableMD, newlyCreatedDirectedLinkMap);
-		table = serviceContext.registerWithLifecycle(table)//
-				.propertyValue("MetaData", tableMD)//
-				.finish();
-		alreadyCreatedTableMap.put(tableMD, table);
-
-		for (Entry<IDirectedLinkMetaData, IDirectedLink> entry : newlyCreatedDirectedLinkMap) {
-			IDirectedLinkMetaData directedLinkMD = entry.getKey();
-			if (directedLinkMD.getFromTable().getName().equals(fqTableName)
-					|| directedLinkMD.getToTable().getName().equals(fqTableName)) {
-				DirectedLink directedLink = (DirectedLink) entry.getValue();
-				directedLink = serviceContext.registerWithLifecycle(directedLink)//
-						.propertyValue("MetaData", directedLinkMD)//
-						.propertyValue("FromTable",
-								getExistingValue(alreadyCreatedTableMap, directedLinkMD.getFromTable()))//
-						.propertyValue("ToTable",
-								getExistingValue(alreadyCreatedTableMap, directedLinkMD.getToTable()))//
-						.propertyValue("Link", getExistingValue(newlyCreatedLinkMap, directedLinkMD.getLink()))//
-						.propertyValue("Reverse",
-								getExistingValue(newlyCreatedDirectedLinkMap, directedLinkMD.getReverseLink()))//
-						.finish();
-			}
-		}
-		for (Entry<ILinkMetaData, ILink> entry : newlyCreatedLinkMap) {
-			ILinkMetaData linkMD = entry.getKey();
-			if (linkMD.getFromTable().getName().equals(fqTableName)
-					|| linkMD.getToTable().getName().equals(fqTableName)) {
-				JdbcLink link = (JdbcLink) entry.getValue();
-				link = serviceContext.registerWithLifecycle(link)//
-						.propertyValue("MetaData", linkMD)//
-						.propertyValue("FromTable",
-								getExistingValue(alreadyCreatedTableMap, linkMD.getFromTable()))//
-						.propertyValue("ToTable", getExistingValue(alreadyCreatedTableMap, linkMD.getToTable()))//
-						.propertyValue("DirectedLink",
-								getExistingValue(newlyCreatedDirectedLinkMap, linkMD.getDirectedLink()))//
-						.propertyValue("ReverseDirectedLink",
-								getExistingValue(newlyCreatedDirectedLinkMap, linkMD.getReverseDirectedLink()))//
-						.finish();
-			}
-		}
-
-		Class<?> entityType = table.getMetaData().getEntityType();
-		nameToTableDict.put(table.getMetaData().getName(), table);
-
-		if (table.getMetaData().isArchive()) {
-			typeToArchiveTableDict.put(entityType, table);
-		}
-		else {
-			typeToTableDict.put(entityType, table);
-		}
-	}
+        if (table.getMetaData().isArchive()) {
+            typeToArchiveTableDict.put(entityType, table);
+        } else {
+            typeToTableDict.put(entityType, table);
+        }
+    }
 }

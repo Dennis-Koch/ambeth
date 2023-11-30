@@ -27,25 +27,24 @@ import com.koch.ambeth.merge.proxy.IEntityMetaDataHolder;
 import com.koch.ambeth.merge.transfer.ObjRef;
 import com.koch.ambeth.persistence.api.IPrimaryKeyProvider;
 import com.koch.ambeth.persistence.api.ITableMetaData;
-import com.koch.ambeth.service.merge.model.IEntityMetaData;
 import com.koch.ambeth.service.merge.model.IObjRef;
-import com.koch.ambeth.util.collections.IList;
+
+import java.util.List;
 
 public class SeqGenId implements IPrimaryKeyProvider {
-	@Autowired
-	protected ICompositeIdFactory compositeIdFactory;
+    @Autowired
+    protected ICompositeIdFactory compositeIdFactory;
 
-	@Override
-	public void acquireIds(ITableMetaData table, IList<IObjRef> idlessObjRefs) {
-		for (int a = idlessObjRefs.size(); a-- > 0;) {
-			IObjRef objRef = idlessObjRefs.get(a);
-			objRef.setIdNameIndex(ObjRef.PRIMARY_KEY_INDEX);
+    @Override
+    public void acquireIds(ITableMetaData table, List<IObjRef> idlessObjRefs) {
+        for (int a = idlessObjRefs.size(); a-- > 0; ) {
+            var objRef = idlessObjRefs.get(a);
+            objRef.setIdNameIndex(ObjRef.PRIMARY_KEY_INDEX);
 
-			CompositeIdEntity entity = (CompositeIdEntity) ((IDirectObjRef) objRef).getDirect();
-			IEntityMetaData metaData = ((IEntityMetaDataHolder) entity).get__EntityMetaData();
-			Object id = compositeIdFactory.createCompositeId(metaData, metaData.getIdMember(), 42,
-					entity.getAltId4() + entity.getAltId2());
-			objRef.setId(id);
-		}
-	}
+            var entity = (CompositeIdEntity) ((IDirectObjRef) objRef).getDirect();
+            var metaData = ((IEntityMetaDataHolder) entity).get__EntityMetaData();
+            var id = compositeIdFactory.createCompositeId(metaData, metaData.getIdMember(), 42, entity.getAltId4() + entity.getAltId2());
+            objRef.setId(id);
+        }
+    }
 }

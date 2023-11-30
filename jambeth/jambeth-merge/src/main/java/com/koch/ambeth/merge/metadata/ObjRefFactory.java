@@ -20,9 +20,6 @@ limitations under the License.
  * #L%
  */
 
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
-
 import com.koch.ambeth.ioc.accessor.IAccessorTypeProvider;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.bytecode.IBytecodeEnhancer;
@@ -32,117 +29,99 @@ import com.koch.ambeth.service.merge.IEntityMetaDataProvider;
 import com.koch.ambeth.service.merge.model.IObjRef;
 import com.koch.ambeth.util.collections.Tuple2KeyHashMap;
 
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
 public class ObjRefFactory extends IObjRefFactory {
-	@Autowired
-	protected IAccessorTypeProvider accessorTypeProvider;
+    protected final Tuple2KeyHashMap<Class<?>, Integer, IPreparedObjRefFactory> constructorDelegateMap = new Tuple2KeyHashMap<>();
+    protected final Lock writeLock = new ReentrantLock();
+    @Autowired
+    protected IAccessorTypeProvider accessorTypeProvider;
+    @Autowired
+    protected IBytecodeEnhancer bytecodeEnhancer;
+    @Autowired
+    protected IEntityMetaDataProvider entityMetaDataProvider;
+    protected Tuple2KeyHashMap<Class<?>, Integer, IPreparedObjRefFactory> readonlyConstructorDelegateMap;
 
-	@Autowired
-	protected IBytecodeEnhancer bytecodeEnhancer;
+    protected IPreparedObjRefFactory buildDelegate(Class<?> realType, int idIndex) {
+        writeLock.lock();
+        try {
+            var objRefConstructorDelegate = constructorDelegateMap.get(realType, Integer.valueOf(idIndex));
+            if (objRefConstructorDelegate != null) {
+                return objRefConstructorDelegate;
+            }
+            var enhancedType = bytecodeEnhancer.getEnhancedType(Object.class, new ObjRefEnhancementHint(realType, idIndex));
+            objRefConstructorDelegate = accessorTypeProvider.getConstructorType(IPreparedObjRefFactory.class, enhancedType);
+            constructorDelegateMap.put(realType, Integer.valueOf(idIndex), objRefConstructorDelegate);
+            readonlyConstructorDelegateMap = null;
+            return objRefConstructorDelegate;
+        } finally {
+            writeLock.unlock();
+        }
+    }
 
-	@Autowired
-	protected IEntityMetaDataProvider entityMetaDataProvider;
+    protected Tuple2KeyHashMap<Class<?>, Integer, IPreparedObjRefFactory> resolveReadOnlyConstructorMap() {
+        var readonlyConstructorDelegateMap = this.readonlyConstructorDelegateMap;
+        if (readonlyConstructorDelegateMap != null) {
+            return readonlyConstructorDelegateMap;
+        }
+        writeLock.lock();
+        try {
+            readonlyConstructorDelegateMap = this.readonlyConstructorDelegateMap;
+            if (readonlyConstructorDelegateMap != null) {
+                // concurrent thread was faster
+                return readonlyConstructorDelegateMap;
+            }
+            readonlyConstructorDelegateMap = new Tuple2KeyHashMap<>(constructorDelegateMap);
+            this.readonlyConstructorDelegateMap = readonlyConstructorDelegateMap;
+            return readonlyConstructorDelegateMap;
+        } finally {
+            writeLock.unlock();
+        }
+    }
 
-	protected Tuple2KeyHashMap<Class<?>, Integer, IPreparedObjRefFactory> readonlyConstructorDelegateMap;
+    @Override
+    public IObjRef dup(IObjRef objRef) {
+        var objRefConstructorDelegate = resolveReadOnlyConstructorMap().get(objRef.getRealType(), Integer.valueOf(objRef.getIdNameIndex()));
+        if (objRefConstructorDelegate == null) {
+            objRefConstructorDelegate = buildDelegate(objRef.getRealType(), objRef.getIdNameIndex());
+        }
+        return objRefConstructorDelegate.createObjRef(objRef.getId(), objRef.getVersion());
+    }
 
-	protected final Tuple2KeyHashMap<Class<?>, Integer, IPreparedObjRefFactory> constructorDelegateMap =
-			new Tuple2KeyHashMap<>();
+    @Override
+    public IObjRef createObjRef(AbstractCacheValue cacheValue) {
+        var objRefConstructorDelegate = resolveReadOnlyConstructorMap().get(cacheValue.getEntityType(), Integer.valueOf(ObjRef.PRIMARY_KEY_INDEX));
+        if (objRefConstructorDelegate == null) {
+            objRefConstructorDelegate = buildDelegate(cacheValue.getEntityType(), ObjRef.PRIMARY_KEY_INDEX);
+        }
+        return objRefConstructorDelegate.createObjRef(cacheValue.getId(), cacheValue.getVersion());
+    }
 
-	protected final Lock writeLock = new ReentrantLock();
+    @Override
+    public IObjRef createObjRef(AbstractCacheValue cacheValue, int idIndex) {
+        var objRefConstructorDelegate = resolveReadOnlyConstructorMap().get(cacheValue.getEntityType(), Integer.valueOf(idIndex));
+        if (objRefConstructorDelegate == null) {
+            objRefConstructorDelegate = buildDelegate(cacheValue.getEntityType(), idIndex);
+        }
+        return objRefConstructorDelegate.createObjRef(cacheValue.getId(), cacheValue.getVersion());
+    }
 
-	protected IPreparedObjRefFactory buildDelegate(Class<?> realType, int idIndex) {
-		writeLock.lock();
-		try {
-			IPreparedObjRefFactory objRefConstructorDelegate = constructorDelegateMap.get(realType,
-					Integer.valueOf(idIndex));
-			if (objRefConstructorDelegate != null) {
-				return objRefConstructorDelegate;
-			}
-			Class<?> enhancedType = bytecodeEnhancer.getEnhancedType(Object.class,
-					new ObjRefEnhancementHint(realType, idIndex));
-			objRefConstructorDelegate = accessorTypeProvider
-					.getConstructorType(IPreparedObjRefFactory.class, enhancedType);
-			constructorDelegateMap.put(realType, Integer.valueOf(idIndex), objRefConstructorDelegate);
-			readonlyConstructorDelegateMap = null;
-			return objRefConstructorDelegate;
-		}
-		finally {
-			writeLock.unlock();
-		}
-	}
+    @Override
+    public IObjRef createObjRef(Class<?> entityType, int idIndex, Object id, Object version) {
+        var objRefConstructorDelegate = resolveReadOnlyConstructorMap().get(entityType, Integer.valueOf(idIndex));
+        if (objRefConstructorDelegate == null) {
+            objRefConstructorDelegate = buildDelegate(entityType, idIndex);
+        }
+        return objRefConstructorDelegate.createObjRef(id, version);
+    }
 
-	protected Tuple2KeyHashMap<Class<?>, Integer, IPreparedObjRefFactory> resolveReadOnlyConstructorMap() {
-		Tuple2KeyHashMap<Class<?>, Integer, IPreparedObjRefFactory> readonlyConstructorDelegateMap =
-				this.readonlyConstructorDelegateMap;
-		if (readonlyConstructorDelegateMap != null) {
-			return readonlyConstructorDelegateMap;
-		}
-		writeLock.lock();
-		try {
-			readonlyConstructorDelegateMap =
-					this.readonlyConstructorDelegateMap;
-			if (readonlyConstructorDelegateMap != null) {
-				// concurrent thread was faster
-				return readonlyConstructorDelegateMap;
-			}
-			readonlyConstructorDelegateMap = new Tuple2KeyHashMap<>(constructorDelegateMap);
-			this.readonlyConstructorDelegateMap = readonlyConstructorDelegateMap;
-			return readonlyConstructorDelegateMap;
-		}
-		finally {
-			writeLock.unlock();
-		}
-	}
-
-	@Override
-	public IObjRef dup(IObjRef objRef) {
-		IPreparedObjRefFactory objRefConstructorDelegate = resolveReadOnlyConstructorMap()
-				.get(objRef.getRealType(), Integer.valueOf(objRef.getIdNameIndex()));
-		if (objRefConstructorDelegate == null) {
-			objRefConstructorDelegate = buildDelegate(objRef.getRealType(), objRef.getIdNameIndex());
-		}
-		return objRefConstructorDelegate.createObjRef(objRef.getId(), objRef.getVersion());
-	}
-
-	@Override
-	public IObjRef createObjRef(AbstractCacheValue cacheValue) {
-		IPreparedObjRefFactory objRefConstructorDelegate = resolveReadOnlyConstructorMap()
-				.get(cacheValue.getEntityType(), Integer.valueOf(ObjRef.PRIMARY_KEY_INDEX));
-		if (objRefConstructorDelegate == null) {
-			objRefConstructorDelegate = buildDelegate(cacheValue.getEntityType(),
-					ObjRef.PRIMARY_KEY_INDEX);
-		}
-		return objRefConstructorDelegate.createObjRef(cacheValue.getId(), cacheValue.getVersion());
-	}
-
-	@Override
-	public IObjRef createObjRef(AbstractCacheValue cacheValue, int idIndex) {
-		IPreparedObjRefFactory objRefConstructorDelegate = resolveReadOnlyConstructorMap()
-				.get(cacheValue.getEntityType(), Integer.valueOf(idIndex));
-		if (objRefConstructorDelegate == null) {
-			objRefConstructorDelegate = buildDelegate(cacheValue.getEntityType(), idIndex);
-		}
-		return objRefConstructorDelegate.createObjRef(cacheValue.getId(), cacheValue.getVersion());
-	}
-
-	@Override
-	public IObjRef createObjRef(Class<?> entityType, int idIndex, Object id, Object version) {
-		IPreparedObjRefFactory objRefConstructorDelegate =
-				resolveReadOnlyConstructorMap().get(entityType,
-						Integer.valueOf(idIndex));
-		if (objRefConstructorDelegate == null) {
-			objRefConstructorDelegate = buildDelegate(entityType, idIndex);
-		}
-		return objRefConstructorDelegate.createObjRef(id, version);
-	}
-
-	@Override
-	public IPreparedObjRefFactory prepareObjRefFactory(Class<?> entityType, int idIndex) {
-		IPreparedObjRefFactory objRefConstructorDelegate =
-				resolveReadOnlyConstructorMap().get(entityType,
-						Integer.valueOf(idIndex));
-		if (objRefConstructorDelegate == null) {
-			objRefConstructorDelegate = buildDelegate(entityType, idIndex);
-		}
-		return objRefConstructorDelegate;
-	}
+    @Override
+    public IPreparedObjRefFactory prepareObjRefFactory(Class<?> entityType, int idIndex) {
+        var objRefConstructorDelegate = resolveReadOnlyConstructorMap().get(entityType, Integer.valueOf(idIndex));
+        if (objRefConstructorDelegate == null) {
+            objRefConstructorDelegate = buildDelegate(entityType, idIndex);
+        }
+        return objRefConstructorDelegate;
+    }
 }

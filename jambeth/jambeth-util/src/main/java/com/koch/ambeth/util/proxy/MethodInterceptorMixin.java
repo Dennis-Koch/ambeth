@@ -1,17 +1,27 @@
 package com.koch.ambeth.util.proxy;
 
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
+import lombok.SneakyThrows;
+import net.bytebuddy.dynamic.DynamicType;
+import net.bytebuddy.implementation.MethodDelegation;
 import net.bytebuddy.implementation.bind.annotation.AllArguments;
 import net.bytebuddy.implementation.bind.annotation.Empty;
 import net.bytebuddy.implementation.bind.annotation.Origin;
 import net.bytebuddy.implementation.bind.annotation.RuntimeType;
 import net.bytebuddy.implementation.bind.annotation.SuperMethod;
 import net.bytebuddy.implementation.bind.annotation.This;
+import net.bytebuddy.matcher.ElementMatchers;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Type;
 
 public class MethodInterceptorMixin {
+
+    @SneakyThrows
+    public static <T> DynamicType.Builder<T> weave(DynamicType.Builder<T> builder, Type... interfaces) {
+        return builder.implement(interfaces).method(ElementMatchers.any()).intercept(MethodDelegation.to(MethodInterceptorMixin.class));
+    }
 
     @RuntimeType
     public static Object intercept(@This Factory self, @Origin Method method, @AllArguments Object[] args, @SuperMethod(nullIfImpossible = true) Method superMethod, @Empty Object defaultValue)

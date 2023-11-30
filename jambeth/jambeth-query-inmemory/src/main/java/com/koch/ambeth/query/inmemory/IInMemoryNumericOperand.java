@@ -20,10 +20,10 @@ limitations under the License.
  * #L%
  */
 
-import java.util.Map;
-
 import com.koch.ambeth.query.IOperand;
 
+import java.util.Map;
+
 public interface IInMemoryNumericOperand extends IOperand {
-	Double evaluateNumber(Map<Object, Object> nameToValueMap);
+    Number evaluateNumber(Map<Object, Object> nameToValueMap);
 }

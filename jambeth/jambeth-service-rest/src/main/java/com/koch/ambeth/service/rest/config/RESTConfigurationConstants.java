@@ -24,21 +24,19 @@ import com.koch.ambeth.util.annotation.ConfigurationConstants;
 
 @ConfigurationConstants
 public final class RESTConfigurationConstants {
-	public static final String HttpUseClient = "rest.http.client";
+    public static final String HttpUseClient = "rest.http.client";
 
-	public static final String HttpAcceptEncodingZipped = "rest.http.accept-encoding.zipped";
+    public static final String HttpAcceptEncodingZipped = "rest.http.accept-encoding.zipped";
 
-	public static final String HttpContentEncodingZipped = "rest.http.content-encoding.zipped";
+    public static final String HttpContentEncodingZipped = "rest.http.content-encoding.zipped";
 
-	public static final String AuthenticationHolderType = "rest.http.authholdertype";
+    public static final String SslKeyStoreFile = "rest.https.keystore.file";
 
-	public static final String SslKeyStoreFile = "rest.https.keystore.file";
+    public static final String SslKeyStorePassword = "rest.https.keystore.password";
 
-	public static final String SslKeyStorePassword = "rest.https.keystore.password";
+    public static final String SslContextFactoryType = "rest.https.sslcontextfactorytype";
 
-	public static final String SslContextFactoryType = "rest.https.sslcontextfactorytype";
-
-	private RESTConfigurationConstants() {
-		// Intended blank
-	}
+    private RESTConfigurationConstants() {
+        // Intended blank
+    }
 }

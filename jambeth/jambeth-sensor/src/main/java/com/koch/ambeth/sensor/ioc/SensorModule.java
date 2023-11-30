@@ -20,7 +20,8 @@ limitations under the License.
  * #L%
  */
 
-import com.koch.ambeth.ioc.IInitializingModule;
+import io.toolisticon.spiap.api.SpiService;
+import com.koch.ambeth.ioc.IFrameworkModule;
 import com.koch.ambeth.ioc.annotation.FrameworkModule;
 import com.koch.ambeth.ioc.config.PrecedenceType;
 import com.koch.ambeth.ioc.factory.IBeanContextFactory;
@@ -29,14 +30,15 @@ import com.koch.ambeth.sensor.SensorProvider;
 import com.koch.ambeth.util.sensor.ISensorProvider;
 import com.koch.ambeth.util.sensor.ISensorReceiverExtendable;
 
+@SpiService(IFrameworkModule.class)
 @FrameworkModule
-public class SensorModule implements IInitializingModule {
-	@Override
-	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
-		Object sensorProvider = beanContextFactory.registerBean("sensorProvider", SensorProvider.class)
-				.autowireable(ISensorProvider.class, ISensorReceiverExtendable.class)
-				.precedence(PrecedenceType.HIGHEST).getInstance();
-		beanContextFactory.registerBean(SensorPreProcessor.class).propertyValue("SensorProvider",
-				sensorProvider);
-	}
+public class SensorModule implements IFrameworkModule {
+    @Override
+    public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
+        Object sensorProvider = beanContextFactory.registerBean("sensorProvider", SensorProvider.class)
+                                                  .autowireable(ISensorProvider.class, ISensorReceiverExtendable.class)
+                                                  .precedence(PrecedenceType.HIGHEST)
+                                                  .getInstance();
+        beanContextFactory.registerBean(SensorPreProcessor.class).propertyValue("SensorProvider", sensorProvider);
+    }
 }

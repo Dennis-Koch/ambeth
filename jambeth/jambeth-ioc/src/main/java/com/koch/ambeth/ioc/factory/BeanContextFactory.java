@@ -82,7 +82,6 @@ import com.koch.ambeth.util.collections.IMap;
 import com.koch.ambeth.util.collections.LinkedHashMap;
 import com.koch.ambeth.util.collections.WeakHashSet;
 import com.koch.ambeth.util.config.IProperties;
-import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.function.CheckedConsumer;
 import com.koch.ambeth.util.objectcollector.ICollectableControllerExtendable;
 import com.koch.ambeth.util.objectcollector.IObjectCollector;
@@ -96,6 +95,7 @@ import com.koch.ambeth.util.threading.SensitiveThreadLocal;
 import com.koch.ambeth.util.typeinfo.IPropertyInfo;
 import com.koch.ambeth.util.typeinfo.IPropertyInfoProvider;
 import com.koch.ambeth.util.typeinfo.ITypeInfoProvider;
+import lombok.SneakyThrows;
 
 import java.util.List;
 
@@ -138,6 +138,7 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
      *                                 Servlet containers or application servers.
      * @return New IoC context.
      */
+    @SneakyThrows
     public static IServiceContext createBootstrap(IProperties properties, Class<?>[] bootstrapModules, Object[] bootstrapModuleInstances) {
         ThreadLocalCleanupController threadLocalCleanupController = null;
         try {
@@ -145,17 +146,17 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
                 properties = Properties.getApplication();
             }
             // create own sub-instance of properties
-            Properties newProps = new Properties(properties);
+            var newProps = new Properties(properties);
 
-            boolean objectCollectorActive = Boolean.parseBoolean(newProps.getString(IocConfigurationConstants.UseObjectCollector, "true"));
+            var objectCollectorActive = Boolean.parseBoolean(newProps.getString(IocConfigurationConstants.UseObjectCollector, "true"));
 
             threadLocalCleanupController = new ThreadLocalCleanupController();
 
             IObjectCollector objectCollector;
             IThreadLocalObjectCollector tlObjectCollector;
             if (objectCollectorActive) {
-                ThreadLocalObjectCollector tempTlLocalObjectCollector = new ThreadLocalObjectCollector();
-                ObjectCollector tempObjectCollector = new ObjectCollector();
+                var tempTlLocalObjectCollector = new ThreadLocalObjectCollector();
+                var tempObjectCollector = new ObjectCollector();
                 tempObjectCollector.setThreadLocalObjectCollector(tempTlLocalObjectCollector);
 
                 tempObjectCollector.registerCollectableController(new StringBuilderCollectableController(), StringBuilder.class);
@@ -165,31 +166,31 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
 
                 threadLocalCleanupController.setObjectCollector(tempTlLocalObjectCollector);
             } else {
-                NoOpObjectCollector tempObjectCollector = new NoOpObjectCollector();
+                var tempObjectCollector = new NoOpObjectCollector();
                 tlObjectCollector = tempObjectCollector;
                 objectCollector = tempObjectCollector;
             }
 
-            ConversionHelper conversionHelper = new ConversionHelper();
-            DelegatingConversionHelper delegatingConversionHelper = new DelegatingConversionHelper();
-            LinkController linkController = new LinkController();
-            LoggerHistory loggerHistory = new LoggerHistory();
-            AccessorTypeProvider accessorTypeProvider = new AccessorTypeProvider();
-            ExtendableRegistry extendableRegistry = new ExtendableRegistry();
-            GarbageProxyFactory garbageProxyFactory = new GarbageProxyFactory();
-            InterningFeature interningFeature = new InterningFeature();
-            PropertyInfoProvider propertyInfoProvider = new PropertyInfoProvider();
-            ImmutableTypeSet immutableTypeSet = new ImmutableTypeSet();
+            var conversionHelper = new ConversionHelper();
+            var delegatingConversionHelper = new DelegatingConversionHelper();
+            var linkController = new LinkController();
+            var loggerHistory = new LoggerHistory();
+            var accessorTypeProvider = new AccessorTypeProvider();
+            var extendableRegistry = new ExtendableRegistry();
+            var garbageProxyFactory = new GarbageProxyFactory();
+            var interningFeature = new InterningFeature();
+            var propertyInfoProvider = new PropertyInfoProvider();
+            var immutableTypeSet = new ImmutableTypeSet();
 
-            BeanContextInitializer beanContextInitializer = new BeanContextInitializer();
-            CallingProxyPostProcessor callingProxyPostProcessor = new CallingProxyPostProcessor();
-            ClassCache classCache = new ClassCache();
-            SimpleClassLoaderProvider classLoaderProvider = new SimpleClassLoaderProvider();
+            var beanContextInitializer = new BeanContextInitializer();
+            var callingProxyPostProcessor = new CallingProxyPostProcessor();
+            var classCache = new ClassCache();
+            var classLoaderProvider = new SimpleClassLoaderProvider();
             classLoaderProvider.setClassLoader((ClassLoader) properties.get(IocConfigurationConstants.ExplicitClassLoader));
-            DelegateFactory delegateFactory = new DelegateFactory();
-            ProxyFactory proxyFactory = new ProxyFactory();
-            AutoLinkPreProcessor threadLocalCleanupPreProcessor = new AutoLinkPreProcessor();
-            LoggerInstancePreProcessor loggerInstancePreProcessor = new LoggerInstancePreProcessor();
+            var delegateFactory = new DelegateFactory();
+            var proxyFactory = new ProxyFactory();
+            var threadLocalCleanupPreProcessor = new AutoLinkPreProcessor();
+            var loggerInstancePreProcessor = new LoggerInstancePreProcessor();
 
             callingProxyPostProcessor.setPropertyInfoProvider(propertyInfoProvider);
             classCache.setClassLoaderProvider(classLoaderProvider);
@@ -237,7 +238,7 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
             threadLocalCleanupController.afterPropertiesSet();
             threadLocalCleanupPreProcessor.afterPropertiesSet();
 
-            PropertiesPreProcessor propertiesPreProcessor = new PropertiesPreProcessor();
+            var propertiesPreProcessor = new PropertiesPreProcessor();
             propertiesPreProcessor.setConversionHelper(delegatingConversionHelper);
             propertiesPreProcessor.setPropertyInfoProvider(propertyInfoProvider);
             propertiesPreProcessor.afterPropertiesSet();
@@ -247,7 +248,7 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
                     EmptySet.<String>emptySet(), null);
             delegatingConversionHelper.afterPropertiesSet();
 
-            BeanContextFactory parentContextFactory = new BeanContextFactory(tlObjectCollector, linkController, beanContextInitializer, proxyFactory, null, newProps, null);
+            var parentContextFactory = new BeanContextFactory(tlObjectCollector, linkController, beanContextInitializer, proxyFactory, null, newProps, null);
 
             parentContextFactory.registerWithLifecycle(loggerHistory).autowireable(ILoggerHistory.class);
             parentContextFactory.registerWithLifecycle(proxyFactory).autowireable(IProxyFactory.class);
@@ -294,14 +295,12 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
                     parentContextFactory.registerExternalBean(bootstrapModuleInstances[a]);
                 }
             }
-            List<IBeanPreProcessor> preProcessors = new ArrayList<>();
+            var preProcessors = new ArrayList<IBeanPreProcessor>();
             preProcessors.add(propertiesPreProcessor);
             preProcessors.add(loggerInstancePreProcessor);
             preProcessors.add(threadLocalCleanupPreProcessor);
-            IExternalServiceContext externalServiceContext = (IExternalServiceContext) properties.get(IocConfigurationConstants.ExternalServiceContext);
+            IExternalServiceContext externalServiceContext = properties.get(IocConfigurationConstants.ExternalServiceContext);
             return parentContextFactory.create("bootstrap", null, null, preProcessors, null, externalServiceContext);
-        } catch (Throwable e) {
-            throw RuntimeExceptionUtil.mask(e);
         } finally {
             if (threadLocalCleanupController != null) {
                 threadLocalCleanupController.cleanupThreadLocal();
@@ -560,28 +559,28 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
     }
 
     public IServiceContext create(String contextName, ServiceContext parent, CheckedConsumer<IBeanContextFactory> registerPhaseDelegate, Class<?>... serviceModuleTypes) {
-        Integer uniqueIdentifier = generateUniqueIdentifier();
-        ServiceContext context = new ServiceContext(generateUniqueContextName(contextName, parent, uniqueIdentifier), uniqueIdentifier, parent);
+        var uniqueIdentifier = generateUniqueIdentifier();
+        var context = new ServiceContext(generateUniqueContextName(contextName, parent, uniqueIdentifier), uniqueIdentifier, parent);
 
         if (registerPhaseDelegate != null) {
             CheckedConsumer.invoke(registerPhaseDelegate, this);
         }
-        for (Class<?> serviceModuleType : serviceModuleTypes) {
+        for (var serviceModuleType : serviceModuleTypes) {
             registerBean(serviceModuleType);
         }
-        List<IBeanInstantiationProcessor> instantiationProcessors = parent.getInstantiationProcessors();
+        var instantiationProcessors = parent.getInstantiationProcessors();
         if (instantiationProcessors != null) {
             for (int a = 0, size = instantiationProcessors.size(); a < size; a++) {
                 context.addInstantiationProcessor(instantiationProcessors.get(a));
             }
         }
-        List<IBeanPreProcessor> preProcessors = parent.getPreProcessors();
+        var preProcessors = parent.getPreProcessors();
         if (preProcessors != null) {
             for (int a = 0, size = preProcessors.size(); a < size; a++) {
                 context.addPreProcessor(preProcessors.get(a));
             }
         }
-        List<IBeanPostProcessor> postProcessors = parent.getPostProcessors();
+        var postProcessors = parent.getPostProcessors();
         if (postProcessors != null) {
             for (int a = 0, size = postProcessors.size(); a < size; a++) {
                 context.addPostProcessor(postProcessors.get(a));
@@ -592,7 +591,7 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
     }
 
     protected void addBeanConfiguration(IBeanConfiguration beanConfiguration) {
-        String beanName = beanConfiguration.getName();
+        var beanName = beanConfiguration.getName();
         if (beanName != null && beanName.length() > 0) {
             if (nameToBeanConfMap == null) {
                 nameToBeanConfMap = new HashMap<>();
@@ -602,7 +601,7 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
             }
             if (!beanConfiguration.isOverridesExisting()) {
                 if (!nameToBeanConfMap.putIfNotExists(beanName, beanConfiguration)) {
-                    IBeanConfiguration existingBeanConfiguration = nameToBeanConfMap.get(beanName);
+                    var existingBeanConfiguration = nameToBeanConfMap.get(beanName);
                     if (!existingBeanConfiguration.isOverridesExisting()) {
                         throw ServiceContext.createDuplicateBeanNameException(beanName, beanConfiguration, existingBeanConfiguration);
                     }
@@ -629,7 +628,7 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
         if (!aliasToBeanNameMap.putIfNotExists(aliasBeanName, beanNameToCreateAliasFor)) {
             throw new IllegalArgumentException("Alias '" + aliasBeanName + "' has been already specified");
         }
-        List<String> aliasList = beanNameToAliasesMap.get(beanNameToCreateAliasFor);
+        var aliasList = beanNameToAliasesMap.get(beanNameToCreateAliasFor);
         if (aliasList == null) {
             aliasList = new ArrayList<>();
             beanNameToAliasesMap.put(beanNameToCreateAliasFor, aliasList);
@@ -643,7 +642,7 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
         if (beanType == null) {
             throw new IllegalArgumentException("Parameter must be valid: beanType (" + beanName + ")");
         }
-        BeanConfiguration beanConfiguration = new BeanConfiguration(beanType, beanName, proxyFactory, props);
+        var beanConfiguration = new BeanConfiguration(beanType, beanName, proxyFactory, props);
 
         addBeanConfiguration(beanConfiguration);
         return beanConfiguration;
@@ -653,7 +652,7 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
     public IBeanConfiguration registerBean(String beanName, String parentBeanName) {
         ParamChecker.assertParamNotNull(beanName, "beanName");
         ParamChecker.assertParamNotNull(parentBeanName, "parentBeanName");
-        BeanConfiguration beanConfiguration = new BeanConfiguration(null, beanName, proxyFactory, props);
+        var beanConfiguration = new BeanConfiguration(null, beanName, proxyFactory, props);
         beanConfiguration.parent(parentBeanName);
 
         addBeanConfiguration(beanConfiguration);
@@ -670,7 +669,7 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
     public IBeanConfiguration registerBean(Class<?> beanType) {
         ParamChecker.assertParamNotNull(beanType, "beanType");
 
-        BeanConfiguration beanConfiguration = new BeanConfiguration(beanType, generateBeanName(beanType), proxyFactory, props);
+        var beanConfiguration = new BeanConfiguration(beanType, generateBeanName(beanType), proxyFactory, props);
 
         addBeanConfiguration(beanConfiguration);
         return beanConfiguration;
@@ -680,7 +679,7 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
     public <I, T extends I> IBeanConfiguration registerAutowireableBean(Class<I> autowiringType, Class<T> beanType) {
         ParamChecker.assertParamNotNull(autowiringType, "autowiringType");
         ParamChecker.assertParamNotNull(beanType, "beanType");
-        BeanConfiguration beanConfiguration = new BeanConfiguration(beanType, generateBeanName(beanType), proxyFactory, props);
+        var beanConfiguration = new BeanConfiguration(beanType, generateBeanName(beanType), proxyFactory, props);
         addBeanConfiguration(beanConfiguration);
         beanConfiguration.autowireable(autowiringType);
         return beanConfiguration;
@@ -692,7 +691,7 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
         if (externalBean == null) {
             throw new IllegalArgumentException("Bean \"" + beanName + "\" was registered with value NULL.");
         }
-        BeanInstanceConfiguration beanConfiguration = new BeanInstanceConfiguration(externalBean, beanName, false, props);
+        var beanConfiguration = new BeanInstanceConfiguration(externalBean, beanName, false, props);
         addBeanConfiguration(beanConfiguration);
         return beanConfiguration;
     }
@@ -707,7 +706,7 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
     public IBeanConfiguration registerWithLifecycle(String beanName, Object externalBean) {
         ParamChecker.assertParamNotNull(beanName, "beanName");
         ParamChecker.assertParamNotNull(externalBean, "externalBean (" + beanName + ")");
-        BeanInstanceConfiguration beanConfiguration = new BeanInstanceConfiguration(externalBean, beanName, true, props);
+        var beanConfiguration = new BeanInstanceConfiguration(externalBean, beanName, true, props);
         addBeanConfiguration(beanConfiguration);
         return beanConfiguration;
     }
@@ -732,42 +731,42 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
 
     @Override
     public ILinkRegistryNeededConfiguration<?> link(String listenerBeanName) {
-        LinkConfiguration<Object> linkConfiguration = linkController.createLinkConfiguration(listenerBeanName, (String) null);
+        var linkConfiguration = linkController.createLinkConfiguration(listenerBeanName, (String) null);
         addBeanConfiguration(linkConfiguration);
         return linkConfiguration;
     }
 
     @Override
     public ILinkRegistryNeededConfiguration<?> link(String listenerBeanName, String methodName) {
-        LinkConfiguration<Object> linkConfiguration = linkController.createLinkConfiguration(listenerBeanName, methodName);
+        var linkConfiguration = linkController.createLinkConfiguration(listenerBeanName, methodName);
         addBeanConfiguration(linkConfiguration);
         return linkConfiguration;
     }
 
     @Override
     public ILinkRegistryNeededConfiguration<?> link(IBeanConfiguration listenerBean) {
-        LinkConfiguration<Object> linkConfiguration = linkController.createLinkConfiguration(listenerBean, null);
+        var linkConfiguration = linkController.createLinkConfiguration(listenerBean, null);
         addBeanConfiguration(linkConfiguration);
         return linkConfiguration;
     }
 
     @Override
     public ILinkRegistryNeededConfiguration<?> link(IBeanConfiguration listenerBean, String methodName) {
-        LinkConfiguration<Object> linkConfiguration = linkController.createLinkConfiguration(listenerBean, methodName);
+        var linkConfiguration = linkController.createLinkConfiguration(listenerBean, methodName);
         addBeanConfiguration(linkConfiguration);
         return linkConfiguration;
     }
 
     @Override
     public ILinkRegistryNeededConfiguration<?> link(Object listener, String methodName) {
-        LinkConfiguration<Object> linkConfiguration = linkController.createLinkConfiguration(listener, methodName);
+        var linkConfiguration = linkController.createLinkConfiguration(listener, methodName);
         addBeanConfiguration(linkConfiguration);
         return linkConfiguration;
     }
 
     @Override
     public <D> ILinkRegistryNeededConfiguration<D> link(D listener) {
-        LinkConfiguration<D> linkConfiguration = linkController.createLinkConfiguration(listener);
+        var linkConfiguration = linkController.createLinkConfiguration(listener);
         addBeanConfiguration(linkConfiguration);
         return linkConfiguration;
     }
@@ -903,7 +902,7 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
     @Deprecated
     @Override
     public void linkToNamed(String registryBeanName, String listenerBeanName, Class<?> registryClass, Object... arguments) {
-        IBeanConfiguration beanConfiguration = createLinkConfiguration(registryBeanName, listenerBeanName, registryClass, arguments);
+        var beanConfiguration = createLinkConfiguration(registryBeanName, listenerBeanName, registryClass, arguments);
         addBeanConfiguration(beanConfiguration);
     }
 
@@ -911,17 +910,17 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
     @Override
     public void link(IBeanConfiguration listenerBean, Class<?> autowiredRegistryClass, Object... arguments) {
         ParamChecker.assertParamNotNull(listenerBean, "listenerBean");
-        String listenerBeanName = listenerBean.getName();
+        var listenerBeanName = listenerBean.getName();
         ParamChecker.assertParamNotNull(listenerBeanName, "listenerBean.getName()");
 
-        IBeanConfiguration beanConfiguration = createLinkConfiguration(listenerBeanName, autowiredRegistryClass, arguments);
+        var beanConfiguration = createLinkConfiguration(listenerBeanName, autowiredRegistryClass, arguments);
         addBeanConfiguration(beanConfiguration);
     }
 
     @Deprecated
     @Override
     public void link(String listenerBeanName, Class<?> autowiredRegistryClass, Object... arguments) {
-        IBeanConfiguration beanConfiguration = createLinkConfiguration(listenerBeanName, autowiredRegistryClass, arguments);
+        var beanConfiguration = createLinkConfiguration(listenerBeanName, autowiredRegistryClass, arguments);
         addBeanConfiguration(beanConfiguration);
     }
 }

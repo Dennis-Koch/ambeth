@@ -29,7 +29,6 @@ import com.koch.ambeth.ioc.config.Property;
 import com.koch.ambeth.ioc.threadlocal.IThreadLocalCleanupController;
 import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
-import com.koch.ambeth.merge.ILightweightTransaction;
 import com.koch.ambeth.merge.cache.CacheFactoryDirective;
 import com.koch.ambeth.merge.cache.ICache;
 import com.koch.ambeth.merge.cache.ICacheContext;
@@ -40,6 +39,7 @@ import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.state.StateRollback;
+import com.koch.ambeth.util.transaction.ILightweightTransaction;
 
 import java.util.Arrays;
 import java.util.concurrent.Executor;

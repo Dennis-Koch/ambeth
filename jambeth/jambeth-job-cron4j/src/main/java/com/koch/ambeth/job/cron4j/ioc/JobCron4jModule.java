@@ -20,18 +20,19 @@ limitations under the License.
  * #L%
  */
 
-import com.koch.ambeth.ioc.IInitializingModule;
+import io.toolisticon.spiap.api.SpiService;
+import com.koch.ambeth.ioc.IFrameworkModule;
 import com.koch.ambeth.ioc.annotation.FrameworkModule;
 import com.koch.ambeth.ioc.factory.IBeanContextFactory;
 import com.koch.ambeth.job.IJobExtendable;
 import com.koch.ambeth.job.IJobScheduler;
 import com.koch.ambeth.job.cron4j.AmbethCron4jScheduler;
 
+@SpiService(IFrameworkModule.class)
 @FrameworkModule
-public class JobCron4jModule implements IInitializingModule {
-	@Override
-	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
-		beanContextFactory.registerBean("jobScheduler", AmbethCron4jScheduler.class)
-				.autowireable(IJobScheduler.class, IJobExtendable.class);
-	}
+public class JobCron4jModule implements IFrameworkModule {
+    @Override
+    public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
+        beanContextFactory.registerBean("jobScheduler", AmbethCron4jScheduler.class).autowireable(IJobScheduler.class, IJobExtendable.class);
+    }
 }

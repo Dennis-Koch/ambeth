@@ -20,83 +20,89 @@ limitations under the License.
  * #L%
  */
 
-import java.util.HashMap;
-
 import com.koch.ambeth.persistence.api.ICursorItem;
 import com.koch.ambeth.persistence.api.IFieldMetaData;
-import com.koch.ambeth.query.persistence.IVersionItem;
+import com.koch.ambeth.util.ParamChecker;
+import lombok.Setter;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class ResultSetCursorBase extends ResultSetVersionCursorBase implements ICursorItem {
-	protected final HashMap<String, IFieldMetaData> memberNameToFieldDict =
-			new HashMap<>();
-	protected final HashMap<String, Integer> memberNameToFieldIndexDict =
-			new HashMap<>();
-	protected final HashMap<String, Integer> fieldNameToFieldIndexDict =
-			new HashMap<>();
+    protected final HashMap<String, IFieldMetaData> memberNameToFieldDict = new HashMap<>();
+    protected final HashMap<String, Integer> memberNameToFieldIndexDict = new HashMap<>();
 
-	protected Object[] values;
-	protected IFieldMetaData[] fields;
+    protected final HashMap<String, Integer> fieldNameToColumnIndexMap = new HashMap<>();
 
-	@Override
-	public void afterPropertiesSet() {
-		super.afterPropertiesSet();
+    @Setter
+    protected Map<IFieldMetaData, Integer> fieldToColumnIndexMap;
 
-		IFieldMetaData[] fields = this.fields;
-		values = new Object[fields.length];
-		for (int a = fields.length; a-- > 0;) {
-			IFieldMetaData field = fields[a];
-			Integer index = Integer.valueOf(a + systemColumnCount);
-			if (field.getMember() != null) {
-				String memberName = field.getMember().getName();
-				memberNameToFieldDict.put(memberName, field);
-				memberNameToFieldIndexDict.put(memberName, index);
-			}
-			fieldNameToFieldIndexDict.put(field.getName(), index);
-		}
-	}
+    protected Object[] values;
 
-	public IFieldMetaData[] getFields() {
-		return fields;
-	}
+    protected IFieldMetaData[] fields;
 
-	public void setFields(IFieldMetaData[] fields) {
-		this.fields = fields;
-	}
+    @Override
+    public void afterPropertiesSet() {
+        super.afterPropertiesSet();
 
-	@Override
-	public Object[] getValues() {
-		return values;
-	}
+        ParamChecker.assertParamNotNull(fieldToColumnIndexMap, "fieldToColumnIndexMap");
 
-	@Override
-	public ICursorItem next() {
-		IVersionItem item = super.next();
-		if (item == null) {
-			return null;
-		}
-		return this;
-	}
+        var fields = this.fields;
+        values = new Object[fields.length];
+        for (int a = fields.length; a-- > 0; ) {
+            var field = fields[a];
+            var index = fieldToColumnIndexMap.get(field);
+            if (field.getMember() != null) {
+                var memberName = field.getMember().getName();
+                memberNameToFieldDict.put(memberName, field);
+                memberNameToFieldIndexDict.put(memberName, index);
+            }
+            fieldNameToColumnIndexMap.put(field.getName(), index);
+        }
+    }
 
-	@Override
-	protected void processResultSetItem(Object[] current) {
-		super.processResultSetItem(current);
-		IFieldMetaData[] fields = this.fields;
-		int systemColumnCount = this.systemColumnCount;
-		Object[] values = getValues();
-		for (int a = fields.length; a-- > 0;) {
-			values[a] = current[a + systemColumnCount];
-		}
-	}
+    public IFieldMetaData[] getFields() {
+        return fields;
+    }
 
-	public IFieldMetaData getFieldByMemberName(String memberName) {
-		return memberNameToFieldDict.get(memberName);
-	}
+    public void setFields(IFieldMetaData[] fields) {
+        this.fields = fields;
+    }
 
-	public int getFieldIndexByMemberName(String memberName) {
-		return memberNameToFieldIndexDict.get(memberName).intValue();
-	}
+    @Override
+    public Object[] getValues() {
+        return values;
+    }
 
-	public int getFieldIndexByName(String fieldName) {
-		return fieldNameToFieldIndexDict.get(fieldName).intValue();
-	}
+    @Override
+    public ICursorItem next() {
+        var item = super.next();
+        if (item == null) {
+            return null;
+        }
+        return this;
+    }
+
+    @Override
+    protected void processResultSetItem(Object[] current) {
+        super.processResultSetItem(current);
+        var fields = this.fields;
+        var systemColumnCount = this.idCompositePlusVersionCount;
+        var values = getValues();
+        for (int a = fields.length; a-- > 0; ) {
+            values[a] = current[a + systemColumnCount];
+        }
+    }
+
+    public IFieldMetaData getFieldByMemberName(String memberName) {
+        return memberNameToFieldDict.get(memberName);
+    }
+
+    public int getFieldIndexByMemberName(String memberName) {
+        return memberNameToFieldIndexDict.get(memberName).intValue();
+    }
+
+    public int getFieldIndexByName(String fieldName) {
+        return fieldNameToColumnIndexMap.get(fieldName).intValue();
+    }
 }

@@ -20,23 +20,22 @@ limitations under the License.
  * #L%
  */
 
-import jakarta.xml.bind.annotation.XmlRootElement;
-
-import com.koch.ambeth.ioc.annotation.BootstrapModule;
+import com.koch.ambeth.ioc.annotation.ApplicationModule;
 import com.koch.ambeth.util.annotation.ConfigurationConstants;
 import com.koch.ambeth.xml.util.ClasspathScanner;
+import jakarta.xml.bind.annotation.XmlRootElement;
 
 @ConfigurationConstants
 public final class XmlConfigurationConstants {
-	/**
-	 * Defines in which packages the Ambeth {@link ClasspathScanner} scans for classes which implement
-	 * or are annotated with a given class (e.g {@link XmlRootElement}, {@link BootstrapModule}).
-	 * Multiple patterns can be provided by separating them with a semicolon ';', each pattern has to
-	 * be a regular expression. The default pattern is <code>"com/koch/.*"</code>
-	 */
-	public static final String PackageScanPatterns = "ambeth.xml.transfer.pattern";
+    /**
+     * Defines in which packages the Ambeth {@link ClasspathScanner} scans for classes which implement
+     * or are annotated with a given class (e.g {@link XmlRootElement}, {@link ApplicationModule}).
+     * Multiple patterns can be provided by separating them with a semicolon ';', each pattern has to
+     * be a regular expression. The default pattern is <code>"com/koch/.*"</code>
+     */
+    public static final String PackageScanPatterns = "ambeth.xml.transfer.pattern";
 
-	private XmlConfigurationConstants() {
-		// Intended blank
-	}
+    private XmlConfigurationConstants() {
+        // Intended blank
+    }
 }

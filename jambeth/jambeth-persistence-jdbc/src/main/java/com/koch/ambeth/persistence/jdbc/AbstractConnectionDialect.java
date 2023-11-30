@@ -25,13 +25,11 @@ import com.koch.ambeth.util.StringBuilderUtil;
 import com.koch.ambeth.util.appendable.IAppendable;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.IList;
-import com.koch.ambeth.util.collections.IMap;
 import com.koch.ambeth.util.config.IProperties;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.objectcollector.IThreadLocalObjectCollector;
 import com.koch.ambeth.util.state.IStateRollback;
 import jakarta.transaction.SystemException;
-import jakarta.transaction.Transaction;
 import jakarta.transaction.TransactionManager;
 import lombok.SneakyThrows;
 
@@ -41,15 +39,15 @@ import java.sql.Clob;
 import java.sql.Connection;
 import java.sql.Driver;
 import java.sql.DriverManager;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.List;
+import java.util.Map;
 import java.util.WeakHashMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.regex.Matcher;
+import java.util.function.Function;
 import java.util.regex.Pattern;
 
 public abstract class AbstractConnectionDialect implements IConnectionDialect, IInitializingBean, IDisposableBean {
@@ -95,16 +93,18 @@ public abstract class AbstractConnectionDialect implements IConnectionDialect, I
     }
 
     @Override
-    public void appendListClause(List<Object> parameters, IAppendable sb, Class<?> fieldType, IList<Object> splittedIds) {
+    public void appendListClause(List<Object> parameters, IAppendable sb, Class<?> fieldType, IList<Object> splittedIds, Function<Object, Object> idDecompositor) {
         sb.append(" IN (");
 
+        var preparedConverter = conversionHelper.prepareConverter(fieldType, splittedIds.get(0));
         for (int b = 0, sizeB = splittedIds.size(); b < sizeB; b++) {
-            Object id = splittedIds.get(b);
+            var id = idDecompositor.apply(splittedIds.get(b));
+            var value = preparedConverter.convertValue(id, null);
             if (b > 0) {
                 sb.append(',');
             }
             sb.append('?');
-            ParamsUtil.addParam(parameters, id);
+            ParamsUtil.addParam(parameters, value);
         }
 
         sb.append(')');
@@ -226,12 +226,12 @@ public abstract class AbstractConnectionDialect implements IConnectionDialect, I
     }
 
     @Override
-    public void handleWithMultiValueLeftField(IAppendable querySB, IMap<Object, Object> nameToValueMap, IList<Object> parameters, IList<IList<Object>> splitValues, boolean caseSensitive,
+    public void handleWithMultiValueLeftField(IAppendable querySB, Map<Object, Object> nameToValueMap, IList<Object> parameters, IList<IList<Object>> splitValues, boolean caseSensitive,
             Class<?> leftOperandFieldType) {
         querySB.append("SELECT COLUMN_VALUE FROM (");
         if (splitValues.isEmpty()) {
             // Special scenario with EMPTY argument
-            ArrayQueryItem aqi = new ArrayQueryItem(new Object[0], leftOperandFieldType);
+            var aqi = new ArrayQueryItem(new Object[0], leftOperandFieldType);
             ParamsUtil.addParam(parameters, aqi);
             querySB.append("SELECT ");
             if (!caseSensitive) {
@@ -251,7 +251,7 @@ public abstract class AbstractConnectionDialect implements IConnectionDialect, I
             }
 
             for (int a = 0, size = splitValues.size(); a < size; a++) {
-                IList<Object> values = splitValues.get(a);
+                var values = splitValues.get(a);
                 if (a > 0) {
                     // A union allows us to suppress the "ROWNUM" column because table(?) will already get
                     // materialized without it
@@ -260,7 +260,7 @@ public abstract class AbstractConnectionDialect implements IConnectionDialect, I
                 if (size > 1) {
                     querySB.append('(');
                 }
-                ArrayQueryItem aqi = new ArrayQueryItem(values.toArray(), leftOperandFieldType);
+                var aqi = new ArrayQueryItem(values.toArray(), leftOperandFieldType);
                 ParamsUtil.addParam(parameters, aqi);
                 querySB.append("SELECT ").append(placeholder);
                 if (size < 2) {
@@ -276,38 +276,35 @@ public abstract class AbstractConnectionDialect implements IConnectionDialect, I
         querySB.append(')');
     }
 
+    @SneakyThrows
     @Override
     public void preProcessConnection(Connection connection, String[] schemaNames, boolean forcePreProcessing) {
-        try {
-            ConnectionKeyValue connectionKeyValue = null;
-            IConnectionKeyHandle connectionKeyHandle = null;
-            Lock writeLock = this.writeLock;
+        ConnectionKeyValue connectionKeyValue = null;
+        IConnectionKeyHandle connectionKeyHandle = null;
+        var writeLock = this.writeLock;
 
-            if (connection.isWrapperFor(IConnectionKeyHandle.class)) {
-                connectionKeyHandle = connection.unwrap(IConnectionKeyHandle.class);
-                writeLock.lock();
-                try {
-                    // WeakHashMaps have ALWAYS to be exclusively locked even if they SEEM to be only
-                    // read-accessed
-                    connectionKeyValue = connectionToConstraintSqlMap.get(connectionKeyHandle);
-                } finally {
-                    writeLock.unlock();
-                }
+        if (connection.isWrapperFor(IConnectionKeyHandle.class)) {
+            connectionKeyHandle = connection.unwrap(IConnectionKeyHandle.class);
+            writeLock.lock();
+            try {
+                // WeakHashMaps have ALWAYS to be exclusively locked even if they SEEM to be only
+                // read-accessed
+                connectionKeyValue = connectionToConstraintSqlMap.get(connectionKeyHandle);
+            } finally {
+                writeLock.unlock();
             }
-            if (forcePreProcessing || connectionKeyValue == null) {
-                if (connectionKeyHandle == null) {
-                    throw new IllegalStateException("Should never happen");
-                }
-                connectionKeyValue = preProcessConnectionIntern(connection, schemaNames, forcePreProcessing);
-                writeLock.lock();
-                try {
-                    connectionToConstraintSqlMap.put(connectionKeyHandle, connectionKeyValue);
-                } finally {
-                    writeLock.unlock();
-                }
+        }
+        if (forcePreProcessing || connectionKeyValue == null) {
+            if (connectionKeyHandle == null) {
+                throw new IllegalStateException("Should never happen");
             }
-        } catch (Exception e) {
-            throw RuntimeExceptionUtil.mask(e);
+            connectionKeyValue = preProcessConnectionIntern(connection, schemaNames, forcePreProcessing);
+            writeLock.lock();
+            try {
+                connectionToConstraintSqlMap.put(connectionKeyHandle, connectionKeyValue);
+            } finally {
+                writeLock.unlock();
+            }
         }
     }
 
@@ -315,60 +312,54 @@ public abstract class AbstractConnectionDialect implements IConnectionDialect, I
         return new ConnectionKeyValue(new String[0], new String[0]);
     }
 
+    @SneakyThrows
     @Override
     public IStateRollback disableConstraints(final Connection connection, String... schemaNames) {
-        try {
-            final ConnectionKeyValue connectionKeyValue;
-            IConnectionKeyHandle connectionKeyHandle = null;
+        final ConnectionKeyValue connectionKeyValue;
+        IConnectionKeyHandle connectionKeyHandle = null;
 
-            if (connection.isWrapperFor(IConnectionKeyHandle.class)) {
-                connectionKeyHandle = connection.unwrap(IConnectionKeyHandle.class);
-                Lock writeLock = this.writeLock;
-                writeLock.lock();
-                try {
-                    // WeakHashMaps have ALWAYS to be exclusively locked even if they SEEM to be only
-                    // read-accessed
-                    connectionKeyValue = connectionToConstraintSqlMap.get(connectionKeyHandle);
-                } finally {
-                    writeLock.unlock();
-                }
-            } else {
-                throw new IllegalStateException("Connection is not a wrapper for " + IConnectionKeyHandle.class.getName());
+        if (connection.isWrapperFor(IConnectionKeyHandle.class)) {
+            connectionKeyHandle = connection.unwrap(IConnectionKeyHandle.class);
+            var writeLock = this.writeLock;
+            writeLock.lock();
+            try {
+                // WeakHashMaps have ALWAYS to be exclusively locked even if they SEEM to be only
+                // read-accessed
+                connectionKeyValue = connectionToConstraintSqlMap.get(connectionKeyHandle);
+            } finally {
+                writeLock.unlock();
             }
-            String[] constraintSql = connectionKeyValue.getDisableConstraintsSQL();
-
-            if (constraintSql.length > 0) {
-                Statement stm = connection.createStatement();
-                try {
-                    for (int a = 0, size = constraintSql.length; a < size; a++) {
-                        stm.addBatch(constraintSql[a]);
-                    }
-                    stm.executeBatch();
-                } finally {
-                    JdbcUtil.close(stm);
-                }
-            }
-            return new IStateRollback() {
-                @Override
-                public void rollback() {
-                    String[] enableConstraintsSQL = connectionKeyValue.getEnableConstraintsSQL();
-                    Statement stmt = null;
-                    try {
-                        stmt = connection.createStatement();
-                        for (int i = enableConstraintsSQL.length; i-- > 0; ) {
-                            stmt.addBatch(enableConstraintsSQL[i]);
-                        }
-                        stmt.executeBatch();
-                    } catch (Exception e) {
-                        throw RuntimeExceptionUtil.mask(e);
-                    } finally {
-                        JdbcUtil.close(stmt);
-                    }
-                }
-            };
-        } catch (Exception e) {
-            throw RuntimeExceptionUtil.mask(e);
+        } else {
+            throw new IllegalStateException("Connection is not a wrapper for " + IConnectionKeyHandle.class.getName());
         }
+        var constraintSql = connectionKeyValue.getDisableConstraintsSQL();
+
+        if (constraintSql.length > 0) {
+            Statement stm = connection.createStatement();
+            try {
+                for (int a = 0, size = constraintSql.length; a < size; a++) {
+                    stm.addBatch(constraintSql[a]);
+                }
+                stm.executeBatch();
+            } finally {
+                JdbcUtil.close(stm);
+            }
+        }
+        return () -> {
+            var enableConstraintsSQL = connectionKeyValue.getEnableConstraintsSQL();
+            Statement stmt = null;
+            try {
+                stmt = connection.createStatement();
+                for (int i = enableConstraintsSQL.length; i-- > 0; ) {
+                    stmt.addBatch(enableConstraintsSQL[i]);
+                }
+                stmt.executeBatch();
+            } catch (Exception e) {
+                throw RuntimeExceptionUtil.mask(e);
+            } finally {
+                JdbcUtil.close(stmt);
+            }
+        };
     }
 
     @Override
@@ -379,7 +370,7 @@ public abstract class AbstractConnectionDialect implements IConnectionDialect, I
     @SneakyThrows
     @Override
     public void commit(Connection connection) {
-        Boolean active = transactionState != null ? transactionState.isExternalTransactionManagerActive() : null;
+        var active = transactionState != null ? transactionState.isExternalTransactionManagerActive() : null;
         if (active == null) {
             active = Boolean.valueOf(externalTransactionManager);
         }
@@ -394,7 +385,7 @@ public abstract class AbstractConnectionDialect implements IConnectionDialect, I
     @SneakyThrows
     @Override
     public void rollback(Connection connection) {
-        Boolean active = transactionState != null ? transactionState.isExternalTransactionManagerActive() : null;
+        var active = transactionState != null ? transactionState.isExternalTransactionManagerActive() : null;
         if (active == null) {
             active = Boolean.valueOf(externalTransactionManager);
         }
@@ -403,7 +394,7 @@ public abstract class AbstractConnectionDialect implements IConnectionDialect, I
             // manager
             if (transactionManager != null) {
                 try {
-                    Transaction transaction = transactionManager.getTransaction();
+                    var transaction = transactionManager.getTransaction();
                     if (transaction != null) {
                         transaction.setRollbackOnly();
                     }
@@ -437,23 +428,23 @@ public abstract class AbstractConnectionDialect implements IConnectionDialect, I
     @SneakyThrows
     protected ConnectionKeyValue scanForUndeferredDeferrableConstraints(Connection connection, String[] schemaNames) {
         try (var stm = connection.createStatement()) {
-            ArrayList<String> disableConstraintsSQL = new ArrayList<>();
-            ArrayList<String> enableConstraintsSQL = new ArrayList<>();
-            String sql = buildDeferrableForeignKeyConstraintsSelectSQL(schemaNames);
+            var disableConstraintsSQL = new ArrayList<String>();
+            var enableConstraintsSQL = new ArrayList<String>();
+            var sql = buildDeferrableForeignKeyConstraintsSelectSQL(schemaNames);
             if (sql != null) {
                 try (ResultSet rs = stm.executeQuery(sql)) {
                     while (rs.next()) {
-                        String schemaName = rs.getString("OWNER");
-                        String tableName = rs.getString("TABLE_NAME");
-                        String constraintName = rs.getString("CONSTRAINT_NAME");
+                        var schemaName = rs.getString("OWNER");
+                        var tableName = rs.getString("TABLE_NAME");
+                        var constraintName = rs.getString("CONSTRAINT_NAME");
 
                         handleRow(schemaName, tableName, constraintName, disableConstraintsSQL, enableConstraintsSQL);
                     }
                 }
             }
-            String[] disableConstraintsArray = disableConstraintsSQL.toArray(new String[disableConstraintsSQL.size()]);
-            String[] enabledConstraintsArray = enableConstraintsSQL.toArray(new String[enableConstraintsSQL.size()]);
-            ConnectionKeyValue connectionKeyValue = new ConnectionKeyValue(disableConstraintsArray, enabledConstraintsArray);
+            var disableConstraintsArray = disableConstraintsSQL.toArray(new String[disableConstraintsSQL.size()]);
+            var enabledConstraintsArray = enableConstraintsSQL.toArray(new String[enableConstraintsSQL.size()]);
+            var connectionKeyValue = new ConnectionKeyValue(disableConstraintsArray, enabledConstraintsArray);
 
             return connectionKeyValue;
         }
@@ -464,14 +455,14 @@ public abstract class AbstractConnectionDialect implements IConnectionDialect, I
     protected abstract void handleRow(String schemaName, String tableName, String constraintName, ArrayList<String> disableConstraintsSQL, ArrayList<String> enableConstraintsSQL);
 
     protected String buildSchemaInClause(final String... schemaNames) {
-        StringBuilder sb = new StringBuilder();
+        var sb = new StringBuilder();
         buildSchemaInClause(sb, schemaNames);
         return sb.toString();
     }
 
     protected void buildSchemaInClause(final StringBuilder sb, final String... schemaNames) {
         sb.append(" IN (");
-        boolean first = true;
+        var first = true;
         for (int a = schemaNames.length; a-- > 0; ) {
             if (!first) {
                 sb.append(',');
@@ -497,17 +488,17 @@ public abstract class AbstractConnectionDialect implements IConnectionDialect, I
     }
 
     protected String prepareCommandInternWithGroup(String sqlCommand, String regex, String replacement) {
-        Pattern pattern = Pattern.compile("(.*?)" + regex + "(.*)", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+        var pattern = Pattern.compile("(.*?)" + regex + "(.*)", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
         return concat(sqlCommand, replacement, pattern);
     }
 
     protected String concat(String sqlCommand, String replacement, Pattern pattern) {
-        Matcher matcher = pattern.matcher(sqlCommand);
+        var matcher = pattern.matcher(sqlCommand);
         if (!matcher.matches()) {
             return sqlCommand;
         }
-        String left = concat(matcher.group(1), replacement, pattern);
-        String right = concat(matcher.group(matcher.groupCount()), replacement, pattern);
+        var left = concat(matcher.group(1), replacement, pattern);
+        var right = concat(matcher.group(matcher.groupCount()), replacement, pattern);
         for (int a = 2; a < matcher.groupCount(); a++) {
             replacement = replacement.replace("\\" + a, matcher.group(a));
         }
@@ -521,7 +512,7 @@ public abstract class AbstractConnectionDialect implements IConnectionDialect, I
         ResultSet rs = null;
         try {
             if (args.length > 0) {
-                PreparedStatement pstm = connection.prepareStatement(sql);
+                var pstm = connection.prepareStatement(sql);
                 stmt = pstm;
                 for (int a = args.length; a-- > 0; ) {
                     pstm.setObject(a + 1, args[0]);
@@ -531,7 +522,7 @@ public abstract class AbstractConnectionDialect implements IConnectionDialect, I
                 stmt = connection.createStatement();
                 rs = stmt.executeQuery(sql);
             }
-            ArrayList<String> result = new ArrayList<>();
+            var result = new ArrayList<String>();
             while (rs.next()) {
                 result.add(rs.getString(resultColumnName));
             }
@@ -548,13 +539,13 @@ public abstract class AbstractConnectionDialect implements IConnectionDialect, I
 
     @Override
     public String escapeName(CharSequence symbolName) {
-        String escapeLiteral = getEscapeLiteral();
+        var escapeLiteral = getEscapeLiteral();
         if (symbolName.length() == 0) {
             // already escaped
             return symbolName.toString();
         }
         if (escapeLiteral.length() <= symbolName.length()) {
-            boolean alreadyEscaped = true;
+            var alreadyEscaped = true;
             for (int a = escapeLiteral.length(); a-- > 0; ) {
                 if (symbolName.charAt(a) != escapeLiteral.charAt(a)) {
                     alreadyEscaped = false;
@@ -567,7 +558,7 @@ public abstract class AbstractConnectionDialect implements IConnectionDialect, I
         }
         for (int a = symbolName.length(); a-- > 0; ) {
             if (symbolName.charAt(a) == '.') {
-                String dotReplacedName = dotPattern.matcher(symbolName).replaceAll(escapeLiteral + '.' + escapeLiteral);
+                var dotReplacedName = dotPattern.matcher(symbolName).replaceAll(escapeLiteral + '.' + escapeLiteral);
                 return StringBuilderUtil.concat(objectCollector.getCurrent(), escapeLiteral, dotReplacedName, escapeLiteral);
             }
         }
@@ -577,7 +568,7 @@ public abstract class AbstractConnectionDialect implements IConnectionDialect, I
 
     @Override
     public IAppendable escapeName(CharSequence symbolName, IAppendable sb) {
-        String escapeLiteral = getEscapeLiteral();
+        var escapeLiteral = getEscapeLiteral();
         if (symbolName.length() == 0) {
             // already escaped
             return sb.append(symbolName);
@@ -596,7 +587,7 @@ public abstract class AbstractConnectionDialect implements IConnectionDialect, I
         }
         for (int a = symbolName.length(); a-- > 0; ) {
             if (symbolName.charAt(a) == '.') {
-                String dotReplacedName = dotPattern.matcher(symbolName).replaceAll(escapeLiteral + '.' + escapeLiteral);
+                var dotReplacedName = dotPattern.matcher(symbolName).replaceAll(escapeLiteral + '.' + escapeLiteral);
                 return sb.append(escapeLiteral).append(dotReplacedName).append(escapeLiteral);
             }
         }
@@ -606,7 +597,7 @@ public abstract class AbstractConnectionDialect implements IConnectionDialect, I
 
     @Override
     public String escapeSchemaAndSymbolName(CharSequence schemaName, CharSequence symbolName) {
-        String escapeLiteral = getEscapeLiteral();
+        var escapeLiteral = getEscapeLiteral();
         if (schemaName == null) {
             return StringBuilderUtil.concat(objectCollector.getCurrent(), escapeLiteral, symbolName, escapeLiteral);
         }

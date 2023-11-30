@@ -28,24 +28,27 @@ limitations under the License.
  * interface and linking the bean to {@link IDedicatedConverterExtendable}.
  */
 public abstract class IConversionHelper {
-	/**
-	 * Primary method to convert values.
-	 *
-	 * @param expectedType Conversion target type.
-	 * @param value Value to be converted.
-	 * @return Representation of the given value as the target type.
-	 */
-	public abstract <T> T convertValueToType(Class<T> expectedType, Object value);
+    /**
+     * Primary method to convert values.
+     *
+     * @param expectedType Conversion target type.
+     * @param value        Value to be converted.
+     * @return Representation of the given value as the target type.
+     */
+    public abstract <T> T convertValueToType(Class<T> expectedType, Object value);
 
-	/**
-	 * Secondary method to convert values to specific types. Only used if the conversion needs
-	 * additional informations, e.g. lost generic types, date format, string encoding.
-	 *
-	 * @param expectedType Conversion target type.
-	 * @param value Value to be converted.
-	 * @param additionalInformation Additional information needed for this conversion.
-	 * @return Representation of the given value as the target type.
-	 */
-	public abstract <T> T convertValueToType(Class<T> expectedType, Object value,
-			Object additionalInformation);
+    /**
+     * Secondary method to convert values to specific types. Only used if the conversion needs
+     * additional informations, e.g. lost generic types, date format, string encoding.
+     *
+     * @param expectedType          Conversion target type.
+     * @param value                 Value to be converted.
+     * @param additionalInformation Additional information needed for this conversion.
+     * @return Representation of the given value as the target type.
+     */
+    public abstract <T> T convertValueToType(Class<T> expectedType, Object value, Object additionalInformation);
+
+    public abstract <T> IPreparedConverter<T> prepareConverter(Class<T> expectedType, Object exemplaryValue);
+
+    public abstract <T> IPreparedConverter<T> prepareConverter(Class<T> expectedType, Object exemplaryValue, Object exemplaryAdditionalInformation);
 }

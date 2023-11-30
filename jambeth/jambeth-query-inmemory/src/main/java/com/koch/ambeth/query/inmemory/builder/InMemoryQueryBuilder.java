@@ -20,9 +20,6 @@ limitations under the License.
  * #L%
  */
 
-import jakarta.persistence.criteria.JoinType;
-
-import com.koch.ambeth.ioc.IBeanRuntime;
 import com.koch.ambeth.ioc.IServiceContext;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.config.Property;
@@ -41,7 +38,7 @@ import com.koch.ambeth.query.inmemory.bool.OrOperator;
 import com.koch.ambeth.query.inmemory.bool.TrueOperator;
 import com.koch.ambeth.util.IParamHolder;
 import com.koch.ambeth.util.ParamChecker;
-import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
+import jakarta.persistence.criteria.JoinType;
 
 public class InMemoryQueryBuilder<T> implements IQueryBuilder<T> {
     @Autowired
@@ -63,41 +60,29 @@ public class InMemoryQueryBuilder<T> implements IQueryBuilder<T> {
     protected IOperator createUnaryOperator(Class<? extends IOperator> operatorType, Object operand, Boolean caseSensitive) {
         ParamChecker.assertParamNotNull(operatorType, "operatorType");
         ParamChecker.assertParamNotNull(operand, "operand");
-        try {
-            IBeanRuntime<? extends IOperator> operatorBC = beanContext.registerBean(operatorType).propertyValue("Operand", operand);
-            if (caseSensitive != null) {
-                operatorBC.propertyValue("CaseSensitive", caseSensitive);
-            }
-            return operatorBC.finish();
-        } catch (Exception e) {
-            throw RuntimeExceptionUtil.mask(e);
+        var operatorBC = beanContext.registerBean(operatorType).propertyValue("Operand", operand);
+        if (caseSensitive != null) {
+            operatorBC.propertyValue("CaseSensitive", caseSensitive);
         }
+        return operatorBC.finish();
     }
 
     protected IOperator createBinaryOperator(Class<? extends IOperator> operatorType, IOperand leftOperand, IOperand rightOperand, Boolean caseSensitive) {
         ParamChecker.assertParamNotNull(operatorType, "operatorType");
         ParamChecker.assertParamNotNull(leftOperand, "leftOperand");
         ParamChecker.assertParamNotNull(rightOperand, "rightOperand");
-        try {
-            IBeanRuntime<? extends IOperator> operatorBC = beanContext.registerBean(operatorType).propertyValue("LeftOperand", leftOperand).propertyValue("RightOperand", rightOperand);
-            if (caseSensitive != null) {
-                operatorBC.propertyValue("CaseSensitive", caseSensitive);
-            }
-            return operatorBC.finish();
-        } catch (Exception e) {
-            throw RuntimeExceptionUtil.mask(e);
+        var operatorBC = beanContext.registerBean(operatorType).propertyValue("LeftOperand", leftOperand).propertyValue("RightOperand", rightOperand);
+        if (caseSensitive != null) {
+            operatorBC.propertyValue("CaseSensitive", caseSensitive);
         }
+        return operatorBC.finish();
     }
 
     protected IOperator createManyPlaceOperator(Class<? extends IOperator> operatorType, IOperand... operands) {
         ParamChecker.assertParamNotNull(operatorType, "operatorType");
         ParamChecker.assertParamNotNull(operands, "operands");
-        try {
-            IBeanRuntime<? extends IOperator> operatorBC = beanContext.registerBean(operatorType).propertyValue("Operands", operands);
-            return operatorBC.finish();
-        } catch (Exception e) {
-            throw RuntimeExceptionUtil.mask(e);
-        }
+        var operatorBC = beanContext.registerBean(operatorType).propertyValue("Operands", operands);
+        return operatorBC.finish();
     }
 
     @Override

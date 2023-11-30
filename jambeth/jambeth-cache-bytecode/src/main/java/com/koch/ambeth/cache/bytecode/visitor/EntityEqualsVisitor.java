@@ -21,7 +21,6 @@ limitations under the License.
  */
 
 import com.koch.ambeth.bytecode.ClassGenerator;
-import com.koch.ambeth.bytecode.MethodGenerator;
 import com.koch.ambeth.bytecode.MethodInstance;
 import com.koch.ambeth.bytecode.PropertyInstance;
 import com.koch.ambeth.cache.mixin.EntityEqualsMixin;
@@ -45,8 +44,8 @@ public class EntityEqualsVisitor extends ClassGenerator {
     private static final MethodInstance entityEquals_toString_Printable = new MethodInstance(null, templateType, void.class, "toString", IEntityEquals.class, StringBuilder.class);
 
     public static PropertyInstance getEntityEqualsTemplateProperty(ClassGenerator cv) {
-        Object bean = getState().getBeanContext().getService(templateType);
-        PropertyInstance p_embeddedTypeTemplate = PropertyInstance.findByTemplate(templatePropertyName, bean.getClass(), true);
+        var bean = getState().getBeanContext().getService(templateType);
+        var p_embeddedTypeTemplate = PropertyInstance.findByTemplate(templatePropertyName, bean.getClass(), true);
         if (p_embeddedTypeTemplate != null) {
             return p_embeddedTypeTemplate;
         }
@@ -64,17 +63,17 @@ public class EntityEqualsVisitor extends ClassGenerator {
     }
 
     protected void implementIEntityEqualsCode() {
-        PropertyInstance p_entityEqualsTemplate = getEntityEqualsTemplateProperty(this);
+        var p_entityEqualsTemplate = getEntityEqualsTemplateProperty(this);
         implementEqualsMethod(p_entityEqualsTemplate);
         implementHashCodeMethod(p_entityEqualsTemplate);
         implementToStringMethod(p_entityEqualsTemplate);
     }
 
     protected void implementEqualsMethod(PropertyInstance p_entityEqualsTemplate) {
-        MethodInstance methodTemplate = new MethodInstance(null, Object.class, boolean.class, "equals", Object.class);
-        MethodInstance method = MethodInstance.findByTemplate(methodTemplate, true);
+        var methodTemplate = new MethodInstance(null, Object.class, boolean.class, "equals", Object.class);
+        var method = MethodInstance.findByTemplate(methodTemplate, true);
         if (Type.getType(Object.class).equals(method.getOwner()) || (method.getAccess() & Opcodes.ACC_ABSTRACT) != 0) {
-            MethodGenerator mg = visitMethod(methodTemplate);
+            var mg = visitMethod(methodTemplate);
             mg.callThisGetter(p_entityEqualsTemplate);
             mg.loadThis();
             mg.loadArgs();
@@ -85,10 +84,10 @@ public class EntityEqualsVisitor extends ClassGenerator {
     }
 
     protected void implementHashCodeMethod(PropertyInstance p_entityEqualsTemplate) {
-        MethodInstance methodTemplate = new MethodInstance(null, Object.class, int.class, "hashCode");
-        MethodInstance method = MethodInstance.findByTemplate(methodTemplate, true);
+        var methodTemplate = new MethodInstance(null, Object.class, int.class, "hashCode");
+        var method = MethodInstance.findByTemplate(methodTemplate, true);
         if (Type.getType(Object.class).equals(method.getOwner()) || (method.getAccess() & Opcodes.ACC_ABSTRACT) != 0) {
-            MethodGenerator mg = visitMethod(methodTemplate);
+            var mg = visitMethod(methodTemplate);
             mg.callThisGetter(p_entityEqualsTemplate);
             mg.loadThis();
             mg.loadArgs();
@@ -101,10 +100,10 @@ public class EntityEqualsVisitor extends ClassGenerator {
 
     protected void implementToStringMethod(PropertyInstance p_entityEqualsTemplate) {
         {
-            MethodInstance methodTemplate = new MethodInstance(null, Object.class, String.class, "toString");
-            MethodInstance method = MethodInstance.findByTemplate(methodTemplate, true);
+            var methodTemplate = new MethodInstance(null, Object.class, String.class, "toString");
+            var method = MethodInstance.findByTemplate(methodTemplate, true);
             if (method == null || Type.getType(Object.class).equals(method.getOwner()) || (method.getAccess() & Opcodes.ACC_ABSTRACT) != 0) {
-                MethodGenerator mg = visitMethod(methodTemplate);
+                var mg = visitMethod(methodTemplate);
                 mg.callThisGetter(p_entityEqualsTemplate);
                 mg.loadThis();
                 mg.loadThis();
@@ -115,10 +114,10 @@ public class EntityEqualsVisitor extends ClassGenerator {
         }
 
         {
-            MethodInstance methodTemplate = new MethodInstance(null, IPrintable.class, void.class, "toString", StringBuilder.class);
-            MethodInstance method = MethodInstance.findByTemplate(methodTemplate, true);
+            var methodTemplate = new MethodInstance(null, IPrintable.class, void.class, "toString", StringBuilder.class);
+            var method = MethodInstance.findByTemplate(methodTemplate, true);
             if (method == null || (method.getAccess() & Opcodes.ACC_ABSTRACT) != 0) {
-                MethodGenerator mg = visitMethod(methodTemplate);
+                var mg = visitMethod(methodTemplate);
                 mg.callThisGetter(p_entityEqualsTemplate);
                 mg.loadThis();
                 mg.loadArgs();

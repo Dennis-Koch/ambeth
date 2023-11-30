@@ -25,6 +25,7 @@ import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.bytecode.IBytecodeEnhancer;
 import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
+import com.koch.ambeth.util.IClassLoaderProvider;
 import com.koch.ambeth.util.collections.Tuple2KeyHashMap;
 
 import java.util.concurrent.locks.Lock;
@@ -58,9 +59,7 @@ public class CacheMapEntryTypeProvider implements ICacheMapEntryTypeProvider {
             if (factory != null) {
                 return factory;
             }
-            var currentThread = Thread.currentThread();
-            var oldClassLoader = currentThread.getContextClassLoader();
-            currentThread.setContextClassLoader(entityType.getClassLoader());
+            var rollback = IClassLoaderProvider.pushClassLoader(entityType.getClassLoader());
             try {
                 Class<?> enhancedType = bytecodeEnhancer.getEnhancedType(CacheMapEntry.class, new CacheMapEntryEnhancementHint(entityType, idIndex));
                 if (enhancedType == CacheMapEntry.class) {
@@ -76,7 +75,7 @@ public class CacheMapEntryTypeProvider implements ICacheMapEntryTypeProvider {
                 // something serious happened during enhancement: continue with a fallback
                 factory = ci;
             } finally {
-                currentThread.setContextClassLoader(oldClassLoader);
+                rollback.rollback();
             }
             typeToConstructorMap.put(entityType, idIndex, factory);
             return factory;

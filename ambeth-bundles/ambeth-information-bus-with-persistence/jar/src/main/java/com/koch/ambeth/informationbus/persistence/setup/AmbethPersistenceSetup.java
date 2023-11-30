@@ -20,10 +20,11 @@ limitations under the License.
  * #L%
  */
 
+import com.koch.ambeth.core.Ambeth;
+import com.koch.ambeth.core.start.IAmbethApplication;
 import com.koch.ambeth.informationbus.persistence.datagenerator.TestDataModule;
 import com.koch.ambeth.ioc.IInitializingModule;
 import com.koch.ambeth.ioc.IServiceContext;
-import com.koch.ambeth.ioc.factory.BeanContextFactory;
 import com.koch.ambeth.ioc.log.ILoggerCache;
 import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.config.Properties;
@@ -47,10 +48,10 @@ import com.koch.ambeth.util.collections.LinkedHashSet;
 import com.koch.ambeth.util.config.IProperties;
 import com.koch.ambeth.util.config.UtilConfigurationConstants;
 import com.koch.ambeth.util.exception.MaskingRuntimeException;
-import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.state.IStateRollback;
 import com.koch.ambeth.util.state.StateRollback;
 import jakarta.persistence.PersistenceException;
+import lombok.Getter;
 import lombok.SneakyThrows;
 
 import java.io.BufferedReader;
@@ -74,12 +75,14 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 public class AmbethPersistenceSetup implements Closeable {
+
     private static final String nl = System.getProperty("line.separator");
     private static final Pattern lineSeparator = Pattern.compile(nl);
     private static final Pattern pathSeparator = Pattern.compile(File.pathSeparator);
@@ -129,10 +132,10 @@ public class AmbethPersistenceSetup implements Closeable {
 
     protected static void createOptimisticLockingTriggers(final Connection conn, List<String> sqlExecutionOrder, IConnectionDialect connectionDialect, IConnectionTestDialect connectionTestDialect,
             ILogger log, boolean doExecuteStrict) throws SQLException {
-        List<String> tableNames = connectionTestDialect.getTablesWithoutOptimisticLockTrigger(conn);
+        var tableNames = connectionTestDialect.getTablesWithoutOptimisticLockTrigger(conn);
 
-        ArrayList<String> sql = new ArrayList<>();
-        for (String tableName : tableNames) {
+        var sql = new ArrayList<String>();
+        for (var tableName : tableNames) {
             sql.addAll(connectionTestDialect.createOptimisticLockTrigger(conn, tableName));
             sql.addAll(connectionTestDialect.createAdditionalTriggers(conn, tableName));
         }
@@ -141,10 +144,10 @@ public class AmbethPersistenceSetup implements Closeable {
 
     protected static void createPermissionGroups(final Connection conn, List<String> sqlExecutionOrder, IConnectionDialect connectionDialect, IConnectionTestDialect connectionTestDialect, ILogger log,
             boolean doExecuteStrict) throws SQLException {
-        List<String> tableNames = connectionTestDialect.getTablesWithoutPermissionGroup(conn);
+        var tableNames = connectionTestDialect.getTablesWithoutPermissionGroup(conn);
 
-        ArrayList<String> sql = new ArrayList<>();
-        for (String tableName : tableNames) {
+        var sql = new ArrayList<String>();
+        for (var tableName : tableNames) {
             sql.addAll(connectionTestDialect.createPermissionGroup(conn, tableName));
         }
         executeScript(sql, conn, false, null, sqlExecutionOrder, connectionDialect, log, doExecuteStrict);
@@ -163,15 +166,15 @@ public class AmbethPersistenceSetup implements Closeable {
         }
         Statement stmt = null;
         // Must be a linked map to maintain sequential order while iterating
-        IMap<String, List<Throwable>> commandToExceptionMap = new LinkedHashMap<>();
-        Map<String, Object> defaultOptions = new HashMap<>();
+        var commandToExceptionMap = new LinkedHashMap<String, List<Throwable>>();
+        var defaultOptions = new HashMap<String, Object>();
         defaultOptions.put("loop", 1);
         try {
             stmt = conn.createStatement();
-            List<String> done = new ArrayList<>();
+            var done = new ArrayList<String>();
             do {
                 done.clear();
-                for (String command : sql) {
+                for (var command : sql) {
                     if (command == null || command.length() == 0) {
                         done.add(command);
                         continue;
@@ -254,44 +257,40 @@ public class AmbethPersistenceSetup implements Closeable {
     protected static void getSchemaRunnable(IServiceContext schemaContext, Class<? extends ISchemaRunnable> schemaRunnableType, Class<? extends ISchemaFileProvider> valueProviderType,
             String[] schemaFiles, List<ISchemaRunnable> schemaRunnables, final AnnotatedElement callingClass, final boolean doCommitBehavior, IList<String> allSQL, IMap<String, String> sqlToSourceMap,
             final IConnectionDialect connectionDialect, final IProperties properties, final ILogger log, final boolean doExecuteStrict) {
-        try {
-            if (schemaRunnableType != null && !ISchemaRunnable.class.equals(schemaRunnableType)) {
-                var schemaRunnable = schemaContext.registerBean(schemaRunnableType).finish();
-                schemaRunnables.add(schemaRunnable);
+        if (schemaRunnableType != null && !ISchemaRunnable.class.equals(schemaRunnableType)) {
+            var schemaRunnable = schemaContext.registerBean(schemaRunnableType).finish();
+            schemaRunnables.add(schemaRunnable);
+        }
+        if (valueProviderType != null && !ISchemaFileProvider.class.equals(valueProviderType)) {
+            var valueProvider = schemaContext.registerBean(valueProviderType).finish();
+            var additionalSchemaFiles = valueProvider.getSchemaFiles();
+            var set = new LinkedHashSet<>(schemaFiles);
+            set.addAll(additionalSchemaFiles);
+            schemaFiles = set.toArray(String.class);
+        }
+        for (var schemaFile : schemaFiles) {
+            if (schemaFile == null || schemaFile.length() == 0) {
+                continue;
             }
-            if (valueProviderType != null && !ISchemaFileProvider.class.equals(valueProviderType)) {
-                var valueProvider = schemaContext.registerBean(valueProviderType).finish();
-                var additionalSchemaFiles = valueProvider.getSchemaFiles();
-                var set = new LinkedHashSet<>(schemaFiles);
-                set.addAll(additionalSchemaFiles);
-                schemaFiles = set.toArray(String.class);
+            var sql = readSqlFile(schemaFile, callingClass, properties, log);
+            allSQL.addAll(sql);
+            for (var oneSql : sql) {
+                sqlToSourceMap.put(oneSql, schemaFile);
             }
-            for (var schemaFile : schemaFiles) {
-                if (schemaFile == null || schemaFile.length() == 0) {
-                    continue;
-                }
-                var sql = readSqlFile(schemaFile, callingClass, properties, log);
-                allSQL.addAll(sql);
-                for (var oneSql : sql) {
-                    sqlToSourceMap.put(oneSql, schemaFile);
-                }
-            }
-        } catch (Exception e) {
-            throw RuntimeExceptionUtil.mask(e);
         }
     }
 
     private static void handleSqlCommand(String command, final Statement stmt, final Map<String, Object> defaultOptions, IConnectionDialect connectionDialect) throws SQLException {
-        Map<String, Object> options = defaultOptions;
-        Matcher optionLine = AmbethPersistenceSetup.optionLine.matcher(command.trim());
+        var options = defaultOptions;
+        var optionLine = AmbethPersistenceSetup.optionLine.matcher(command.trim());
         if (optionLine.find()) {
             options = new HashMap<>(defaultOptions);
-            String optionString = optionLine.group(1).replace(" ", "");
-            String[] preSqls = optionSeparator.split(optionString);
+            var optionString = optionLine.group(1).replace(" ", "");
+            var preSqls = optionSeparator.split(optionString);
             command = lineSeparator.split(command, 2)[1];
             Object value;
             for (int i = preSqls.length; i-- > 0; ) {
-                Matcher keyValue = optionPattern.matcher(preSqls[i]);
+                var keyValue = optionPattern.matcher(preSqls[i]);
                 value = null;
                 if (keyValue.find()) {
                     if ("loop".equals(keyValue.group(1))) {
@@ -402,7 +401,8 @@ public class AmbethPersistenceSetup implements Closeable {
         return br;
     }
 
-    private static List<String> readSqlFile(final String fileName, final AnnotatedElement callingClass, IProperties properties, ILogger log) throws IOException {
+    @SneakyThrows
+    private static List<String> readSqlFile(final String fileName, final AnnotatedElement callingClass, IProperties properties, ILogger log) {
         BufferedReader br = null;
         try {
             var lookupName = fileName.startsWith("/") ? fileName.substring(1) : fileName;
@@ -530,17 +530,17 @@ public class AmbethPersistenceSetup implements Closeable {
         if (!type.isInterface()) {
             findAnnotations(type.getSuperclass(), targetList, false, annotationTypes);
         }
-        for (Class<?> annotationType : annotationTypes) {
-            Annotation annotation = type.getAnnotation((Class<? extends Annotation>) annotationType);
+        for (var annotationType : annotationTypes) {
+            var annotation = type.getAnnotation((Class<? extends Annotation>) annotationType);
             if (annotation != null) {
                 targetList.add(new AnnotationInfo<>(annotation, type));
             }
         }
         if (isFirst) {
-            Class<?>[] interfaces = type.getInterfaces();
-            for (Class<?> currInterface : interfaces) {
-                for (Class<?> annotationType : annotationTypes) {
-                    Annotation annotationOfInterface = currInterface.getAnnotation((Class<? extends Annotation>) annotationType);
+            var interfaces = type.getInterfaces();
+            for (var currInterface : interfaces) {
+                for (var annotationType : annotationTypes) {
+                    var annotationOfInterface = currInterface.getAnnotation((Class<? extends Annotation>) annotationType);
                     if (annotationOfInterface != null) {
                         targetList.add(new AnnotationInfo<>(annotationOfInterface, currInterface));
                     }
@@ -549,22 +549,20 @@ public class AmbethPersistenceSetup implements Closeable {
         }
     }
 
+    @Getter
+    protected final Class<?> annotatedType;
     protected boolean doExecuteStrict = false;
+    @Getter
     protected boolean testUserHasBeenCreated;
-    protected Class<?> testClass;
     private Connection connection;
-    private IServiceContext schemaContext;
+    private IAmbethApplication schemaContext;
     private Properties props = new Properties();
 
-    public AmbethPersistenceSetup(final Class<?> testClass) {
-        this.testClass = testClass;
+    public AmbethPersistenceSetup(Class<?> annotatedType) {
+        this.annotatedType = Objects.requireNonNull(annotatedType, "annotatedType must be valid");
     }
 
-    public Class<?> getTestClass() {
-        return testClass;
-    }
-
-    protected List<Class<? extends IInitializingModule>> buildFrameworkTestModuleList() {
+    public List<Class<? extends IInitializingModule>> buildFrameworkTestModuleList(Method annotatedMethod) {
         List<Class<? extends IInitializingModule>> frameworkTestModuleList = new ArrayList<>();
         frameworkTestModuleList.add(DialectSelectorTestModule.class);
         frameworkTestModuleList.add(DataSetupExecutorModule.class);
@@ -597,52 +595,45 @@ public class AmbethPersistenceSetup implements Closeable {
     }
 
     private void ensureSchemaEmpty(final Connection conn) throws SQLException {
-        String[] schemaNames = getSchemaNames();
+        var schemaNames = getSchemaNames();
         if (!getOrCreateSchemaContext().getService(IConnectionTestDialect.class).isEmptySchema(conn)) {
             truncateMainSchema(conn, schemaNames[0]);
         }
         truncateAdditionalSchemas(conn, schemaNames, false);
     }
 
-    protected void executeAdditionalDataRunnables(final Method frameworkMethod) {
-        try {
-            ISchemaRunnable[] dataRunnables = getDataRunnables(getTestClass(), null, frameworkMethod);
-            executeWithDeferredConstraints(dataRunnables);
-        } catch (Exception e) {
-            throw RuntimeExceptionUtil.mask(e);
-        }
+    public void executeAdditionalDataRunnables(final Method annotatedMethod) {
+        var dataRunnables = getDataRunnables(getAnnotatedType(), annotatedMethod);
+        executeWithDeferredConstraints(dataRunnables);
     }
 
-    private void executeWithDeferredConstraints(final ISchemaRunnable... schemaRunnables) {
+    @SneakyThrows
+    private void executeWithDeferredConstraints(ISchemaRunnable... schemaRunnables) {
         if (schemaRunnables.length == 0) {
             return;
         }
+        var conn = getConnection();
+        boolean success = false;
         try {
-            Connection conn = getConnection();
-            boolean success = false;
-            try {
-                IStateRollback rollback = getOrCreateSchemaContext().getService(IConnectionDialect.class).disableConstraints(conn, getSchemaNames());
-                for (ISchemaRunnable schemaRunnable : schemaRunnables) {
-                    schemaRunnable.executeSchemaSql(conn);
-                }
-                rollback.rollback();
-                conn.commit();
-                success = true;
-            } finally {
-                if (!success) {
-                    if (!conn.getAutoCommit()) {
-                        conn.rollback();
-                    }
+            var rollback = getOrCreateSchemaContext().getService(IConnectionDialect.class).disableConstraints(conn, getSchemaNames());
+            for (var schemaRunnable : schemaRunnables) {
+                schemaRunnable.executeSchemaSql(conn);
+            }
+            rollback.rollback();
+            conn.commit();
+            success = true;
+        } finally {
+            if (!success) {
+                if (!conn.getAutoCommit()) {
+                    conn.rollback();
                 }
             }
-        } catch (Exception e) {
-            throw RuntimeExceptionUtil.mask(e);
         }
     }
 
     @SneakyThrows
     @SuppressWarnings("resource")
-    protected void extendPropertiesInstance(Method frameworkMethod, Properties props) {
+    public void extendPropertiesInstance(Method annotatedMethod, Properties props) {
         var testForkSuffix = props.getString(UtilConfigurationConstants.ForkName);
         if (testForkSuffix != null) {
             var databaseUser = props.getString(PersistenceJdbcConfigurationConstants.DatabaseUser);
@@ -662,12 +653,20 @@ public class AmbethPersistenceSetup implements Closeable {
         props.put(PersistenceJdbcConfigurationConstants.PreparedConnectionInstances, preparedConnections);
     }
 
-    @SneakyThrows
     @Override
     public void close() throws IOException {
-        if (connection != null && !connection.isClosed()) {
-            connection.close();
-        }
+        dropConnection();
+        dropSchemaContext();
+    }
+
+    @SneakyThrows
+    public void dropConnection() {
+        JdbcUtil.close(connection);
+        connection = null;
+    }
+
+    @SneakyThrows
+    public void dropSchemaContext() {
         if (schemaContext != null) {
             schemaContext.close();
             schemaContext = null;
@@ -688,72 +687,95 @@ public class AmbethPersistenceSetup implements Closeable {
         return configuredSynonymNames;
     }
 
-    private Connection getConnection() throws SQLException {
+    @SneakyThrows
+    public Connection getConnection() {
         if (connection != null && !connection.isClosed()) {
             return connection;
         }
+        var schemaContext = getOrCreateSchemaContext();
         Connection conn;
         try {
-            conn = getOrCreateSchemaContext().getService(IConnectionFactory.class).create();
+            conn = schemaContext.getService(IConnectionFactory.class).create();
         } catch (Throwable e) {
             Throwable cause = e;
             while (cause instanceof MaskingRuntimeException) {
                 cause = cause.getCause();
             }
-            IProperties testProps = getOrCreateSchemaContext().getService(IProperties.class);
-            testUserHasBeenCreated = getOrCreateSchemaContext().getService(IConnectionTestDialect.class)
-                                                               .createTestUserIfSupported(cause, testProps.getString(PersistenceJdbcConfigurationConstants.DatabaseUser),
-                                                                       testProps.getString(PersistenceJdbcConfigurationConstants.DatabasePass), testProps);
+            var testProps = schemaContext.getService(IProperties.class);
+            testUserHasBeenCreated = schemaContext.getService(IConnectionTestDialect.class)
+                                                  .createTestUserIfSupported(cause, testProps.getString(PersistenceJdbcConfigurationConstants.DatabaseUser),
+                                                          testProps.getString(PersistenceJdbcConfigurationConstants.DatabasePass), testProps);
             if (!testUserHasBeenCreated) {
                 throw e;
             }
-            conn = getOrCreateSchemaContext().getService(IConnectionFactory.class).create();
+            conn = schemaContext.getService(IConnectionFactory.class).create();
         }
         connection = conn;
         return connection;
     }
 
-    protected ISchemaRunnable[] getDataRunnables(final Class<?> callingClass, final Class<?> type, final Method frameworkMethod) {
-        List<ISchemaRunnable> schemaRunnables = new ArrayList<>();
+    @SneakyThrows
+    public void dropTestUserOrSchema() {
+        if (testUserHasBeenCreated) {
+            dropConnection();
+            var schemaContext = getOrCreateSchemaContext();
+            var testProps = schemaContext.getService(IProperties.class);
+            schemaContext.getService(IConnectionTestDialect.class)
+                         .dropCreatedTestUser(testProps.getString(PersistenceJdbcConfigurationConstants.DatabaseUser), testProps.getString(PersistenceJdbcConfigurationConstants.DatabasePass),
+                                 testProps);
+            testUserHasBeenCreated = false;
+        } else {
+            var conn = getConnection();
+            var schemaNames = getSchemaNames();
+            truncateMainSchema(conn, schemaNames[0]);
+            truncateAdditionalSchemas(conn, schemaNames, true);
+        }
+    }
 
-        List<IAnnotationInfo<?>> annotations = findAnnotations(type, frameworkMethod, SQLDataList.class, SQLData.class);
+    @SneakyThrows
+    public void rollbackConnection() {
+        if (connection != null && !connection.isClosed()) {
+            connection.rollback();
+        }
+    }
 
-        IServiceContext schemaContext = getOrCreateSchemaContext();
-        final IConnectionDialect connectionDialect = schemaContext.getService(IConnectionDialect.class);
-        IProperties properties = schemaContext.getService(IProperties.class);
+    protected ISchemaRunnable[] getDataRunnables(final Class<?> annotatedType, final Method annotatedMethod) {
+        var schemaRunnables = new ArrayList<ISchemaRunnable>();
 
-        final IList<String> sqlCommands = new ArrayList<>();
-        final IMap<String, String> sqlToSourceMap = new HashMap<>();
+        var annotations = findAnnotations(annotatedType, annotatedMethod, SQLDataList.class, SQLData.class);
 
-        for (IAnnotationInfo<?> schemaItem : annotations) {
-            Annotation annotation = schemaItem.getAnnotation();
+        var schemaContext = getOrCreateSchemaContext();
+        var connectionDialect = schemaContext.getService(IConnectionDialect.class);
+        var properties = schemaContext.getService(IProperties.class);
+
+        var sqlCommands = new ArrayList<String>();
+        var sqlToSourceMap = new HashMap<String, String>();
+
+        for (var schemaItem : annotations) {
+            var annotation = schemaItem.getAnnotation();
             if (annotation instanceof SQLDataList) {
-                SQLDataList sqlDataList = (SQLDataList) annotation;
+                var sqlDataList = (SQLDataList) annotation;
 
-                SQLData[] value = sqlDataList.value();
-                for (SQLData sqlData : value) {
+                var value = sqlDataList.value();
+                for (var sqlData : value) {
                     getSchemaRunnable(schemaContext, sqlData.type(), sqlData.valueProvider(), sqlData.value(), schemaRunnables, schemaItem.getAnnotatedElement(), true, sqlCommands, sqlToSourceMap,
                             connectionDialect, properties, getLog(), doExecuteStrict);
                 }
             } else {
-                SQLData sqlData = (SQLData) annotation;
+                var sqlData = (SQLData) annotation;
 
                 getSchemaRunnable(schemaContext, sqlData.type(), sqlData.valueProvider(), sqlData.value(), schemaRunnables, schemaItem.getAnnotatedElement(), true, sqlCommands, sqlToSourceMap,
                         connectionDialect, properties, getLog(), doExecuteStrict);
             }
         }
         if (sqlCommands.size() != 0) {
-            schemaRunnables.add(new ISchemaRunnable() {
-                @Override
-                public void executeSchemaSql(Connection connection) throws Exception {
-                    executeScript(sqlCommands, connection, false, sqlToSourceMap, null, connectionDialect, getLog(), doExecuteStrict);
-                }
-            });
+            schemaRunnables.add(connection -> executeScript(sqlCommands, connection, false, sqlToSourceMap, null, connectionDialect, getLog(), doExecuteStrict));
         }
         return schemaRunnables.toArray(new ISchemaRunnable[schemaRunnables.size()]);
     }
 
     protected ILogger getLog() {
+        var schemaContext = getOrCreateSchemaContext();
         return schemaContext.getService(ILoggerCache.class).getCachedLogger(schemaContext, AmbethPersistenceSetup.class);
     }
 
@@ -763,152 +785,33 @@ public class AmbethPersistenceSetup implements Closeable {
      *
      * @return Schema content
      */
-    protected IServiceContext getOrCreateSchemaContext() {
-        if (schemaContext == null || schemaContext.isDisposed()) {
+    public IServiceContext getOrCreateSchemaContext() {
+        if (schemaContext == null || schemaContext.isClosed()) {
             rebuildSchemaContext();
         }
-        return schemaContext;
+        return schemaContext.getApplicationContext();
     }
 
     public void rebuildSchemaContext() {
-        if (schemaContext != null) {
-            schemaContext.getRoot().dispose();
-            schemaContext = null;
-        }
-        Properties baseProps = new Properties(props);
-        extendPropertiesInstance(null, baseProps);
+        dropSchemaContext();
 
-        IServiceContext schemaBootstrapContext = null;
-        boolean success = false;
-        try {
-            schemaBootstrapContext = BeanContextFactory.createBootstrap(baseProps);
-            schemaContext = schemaBootstrapContext.createService(AmbethPersistenceSchemaModule.class);
-            success = true;
-        } finally {
-            if (!success && schemaBootstrapContext != null) {
-                schemaBootstrapContext.dispose();
-            }
-        }
+        var baseProps = new Properties(props);
+        extendPropertiesInstance(null, baseProps);
+        schemaContext = Ambeth.createEmpty().withFrameworkModules(AmbethPersistenceSchemaModule.class).withProperties(baseProps).withoutPropertiesFileSearch().start();
     }
 
     private String[] getSchemaNames() {
-        IServiceContext schemaContext = getOrCreateSchemaContext();
-        IProperties properties = schemaContext.getService(IProperties.class);
-        String schemaProperty = (String) properties.get(PersistenceJdbcConfigurationConstants.DatabaseSchemaName);
-        String[] schemaNames = schemaContext.getService(IConnectionDialect.class).toDefaultCase(schemaProperty).split("[:;]");
+        var schemaContext = getOrCreateSchemaContext();
+        var properties = schemaContext.getService(IProperties.class);
+        var schemaProperty = (String) properties.get(PersistenceJdbcConfigurationConstants.DatabaseSchemaName);
+        var schemaNames = schemaContext.getService(IConnectionDialect.class).toDefaultCase(schemaProperty).split("[:;]");
         return schemaNames;
     }
 
-    // protected org.junit.runners.model.Statement methodInvoker(final FrameworkMethod method,
-    // Object test) {
-    // final org.junit.runners.model.Statement parentStatement =
-    // AmbethPersistenceSetup.super.methodInvoker(method, test);
-    // final org.junit.runners.model.Statement statement = new org.junit.runners.model.Statement() {
-    // @Override
-    // public void evaluate() throws Throwable {
-    // IDataSetup dataSetup = beanContext.getParent().getService(IDataSetup.class, false);
-    // if (dataSetup != null) {
-    // dataSetup.refreshEntityReferences();
-    // }
-    // parentStatement.evaluate();
-    // }
-    // };
-    // return new org.junit.runners.model.Statement() {
-    // @Override
-    // public void evaluate() throws Throwable {
-    // beanContext.getService(DataSetupExecutor.class).rebuildData();
-    // boolean securityActive = Boolean.parseBoolean(beanContext.getService(IProperties.class)
-    // .getString(MergeConfigurationConstants.SecurityActive, "false"));
-    // if (!securityActive) {
-    // statement.evaluate();
-    // return;
-    // }
-    //
-    // ChangeControllerState changeControllerState =
-    // method.getAnnotation(ChangeControllerState.class);
-    //
-    // boolean changeControllerActiveTest = false;
-    // final IChangeController changeController =
-    // beanContext.getService(IChangeController.class, false);
-    // if (changeControllerState != null) {
-    // if (changeController != null) {
-    // IConversionHelper conversionHelper = beanContext.getService(IConversionHelper.class);
-    // Boolean active =
-    // conversionHelper.convertValueToType(Boolean.class, changeControllerState.active());
-    // if (Boolean.TRUE.equals(active)) {
-    // changeControllerActiveTest = true;
-    // }
-    // }
-    //
-    // }
-    // final boolean changeControllerActive = changeControllerActiveTest;
-    //
-    // TestAuthentication authentication = method.getAnnotation(TestAuthentication.class);
-    // if (authentication == null) {
-    // Class<?> testClass = getTestClass().getJavaClass();
-    // authentication = testClass.getAnnotation(TestAuthentication.class);
-    // }
-    // if (authentication == null) {
-    // statement.evaluate();
-    // return;
-    // }
-    // final ISecurityScope scope = new StringSecurityScope(authentication.scope());
-    //
-    // IMethodLevelBehavior<SecurityMethodMode> behaviour =
-    // new IMethodLevelBehavior<SecurityMethodMode>() {
-    // private final SecurityMethodMode mode = new SecurityMethodMode(
-    // SecurityContextType.AUTHENTICATED, -1, -1, null, -1, scope);
-    //
-    // @Override
-    // public SecurityMethodMode getBehaviourOfMethod(Method method) {
-    // return mode;
-    // }
-    //
-    // @Override
-    // public SecurityMethodMode getDefaultBehaviour() {
-    // return mode;
-    // }
-    // };
-    //
-    // SecurityFilterInterceptor interceptor =
-    // beanContext.registerBean(SecurityFilterInterceptor.class)
-    // .propertyValue(SecurityFilterInterceptor.P_METHOD_LEVEL_BEHAVIOUR,
-    // behaviour).propertyValue("Target", statement)
-    // .finish();
-    // org.junit.runners.model.Statement stmt =
-    // (org.junit.runners.model.Statement) beanContext.getService(IProxyFactory.class)
-    // .createProxy(new Class<?>[] {org.junit.runners.model.Statement.class}, interceptor);
-    // final org.junit.runners.model.Statement fStatement = stmt;
-    // ISecurityContextHolder securityContextHolder =
-    // beanContext.getService(ISecurityContextHolder.class);
-    // securityContextHolder.setScopedAuthentication(
-    // new DefaultAuthentication(authentication.name(),
-    // authentication.password().toCharArray(), PasswordType.PLAIN),
-    // new CheckedSupplier<Object>() {
-    // @Override
-    // public Object invoke() throws Exception {
-    // IStateRollback rollback = NoOpStateRollback.instance;
-    // if (changeControllerActive && changeController != null) {
-    // rollback = changeController.pushRunWithoutEDBL();
-    // }
-    // try {
-    // fStatement.evaluate();
-    // }
-    // finally {
-    // rollback.rollback();
-    // }
-    // return null;
-    //
-    // }
-    // });
-    // }
-    // };
-    // }
-
-    protected ISchemaRunnable[] getStructureRunnables(final Class<?> callingClass, final Class<?> type, final IList<String> sqlExecutionOrder) {
+    protected ISchemaRunnable[] getStructureRunnables(Class<?> annotatedType, IList<String> sqlExecutionOrder) {
         var schemaRunnables = new ArrayList<ISchemaRunnable>();
 
-        var annotations = findAnnotations(type, SQLStructureList.class, SQLStructure.class);
+        var annotations = findAnnotations(annotatedType, SQLStructureList.class, SQLStructure.class);
 
         var schemaContext = getOrCreateSchemaContext();
         var connectionDialect = schemaContext.getService(IConnectionDialect.class);
@@ -938,95 +841,41 @@ public class AmbethPersistenceSetup implements Closeable {
         return schemaRunnables.toArray(new ISchemaRunnable[schemaRunnables.size()]);
     }
 
-    private boolean hasStructureAnnotation() {
-        return !findAnnotations(getTestClass(), SQLStructureList.class, SQLStructure.class).isEmpty();
-
+    public boolean hasStructureAnnotation() {
+        return !findAnnotations(getAnnotatedType(), SQLStructureList.class, SQLStructure.class).isEmpty();
     }
-
-    // protected void rebuildContext(Method method) {
-    // DataSetupExecutor.setAutoRebuildData(Boolean.TRUE);
-    // try {
-    // super.rebuildContext(method);
-    // }
-    // finally {
-    // DataSetupExecutor.setAutoRebuildData(null);
-    // }
-    // try {
-    // if (connection != null && !connection.isClosed()) {
-    // connection.rollback();
-    // }
-    // }
-    // catch (Throwable e) {
-    // throw RuntimeExceptionUtil.mask(e);
-    // }
-    // }
 
     /**
      * @return Flag if a truncate of the data tables (on test class level) is demanded (checks the
      * test class annotation or returns the default value).
      */
-    private boolean isTruncateOnClassDemanded() {
+    protected boolean isTruncateOnClassDemanded() {
         return true;
     }
 
-    // public void rebuildSchemaContext() {
-    // if (schemaContext != null) {
-    // schemaContext.getRoot().dispose();
-    // schemaContext = null;
-    // }
-    // Properties.resetApplication();
-    //
-    // PrintStream oldPrintStream = System.out;
-    // System.setOut(NullPrintStream.INSTANCE);
-    // try {
-    // Properties.loadBootstrapPropertyFile();
-    // }
-    // finally {
-    // System.setOut(oldPrintStream);
-    // }
-    //
-    // Properties baseProps = new Properties(Properties.getApplication());
-    // // baseProps.putString("ambeth.log.level", "WARN");
-    //
-    // extendPropertiesInstance(null, baseProps);
-    //
-    // IServiceContext schemaBootstrapContext = null;
-    // boolean success = false;
-    // try {
-    // schemaBootstrapContext = BeanContextFactory.createBootstrap(baseProps);
-    // schemaContext = schemaBootstrapContext.createService(AmbethPersistenceSchemaModule.class);
-    // success = true;
-    // }
-    // finally {
-    // if (!success && schemaBootstrapContext != null) {
-    // schemaBootstrapContext.dispose();
-    // }
-    // }
-    // }
-
-    public void executeSetup(final Method method) {
-        boolean doStructureRebuild = hasStructureAnnotation();
-        boolean doAddAdditionalMethodData = false; // Flag if SQL method data should be
-        // inserted (without deleting existing database entries)
+    public void executeSetup(Method annotatedMethod) {
+        var doStructureRebuild = hasStructureAnnotation();
+        // Flag if SQL method data should be inserted (without deleting existing database entries)
+        var doAddAdditionalMethodData = false;
 
         if (doStructureRebuild) {
             rebuildStructure();
         }
-        rebuildData(method);
+        rebuildData(annotatedMethod);
         if (doAddAdditionalMethodData) {
-            executeAdditionalDataRunnables(method);
+            executeAdditionalDataRunnables(annotatedMethod);
         }
     }
 
     @SneakyThrows
-    protected void rebuildData(final Method frameworkMethod) {
-        var callingClass = getTestClass();
+    public void rebuildData(Method annotatedMethod) {
+        var callingClass = getAnnotatedType();
         var conn = getConnection();
 
         truncateAllTablesBySchema(conn, getSchemaNames());
         truncateAllTablesExplicitlyGiven(conn, getConfiguredExternalTableNames(callingClass));
 
-        var dataRunnables = getDataRunnables(callingClass, callingClass, frameworkMethod);
+        var dataRunnables = getDataRunnables(callingClass, annotatedMethod);
         executeWithDeferredConstraints(dataRunnables);
     }
 
@@ -1050,8 +899,8 @@ public class AmbethPersistenceSetup implements Closeable {
 
     @SneakyThrows
     public void rebuildStructure() {
-        var callingClass = getTestClass();
-        var rollback = FileUtil.pushCurrentTypeScope(callingClass);
+        var annotatedType = getAnnotatedType();
+        var rollback = FileUtil.pushCurrentTypeScope(annotatedType);
         try {
             var connection = getConnection();
 
@@ -1063,7 +912,7 @@ public class AmbethPersistenceSetup implements Closeable {
 
             var sqlExecutionOrder = new ArrayList<String>();
 
-            var structureRunnables = getStructureRunnables(callingClass, callingClass, sqlExecutionOrder);
+            var structureRunnables = getStructureRunnables(annotatedType, sqlExecutionOrder);
             for (var structRunnable : structureRunnables) {
                 structRunnable.executeSchemaSql(connection);
             }
@@ -1082,7 +931,7 @@ public class AmbethPersistenceSetup implements Closeable {
     }
 
     private void truncateAdditionalSchemas(final Connection conn, String[] schemaNames, boolean skipEmptyCheck) throws SQLException {
-        truncateAllTablesExplicitlyGiven(conn, getConfiguredExternalTableNames(getTestClass()));
+        truncateAllTablesExplicitlyGiven(conn, getConfiguredExternalTableNames(getAnnotatedType()));
 
         if (schemaNames != null) {
             boolean truncateOnClassDemanded = isTruncateOnClassDemanded();

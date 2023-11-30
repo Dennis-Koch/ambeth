@@ -20,78 +20,78 @@ limitations under the License.
  * #L%
  */
 
-import java.util.List;
-
 import com.koch.ambeth.ioc.IInitializingBean;
 import com.koch.ambeth.merge.proxy.PersistenceContext;
 import com.koch.ambeth.persistence.IServiceUtil;
 import com.koch.ambeth.persistence.api.IDatabase;
 import com.koch.ambeth.persistence.api.ITable;
+import com.koch.ambeth.service.merge.model.IObjRef;
 import com.koch.ambeth.service.proxy.Service;
 import com.koch.ambeth.util.ParamChecker;
 import com.koch.ambeth.util.collections.ArrayList;
 
+import java.util.List;
+
 @Service(IArrayObjectService.class)
 @PersistenceContext
 public class ArrayObjectService implements IArrayObjectService, IInitializingBean {
-	protected IDatabase database;
+    protected IDatabase database;
 
-	protected IServiceUtil serviceUtil;
+    protected IServiceUtil serviceUtil;
 
-	@Override
-	public void afterPropertiesSet() throws Throwable {
-		ParamChecker.assertNotNull(database, "database");
-		ParamChecker.assertNotNull(serviceUtil, "serviceUtil");
-	}
+    @Override
+    public void afterPropertiesSet() throws Throwable {
+        ParamChecker.assertNotNull(database, "database");
+        ParamChecker.assertNotNull(serviceUtil, "serviceUtil");
+    }
 
-	public void setDatabase(IDatabase database) {
-		this.database = database;
-	}
+    public void setDatabase(IDatabase database) {
+        this.database = database;
+    }
 
-	public void setServiceUtil(IServiceUtil serviceUtil) {
-		this.serviceUtil = serviceUtil;
-	}
+    public void setServiceUtil(IServiceUtil serviceUtil) {
+        this.serviceUtil = serviceUtil;
+    }
 
-	@Override
-	public List<ArrayObject> getAllArrayObjects() {
-		ITable table = database.getTableByType(ArrayObject.class);
+    @Override
+    public List<ArrayObject> getAllArrayObjects() {
+        ITable table = database.getTableByType(ArrayObject.class);
 
-		ArrayList<ArrayObject> list = new ArrayList<>();
-		serviceUtil.loadObjectsIntoCollection(list, ArrayObject.class, table.selectAll());
-		return list;
-	}
+        ArrayList<ArrayObject> list = new ArrayList<>();
+        serviceUtil.loadObjectsIntoCollection(list, ArrayObject.class, table.selectAll());
+        return list;
+    }
 
-	@Override
-	public ArrayObject getArrayObject(Integer id) {
-		ITable table = database.getTableByType(ArrayObject.class);
+    @Override
+    public ArrayObject getArrayObject(Integer id) {
+        ITable table = database.getTableByType(ArrayObject.class);
 
-		ArrayList<ArrayObject> list = new ArrayList<>(1);
-		List<Object> ids = new ArrayList<>();
-		ids.add(id);
-		serviceUtil.loadObjectsIntoCollection(list, ArrayObject.class, table.selectVersion(ids));
-		if (!list.isEmpty()) {
-			return list.get(0);
-		}
-		return null;
-	}
+        ArrayList<ArrayObject> list = new ArrayList<>(1);
+        List<Object> ids = new ArrayList<>();
+        ids.add(id);
+        serviceUtil.loadObjectsIntoCollection(list, ArrayObject.class, table.selectVersion(IObjRef.PRIMARY_KEY_INDEX, ids));
+        if (!list.isEmpty()) {
+            return list.get(0);
+        }
+        return null;
+    }
 
-	@Override
-	public List<ArrayObject> getArrayObjects(Integer... id) {
-		ITable table = database.getTableByType(ArrayObject.class);
+    @Override
+    public List<ArrayObject> getArrayObjects(Integer... id) {
+        ITable table = database.getTableByType(ArrayObject.class);
 
-		ArrayList<ArrayObject> list = new ArrayList<>(id.length);
-		serviceUtil.loadObjectsIntoCollection(list, ArrayObject.class,
-				table.selectVersion(new ArrayList<>(id)));
-		return list;
-	}
+        ArrayList<ArrayObject> list = new ArrayList<>(id.length);
+        serviceUtil.loadObjectsIntoCollection(list, ArrayObject.class, table.selectVersion(IObjRef.PRIMARY_KEY_INDEX, new ArrayList<>(id)));
+        return list;
+    }
 
-	@Override
-	public void updateArrayObject(ArrayObject arrayObject) {
-		throw new UnsupportedOperationException();
-	}
+    @Override
+    public void updateArrayObject(ArrayObject arrayObject) {
+        throw new UnsupportedOperationException();
+    }
 
-	@Override
-	public void deleteArrayObject(ArrayObject arrayObject) {
-		throw new UnsupportedOperationException();
-	}
+    @Override
+    public void deleteArrayObject(ArrayObject arrayObject) {
+        throw new UnsupportedOperationException();
+    }
 }

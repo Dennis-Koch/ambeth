@@ -23,6 +23,5 @@ limitations under the License.
 import com.koch.ambeth.ioc.link.LinkOptional;
 
 public interface IEventListener extends IEventListenerMarker {
-	void handleEvent(Object eventObject, @LinkOptional long dispatchTime,
-			@LinkOptional long sequenceId) throws Exception;
+    void handleEvent(Object eventObject, @LinkOptional long dispatchTime, @LinkOptional long sequenceId) throws Exception;
 }

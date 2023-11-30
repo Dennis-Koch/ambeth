@@ -20,9 +20,10 @@ limitations under the License.
  * #L%
  */
 
+import io.toolisticon.spiap.api.SpiService;
 import com.koch.ambeth.datachange.model.IDataChangeOfSession;
 import com.koch.ambeth.event.IEventListenerExtendable;
-import com.koch.ambeth.ioc.IInitializingModule;
+import com.koch.ambeth.ioc.IFrameworkModule;
 import com.koch.ambeth.ioc.annotation.FrameworkModule;
 import com.koch.ambeth.ioc.config.IBeanConfiguration;
 import com.koch.ambeth.ioc.config.Property;
@@ -37,32 +38,25 @@ import com.koch.ambeth.security.persistence.UpdatePermissionGroupEventListener;
 import com.koch.ambeth.security.server.privilege.IEntityPermissionRuleEvent;
 import com.koch.ambeth.service.cache.ClearAllCachesEvent;
 
+@SpiService(IFrameworkModule.class)
 @FrameworkModule
-public class SecurityQueryModule implements IInitializingModule {
-	@Property(name = MergeConfigurationConstants.SecurityActive, defaultValue = "false")
-	protected boolean securityActive;
+public class SecurityQueryModule implements IFrameworkModule {
+    @Property(name = MergeConfigurationConstants.SecurityActive, defaultValue = "false")
+    protected boolean securityActive;
 
-	@Override
-	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
-		IBeanConfiguration permissionGroupUpdater = beanContextFactory
-				.registerBean(PermissionGroupUpdater.class).autowireable(IPermissionGroupUpdater.class);
-		beanContextFactory.link(permissionGroupUpdater, "handleEntityMetaDataEvent")
-				.to(IEventListenerExtendable.class).with(IEntityMetaDataEvent.class);
-		beanContextFactory.link(permissionGroupUpdater, "handleEntityPermissionRuleEvent")
-				.to(IEventListenerExtendable.class).with(IEntityPermissionRuleEvent.class);
-		beanContextFactory.link(permissionGroupUpdater, "handleClearAllCachesEvent")
-				.to(IEventListenerExtendable.class).with(ClearAllCachesEvent.class);
+    @Override
+    public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
+        IBeanConfiguration permissionGroupUpdater = beanContextFactory.registerBean(PermissionGroupUpdater.class).autowireable(IPermissionGroupUpdater.class);
+        beanContextFactory.link(permissionGroupUpdater, "handleEntityMetaDataEvent").to(IEventListenerExtendable.class).with(IEntityMetaDataEvent.class);
+        beanContextFactory.link(permissionGroupUpdater, "handleEntityPermissionRuleEvent").to(IEventListenerExtendable.class).with(IEntityPermissionRuleEvent.class);
+        beanContextFactory.link(permissionGroupUpdater, "handleClearAllCachesEvent").to(IEventListenerExtendable.class).with(ClearAllCachesEvent.class);
 
-		if (securityActive) {
-			IBeanConfiguration securityQueryBuilderExtension = beanContextFactory
-					.registerBean(SecurityQueryBuilderExtension.class);
-			beanContextFactory.link(securityQueryBuilderExtension)
-					.to(IQueryBuilderExtensionExtendable.class);
+        if (securityActive) {
+            IBeanConfiguration securityQueryBuilderExtension = beanContextFactory.registerBean(SecurityQueryBuilderExtension.class);
+            beanContextFactory.link(securityQueryBuilderExtension).to(IQueryBuilderExtensionExtendable.class);
 
-			IBeanConfiguration updatePermissionGroupEventListener = beanContextFactory
-					.registerBean(UpdatePermissionGroupEventListener.class);
-			beanContextFactory.link(updatePermissionGroupEventListener, "handleDataChangeOfSession")
-					.to(IEventListenerExtendable.class).with(IDataChangeOfSession.class);
-		}
-	}
+            IBeanConfiguration updatePermissionGroupEventListener = beanContextFactory.registerBean(UpdatePermissionGroupEventListener.class);
+            beanContextFactory.link(updatePermissionGroupEventListener, "handleDataChangeOfSession").to(IEventListenerExtendable.class).with(IDataChangeOfSession.class);
+        }
+    }
 }

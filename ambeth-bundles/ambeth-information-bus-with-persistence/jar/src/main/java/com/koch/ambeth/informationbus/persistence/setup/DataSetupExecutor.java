@@ -25,27 +25,27 @@ import com.koch.ambeth.ioc.IStartingBean;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
-import com.koch.ambeth.merge.ILightweightTransaction;
 import com.koch.ambeth.merge.IMergeProcess;
 import com.koch.ambeth.merge.security.ISecurityActivation;
 import com.koch.ambeth.merge.util.setup.IDataSetup;
 import com.koch.ambeth.security.persistence.IPermissionGroupUpdater;
 import com.koch.ambeth.security.server.IPasswordUtil;
+import com.koch.ambeth.util.state.IStateRollback;
 import com.koch.ambeth.util.state.StateRollback;
+import com.koch.ambeth.util.transaction.ILightweightTransaction;
 
 import java.util.Collection;
 
 public class DataSetupExecutor implements IStartingBean {
     private static final ThreadLocal<Boolean> autoRebuildDataTL = new ThreadLocal<>();
 
-    public static Boolean setAutoRebuildData(Boolean autoRebuildData) {
-        Boolean oldValue = autoRebuildDataTL.get();
-        if (autoRebuildData == null) {
-            autoRebuildDataTL.remove();
-        } else {
-            autoRebuildDataTL.set(autoRebuildData);
+    public static IStateRollback pushAutoRebuildData(Boolean autoRebuildData) {
+        var oldValue = autoRebuildDataTL.get();
+        autoRebuildDataTL.set(autoRebuildData);
+        if (oldValue == null) {
+            return () -> autoRebuildDataTL.remove();
         }
-        return oldValue;
+        return () -> autoRebuildDataTL.set(oldValue);
     }
 
     @Autowired(optional = true)

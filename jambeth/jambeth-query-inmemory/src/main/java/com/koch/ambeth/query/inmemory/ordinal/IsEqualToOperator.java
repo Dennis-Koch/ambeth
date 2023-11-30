@@ -21,8 +21,8 @@ limitations under the License.
  */
 
 public class IsEqualToOperator extends AbstractBinaryOrdinalOperator {
-	@Override
-	protected Boolean evaluateIntern(double leftValue, double rightValue) {
-		return Boolean.valueOf(leftValue == rightValue);
-	}
+    @Override
+    protected Boolean evaluateIntern(double leftValue, double rightValue) {
+        return Boolean.valueOf(Double.compare(leftValue, rightValue) == 0);
+    }
 }

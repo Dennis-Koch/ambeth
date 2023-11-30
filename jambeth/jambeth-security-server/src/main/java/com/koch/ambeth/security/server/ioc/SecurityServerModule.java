@@ -21,7 +21,7 @@ limitations under the License.
  */
 
 import com.koch.ambeth.event.IEventListenerExtendable;
-import com.koch.ambeth.ioc.IInitializingModule;
+import com.koch.ambeth.ioc.IFrameworkModule;
 import com.koch.ambeth.ioc.annotation.FrameworkModule;
 import com.koch.ambeth.ioc.config.IBeanConfiguration;
 import com.koch.ambeth.ioc.config.Property;
@@ -58,94 +58,80 @@ import com.koch.ambeth.security.server.privilege.IPermissionRule;
 import com.koch.ambeth.security.server.privilegeprovider.ActionPermissionRule;
 import com.koch.ambeth.security.server.proxy.SecurityPostProcessor;
 import com.koch.ambeth.service.cache.ClearAllCachesEvent;
+import io.toolisticon.spiap.api.SpiService;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
+import java.security.Security;
+
+@SpiService(IFrameworkModule.class)
 @FrameworkModule
-public class SecurityServerModule implements IInitializingModule {
-	@Property(name = MergeConfigurationConstants.SecurityActive, defaultValue = "false")
-	protected boolean isSecurityActive;
+public class SecurityServerModule implements IFrameworkModule {
+    static {
+        Security.addProvider(new BouncyCastleProvider());
+    }
 
-	@Property(name = SecurityServerConfigurationConstants.AuthenticationManagerType,
-			mandatory = false)
-	protected Class<?> authenticationManagerType;
+    public static void registerAndLinkPermissionRule(IBeanContextFactory beanContextFactory, Class<? extends IPermissionRule> permissionRuleType, Class<?>... entityTypes) {
+        IBeanConfiguration permissionRule = beanContextFactory.registerBean(permissionRuleType);
+        for (Class<?> entityType : entityTypes) {
+            linkPermissionRule(beanContextFactory, permissionRule, entityType);
+        }
+    }
 
-	@Override
-	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
-		beanContextFactory.registerBean(PasswordUtil.class).autowireable(IPasswordUtil.class,
-				IPasswordValidationExtendable.class);
+    public static void linkPermissionRule(IBeanContextFactory beanContextFactory, IBeanConfiguration entityOrEntityTypePermissionRule, Class<?> entityType) {
+        boolean atLeastOneRegisterMatched = false;
+        if (IEntityPermissionRule.class.isAssignableFrom(entityOrEntityTypePermissionRule.getBeanType())) {
+            beanContextFactory.link(entityOrEntityTypePermissionRule).to(IEntityPermissionRuleExtendable.class).with(entityType);
+            atLeastOneRegisterMatched = true;
+        }
+        if (IEntityTypePermissionRule.class.isAssignableFrom(entityOrEntityTypePermissionRule.getBeanType())) {
+            beanContextFactory.link(entityOrEntityTypePermissionRule).to(IEntityTypePermissionRuleExtendable.class).with(entityType);
+            atLeastOneRegisterMatched = true;
+        }
+        if (!atLeastOneRegisterMatched) {
+            throw new IllegalArgumentException("Given bean does not implement any of the permission rule interfaces:" + entityOrEntityTypePermissionRule.getBeanType());
+        }
+    }
 
-		beanContextFactory.registerBean(PBEncryptor.class).autowireable(IPBEncryptor.class);
+    @Property(name = MergeConfigurationConstants.SecurityActive, defaultValue = "false")
+    protected boolean isSecurityActive;
+    @Property(name = SecurityServerConfigurationConstants.AuthenticationManagerType, mandatory = false)
+    protected Class<?> authenticationManagerType;
 
-		beanContextFactory.registerBean(SignatureUtil.class).autowireable(ISignatureUtil.class);
+    @Override
+    public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
+        beanContextFactory.registerBean(PasswordUtil.class).autowireable(IPasswordUtil.class, IPasswordValidationExtendable.class);
 
-		beanContextFactory.registerBean(PersistedPrivateKeyProvider.class)
-				.autowireable(IPrivateKeyProvider.class);
+        beanContextFactory.registerBean(PBEncryptor.class).autowireable(IPBEncryptor.class);
 
-		beanContextFactory.registerBean(OnDemandSecureRandom.class).autowireable(ISecureRandom.class);
+        beanContextFactory.registerBean(SignatureUtil.class).autowireable(ISignatureUtil.class);
 
-		if (isSecurityActive) {
-			beanContextFactory.registerBean(AuthorizationProcess.class)
-					.autowireable(IAuthorizationProcess.class);
+        beanContextFactory.registerBean(PersistedPrivateKeyProvider.class).autowireable(IPrivateKeyProvider.class);
 
-			beanContextFactory.registerBean(SecurityPostProcessor.class);
+        beanContextFactory.registerBean(OnDemandSecureRandom.class).autowireable(ISecureRandom.class);
 
-			if (authenticationManagerType == null) {
-				authenticationManagerType = EmbeddedAuthenticationManager.class;
-			}
+        if (isSecurityActive) {
+            beanContextFactory.registerBean(AuthorizationProcess.class).autowireable(IAuthorizationProcess.class);
 
-			// Check to Object.class is a "feature" to allow to fully customize the bean definition from
-			// another module
-			if (authenticationManagerType != Object.class) {
-				beanContextFactory.registerBean(authenticationManagerType)
-						.autowireable(IAuthenticationManager.class);
-			}
-			IBeanConfiguration authenticationResultCache = beanContextFactory
-					.registerBean(AuthenticationResultCache.class)
-					.autowireable(IAuthenticationResultCache.class);
-			beanContextFactory
-					.link(authenticationResultCache,
-							AuthenticationResultCache.DELEGATE_HANDLE_CLEAR_ALL_CACHES_EVENT)
-					.to(IEventListenerExtendable.class).with(ClearAllCachesEvent.class);
+            beanContextFactory.registerBean(SecurityPostProcessor.class);
 
-			beanContextFactory.registerBean(com.koch.ambeth.security.server.SecurityManager.class)
-					.autowireable(ISecurityManager.class, IMergeSecurityManager.class,
-							IServiceFilterExtendable.class);
+            if (authenticationManagerType == null) {
+                authenticationManagerType = EmbeddedAuthenticationManager.class;
+            }
 
-			registerAndLinkPermissionRule(beanContextFactory, ActionPermissionRule.class,
-					IActionPermission.class);
+            // Check to Object.class is a "feature" to allow to fully customize the bean definition from
+            // another module
+            if (authenticationManagerType != Object.class) {
+                beanContextFactory.registerBean(authenticationManagerType).autowireable(IAuthenticationManager.class);
+            }
+            IBeanConfiguration authenticationResultCache = beanContextFactory.registerBean(AuthenticationResultCache.class).autowireable(IAuthenticationResultCache.class);
+            beanContextFactory.link(authenticationResultCache, AuthenticationResultCache.DELEGATE_HANDLE_CLEAR_ALL_CACHES_EVENT).to(IEventListenerExtendable.class).with(ClearAllCachesEvent.class);
 
-			IBeanConfiguration defaultServiceFilterBC = beanContextFactory
-					.registerBean(DefaultServiceFilter.class);
-			beanContextFactory.link(defaultServiceFilterBC).to(IServiceFilterExtendable.class);
-		}
-	}
+            beanContextFactory.registerBean(com.koch.ambeth.security.server.SecurityManager.class).autowireable(ISecurityManager.class, IMergeSecurityManager.class, IServiceFilterExtendable.class);
 
-	public static void registerAndLinkPermissionRule(IBeanContextFactory beanContextFactory,
-			Class<? extends IPermissionRule> permissionRuleType, Class<?>... entityTypes) {
-		IBeanConfiguration permissionRule = beanContextFactory.registerBean(permissionRuleType);
-		for (Class<?> entityType : entityTypes) {
-			linkPermissionRule(beanContextFactory, permissionRule, entityType);
-		}
-	}
+            registerAndLinkPermissionRule(beanContextFactory, ActionPermissionRule.class, IActionPermission.class);
 
-	public static void linkPermissionRule(IBeanContextFactory beanContextFactory,
-			IBeanConfiguration entityOrEntityTypePermissionRule, Class<?> entityType) {
-		boolean atLeastOneRegisterMatched = false;
-		if (IEntityPermissionRule.class
-				.isAssignableFrom(entityOrEntityTypePermissionRule.getBeanType())) {
-			beanContextFactory.link(entityOrEntityTypePermissionRule)
-					.to(IEntityPermissionRuleExtendable.class).with(entityType);
-			atLeastOneRegisterMatched = true;
-		}
-		if (IEntityTypePermissionRule.class
-				.isAssignableFrom(entityOrEntityTypePermissionRule.getBeanType())) {
-			beanContextFactory.link(entityOrEntityTypePermissionRule)
-					.to(IEntityTypePermissionRuleExtendable.class).with(entityType);
-			atLeastOneRegisterMatched = true;
-		}
-		if (!atLeastOneRegisterMatched) {
-			throw new IllegalArgumentException(
-					"Given bean does not implement any of the permission rule interfaces:"
-							+ entityOrEntityTypePermissionRule.getBeanType());
-		}
-	}
+            IBeanConfiguration defaultServiceFilterBC = beanContextFactory.registerBean(DefaultServiceFilter.class);
+            beanContextFactory.link(defaultServiceFilterBC).to(IServiceFilterExtendable.class);
+        }
+    }
 }

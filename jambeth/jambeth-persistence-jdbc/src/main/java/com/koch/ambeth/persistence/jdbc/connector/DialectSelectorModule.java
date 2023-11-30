@@ -20,7 +20,8 @@ limitations under the License.
  * #L%
  */
 
-import com.koch.ambeth.ioc.IInitializingModule;
+import io.toolisticon.spiap.api.SpiService;
+import com.koch.ambeth.ioc.IFrameworkModule;
 import com.koch.ambeth.ioc.IPropertyLoadingBean;
 import com.koch.ambeth.ioc.annotation.FrameworkModule;
 import com.koch.ambeth.ioc.config.Property;
@@ -28,11 +29,14 @@ import com.koch.ambeth.ioc.factory.IBeanContextFactory;
 import com.koch.ambeth.log.config.Properties;
 import com.koch.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationConstants;
 import com.koch.ambeth.util.ParamChecker;
+import com.koch.ambeth.util.collections.IdentityHashSet;
 
+import java.util.Arrays;
 import java.util.ServiceLoader;
 
+@SpiService(IFrameworkModule.class)
 @FrameworkModule
-public class DialectSelectorModule implements IInitializingModule, IPropertyLoadingBean {
+public class DialectSelectorModule implements IFrameworkModule, IPropertyLoadingBean {
     public static void fillProperties(Properties props) {
         var databaseProtocol = props.getString(PersistenceJdbcConfigurationConstants.DatabaseProtocol);
         if (databaseProtocol == null) {
@@ -44,11 +48,17 @@ public class DialectSelectorModule implements IInitializingModule, IPropertyLoad
 
     protected static IConnector loadConnector(String databaseProtocol) {
         var serviceLoader = ServiceLoader.load(IConnector.class);
+        var checkedConnectors = new IdentityHashSet<IConnector>();
         return serviceLoader.stream()
                             .map(ServiceLoader.Provider::get)
+                            .map(conn -> {
+                                checkedConnectors.add(conn);
+                                return conn;
+                            })
                             .filter(conn -> conn.supports(databaseProtocol))
                             .findFirst()
-                            .orElseThrow(() -> new IllegalStateException("No connector found for protocol: '" + databaseProtocol + "'"));
+                            .orElseThrow(() -> new IllegalStateException(
+                                    "No connector found for protocol: '" + databaseProtocol + "'. Available connectors: " + Arrays.toString(checkedConnectors.toArray(IConnector[]::new))));
     }
 
     @Property(name = PersistenceJdbcConfigurationConstants.DatabaseProtocol, mandatory = false)

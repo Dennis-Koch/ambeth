@@ -20,104 +20,95 @@ limitations under the License.
  * #L%
  */
 
-import org.junit.runners.model.FrameworkMethod;
-import org.junit.runners.model.InitializationError;
-
+import com.koch.ambeth.core.Ambeth;
+import com.koch.ambeth.informationbus.persistence.InformationBusWithPersistence;
+import com.koch.ambeth.informationbus.persistence.setup.AmbethPersistenceSetup;
 import com.koch.ambeth.informationbus.persistence.setup.DataSetupExecutor;
 import com.koch.ambeth.ioc.exception.BeanContextInitException;
 import com.koch.ambeth.log.config.Properties;
 import com.koch.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationConstants;
-import com.koch.ambeth.util.ReflectUtil;
 import com.koch.ambeth.util.config.UtilConfigurationConstants;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
+import com.koch.ambeth.util.transaction.ILightweightTransaction;
+import lombok.SneakyThrows;
+
+import java.lang.reflect.Method;
 
 public class RebuildSchema {
-	/**
-	 * To fully rebuild schema and data of an application server run with the following program
-	 * arguments:
-	 *
-	 * Local App Server: <code>property.file=src/main/environment/test/iqdf-ui.properties</code>
-	 *
-	 * Dev Server (Caution for concurrent users/developers/testers):
-	 * <code>property.file=src/main/environment/dev/iqdf-ui.properties</code>
-	 *
-	 * Demo Server (Caution for concurrent users/developers/testers):
-	 * <code>property.file=src/main/environment/demo/iqdf-ui.properties</code>
-	 *
-	 * @param args
-	 * @throws InitializationError
-	 * @throws Throwable
-	 */
-	public static void main(final String[] args, Class<?> testClass,
-			String recommendedPropertyFileName) throws Exception {
-		Properties.getApplication().fillWithCommandLineArgs(args);
-		AmbethInformationBusWithPersistenceRunner runner = new AmbethInformationBusWithPersistenceRunner(
-				testClass) {
-			@Override
-			protected void extendPropertiesInstance(FrameworkMethod frameworkMethod, Properties props) {
-				super.extendPropertiesInstance(frameworkMethod, props);
+    /**
+     * To fully rebuild schema and data of an application server run with the following program
+     * arguments:
+     * <p>
+     * Local App Server: <code>property.file=src/main/environment/test/iqdf-ui.properties</code>
+     * <p>
+     * Dev Server (Caution for concurrent users/developers/testers):
+     * <code>property.file=src/main/environment/dev/iqdf-ui.properties</code>
+     * <p>
+     * Demo Server (Caution for concurrent users/developers/testers):
+     * <code>property.file=src/main/environment/demo/iqdf-ui.properties</code>
+     *
+     * @param args
+     */
+    @SneakyThrows
+    public static void main(final String[] args, Class<?> testClass, String recommendedPropertyFileName) {
+        var props = new Properties(Properties.getApplication());
+        props.fillWithCommandLineArgs(args);
 
-				// intentionally refill with args a second time
-				props.fillWithCommandLineArgs(args);
+        var propertyFileKey = UtilConfigurationConstants.BootstrapPropertyFile;
+        var bootstrapPropertyFile = props.getString(propertyFileKey);
+        if (bootstrapPropertyFile == null) {
+            propertyFileKey = UtilConfigurationConstants.BootstrapPropertyFile.toUpperCase();
+            bootstrapPropertyFile = props.getString(propertyFileKey);
+        }
+        if (bootstrapPropertyFile != null) {
+            System.out.println("Environment property '" + UtilConfigurationConstants.BootstrapPropertyFile + "' found with value '" + bootstrapPropertyFile + "'");
+            props.load(bootstrapPropertyFile, false);
+        }
+        props.put(PersistenceJdbcConfigurationConstants.IntegratedConnectionFactory, true);
+        if (props.get("ambeth.log.level") == null) {
+            props.put("ambeth.log.level", "INFO");
+        }
+        // intentionally refill with args again
+        props.fillWithCommandLineArgs(args);
 
-				String bootstrapPropertyFile = props
-						.getString(UtilConfigurationConstants.BootstrapPropertyFile);
-				if (bootstrapPropertyFile == null) {
-					bootstrapPropertyFile = props
-							.getString(UtilConfigurationConstants.BootstrapPropertyFile.toUpperCase());
-				}
-				if (bootstrapPropertyFile != null) {
-					System.out
-							.println("Environment property '" + UtilConfigurationConstants.BootstrapPropertyFile
-									+ "' found with value '" + bootstrapPropertyFile + "'");
-					props.load(bootstrapPropertyFile, false);
-				}
-				props.put(PersistenceJdbcConfigurationConstants.IntegratedConnectionFactory, true);
-				if (props.get("ambeth.log.level") == null) {
-					props.put("ambeth.log.level", "INFO");
-				}
-				// intentionally refill with args a third time
-				props.fillWithCommandLineArgs(args);
-			}
-		};
-		try {
-			runner.rebuildSchemaContext();
-		}
-		catch (BeanContextInitException e) {
-			if (!e.getMessage()
-					.startsWith("Could not resolve mandatory environment property 'database.schema.name'")) {
-				throw e;
-			}
-			IllegalArgumentException ex = new IllegalArgumentException(
-					"Please specify the corresponding property file e.g.:\nproperty.file="
-							+ recommendedPropertyFileName);
-			ex.setStackTrace(RuntimeExceptionUtil.EMPTY_STACK_TRACE);
-			throw ex;
-		}
-		runner.rebuildStructure();
-		runner.rebuildData();
+        Ambeth.createEmptyBundle(InformationBusWithPersistence.class).withProperties(props).withoutPropertiesFileSearch().start();
 
-		FrameworkMethod method = new FrameworkMethod(
-				ReflectUtil.getDeclaredMethod(false, Object.class, String.class, "toString"));
-		DataSetupExecutor.setAutoRebuildData(Boolean.TRUE);
-		try {
-			runner.rebuildContext(method);
-		}
-		finally {
-			DataSetupExecutor.setAutoRebuildData(null);
-		}
-		runner.rebuildContext();
-		try {
-			runner.methodInvoker(method, runner.createTest());
-		}
-		finally {
-			runner.disposeContext();
-		}
-		try {
-			runner.finalize();
-		}
-		catch (Throwable e) {
-			throw RuntimeExceptionUtil.mask(e);
-		}
-	}
+        var ambethPersistenceSetup = new AmbethPersistenceSetup(testClass) {
+            public void extendPropertiesInstance(Method annotatedMethod, Properties props) {
+                super.extendPropertiesInstance(annotatedMethod, props);
+
+                // intentionally refill with args again
+                props.fillWithCommandLineArgs(args);
+            }
+        };
+        try {
+            ambethPersistenceSetup.rebuildSchemaContext();
+        } catch (BeanContextInitException e) {
+            if (!e.getMessage().startsWith("Could not resolve mandatory environment property 'database.schema.name'")) {
+                throw e;
+            }
+            var ex = new IllegalArgumentException("Please specify the corresponding property file e.g.:\n" + UtilConfigurationConstants.BootstrapPropertyFile + "=" + recommendedPropertyFileName);
+            ex.setStackTrace(RuntimeExceptionUtil.EMPTY_STACK_TRACE);
+            throw ex;
+        }
+        ambethPersistenceSetup.rebuildStructure();
+        ambethPersistenceSetup.rebuildData(null);
+
+        var rollback = DataSetupExecutor.pushAutoRebuildData(Boolean.TRUE);
+        try {
+            try (var ambeth = Ambeth.createEmptyBundle(InformationBusWithPersistence.class)
+                                    .withProperties(props)
+                                    .withFrameworkModules(ambethPersistenceSetup.buildFrameworkTestModuleList(null))
+                                    .start()) {
+                var beanContext = ambeth.getApplicationContext();
+
+                ambethPersistenceSetup.rollbackConnection();
+                beanContext.getService(ILightweightTransaction.class).runInTransaction(() -> {
+                    // Intended blank
+                });
+            }
+        } finally {
+            rollback.rollback();
+        }
+    }
 }

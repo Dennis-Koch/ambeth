@@ -20,10 +20,11 @@ limitations under the License.
  * #L%
  */
 
+import io.toolisticon.spiap.api.SpiService;
 import com.koch.ambeth.datachange.model.IDataChange;
 import com.koch.ambeth.datachange.model.IDataChangeOfSession;
 import com.koch.ambeth.event.IEventListenerExtendable;
-import com.koch.ambeth.ioc.IInitializingModule;
+import com.koch.ambeth.ioc.IFrameworkModule;
 import com.koch.ambeth.ioc.annotation.FrameworkModule;
 import com.koch.ambeth.ioc.config.IBeanConfiguration;
 import com.koch.ambeth.ioc.factory.IBeanContextFactory;
@@ -34,22 +35,17 @@ import com.koch.ambeth.query.filter.IFilterToQueryBuilder;
 import com.koch.ambeth.query.filter.IQueryResultCache;
 import com.koch.ambeth.service.cache.ClearAllCachesEvent;
 
+@SpiService(IFrameworkModule.class)
 @FrameworkModule
-public class FilterPersistenceModule implements IInitializingModule {
-	@Override
-	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
-		beanContextFactory.registerBean(FilterToQueryBuilder.class)
-				.autowireable(IFilterToQueryBuilder.class);
+public class FilterPersistenceModule implements IFrameworkModule {
+    @Override
+    public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
+        beanContextFactory.registerBean(FilterToQueryBuilder.class).autowireable(IFilterToQueryBuilder.class);
 
-		IBeanConfiguration queryResultCache = beanContextFactory.registerBean(QueryResultCache.class)
-				.autowireable(IQueryResultCache.class);
-		beanContextFactory.link(queryResultCache, "handleClearAllCaches")
-				.to(IEventListenerExtendable.class).with(ClearAllCachesEvent.class);
-		beanContextFactory.link(queryResultCache, "handleDatabaseRelease")
-				.to(IEventListenerExtendable.class).with(IDatabaseReleaseEvent.class);
-		beanContextFactory.link(queryResultCache, "handleDataChange").to(IEventListenerExtendable.class)
-				.with(IDataChange.class);
-		beanContextFactory.link(queryResultCache, "handleDataChangeOfSession")
-				.to(IEventListenerExtendable.class).with(IDataChangeOfSession.class);
-	}
+        IBeanConfiguration queryResultCache = beanContextFactory.registerBean(QueryResultCache.class).autowireable(IQueryResultCache.class);
+        beanContextFactory.link(queryResultCache, "handleClearAllCaches").to(IEventListenerExtendable.class).with(ClearAllCachesEvent.class);
+        beanContextFactory.link(queryResultCache, "handleDatabaseRelease").to(IEventListenerExtendable.class).with(IDatabaseReleaseEvent.class);
+        beanContextFactory.link(queryResultCache, "handleDataChange").to(IEventListenerExtendable.class).with(IDataChange.class);
+        beanContextFactory.link(queryResultCache, "handleDataChangeOfSession").to(IEventListenerExtendable.class).with(IDataChangeOfSession.class);
+    }
 }

@@ -1,44 +1,44 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-	<modelVersion>4.0.0</modelVersion>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
 
-	<artifactId>jambeth-security-server</artifactId>
+    <artifactId>jambeth-security-server</artifactId>
 
-	<parent>
-		<groupId>com.koch.ambeth</groupId>
-		<artifactId>jambeth-pom</artifactId>
-		<version>3.1.0-SNAPSHOT</version>
-	</parent>
+    <parent>
+        <groupId>com.koch.ambeth</groupId>
+        <artifactId>jambeth-pom</artifactId>
+        <version>3.1.0-SNAPSHOT</version>
+    </parent>
 
-	<dependencies>
-		<dependency>
-			<groupId>com.koch.ambeth</groupId>
-			<artifactId>jambeth-audit</artifactId>
-		</dependency>
+    <dependencies>
+        <dependency>
+            <groupId>com.koch.ambeth</groupId>
+            <artifactId>jambeth-audit</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.koch.ambeth</groupId>
+            <artifactId>jambeth-cache</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.koch.ambeth</groupId>
+            <artifactId>jambeth-job</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.koch.ambeth</groupId>
+            <artifactId>jambeth-merge</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.koch.ambeth</groupId>
+            <artifactId>jambeth-query</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.koch.ambeth</groupId>
+            <artifactId>jambeth-security</artifactId>
+        </dependency>
 
-		<dependency>
-			<groupId>com.koch.ambeth</groupId>
-			<artifactId>jambeth-cache</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>com.koch.ambeth</groupId>
-			<artifactId>jambeth-merge</artifactId>
-		</dependency>
-		
-		<dependency>
-			<groupId>com.koch.ambeth</groupId>
-			<artifactId>jambeth-job</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>com.koch.ambeth</groupId>
-			<artifactId>jambeth-security</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>com.koch.ambeth</groupId>
-			<artifactId>jambeth-query</artifactId>
-		</dependency>
-	</dependencies>
-
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcprov-jdk18on</artifactId>
+        </dependency>
+    </dependencies>
 </project>

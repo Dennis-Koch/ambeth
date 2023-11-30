@@ -20,10 +20,11 @@ limitations under the License.
  * #L%
  */
 
+import io.toolisticon.spiap.api.SpiService;
 import com.koch.ambeth.cache.ioc.CacheModule;
 import com.koch.ambeth.datachange.model.IDataChangeOfSession;
 import com.koch.ambeth.event.IEventListenerExtendable;
-import com.koch.ambeth.ioc.IInitializingModule;
+import com.koch.ambeth.ioc.IFrameworkModule;
 import com.koch.ambeth.ioc.annotation.FrameworkModule;
 import com.koch.ambeth.ioc.config.IBeanConfiguration;
 import com.koch.ambeth.ioc.factory.IBeanContextFactory;
@@ -40,41 +41,31 @@ import com.koch.ambeth.persistence.event.DatabaseCommitEvent;
 import com.koch.ambeth.persistence.event.DatabaseFailEvent;
 import com.koch.ambeth.service.cache.ClearAllCachesEvent;
 
+@SpiService(IFrameworkModule.class)
 @FrameworkModule
-public class MergeServerModule implements IInitializingModule {
-	public static final String MERGE_SERVICE_SERVER = "mergeservice.server";
+public class MergeServerModule implements IFrameworkModule {
+    public static final String MERGE_SERVICE_SERVER = "mergeservice.server";
 
-	@Override
-	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
-		beanContextFactory.registerBean(DatabaseToEntityMetaData.class)
-				.propertyRef(DatabaseToEntityMetaData.P_PersistenceMergeServiceExtension,
-						MERGE_SERVICE_SERVER)
-				.propertyRef(DatabaseToEntityMetaData.P_PersistenceCacheRetriever,
-						CacheModule.DEFAULT_CACHE_RETRIEVER);
+    @Override
+    public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
+        beanContextFactory.registerBean(DatabaseToEntityMetaData.class)
+                          .propertyRef(DatabaseToEntityMetaData.P_PersistenceMergeServiceExtension, MERGE_SERVICE_SERVER)
+                          .propertyRef(DatabaseToEntityMetaData.P_PersistenceCacheRetriever, CacheModule.DEFAULT_CACHE_RETRIEVER);
 
-		IBeanConfiguration databaseFimExtension = beanContextFactory
-				.registerBean(DatabaseFimExtension.class);
-		beanContextFactory.link(databaseFimExtension).to(IFimExtensionExtendable.class);
+        IBeanConfiguration databaseFimExtension = beanContextFactory.registerBean(DatabaseFimExtension.class);
+        beanContextFactory.link(databaseFimExtension).to(IFimExtensionExtendable.class);
 
-		IBeanConfiguration relationMergeService = beanContextFactory
-				.registerBean(RelationMergeService.class).autowireable(IRelationMergeService.class);
-		beanContextFactory.link(relationMergeService).to(IEventListenerExtendable.class)
-				.with(IEntityMetaDataEvent.class);
-		beanContextFactory.link(relationMergeService).to(IEventListenerExtendable.class)
-				.with(ClearAllCachesEvent.class);
+        IBeanConfiguration relationMergeService = beanContextFactory.registerBean(RelationMergeService.class).autowireable(IRelationMergeService.class);
+        beanContextFactory.link(relationMergeService).to(IEventListenerExtendable.class).with(IEntityMetaDataEvent.class);
+        beanContextFactory.link(relationMergeService).to(IEventListenerExtendable.class).with(ClearAllCachesEvent.class);
 
-		beanContextFactory.registerBean(MERGE_SERVICE_SERVER, PersistenceMergeServiceExtension.class);
+        beanContextFactory.registerBean(MERGE_SERVICE_SERVER, PersistenceMergeServiceExtension.class);
 
-		IBeanConfiguration localToPublicDispatcher = beanContextFactory
-				.registerBean(LocalToPublicDispatcher.class);
+        IBeanConfiguration localToPublicDispatcher = beanContextFactory.registerBean(LocalToPublicDispatcher.class);
 
-		beanContextFactory.link(localToPublicDispatcher).to(IEventListenerExtendable.class)
-				.with(IDataChangeOfSession.class);
-		beanContextFactory.link(localToPublicDispatcher).to(IEventListenerExtendable.class)
-				.with(DatabaseAcquireEvent.class);
-		beanContextFactory.link(localToPublicDispatcher).to(IEventListenerExtendable.class)
-				.with(DatabaseCommitEvent.class);
-		beanContextFactory.link(localToPublicDispatcher).to(IEventListenerExtendable.class)
-				.with(DatabaseFailEvent.class);
-	}
+        beanContextFactory.link(localToPublicDispatcher).to(IEventListenerExtendable.class).with(IDataChangeOfSession.class);
+        beanContextFactory.link(localToPublicDispatcher).to(IEventListenerExtendable.class).with(DatabaseAcquireEvent.class);
+        beanContextFactory.link(localToPublicDispatcher).to(IEventListenerExtendable.class).with(DatabaseCommitEvent.class);
+        beanContextFactory.link(localToPublicDispatcher).to(IEventListenerExtendable.class).with(DatabaseFailEvent.class);
+    }
 }

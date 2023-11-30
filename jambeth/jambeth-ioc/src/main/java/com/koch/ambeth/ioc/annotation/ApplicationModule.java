@@ -1,8 +1,8 @@
-package com.koch.ambeth.merge;
+package com.koch.ambeth.ioc.annotation;
 
 /*-
  * #%L
- * jambeth-merge
+ * jambeth-ioc
  * %%
  * Copyright (C) 2017 Koch Softwaredevelopment
  * %%
@@ -20,21 +20,13 @@ limitations under the License.
  * #L%
  */
 
-import com.koch.ambeth.util.function.CheckedRunnable;
-import com.koch.ambeth.util.function.CheckedSupplier;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-public interface ILightweightTransaction {
-    boolean isActive();
-
-    void runInTransaction(CheckedRunnable runnable);
-
-    <R> R runInTransaction(CheckedSupplier<R> runnable);
-
-    void runInLazyTransaction(CheckedRunnable runnable);
-
-    <R> R runInLazyTransaction(CheckedSupplier<R> runnable);
-
-    void runOnTransactionPreCommit(CheckedRunnable runnable);
-
-    void runOnTransactionPostCommit(CheckedRunnable runnable);
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.TYPE)
+public @interface ApplicationModule {
+    // Intended blank
 }

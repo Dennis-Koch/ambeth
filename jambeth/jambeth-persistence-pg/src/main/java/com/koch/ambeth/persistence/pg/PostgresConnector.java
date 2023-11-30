@@ -24,7 +24,9 @@ import com.koch.ambeth.ioc.factory.IBeanContextFactory;
 import com.koch.ambeth.log.config.Properties;
 import com.koch.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationConstants;
 import com.koch.ambeth.persistence.jdbc.connector.IConnector;
+import io.toolisticon.spiap.api.SpiService;
 
+@SpiService(IConnector.class)
 public class PostgresConnector implements IConnector {
     @Override
     public boolean supports(String databaseProtocol) {

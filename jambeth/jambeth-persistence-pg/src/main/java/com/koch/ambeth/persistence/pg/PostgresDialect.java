@@ -20,36 +20,6 @@ limitations under the License.
  * #L%
  */
 
-import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.sql.Array;
-import java.sql.Blob;
-import java.sql.Clob;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Savepoint;
-import java.sql.Statement;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.List;
-import java.util.Map.Entry;
-import java.util.WeakHashMap;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import jakarta.persistence.OptimisticLockException;
-import jakarta.persistence.PersistenceException;
-import jakarta.persistence.PessimisticLockException;
-
-import lombok.SneakyThrows;
-import org.postgresql.Driver;
-import org.postgresql.PGConnection;
-import org.postgresql.core.BaseConnection;
-
 import com.koch.ambeth.ioc.IServiceContext;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.config.Property;
@@ -84,6 +54,36 @@ import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.IMap;
 import com.koch.ambeth.util.collections.LinkedHashMap;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
+import jakarta.persistence.OptimisticLockException;
+import jakarta.persistence.PersistenceException;
+import jakarta.persistence.PessimisticLockException;
+import lombok.SneakyThrows;
+import org.postgresql.Driver;
+import org.postgresql.PGConnection;
+import org.postgresql.core.BaseConnection;
+
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.sql.Array;
+import java.sql.Blob;
+import java.sql.Clob;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Savepoint;
+import java.sql.Statement;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.WeakHashMap;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.function.Function;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class PostgresDialect extends AbstractConnectionDialect {
     public static final Pattern BIN_TABLE_NAME = Pattern.compile("BIN\\$.{22}==\\$0", Pattern.CASE_INSENSITIVE);
@@ -133,6 +133,7 @@ public class PostgresDialect extends AbstractConnectionDialect {
     public static boolean isCLobColumnName(String typeName) {
         return false;// "text".equals(typeName);
     }
+
     protected final DateFormat defaultDateFormat = new SimpleDateFormat("yyyy-MM-dd HH-mm-ss");
     protected final WeakHashMap<IConnectionKeyHandle, ConnectionKeyValue> connectionToConstraintSqlMap = new WeakHashMap<>();
     protected final Lock readLock, writeLock;
@@ -190,7 +191,7 @@ public class PostgresDialect extends AbstractConnectionDialect {
     }
 
     @Override
-    public void handleWithMultiValueLeftField(IAppendable querySB, IMap<Object, Object> nameToValueMap, IList<Object> parameters, IList<IList<Object>> splitValues, boolean caseSensitive,
+    public void handleWithMultiValueLeftField(IAppendable querySB, Map<Object, Object> nameToValueMap, IList<Object> parameters, IList<IList<Object>> splitValues, boolean caseSensitive,
             Class<?> leftOperandFieldType) {
         if (splitValues.isEmpty()) {
             // Special scenario with EMPTY argument
@@ -331,14 +332,17 @@ public class PostgresDialect extends AbstractConnectionDialect {
     }
 
     @Override
-    public void appendListClause(List<Object> parameters, IAppendable sb, Class<?> fieldType, IList<Object> splittedIds) {
+    public void appendListClause(List<Object> parameters, IAppendable sb, Class<?> fieldType, IList<Object> splittedIds, Function<Object, Object> idDecompositor) {
         sb.append(" = ANY (?)");
-        IConnectionExtension connectionExtension = serviceContext.getService(IConnectionExtension.class);
+        var connectionExtension = serviceContext.getService(IConnectionExtension.class);
 
-        Object javaArray = java.lang.reflect.Array.newInstance(fieldType, splittedIds.size());
-        int index = 0;
-        for (Object object : splittedIds) {
-            Object value = conversionHelper.convertValueToType(fieldType, object);
+        var javaArray = java.lang.reflect.Array.newInstance(fieldType, splittedIds.size());
+        var index = 0;
+        for (var id : splittedIds) {
+            if (idDecompositor != null) {
+                id = idDecompositor.apply(id);
+            }
+            var value = conversionHelper.convertValueToType(fieldType, id);
             java.lang.reflect.Array.set(javaArray, index, value);
             index++;
         }
@@ -350,8 +354,8 @@ public class PostgresDialect extends AbstractConnectionDialect {
     @Override
     protected String buildDeferrableForeignKeyConstraintsSelectSQL(String[] schemaNames) {
         StringBuilder sb = new StringBuilder(
-                "SELECT n.nspname AS OWNER, cl.relname AS TABLE_NAME, c.conname AS CONSTRAINT_NAME FROM pg_constraint c JOIN pg_namespace n ON c.connamespace=n.oid JOIN pg_class cl ON c.conrelid=cl" +
-                        ".oid WHERE c.condeferrable='t' AND c.condeferred='f' AND n.nspname");
+                "SELECT n.nspname AS OWNER, cl.relname AS TABLE_NAME, c.conname AS CONSTRAINT_NAME FROM pg_constraint c JOIN pg_namespace n ON c.connamespace=n.oid JOIN pg_class cl ON c" +
+                        ".conrelid=cl" + ".oid WHERE c.condeferrable='t' AND c.condeferred='f' AND n.nspname");
         buildSchemaInClause(sb, schemaNames);
         return sb.toString();
     }

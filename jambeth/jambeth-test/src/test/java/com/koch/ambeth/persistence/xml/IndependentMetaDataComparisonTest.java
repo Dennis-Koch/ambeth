@@ -20,21 +20,14 @@ limitations under the License.
  * #L%
  */
 
-import com.koch.ambeth.bytecode.ioc.BytecodeModule;
-import com.koch.ambeth.cache.bytecode.ioc.CacheBytecodeModule;
-import com.koch.ambeth.cache.datachange.ioc.CacheDataChangeModule;
-import com.koch.ambeth.cache.ioc.CacheModule;
-import com.koch.ambeth.event.ioc.EventModule;
+import com.koch.ambeth.core.Ambeth;
+import com.koch.ambeth.informationbus.InformationBus;
 import com.koch.ambeth.informationbus.persistence.setup.SQLData;
 import com.koch.ambeth.informationbus.persistence.setup.SQLStructure;
 import com.koch.ambeth.ioc.IServiceContext;
-import com.koch.ambeth.ioc.IocModule;
 import com.koch.ambeth.ioc.annotation.Autowired;
-import com.koch.ambeth.ioc.factory.BeanContextFactory;
+import com.koch.ambeth.ioc.config.IocConfigurationConstants;
 import com.koch.ambeth.log.config.Properties;
-import com.koch.ambeth.mapping.ioc.MappingModule;
-import com.koch.ambeth.merge.bytecode.ioc.MergeBytecodeModule;
-import com.koch.ambeth.merge.ioc.MergeModule;
 import com.koch.ambeth.merge.transfer.ObjRef;
 import com.koch.ambeth.persistence.xml.model.Address;
 import com.koch.ambeth.persistence.xml.model.AddressType;
@@ -44,12 +37,13 @@ import com.koch.ambeth.persistence.xml.model.EmployeeType;
 import com.koch.ambeth.persistence.xml.model.Project;
 import com.koch.ambeth.persistence.xml.model.ProjectType;
 import com.koch.ambeth.service.config.ServiceConfigurationConstants;
-import com.koch.ambeth.service.ioc.ServiceModule;
 import com.koch.ambeth.service.merge.IEntityMetaDataProvider;
-import com.koch.ambeth.service.merge.IValueObjectConfig;
 import com.koch.ambeth.service.merge.model.IEntityMetaData;
 import com.koch.ambeth.service.metadata.Member;
 import com.koch.ambeth.service.metadata.PrimitiveMember;
+import com.koch.ambeth.service.remote.IInMemoryClientServiceResolver;
+import com.koch.ambeth.service.remote.InMemoryClientServiceFactory;
+import com.koch.ambeth.service.remote.RemoteServiceContextImpl;
 import com.koch.ambeth.testutil.AbstractInformationBusWithPersistenceTest;
 import com.koch.ambeth.testutil.TestProperties;
 import com.koch.ambeth.testutil.TestPropertiesList;
@@ -69,10 +63,10 @@ import static org.junit.Assert.*;
 @SQLData("Relations_data.sql")
 @SQLStructure("Relations_structure.sql")
 @TestPropertiesList({
-        @TestProperties(name = ServiceConfigurationConstants.mappingFile, value = IndependentMetaDataComparisonTest.basePath + "independent-orm.xml;" + IndependentMetaDataComparisonTest.basePath +
-                "independent-orm2.xml"),
-        @TestProperties(name = ServiceConfigurationConstants.valueObjectFile, value =
-                IndependentMetaDataComparisonTest.basePath + "independent-value-object.xml;" + IndependentMetaDataComparisonTest.basePath + "independent-value-object2.xml"),
+        @TestProperties(name = ServiceConfigurationConstants.mappingFile,
+                value = IndependentMetaDataComparisonTest.basePath + "independent-orm.xml;" + IndependentMetaDataComparisonTest.basePath + "independent-orm2.xml"),
+        @TestProperties(name = ServiceConfigurationConstants.valueObjectFile,
+                value = IndependentMetaDataComparisonTest.basePath + "independent-value-object.xml;" + IndependentMetaDataComparisonTest.basePath + "independent-value-object2.xml"),
         @TestProperties(name = ServiceConfigurationConstants.GenericTransferMapping, value = "true")
 })
 public class IndependentMetaDataComparisonTest extends AbstractInformationBusWithPersistenceTest {
@@ -152,17 +146,21 @@ public class IndependentMetaDataComparisonTest extends AbstractInformationBusWit
 
     private IServiceContext createClientBeanContext() {
         var serverProperties = beanContext.getService(IProperties.class);
-        var baseProps = new Properties(serverProperties);
+        var baseProps = new Properties();
+        baseProps.put(IocConfigurationConstants.ExplicitClassLoader, serverProperties.get(IocConfigurationConstants.ExplicitClassLoader));
         baseProps.put(ServiceConfigurationConstants.GenericTransferMapping, "true");
         baseProps.put(ServiceConfigurationConstants.NetworkClientMode, "true");
         baseProps.put(ServiceConfigurationConstants.IndependentMetaData, "true");
+        baseProps.put(ServiceConfigurationConstants.mappingFile, serverProperties.get(ServiceConfigurationConstants.mappingFile));
+        baseProps.put(ServiceConfigurationConstants.valueObjectFile, serverProperties.get(ServiceConfigurationConstants.valueObjectFile));
+        baseProps.put(ServiceConfigurationConstants.ClientServiceFactoryType, InMemoryClientServiceFactory.class);
 
-        var bootstrapContext = BeanContextFactory.createBootstrap(baseProps);
-        var beanContext =
-                bootstrapContext.createService(BytecodeModule.class, CacheModule.class, CacheBytecodeModule.class, CacheDataChangeModule.class, EventModule.class, IocModule.class, MappingModule.class,
-                        MergeBytecodeModule.class, MergeModule.class, ServiceModule.class);
-
-        return beanContext;
+        var clientApp = Ambeth.createEmptyBundle(InformationBus.class).withProperties(baseProps).withoutPropertiesFileSearch().withFrameworkModules(bcf -> {
+            bcf.registerExternalBean((IInMemoryClientServiceResolver) (serviceBaseUrl, serviceName, method, args) -> {
+                return new RemoteServiceContextImpl(beanContext);
+            }).autowireable(IInMemoryClientServiceResolver.class);
+        }).start();
+        return clientApp.getApplicationContext();
     }
 
     @Before
@@ -175,7 +173,7 @@ public class IndependentMetaDataComparisonTest extends AbstractInformationBusWit
     public void tearDown() throws Exception {
         clientFixture = null;
         if (clientBeanContext != null) {
-            clientBeanContext.dispose();
+            clientBeanContext.getRoot().dispose();
         }
     }
 
@@ -199,8 +197,8 @@ public class IndependentMetaDataComparisonTest extends AbstractInformationBusWit
         Class<?>[] allTypes = { Employee.class, Address.class, Project.class };
 
         for (var entityType : allTypes) {
-            IEntityMetaData serverActual = serverFixture.getMetaData(entityType);
-            IEntityMetaData clientActual = clientFixture.getMetaData(entityType);
+            var serverActual = serverFixture.getMetaData(entityType);
+            var clientActual = clientFixture.getMetaData(entityType);
             assertEquals(serverActual, clientActual);
         }
     }
@@ -210,8 +208,8 @@ public class IndependentMetaDataComparisonTest extends AbstractInformationBusWit
         Class<?>[] allValueTypes = { EmployeeType.class, EmployeeSmallType.class, AddressType.class, ProjectType.class };
 
         for (var valueType : allValueTypes) {
-            IValueObjectConfig serverActual = serverFixture.getValueObjectConfig(valueType);
-            IValueObjectConfig clientActual = clientFixture.getValueObjectConfig(valueType);
+            var serverActual = serverFixture.getValueObjectConfig(valueType);
+            var clientActual = clientFixture.getValueObjectConfig(valueType);
             assertNotNull(valueType.getName() + ":", serverActual);
             assertNotNull(valueType.getName() + ":", clientActual);
             Assert.assertEquals(valueType.getName() + ":", serverActual.getEntityType(), clientActual.getEntityType());

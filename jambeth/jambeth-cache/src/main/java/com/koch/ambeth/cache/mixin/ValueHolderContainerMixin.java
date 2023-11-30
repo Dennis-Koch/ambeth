@@ -25,7 +25,6 @@ import com.koch.ambeth.cache.proxy.IValueHolderContainer;
 import com.koch.ambeth.cache.transfer.ObjRelation;
 import com.koch.ambeth.ioc.IDisposableBean;
 import com.koch.ambeth.ioc.annotation.Autowired;
-import com.koch.ambeth.merge.ILightweightTransaction;
 import com.koch.ambeth.merge.IObjRefHelper;
 import com.koch.ambeth.merge.cache.CacheDirective;
 import com.koch.ambeth.merge.cache.ValueHolderState;
@@ -46,6 +45,7 @@ import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.state.IStateRollback;
 import com.koch.ambeth.util.state.StateRollback;
 import com.koch.ambeth.util.threading.IGuiThreadHelper;
+import com.koch.ambeth.util.transaction.ILightweightTransaction;
 
 import java.util.Arrays;
 import java.util.Set;
