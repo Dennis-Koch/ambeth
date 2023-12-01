@@ -35,6 +35,7 @@ import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.ILoggerHistory;
 import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.IEntityFactory;
+import com.koch.ambeth.merge.compositeid.CompositeIdMember;
 import com.koch.ambeth.merge.compositeid.ICompositeIdFactory;
 import com.koch.ambeth.merge.metadata.IObjRefFactory;
 import com.koch.ambeth.merge.proxy.IObjRefContainer;
@@ -61,6 +62,7 @@ import com.koch.ambeth.service.merge.model.IObjRef;
 import com.koch.ambeth.service.metadata.Member;
 import com.koch.ambeth.util.IConversionHelper;
 import com.koch.ambeth.util.IInterningFeature;
+import com.koch.ambeth.util.IPreparedConverter;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.HashMap;
 import com.koch.ambeth.util.collections.HashSet;
@@ -195,25 +197,14 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
                 var oriToLoad = orisToLoad.get(a);
 
                 var table = databaseMetaData.getTableByType(oriToLoad.getRealType());
-                var idIndex = oriToLoad.getIdNameIndex();
-                var idFields = table.getIdFieldsByAlternateIdIndex(idIndex);
-                ILoadContainer loadContainer;
-                if (idFields.length == 1) {
-                    var persistentIdType = table.getIdFieldByAlternateIdIndex(idIndex).getFieldType();
-                    var persistentId = conversionHelper.convertValueToType(persistentIdType, oriToLoad.getId());
-
-                    loadContainer = loadContainerMap.get(table.getEntityType(), Integer.valueOf(idIndex), persistentId);
-                } else {
-                    loadContainer = loadContainerMap.get(table.getEntityType(), Integer.valueOf(idIndex), oriToLoad.getId());
-                }
+                var loadContainer = loadContainerMap.get(table.getEntityType(), Integer.valueOf(oriToLoad.getIdNameIndex()), oriToLoad.getId());
                 if (loadContainer == null) {
                     // beanContext.getService(java.sql.Connection.class).commit();
                     continue;
                 }
                 if (table.getVersionField() != null) {
                     if (loadContainer.getReference().getVersion() == null) {
-                        // Entity has not been correctly initialized in
-                        // InitInstances...
+                        // Entity has not been correctly initialized in InitInstances...
                         continue;
                     }
                 }
@@ -576,15 +567,18 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
         if (parallelPendingItems.isEmpty()) {
             return;
         }
-        multithreadingHelper.invokeAndWait(parallelPendingItems, state -> {
-            initInstances(state.entityType, state.idIndex, state.ids, state.cascadeTypeToPendingInit, state.loadMode);
-            return null;
-        }, (resultOfFork, itemOfFork) -> writePendingInitToShared(itemOfFork.cascadeTypeToPendingInit, itemOfFork.sharedCascadeTypeToPendingInit));
+        multithreadingHelper.invokeAndWait(parallelPendingItems, this::initInstances, this::writePendingInitToShared);
     }
 
-    public void writePendingInitToShared(LinkedHashMap<Class<?>, Collection<Object>[]> cascadeTypeToPendingInit, LinkedHashMap<Class<?>, Collection<Object>[]> sharedCascadeTypeToPendingInit) {
+    protected Object initInstances(ParallelLoadItem itemOfFork) {
+        initInstances(itemOfFork.entityType, itemOfFork.idIndex, itemOfFork.ids, itemOfFork.cascadeTypeToPendingInit, itemOfFork.loadMode);
+        return null;
+    }
+
+    protected void writePendingInitToShared(Object resultOfFork, ParallelLoadItem itemOfFork) {
+        var sharedCascadeTypeToPendingInit = itemOfFork.sharedCascadeTypeToPendingInit;
         var database = this.database.getCurrent();
-        for (var entry : cascadeTypeToPendingInit) {
+        for (var entry : itemOfFork.cascadeTypeToPendingInit) {
             var type = entry.getKey();
             var pendingInits = entry.getValue();
             for (int a = pendingInits.length; a-- > 0; ) {
@@ -593,7 +587,7 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
                     continue;
                 }
                 var table = database.getTableByType(type).getMetaData();
-                var sharedPendingInit = getEnsurePendingInit(table, sharedCascadeTypeToPendingInit, (byte) (a - 1));
+                var sharedPendingInit = getEnsurePendingInit(table, sharedCascadeTypeToPendingInit, (a - 1));
                 sharedPendingInit.addAll(pendingInit);
             }
         }
@@ -667,8 +661,7 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
         var directedLinks = new IDirectedLink[standaloneDirectedLinks.length];
         var directedLinkQueues = new ArrayList[standaloneDirectedLinks.length];
         var fieldToDirectedLinkIndex = new IdentityHashMap<IFieldMetaData, Integer>();
-        var idList = new ArrayList<>(ids);
-        var idFields = tableMD.getIdFields();
+        var idList = prepareIdsFromEntityMetaData(metaData, idIndex, ids);
         var versionField = tableMD.getVersionField();
         var versionTypeOfObject = versionField != null ? versionField.getMember().getElementType() : null;
         var primitiveMemberCount = metaData.getPrimitiveMembers().length;
@@ -678,6 +671,9 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
         var loadContainerMap = getLoadContainerMap();
 
         var typesRelatingToThisCount = metaData.getTypesRelatingToThis().length;
+        var idConverter = compositeIdFactory.prepareCompositeIdFactory(metaData, metaData.getIdMember());
+
+        var versionConverter = conversionHelper.prepareConverter(versionTypeOfObject);
 
         var cursorCount = 0;
         ICursor cursor = null;
@@ -702,16 +698,13 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
             for (var item : cursor) {
                 cursorCount++;
 
-                var itemId = item.getId(IObjRef.PRIMARY_KEY_INDEX);
-                Object id;
-                if (idFields.length == 1) {
-                    id = conversionHelper.convertValueToType(idFields[0].getMember().getElementType(), itemId);
+                var id = idConverter.convertValue(item.getId(IObjRef.PRIMARY_KEY_INDEX), null);
+                Object version;
+                if (versionField != null) {
+                    version = versionConverter.convertValue(item.getVersion(), null);
                 } else {
-                    var itemIdArray = (Object[]) itemId;
-                    id = compositeIdFactory.createCompositeId(metaData, IObjRef.PRIMARY_KEY_INDEX, itemIdArray);
+                    version = null;
                 }
-                var version = versionField != null ? conversionHelper.convertValueToType(versionTypeOfObject, item.getVersion()) : null;
-
                 if (id == null || versionField != null && version == null) {
                     throw new IllegalStateException("Retrieved row with either null-id or null-version from table '" + table.getMetaData().getName() + "'. This is a fatal database state");
                 }
@@ -749,7 +742,7 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
 
                         var definedByCursorIndex = primitiveIndexToDefinedByCursorField[primitiveIndex];
                         if (definedByCursorIndex != -1) {
-                            Object definedByValue = cursorValues[definedByCursorIndex];
+                            var definedByValue = cursorValues[definedByCursorIndex];
                             expectedType = conversionHelper.convertValueToType(Class.class, definedByValue);
                         }
 
@@ -932,6 +925,27 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
                 relations[a] = relationArray;
             }
         }
+    }
+
+    private IPreparedConverter prepareIdsFromEntityMetaDataConverter(IEntityMetaData metaData, int idIndex, Collection<?> ids) {
+        var idMember = metaData.getIdMemberByIdIndex(idIndex);
+        if (idMember instanceof CompositeIdMember || ids.size() == 0) {
+            return (value, additionalInformation) -> value;
+        }
+        return conversionHelper.prepareConverter(idMember.getElementType());
+    }
+
+    private List<Object> prepareIdsFromEntityMetaData(IEntityMetaData metaData, int idIndex, Collection<?> ids) {
+        var idMember = metaData.getIdMemberByIdIndex(idIndex);
+        if (idMember instanceof CompositeIdMember || ids.size() == 0) {
+            return List.of();
+        }
+        var convertedIds = new ArrayList<>(ids.size());
+        var preparedConverter = conversionHelper.prepareConverter(idMember.getElementType());
+        for (var id : ids) {
+            convertedIds.add(preparedConverter.convertValue(id, null));
+        }
+        return convertedIds;
     }
 
     protected void createMappingIndexes(ICursor cursor, int[] cursorFieldToPrimitiveIndex, int[] primitiveIndexToDefinedByCursorField, ITable table, IDirectedLink[] standaloneDirectedLinks,

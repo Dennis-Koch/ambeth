@@ -20,14 +20,6 @@ limitations under the License.
  * #L%
  */
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertSame;
-
-import java.util.Arrays;
-
-import org.junit.Test;
-
 import com.koch.ambeth.cache.rootcachevalue.RootCacheValue;
 import com.koch.ambeth.cache.transfer.LoadContainer;
 import com.koch.ambeth.informationbus.persistence.setup.SQLData;
@@ -40,116 +32,117 @@ import com.koch.ambeth.merge.transfer.ObjRef;
 import com.koch.ambeth.model.Material;
 import com.koch.ambeth.service.ProcessServiceTestModule;
 import com.koch.ambeth.service.config.ServiceConfigurationConstants;
-import com.koch.ambeth.service.merge.model.IObjRef;
 import com.koch.ambeth.testutil.AbstractInformationBusWithPersistenceTest;
 import com.koch.ambeth.testutil.TestModule;
 import com.koch.ambeth.testutil.TestProperties;
 import com.koch.ambeth.util.ParamChecker;
-import com.koch.ambeth.util.collections.IList;
+import org.junit.Test;
+
+import java.util.Arrays;
+
+import static org.junit.Assert.*;
 
 @SQLStructure("ChildCacheDirectObjRefTest_structure.sql")
 @SQLData("ChildCacheDirectObjRefTest_data.sql")
 @TestModule(ProcessServiceTestModule.class)
 @TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "orm.xml")
 public class ChildCacheDirectObjRefTest extends AbstractInformationBusWithPersistenceTest {
-	protected ICache fixture;
+    protected ICache fixture;
 
-	@Override
-	public void afterPropertiesSet() throws Throwable {
-		super.afterPropertiesSet();
+    @Override
+    public void afterPropertiesSet() throws Throwable {
+        super.afterPropertiesSet();
 
-		ParamChecker.assertNotNull(fixture, "cache");
-	}
+        ParamChecker.assertNotNull(fixture, "cache");
+    }
 
-	public void setFixture(ICache fixture) {
-		this.fixture = fixture;
-	}
+    public void setFixture(ICache fixture) {
+        this.fixture = fixture;
+    }
 
-	@Test
-	public void testGetObject_ObjRef_normal() {
-		IObjRef ori = new ObjRef(Material.class, 1, 1);
-		Material actual = (Material) fixture.getObject(ori, CacheDirective.none());
-		assertNotNull(actual);
-		assertEquals(1, actual.getId());
-	}
+    @Test
+    public void testGetObject_ObjRef_normal() {
+        var ori = new ObjRef(Material.class, 1, 1);
+        var actual = (Material) fixture.getObject(ori, CacheDirective.none());
+        assertNotNull(actual);
+        assertEquals(1, actual.getId());
+    }
 
-	@Test
-	public void testGetObject_ObjRef_CacheValue() {
-		IObjRef ori = new ObjRef(Material.class, 1, 1);
-		RootCacheValue actual =
-				(RootCacheValue) fixture.getObject(ori, CacheDirective.cacheValueResult());
-		assertNotNull(actual);
-		assertEquals(1, actual.getId());
-	}
+    @Test
+    public void testGetObject_ObjRef_CacheValue() {
+        var ori = new ObjRef(Material.class, 1, 1);
+        var actual = (RootCacheValue) fixture.getObject(ori, CacheDirective.cacheValueResult());
+        assertNotNull(actual);
+        assertEquals(1, actual.getId());
+    }
 
-	@Test
-	public void testGetObject_ObjRef_LoadContainer() {
-		IObjRef ori = new ObjRef(Material.class, 1, 1);
-		LoadContainer actual =
-				(LoadContainer) fixture.getObject(ori, CacheDirective.loadContainerResult());
-		assertNotNull(actual);
-		assertEquals(1, actual.getReference().getId());
-	}
+    @Test
+    public void testGetObject_ObjRef_LoadContainer() {
+        var ori = new ObjRef(Material.class, 1, 1);
+        var actual = (LoadContainer) fixture.getObject(ori, CacheDirective.loadContainerResult());
+        assertNotNull(actual);
+        assertEquals(1, actual.getReference().getId());
+    }
 
-	@Test
-	public void testGetObject_DirectObjRef_normal() {
-		IDirectObjRef dori = getDORI();
-		Material actual = (Material) fixture.getObject(dori, CacheDirective.none());
-		assertNotNull(actual);
-		assertSame(dori.getDirect(), actual);
-	}
+    @Test
+    public void testGetObject_DirectObjRef_normal() {
+        var dori = getDORI();
+        var actual = (Material) fixture.getObject(dori, CacheDirective.none());
+        assertNotNull(actual);
+        assertSame(dori.getDirect(), actual);
+    }
 
-	@Test(expected = IllegalArgumentException.class)
-	public void testGetObject_DirectObjRef_CacheValue() {
-		IObjRef dori = getDORI();
-		fixture.getObject(dori, CacheDirective.cacheValueResult());
-	}
+    @Test(expected = IllegalArgumentException.class)
+    public void testGetObject_DirectObjRef_CacheValue() {
+        var dori = getDORI();
+        fixture.getObject(dori, CacheDirective.cacheValueResult());
+    }
 
-	@Test(expected = IllegalArgumentException.class)
-	public void testGetObject_DirectObjRef_LoadContainer() {
-		IObjRef dori = getDORI();
-		fixture.getObject(dori, CacheDirective.loadContainerResult());
-	}
+    @Test(expected = IllegalArgumentException.class)
+    public void testGetObject_DirectObjRef_LoadContainer() {
+        var dori = getDORI();
+        fixture.getObject(dori, CacheDirective.loadContainerResult());
+    }
 
-	@Test
-	public void testGetObjects_normal() {
-		IObjRef ori = new ObjRef(Material.class, 1, 1);
-		IDirectObjRef dori = getDORI();
+    @Test
+    public void testGetObjects_normal() {
+        var ori = new ObjRef(Material.class, 1, 1);
+        var dori = getDORI();
 
-		IList<Object> actuals = fixture.getObjects(Arrays.asList(ori, dori), CacheDirective.none());
+        var actuals = fixture.getObjects(Arrays.asList(ori, dori), CacheDirective.none());
 
-		assertNotNull(actuals);
-		assertEquals(2, actuals.size());
+        assertNotNull(actuals);
+        assertEquals(2, actuals.size());
 
-		Material actual = (Material) actuals.get(0);
-		assertNotNull(actual);
-		assertEquals(1, actual.getId());
+        Material actual = (Material) actuals.get(0);
+        assertNotNull(actual);
+        assertEquals(1, actual.getId());
 
-		actual = (Material) actuals.get(1);
-		assertNotNull(actual);
-		assertSame(dori.getDirect(), actual);
-	}
+        actual = (Material) actuals.get(1);
+        assertNotNull(actual);
+        assertSame(dori.getDirect(), actual);
+    }
 
-	@Test(expected = IllegalArgumentException.class)
-	public void testGetObjects_CacheValue() {
-		IObjRef ori = new ObjRef(Material.class, 1, 1);
-		IObjRef dori = getDORI();
+    @Test(expected = IllegalArgumentException.class)
+    public void testGetObjects_CacheValue() {
+        var ori = new ObjRef(Material.class, 1, 1);
+        var dori = getDORI();
 
-		fixture.getObjects(Arrays.asList(ori, dori), CacheDirective.cacheValueResult());
-	}
+        fixture.getObjects(Arrays.asList(ori, dori), CacheDirective.cacheValueResult());
+    }
 
-	@Test(expected = IllegalArgumentException.class)
-	public void testGetObjects_LoadContainer() {
-		IObjRef ori = new ObjRef(Material.class, 1, 1);
-		IObjRef dori = getDORI();
+    @Test(expected = IllegalArgumentException.class)
+    public void testGetObjects_LoadContainer() {
+        var ori = new ObjRef(Material.class, 1, 1);
+        var dori = getDORI();
 
-		fixture.getObjects(Arrays.asList(ori, dori), CacheDirective.loadContainerResult());
-	}
+        fixture.getObjects(Arrays.asList(ori, dori), CacheDirective.loadContainerResult());
+    }
 
-	protected IDirectObjRef getDORI() {
-		Material newMaterial = entityFactory.createEntity(Material.class);
-		newMaterial.setBuid("direct buid");
-		IDirectObjRef dori = new DirectObjRef(Material.class, newMaterial);
-		return dori;
-	}
+    protected IDirectObjRef getDORI() {
+        var newMaterial = entityFactory.createEntity(Material.class);
+        newMaterial.setBuid("direct buid");
+        var dori = new DirectObjRef(Material.class, newMaterial);
+        return dori;
+    }
 }

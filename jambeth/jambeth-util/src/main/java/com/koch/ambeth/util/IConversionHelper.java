@@ -48,7 +48,5 @@ public abstract class IConversionHelper {
      */
     public abstract <T> T convertValueToType(Class<T> expectedType, Object value, Object additionalInformation);
 
-    public abstract <T> IPreparedConverter<T> prepareConverter(Class<T> expectedType, Object exemplaryValue);
-
-    public abstract <T> IPreparedConverter<T> prepareConverter(Class<T> expectedType, Object exemplaryValue, Object exemplaryAdditionalInformation);
+    public abstract <T> IPreparedConverter<T> prepareConverter(Class<T> expectedType);
 }

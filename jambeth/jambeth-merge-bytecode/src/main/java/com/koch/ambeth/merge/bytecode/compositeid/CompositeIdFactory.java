@@ -32,7 +32,12 @@ import com.koch.ambeth.merge.metadata.IMemberTypeProvider;
 import com.koch.ambeth.service.merge.model.IEntityMetaData;
 import com.koch.ambeth.service.metadata.PrimitiveMember;
 import com.koch.ambeth.util.IConversionHelper;
+import com.koch.ambeth.util.IPreparedConverter;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+
+import java.lang.reflect.Constructor;
 
 public class CompositeIdFactory implements ICompositeIdFactory, IInitializingBean {
     @Autowired(optional = true)
@@ -77,24 +82,78 @@ public class CompositeIdFactory implements ICompositeIdFactory, IInitializingBea
         return new CompositeIdMember(entityType, compositeIdType, nameSB.toString(), idMembers, memberTypeProvider);
     }
 
+    @Override
+    public IPreparedConverter<?> prepareCompositeIdFactory(IEntityMetaData metaData, CompositeIdMember compositeIdMember) {
+        var conversionHelper = this.conversionHelper;
+        var members = compositeIdMember.getMembers();
+        var idConverters = new IPreparedConverter[members.length];
+        for (int a = members.length; a-- > 0; ) {
+            idConverters[a] = conversionHelper.prepareConverter(members[a].getElementType());
+        }
+        var state = new PreparedCompositeIdFactoryState(compositeIdMember.getRealTypeConstructorAccess(), idConverters);
+        return (value, additionalInformation) -> createCompositeId(state, (Object[]) value);
+    }
+
+    @Override
+    public IPreparedConverter<?> prepareCompositeIdFactory(IEntityMetaData metaData, PrimitiveMember idMember) {
+        if (idMember instanceof CompositeIdMember compositeIdMember) {
+            return prepareCompositeIdFactory(metaData, compositeIdMember);
+        }
+        var preparedConverter = conversionHelper.prepareConverter(idMember.getElementType());
+        return (value, additionalInformation) -> {
+            if (value instanceof Object[] ids) {
+                value = ids[0];
+            }
+            return preparedConverter.convertValue(value, null);
+        };
+    }
+
+    @SneakyThrows
+    protected Object createCompositeId(PreparedCompositeIdFactoryState state, Object[] ids) {
+        var idConverters = state.getIdConverters();
+        for (int a = idConverters.length; a-- > 0; ) {
+            var id = ids[a];
+            var convertedId = idConverters[a].convertValue(id, null);
+            if (id != convertedId) {
+                ids[a] = convertedId;
+            }
+        }
+        return state.getConstructor().newInstance(ids);
+    }
+
     @SneakyThrows
     @Override
-    public Object createCompositeId(IEntityMetaData metaData, PrimitiveMember compositeIdMember, Object... ids) {
-        if (ids.length == 1) {
-            var id = ids[0];
-            return conversionHelper.convertValueToType(compositeIdMember.getRealType(), id);
-        }
+    public Object createCompositeId(IEntityMetaData metaData, CompositeIdMember compositeIdMember, Object... ids) {
         var conversionHelper = this.conversionHelper;
-        var cIdTypeInfoItem = (CompositeIdMember) compositeIdMember;
-        var members = cIdTypeInfoItem.getMembers();
-        for (int a = ids.length; a-- > 0; ) {
+        var members = compositeIdMember.getMembers();
+        for (int a = members.length; a-- > 0; ) {
             var id = ids[a];
             var convertedId = conversionHelper.convertValueToType(members[a].getRealType(), id);
             if (convertedId != id) {
                 ids[a] = convertedId;
             }
         }
-        return cIdTypeInfoItem.getRealTypeConstructorAccess().newInstance(ids);
+        return compositeIdMember.getRealTypeConstructorAccess().newInstance(ids);
+    }
+
+    @SneakyThrows
+    @Override
+    public Object createCompositeId(IEntityMetaData metaData, PrimitiveMember idMember, Object... ids) {
+        if (idMember instanceof CompositeIdMember compositeIdMember) {
+            var conversionHelper = this.conversionHelper;
+            var members = compositeIdMember.getMembers();
+            for (int a = members.length; a-- > 0; ) {
+                var id = ids[a];
+                var convertedId = conversionHelper.convertValueToType(members[a].getRealType(), id);
+                if (convertedId != id) {
+                    ids[a] = convertedId;
+                }
+            }
+            return compositeIdMember.getRealTypeConstructorAccess().newInstance(ids);
+        } else {
+            var id = ids[0];
+            return conversionHelper.convertValueToType(idMember.getRealType(), id);
+        }
     }
 
     @SneakyThrows
@@ -164,5 +223,15 @@ public class CompositeIdFactory implements ICompositeIdFactory, IInitializingBea
             ids[a] = primitiveMembers[compositeIndex[a]].getValue(entity);
         }
         return createCompositeId(metaData, compositeIdMember, ids);
+    }
+
+    @RequiredArgsConstructor
+    public static class PreparedCompositeIdFactoryState {
+
+        @Getter
+        final Constructor<?> constructor;
+
+        @Getter
+        final IPreparedConverter<?>[] idConverters;
     }
 }

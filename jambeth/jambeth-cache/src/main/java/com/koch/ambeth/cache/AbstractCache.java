@@ -591,10 +591,10 @@ public abstract class AbstractCache<V> implements ICache, IInitializingBean, IDi
 
     protected V putIntern(IEntityMetaData metaData, Object obj, Object id, Object version, CacheKey[] alternateCacheKeys, Object[] primitives, IObjRef[][] relations) {
         byte idIndex = ObjRef.PRIMARY_KEY_INDEX;
-        Object cacheValueR = getCacheValueR(metaData, idIndex, id);
-        V cacheValue = getCacheValueFromReference(cacheValueR);
+        var cacheValueR = getCacheValueR(metaData, idIndex, id);
+        var cacheValue = getCacheValueFromReference(cacheValueR);
         if (cacheValue == null) {
-            Class<?> entityType = metaData.getEntityType();
+            var entityType = metaData.getEntityType();
             cacheValue = createCacheValueInstance(metaData, obj);
             cacheValueR = createReference(cacheValue, entityType, idIndex, id);
             id = conversionHelper.convertValueToType(metaData.getIdMember().getRealType(), id);
@@ -607,7 +607,7 @@ public abstract class AbstractCache<V> implements ICache, IInitializingBean, IDi
             // put-request
             return cacheValue;
         } else {
-            CacheKey[] oldAlternateIds = extractAlternateCacheKeys(metaData, primitives);
+            var oldAlternateIds = extractAlternateCacheKeys(metaData, primitives);
             for (int a = oldAlternateIds.length; a-- > 0; ) {
                 removeKeyFromCache(oldAlternateIds[a]);
             }
@@ -625,7 +625,7 @@ public abstract class AbstractCache<V> implements ICache, IInitializingBean, IDi
 
     protected void putAlternateCacheKeysToCache(IEntityMetaData metaData, CacheKey[] alternateCacheKeys, Object cacheValueR) {
         for (int a = alternateCacheKeys.length; a-- > 0; ) {
-            CacheKey alternateCacheKey = alternateCacheKeys[a];
+            var alternateCacheKey = alternateCacheKeys[a];
             if (alternateCacheKey != null) {
                 keyToCacheValueDict.put(alternateCacheKey.getEntityType(), alternateCacheKey.getIdIndex(), alternateCacheKey.getId(), cacheValueR);
             }
@@ -634,16 +634,16 @@ public abstract class AbstractCache<V> implements ICache, IInitializingBean, IDi
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
     protected V getCacheValue(IEntityMetaData metaData, IObjRef objRef, boolean checkVersion) {
-        Object cacheValueR = getCacheValueR(metaData, objRef.getIdNameIndex(), objRef.getId());
-        V cacheValue = getCacheValueFromReference(cacheValueR);
+        var cacheValueR = getCacheValueR(metaData, objRef.getIdNameIndex(), objRef.getId());
+        var cacheValue = getCacheValueFromReference(cacheValueR);
         if (cacheValue == null) {
             return null;
         }
-        Member versionMember = metaData.getVersionMember();
+        var versionMember = metaData.getVersionMember();
         if (checkVersion && versionMember != null && objRef.getVersion() != null) {
-            Object cacheVersion = getVersionOfCacheValue(metaData, cacheValue);
+            var cacheVersion = getVersionOfCacheValue(metaData, cacheValue);
             // Compare operation only works on identical operand types
-            Object requestedVersion = conversionHelper.convertValueToType(versionMember.getElementType(), objRef.getVersion());
+            var requestedVersion = conversionHelper.convertValueToType(versionMember.getElementType(), objRef.getVersion());
 
             if (cacheVersion != null && ((Comparable) cacheVersion).compareTo(requestedVersion) < 0) {
                 // requested version is higher than cached version. So this is a cache miss because of
@@ -655,8 +655,11 @@ public abstract class AbstractCache<V> implements ICache, IInitializingBean, IDi
     }
 
     protected Object getCacheValueR(IEntityMetaData metaData, byte idIndex, Object id) {
+        if (id == null) {
+            throw new IllegalArgumentException("Id must be valid. metaData=" + metaData.getEntityType().getName() + " idIndex=" + idIndex);
+        }
         var idMember = metaData.getIdMemberByIdIndex(idIndex);
-        id = conversionHelper.convertValueToType(idMember.getRealType(), id);
+        id = conversionHelper.convertValueToType(idMember.getElementType(), id);
         return getCacheValueRDirect(metaData, idIndex, id);
     }
 
@@ -667,7 +670,7 @@ public abstract class AbstractCache<V> implements ICache, IInitializingBean, IDi
     }
 
     protected V getCacheValue(IEntityMetaData metaData, byte idIndex, Object id) {
-        Object cacheValueR = getCacheValueR(metaData, idIndex, id);
+        var cacheValueR = getCacheValueR(metaData, idIndex, id);
         return getCacheValueFromReference(cacheValueR);
     }
 
@@ -697,9 +700,9 @@ public abstract class AbstractCache<V> implements ICache, IInitializingBean, IDi
     @Override
     @SuppressWarnings("unchecked")
     public <E> E getObject(Class<E> type, Object... compositeIdParts) {
-        IEntityMetaData metaData = entityMetaDataProvider.getMetaData(type);
-        Object id = compositeIdFactory.createCompositeId(metaData, metaData.getIdMember(), compositeIdParts);
-        ObjRef objRef = new ObjRef(metaData.getEntityType(), id, null);
+        var metaData = entityMetaDataProvider.getMetaData(type);
+        var id = compositeIdFactory.createCompositeId(metaData, metaData.getIdMember(), compositeIdParts);
+        var objRef = new ObjRef(metaData.getEntityType(), id, null);
         return (E) getObject(objRef, CacheDirective.none());
     }
 
@@ -711,16 +714,16 @@ public abstract class AbstractCache<V> implements ICache, IInitializingBean, IDi
     @SuppressWarnings("unchecked")
     @Override
     public <E> E getObject(Class<E> type, Object id, Set<CacheDirective> cacheDirective) {
-        IEntityMetaData metaData = entityMetaDataProvider.getMetaData(type);
-        ObjRef objRef = new ObjRef(metaData.getEntityType(), id, null);
+        var metaData = entityMetaDataProvider.getMetaData(type);
+        var objRef = new ObjRef(metaData.getEntityType(), id, null);
         return (E) getObject(objRef, cacheDirective);
     }
 
     @SuppressWarnings("unchecked")
     @Override
     public <E> E getObject(Class<E> type, String idName, Object id, Set<CacheDirective> cacheDirective) {
-        IEntityMetaData metaData = entityMetaDataProvider.getMetaData(type);
-        ObjRef objRef = new ObjRef(metaData.getEntityType(), metaData.getIdIndexByMemberName(idName), id, null);
+        var metaData = entityMetaDataProvider.getMetaData(type);
+        var objRef = new ObjRef(metaData.getEntityType(), metaData.getIdIndexByMemberName(idName), id, null);
         return (E) getObject(objRef, cacheDirective);
     }
 
@@ -729,9 +732,9 @@ public abstract class AbstractCache<V> implements ICache, IInitializingBean, IDi
         if (oriToGet == null) {
             return null;
         }
-        ArrayList<IObjRef> orisToGet = new ArrayList<>(1);
+        var orisToGet = new ArrayList<IObjRef>(1);
         orisToGet.add(oriToGet);
-        List<Object> objects = getObjects(orisToGet, cacheDirective);
+        var objects = getObjects(orisToGet, cacheDirective);
         if (objects.isEmpty()) {
             return null;
         }
@@ -741,10 +744,10 @@ public abstract class AbstractCache<V> implements ICache, IInitializingBean, IDi
     @SuppressWarnings("unchecked")
     @Override
     public <E> IList<E> getObjects(Class<E> type, Object... ids) {
-        ArrayList<IObjRef> orisToGet = new ArrayList<>(ids.length);
+        var orisToGet = new ArrayList<IObjRef>(ids.length);
         for (int a = 0, size = ids.length; a < size; a++) {
-            Object id = ids[a];
-            ObjRef objRef = new ObjRef(type, ObjRef.PRIMARY_KEY_INDEX, id, null);
+            var id = ids[a];
+            var objRef = new ObjRef(type, ObjRef.PRIMARY_KEY_INDEX, id, null);
             orisToGet.add(objRef);
         }
         return (IList<E>) getObjects(orisToGet, Collections.<CacheDirective>emptySet());
@@ -753,7 +756,7 @@ public abstract class AbstractCache<V> implements ICache, IInitializingBean, IDi
     @SuppressWarnings("unchecked")
     @Override
     public <E> IList<E> getObjects(Class<E> type, List<?> ids) {
-        ArrayList<IObjRef> orisToGet = new ArrayList<>(ids.size());
+        var orisToGet = new ArrayList<IObjRef>(ids.size());
         for (int a = 0, size = ids.size(); a < size; a++) {
             orisToGet.add(new ObjRef(type, ObjRef.PRIMARY_KEY_INDEX, ids.get(a), null));
         }
@@ -762,7 +765,7 @@ public abstract class AbstractCache<V> implements ICache, IInitializingBean, IDi
 
     @Override
     public IList<Object> getObjects(IObjRef[] orisToGetArray, Set<CacheDirective> cacheDirective) {
-        ArrayList<IObjRef> orisToGet = new ArrayList<>(orisToGetArray);
+        var orisToGet = new ArrayList<IObjRef>(orisToGetArray);
         return getObjects(orisToGet, cacheDirective);
     }
 
@@ -783,7 +786,7 @@ public abstract class AbstractCache<V> implements ICache, IInitializingBean, IDi
         if (!weakEntries) {
             return;
         }
-        Lock writeLock = getWriteLock();
+        var writeLock = getWriteLock();
         writeLock.lock();
         try {
             doCleanUpIntern();
@@ -813,7 +816,7 @@ public abstract class AbstractCache<V> implements ICache, IInitializingBean, IDi
     }
 
     public int size() {
-        Lock readLock = getReadLock();
+        var readLock = getReadLock();
         readLock.lock();
         try {
             return keyToCacheValueDict.size();
@@ -823,7 +826,7 @@ public abstract class AbstractCache<V> implements ICache, IInitializingBean, IDi
     }
 
     public void clear() {
-        Lock writeLock = getWriteLock();
+        var writeLock = getWriteLock();
         writeLock.lock();
         try {
             clearIntern();

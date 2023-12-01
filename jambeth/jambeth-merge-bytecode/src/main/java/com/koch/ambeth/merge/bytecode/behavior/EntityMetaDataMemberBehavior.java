@@ -20,10 +20,6 @@ limitations under the License.
  * #L%
  */
 
-import java.util.List;
-
-import org.objectweb.asm.ClassVisitor;
-
 import com.koch.ambeth.bytecode.behavior.AbstractBehavior;
 import com.koch.ambeth.bytecode.behavior.IBytecodeBehavior;
 import com.koch.ambeth.bytecode.behavior.IBytecodeBehaviorState;
@@ -45,103 +41,86 @@ import com.koch.ambeth.service.metadata.IRelationMemberWrite;
 import com.koch.ambeth.service.metadata.Member;
 import com.koch.ambeth.util.typeinfo.IPropertyInfo;
 import com.koch.ambeth.util.typeinfo.IPropertyInfoProvider;
+import org.objectweb.asm.ClassVisitor;
+
+import java.util.List;
 
 public class EntityMetaDataMemberBehavior extends AbstractBehavior {
-	@Autowired
-	protected IBytecodeEnhancer bytecodeEnhancer;
+    @Autowired
+    protected IBytecodeEnhancer bytecodeEnhancer;
 
-	@Autowired
-	protected IEntityMetaDataProvider entityMetaDataProvider;
+    @Autowired
+    protected IEntityMetaDataProvider entityMetaDataProvider;
 
-	@Autowired
-	protected IMemberTypeProvider memberTypeProvider;
+    @Autowired
+    protected IMemberTypeProvider memberTypeProvider;
 
-	@Autowired
-	protected IPropertyInfoProvider propertyInfoProvider;
+    @Autowired
+    protected IPropertyInfoProvider propertyInfoProvider;
 
-	@Override
-	public Class<?>[] getEnhancements() {
-		return new Class<?>[] { IRelationMemberWrite.class, IPrimitiveMemberWrite.class,
-				IEmbeddedMember.class };
-	}
+    @Override
+    public Class<?>[] getEnhancements() {
+        return new Class<?>[] {
+                IRelationMemberWrite.class, IPrimitiveMemberWrite.class, IEmbeddedMember.class
+        };
+    }
 
-	@Override
-	public ClassVisitor extend(ClassVisitor visitor, IBytecodeBehaviorState state,
-			List<IBytecodeBehavior> remainingPendingBehaviors,
-			List<IBytecodeBehavior> cascadePendingBehaviors) {
-		MemberEnhancementHint memberHint = state.getContext(MemberEnhancementHint.class);
-		if (memberHint == null) {
-			return visitor;
-		}
-		RelationMemberEnhancementHint relationMemberHint = state
-				.getContext(RelationMemberEnhancementHint.class);
+    @Override
+    public ClassVisitor extend(ClassVisitor visitor, IBytecodeBehaviorState state, List<IBytecodeBehavior> remainingPendingBehaviors, List<IBytecodeBehavior> cascadePendingBehaviors) {
+        var memberHint = state.getContext(MemberEnhancementHint.class);
+        if (memberHint == null) {
+            return visitor;
+        }
+        var relationMemberHint = state.getContext(RelationMemberEnhancementHint.class);
 
-		String[] memberNameSplit = EmbeddedMember.split(memberHint.getMemberName());
-		if (memberNameSplit.length == 1) {
-			IPropertyInfo[] propertyPath = new IPropertyInfo[1];
-			propertyPath[0] = propertyInfoProvider.getProperty(memberHint.getDeclaringType(),
-					memberHint.getMemberName());
-			if (propertyPath[0] == null) {
-				throw new IllegalArgumentException("Member not found: " + memberHint.getDeclaringType()
-						+ "." + memberHint.getMemberName());
-			}
-			visitor = new EntityMetaDataMemberVisitor(visitor, memberHint.getDeclaringType(),
-					memberHint.getDeclaringType(), memberHint.getMemberName(), entityMetaDataProvider,
-					propertyPath);
-			if (relationMemberHint != null) {
-				visitor = new EntityMetaDataRelationMemberVisitor(visitor, memberHint.getDeclaringType(),
-						memberHint.getMemberName(), propertyPath);
-			}
-			else {
-				visitor = new EntityMetaDataPrimitiveMemberVisitor(visitor, memberHint.getDeclaringType(),
-						memberHint.getMemberName(), propertyPath);
-			}
-			return visitor;
-		}
-		Member[] members = new Member[memberNameSplit.length];
-		Class<?> currType = memberHint.getDeclaringType();
-		IPropertyInfo[] propertyPath = new IPropertyInfo[members.length];
-		StringBuilder sb = new StringBuilder();
-		for (int a = 0, size = memberNameSplit.length; a < size; a++) {
-			propertyPath[a] = propertyInfoProvider.getProperty(currType, memberNameSplit[a]);
-			if (propertyPath[a] == null) {
-				throw new IllegalArgumentException(
-						"Member not found: " + currType + "." + memberNameSplit[a]);
-			}
-			if (a + 1 < memberNameSplit.length) {
-				members[a] = memberTypeProvider.getMember(currType, memberNameSplit[a]);
-			}
-			else if (relationMemberHint != null) {
-				members[a] = memberTypeProvider.getRelationMember(currType, memberNameSplit[a]);
-			}
-			else {
-				members[a] = memberTypeProvider.getPrimitiveMember(currType, memberNameSplit[a]);
-			}
-			if (a > 0) {
-				sb.append('.');
-			}
-			sb.append(members[a].getName());
-			if (a + 1 < memberNameSplit.length) {
-				currType = bytecodeEnhancer.getEnhancedType(members[a].getRealType(),
-						new EmbeddedEnhancementHint(memberHint.getDeclaringType(), currType, sb.toString()));
-			}
-			else {
-				currType = members[a].getRealType();
-			}
-		}
-		visitor = new EntityMetaDataMemberVisitor(visitor, memberHint.getDeclaringType(),
-				memberHint.getDeclaringType(), memberHint.getMemberName(), entityMetaDataProvider,
-				propertyPath);
-		if (relationMemberHint != null) {
-			visitor = new EntityMetaDataRelationMemberVisitor(visitor, memberHint.getDeclaringType(),
-					memberHint.getMemberName(), propertyPath);
-		}
-		else {
-			visitor = new EntityMetaDataPrimitiveMemberVisitor(visitor, memberHint.getDeclaringType(),
-					memberHint.getMemberName(), propertyPath);
-		}
-		visitor = new EntityMetaDataEmbeddedMemberVisitor(visitor, memberHint.getDeclaringType(),
-				memberHint.getMemberName(), members);
-		return visitor;
-	}
+        var memberNameSplit = EmbeddedMember.split(memberHint.getMemberName());
+        if (memberNameSplit.length == 1) {
+            var propertyPath = new IPropertyInfo[1];
+            propertyPath[0] = propertyInfoProvider.getProperty(memberHint.getDeclaringType(), memberHint.getMemberName());
+            if (propertyPath[0] == null) {
+                throw new IllegalArgumentException("Member not found: " + memberHint.getDeclaringType() + "." + memberHint.getMemberName());
+            }
+            visitor = new EntityMetaDataMemberVisitor(visitor, memberHint.getDeclaringType(), memberHint.getDeclaringType(), memberHint.getMemberName(), entityMetaDataProvider, propertyPath);
+            if (relationMemberHint != null) {
+                visitor = new EntityMetaDataRelationMemberVisitor(visitor, memberHint.getDeclaringType(), memberHint.getMemberName(), propertyPath);
+            } else {
+                visitor = new EntityMetaDataPrimitiveMemberVisitor(visitor, memberHint.getDeclaringType(), memberHint.getMemberName(), propertyPath);
+            }
+            return visitor;
+        }
+        var members = new Member[memberNameSplit.length];
+        var currType = memberHint.getDeclaringType();
+        var propertyPath = new IPropertyInfo[members.length];
+        var sb = new StringBuilder();
+        for (int a = 0, size = memberNameSplit.length; a < size; a++) {
+            propertyPath[a] = propertyInfoProvider.getProperty(currType, memberNameSplit[a]);
+            if (propertyPath[a] == null) {
+                throw new IllegalArgumentException("Member not found: " + currType + "." + memberNameSplit[a]);
+            }
+            if (a + 1 < memberNameSplit.length) {
+                members[a] = memberTypeProvider.getMember(currType, memberNameSplit[a]);
+            } else if (relationMemberHint != null) {
+                members[a] = memberTypeProvider.getRelationMember(currType, memberNameSplit[a]);
+            } else {
+                members[a] = memberTypeProvider.getPrimitiveMember(currType, memberNameSplit[a]);
+            }
+            if (a > 0) {
+                sb.append('.');
+            }
+            sb.append(members[a].getName());
+            if (a + 1 < memberNameSplit.length) {
+                currType = bytecodeEnhancer.getEnhancedType(members[a].getRealType(), new EmbeddedEnhancementHint(memberHint.getDeclaringType(), currType, sb.toString()));
+            } else {
+                currType = members[a].getRealType();
+            }
+        }
+        visitor = new EntityMetaDataMemberVisitor(visitor, memberHint.getDeclaringType(), memberHint.getDeclaringType(), memberHint.getMemberName(), entityMetaDataProvider, propertyPath);
+        if (relationMemberHint != null) {
+            visitor = new EntityMetaDataRelationMemberVisitor(visitor, memberHint.getDeclaringType(), memberHint.getMemberName(), propertyPath);
+        } else {
+            visitor = new EntityMetaDataPrimitiveMemberVisitor(visitor, memberHint.getDeclaringType(), memberHint.getMemberName(), propertyPath);
+        }
+        visitor = new EntityMetaDataEmbeddedMemberVisitor(visitor, memberHint.getDeclaringType(), memberHint.getMemberName(), members);
+        return visitor;
+    }
 }

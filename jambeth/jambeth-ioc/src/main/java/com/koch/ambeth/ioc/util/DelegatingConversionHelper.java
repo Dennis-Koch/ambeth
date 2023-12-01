@@ -127,12 +127,19 @@ public class DelegatingConversionHelper extends IConversionHelper implements IIn
     }
 
     @Override
-    public <T> IPreparedConverter<T> prepareConverter(Class<T> expectedType, Object exemplaryValue) {
-        return prepareConverter(expectedType, exemplaryValue, null);
+    public <T> IPreparedConverter<T> prepareConverter(Class<T> expectedType) {
+        var state = new ConversionHelper.PreparedConverterState<T>();
+        return (value, additionalInformation) -> {
+            var preparedConverter = state.preparedConverter;
+            if (preparedConverter == null) {
+                preparedConverter = prepareConverterIntern(expectedType, value, additionalInformation);
+                state.preparedConverter = preparedConverter;
+            }
+            return preparedConverter.convertValue(value, additionalInformation);
+        };
     }
 
-    @Override
-    public <T> IPreparedConverter<T> prepareConverter(Class<T> expectedType, Object exemplaryValue, Object exemplaryAdditionalInformation) {
+    protected <T> IPreparedConverter<T> prepareConverterIntern(Class<T> expectedType, Object exemplaryValue, Object exemplaryAdditionalInformation) {
         if (exemplaryValue == null || expectedType == null) {
             return (value, additionalInformation) -> (T) value;
         }
@@ -141,7 +148,7 @@ public class DelegatingConversionHelper extends IConversionHelper implements IIn
             return (value, additionalInformation) -> (T) value;
         }
         if (expectedType.isPrimitive() && exemplaryValue instanceof Number) {
-            return defaultConversionHelper.prepareConverter(expectedType, exemplaryValue, exemplaryAdditionalInformation);
+            return defaultConversionHelper.prepareConverter(expectedType);
         }
         var dedicatedConverter = converters.getExtension(sourceClass, expectedType);
         if (dedicatedConverter != null) {
@@ -173,8 +180,7 @@ public class DelegatingConversionHelper extends IConversionHelper implements IIn
             }
         }
         if (!expectedType.isArray() || exemplaryValue == null) {
-            var defaultConversionHelper = this.defaultConversionHelper;
-            return (source, additionalInformation) -> defaultConversionHelper.convertValueToType(expectedType, source, additionalInformation);
+            return defaultConversionHelper.prepareConverter(expectedType);
         }
         var expectedComponentType = expectedType.getComponentType();
         if (exemplaryValue.getClass().isArray()) {

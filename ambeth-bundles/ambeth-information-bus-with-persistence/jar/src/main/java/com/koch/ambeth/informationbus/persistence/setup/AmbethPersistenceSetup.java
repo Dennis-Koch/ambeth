@@ -301,7 +301,7 @@ public class AmbethPersistenceSetup implements Closeable {
             }
         }
         command = connectionDialect.prepareCommand(command);
-        if (command == null || command.length() == 0) {
+        if (command == null || command.isEmpty()) {
             return;
         }
         int loopCount = ((Integer) options.get("loop")).intValue();
@@ -594,7 +594,7 @@ public class AmbethPersistenceSetup implements Closeable {
         return true;
     }
 
-    private void ensureSchemaEmpty(final Connection conn) throws SQLException {
+    private void ensureSchemaEmpty(Connection conn) throws SQLException {
         var schemaNames = getSchemaNames();
         if (!getOrCreateSchemaContext().getService(IConnectionTestDialect.class).isEmptySchema(conn)) {
             truncateMainSchema(conn, schemaNames[0]);
@@ -613,7 +613,7 @@ public class AmbethPersistenceSetup implements Closeable {
             return;
         }
         var conn = getConnection();
-        boolean success = false;
+        var success = false;
         try {
             var rollback = getOrCreateSchemaContext().getService(IConnectionDialect.class).disableConstraints(conn, getSchemaNames());
             for (var schemaRunnable : schemaRunnables) {
@@ -934,9 +934,9 @@ public class AmbethPersistenceSetup implements Closeable {
         truncateAllTablesExplicitlyGiven(conn, getConfiguredExternalTableNames(getAnnotatedType()));
 
         if (schemaNames != null) {
-            boolean truncateOnClassDemanded = isTruncateOnClassDemanded();
+            var truncateOnClassDemanded = isTruncateOnClassDemanded();
             for (int i = schemaNames.length; i-- > 1; ) {
-                String schemaName = schemaNames[i];
+                var schemaName = schemaNames[i];
                 if (skipEmptyCheck || !checkAdditionalSchemaEmpty(conn, schemaName)) {
                     if (truncateOnClassDemanded) {
                         truncateAllTablesBySchema(conn, schemaName);
@@ -954,24 +954,20 @@ public class AmbethPersistenceSetup implements Closeable {
      * @throws SQLException
      */
     protected void truncateAllTablesBySchema(final Connection conn, final String... schemaNames) throws SQLException {
-        final IConnectionDialect connectionDialect = getOrCreateSchemaContext().getService(IConnectionDialect.class);
-        List<String> allTableNames = connectionDialect.getAllFullqualifiedTableNames(conn, schemaNames);
+        var connectionDialect = getOrCreateSchemaContext().getService(IConnectionDialect.class);
+        var allTableNames = connectionDialect.getAllFullqualifiedTableNames(conn, schemaNames);
         if (allTableNames.isEmpty()) {
             return;
         }
-        final List<String> sql = new ArrayList<>();
+        var sql = new ArrayList<String>();
 
         for (int i = allTableNames.size(); i-- > 0; ) {
-            String tableName = allTableNames.get(i);
+            var tableName = allTableNames.get(i);
             sql.add(connectionDialect.buildClearTableSQL(tableName));
         }
-        executeWithDeferredConstraints(new ISchemaRunnable() {
-
-            @Override
-            public void executeSchemaSql(final Connection connection) throws Exception {
-                executeScript(sql, connection, false, null, null, connectionDialect, getLog(), doExecuteStrict);
-                sql.clear();
-            }
+        executeWithDeferredConstraints(connection -> {
+            executeScript(sql, connection, false, null, null, connectionDialect, getLog(), doExecuteStrict);
+            sql.clear();
         });
     }
 
@@ -986,25 +982,23 @@ public class AmbethPersistenceSetup implements Closeable {
         if (explicitTableNames == null || explicitTableNames.length == 0) {
             return;
         }
-        final IConnectionDialect connectionDialect = getOrCreateSchemaContext().getService(IConnectionDialect.class);
-        final List<String> sql = new ArrayList<>();
+        var connectionDialect = getOrCreateSchemaContext().getService(IConnectionDialect.class);
+        var sql = new ArrayList<String>();
         for (int i = explicitTableNames.length; i-- > 0; ) {
-            String tableName = explicitTableNames[i];
+            var tableName = explicitTableNames[i];
             sql.add(connectionDialect.buildClearTableSQL(tableName));
         }
-        executeWithDeferredConstraints(new ISchemaRunnable() {
-
-            @Override
-            public void executeSchemaSql(final Connection connection) throws Exception {
-                executeScript(sql, connection, false, null, null, connectionDialect, getLog(), doExecuteStrict);
-                sql.clear();
-            }
+        executeWithDeferredConstraints(connection -> {
+            executeScript(sql, connection, false, null, null, connectionDialect, getLog(), doExecuteStrict);
+            sql.clear();
         });
     }
 
     private void truncateMainSchema(final Connection conn, String mainSchemaName) throws SQLException {
         if (hasStructureAnnotation()) {
-            getOrCreateSchemaContext().getService(IConnectionTestDialect.class).dropAllSchemaContent(conn, mainSchemaName);
+            var schemaContext = getOrCreateSchemaContext();
+            schemaContext.getService(IConnectionTestDialect.class).dropAllSchemaContent(conn, mainSchemaName);
+            schemaContext.getService(IConnectionDialect.class).preProcessConnection(conn, null, true);
         } else {
             if (isTruncateOnClassDemanded()) {
                 truncateAllTablesBySchema(conn, null, mainSchemaName);

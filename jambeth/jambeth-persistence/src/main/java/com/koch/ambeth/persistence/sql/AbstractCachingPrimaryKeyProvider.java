@@ -154,7 +154,7 @@ public abstract class AbstractCachingPrimaryKeyProvider implements IPrimaryKeyPr
         if (newIds.size() < requestCount) {
             throw new IllegalStateException("Requested at least " + requestCount + " ids from sequence '" + sequenceName + "' but retrieved only " + newIds.size());
         }
-        var preparedConverter = idType != null && newIds.size() > 0 ? conversionHelper.prepareConverter(idType, newIds.get(0)) : null;
+        var preparedConverter = idType != null && !newIds.isEmpty() ? conversionHelper.prepareConverter(idType) : null;
         for (int a = 0; a < count; a++) {
             var id = newIds.get(a);
             id = preparedConverter != null ? preparedConverter.convertValue(id, null) : id;

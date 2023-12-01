@@ -20,8 +20,8 @@ import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.IObjRefHelper;
 import com.koch.ambeth.merge.cache.CacheDirective;
 import com.koch.ambeth.merge.cache.ICache;
-import com.koch.ambeth.merge.cache.ICacheContext;
 import com.koch.ambeth.merge.cache.ICacheFactory;
+import com.koch.ambeth.merge.compositeid.ICompositeIdFactory;
 import com.koch.ambeth.merge.metadata.IObjRefFactory;
 import com.koch.ambeth.merge.proxy.IEntityMetaDataHolder;
 import com.koch.ambeth.merge.proxy.IObjRefContainer;
@@ -100,11 +100,11 @@ public class AuditEntryVerifier implements IAuditEntryVerifier, IVerifyOnLoad, I
     @Autowired
     protected ICache cache;
     @Autowired
-    protected ICacheContext cacheContext;
-    @Autowired
     protected ICacheFactory cacheFactory;
     @Autowired
     protected IClassCache classCache;
+    @Autowired
+    protected ICompositeIdFactory compositeIdFactory;
     @Autowired
     protected IConversionHelper conversionHelper;
     @Autowired
@@ -916,7 +916,7 @@ public class AuditEntryVerifier implements IAuditEntryVerifier, IVerifyOnLoad, I
             }
 
             if (checkConfiguration) {
-                IAuditConfiguration auditConfiguration = auditConfigurationProvider.getAuditConfiguration(metaData.getEntityType());
+                var auditConfiguration = auditConfigurationProvider.getAuditConfiguration(metaData.getEntityType());
                 if (!auditConfiguration.isAuditActive()) {
                     continue;
                 }
@@ -967,25 +967,23 @@ public class AuditEntryVerifier implements IAuditEntryVerifier, IVerifyOnLoad, I
                     continue;
                 }
                 var metaData = entry.getKey();
-                var idRealType = metaData.getIdMember().getRealType();
-                var alternateIdMembers = metaData.getAlternateIdMembers();
                 var table = database.getTableByType(metaData.getEntityType());
+                var idConverter = compositeIdFactory.prepareCompositeIdFactory(metaData, metaData.getIdMember());
+                var preparedObjRefFactory = objRefFactory.prepareObjRefFactory(metaData.getEntityType(), ObjRef.PRIMARY_KEY_INDEX);
                 for (var indexEntry : indexToObjRefsMap) {
                     var idIndex = indexEntry.getKey().intValue();
-                    var alternateIdMember = alternateIdMembers[idIndex];
-                    var alternateIdRealType = alternateIdMember.getRealType();
+                    var alternateIdConverter = compositeIdFactory.prepareCompositeIdFactory(metaData, metaData.getIdMemberByIdIndex(idIndex));
                     var alternateIdObjRefs = indexEntry.getValue();
                     var alternateIdToVersionMap = HashMap.create(alternateIdObjRefs.size());
                     for (int a = alternateIdObjRefs.size(); a-- > 0; ) {
                         var alternateIdObjRef = alternateIdObjRefs.get(a);
                         alternateIdToVersionMap.put(alternateIdObjRef.getId(), alternateIdObjRef.getVersion());
                     }
-                    var preparedObjRefFactory = objRefFactory.prepareObjRefFactory(metaData.getEntityType(), ObjRef.PRIMARY_KEY_INDEX);
                     var cursor = table.selectVersion(idIndex, alternateIdObjRefs);
                     try {
                         for (var item : cursor) {
-                            var id = conversionHelper.convertValueToType(idRealType, item.getId());
-                            var alternateId = conversionHelper.convertValueToType(alternateIdRealType, item.getId(idIndex));
+                            var id = idConverter.convertValue(item.getId(), null);
+                            var alternateId = alternateIdConverter.convertValue(item.getId(idIndex), null);
                             var version = alternateIdToVersionMap.get(alternateId);
 
                             var objRef = preparedObjRefFactory.createObjRef(id, version);
@@ -1010,7 +1008,7 @@ public class AuditEntryVerifier implements IAuditEntryVerifier, IVerifyOnLoad, I
 
     protected void debugToLoad(List<IObjRef> orisToLoad, StringBuilder sb) {
         var count = orisToLoad.size();
-        sb.append("List<IObjRef> : ").append(count).append(" item");
+        sb.append("List<").append(IObjRef.class.getSimpleName()).append("> : ").append(count).append(" item");
         if (count != 1) {
             sb.append('s');
         }

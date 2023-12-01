@@ -21,7 +21,6 @@ limitations under the License.
  */
 
 import com.koch.ambeth.cache.collections.CacheHashMap;
-import com.koch.ambeth.cache.collections.CacheMapEntry;
 import com.koch.ambeth.cache.config.CacheConfigurationConstants;
 import com.koch.ambeth.cache.proxy.IValueHolderContainer;
 import com.koch.ambeth.cache.util.ICachePathHelper;
@@ -45,7 +44,6 @@ import com.koch.ambeth.merge.proxy.IDefaultCollection;
 import com.koch.ambeth.merge.proxy.IObjRefContainer;
 import com.koch.ambeth.merge.security.ISecurityActivation;
 import com.koch.ambeth.merge.transfer.ObjRef;
-import com.koch.ambeth.merge.util.ICacheHelper;
 import com.koch.ambeth.service.cache.model.ILoadContainer;
 import com.koch.ambeth.service.cache.model.IObjRelation;
 import com.koch.ambeth.service.cache.model.IObjRelationResult;
@@ -56,7 +54,6 @@ import com.koch.ambeth.service.metadata.RelationMember;
 import com.koch.ambeth.util.IDisposable;
 import com.koch.ambeth.util.IParamHolder;
 import com.koch.ambeth.util.ListUtil;
-import com.koch.ambeth.util.Lock;
 import com.koch.ambeth.util.ParamHolder;
 import com.koch.ambeth.util.annotation.CascadeLoadMode;
 import com.koch.ambeth.util.collections.ArrayList;
@@ -285,23 +282,23 @@ public class ChildCache extends AbstractCache<Object> implements ICacheIntern, I
         if (cacheDirective == null) {
             cacheDirective = Collections.<CacheDirective>emptySet();
         }
-        IEventQueue eventQueue = this.eventQueue;
+        var eventQueue = this.eventQueue;
         if (eventQueue != null) {
             eventQueue.pause(this);
         }
         try {
-            ICacheModification cacheModification = this.cacheModification;
-            boolean oldCacheModificationValue = cacheModification.isActive();
-            boolean acquireSuccess = acquireHardRefTLIfNotAlready(orisToGet.size());
+            var cacheModification = this.cacheModification;
+            var oldCacheModificationValue = cacheModification.isActive();
+            var acquireSuccess = acquireHardRefTLIfNotAlready(orisToGet.size());
             cacheModification.setActive(true);
             try {
                 if (cacheDirective.contains(CacheDirective.LoadContainerResult) || cacheDirective.contains(CacheDirective.CacheValueResult)) {
                     return parent.getObjects(orisToGet, this, cacheDirective);
                 }
-                ParamHolder<Boolean> doAnotherRetry = new ParamHolder<>();
+                var doAnotherRetry = new ParamHolder<Boolean>();
                 while (true) {
                     doAnotherRetry.setValue(Boolean.FALSE);
-                    IList<Object> result = getObjectsRetry(orisToGet, cacheDirective, doAnotherRetry);
+                    var result = getObjectsRetry(orisToGet, cacheDirective, doAnotherRetry);
                     if (!Boolean.TRUE.equals(doAnotherRetry.getValue())) {
                         return result;
                     }
@@ -318,7 +315,7 @@ public class ChildCache extends AbstractCache<Object> implements ICacheIntern, I
     }
 
     protected IList<Object> getObjectsRetry(List<IObjRef> orisToGet, Set<CacheDirective> cacheDirective, IParamHolder<Boolean> doAnotherRetry) {
-        Lock readLock = getReadLock();
+        var readLock = getReadLock();
         if (cacheDirective.contains(CacheDirective.FailEarly)) {
             readLock.lock();
             try {
@@ -327,8 +324,8 @@ public class ChildCache extends AbstractCache<Object> implements ICacheIntern, I
                 readLock.unlock();
             }
         }
-        ArrayList<IObjRef> orisToLoad = new ArrayList<>();
-        int cacheVersionBeforeLongTimeAction = waitForConcurrentReadFinish(orisToGet, orisToLoad);
+        var orisToLoad = new ArrayList<IObjRef>();
+        var cacheVersionBeforeLongTimeAction = waitForConcurrentReadFinish(orisToGet, orisToLoad);
         if (orisToLoad.isEmpty()) {
             // Everything found in the cache. We STILL hold the readlock so we can immediately create the
             // result
@@ -339,7 +336,7 @@ public class ChildCache extends AbstractCache<Object> implements ICacheIntern, I
                 readLock.unlock();
             }
         }
-        Set<CacheDirective> parentCacheDirective = CacheDirective.none();
+        var parentCacheDirective = CacheDirective.none();
         if (cacheDirective.contains(CacheDirective.FailInCacheHierarchy)) {
             parentCacheDirective = CacheDirective.failEarly();
         }
@@ -348,7 +345,7 @@ public class ChildCache extends AbstractCache<Object> implements ICacheIntern, I
         // added by the parent to this cache
         readLock.lock();
         try {
-            int cacheVersionAfterLongTimeAction = changeVersion;
+            var cacheVersionAfterLongTimeAction = changeVersion;
             if (cacheVersionAfterLongTimeAction != cacheVersionBeforeLongTimeAction) {
                 // Another thread did some changes (possibly DataChange-Remove actions)
                 // We have to ensure that our result-scope is still valid
@@ -363,17 +360,17 @@ public class ChildCache extends AbstractCache<Object> implements ICacheIntern, I
     }
 
     protected int waitForConcurrentReadFinish(List<IObjRef> orisToGet, List<IObjRef> orisToLoad) {
-        Lock readLock = getReadLock();
-        boolean releaseReadLock = true;
+        var readLock = getReadLock();
+        var releaseReadLock = true;
         HashSet<IObjRef> objRefsAlreadyQueried = null;
         readLock.lock();
         try {
             for (int a = 0, size = orisToGet.size(); a < size; a++) {
-                IObjRef oriToGet = orisToGet.get(a);
+                var oriToGet = orisToGet.get(a);
                 if (oriToGet == null || oriToGet instanceof IDirectObjRef && ((IDirectObjRef) oriToGet).getDirect() != null) {
                     continue;
                 }
-                Object cacheValue = existsValue(oriToGet);
+                var cacheValue = existsValue(oriToGet);
                 if (cacheValue != null) {
                     // Cache hit, but not relevant at this step, so we continue
                     continue;
@@ -400,12 +397,12 @@ public class ChildCache extends AbstractCache<Object> implements ICacheIntern, I
     }
 
     protected IList<Object> createResult(List<IObjRef> orisToGet, Set<CacheDirective> cacheDirective, boolean checkVersion) {
-        ArrayList<Object> result = new ArrayList<>(orisToGet.size());
+        var result = new ArrayList<>(orisToGet.size());
 
-        boolean returnMisses = cacheDirective.contains(CacheDirective.ReturnMisses);
+        var returnMisses = cacheDirective.contains(CacheDirective.ReturnMisses);
 
         for (int a = 0, size = orisToGet.size(); a < size; a++) {
-            IObjRef oriToGet = orisToGet.get(a);
+            var oriToGet = orisToGet.get(a);
             if (oriToGet == null) {
                 if (returnMisses) {
                     result.add(null);
@@ -413,15 +410,15 @@ public class ChildCache extends AbstractCache<Object> implements ICacheIntern, I
                 continue;
             }
             if (oriToGet instanceof IDirectObjRef) {
-                IDirectObjRef dori = (IDirectObjRef) oriToGet;
-                Object entity = dori.getDirect();
+                var dori = (IDirectObjRef) oriToGet;
+                var entity = dori.getDirect();
                 if (entity != null) {
                     result.add(entity);
                     continue;
                 }
             }
-            IEntityMetaData metaData = entityMetaDataProvider.getMetaData(oriToGet.getRealType());
-            Object cacheValue = getCacheValue(metaData, oriToGet, checkVersion);
+            var metaData = entityMetaDataProvider.getMetaData(oriToGet.getRealType());
+            var cacheValue = getCacheValue(metaData, oriToGet, checkVersion);
             if (cacheValue != null || returnMisses) {
                 result.add(cacheValue);
             }
@@ -473,20 +470,20 @@ public class ChildCache extends AbstractCache<Object> implements ICacheIntern, I
         if (id == null) {
             throw new IllegalArgumentException("Key must be valid: " + primitiveFilledObject);
         }
-        Class<?> entityType = metaData.getEntityType();
-        byte idIndex = ObjRef.PRIMARY_KEY_INDEX;
+        var entityType = metaData.getEntityType();
+        var idIndex = ObjRef.PRIMARY_KEY_INDEX;
         CacheKey[] oldAlternateCacheKeys = null;
         Object cacheValue;
-        Lock writeLock = getWriteLock();
+        var writeLock = getWriteLock();
         writeLock.lock();
         try {
-            Object cacheValueR = getCacheValueR(metaData, idIndex, id);
+            var cacheValueR = getCacheValueR(metaData, idIndex, id);
             cacheValue = getCacheValueFromReference(cacheValueR);
 
             oldAlternateCacheKeys = (CacheKey[]) keyToAlternateIdsMap.get(entityType, idIndex, id);
             if (oldAlternateCacheKeys != null) {
                 for (int a = oldAlternateCacheKeys.length; a-- > 0; ) {
-                    CacheKey alternateCacheKey = oldAlternateCacheKeys[a];
+                    var alternateCacheKey = oldAlternateCacheKeys[a];
                     if (alternateCacheKey != null) {
                         removeKeyFromCache(alternateCacheKey);
                     }
@@ -504,7 +501,7 @@ public class ChildCache extends AbstractCache<Object> implements ICacheIntern, I
 
                 keyToCacheValueDict.put(entityType, idIndex, id, cacheValueR);
             }
-            CacheKey[] newAlternateCacheKeys = oldAlternateCacheKeys;
+            var newAlternateCacheKeys = oldAlternateCacheKeys;
             if (newAlternateCacheKeys == null) {
                 // Allocate new array to hold alternate ids
                 newAlternateCacheKeys = extractAlternateCacheKeys(metaData, parentCacheValueOrArray);
@@ -533,11 +530,11 @@ public class ChildCache extends AbstractCache<Object> implements ICacheIntern, I
 
     @SuppressWarnings("unchecked")
     protected void handleValueHolderContainer(IValueHolderContainer vhc, RelationMember[] relationMembers, IObjRef[][] relations) {
-        ICacheHelper cacheHelper = this.cacheHelper;
-        ICacheIntern parent = this.parent;
+        var cacheHelper = this.cacheHelper;
+        var parent = this.parent;
         for (int relationIndex = relationMembers.length; relationIndex-- > 0; ) {
-            RelationMember relationMember = relationMembers[relationIndex];
-            IObjRef[] relationsOfMember = relations[relationIndex];
+            var relationMember = relationMembers[relationIndex];
+            var relationsOfMember = relations[relationIndex];
 
             if (!CascadeLoadMode.EAGER.equals(relationMember.getCascadeLoadMode())) {
                 if (!vhc.is__Initialized(relationIndex)) {
@@ -555,7 +552,7 @@ public class ChildCache extends AbstractCache<Object> implements ICacheIntern, I
                 vhc.set__Uninitialized(relationIndex, null);
                 continue;
             }
-            Object relationValue = relationMember.getValue(vhc);
+            var relationValue = relationMember.getValue(vhc);
             if (relationsOfMember.length == 0) {
                 if (!relationMember.isToMany()) {
                     if (relationValue != null) {
@@ -579,16 +576,16 @@ public class ChildCache extends AbstractCache<Object> implements ICacheIntern, I
             // Now we have to refresh the current content eagerly
 
             // load entities as if we were an "eager valueholder" here
-            IList<Object> potentialNewItems = parent.getObjects(new ArrayList<IObjRef>(relationsOfMember), this, CacheDirective.none());
+            var potentialNewItems = parent.getObjects(new ArrayList<IObjRef>(relationsOfMember), this, CacheDirective.none());
             if (overwriteToManyRelations) {
-                Object newRelationValue = cacheHelper.convertResultListToExpectedType(potentialNewItems, relationMember.getRealType(), relationMember.getElementType());
+                var newRelationValue = cacheHelper.convertResultListToExpectedType(potentialNewItems, relationMember.getRealType(), relationMember.getElementType());
                 // Set new to-many-relation, even if there has not changed anything in its item content
                 relationMember.setValue(vhc, newRelationValue);
                 continue;
             }
-            List<Object> relationItems = ListUtil.anyToList(relationValue);
+            var relationItems = ListUtil.anyToList(relationValue);
 
-            boolean diff = relationItems.size() != potentialNewItems.size();
+            var diff = relationItems.size() != potentialNewItems.size();
             if (!diff) {
                 for (int b = potentialNewItems.size(); b-- > 0; ) {
                     if (potentialNewItems.get(b) != relationItems.get(b)) {
@@ -603,12 +600,12 @@ public class ChildCache extends AbstractCache<Object> implements ICacheIntern, I
             }
             if (relationValue != null) {
                 // Reuse existing collection
-                Collection<Object> coll = (Collection<Object>) relationValue;
+                var coll = (Collection<Object>) relationValue;
                 coll.clear();
                 coll.addAll(potentialNewItems);
             } else {
                 // We have to create a new empty collection
-                Object newRelationValue = cacheHelper.convertResultListToExpectedType(potentialNewItems, relationMember.getRealType(), relationMember.getElementType());
+                var newRelationValue = cacheHelper.convertResultListToExpectedType(potentialNewItems, relationMember.getRealType(), relationMember.getElementType());
                 relationMember.setValue(vhc, newRelationValue);
             }
         }
@@ -629,8 +626,8 @@ public class ChildCache extends AbstractCache<Object> implements ICacheIntern, I
         if (entityType == null) {
             return null;
         }
-        Object cacheValueR = super.removeKeyFromCache(entityType, idIndex, id);
-        CacheKey[] alternateCacheKeys = (CacheKey[]) keyToAlternateIdsMap.remove(entityType, idIndex, id);
+        var cacheValueR = super.removeKeyFromCache(entityType, idIndex, id);
+        var alternateCacheKeys = (CacheKey[]) keyToAlternateIdsMap.remove(entityType, idIndex, id);
         if (alternateCacheKeys != null) {
             for (int a = alternateCacheKeys.length; a-- > 0; ) {
                 removeKeyFromCache(alternateCacheKeys[a]);
@@ -647,19 +644,19 @@ public class ChildCache extends AbstractCache<Object> implements ICacheIntern, I
     @Override
     public void getContent(final HandleContentDelegate handleContentDelegate) {
         checkNotDisposed();
-        final CacheHashMap keyToInstanceMap = new CacheHashMap(cacheMapEntryTypeProvider);
-        Lock writeLock = getWriteLock();
+        var keyToInstanceMap = new CacheHashMap(cacheMapEntryTypeProvider);
+        var writeLock = getWriteLock();
         writeLock.lock();
         try {
-            for (CacheMapEntry entry : keyToCacheValueDict) {
-                Object cacheValue = getCacheValueFromReference(entry.getValue());
+            for (var entry : keyToCacheValueDict) {
+                var cacheValue = getCacheValueFromReference(entry.getValue());
                 if (cacheValue == null) {
                     continue;
                 }
                 keyToInstanceMap.put(entry.getEntityType(), entry.getIdIndex(), entry.getId(), cacheValue);
             }
-            for (CacheMapEntry entry : keyToInstanceMap) {
-                byte idIndex = entry.getIdIndex();
+            for (var entry : keyToInstanceMap) {
+                var idIndex = entry.getIdIndex();
                 if (idIndex == ObjRef.PRIMARY_KEY_INDEX) {
                     handleContentDelegate.invoke(entry.getEntityType(), idIndex, entry.getId(), entry.getValue());
                 }
@@ -671,8 +668,8 @@ public class ChildCache extends AbstractCache<Object> implements ICacheIntern, I
 
     @Override
     protected void putInternObjRelation(Object cacheValue, IEntityMetaData metaData, IObjRelation objRelation, IObjRef[] relationsOfMember) {
-        int relationIndex = metaData.getIndexByRelationName(objRelation.getMemberName());
-        IObjRefContainer vhc = (IObjRefContainer) cacheValue;
+        var relationIndex = metaData.getIndexByRelationName(objRelation.getMemberName());
+        var vhc = (IObjRefContainer) cacheValue;
         if (ValueHolderState.INIT == vhc.get__State(relationIndex)) {
             // It is not allowed to set ObjRefs for an already initialized relation
             return;
@@ -682,7 +679,7 @@ public class ChildCache extends AbstractCache<Object> implements ICacheIntern, I
 
     @Override
     protected void putInternPersistedEntity(Object entity) {
-        ICacheIntern targetCache = ((IValueHolderContainer) entity).get__TargetCache();
+        var targetCache = ((IValueHolderContainer) entity).get__TargetCache();
         if (targetCache != null) {
             if (targetCache == gcProxy) {
                 return;

@@ -20,10 +20,6 @@ limitations under the License.
  * #L%
  */
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-
-import com.koch.ambeth.ioc.accessor.AccessorClassLoader;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.bytecode.IBytecodeEnhancer;
 import com.koch.ambeth.merge.bytecode.EmbeddedEnhancementHint;
@@ -34,42 +30,33 @@ import com.koch.ambeth.util.typeinfo.FastConstructorAccess;
 import lombok.SneakyThrows;
 
 public class EmbeddedMemberMixin {
-	@Autowired
-	protected IBytecodeEnhancer bytecodeEnhancer;
+    protected final SmartCopyMap<Class<?>, FastConstructorAccess> typeToEmbbeddedParamConstructorMap = new SmartCopyMap<>(0.5f);
+    @Autowired
+    protected IBytecodeEnhancer bytecodeEnhancer;
+    @Autowired(optional = true)
+    protected IBytecodePrinter bytecodePrinter;
 
-	@Autowired(optional = true)
-	protected IBytecodePrinter bytecodePrinter;
+    @SneakyThrows
+    public Object createEmbeddedObject(Class<?> embeddedType, Class<?> entityType, Object parentObject, String memberPath) {
+        var enhancedEmbeddedType = bytecodeEnhancer.getEnhancedType(embeddedType, new EmbeddedEnhancementHint(entityType, parentObject.getClass(), memberPath));
+        var embeddedConstructor = getEmbeddedParamConstructor(enhancedEmbeddedType, parentObject.getClass());
+        var constructorArgs = new Object[] { parentObject };
+        return embeddedConstructor.newInstance(constructorArgs);
+    }
 
-	protected final SmartCopyMap<Class<?>, FastConstructorAccess> typeToEmbbeddedParamConstructorMap = new SmartCopyMap<>(
-			0.5f);
-
-	@SneakyThrows
-	public Object createEmbeddedObject(Class<?> embeddedType, Class<?> entityType,
-			Object parentObject, String memberPath) {
-		var enhancedEmbeddedType = bytecodeEnhancer.getEnhancedType(embeddedType,
-				new EmbeddedEnhancementHint(entityType, parentObject.getClass(), memberPath));
-		var embeddedConstructor = getEmbeddedParamConstructor(enhancedEmbeddedType,
-				parentObject.getClass());
-		var constructorArgs = new Object[] { parentObject };
-		return embeddedConstructor.newInstance(constructorArgs);
-	}
-
-	protected FastConstructorAccess getEmbeddedParamConstructor(Class<?> embeddedType,
-																	Class<?> parentObjectType) {
-		var constructor = typeToEmbbeddedParamConstructorMap.get(embeddedType);
-		if (constructor == null) {
-			try {
-				AccessorClassLoader classLoader = AccessorClassLoader.get(embeddedType);
-				constructor = FastConstructorAccess.get(embeddedType.getConstructor(new Class<?>[] { parentObjectType }));
-			}
-			catch (Throwable e) {
-				if (bytecodePrinter != null) {
-					throw RuntimeExceptionUtil.mask(e, bytecodePrinter.toPrintableBytecode(embeddedType));
-				}
-				throw RuntimeExceptionUtil.mask(e);
-			}
-			typeToEmbbeddedParamConstructorMap.put(embeddedType, constructor);
-		}
-		return constructor;
-	}
+    protected FastConstructorAccess getEmbeddedParamConstructor(Class<?> embeddedType, Class<?> parentObjectType) {
+        var constructor = typeToEmbbeddedParamConstructorMap.get(embeddedType);
+        if (constructor == null) {
+            try {
+                constructor = FastConstructorAccess.get(embeddedType.getConstructor(new Class<?>[] { parentObjectType }));
+            } catch (Throwable e) {
+                if (bytecodePrinter != null) {
+                    throw RuntimeExceptionUtil.mask(e, bytecodePrinter.toPrintableBytecode(embeddedType));
+                }
+                throw RuntimeExceptionUtil.mask(e);
+            }
+            typeToEmbbeddedParamConstructorMap.put(embeddedType, constructor);
+        }
+        return constructor;
+    }
 }

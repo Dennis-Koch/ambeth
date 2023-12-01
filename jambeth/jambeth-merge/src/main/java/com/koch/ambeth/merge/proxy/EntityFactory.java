@@ -20,8 +20,6 @@ limitations under the License.
  * #L%
  */
 
-import java.util.Collection;
-
 import com.koch.ambeth.ioc.IBeanContextAware;
 import com.koch.ambeth.ioc.IServiceContext;
 import com.koch.ambeth.ioc.accessor.IAccessorTypeProvider;
@@ -37,106 +35,96 @@ import com.koch.ambeth.util.ListUtil;
 import com.koch.ambeth.util.collections.SmartCopyMap;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
+import java.util.Collection;
+
 public class EntityFactory extends AbstractEntityFactory {
-	@Autowired
-	protected IAccessorTypeProvider accessorTypeProvider;
+    protected final SmartCopyMap<Class<?>, EntityFactoryConstructor> typeToConstructorMap = new SmartCopyMap<>(0.5f);
+    @Autowired
+    protected IAccessorTypeProvider accessorTypeProvider;
+    @Autowired
+    protected IServiceContext beanContext;
+    @Autowired(optional = true)
+    protected IBytecodePrinter bytecodePrinter;
+    @Autowired
+    protected IBytecodeEnhancer bytecodeEnhancer;
+    @Autowired
+    protected IEntityMetaDataRefresher entityMetaDataRefresher;
+    @Self
+    protected IEntityFactory self;
 
-	@Autowired
-	protected IServiceContext beanContext;
+    @Override
+    public boolean supportsEnhancement(Class<?> enhancementType) {
+        return bytecodeEnhancer.supportsEnhancement(enhancementType);
+    }
 
-	@Autowired(optional = true)
-	protected IBytecodePrinter bytecodePrinter;
+    protected EntityFactoryConstructor getConstructorEntry(Class<?> entityType) {
+        var constructor = typeToConstructorMap.get(entityType);
+        if (constructor == null) {
+            try {
+                var argumentConstructor = accessorTypeProvider.getConstructorType(EntityFactoryWithArgumentConstructor.class, entityType);
+                constructor = new EntityFactoryConstructor() {
+                    @Override
+                    public Object createEntity() {
+                        return argumentConstructor.createEntity(self);
+                    }
+                };
+            } catch (Throwable e) {
+                constructor = accessorTypeProvider.getConstructorType(EntityFactoryConstructor.class, entityType);
+            }
+            typeToConstructorMap.put(entityType, constructor);
+        }
+        return constructor;
+    }
 
-	@Autowired
-	protected IBytecodeEnhancer bytecodeEnhancer;
+    @SuppressWarnings("unchecked")
+    @Override
+    public <T> T createEntity(Class<T> entityType) {
+        var metaData = entityMetaDataProvider.getMetaData(entityType);
+        return (T) createEntityIntern(metaData, true);
+    }
 
-	@Autowired
-	protected IEntityMetaDataRefresher entityMetaDataRefresher;
+    @Override
+    public Object createEntity(IEntityMetaData metaData) {
+        return createEntityIntern(metaData, true);
+    }
 
-	@Self
-	protected IEntityFactory self;
+    @Override
+    public Object createEntityNoEmptyInit(IEntityMetaData metaData) {
+        return createEntityIntern(metaData, false);
+    }
 
-	protected final SmartCopyMap<Class<?>, EntityFactoryConstructor> typeToConstructorMap = new SmartCopyMap<>(
-			0.5f);
+    protected Object createEntityIntern(IEntityMetaData metaData, boolean doEmptyInit) {
+        try {
+            if (metaData.getEnhancedType() == null) {
+                entityMetaDataRefresher.refreshMembers(metaData);
+            }
+            var constructor = getConstructorEntry(metaData.getEnhancedType());
+            var entity = constructor.createEntity();
+            postProcessEntity(entity, metaData, doEmptyInit);
+            return entity;
+        } catch (Throwable e) {
+            if (bytecodePrinter != null) {
+                throw RuntimeExceptionUtil.mask(e, bytecodePrinter.toPrintableBytecode(metaData.getEnhancedType()));
+            }
+            throw RuntimeExceptionUtil.mask(e);
+        }
+    }
 
-	@Override
-	public boolean supportsEnhancement(Class<?> enhancementType) {
-		return bytecodeEnhancer.supportsEnhancement(enhancementType);
-	}
+    protected void postProcessEntity(Object entity, IEntityMetaData metaData, boolean doEmptyInit) {
+        if (entity instanceof IBeanContextAware) {
+            ((IBeanContextAware) entity).setBeanContext(beanContext);
+        }
+        metaData.postProcessNewEntity(entity);
+    }
 
-	protected EntityFactoryConstructor getConstructorEntry(Class<?> entityType) {
-		EntityFactoryConstructor constructor = typeToConstructorMap.get(entityType);
-		if (constructor == null) {
-			try {
-				final EntityFactoryWithArgumentConstructor argumentConstructor = accessorTypeProvider
-						.getConstructorType(EntityFactoryWithArgumentConstructor.class, entityType);
-				constructor = new EntityFactoryConstructor() {
-					@Override
-					public Object createEntity() {
-						return argumentConstructor.createEntity(self);
-					}
-				};
-			}
-			catch (Throwable e) {
-				constructor = accessorTypeProvider.getConstructorType(EntityFactoryConstructor.class,
-						entityType);
-			}
-			typeToConstructorMap.put(entityType, constructor);
-		}
-		return constructor;
-	}
-
-	@SuppressWarnings("unchecked")
-	@Override
-	public <T> T createEntity(Class<T> entityType) {
-		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(entityType);
-		return (T) createEntityIntern(metaData, true);
-	}
-
-	@Override
-	public Object createEntity(IEntityMetaData metaData) {
-		return createEntityIntern(metaData, true);
-	}
-
-	@Override
-	public Object createEntityNoEmptyInit(IEntityMetaData metaData) {
-		return createEntityIntern(metaData, false);
-	}
-
-	protected Object createEntityIntern(IEntityMetaData metaData, boolean doEmptyInit) {
-		try {
-			if (metaData.getEnhancedType() == null) {
-				entityMetaDataRefresher.refreshMembers(metaData);
-			}
-			EntityFactoryConstructor constructor = getConstructorEntry(metaData.getEnhancedType());
-			Object entity = constructor.createEntity();
-			postProcessEntity(entity, metaData, doEmptyInit);
-			return entity;
-		}
-		catch (Throwable e) {
-			if (bytecodePrinter != null) {
-				throw RuntimeExceptionUtil.mask(e,
-						bytecodePrinter.toPrintableBytecode(metaData.getEnhancedType()));
-			}
-			throw RuntimeExceptionUtil.mask(e);
-		}
-	}
-
-	protected void postProcessEntity(Object entity, IEntityMetaData metaData, boolean doEmptyInit) {
-		if (entity instanceof IBeanContextAware) {
-			((IBeanContextAware) entity).setBeanContext(beanContext);
-		}
-		metaData.postProcessNewEntity(entity);
-	}
-
-	protected void handlePrimitiveMember(Member primitiveMember, Object entity) {
-		Class<?> realType = primitiveMember.getRealType();
-		if (Collection.class.isAssignableFrom(realType)) {
-			Object primitive = primitiveMember.getValue(entity);
-			if (primitive == null) {
-				primitive = ListUtil.createObservableCollectionOfType(realType);
-				primitiveMember.setValue(entity, primitive);
-			}
-		}
-	}
+    protected void handlePrimitiveMember(Member primitiveMember, Object entity) {
+        var realType = primitiveMember.getRealType();
+        if (Collection.class.isAssignableFrom(realType)) {
+            var primitive = primitiveMember.getValue(entity);
+            if (primitive == null) {
+                primitive = ListUtil.createObservableCollectionOfType(realType);
+                primitiveMember.setValue(entity, primitive);
+            }
+        }
+    }
 }

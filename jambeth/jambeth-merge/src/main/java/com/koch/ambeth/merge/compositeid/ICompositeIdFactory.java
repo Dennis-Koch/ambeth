@@ -23,13 +23,20 @@ limitations under the License.
 import com.koch.ambeth.merge.cache.AbstractCacheValue;
 import com.koch.ambeth.service.merge.model.IEntityMetaData;
 import com.koch.ambeth.service.metadata.PrimitiveMember;
+import com.koch.ambeth.util.IPreparedConverter;
 
 public interface ICompositeIdFactory {
     PrimitiveMember createCompositeIdMember(IEntityMetaData metaData, PrimitiveMember[] idMembers);
 
     PrimitiveMember createCompositeIdMember(Class<?> entityType, PrimitiveMember[] idMembers);
 
-    Object createCompositeId(IEntityMetaData metaData, PrimitiveMember compositeIdMember, Object... ids);
+    IPreparedConverter<?> prepareCompositeIdFactory(IEntityMetaData metaData, CompositeIdMember compositeIdMember);
+
+    IPreparedConverter<?> prepareCompositeIdFactory(IEntityMetaData metaData, PrimitiveMember idMember);
+
+    Object createCompositeId(IEntityMetaData metaData, CompositeIdMember compositeIdMember, Object... ids);
+
+    Object createCompositeId(IEntityMetaData metaData, PrimitiveMember idMember, Object... ids);
 
     Object createCompositeId(IEntityMetaData metaData, int idIndex, Object... ids);
 

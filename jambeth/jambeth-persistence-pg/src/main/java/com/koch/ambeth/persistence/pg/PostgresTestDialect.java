@@ -1,6 +1,5 @@
 package com.koch.ambeth.persistence.pg;
 
-import com.koch.ambeth.ioc.IServiceContext;
 import com.koch.ambeth.ioc.IocModule;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.config.Property;
@@ -8,7 +7,6 @@ import com.koch.ambeth.ioc.factory.BeanContextFactory;
 import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.log.config.Properties;
-import com.koch.ambeth.persistence.IColumnEntry;
 import com.koch.ambeth.persistence.PermissionGroup;
 import com.koch.ambeth.persistence.api.sql.ISqlBuilder;
 import com.koch.ambeth.persistence.jdbc.AbstractConnectionTestDialect;
@@ -28,7 +26,6 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class PostgresTestDialect extends AbstractConnectionTestDialect {
@@ -78,7 +75,7 @@ public class PostgresTestDialect extends AbstractConnectionTestDialect {
             return false;
         }
         // try to recover by trying to create the necessary user with the default credentials of sys
-        Properties createUserProps = new Properties(testProps);
+        var createUserProps = new Properties(testProps);
         createUserProps.put(RandomUserScript.SCRIPT_IS_CREATE, "true");
         createUserProps.put(RandomUserScript.SCRIPT_DATABASE_NAME, databaseName);
         createUserProps.put(RandomUserScript.SCRIPT_USER_NAME, userName);
@@ -86,7 +83,7 @@ public class PostgresTestDialect extends AbstractConnectionTestDialect {
 
         createUserProps.put(PersistenceJdbcConfigurationConstants.DatabaseUser, rootDatabaseUser);
         createUserProps.put(PersistenceJdbcConfigurationConstants.DatabasePass, rootDatabasePass);
-        IServiceContext bootstrapContext = BeanContextFactory.createBootstrap(createUserProps);
+        var bootstrapContext = BeanContextFactory.createBootstrap(createUserProps);
         try {
             bootstrapContext.createService("randomUser", RandomUserModule.class, IocModule.class);
         } finally {
@@ -97,14 +94,14 @@ public class PostgresTestDialect extends AbstractConnectionTestDialect {
 
     @Override
     public void dropCreatedTestUser(String userName, String userPassword, IProperties testProps) {
-        Properties createUserProps = new Properties(testProps);
+        var createUserProps = new Properties(testProps);
         createUserProps.put(RandomUserScript.SCRIPT_IS_CREATE, "false");
         createUserProps.put(RandomUserScript.SCRIPT_USER_NAME, userName);
         createUserProps.put(RandomUserScript.SCRIPT_USER_PASS, userPassword);
 
         createUserProps.put(PersistenceJdbcConfigurationConstants.DatabaseUser, rootDatabaseUser);
         createUserProps.put(PersistenceJdbcConfigurationConstants.DatabasePass, rootDatabasePass);
-        IServiceContext bootstrapContext = BeanContextFactory.createBootstrap(createUserProps);
+        var bootstrapContext = BeanContextFactory.createBootstrap(createUserProps);
         try {
             bootstrapContext.createService("randomUser", RandomUserModule.class, IocModule.class);
         } finally {
@@ -117,9 +114,7 @@ public class PostgresTestDialect extends AbstractConnectionTestDialect {
     public void preStructureRebuild(Connection connection) {
         super.preStructureRebuild(connection);
 
-        Statement stm = null;
-        try {
-            stm = connection.createStatement();
+        try (var stm = connection.createStatement()) {
             for (var schemaName : schemaNames) {
                 stm.execute("CREATE SCHEMA IF NOT EXISTS \"" + schemaName + "\"");
                 // stm.execute("CREATE DOMAIN \"" + schemaName + "\".lo AS oid");
@@ -132,8 +127,6 @@ public class PostgresTestDialect extends AbstractConnectionTestDialect {
                 }
             }
             stm.execute("SET SCHEMA '" + schemaNames[0] + "'");
-        } finally {
-            JdbcUtil.close(stm);
         }
     }
 
@@ -145,31 +138,25 @@ public class PostgresTestDialect extends AbstractConnectionTestDialect {
     @SneakyThrows
     @Override
     public boolean isEmptySchema(Connection connection) {
-        Statement stmt = null;
-        ResultSet rs = null;
-        try {
-            stmt = connection.createStatement();
-
-            rs = stmt.executeQuery("SELECT count(*) FROM pg_class c INNER JOIN pg_namespace n ON c.relnamespace=n.oid WHERE n.nspname='" + schemaNames[0] + "'");
+        try (var stmt = connection.createStatement();
+             var rs = stmt.executeQuery("SELECT count(*) FROM pg_class c INNER JOIN pg_namespace n ON c.relnamespace=n.oid WHERE n.nspname='" + schemaNames[0] + "'")) {
             rs.next();
             return rs.getInt(1) == 0;
-        } finally {
-            JdbcUtil.close(stmt, rs);
         }
     }
 
     @Override
     public String[] createAdditionalTriggers(Connection connection, String fqTableName) {
-        IList<IColumnEntry> allFieldsOfTable = connectionDialect.getAllFieldsOfTable(connection, fqTableName);
-        ArrayList<String> sql = new ArrayList<>();
-        String[] schemaAndTableName = sqlBuilder.getSchemaAndTableName(fqTableName);
-        for (IColumnEntry columnEntry : allFieldsOfTable) {
+        var allFieldsOfTable = connectionDialect.getAllFieldsOfTable(connection, fqTableName);
+        var sql = new ArrayList<String>();
+        var schemaAndTableName = sqlBuilder.getSchemaAndTableName(fqTableName);
+        for (var columnEntry : allFieldsOfTable) {
             if (!PostgresDialect.isBLobColumnName(columnEntry.getTypeName())) {
                 continue;
             }
-            String triggerName = schemaAndTableName[1] + "_lob_" + columnEntry.getFieldName();
+            var triggerName = schemaAndTableName[1] + "_lob_" + columnEntry.getFieldName();
             {
-                AppendableStringBuilder sb = new AppendableStringBuilder();
+                var sb = new AppendableStringBuilder();
 
                 sb.append("CREATE TRIGGER ").append(triggerName);
                 sb.append(" BEFORE UPDATE OF ");
@@ -181,7 +168,7 @@ public class PostgresTestDialect extends AbstractConnectionTestDialect {
                 sql.add(sb.toString());
             }
             {
-                AppendableStringBuilder sb = new AppendableStringBuilder();
+                var sb = new AppendableStringBuilder();
 
                 sb.append("CREATE TRIGGER ").append(triggerName).append("_t");
                 sb.append(" BEFORE TRUNCATE");
@@ -200,14 +187,14 @@ public class PostgresTestDialect extends AbstractConnectionTestDialect {
         if (PostgresDialect.BIN_TABLE_NAME.matcher(fqTableName).matches() || PostgresDialect.IDX_TABLE_NAME.matcher(fqTableName).matches()) {
             return new String[0];
         }
-        String[] names = sqlBuilder.getSchemaAndTableName(fqTableName);
-        ArrayList<String> tableColumns = new ArrayList<>();
+        var names = sqlBuilder.getSchemaAndTableName(fqTableName);
+        var tableColumns = new ArrayList<String>();
 
-        IList<IColumnEntry> allFieldsOfTable = connectionDialect.getAllFieldsOfTable(connection, fqTableName);
+        var allFieldsOfTable = connectionDialect.getAllFieldsOfTable(connection, fqTableName);
         String columnNameOfVersion = null;
 
-        for (IColumnEntry columnEntry : allFieldsOfTable) {
-            String columnName = columnEntry.getFieldName();
+        for (var columnEntry : allFieldsOfTable) {
+            var columnName = columnEntry.getFieldName();
             if (columnName.equalsIgnoreCase(PermissionGroup.permGroupIdNameOfData)) {
                 continue;
             }
@@ -229,7 +216,7 @@ public class PostgresTestDialect extends AbstractConnectionTestDialect {
                 }
             }
         }
-        int maxProcedureNameLength = connection.getMetaData().getMaxProcedureNameLength();
+        var maxProcedureNameLength = connection.getMetaData().getMaxProcedureNameLength();
         String triggerName = ormPatternMatcher.buildOptimisticLockTriggerFromTableName(fqTableName, maxProcedureNameLength);
 
         if (columnNameOfVersion == null) {
@@ -238,10 +225,10 @@ public class PostgresTestDialect extends AbstractConnectionTestDialect {
         if (!columnNameOfVersion.equals(connectionDialect.toDefaultCase(columnNameOfVersion))) {
             columnNameOfVersion = connectionDialect.escapeName(columnNameOfVersion);
         }
-        String functionName = "f_" + triggerName;
-        String[] sql = new String[2];
+        var functionName = "f_" + triggerName;
+        var sql = new String[2];
         {
-            AppendableStringBuilder sb = new AppendableStringBuilder();
+            var sb = new AppendableStringBuilder();
             sb.append("CREATE OR REPLACE FUNCTION ").append(functionName).append("() RETURNS TRIGGER AS $").append(functionName).append("$\n");
             sb.append(" BEGIN\n");
             sb.append("  IF NEW.").append(columnNameOfVersion).append(" <= OLD.").append(columnNameOfVersion).append(" THEN\n");
@@ -253,7 +240,7 @@ public class PostgresTestDialect extends AbstractConnectionTestDialect {
             sql[0] = sb.toString();
         }
         {
-            AppendableStringBuilder sb = new AppendableStringBuilder();
+            var sb = new AppendableStringBuilder();
 
             sb.append("CREATE TRIGGER \"").append(triggerName);
             sb.append("\" BEFORE UPDATE");
@@ -283,7 +270,8 @@ public class PostgresTestDialect extends AbstractConnectionTestDialect {
     @Override
     protected IList<String> queryForAllTables(Connection connection) {
         return connectionDialect.queryDefault(connection, "FULL_NAME",
-                "SELECT DISTINCT n.nspname || '.' || c.relname AS FULL_NAME FROM pg_trigger t JOIN pg_class c ON t.tgrelid=c.oid JOIN pg_namespace n ON c.relnamespace=n.oid WHERE n.nspname='" + schemaNames[0] + "'");
+                "SELECT DISTINCT n.nspname || '.' || c.relname AS FULL_NAME FROM pg_trigger t JOIN pg_class c ON t.tgrelid=c.oid JOIN pg_namespace n ON c.relnamespace=n.oid WHERE n.nspname='" +
+                        schemaNames[0] + "'");
     }
 
     @Override
@@ -294,7 +282,8 @@ public class PostgresTestDialect extends AbstractConnectionTestDialect {
     @Override
     protected IList<String> queryForAllPermissionGroupNeedingTables(Connection connection) {
         return connectionDialect.queryDefault(connection, "TNAME",
-                "SELECT c.table_name AS TNAME FROM information_schema.columns c WHERE LOWER(c.column_name)=LOWER('" + PermissionGroup.permGroupIdNameOfData + "') AND LOWER(table_schema)=LOWER('" + schemaNames[0] + "')");
+                "SELECT c.table_name AS TNAME FROM information_schema.columns c WHERE LOWER(c.column_name)=LOWER('" + PermissionGroup.permGroupIdNameOfData + "') AND LOWER(table_schema)=LOWER('" +
+                        schemaNames[0] + "')");
     }
 
     @Override
@@ -305,16 +294,16 @@ public class PostgresTestDialect extends AbstractConnectionTestDialect {
     @SneakyThrows
     @Override
     public String[] createPermissionGroup(Connection connection, String tableName) {
-        int maxProcedureNameLength = connection.getMetaData().getMaxProcedureNameLength();
-        String permissionGroupName = ormPatternMatcher.buildPermissionGroupFromTableName(tableName, maxProcedureNameLength);
+        var maxProcedureNameLength = connection.getMetaData().getMaxProcedureNameLength();
+        var permissionGroupName = ormPatternMatcher.buildPermissionGroupFromTableName(tableName, maxProcedureNameLength);
         String pkName;
-        Matcher matcher = Pattern.compile("(?:.*\\.)?([^\\.]+)").matcher(permissionGroupName);
+        var matcher = Pattern.compile("(?:.*\\.)?([^\\.]+)").matcher(permissionGroupName);
         if (matcher.matches()) {
             pkName = matcher.group(1) + "_PK";
         } else {
             pkName = tableName + "_PK";
         }
-        ArrayList<String> sql = new ArrayList<>();
+        var sql = new ArrayList<String>();
 
         sql.add("CREATE TABLE \"" + permissionGroupName + "\" "//
                 + "(\"" + PermissionGroup.userIdName + "\" VARCHAR2(64 CHAR) NOT NULL,"//

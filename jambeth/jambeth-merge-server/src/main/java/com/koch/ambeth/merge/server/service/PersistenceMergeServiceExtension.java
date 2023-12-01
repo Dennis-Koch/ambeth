@@ -55,7 +55,6 @@ import com.koch.ambeth.merge.server.change.DeleteCommand;
 import com.koch.ambeth.merge.server.change.IChangeCommand;
 import com.koch.ambeth.merge.server.change.ICreateCommand;
 import com.koch.ambeth.merge.server.change.ILinkChangeCommand;
-import com.koch.ambeth.merge.server.change.IRowCommand;
 import com.koch.ambeth.merge.server.change.ITableChange;
 import com.koch.ambeth.merge.server.change.IUpdateCommand;
 import com.koch.ambeth.merge.server.change.LinkContainer;
@@ -72,13 +71,10 @@ import com.koch.ambeth.merge.transfer.UpdateContainer;
 import com.koch.ambeth.merge.util.IPrefetchHelper;
 import com.koch.ambeth.merge.util.IPrefetchState;
 import com.koch.ambeth.merge.util.OptimisticLockUtil;
-import com.koch.ambeth.persistence.api.IContextProvider;
 import com.koch.ambeth.persistence.api.IDatabase;
 import com.koch.ambeth.persistence.api.IDatabaseMetaData;
-import com.koch.ambeth.persistence.api.IDirectedLinkMetaData;
 import com.koch.ambeth.persistence.api.IPrimaryKeyProvider;
 import com.koch.ambeth.persistence.api.ITable;
-import com.koch.ambeth.persistence.api.ITableMetaData;
 import com.koch.ambeth.persistence.parallel.IModifyingDatabase;
 import com.koch.ambeth.service.merge.IEntityMetaDataProvider;
 import com.koch.ambeth.service.merge.IValueObjectConfig;
@@ -106,7 +102,6 @@ import com.koch.ambeth.util.function.CheckedConsumer;
 import com.koch.ambeth.util.function.CheckedRunnable;
 import com.koch.ambeth.util.model.IMethodDescription;
 import com.koch.ambeth.util.objectcollector.IThreadLocalObjectCollector;
-import com.koch.ambeth.util.state.IStateRollback;
 import jakarta.persistence.OptimisticLockException;
 import jakarta.persistence.PersistenceException;
 
@@ -165,11 +160,11 @@ public class PersistenceMergeServiceExtension implements IMergeServiceExtension 
 
     protected IList<IChangeContainer> transformToBuildableCUDResult(ICUDResult cudResult, IIncrementalMergeState incrementalState,
             IMap<IChangeContainer, IChangeContainer> buildableToOriginalChangeContainerMap) {
-        List<IChangeContainer> allChanges = cudResult.getAllChanges();
-        IdentityHashMap<IDirectObjRef, IDirectObjRef> directObjRefReplaceMap = new IdentityHashMap<>();
-        ArrayList<IChangeContainer> buildableAllChanges = new ArrayList<>(allChanges.size());
+        var allChanges = cudResult.getAllChanges();
+        var directObjRefReplaceMap = new IdentityHashMap<IDirectObjRef, IDirectObjRef>();
+        var buildableAllChanges = new ArrayList<IChangeContainer>(allChanges.size());
         for (int a = 0, size = allChanges.size(); a < size; a++) {
-            IChangeContainer changeContainer = allChanges.get(a);
+            var changeContainer = allChanges.get(a);
             if (changeContainer instanceof CreateOrUpdateContainerBuild) {
                 buildableToOriginalChangeContainerMap.put(changeContainer, changeContainer);
                 buildableAllChanges.add(changeContainer);
@@ -181,16 +176,15 @@ public class PersistenceMergeServiceExtension implements IMergeServiceExtension 
                 // nothing to do
                 continue;
             }
-            IObjRef objRef = replaceObjRefIfNecessary(changeContainer.getReference(), directObjRefReplaceMap);
-            CreateOrUpdateContainerBuild buildableContainer =
-                    changeContainer instanceof CreateContainer ? incrementalState.newCreateContainer(objRef.getRealType()) : incrementalState.newUpdateContainer(objRef.getRealType());
+            var objRef = replaceObjRefIfNecessary(changeContainer.getReference(), directObjRefReplaceMap);
+            var buildableContainer = changeContainer instanceof CreateContainer ? incrementalState.newCreateContainer(objRef.getRealType()) : incrementalState.newUpdateContainer(objRef.getRealType());
             buildableAllChanges.add(buildableContainer);
             buildableToOriginalChangeContainerMap.put(buildableContainer, changeContainer);
             buildableContainer.setReference(objRef);
         }
-        for (Entry<IChangeContainer, IChangeContainer> entry : buildableToOriginalChangeContainerMap) {
-            CreateOrUpdateContainerBuild buildableContainer = (CreateOrUpdateContainerBuild) entry.getKey();
-            IChangeContainer changeContainer = entry.getValue();
+        for (var entry : buildableToOriginalChangeContainerMap) {
+            var buildableContainer = (CreateOrUpdateContainerBuild) entry.getKey();
+            var changeContainer = entry.getValue();
 
             IPrimitiveUpdateItem[] puis = null;
             IRelationUpdateItem[] ruis = null;
@@ -210,16 +204,16 @@ public class PersistenceMergeServiceExtension implements IMergeServiceExtension 
                 continue;
             }
             for (IRelationUpdateItem rui : ruis) {
-                RelationUpdateItemBuild existingRui = buildableContainer.ensureRelation(rui.getMemberName());
-                IObjRef[] addedORIs = rui.getAddedORIs();
+                var existingRui = buildableContainer.ensureRelation(rui.getMemberName());
+                var addedORIs = rui.getAddedORIs();
                 if (addedORIs != null) {
-                    for (IObjRef addedObjRef : addedORIs) {
+                    for (var addedObjRef : addedORIs) {
                         existingRui.addObjRef(replaceObjRefIfNecessary(addedObjRef, directObjRefReplaceMap));
                     }
                 }
-                IObjRef[] removedORIs = rui.getRemovedORIs();
+                var removedORIs = rui.getRemovedORIs();
                 if (removedORIs != null) {
-                    for (IObjRef removedObjRef : removedORIs) {
+                    for (var removedObjRef : removedORIs) {
                         existingRui.removeObjRef(replaceObjRefIfNecessary(removedObjRef, directObjRefReplaceMap));
                     }
                 }
@@ -232,8 +226,8 @@ public class PersistenceMergeServiceExtension implements IMergeServiceExtension 
         if (!(objRef instanceof IDirectObjRef)) {
             return objRef;
         }
-        IDirectObjRef directObjRef = (IDirectObjRef) objRef;
-        IDirectObjRef replacedObjRef = directObjRefReplaceMap.get(directObjRef);
+        var directObjRef = (IDirectObjRef) objRef;
+        var replacedObjRef = directObjRefReplaceMap.get(directObjRef);
         if (replacedObjRef == null) {
             replacedObjRef = new DirectObjRef(directObjRef.getRealType(), ((IDirectObjRef) objRef).getDirect());
             directObjRefReplaceMap.put(directObjRef, replacedObjRef);
@@ -244,42 +238,42 @@ public class PersistenceMergeServiceExtension implements IMergeServiceExtension 
     @Override
     public ICUDResult evaluateImplictChanges(ICUDResult cudResult, final IIncrementalMergeState incrementalState) {
         try {
-            List<IChangeContainer> allChanges = cudResult.getAllChanges();
-            List<Object> originalRefs = cudResult.getOriginalRefs();
-            IdentityHashMap<IChangeContainer, IChangeContainer> buildableToOriginalChangeContainerMap = IdentityHashMap.<IChangeContainer, IChangeContainer>create(allChanges.size());
-            HashMap<String, ITableChange> tableChangeMap = new HashMap<>();
-            ArrayList<IObjRef> oriList = new ArrayList<>(allChanges.size());
+            var allChanges = cudResult.getAllChanges();
+            var originalRefs = cudResult.getOriginalRefs();
+            var buildableToOriginalChangeContainerMap = IdentityHashMap.<IChangeContainer, IChangeContainer>create(allChanges.size());
+            var tableChangeMap = new HashMap<String, ITableChange>();
+            var oriList = new ArrayList<IObjRef>(allChanges.size());
 
-            HashMap<Long, IObjRef> mockIdToObjRefMap = new HashMap<>();
-            HashMap<IObjRef, Object> objRefToEntityMap = new HashMap<>();
+            var mockIdToObjRefMap = new HashMap<Long, IObjRef>();
+            var objRefToEntityMap = new HashMap<IObjRef, Object>();
             LinkedHashMap<IObjRef, IChangeContainer> objRefToChangeContainerMap = new LinkedHashMap<IObjRef, IChangeContainer>() {
                 @Override
                 public IChangeContainer put(IObjRef key, IChangeContainer value) {
                     if (value instanceof LinkContainer) {
-                        ILinkChangeCommand linkCommand = ((LinkContainer) value).getCommand();
-                        IDirectedLinkMetaData linkMetaData = linkCommand.getDirectedLink().getMetaData();
-                        IObjRef objRef = linkCommand.getReference();
-                        RelationMember fromMember = linkMetaData.getMember();
+                        var linkCommand = ((LinkContainer) value).getCommand();
+                        var linkMetaData = linkCommand.getDirectedLink().getMetaData();
+                        var objRef = linkCommand.getReference();
+                        var fromMember = linkMetaData.getMember();
                         if (fromMember != null) {
-                            IChangeContainer changeContainer = get(objRef);
+                            var changeContainer = get(objRef);
                             if (!(changeContainer instanceof DeleteContainer)) {
                                 if (changeContainer == null) {
                                     changeContainer = incrementalState.newUpdateContainer(objRef.getRealType());
                                     changeContainer.setReference(objRef);
                                     put(objRef, changeContainer);
                                 }
-                                RelationUpdateItemBuild rui = ((CreateOrUpdateContainerBuild) changeContainer).ensureRelation(fromMember.getName());
+                                var rui = ((CreateOrUpdateContainerBuild) changeContainer).ensureRelation(fromMember.getName());
                                 rui.addObjRefs(linkCommand.getRefsToLink());
                                 rui.removeObjRefs(linkCommand.getRefsToUnlink());
                             }
                         }
-                        RelationMember toMember = linkMetaData.getReverseLink().getMember();
+                        var toMember = linkMetaData.getReverseLink().getMember();
                         if (toMember != null) {
-                            String toMemberName = toMember.getName();
-                            List<IObjRef> refsToLink = linkCommand.getRefsToLink();
+                            var toMemberName = toMember.getName();
+                            var refsToLink = linkCommand.getRefsToLink();
                             for (int a = refsToLink.size(); a-- > 0; ) {
-                                IObjRef linkedObjRef = refsToLink.get(a);
-                                IChangeContainer changeContainer = get(linkedObjRef);
+                                var linkedObjRef = refsToLink.get(a);
+                                var changeContainer = get(linkedObjRef);
                                 if (changeContainer instanceof DeleteContainer) {
                                     continue;
                                 }
@@ -290,10 +284,10 @@ public class PersistenceMergeServiceExtension implements IMergeServiceExtension 
                                 }
                                 ((CreateOrUpdateContainerBuild) changeContainer).ensureRelation(toMemberName).addObjRef(objRef);
                             }
-                            List<IObjRef> refsToUnlink = linkCommand.getRefsToUnlink();
+                            var refsToUnlink = linkCommand.getRefsToUnlink();
                             for (int a = refsToUnlink.size(); a-- > 0; ) {
-                                IObjRef linkedObjRef = refsToUnlink.get(a);
-                                IChangeContainer changeContainer = get(linkedObjRef);
+                                var linkedObjRef = refsToUnlink.get(a);
+                                var changeContainer = get(linkedObjRef);
                                 if (changeContainer instanceof DeleteContainer) {
                                     continue;
                                 }
@@ -307,22 +301,22 @@ public class PersistenceMergeServiceExtension implements IMergeServiceExtension 
                         }
                         return null;
                     }
-                    IChangeContainer existingValue = super.get(key);
+                    var existingValue = super.get(key);
                     if (existingValue == value || existingValue instanceof DeleteContainer) {
                         return null;
                     }
                     return super.put(key, value);
                 }
             };
-            IList<IChangeContainer> buildableAllChanges = transformToBuildableCUDResult(cudResult, incrementalState, buildableToOriginalChangeContainerMap);
+            var buildableAllChanges = transformToBuildableCUDResult(cudResult, incrementalState, buildableToOriginalChangeContainerMap);
 
             for (int a = buildableAllChanges.size(); a-- > 0; ) {
-                IChangeContainer changeContainer = buildableAllChanges.get(a);
-                IObjRef objRef = changeContainer.getReference();
-                Object entity = originalRefs.get(a);
+                var changeContainer = buildableAllChanges.get(a);
+                var objRef = changeContainer.getReference();
+                var entity = originalRefs.get(a);
 
                 objRefToChangeContainerMap.put(objRef, changeContainer);
-                IList<IObjRef> allObjRefs = objRefHelper.entityToAllObjRefs(entity);
+                var allObjRefs = objRefHelper.entityToAllObjRefs(entity);
                 for (int b = allObjRefs.size(); b-- > 0; ) {
                     objRefToChangeContainerMap.put(allObjRefs.get(b), changeContainer);
                 }
@@ -330,33 +324,33 @@ public class PersistenceMergeServiceExtension implements IMergeServiceExtension 
             }
             executeWithoutSecurity(buildableAllChanges, tableChangeMap, oriList, mockIdToObjRefMap, objRefToChangeContainerMap, incrementalState);
 
-            IdentityLinkedSet<IChangeContainer> changeContainersSet = new IdentityLinkedSet<>();
+            var changeContainersSet = new IdentityLinkedSet<IChangeContainer>();
 
-            for (Entry<IObjRef, IChangeContainer> entry : objRefToChangeContainerMap) {
-                IChangeContainer changeContainer = entry.getValue();
+            for (var entry : objRefToChangeContainerMap) {
+                var changeContainer = entry.getValue();
                 changeContainersSet.add(changeContainer);
             }
-            ArrayList<IChangeContainer> changeContainers = new ArrayList<>(changeContainersSet.size());
+            var changeContainers = new ArrayList<IChangeContainer>(changeContainersSet.size());
             for (int a = 0, size = buildableAllChanges.size(); a < size; a++) {
-                IChangeContainer changeContainer = buildableAllChanges.get(a);
+                var changeContainer = buildableAllChanges.get(a);
                 changeContainersSet.remove(changeContainer);
                 changeContainers.add(changeContainer);
             }
             changeContainers.addAll(changeContainersSet);
-            Object[] newAllObjects = new Object[changeContainers.size()];
+            var newAllObjects = new Object[changeContainers.size()];
 
             IObjRef[] objRefsToLoad = null;
 
             for (int a = changeContainers.size(); a-- > 0; ) {
-                IChangeContainer changeContainer = changeContainers.get(a);
-                IObjRef objRef = changeContainer.getReference();
+                var changeContainer = changeContainers.get(a);
+                var objRef = changeContainer.getReference();
                 if (objRef instanceof IDirectObjRef) {
                     ((IDirectObjRef) objRef).setCreateContainerIndex(a);
                 }
                 if (changeContainer instanceof CreateOrUpdateContainerBuild) {
                     changeContainers.set(a, ((CreateOrUpdateContainerBuild) changeContainer).build());
                 }
-                Object entity = objRefToEntityMap.get(objRef);
+                var entity = objRefToEntityMap.get(objRef);
                 if (entity == null) {
                     if (objRefsToLoad == null) {
                         objRefsToLoad = new IObjRef[changeContainers.size()];
@@ -367,22 +361,22 @@ public class PersistenceMergeServiceExtension implements IMergeServiceExtension 
                 newAllObjects[a] = entity;
             }
             if (objRefsToLoad != null) {
-                IList<Object> entities = cache.getObjects(objRefsToLoad, CacheDirective.returnMisses());
+                var entities = cache.getObjects(objRefsToLoad, CacheDirective.returnMisses());
                 for (int a = entities.size(); a-- > 0; ) {
-                    Object entity = entities.get(a);
+                    var entity = entities.get(a);
                     if (entity != null) {
                         newAllObjects[a] = entity;
                         continue;
                     }
-                    IObjRef objRefToLoad = objRefsToLoad[a];
+                    var objRefToLoad = objRefsToLoad[a];
                     if (objRefToLoad == null) {
                         continue;
                     }
-                    Object anyVersion = cache.getObject(new ObjRef(objRefToLoad.getRealType(), objRefToLoad.getIdNameIndex(), objRefToLoad.getId(), null), CacheDirective.returnMisses());
+                    var anyVersion = cache.getObject(new ObjRef(objRefToLoad.getRealType(), objRefToLoad.getIdNameIndex(), objRefToLoad.getId(), null), CacheDirective.returnMisses());
                     if (anyVersion == null) {
                         throw OptimisticLockUtil.throwDeleted(objRefToLoad);
                     }
-                    IObjRef objRefOfAnyVersion = objRefHelper.entityToObjRef(anyVersion);
+                    var objRefOfAnyVersion = objRefHelper.entityToObjRef(anyVersion);
                     throw OptimisticLockUtil.throwModified(objRefsToLoad[a], objRefOfAnyVersion.getVersion());
                 }
             }
@@ -392,9 +386,9 @@ public class PersistenceMergeServiceExtension implements IMergeServiceExtension 
         }
     }
 
-    protected void executeRunnables(IList<CheckedRunnable> runnables) {
+    protected void executeRunnables(List<CheckedRunnable> runnables) {
         while (!runnables.isEmpty()) {
-            var runnableArray = runnables.toArray(CheckedRunnable.class);
+            var runnableArray = runnables.toArray(CheckedRunnable[]::new);
             runnables.clear();
             for (var runnable : runnableArray) {
                 CheckedRunnable.invoke(runnable);
@@ -404,37 +398,37 @@ public class PersistenceMergeServiceExtension implements IMergeServiceExtension 
 
     @SuppressWarnings("unchecked")
     protected void ensureCorrectIdIndexOfAllRelations(ICUDResult cudResult) {
-        ArrayList<CheckedConsumer<IMap<IObjRef, Object>>> runnables = new ArrayList<>();
-        HashSet<IObjRef> objRefsWithWrongIdIndex = new HashSet<>();
+        var runnables = new ArrayList<CheckedConsumer<IMap<IObjRef, Object>>>();
+        var objRefsWithWrongIdIndex = new HashSet<IObjRef>();
 
-        List<IChangeContainer> allChanges = cudResult.getAllChanges();
+        var allChanges = cudResult.getAllChanges();
         for (int a = allChanges.size(); a-- > 0; ) {
-            IChangeContainer change = allChanges.get(a);
+            var change = allChanges.get(a);
             if (!(change instanceof ICreateOrUpdateContainer)) {
                 continue;
             }
-            IRelationUpdateItem[] fullRUIs = ((ICreateOrUpdateContainer) change).getFullRUIs();
+            var fullRUIs = ((ICreateOrUpdateContainer) change).getFullRUIs();
             if (fullRUIs == null) {
                 continue;
             }
-            ITableMetaData table = databaseMetaData.getTableByType(change.getReference().getRealType());
-            for (IRelationUpdateItem rui : fullRUIs) {
+            var table = databaseMetaData.getTableByType(change.getReference().getRealType());
+            for (var rui : fullRUIs) {
                 if (rui == null) {
                     continue;
                 }
-                IDirectedLinkMetaData link = table.getLinkByMemberName(rui.getMemberName());
-                byte expectedIdIndex = link.getToIdIndex();
+                var link = table.getLinkByMemberName(rui.getMemberName());
+                var expectedIdIndex = link.getToIdIndex();
                 ensureCorrectIdIndexOfRelation(rui.getAddedORIs(), expectedIdIndex, objRefsWithWrongIdIndex, runnables);
                 ensureCorrectIdIndexOfRelation(rui.getRemovedORIs(), expectedIdIndex, objRefsWithWrongIdIndex, runnables);
             }
         }
         while (!runnables.isEmpty()) {
-            IList<IObjRef> objRefsWithWrongIdIndexList = objRefsWithWrongIdIndex.toList();
+            var objRefsWithWrongIdIndexList = objRefsWithWrongIdIndex.toList();
             objRefsWithWrongIdIndex.clear();
 
-            ArrayList<IObjRef> objRefsList = new ArrayList<>(objRefsWithWrongIdIndexList.size());
+            var objRefsList = new ArrayList<IObjRef>(objRefsWithWrongIdIndexList.size());
             for (int a = 0, size = objRefsWithWrongIdIndexList.size(); a < size; a++) {
-                IObjRef objRef = objRefsWithWrongIdIndexList.get(a);
+                var objRef = objRefsWithWrongIdIndexList.get(a);
                 if (objRef instanceof IDirectObjRef) {
                     objRefsList.add(null);
                     continue;
@@ -442,18 +436,18 @@ public class PersistenceMergeServiceExtension implements IMergeServiceExtension 
                 objRefsList.add(objRef);
             }
 
-            IList<Object> entities = rootCache.getObjects(objRefsList, EnumSet.of(CacheDirective.CacheValueResult, CacheDirective.ReturnMisses));
+            var entities = rootCache.getObjects(objRefsList, EnumSet.of(CacheDirective.CacheValueResult, CacheDirective.ReturnMisses));
 
-            HashMap<IObjRef, Object> objRefToEntityMap = HashMap.create(entities.size());
+            var objRefToEntityMap = HashMap.<IObjRef, Object>create(entities.size());
             for (int a = entities.size(); a-- > 0; ) {
-                IObjRef objRef = objRefsWithWrongIdIndexList.get(a);
+                var objRef = objRefsWithWrongIdIndexList.get(a);
                 if (objRef instanceof IDirectObjRef) {
                     objRefToEntityMap.put(objRef, ((IDirectObjRef) objRef).getDirect());
                     continue;
                 }
                 objRefToEntityMap.put(objRef, entities.get(a));
             }
-            var runnablesArray = runnables.toArray(CheckedConsumer.class);
+            var runnablesArray = runnables.toArray(CheckedConsumer[]::new);
             runnables.clear();
             for (var runnable : runnablesArray) {
                 CheckedConsumer.invoke(runnable, objRefToEntityMap);
@@ -466,7 +460,7 @@ public class PersistenceMergeServiceExtension implements IMergeServiceExtension 
             return;
         }
         boolean hasObjRefsWithWrongIdIndex = false;
-        for (IObjRef objRef : objRefs) {
+        for (var objRef : objRefs) {
             // if (objRef instanceof IDirectObjRef && ((IDirectObjRef) objRef).getDirect() != null)
             // {
             // continue;
@@ -495,14 +489,14 @@ public class PersistenceMergeServiceExtension implements IMergeServiceExtension 
 
     @Override
     public IOriCollection merge(ICUDResult cudResult, String[] causingUuids, IMethodDescription methodDescription) {
-        IDatabase database = this.database.getCurrent();
+        var database = this.database.getCurrent();
         try {
             // ensureCorrectIdIndexOfAllRelations(cudResult);
 
-            List<IChangeContainer> allChanges = cudResult.getAllChanges();
-            HashMap<String, ITableChange> tableChangeMap = new HashMap<>();
-            ArrayList<IObjRef> oriList = new ArrayList<>(allChanges.size());
-            HashMap<IObjRef, IChangeContainer> objRefToChangeContainerMap = new HashMap<>();
+            var allChanges = cudResult.getAllChanges();
+            var tableChangeMap = new HashMap<String, ITableChange>();
+            var oriList = new ArrayList<IObjRef>(allChanges.size());
+            var objRefToChangeContainerMap = new HashMap<IObjRef, IChangeContainer>();
 
             for (int a = allChanges.size(); a-- > 0; ) {
                 IChangeContainer changeContainer = allChanges.get(a);
@@ -512,14 +506,14 @@ public class PersistenceMergeServiceExtension implements IMergeServiceExtension 
 
             executeWithoutSecurity(allChanges, tableChangeMap, oriList, null, objRefToChangeContainerMap, null);
 
-            ArrayList<IObjRef> objRefWithoutVersion = new ArrayList<>();
-            for (Entry<String, ITableChange> entry : tableChangeMap) {
-                ITableChange tableChange = entry.getValue();
+            var objRefWithoutVersion = new ArrayList<IObjRef>();
+            for (var entry : tableChangeMap) {
+                var tableChange = entry.getValue();
                 if (tableChange instanceof LinkTableChange) {
                     continue;
                 }
-                for (Entry<IObjRef, IRowCommand> rowEntry : ((TableChange) tableChange).getRowCommands()) {
-                    IObjRef objRef = rowEntry.getKey();
+                for (var rowEntry : ((TableChange) tableChange).getRowCommands()) {
+                    var objRef = rowEntry.getKey();
                     if (objRef.getVersion() != null || rowEntry.getValue().getCommand() instanceof ICreateCommand) {
                         continue;
                     }
@@ -527,7 +521,7 @@ public class PersistenceMergeServiceExtension implements IMergeServiceExtension 
                 }
             }
             if (!objRefWithoutVersion.isEmpty()) {
-                IList<Object> objects = cache.getObjects(objRefWithoutVersion, CacheDirective.returnMisses());
+                var objects = cache.getObjects(objRefWithoutVersion, CacheDirective.returnMisses());
                 for (int a = objects.size(); a-- > 0; ) {
                     Object entity = objects.get(a);
                     PrimitiveMember versionMember = ((IEntityMetaDataHolder) entity).get__EntityMetaData().getVersionMember();
@@ -536,7 +530,7 @@ public class PersistenceMergeServiceExtension implements IMergeServiceExtension 
                     }
                 }
             }
-            IChangeAggregator changeAggregator = persistTableChanges(database, tableChangeMap);
+            var changeAggregator = persistTableChanges(database, tableChangeMap);
             changeAggregator.createDataChange(causingUuids);
 
             for (int a = oriList.size(); a-- > 0; ) {
@@ -546,8 +540,8 @@ public class PersistenceMergeServiceExtension implements IMergeServiceExtension 
                 }
                 oriList.set(a, objRefFactory.dup(objRef));
             }
-            OriCollection oriCollection = new OriCollection(oriList);
-            IContextProvider contextProvider = database.getContextProvider();
+            var oriCollection = new OriCollection(oriList);
+            var contextProvider = database.getContextProvider();
             oriCollection.setChangedOn(contextProvider.getCurrentTime().longValue());
             oriCollection.setChangedBy(contextProvider.getCurrentUser());
 
@@ -944,21 +938,21 @@ public class PersistenceMergeServiceExtension implements IMergeServiceExtension 
 
     protected IChangeAggregator persistTableChanges(IDatabase database, IMap<String, ITableChange> tableChangeMap) {
         // Mark this database as modifying (e.g. to suppress later out-of-transaction parallel reads)
-        IModifyingDatabase modifyingDatabase = database.getAutowiredBeanInContext(IModifyingDatabase.class);
+        var modifyingDatabase = database.getAutowiredBeanInContext(IModifyingDatabase.class);
         if (!modifyingDatabase.isModifyingAllowed()) {
             throw new PersistenceException("It is not allowed to modify anything while the transaction is in read-only mode");
         }
         modifyingDatabase.setModifyingDatabase(true);
 
-        IChangeAggregator changeAggregator = beanContext.registerBean(ChangeAggregator.class).finish();
-        IList<ITableChange> tableChangeList = tableChangeMap.values();
-        long start = System.currentTimeMillis();
+        var changeAggregator = beanContext.registerBean(ChangeAggregator.class).finish();
+        var tableChangeList = tableChangeMap.values();
+        var start = System.currentTimeMillis();
 
         // Important to sort the table changes to deal with deadlock issues due to pessimistic locking
         Collections.sort(tableChangeList);
         try {
             RuntimeException primaryException = null;
-            IStateRollback rollback = database.disableConstraints();
+            var rollback = database.disableConstraints();
             try {
                 executeTableChanges(tableChangeList, changeAggregator);
             } catch (RuntimeException e) {
@@ -976,7 +970,7 @@ public class PersistenceMergeServiceExtension implements IMergeServiceExtension 
                 }
             }
         } finally {
-            long end = System.currentTimeMillis();
+            var end = System.currentTimeMillis();
             if (log.isDebugEnabled()) {
                 long spent = end - start;
                 log.debug(StringBuilderUtil.concat(objectCollector, "Spent ", spent, " ms on JDBC execution"));
@@ -988,7 +982,7 @@ public class PersistenceMergeServiceExtension implements IMergeServiceExtension 
 
     protected void executeTableChanges(List<ITableChange> tableChangeList, IChangeAggregator changeAggregator) {
         for (int i = tableChangeList.size(); i-- > 0; ) {
-            ITableChange tableChange = tableChangeList.get(i);
+            var tableChange = tableChangeList.get(i);
             tableChange.execute(changeAggregator);
         }
     }

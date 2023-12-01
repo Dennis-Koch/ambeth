@@ -20,24 +20,28 @@ limitations under the License.
  * #L%
  */
 
-import java.util.List;
-
-import org.objectweb.asm.ClassVisitor;
-
 import com.koch.ambeth.bytecode.behavior.AbstractBehavior;
 import com.koch.ambeth.bytecode.behavior.IBytecodeBehavior;
 import com.koch.ambeth.bytecode.behavior.IBytecodeBehaviorState;
 import com.koch.ambeth.merge.bytecode.visitor.CompositeIdCreator;
+import com.koch.ambeth.merge.proxy.ICompositeId;
+import org.objectweb.asm.ClassVisitor;
+
+import java.util.List;
 
 public class CompositeIdBehavior extends AbstractBehavior {
-	@Override
-	public ClassVisitor extend(ClassVisitor visitor, IBytecodeBehaviorState state,
-			List<IBytecodeBehavior> remainingPendingBehaviors,
-			List<IBytecodeBehavior> cascadePendingBehaviors) {
-		if (state.getContext(CompositeIdEnhancementHint.class) == null) {
-			return visitor;
-		}
-		visitor = new CompositeIdCreator(visitor);
-		return visitor;
-	}
+
+    @Override
+    public Class<?>[] getEnhancements() {
+        return new Class[] { ICompositeId.class };
+    }
+
+    @Override
+    public ClassVisitor extend(ClassVisitor visitor, IBytecodeBehaviorState state, List<IBytecodeBehavior> remainingPendingBehaviors, List<IBytecodeBehavior> cascadePendingBehaviors) {
+        if (state.getContext(CompositeIdEnhancementHint.class) == null) {
+            return visitor;
+        }
+        visitor = new CompositeIdCreator(visitor);
+        return visitor;
+    }
 }

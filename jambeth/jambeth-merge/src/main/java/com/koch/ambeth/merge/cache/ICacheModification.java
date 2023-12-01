@@ -21,8 +21,20 @@ limitations under the License.
  */
 
 import com.koch.ambeth.util.function.CheckedRunnable;
+import com.koch.ambeth.util.state.IStateRollback;
+import com.koch.ambeth.util.state.StateRollback;
 
 public interface ICacheModification {
+
+    default IStateRollback pushInternalUpdate(boolean internalUpdateActive) {
+        var oldInternalUpdate = isInternalUpdate();
+        if (oldInternalUpdate == internalUpdateActive) {
+            return StateRollback.empty();
+        }
+        setInternalUpdate(internalUpdateActive);
+        return () -> setInternalUpdate(oldInternalUpdate);
+    }
+
     boolean isInternalUpdate();
 
     void setInternalUpdate(boolean internalUpdate);

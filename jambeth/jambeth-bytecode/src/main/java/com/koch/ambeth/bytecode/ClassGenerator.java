@@ -28,13 +28,9 @@ import com.koch.ambeth.util.annotation.FireThisOnPropertyChange;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.function.CheckedSupplier;
 import org.objectweb.asm.ClassVisitor;
-import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.Label;
-import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
-
-import java.lang.reflect.Constructor;
 
 public class ClassGenerator extends ClassVisitor {
     public static final Class<FireThisOnPropertyChange> c_fireThisOPC = FireThisOnPropertyChange.class;
@@ -81,7 +77,7 @@ public class ClassGenerator extends ClassVisitor {
 
     public FieldInstance implementStaticAssignedField(String staticFieldName, Object fieldValue) {
         ParamChecker.assertParamNotNull(fieldValue, "fieldValue");
-        Class<?> fieldType = fieldValue.getClass();
+        var fieldType = fieldValue.getClass();
         if (fieldValue instanceof IValueResolveDelegate) {
             fieldType = ((IValueResolveDelegate) fieldValue).getValueType();
         }
@@ -89,7 +85,7 @@ public class ClassGenerator extends ClassVisitor {
     }
 
     public FieldInstance implementStaticAssignedField(String staticFieldName, Class<?> fieldType, Object fieldValue) {
-        FieldInstance field = new FieldInstance(Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC, staticFieldName, null, Type.getType(fieldType));
+        var field = new FieldInstance(Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC, staticFieldName, null, Type.getType(fieldType));
         field = implementField(field, null);
         if (fieldValue != null) {
             IValueResolveDelegate vrd = null;
@@ -105,11 +101,11 @@ public class ClassGenerator extends ClassVisitor {
 
     public PropertyInstance implementAssignedReadonlyProperty(String propertyName, Object fieldValue) {
         ParamChecker.assertParamNotNull(fieldValue, "fieldValue");
-        String fieldName = propertyName.startsWith("__") ? "sf" + propertyName : "sf__" + propertyName;
-        FieldInstance field = implementStaticAssignedField(fieldName, fieldValue);
-        MethodInstance getter = new MethodInstance(getState().getNewType(), Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC, field.getType(), "get" + propertyName, null);
+        var fieldName = propertyName.startsWith("__") ? "sf" + propertyName : "sf__" + propertyName;
+        var field = implementStaticAssignedField(fieldName, fieldValue);
+        var getter = new MethodInstance(getState().getNewType(), Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC, field.getType(), "get" + propertyName, null);
         getter = implementGetter(getter, field);
-        PropertyInstance property = getState().getProperty(propertyName, field.getType());
+        var property = getState().getProperty(propertyName, field.getType());
         if (property == null) {
             throw new IllegalStateException("Should never happen");
         }
@@ -121,7 +117,7 @@ public class ClassGenerator extends ClassVisitor {
     }
 
     public FieldInstance implementField(FieldInstance field, FScript script) {
-        FieldVisitor fv = visitField(field.getAccess(), field.getName(), field.getType().getDescriptor(), field.getSignature(), null);
+        var fv = visitField(field.getAccess(), field.getName(), field.getType().getDescriptor(), field.getSignature(), null);
         if (script != null) {
             script.execute(fv);
         }
@@ -131,8 +127,8 @@ public class ClassGenerator extends ClassVisitor {
 
     @Override
     public MethodGenerator visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
-        IBytecodeBehaviorState state = BytecodeBehaviorState.getState();
-        MethodVisitor mv = super.visitMethod(access, name, desc, signature, exceptions);
+        var state = BytecodeBehaviorState.getState();
+        var mv = super.visitMethod(access, name, desc, signature, exceptions);
 
         if (mv instanceof MethodGenerator) {
             return (MethodGenerator) mv;
@@ -141,27 +137,22 @@ public class ClassGenerator extends ClassVisitor {
     }
 
     public MethodGenerator visitMethod(MethodInstance method) {
-        Type owner = BytecodeBehaviorState.getState().getNewType();
+        var owner = BytecodeBehaviorState.getState().getNewType();
         method = new MethodInstance(owner, method);
-        MethodVisitor mv = super.visitMethod(method.getAccess(), method.getName(), method.getDescriptor(), method.getSignature(), null);
+        var mv = super.visitMethod(method.getAccess(), method.getName(), method.getDescriptor(), method.getSignature(), null);
         return new MethodGenerator(this, mv, method);
     }
 
     public MethodInstance implementSetter(MethodInstance method, FieldInstance field) {
-        MethodGenerator mg = visitMethod(method);
-        mg.putThisField(field, new Script() {
-            @Override
-            public void execute(MethodGenerator mg) {
-                mg.loadArg(0);
-            }
-        });
+        var mg = visitMethod(method);
+        mg.putThisField(field, currMg -> currMg.loadArg(0));
         mg.returnVoidOrThis();
         mg.endMethod();
         return MethodInstance.findByTemplate(method, false);
     }
 
     public PropertyInstance implementSetter(PropertyInstance property, FieldInstance field) {
-        MethodInstance setter = property.getSetter();
+        var setter = property.getSetter();
         if (setter == null) {
             setter = new MethodInstance(getState().getNewType(), Opcodes.ACC_PUBLIC, Type.VOID_TYPE, "set" + property.getName(), property.getSignature(), property.getPropertyType());
         }
@@ -174,7 +165,7 @@ public class ClassGenerator extends ClassVisitor {
     }
 
     public MethodInstance implementGetter(MethodInstance method, FieldInstance field, Script script) {
-        MethodGenerator mg = visitMethod(method);
+        var mg = visitMethod(method);
         mg.getThisField(field);
         mg.returnValue();
         mg.endMethod();
@@ -185,7 +176,7 @@ public class ClassGenerator extends ClassVisitor {
     }
 
     public PropertyInstance implementGetter(PropertyInstance property, FieldInstance field) {
-        MethodInstance getter = property.getGetter();
+        var getter = property.getGetter();
         if (getter == null) {
             getter = new MethodInstance(getState().getNewType(), Opcodes.ACC_PUBLIC, property.getPropertyType(), "get" + property.getName(), property.getSignature());
         }
@@ -194,9 +185,9 @@ public class ClassGenerator extends ClassVisitor {
     }
 
     public PropertyInstance implementLazyInitProperty(PropertyInstance property, Script script, String... fireThisOnPropertyNames) {
-        FieldInstance field = implementField(new FieldInstance(Opcodes.ACC_PRIVATE, "f_" + property.getName(), property.getSignature(), property.getPropertyType()));
-        MethodGenerator mv = visitMethod(property.getGetter());
-        Label returnInstance = mv.newLabel();
+        var field = implementField(new FieldInstance(Opcodes.ACC_PRIVATE, "f_" + property.getName(), property.getSignature(), property.getPropertyType()));
+        var mv = visitMethod(property.getGetter());
+        var returnInstance = mv.newLabel();
         mv.getThisField(field);
         mv.ifNonNull(returnInstance);
         mv.putThisField(field, script);
@@ -209,12 +200,12 @@ public class ClassGenerator extends ClassVisitor {
 
     public PropertyInstance implementProperty(PropertyInstance property, Script getterScript, Script setterScript) {
         if (getterScript != null) {
-            MethodGenerator mv = visitMethod(property.getGetter());
+            var mv = visitMethod(property.getGetter());
             getterScript.execute(mv);
             mv.endMethod();
         }
         if (setterScript != null) {
-            MethodGenerator mv = visitMethod(property.getSetter());
+            var mv = visitMethod(property.getSetter());
             setterScript.execute(mv);
             mv.endMethod();
         }
@@ -223,7 +214,7 @@ public class ClassGenerator extends ClassVisitor {
 
     public PropertyInstance fireThisOnPropertyChange(PropertyInstance property, String... propertyNames) {
         property = getState().getProperty(property.getName(), property.getPropertyType());
-        for (String propertyName : propertyNames) {
+        for (var propertyName : propertyNames) {
             property.addAnnotation(c_fireThisOPC, propertyName);
         }
         return property;
@@ -234,23 +225,23 @@ public class ClassGenerator extends ClassVisitor {
             overrideConstructorDelegate.invoke(this, c_obj);
             return;
         }
-        Constructor<?>[] constructors = getState().getCurrentType().getDeclaredConstructors();
-        for (Constructor<?> superConstructor : constructors) {
+        var constructors = getState().getCurrentType().getDeclaredConstructors();
+        for (var superConstructor : constructors) {
             overrideConstructorDelegate.invoke(this, new ConstructorInstance(superConstructor));
         }
     }
 
     public MethodGenerator startOverrideWithSuperCall(MethodInstance superMethod) {
-        IBytecodeBehaviorState state = BytecodeBehaviorState.getState();
+        var state = BytecodeBehaviorState.getState();
 
-        Type superType = Type.getType(state.getCurrentType());
+        var superType = Type.getType(state.getCurrentType());
         if (!superType.equals(superMethod.getOwner())) {
             throw new IllegalArgumentException("Not a method of " + state.getCurrentType() + ": " + superMethod);
         }
 
-        MethodInstance overridingMethod = new MethodInstance(state.getNewType(), superMethod);
+        var overridingMethod = new MethodInstance(state.getNewType(), superMethod);
 
-        MethodGenerator mg = visitMethod(overridingMethod);
+        var mg = visitMethod(overridingMethod);
 
         mg.loadThis();
         mg.loadArgs();
@@ -260,7 +251,7 @@ public class ClassGenerator extends ClassVisitor {
     }
 
     public MethodInstance implementSwitchByIndex(MethodInstance method, String exceptionMessageOnIllegalIndex, int indexSize, ScriptWithIndex script) {
-        MethodGenerator mv = visitMethod(method);
+        var mv = visitMethod(method);
 
         if (indexSize == 0) {
             mv.throwException(Type.getType(IllegalArgumentException.class), exceptionMessageOnIllegalIndex);
@@ -270,8 +261,8 @@ public class ClassGenerator extends ClassVisitor {
             return mv.getMethod();
         }
 
-        Label l_default = mv.newLabel();
-        Label[] l_fields = new Label[indexSize];
+        var l_default = mv.newLabel();
+        var l_fields = new Label[indexSize];
         for (int index = 0, size = indexSize; index < size; index++) {
             l_fields[index] = mv.newLabel();
         }

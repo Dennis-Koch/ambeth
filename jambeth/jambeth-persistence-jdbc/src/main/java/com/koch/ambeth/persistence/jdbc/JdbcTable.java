@@ -20,8 +20,9 @@ import com.koch.ambeth.persistence.sql.IResultSetProvider;
 import com.koch.ambeth.persistence.sql.IdContainerImpl;
 import com.koch.ambeth.persistence.sql.SqlTable;
 import com.koch.ambeth.service.merge.model.IObjRef;
-import com.koch.ambeth.util.IPreparedConverter;
+import com.koch.ambeth.util.IParamHolder;
 import com.koch.ambeth.util.ParamChecker;
+import com.koch.ambeth.util.ParamHolder;
 import com.koch.ambeth.util.appendable.AppendableStringBuilder;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.ILinkedMap;
@@ -452,47 +453,30 @@ public class JdbcTable extends SqlTable {
             return;
         }
         var conversionHelper = this.conversionHelper;
-        var metaData = getMetaData();
+        var tableMetaData = getMetaData();
         var exactVersionForOptimisticLockingRequired = this.exactVersionForOptimisticLockingRequired;
-        var idFields = metaData.getIdFields();
-
-        IPreparedConverter<?> idConverter = null;
-        IPreparedConverter<?> versionConverter = null;
+        var metaData = entityMetaDataProvider.getMetaData(tableMetaData.getEntityType());
+        var idConverter = compositeIdFactory.prepareCompositeIdFactory(metaData, metaData.getIdMember());
+        var versionConverter = tableMetaData.getVersionField() != null ? conversionHelper.prepareConverter(tableMetaData.getVersionField().getFieldType()) : null;
         var persistedIdsForArray = persistedIdToVersionMap.keyList();
-        var versionFieldType = metaData.getVersionField() != null ? metaData.getVersionField().getFieldType() : null;
-        var selectForUpdateRS = createSelectForUpdateStatementWithIn(persistedIdsForArray);
+        var versionIndexPH = new ParamHolder<Integer>();
+        var selectForUpdateRS = createSelectForUpdateStatementWithIn(persistedIdsForArray, versionIndexPH);
         try {
             for (var current : selectForUpdateRS) {
-                Object persistedId;
-                if (idFields.length == 1) {
-                    if (idConverter == null) {
-                        var idFieldType = metaData.getIdField().getFieldType();
-                        idConverter = conversionHelper.prepareConverter(idFieldType, current[0]);
-                    }
-                    persistedId = idConverter.convertValue(current[0], null);
-                } else {
-                    if (idConverter == null) {
-                        var entityMetaData = entityMetaDataProvider.getMetaData(metaData.getEntityType());
-                        idConverter = (value, additionalInformation) -> compositeIdFactory.createCompositeId(entityMetaData, IObjRef.PRIMARY_KEY_INDEX, current);
-                    }
-                    persistedId = idConverter.convertValue(current, null);
-                }
+                var persistedId = idConverter.convertValue(current, null);
                 var sizeBeforeRemoval = persistedIdToVersionMap.size();
                 var givenPersistedVersion = persistedIdToVersionMap.remove(persistedId);
-                if (versionFieldType == null) {
+                if (versionConverter == null) {
                     // confirm that the entry was really removed even if we dont have a managed version entry
                     var sizeAfterRemoval = persistedIdToVersionMap.size();
                     if (sizeBeforeRemoval == sizeAfterRemoval) {
-                        throw new IllegalStateException("Entry with id " + persistedId + " not found in state for table " + metaData.getName());
+                        throw new IllegalStateException("Entry with id " + persistedId + " not found in state for table " + tableMetaData.getName());
                     }
                     continue;
                 }
-                if (versionConverter == null) {
-                    versionConverter = conversionHelper.prepareConverter(versionFieldType, current[idFields.length]);
-                }
-                var persistedVersion = versionConverter.convertValue(current[idFields.length], null);
+                var persistedVersion = versionConverter.convertValue(current[versionIndexPH.getValue()], null);
                 if (log.isDebugEnabled()) {
-                    log.debug("Given: " + metaData.getName() + " - " + persistedId + ", Version: " + givenPersistedVersion + ", VersionInDb: " + persistedVersion);
+                    log.debug("Given: " + tableMetaData.getName() + " - " + persistedId + ", Version: " + givenPersistedVersion + ", VersionInDb: " + persistedVersion);
                 }
 
                 if (persistedVersion == null) {
@@ -500,21 +484,21 @@ public class JdbcTable extends SqlTable {
                 }
                 if (exactVersionForOptimisticLockingRequired) {
                     if (!persistedVersion.equals(givenPersistedVersion)) {
-                        var objId = conversionHelper.convertValueToType(metaData.getIdField().getMember().getRealType(), persistedId);
-                        var objVersion = conversionHelper.convertValueToType(metaData.getVersionField().getMember().getRealType(), persistedVersion);
-                        throw OptimisticLockUtil.throwModified(new ObjRef(metaData.getEntityType(), objId, objVersion), givenPersistedVersion);
+                        var objId = conversionHelper.convertValueToType(tableMetaData.getIdField().getMember().getRealType(), persistedId);
+                        var objVersion = conversionHelper.convertValueToType(tableMetaData.getVersionField().getMember().getRealType(), persistedVersion);
+                        throw OptimisticLockUtil.throwModified(new ObjRef(tableMetaData.getEntityType(), objId, objVersion), givenPersistedVersion);
                     }
                 } else {
                     if (((Comparable<Object>) persistedVersion).compareTo(givenPersistedVersion) > 0) {
-                        var objId = conversionHelper.convertValueToType(metaData.getIdField().getMember().getRealType(), persistedId);
-                        var objVersion = conversionHelper.convertValueToType(metaData.getVersionField().getMember().getRealType(), persistedVersion);
-                        throw OptimisticLockUtil.throwModified(new ObjRef(metaData.getEntityType(), objId, objVersion), givenPersistedVersion);
+                        var objId = conversionHelper.convertValueToType(tableMetaData.getIdField().getMember().getRealType(), persistedId);
+                        var objVersion = conversionHelper.convertValueToType(tableMetaData.getVersionField().getMember().getRealType(), persistedVersion);
+                        throw OptimisticLockUtil.throwModified(new ObjRef(tableMetaData.getEntityType(), objId, objVersion), givenPersistedVersion);
                     }
                 }
             }
             if (!persistedIdToVersionMap.isEmpty()) {
-                var objId = conversionHelper.convertValueToType(metaData.getIdField().getMember().getRealType(), persistedIdToVersionMap.iterator().next().getKey());
-                throw OptimisticLockUtil.throwDeleted(new ObjRef(metaData.getEntityType(), objId, null));
+                var objId = conversionHelper.convertValueToType(tableMetaData.getIdField().getMember().getRealType(), persistedIdToVersionMap.iterator().next().getKey());
+                throw OptimisticLockUtil.throwDeleted(new ObjRef(tableMetaData.getEntityType(), objId, null));
             }
         } finally {
             selectForUpdateRS.dispose();
@@ -592,9 +576,9 @@ public class JdbcTable extends SqlTable {
         }
     }
 
-    protected IResultSet createSelectForUpdateStatementWithIn(List<Object> ids) {
+    protected IResultSet createSelectForUpdateStatementWithIn(List<Object> ids, IParamHolder<Integer> versionIndexPH) {
         if (ids.size() <= maxInClauseBatchThreshold) {
-            return createSelectForUpdateStatementWithInIntern(ids);
+            return createSelectForUpdateStatementWithInIntern(ids, versionIndexPH);
         }
         var splitValues = persistenceHelper.splitValues(ids, maxInClauseBatchThreshold);
 
@@ -603,7 +587,7 @@ public class JdbcTable extends SqlTable {
         // later
         for (int a = splitValues.size(); a-- > 0; ) {
             var values = splitValues.get(a);
-            resultSetProviderStack.add(() -> createSelectForUpdateStatementWithInIntern(values));
+            resultSetProviderStack.add(() -> createSelectForUpdateStatementWithInIntern(values, versionIndexPH));
         }
         var compositeResultSet = new CompositeResultSet();
         compositeResultSet.setResultSetProviderStack(resultSetProviderStack);
@@ -611,7 +595,7 @@ public class JdbcTable extends SqlTable {
         return compositeResultSet;
     }
 
-    protected IResultSet createSelectForUpdateStatementWithInIntern(List<?> ids) {
+    protected IResultSet createSelectForUpdateStatementWithInIntern(List<?> ids, IParamHolder<Integer> versionIndexPH) {
         var tableMetaData = getMetaData();
         var parameters = new ArrayList<>();
         var tlObjectCollector = objectCollector.getCurrent();
@@ -625,6 +609,7 @@ public class JdbcTable extends SqlTable {
             persistenceHelper.appendSplittedValues(IdContainerImpl.ofIdIndex(tableMetaData.getIdFields(), ids, tableMetaData.getEntityType(), entityMetaDataProvider), parameters, whereSQL);
             whereSQL.append(connectionDialect.getSelectForUpdateFragment());
 
+            versionIndexPH.setValue(selectState.getVersionIndex());
             return sqlConnection.selectFields(tableMetaData.getFullqualifiedEscapedName(), fieldNamesSQL, whereSQL, null, null, parameters);
         } finally {
             tlObjectCollector.dispose(whereSQL);

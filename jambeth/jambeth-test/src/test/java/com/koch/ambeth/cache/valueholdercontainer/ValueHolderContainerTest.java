@@ -35,13 +35,11 @@ import com.koch.ambeth.merge.IProxyHelper;
 import com.koch.ambeth.merge.cache.CacheFactoryDirective;
 import com.koch.ambeth.merge.cache.ICacheFactory;
 import com.koch.ambeth.merge.cache.ICacheModification;
-import com.koch.ambeth.merge.cache.IDisposableCache;
 import com.koch.ambeth.merge.cache.ValueHolderState;
 import com.koch.ambeth.merge.model.IDirectObjRef;
 import com.koch.ambeth.merge.proxy.IObjRefContainer;
 import com.koch.ambeth.service.config.ServiceConfigurationConstants;
 import com.koch.ambeth.service.merge.IEntityMetaDataProvider;
-import com.koch.ambeth.service.merge.model.IEntityMetaData;
 import com.koch.ambeth.service.merge.model.IObjRef;
 import com.koch.ambeth.service.merge.model.IObjRefType;
 import com.koch.ambeth.testutil.AbstractInformationBusTest;
@@ -51,7 +49,6 @@ import com.koch.ambeth.testutil.TestPropertiesList;
 import com.koch.ambeth.testutil.TestRebuildContext;
 import com.koch.ambeth.util.ReflectUtil;
 import com.koch.ambeth.util.collections.HashMap;
-import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.IMap;
 import com.koch.ambeth.util.collections.ObservableArrayList;
 import com.koch.ambeth.util.model.IDataObject;
@@ -62,9 +59,7 @@ import com.koch.ambeth.util.threading.IGuiThreadHelper;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.util.Map.Entry;
 import java.util.concurrent.CountDownLatch;
 
 @TestPropertiesList({
@@ -266,7 +261,7 @@ public class ValueHolderContainerTest extends AbstractInformationBusTest {
 
     @Test
     public void test_DataObject() throws Exception {
-        Material obj = entityFactory.createEntity(Material.class);
+        var obj = entityFactory.createEntity(Material.class);
 
         Assert.assertTrue(obj instanceof IDataObject);
 
@@ -283,7 +278,7 @@ public class ValueHolderContainerTest extends AbstractInformationBusTest {
         obj.setName("name2");
         obj.setVersion(1);
 
-        Object idNull = obj.getClass().getMethod(getIdName).invoke(obj, new Object[0]);
+        var idNull = obj.getClass().getMethod(getIdName).invoke(obj, new Object[0]);
         Assert.assertNull(idNull);
 
         Assert.assertTrue(((IDataObject) obj).isToBeCreated());
@@ -293,7 +288,7 @@ public class ValueHolderContainerTest extends AbstractInformationBusTest {
 
         obj.setId(1);
 
-        Object idNotNull = obj.getClass().getMethod(getIdName).invoke(obj, new Object[0]);
+        var idNotNull = obj.getClass().getMethod(getIdName).invoke(obj, new Object[0]);
         Assert.assertNotNull(idNotNull);
 
         Assert.assertFalse(((IDataObject) obj).isToBeCreated());
@@ -320,7 +315,7 @@ public class ValueHolderContainerTest extends AbstractInformationBusTest {
 
     @Test
     public void test_DataObject_Embedded() {
-        Material obj = entityFactory.createEntity(Material.class);
+        var obj = entityFactory.createEntity(Material.class);
 
         Assert.assertTrue(obj instanceof IDataObject);
         Assert.assertFalse(obj.getEmbMat() instanceof IDataObject);
@@ -343,25 +338,25 @@ public class ValueHolderContainerTest extends AbstractInformationBusTest {
 
     @Test
     public void test_ObjRefType() {
-        Material obj = entityFactory.createEntity(Material.class);
+        var obj = entityFactory.createEntity(Material.class);
 
         Assert.assertTrue(obj instanceof IObjRefType);
 
-        IObjRef objRef = ((IObjRefType) obj).getObjRef();
+        var objRef = ((IObjRefType) obj).getObjRef();
         Assert.assertTrue(objRef instanceof IDirectObjRef);
         Assert.assertSame(((IDirectObjRef) objRef).getDirect(), obj);
 
-        IList<IObjRef> allObjRefs = ((IObjRefType) obj).getAllObjRefs();
+        var allObjRefs = ((IObjRefType) obj).getAllObjRefs();
         Assert.assertEquals(0, allObjRefs.size());
 
-        IObjRef explicitPrimaryObjRef = ((IObjRefType) obj).getObjRef("Id");
+        var explicitPrimaryObjRef = ((IObjRefType) obj).getObjRef("Id");
         Assert.assertTrue(explicitPrimaryObjRef instanceof IDirectObjRef);
         Assert.assertSame(((IDirectObjRef) explicitPrimaryObjRef).getDirect(), obj);
     }
 
     @Test
     public void test_ValueHolderContainer_Embedded() throws Exception {
-        Material obj = entityFactory.createEntity(Material.class);
+        var obj = entityFactory.createEntity(Material.class);
 
         // Test EmbMat.EmbMatType
         Assert.assertTrue(obj.getEmbMat() instanceof IEmbeddedType);
@@ -371,16 +366,16 @@ public class ValueHolderContainerTest extends AbstractInformationBusTest {
         Assert.assertEquals(0, ReflectUtil.getDeclaredFieldInHierarchy(obj.getClass(), ValueHolderIEC.getInitializedFieldName("EmbMat.EmbMatType")).length);
         Assert.assertEquals(1, ReflectUtil.getDeclaredFieldInHierarchy(obj.getEmbMat().getClass(), ValueHolderIEC.getInitializedFieldName("EmbMatType")).length);
 
-        IObjRefContainer vhc = (IObjRefContainer) obj;
+        var vhc = (IObjRefContainer) obj;
 
-        IEntityMetaData metaData = vhc.get__EntityMetaData();
-        int embMatTypeIndex = metaData.getIndexByRelationName("EmbMat.EmbMatType");
+        var metaData = vhc.get__EntityMetaData();
+        var embMatTypeIndex = metaData.getIndexByRelationName("EmbMat.EmbMatType");
 
         Assert.assertFalse(vhc.is__Initialized(embMatTypeIndex));
 
-        IObjRef[] emptyRefs = IObjRef.EMPTY_ARRAY;
+        var emptyRefs = IObjRef.EMPTY_ARRAY;
         ((IObjRefContainer) obj).set__ObjRefs(embMatTypeIndex, emptyRefs);
-        IObjRef[] objRefs = vhc.get__ObjRefs(embMatTypeIndex);
+        var objRefs = vhc.get__ObjRefs(embMatTypeIndex);
         Assert.assertSame(emptyRefs, objRefs);
 
         Assert.assertNull(obj.getEmbMat().getEmbMatType());
@@ -411,54 +406,46 @@ public class ValueHolderContainerTest extends AbstractInformationBusTest {
     }
 
     protected PropertyChangeListener getPropertyChangeHandler(final IMap<String, Integer> propertyNameToHitCountMap) {
-        PropertyChangeListener handler = new PropertyChangeListener() {
-            @Override
-            public void propertyChange(PropertyChangeEvent evt) {
-                Integer hitCount = propertyNameToHitCountMap.get(evt.getPropertyName());
+        return pce -> {
+            Integer hitCount = propertyNameToHitCountMap.get(pce.getPropertyName());
+            if (hitCount == null) {
+                hitCount = Integer.valueOf(0);
+            }
+            hitCount++;
+            propertyNameToHitCountMap.put(pce.getPropertyName(), hitCount);
+        };
+    }
+
+    protected PropertyChangeListener getPropertyChangeHandlerForUI(final IMap<String, IMap<Thread, Integer>> propertyNameToHitCountMap) {
+        return pce -> {
+            Thread currentThread = Thread.currentThread();
+            // Assert.AreSame(syncContext, SynchronizationContext.Current);
+            synchronized (propertyNameToHitCountMap) {
+                IMap<Thread, Integer> threadMap = propertyNameToHitCountMap.get(pce.getPropertyName());
+                if (threadMap == null) {
+                    threadMap = new HashMap<>();
+                    propertyNameToHitCountMap.put(pce.getPropertyName(), threadMap);
+                }
+                Integer hitCount = threadMap.get(currentThread);
                 if (hitCount == null) {
                     hitCount = Integer.valueOf(0);
                 }
                 hitCount++;
-                propertyNameToHitCountMap.put(evt.getPropertyName(), hitCount);
+                threadMap.put(currentThread, hitCount);
             }
         };
-        return handler;
-    }
-
-    protected PropertyChangeListener getPropertyChangeHandlerForUI(final IMap<String, IMap<Thread, Integer>> propertyNameToHitCountMap) {
-        PropertyChangeListener handler = new PropertyChangeListener() {
-            @Override
-            public void propertyChange(PropertyChangeEvent evt) {
-                Thread currentThread = Thread.currentThread();
-                // Assert.AreSame(syncContext, SynchronizationContext.Current);
-                synchronized (propertyNameToHitCountMap) {
-                    IMap<Thread, Integer> threadMap = propertyNameToHitCountMap.get(evt.getPropertyName());
-                    if (threadMap == null) {
-                        threadMap = new HashMap<>();
-                        propertyNameToHitCountMap.put(evt.getPropertyName(), threadMap);
-                    }
-                    Integer hitCount = threadMap.get(currentThread);
-                    if (hitCount == null) {
-                        hitCount = Integer.valueOf(0);
-                    }
-                    hitCount++;
-                    threadMap.put(currentThread, hitCount);
-                }
-            }
-        };
-        return handler;
     }
 
     @Test
     public void test_DataObject_PropertyChange() {
-        MaterialType obj = entityFactory.createEntity(MaterialType.class);
+        var obj = entityFactory.createEntity(MaterialType.class);
 
         Assert.assertTrue(obj instanceof IDataObject);
         Assert.assertTrue(obj instanceof INotifyPropertyChanged);
         Assert.assertTrue(obj instanceof INotifyPropertyChangedSource);
 
-        HashMap<String, Integer> propertyNameToHitCountMap = new HashMap<>();
-        PropertyChangeListener handler = getPropertyChangeHandler(propertyNameToHitCountMap);
+        var propertyNameToHitCountMap = new HashMap<String, Integer>();
+        var handler = getPropertyChangeHandler(propertyNameToHitCountMap);
         ((INotifyPropertyChanged) obj).addPropertyChangeListener(handler);
 
         Assert.assertEquals(0, propertyNameToHitCountMap.size());
@@ -487,7 +474,7 @@ public class ValueHolderContainerTest extends AbstractInformationBusTest {
 
     @Test
     public void test_EntityEquals() throws Exception {
-        MaterialType objNull1 = entityFactory.createEntity(MaterialType.class);
+        var objNull1 = entityFactory.createEntity(MaterialType.class);
         Assert.assertTrue(objNull1 instanceof IEntityEquals);
 
         objNull1.setId(0);
@@ -496,21 +483,21 @@ public class ValueHolderContainerTest extends AbstractInformationBusTest {
 
         Assert.assertEquals(objNull1, objNull1);
 
-        MaterialType objNull2 = entityFactory.createEntity(MaterialType.class);
+        var objNull2 = entityFactory.createEntity(MaterialType.class);
         objNull2.setId(0);
         objNull2.setName("name3");
         objNull2.setVersion(1);
 
         Assert.assertNotEquals(objNull1, objNull2);
 
-        MaterialType obj1 = entityFactory.createEntity(MaterialType.class);
+        var obj1 = entityFactory.createEntity(MaterialType.class);
         obj1.setId(1);
         obj1.setName("name2");
         obj1.setVersion(1);
 
         Assert.assertEquals(obj1, obj1);
 
-        MaterialType obj1_1 = entityFactory.createEntity(MaterialType.class);
+        var obj1_1 = entityFactory.createEntity(MaterialType.class);
         obj1_1.setId(1);
         obj1_1.setName("name3");
         obj1_1.setVersion(2);
@@ -518,18 +505,18 @@ public class ValueHolderContainerTest extends AbstractInformationBusTest {
         Assert.assertEquals(obj1, obj1_1);
         Assert.assertEquals(obj1.hashCode(), obj1_1.hashCode());
 
-        MaterialType obj2 = entityFactory.createEntity(MaterialType.class);
+        var obj2 = entityFactory.createEntity(MaterialType.class);
         obj2.setId(2);
         obj2.setName("name2");
         obj2.setVersion(1);
 
         Assert.assertNotEquals(obj1, obj2);
 
-        Object value1 = obj1.getClass().getMethod(getIdName).invoke(obj1, new Object[0]);
-        Object value2 = obj2.getClass().getMethod(getIdName).invoke(obj2, new Object[0]);
+        var value1 = obj1.getClass().getMethod(getIdName).invoke(obj1, new Object[0]);
+        var value2 = obj2.getClass().getMethod(getIdName).invoke(obj2, new Object[0]);
         Assert.assertNotEquals(value1, value2);
 
-        Material mat2 = entityFactory.createEntity(Material.class);
+        var mat2 = entityFactory.createEntity(Material.class);
         mat2.setId(2);
         mat2.setName("name2");
         mat2.setVersion(1);
@@ -539,8 +526,8 @@ public class ValueHolderContainerTest extends AbstractInformationBusTest {
 
     @Test
     public void test_PropertyChange_Registration() {
-        HashMap<String, Integer> pceCounter = new HashMap<>();
-        PropertyChangeListener handler = getPropertyChangeHandler(pceCounter);
+        var pceCounter = new HashMap<String, Integer>();
+        var handler = getPropertyChangeHandler(pceCounter);
 
         {
             MaterialType obj = entityFactory.createEntity(MaterialType.class);
@@ -586,10 +573,10 @@ public class ValueHolderContainerTest extends AbstractInformationBusTest {
 
     @Test
     public void test_PropertyChange_ToBeUpdated() {
-        HashMap<String, Integer> pceCounter = new HashMap<>();
-        PropertyChangeListener handler = getPropertyChangeHandler(pceCounter);
+        var pceCounter = new HashMap<String, Integer>();
+        var handler = getPropertyChangeHandler(pceCounter);
 
-        Material obj = entityFactory.createEntity(Material.class);
+        var obj = entityFactory.createEntity(Material.class);
         ((INotifyPropertyChanged) obj).addPropertyChangeListener(handler);
 
         obj.setId(1);
@@ -608,17 +595,16 @@ public class ValueHolderContainerTest extends AbstractInformationBusTest {
 
         Assert.assertEquals(Integer.valueOf(1), pceCounter.get("id"));
         Assert.assertEquals(Integer.valueOf(1), pceCounter.get(IDataObject.BEANS_TO_BE_CREATED));
-        Assert.assertEquals(Integer.valueOf(1), pceCounter.get(IDataObject.BEANS_TO_BE_UPDATED));
-        Assert.assertEquals(Integer.valueOf(2), pceCounter.get(IDataObject.BEANS_HAS_PENDING_CHANGES));
-        Assert.assertEquals(4, pceCounter.size());
+        Assert.assertEquals(Integer.valueOf(1), pceCounter.get(IDataObject.BEANS_HAS_PENDING_CHANGES));
+        Assert.assertEquals(3, pceCounter.size());
     }
 
     @Test
     public void test_PropertyChange_On_CollectionChange() {
-        HashMap<String, Integer> pceCounter = new HashMap<>();
-        PropertyChangeListener handler = getPropertyChangeHandler(pceCounter);
+        var pceCounter = new HashMap<String, Integer>();
+        var handler = getPropertyChangeHandler(pceCounter);
 
-        Material obj = entityFactory.createEntity(Material.class);
+        var obj = entityFactory.createEntity(Material.class);
 
         obj.setId(1);
         ((IDataObject) obj).setToBeUpdated(false);
@@ -636,10 +622,10 @@ public class ValueHolderContainerTest extends AbstractInformationBusTest {
 
     @Test
     public void test_PropertyChange_On_CollectionChange2() {
-        HashMap<String, Integer> pceCounter = new HashMap<>();
-        PropertyChangeListener handler = getPropertyChangeHandler(pceCounter);
+        var pceCounter = new HashMap<String, Integer>();
+        var handler = getPropertyChangeHandler(pceCounter);
 
-        Material obj = entityFactory.createEntity(Material.class);
+        var obj = entityFactory.createEntity(Material.class);
 
         obj.setId(1);
         ((IDataObject) obj).setToBeUpdated(false);
@@ -657,7 +643,7 @@ public class ValueHolderContainerTest extends AbstractInformationBusTest {
 
     @Test
     public void test_PropertyChange_Registration_Embedded() {
-        Material obj = entityFactory.createEntity(Material.class);
+        var obj = entityFactory.createEntity(Material.class);
 
         Assert.assertTrue(obj instanceof INotifyPropertyChanged);
         Assert.assertTrue(obj instanceof INotifyPropertyChangedSource);
@@ -668,14 +654,14 @@ public class ValueHolderContainerTest extends AbstractInformationBusTest {
         Assert.assertTrue(obj.getEmbMat3() instanceof INotifyPropertyChanged);
         Assert.assertTrue(obj.getEmbMat3() instanceof INotifyPropertyChangedSource);
 
-        HashMap<String, Integer> embMat_embMat2_counter = new HashMap<>();
-        PropertyChangeListener embMat_embMat2_handler = getPropertyChangeHandler(embMat_embMat2_counter);
+        var embMat_embMat2_counter = new HashMap<String, Integer>();
+        var embMat_embMat2_handler = getPropertyChangeHandler(embMat_embMat2_counter);
 
-        HashMap<String, Integer> embMat_counter = new HashMap<>();
-        PropertyChangeListener embMat_handler = getPropertyChangeHandler(embMat_counter);
+        var embMat_counter = new HashMap<String, Integer>();
+        var embMat_handler = getPropertyChangeHandler(embMat_counter);
 
-        HashMap<String, Integer> counter = new HashMap<>();
-        PropertyChangeListener handler = getPropertyChangeHandler(counter);
+        var counter = new HashMap<String, Integer>();
+        var handler = getPropertyChangeHandler(counter);
 
         ((INotifyPropertyChanged) obj).addPropertyChangeListener(handler);
         ((INotifyPropertyChanged) obj.getEmbMat()).addPropertyChangeListener(embMat_handler);
@@ -697,13 +683,13 @@ public class ValueHolderContainerTest extends AbstractInformationBusTest {
 
     @Test
     public void test_PropertyChange_Annotations() {
-        MaterialType obj = entityFactory.createEntity(MaterialType.class);
+        var obj = entityFactory.createEntity(MaterialType.class);
 
         Assert.assertTrue(obj instanceof INotifyPropertyChanged);
         Assert.assertTrue(obj instanceof INotifyPropertyChangedSource);
 
-        HashMap<String, Integer> propertyNameToHitCountMap = new HashMap<>();
-        PropertyChangeListener handler = getPropertyChangeHandler(propertyNameToHitCountMap);
+        var propertyNameToHitCountMap = new HashMap<String, Integer>();
+        var handler = getPropertyChangeHandler(propertyNameToHitCountMap);
 
         ((INotifyPropertyChanged) obj).addPropertyChangeListener(handler);
 
@@ -720,20 +706,20 @@ public class ValueHolderContainerTest extends AbstractInformationBusTest {
 
     @Test
     public void test_ValueHolderContainer() {
-        MaterialType obj = entityFactory.createEntity(MaterialType.class);
+        var obj = entityFactory.createEntity(MaterialType.class);
 
         obj.setId(2);
         obj.setName("name2");
         obj.setVersion(1);
-        MaterialType obj2 = entityFactory.createEntity(MaterialType.class);
+        var obj2 = entityFactory.createEntity(MaterialType.class);
         obj2.setId(3);
         obj2.setName("name3");
         obj2.setVersion(1);
 
-        IEntityMetaData metaData = entityMetaDataProvider.getMetaData(Material.class);
-        int relationIndex = metaData.getIndexByRelationName("Types");
+        var metaData = entityMetaDataProvider.getMetaData(Material.class);
+        var relationIndex = metaData.getIndexByRelationName("Types");
 
-        Material parentEntity = entityFactory.createEntity(Material.class);
+        var parentEntity = entityFactory.createEntity(Material.class);
         Assert.assertTrue(parentEntity instanceof IValueHolderContainer);
         Assert.assertEquals(ValueHolderState.LAZY, ((IObjRefContainer) parentEntity).get__State(relationIndex));
         Assert.assertEquals(0, ((IObjRefContainer) parentEntity).get__ObjRefs(relationIndex).length);
@@ -744,22 +730,22 @@ public class ValueHolderContainerTest extends AbstractInformationBusTest {
         parentEntity.getTypes().add(obj);
         parentEntity.getTypes().add(obj2);
 
-        IObjRef typeObjRef = oriHelper.entityToObjRef(obj);
+        var typeObjRef = oriHelper.entityToObjRef(obj);
 
-        IDisposableCache cache = cacheFactory.create(CacheFactoryDirective.NoDCE, "test");
+        var cache = cacheFactory.create(CacheFactoryDirective.NoDCE, "test");
         ((ICacheIntern) cache).assignEntityToCache(parentEntity);
         ((IObjRefContainer) parentEntity).set__ObjRefs(relationIndex, new IObjRef[] { typeObjRef });
 
         Assert.assertEquals(ValueHolderState.INIT, ((IObjRefContainer) parentEntity).get__State(relationIndex));
         Assert.assertEquals(1, ((IObjRefContainer) parentEntity).get__ObjRefs(relationIndex).length);
 
-        Object value = valueHolderContainerTemplate.getValue((IValueHolderContainer) parentEntity, relationIndex);
+        var value = valueHolderContainerTemplate.getValue((IValueHolderContainer) parentEntity, relationIndex);
     }
 
     @Test
     public void test_PropertyChange_ParentChild_ToOne() {
-        MaterialType obj2 = entityFactory.createEntity(MaterialType.class);
-        Material mat = entityFactory.createEntity(Material.class);
+        var obj2 = entityFactory.createEntity(MaterialType.class);
+        var mat = entityFactory.createEntity(Material.class);
         cacheModification.setActive(true);
         try {
             obj2.setId(2);
@@ -776,11 +762,11 @@ public class ValueHolderContainerTest extends AbstractInformationBusTest {
         Assert.assertFalse(((IDataObject) mat).hasPendingChanges());
         Assert.assertFalse(((IDataObject) obj2).hasPendingChanges());
 
-        HashMap<String, Integer> matCounter = new HashMap<>();
-        PropertyChangeListener matHandler = getPropertyChangeHandler(matCounter);
+        var matCounter = new HashMap<String, Integer>();
+        var matHandler = getPropertyChangeHandler(matCounter);
 
-        HashMap<String, Integer> matTypeCounter = new HashMap<>();
-        PropertyChangeListener matTypeHandler = getPropertyChangeHandler(matTypeCounter);
+        var matTypeCounter = new HashMap<String, Integer>();
+        var matTypeHandler = getPropertyChangeHandler(matTypeCounter);
 
         ((INotifyPropertyChanged) mat).addPropertyChangeListener(matHandler);
         ((INotifyPropertyChanged) mat.getChildMatType()).addPropertyChangeListener(matTypeHandler);
@@ -812,9 +798,9 @@ public class ValueHolderContainerTest extends AbstractInformationBusTest {
 
     @Test
     public void test_PropertyChange_ParentChild_ToMany() {
-        MaterialType obj3 = entityFactory.createEntity(MaterialType.class);
-        MaterialType obj4 = entityFactory.createEntity(MaterialType.class);
-        Material mat = entityFactory.createEntity(Material.class);
+        var obj3 = entityFactory.createEntity(MaterialType.class);
+        var obj4 = entityFactory.createEntity(MaterialType.class);
+        var mat = entityFactory.createEntity(Material.class);
         cacheModification.setActive(true);
         try {
             obj3.setId(3);
@@ -837,12 +823,12 @@ public class ValueHolderContainerTest extends AbstractInformationBusTest {
         Assert.assertFalse(((IDataObject) obj3).hasPendingChanges());
         Assert.assertFalse(((IDataObject) obj4).hasPendingChanges());
 
-        HashMap<String, Integer> matCounter = new HashMap<>();
-        PropertyChangeListener matHandler = getPropertyChangeHandler(matCounter);
+        var matCounter = new HashMap<String, Integer>();
+        var matHandler = getPropertyChangeHandler(matCounter);
 
         ((INotifyPropertyChanged) mat).addPropertyChangeListener(matHandler);
 
-        for (MaterialType childMatType : mat.getChildMatTypes()) {
+        for (var childMatType : mat.getChildMatTypes()) {
             childMatType.setName(childMatType.getName() + "_change");
         }
         waitForUI();
@@ -856,13 +842,13 @@ public class ValueHolderContainerTest extends AbstractInformationBusTest {
 
     @Test
     public void test_PropertyChange_OutOfGuiThread() throws InterruptedException {
-        final HashMap<String, IMap<Thread, Integer>> counter = new HashMap<>();
-        final PropertyChangeListener handler = getPropertyChangeHandlerForUI(counter);
+        var counter = new HashMap<String, IMap<Thread, Integer>>();
+        var handler = getPropertyChangeHandlerForUI(counter);
 
-        final CountDownLatch latch = new CountDownLatch(1);
+        var latch = new CountDownLatch(1);
         guiThreadHelper.invokeOutOfGui(() -> {
             try {
-                Material obj = entityFactory.createEntity(Material.class);
+                var obj = entityFactory.createEntity(Material.class);
                 ((INotifyPropertyChanged) obj).addPropertyChangeListener(handler);
 
                 cacheModification.setActive(true);
@@ -889,10 +875,10 @@ public class ValueHolderContainerTest extends AbstractInformationBusTest {
         Assert.assertTrue(counter.containsKey("name"));
         Assert.assertTrue(counter.containsKey(IDataObject.BEANS_HAS_PENDING_CHANGES));
 
-        Thread guiThread = Thread.currentThread();
+        var guiThread = Thread.currentThread();
 
-        for (Entry<String, IMap<Thread, Integer>> entry : counter) {
-            for (Entry<Thread, Integer> entry2 : entry.getValue()) {
+        for (var entry : counter) {
+            for (var entry2 : entry.getValue()) {
                 Assert.assertSame(guiThread, entry2.getKey());
             }
         }

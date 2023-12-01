@@ -204,6 +204,7 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 
                 if (doStructureRebuild) {
                     getAmbethPersistenceSetup().rebuildStructure();
+                    isStructureRebuildAlreadyHandled = true;
                 }
                 if (doDataRebuild) {
                     ambethPersistenceSetup.rebuildData(method);

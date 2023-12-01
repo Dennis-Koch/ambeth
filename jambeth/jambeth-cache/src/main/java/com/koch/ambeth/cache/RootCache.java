@@ -45,6 +45,7 @@ import com.koch.ambeth.merge.cache.ValueHolderState;
 import com.koch.ambeth.merge.config.MergeConfigurationConstants;
 import com.koch.ambeth.merge.copy.IObjectCopier;
 import com.koch.ambeth.merge.metadata.IObjRefFactory;
+import com.koch.ambeth.merge.model.IDirectObjRef;
 import com.koch.ambeth.merge.proxy.IEntityMetaDataHolder;
 import com.koch.ambeth.merge.proxy.IObjRefContainer;
 import com.koch.ambeth.merge.security.ISecurityActivation;
@@ -62,7 +63,6 @@ import com.koch.ambeth.service.merge.model.IEntityMetaData;
 import com.koch.ambeth.service.merge.model.IObjRef;
 import com.koch.ambeth.service.metadata.Member;
 import com.koch.ambeth.util.ListUtil;
-import com.koch.ambeth.util.Lock;
 import com.koch.ambeth.util.LockState;
 import com.koch.ambeth.util.ParamHolder;
 import com.koch.ambeth.util.collections.AbstractHashSet;
@@ -278,9 +278,9 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
         if (oriToGet == null) {
             return null;
         }
-        ArrayList<IObjRef> orisToGet = new ArrayList<>(1);
+        var orisToGet = new ArrayList<IObjRef>(1);
         orisToGet.add(oriToGet);
-        List<Object> objects = getObjects(orisToGet, targetCache, cacheDirective);
+        var objects = getObjects(orisToGet, targetCache, cacheDirective);
         if (objects.isEmpty()) {
             return null;
         }
@@ -289,7 +289,7 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 
     @Override
     public IList<Object> getObjects(final List<IObjRef> orisToGet, final ICacheIntern targetCache, final Set<CacheDirective> cacheDirective) {
-        IVerifyOnLoad verifyOnLoad = this.verifyOnLoad;
+        var verifyOnLoad = this.verifyOnLoad;
         if (verifyOnLoad == null) {
             return getObjectsIntern(orisToGet, targetCache, cacheDirective);
         }
@@ -304,17 +304,17 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
         if (cacheDirective == null) {
             cacheDirective = Collections.<CacheDirective>emptySet();
         }
-        boolean isCacheRetrieverCallAllowed = isCacheRetrieverCallAllowed(cacheDirective);
-        IEventQueue eventQueue = this.eventQueue;
+        var isCacheRetrieverCallAllowed = isCacheRetrieverCallAllowed(cacheDirective);
+        var eventQueue = this.eventQueue;
         if (eventQueue != null) {
             eventQueue.pause(this);
         }
         try {
-            Lock readLock = getReadLock();
-            Lock writeLock = getWriteLock();
-            ICacheModification cacheModification = this.cacheModification;
-            boolean oldCacheModificationValue = cacheModification.isActive();
-            boolean acquireSuccess = acquireHardRefTLIfNotAlready(orisToGet.size());
+            var readLock = getReadLock();
+            var writeLock = getWriteLock();
+            var cacheModification = this.cacheModification;
+            var oldCacheModificationValue = cacheModification.isActive();
+            var acquireSuccess = acquireHardRefTLIfNotAlready(orisToGet.size());
             if (!oldCacheModificationValue) {
                 cacheModification.setActive(true);
             }
@@ -330,16 +330,16 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
                     }
                 }
 
-                LockState lockState = writeLock.releaseAllLocks();
-                ParamHolder<Boolean> doAnotherRetry = new ParamHolder<>();
+                var lockState = writeLock.releaseAllLocks();
+                var doAnotherRetry = new ParamHolder<Boolean>();
                 try {
                     while (true) {
                         doAnotherRetry.setValue(Boolean.FALSE);
-                        LinkedHashSet<IObjRef> neededObjRefs = new LinkedHashSet<>();
-                        ArrayList<DirectValueHolderRef> pendingValueHolders = new ArrayList<>();
-                        IList<Object> result = getObjectsRetry(orisToGet, targetCache, cacheDirective, doAnotherRetry, neededObjRefs, pendingValueHolders);
+                        var neededObjRefs = new LinkedHashSet<IObjRef>();
+                        var pendingValueHolders = new ArrayList<DirectValueHolderRef>();
+                        var result = getObjectsRetry(orisToGet, targetCache, cacheDirective, doAnotherRetry, neededObjRefs, pendingValueHolders);
                         while (!neededObjRefs.isEmpty()) {
-                            IList<IObjRef> objRefsToGetCascade = neededObjRefs.toList();
+                            var objRefsToGetCascade = neededObjRefs.toList();
                             neededObjRefs.clear();
                             getObjectsRetry(objRefsToGetCascade, targetCache, cacheDirective, doAnotherRetry, neededObjRefs, pendingValueHolders);
                         }
@@ -811,7 +811,8 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
     }
 
     protected boolean isFilteringNecessary(ICacheIntern targetCache) {
-        return privilegeProvider != null && securityActive && ((isPrivileged() && targetCache != null && !targetCache.isPrivileged()) || (targetCache == null && securityActivation != null && securityActivation.isFilterActivated()));
+        return privilegeProvider != null && securityActive &&
+                ((isPrivileged() && targetCache != null && !targetCache.isPrivileged()) || (targetCache == null && securityActivation != null && securityActivation.isFilterActivated()));
     }
 
     protected IList<Object> createResult(List<IObjRef> objRefsToGet, RootCacheValue[] rootCacheValuesToGet, Set<CacheDirective> cacheDirective, ICacheIntern targetCache, boolean checkVersion,
@@ -877,7 +878,7 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
                 if (cacheValue == null) {
                     // Cache miss
                     if (targetCacheAccess) {
-                        Object cacheHitObject = targetCache.getObject(objRefToGet, targetCache, CacheDirective.failEarly());
+                        var cacheHitObject = targetCache.getObject(objRefToGet, targetCache, CacheDirective.failEarly());
                         if (cacheHitObject != null) {
                             result.add(cacheHitObject);
                             continue;
@@ -886,7 +887,7 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
                     if (returnMisses) {
                         result.add(null);
                     }
-                    if (objRefsToLoad != null) {
+                    if (objRefsToLoad != null && !(objRefToGet instanceof IDirectObjRef)) {
                         objRefsToLoad.add(objRefToGet);
                     }
                     // But we already loaded before so we can do nothing now

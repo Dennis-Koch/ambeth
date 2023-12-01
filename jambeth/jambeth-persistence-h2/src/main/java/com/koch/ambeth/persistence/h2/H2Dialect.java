@@ -20,21 +20,6 @@ limitations under the License.
  * #L%
  */
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Savepoint;
-import java.sql.Statement;
-import java.util.List;
-import java.util.Set;
-
-import jakarta.persistence.OptimisticLockException;
-import jakarta.persistence.PersistenceException;
-
-import lombok.SneakyThrows;
-import org.h2.Driver;
-
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.config.Property;
 import com.koch.ambeth.persistence.IColumnEntry;
@@ -52,6 +37,19 @@ import com.koch.ambeth.util.collections.ILinkedMap;
 import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.IMap;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
+import jakarta.persistence.OptimisticLockException;
+import jakarta.persistence.PersistenceException;
+import lombok.SneakyThrows;
+import org.h2.Driver;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Savepoint;
+import java.sql.Statement;
+import java.util.List;
+import java.util.Set;
 
 public class H2Dialect extends AbstractConnectionDialect {
     public static int getOptimisticLockErrorCode() {
@@ -69,6 +67,7 @@ public class H2Dialect extends AbstractConnectionDialect {
         return Driver.class;
     }
 
+    @SneakyThrows
     @Override
     protected ConnectionKeyValue preProcessConnectionIntern(Connection connection, String[] schemaNames, boolean forcePreProcessing) {
         Statement stm = null;
@@ -90,17 +89,13 @@ public class H2Dialect extends AbstractConnectionDialect {
             }
             rs.close();
             createAliasIfNecessary("TO_TIMESTAMP", Functions.class.getName() + ".toTimestamp", functionAliases, stm);
-
-            stm = connection.createStatement();
-            ArrayList<String> disableSql = new ArrayList<>();
-            ArrayList<String> enableSql = new ArrayList<>();
-            for (String tableName : getAllFullqualifiedTableNames(connection, schemaNames)) {
+            var disableSql = new ArrayList<String>();
+            var enableSql = new ArrayList<String>();
+            for (var tableName : getAllFullqualifiedTableNames(connection, schemaNames)) {
                 disableSql.add("ALTER TABLE " + tableName + " SET REFERENTIAL_INTEGRITY FALSE");
                 enableSql.add("ALTER TABLE " + tableName + " SET REFERENTIAL_INTEGRITY TRUE CHECK");
             }
-            return new ConnectionKeyValue(disableSql.toArray(String.class), enableSql.toArray(String.class));
-        } catch (Exception e) {
-            throw RuntimeExceptionUtil.mask(e);
+            return new ConnectionKeyValue(schemaNames, disableSql.toArray(String.class), enableSql.toArray(String.class));
         } finally {
             JdbcUtil.close(stm, rs);
         }

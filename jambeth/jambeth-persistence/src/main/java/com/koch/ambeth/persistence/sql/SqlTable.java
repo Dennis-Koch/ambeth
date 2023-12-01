@@ -19,6 +19,7 @@ import com.koch.ambeth.util.collections.EmptyMap;
 import com.koch.ambeth.util.collections.HashMap;
 import com.koch.ambeth.util.collections.HashSet;
 import com.koch.ambeth.util.collections.IdentityHashMap;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 import java.util.List;
@@ -128,6 +129,7 @@ public class SqlTable extends Table {
             var selectState = new SelectState(selectSB);
             appendSelectPrimaryIds(tableMetaData, null, false, null, selectState);
             appendSelectVersion(tableMetaData, null, selectState);
+            appendAlternateIds(tableMetaData, null, null, selectState);
 
             ISqlConnection.IdContainer idContainer;
             if (idIndex == IObjRef.PRIMARY_KEY_INDEX) {
@@ -135,20 +137,12 @@ public class SqlTable extends Table {
             } else {
                 var alternateIdFields = tableMetaData.getIdFieldsByAlternateIdIndex(idIndex);
                 idContainer = IdContainerImpl.ofIdIndex(alternateIdFields, ids, tableMetaData.getEntityType(), entityMetaDataProvider);
-
-                for (var idFieldName : idContainer.getFieldNames()) {
-                    if (selectState.columnIndex >= 0) {
-                        selectSB.append(',');
-                    }
-                    sqlBuilder.appendName(idFieldName, selectSB);
-                    selectState.columnIndex++;
-                }
             }
-
             var versionCursor = new ResultSetVersionCursor();
             versionCursor.setCompositeIdCount(idContainer.getDecomposedIdCount());
             versionCursor.setVersionIndex(selectState.versionIndex);
-            versionCursor.setResultSet(sqlConnection.createResultSet(getMetaData().getFullqualifiedEscapedName(), selectSB, null, null, idContainer));
+            versionCursor.setResultSetItemToAlternateIdConverter(selectState.resultSetItemToAlternateIdConverter);
+            versionCursor.setResultSet(sqlConnection.createResultSet(tableMetaData.getFullqualifiedEscapedName(), selectSB, null, null, idContainer));
             versionCursor.afterPropertiesSet();
             return versionCursor;
         } finally {
@@ -361,7 +355,7 @@ public class SqlTable extends Table {
                 existingColumnIndex = selectState.columnIndex;
 
                 // When ordering by an AK it is selected twice. So one needs an alias.
-                if (additionalSelectColumnList.contains("\"" + fieldName + "\"")) {
+                if (additionalSelectColumnList != null && additionalSelectColumnList.contains("\"" + fieldName + "\"")) {
                     selectSB.append(" AS AK").append(Integer.toString(fieldToColumnIndexMap.size()));
                 }
             }
@@ -500,6 +494,7 @@ public class SqlTable extends Table {
         IdentityHashMap<IFieldMetaData, Integer> fieldToColumnIndexMap;
         int columnIndex = -1;
 
+        @Getter
         int versionIndex = -1;
 
         Function<Object[], Object[]>[] resultSetItemToAlternateIdConverter;

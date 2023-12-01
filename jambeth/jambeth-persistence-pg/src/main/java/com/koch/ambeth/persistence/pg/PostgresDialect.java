@@ -82,7 +82,6 @@ import java.util.WeakHashMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Function;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class PostgresDialect extends AbstractConnectionDialect {
@@ -91,7 +90,7 @@ public class PostgresDialect extends AbstractConnectionDialect {
     public static final Pattern IDX_TABLE_NAME = Pattern.compile("DR\\$.*?\\$.", Pattern.CASE_INSENSITIVE);
     protected static final LinkedHashMap<Class<?>, String[]> typeToArrayTypeNameMap = new LinkedHashMap<>(128, 0.5f);
     protected static final LinkedHashMap<String, Class<?>> arrayTypeNameToTypeMap = new LinkedHashMap<>(128, 0.5f);
-    private static final Pattern pattern = Pattern.compile(" *create or replace TYPE ([^ ]+) AS VARRAY\\(\\d+\\) OF +(.+)", Pattern.CASE_INSENSITIVE);
+    private static final Pattern pattern = Pattern.compile(" *create(?: or replace)? TYPE ([^ ]+) AS VARRAY\\(\\d+\\) OF +(.+)", Pattern.CASE_INSENSITIVE);
 
     static {
         typeToArrayTypeNameMap.put(Long.TYPE, new String[] { "bigint[]", "bigint" });
@@ -312,16 +311,11 @@ public class PostgresDialect extends AbstractConnectionDialect {
         return super.convertFromFieldType(database, field, expectedType, value);
     }
 
+    @SneakyThrows
     @Override
     protected ConnectionKeyValue preProcessConnectionIntern(Connection connection, String[] schemaNames, boolean forcePreProcessing) {
-        Statement stm = null;
-        try {
-            stm = connection.createStatement();
+        try (var stm = connection.createStatement()) {
             stm.execute("SET SCHEMA '" + toDefaultCase(schemaNames[0]) + "'");
-        } catch (Exception e) {
-            throw RuntimeExceptionUtil.mask(e);
-        } finally {
-            JdbcUtil.close(stm);
         }
         return scanForUndeferredDeferrableConstraints(connection, schemaNames);
     }
@@ -622,10 +616,10 @@ public class PostgresDialect extends AbstractConnectionDialect {
 
     @Override
     public String prepareCommand(String sqlCommand) {
-        Matcher matcher = pattern.matcher(sqlCommand);
+        var matcher = pattern.matcher(sqlCommand);
         if (matcher.matches()) {
-            String arrayTypeName = matcher.group(1);
-            if ("STRING_ARRAY".equals(arrayTypeName)) {
+            var arrayTypeName = matcher.group(1);
+            if ("STRING_ARRAY".equals(arrayTypeName) || "\"STRING_ARRAY\"".equals(arrayTypeName)) {
                 return "";
             }
         }

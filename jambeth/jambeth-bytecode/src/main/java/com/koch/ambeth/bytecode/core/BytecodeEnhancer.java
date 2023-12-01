@@ -20,12 +20,10 @@ limitations under the License.
  * #L%
  */
 
-import com.koch.ambeth.bytecode.IBuildVisitorDelegate;
 import com.koch.ambeth.bytecode.IBytecodeClassLoader;
 import com.koch.ambeth.bytecode.behavior.BytecodeBehaviorState;
 import com.koch.ambeth.bytecode.behavior.IBytecodeBehavior;
 import com.koch.ambeth.bytecode.behavior.IBytecodeBehaviorExtendable;
-import com.koch.ambeth.bytecode.behavior.IBytecodeBehaviorState;
 import com.koch.ambeth.bytecode.config.BytecodeConfigurationConstants;
 import com.koch.ambeth.ioc.IServiceContext;
 import com.koch.ambeth.ioc.IStartingBean;
@@ -48,7 +46,6 @@ import com.koch.ambeth.util.collections.IdentityLinkedSet;
 import com.koch.ambeth.util.collections.SmartCopyMap;
 import com.koch.ambeth.util.collections.WeakSmartCopyMap;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
-import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Type;
 
 import java.io.File;
@@ -63,7 +60,6 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.nio.charset.Charset;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.Lock;
@@ -237,9 +233,6 @@ public class BytecodeEnhancer implements IBytecodeEnhancer, IBytecodeBehaviorExt
 
             var allBehaviors = bytecodeBehaviorExtensions.getExtensions();
             pendingBehaviors.addAll(allBehaviors);
-            Collections.sort(pendingBehaviors, (left, right) -> {
-                return left.getClass().getName().compareTo(right.getClass().getName());
-            });
 
             ClassLoader classLoader = null;
             ArrayList<Class<?>> enhancedTypesPipeline = new ArrayList<>();
@@ -422,25 +415,22 @@ public class BytecodeEnhancer implements IBytecodeEnhancer, IBytecodeBehaviorExt
 
     public byte[] executePendingBehaviors(byte[] currentContent, Writer sw, final IBytecodeBehavior[] pendingBehaviors, final List<IBytecodeBehavior> cascadePendingBehaviors, ClassLoader classLoader)
             throws Exception {
-        final IBytecodeBehaviorState state = BytecodeBehaviorState.getState();
-        byte[] content = bytecodeClassLoader.buildTypeFromParent(state.getNewType().getInternalName(), currentContent, sw, new IBuildVisitorDelegate() {
-            @Override
-            public ClassVisitor build(ClassVisitor cv) {
-                IBytecodeBehavior[] currPendingBehaviors = pendingBehaviors;
-                for (int a = 0; a < currPendingBehaviors.length; a++) {
-                    ArrayList<IBytecodeBehavior> remainingPendingBehaviors = new ArrayList<>();
-                    for (int b = a + 1, sizeB = currPendingBehaviors.length; b < sizeB; b++) {
-                        remainingPendingBehaviors.add(currPendingBehaviors[b]);
-                    }
-                    ClassVisitor newCv = currPendingBehaviors[a].extend(cv, state, remainingPendingBehaviors, cascadePendingBehaviors);
-                    currPendingBehaviors = remainingPendingBehaviors.toArray(IBytecodeBehavior.class);
-                    a = -1;
-                    if (newCv != null) {
-                        cv = newCv;
-                    }
+        var state = BytecodeBehaviorState.getState();
+        var content = bytecodeClassLoader.buildTypeFromParent(state.getNewType().getInternalName(), currentContent, sw, cv -> {
+            var currPendingBehaviors = pendingBehaviors;
+            for (int a = 0; a < currPendingBehaviors.length; a++) {
+                var remainingPendingBehaviors = new ArrayList<IBytecodeBehavior>(currPendingBehaviors.length - a - 1);
+                for (int b = a + 1, sizeB = currPendingBehaviors.length; b < sizeB; b++) {
+                    remainingPendingBehaviors.add(currPendingBehaviors[b]);
                 }
-                return cv;
+                var newCv = currPendingBehaviors[a].extend(cv, state, remainingPendingBehaviors, cascadePendingBehaviors);
+                currPendingBehaviors = remainingPendingBehaviors.toArray(IBytecodeBehavior.class);
+                a = -1;
+                if (newCv != null) {
+                    cv = newCv;
+                }
             }
+            return cv;
         }, classLoader);
         return content;
     }

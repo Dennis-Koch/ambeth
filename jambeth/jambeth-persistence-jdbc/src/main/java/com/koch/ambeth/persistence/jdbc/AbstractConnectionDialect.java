@@ -29,8 +29,10 @@ import com.koch.ambeth.util.config.IProperties;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.objectcollector.IThreadLocalObjectCollector;
 import com.koch.ambeth.util.state.IStateRollback;
-import jakarta.transaction.SystemException;
+import com.koch.ambeth.util.state.StateRollback;
 import jakarta.transaction.TransactionManager;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 
 import java.sql.Array;
@@ -96,7 +98,7 @@ public abstract class AbstractConnectionDialect implements IConnectionDialect, I
     public void appendListClause(List<Object> parameters, IAppendable sb, Class<?> fieldType, IList<Object> splittedIds, Function<Object, Object> idDecompositor) {
         sb.append(" IN (");
 
-        var preparedConverter = conversionHelper.prepareConverter(fieldType, splittedIds.get(0));
+        var preparedConverter = conversionHelper.prepareConverter(fieldType);
         for (int b = 0, sizeB = splittedIds.size(); b < sizeB; b++) {
             var id = idDecompositor.apply(splittedIds.get(b));
             var value = preparedConverter.convertValue(id, null);
@@ -189,6 +191,7 @@ public abstract class AbstractConnectionDialect implements IConnectionDialect, I
         return identifier.toUpperCase(); // uppercase is the SQL standard
     }
 
+    @SneakyThrows
     protected void registerDriverIfNeeded() {
         if (!registerDriverEagerly) {
             return;
@@ -198,17 +201,13 @@ public abstract class AbstractConnectionDialect implements IConnectionDialect, I
             return;
         }
         try {
-            try {
-                DriverManager.getDriver(databaseConnectionUrlProvider.getConnectionUrl());
-            } catch (SQLException e) {
-                if (!"08001".equals(e.getSQLState())) {
-                    throw e;
-                }
-                driverRegisteredExplicitly = (Driver) databaseDriver.newInstance();
-                DriverManager.registerDriver(driverRegisteredExplicitly);
+            DriverManager.getDriver(databaseConnectionUrlProvider.getConnectionUrl());
+        } catch (SQLException e) {
+            if (!"08001".equals(e.getSQLState())) {
+                throw e;
             }
-        } catch (Exception e) {
-            throw RuntimeExceptionUtil.mask(e);
+            driverRegisteredExplicitly = (Driver) databaseDriver.newInstance();
+            DriverManager.registerDriver(driverRegisteredExplicitly);
         }
     }
 
@@ -298,6 +297,9 @@ public abstract class AbstractConnectionDialect implements IConnectionDialect, I
             if (connectionKeyHandle == null) {
                 throw new IllegalStateException("Should never happen");
             }
+            if (schemaNames == null && connectionKeyValue != null) {
+                schemaNames = connectionKeyValue.getSchemaNames();
+            }
             connectionKeyValue = preProcessConnectionIntern(connection, schemaNames, forcePreProcessing);
             writeLock.lock();
             try {
@@ -309,57 +311,55 @@ public abstract class AbstractConnectionDialect implements IConnectionDialect, I
     }
 
     protected ConnectionKeyValue preProcessConnectionIntern(Connection connection, String[] schemaNames, boolean forcePreProcessing) {
-        return new ConnectionKeyValue(new String[0], new String[0]);
+        return new ConnectionKeyValue(new String[0], new String[0], new String[0]);
     }
 
     @SneakyThrows
     @Override
     public IStateRollback disableConstraints(final Connection connection, String... schemaNames) {
-        final ConnectionKeyValue connectionKeyValue;
-        IConnectionKeyHandle connectionKeyHandle = null;
-
-        if (connection.isWrapperFor(IConnectionKeyHandle.class)) {
-            connectionKeyHandle = connection.unwrap(IConnectionKeyHandle.class);
-            var writeLock = this.writeLock;
-            writeLock.lock();
-            try {
-                // WeakHashMaps have ALWAYS to be exclusively locked even if they SEEM to be only
-                // read-accessed
-                connectionKeyValue = connectionToConstraintSqlMap.get(connectionKeyHandle);
-            } finally {
-                writeLock.unlock();
-            }
-        } else {
-            throw new IllegalStateException("Connection is not a wrapper for " + IConnectionKeyHandle.class.getName());
-        }
+        var connectionKeyValue = resolveConnectionKeyValue(connection);
         var constraintSql = connectionKeyValue.getDisableConstraintsSQL();
 
-        if (constraintSql.length > 0) {
-            Statement stm = connection.createStatement();
-            try {
-                for (int a = 0, size = constraintSql.length; a < size; a++) {
-                    stm.addBatch(constraintSql[a]);
-                }
-                stm.executeBatch();
-            } finally {
-                JdbcUtil.close(stm);
+        if (constraintSql.length == 0) {
+            return StateRollback.empty();
+        }
+        try (var stm = connection.createStatement()) {
+            for (int a = 0, size = constraintSql.length; a < size; a++) {
+                stm.addBatch(constraintSql[a]);
             }
+            stm.executeBatch();
         }
         return () -> {
             var enableConstraintsSQL = connectionKeyValue.getEnableConstraintsSQL();
-            Statement stmt = null;
-            try {
-                stmt = connection.createStatement();
+            if (enableConstraintsSQL.length == 0) {
+                return;
+            }
+            try (var stmt = connection.createStatement()) {
                 for (int i = enableConstraintsSQL.length; i-- > 0; ) {
                     stmt.addBatch(enableConstraintsSQL[i]);
                 }
                 stmt.executeBatch();
             } catch (Exception e) {
                 throw RuntimeExceptionUtil.mask(e);
-            } finally {
-                JdbcUtil.close(stmt);
             }
         };
+    }
+
+    @SneakyThrows
+    protected ConnectionKeyValue resolveConnectionKeyValue(Connection connection) {
+        if (!connection.isWrapperFor(IConnectionKeyHandle.class)) {
+            throw new IllegalStateException("Connection is not a wrapper for " + IConnectionKeyHandle.class.getName());
+        }
+        var connectionKeyHandle = connection.unwrap(IConnectionKeyHandle.class);
+        var writeLock = this.writeLock;
+        writeLock.lock();
+        try {
+            // WeakHashMaps have ALWAYS to be exclusively locked even if they SEEM to be only
+            // read-accessed
+            return connectionToConstraintSqlMap.get(connectionKeyHandle);
+        } finally {
+            writeLock.unlock();
+        }
     }
 
     @Override
@@ -393,13 +393,9 @@ public abstract class AbstractConnectionDialect implements IConnectionDialect, I
             // If transaction is externally managed and a rollback is required, tell the transaction
             // manager
             if (transactionManager != null) {
-                try {
-                    var transaction = transactionManager.getTransaction();
-                    if (transaction != null) {
-                        transaction.setRollbackOnly();
-                    }
-                } catch (SystemException e) {
-                    throw RuntimeExceptionUtil.mask(e);
+                var transaction = transactionManager.getTransaction();
+                if (transaction != null) {
+                    transaction.setRollbackOnly();
                 }
             }
         } else if (connection != null) {
@@ -427,26 +423,22 @@ public abstract class AbstractConnectionDialect implements IConnectionDialect, I
 
     @SneakyThrows
     protected ConnectionKeyValue scanForUndeferredDeferrableConstraints(Connection connection, String[] schemaNames) {
-        try (var stm = connection.createStatement()) {
-            var disableConstraintsSQL = new ArrayList<String>();
-            var enableConstraintsSQL = new ArrayList<String>();
-            var sql = buildDeferrableForeignKeyConstraintsSelectSQL(schemaNames);
+        var disableConstraintsSQL = new ArrayList<String>();
+        var enableConstraintsSQL = new ArrayList<String>();
+        var sql = buildDeferrableForeignKeyConstraintsSelectSQL(schemaNames);
+        try (var stm = connection.createStatement(); var rs = stm.executeQuery(sql)) {
             if (sql != null) {
-                try (ResultSet rs = stm.executeQuery(sql)) {
-                    while (rs.next()) {
-                        var schemaName = rs.getString("OWNER");
-                        var tableName = rs.getString("TABLE_NAME");
-                        var constraintName = rs.getString("CONSTRAINT_NAME");
+                while (rs.next()) {
+                    var schemaName = rs.getString("OWNER");
+                    var tableName = rs.getString("TABLE_NAME");
+                    var constraintName = rs.getString("CONSTRAINT_NAME");
 
-                        handleRow(schemaName, tableName, constraintName, disableConstraintsSQL, enableConstraintsSQL);
-                    }
+                    handleRow(schemaName, tableName, constraintName, disableConstraintsSQL, enableConstraintsSQL);
                 }
             }
-            var disableConstraintsArray = disableConstraintsSQL.toArray(new String[disableConstraintsSQL.size()]);
-            var enabledConstraintsArray = enableConstraintsSQL.toArray(new String[enableConstraintsSQL.size()]);
-            var connectionKeyValue = new ConnectionKeyValue(disableConstraintsArray, enabledConstraintsArray);
-
-            return connectionKeyValue;
+            var disableConstraintsArray = disableConstraintsSQL.toArray(String[]::new);
+            var enabledConstraintsArray = enableConstraintsSQL.toArray(String[]::new);
+            return new ConnectionKeyValue(schemaNames, disableConstraintsArray, enabledConstraintsArray);
         }
     }
 
@@ -624,23 +616,13 @@ public abstract class AbstractConnectionDialect implements IConnectionDialect, I
         return MemberTypeProvider.EMPTY_TYPES;
     }
 
+    @RequiredArgsConstructor
+    @Getter
     public static class ConnectionKeyValue {
-        protected String[] disableConstraintsSQL;
+        final String[] schemaNames;
 
-        protected String[] enableConstraintsSQL;
+        final String[] disableConstraintsSQL;
 
-        public ConnectionKeyValue(String[] disableConstraintsSQL, String[] enableConstraintsSQL) {
-            super();
-            this.disableConstraintsSQL = disableConstraintsSQL;
-            this.enableConstraintsSQL = enableConstraintsSQL;
-        }
-
-        public String[] getDisableConstraintsSQL() {
-            return disableConstraintsSQL;
-        }
-
-        public String[] getEnableConstraintsSQL() {
-            return enableConstraintsSQL;
-        }
+        final String[] enableConstraintsSQL;
     }
 }

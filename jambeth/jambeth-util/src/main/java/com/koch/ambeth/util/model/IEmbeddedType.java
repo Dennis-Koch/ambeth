@@ -21,7 +21,9 @@ limitations under the License.
  */
 
 public interface IEmbeddedType {
-	Object getParent();
+    Object getParent();
 
-	Object getRoot();
+    void setParent(Object parent);
+
+    Object getRoot();
 }

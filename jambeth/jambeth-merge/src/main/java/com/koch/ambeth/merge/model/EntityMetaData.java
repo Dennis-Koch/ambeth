@@ -355,41 +355,36 @@ public class EntityMetaData implements IEntityMetaData {
 
     @Override
     public void postProcessNewEntity(Object newEntity) {
-        PrimitiveMember[] primitiveToManyMembers = this.primitiveToManyMembers;
-        PrimitiveMember[] primitiveOptionalMembers = this.primitiveOptionalMembers;
+        var primitiveToManyMembers = this.primitiveToManyMembers;
+        var primitiveOptionalMembers = this.primitiveOptionalMembers;
         if (primitiveToManyMembers.length > 0 || primitiveOptionalMembers.length > 0) {
-            boolean oldInternalUpdate = cacheModification.isInternalUpdate();
-            if (!oldInternalUpdate) {
-                cacheModification.setInternalUpdate(true);
-            }
+            var rollback = cacheModification.pushInternalUpdate(true);
             try {
-                for (PrimitiveMember primitiveMember : primitiveToManyMembers) {
+                for (var primitiveMember : primitiveToManyMembers) {
                     primitiveMember.setValue(newEntity, ListUtil.createObservableCollectionOfType(primitiveMember.getRealType()));
                 }
-                for (PrimitiveMember primitiveMember : primitiveOptionalMembers) {
+                for (var primitiveMember : primitiveOptionalMembers) {
                     primitiveMember.setValue(newEntity, Optional.empty());
                 }
             } finally {
-                if (!oldInternalUpdate) {
-                    cacheModification.setInternalUpdate(false);
-                }
+                rollback.rollback();
             }
         }
-        for (IEntityLifecycleExtension entityLifecycleExtension : entityLifecycleExtensions) {
+        for (var entityLifecycleExtension : entityLifecycleExtensions) {
             entityLifecycleExtension.postCreate(this, newEntity);
         }
     }
 
     @Override
     public void postLoad(Object entity) {
-        for (IEntityLifecycleExtension entityLifecycleExtension : entityLifecycleExtensions) {
+        for (var entityLifecycleExtension : entityLifecycleExtensions) {
             entityLifecycleExtension.postLoad(this, entity);
         }
     }
 
     @Override
     public void prePersist(Object entity) {
-        for (IEntityLifecycleExtension entityLifecycleExtension : entityLifecycleExtensions) {
+        for (var entityLifecycleExtension : entityLifecycleExtensions) {
             entityLifecycleExtension.prePersist(this, entity);
         }
     }

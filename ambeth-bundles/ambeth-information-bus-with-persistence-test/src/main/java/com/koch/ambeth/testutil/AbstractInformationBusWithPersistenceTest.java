@@ -48,7 +48,6 @@ import com.koch.ambeth.security.server.ioc.PrivilegeServerModule;
 import com.koch.ambeth.security.server.ioc.SecurityServerModule;
 import com.koch.ambeth.service.config.ServiceConfigurationConstants;
 import com.koch.ambeth.service.merge.IEntityMetaDataProvider;
-import com.koch.ambeth.service.merge.model.IEntityMetaData;
 import com.koch.ambeth.testutil.AbstractInformationBusWithPersistenceTest.PersistencePropertiesProvider;
 import com.koch.ambeth.util.IConversionHelper;
 import org.junit.Assert;
@@ -113,18 +112,17 @@ public abstract class AbstractInformationBusWithPersistenceTest extends Abstract
             if (expected.equals(actual)) {
                 return;
             }
-            IEntityEquals expectedEE = (IEntityEquals) expected;
-            Assert.fail("expected:<" + expectedEE.toString() + "> but was:<" + actual + ">");
+            Assert.fail("expected:<" + expected.toString() + "> but was:<" + actual + ">");
         }
-        IEntityMetaData expectedMetaData = entityMetaDataProvider.getMetaData(expected.getClass());
-        IEntityMetaData actualMetaData = entityMetaDataProvider.getMetaData(actual.getClass());
-        Class<?> expectedType = expectedMetaData.getEntityType();
-        Class<?> actualType = actualMetaData.getEntityType();
+        var expectedMetaData = entityMetaDataProvider.getMetaData(expected.getClass());
+        var actualMetaData = entityMetaDataProvider.getMetaData(actual.getClass());
+        var expectedType = expectedMetaData.getEntityType();
+        var actualType = actualMetaData.getEntityType();
         if (!expectedType.equals(actualType)) {
             Assert.fail("expected:<" + expected + "> but was:<" + actual + ">");
         }
-        Object expectedId = expectedMetaData.getIdMember().getValue(expected, false);
-        Object actualId = actualMetaData.getIdMember().getValue(actual, false);
+        var expectedId = expectedMetaData.getIdMember().getValue(expected, false);
+        var actualId = actualMetaData.getIdMember().getValue(actual, false);
         Assert.assertEquals(expectedId, actualId);
     }
 
