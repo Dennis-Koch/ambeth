@@ -452,11 +452,11 @@ public abstract class AbstractCache<V> implements ICache, IInitializingBean, IDi
     }
 
     public List<Object> put(Object objectToCache) {
-        HashSet<IObjRef> cascadeNeededORIs = new HashSet<>();
-        IdentityHashSet<Object> alreadyHandledSet = new IdentityHashSet<>();
-        ArrayList<Object> hardRefsToCacheValue = new ArrayList<>();
-        boolean success = acquireHardRefTLIfNotAlready();
-        Lock writeLock = getWriteLock();
+        var cascadeNeededORIs = new HashSet<IObjRef>();
+        var alreadyHandledSet = new IdentityHashSet<>();
+        var hardRefsToCacheValue = new ArrayList<>();
+        var success = acquireHardRefTLIfNotAlready();
+        var writeLock = getWriteLock();
         writeLock.lock();
         try {
             putIntern(objectToCache, hardRefsToCacheValue, alreadyHandledSet, cascadeNeededORIs);

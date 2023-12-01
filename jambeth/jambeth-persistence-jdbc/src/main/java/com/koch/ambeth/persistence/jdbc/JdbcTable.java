@@ -182,18 +182,20 @@ public class JdbcTable extends SqlTable {
         var idFields = tableMetaData.getIdFields();
         CheckedBiFunction<PreparedStatement, Object, Object> idHandler;
         if (idFields.length == 1) {
+            var elementType = idFields[0].getMember().getElementType();
+            var fieldType = idFields[0].getFieldType();
             idHandler = (pstm, id) -> {
-                var persistenceId = conversionHelper.convertValueToType(idFields[0].getFieldType(), id);
-                pstm.setObject(1, persistenceId);
-                return persistenceId;
+                var sqlId = conversionHelper.convertValueToType(fieldType, id);
+                pstm.setObject(1, sqlId);
+                return conversionHelper.convertValueToType(elementType, id);
             };
         } else {
             var metaData = entityMetaDataProvider.getMetaData(tableMetaData.getEntityType());
             var idMember = (CompositeIdMember) metaData.getIdMember();
             idHandler = (pstm, id) -> {
                 for (int compositeIdIndex = idFields.length; compositeIdIndex-- > 0; ) {
-                    var persistenceId = conversionHelper.convertValueToType(idFields[compositeIdIndex].getFieldType(), idMember.getDecompositedValue(id, compositeIdIndex));
-                    pstm.setObject(compositeIdIndex + 1, persistenceId);
+                    var sqlId = conversionHelper.convertValueToType(idFields[compositeIdIndex].getFieldType(), idMember.getDecompositedValue(id, compositeIdIndex));
+                    pstm.setObject(compositeIdIndex + 1, sqlId);
                 }
                 return id;
             };
@@ -388,16 +390,19 @@ public class JdbcTable extends SqlTable {
             Object persistenceId;
             var idFields = tableMetaData.getIdFields();
             if (idFields.length == 1) {
-                persistenceId = conversionHelper.convertValueToType(idFields[0].getFieldType(), id);
-                prep.setObject(index++, persistenceId);
+                var idField = idFields[0];
+                var sqlId = conversionHelper.convertValueToType(idField.getFieldType(), id);
+                persistenceId = conversionHelper.convertValueToType(idField.getMember().getElementType(), id);
+                prep.setObject(index++, sqlId);
             } else {
+                persistenceId = id;
                 var metaData = entityMetaDataProvider.getMetaData(tableMetaData.getEntityType());
                 var idMember = (CompositeIdMember) metaData.getIdMember();
                 for (int compositeIdIndex = 0, size = idFields.length; compositeIdIndex < size; compositeIdIndex++) {
                     var idField = idFields[compositeIdIndex];
-                    prep.setObject(index++, conversionHelper.convertValueToType(idField.getFieldType(), idMember.getDecompositedValue(id, compositeIdIndex)));
+                    var sqlId = conversionHelper.convertValueToType(idField.getFieldType(), idMember.getDecompositedValue(id, compositeIdIndex));
+                    prep.setObject(index++, sqlId);
                 }
-                persistenceId = id;
             }
             Object persistenceVersion = null;
             if (versionField != null) {

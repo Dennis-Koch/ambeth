@@ -283,8 +283,9 @@ public class ChildCache extends AbstractCache<Object> implements ICacheIntern, I
             cacheDirective = Collections.<CacheDirective>emptySet();
         }
         var eventQueue = this.eventQueue;
+        var rollback = StateRollback.empty();
         if (eventQueue != null) {
-            eventQueue.pause(this);
+            rollback = eventQueue.pause(this);
         }
         try {
             var cacheModification = this.cacheModification;
@@ -308,9 +309,7 @@ public class ChildCache extends AbstractCache<Object> implements ICacheIntern, I
                 clearHardRefs(acquireSuccess);
             }
         } finally {
-            if (eventQueue != null) {
-                eventQueue.resume(this);
-            }
+            rollback.rollback();
         }
     }
 
@@ -435,8 +434,9 @@ public class ChildCache extends AbstractCache<Object> implements ICacheIntern, I
     public IList<IObjRelationResult> getObjRelations(List<IObjRelation> objRels, ICacheIntern targetCache, Set<CacheDirective> cacheDirective) {
         checkNotDisposed();
         var eventQueue = this.eventQueue;
+        var rollback = StateRollback.empty();
         if (eventQueue != null) {
-            eventQueue.pause(this);
+            rollback = eventQueue.pause(this);
         }
         try {
             var cacheModification = this.cacheModification;
@@ -444,24 +444,22 @@ public class ChildCache extends AbstractCache<Object> implements ICacheIntern, I
             var acquireSuccess = acquireHardRefTLIfNotAlready(objRels.size());
             cacheModification.setActive(true);
             try {
-                var rollback = StateRollback.empty();
+                var rollback2 = StateRollback.empty();
                 if (securityActive && ((targetCache == null && isPrivileged()) || (targetCache != null && targetCache.isPrivileged())//
                         && securityActivation != null && securityActivation.isFilterActivated())) {
-                    rollback = securityActivation.pushWithoutFiltering();
+                    rollback2 = securityActivation.pushWithoutFiltering();
                 }
                 try {
                     return parent.getObjRelations(objRels, targetCache, cacheDirective);
                 } finally {
-                    rollback.rollback();
+                    rollback2.rollback();
                 }
             } finally {
                 cacheModification.setActive(oldCacheModificationValue);
                 clearHardRefs(acquireSuccess);
             }
         } finally {
-            if (eventQueue != null) {
-                eventQueue.resume(this);
-            }
+            rollback.rollback();
         }
     }
 

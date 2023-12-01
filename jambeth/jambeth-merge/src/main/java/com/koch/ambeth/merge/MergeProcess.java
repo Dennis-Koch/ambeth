@@ -31,8 +31,6 @@ import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.config.Property;
 import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
-import com.koch.ambeth.merge.IDeepScanRecursion.EntityDelegate;
-import com.koch.ambeth.merge.IDeepScanRecursion.Proceed;
 import com.koch.ambeth.merge.cache.ICache;
 import com.koch.ambeth.merge.cache.ICacheFactory;
 import com.koch.ambeth.merge.model.ICUDResult;
@@ -53,11 +51,14 @@ import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.IdentityHashSet;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.function.CheckedSupplier;
+import com.koch.ambeth.util.state.IStateRollback;
+import com.koch.ambeth.util.state.StateRollback;
 import com.koch.ambeth.util.threading.IGuiThreadHelper;
 import com.koch.ambeth.util.transaction.ILightweightTransaction;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
@@ -65,16 +66,24 @@ import java.util.concurrent.CountDownLatch;
 public class MergeProcess implements IMergeProcess {
     private static final ThreadLocal<Boolean> addNewlyPersistedEntitiesTL = new ThreadLocal<>();
 
-    public static final Boolean getAddNewlyPersistedEntities() {
+    public static Boolean getAddNewlyPersistedEntities() {
         return addNewlyPersistedEntitiesTL.get();
     }
 
-    public static final boolean isAddNewlyPersistedEntities() {
+    public static boolean isAddNewlyPersistedEntities() {
         return !Boolean.FALSE.equals(addNewlyPersistedEntitiesTL.get());
     }
 
-    public static final void setAddNewlyPersistedEntities(Boolean value) {
+    public static IStateRollback pushAddNewlyPersistedEntities(Boolean value) {
+        var oldValue = addNewlyPersistedEntitiesTL.get();
+        if (Objects.equals(oldValue, value)) {
+            return StateRollback.empty();
+        }
         addNewlyPersistedEntitiesTL.set(value);
+        if (oldValue == null) {
+            return () -> addNewlyPersistedEntitiesTL.remove();
+        }
+        return () -> addNewlyPersistedEntitiesTL.set(oldValue);
     }
 
     @Autowired
@@ -168,35 +177,48 @@ public class MergeProcess implements IMergeProcess {
 
     protected void mergeOutOfGui(final Object objectToMerge, final Object objectToDelete, final ProceedWithMergeHook proceedHook, final DataChangeReceivedCallback dataChangeReceivedCallback,
             final MergeFinishedCallback mergeFinishedCallback, final boolean addNewEntitiesToCache, final boolean deepMerge) {
-        var mergeHandle = beanContext.registerBean(MergeHandle.class)//
-                                     .ignoreProperties("Cache", "PrivilegedCache")//
-                                     .propertyValue("DeepMerge", deepMerge)//
-                                     .finish();
-        var cudResult = mergeController.mergeDeep(objectToMerge, mergeHandle);
-        var unpersistedObjectsToDelete = new ArrayList<>();
-        removeUnpersistedDeletedObjectsFromCudResult(cudResult.getAllChanges(), cudResult.getOriginalRefs(), unpersistedObjectsToDelete);
-        if (objectToDelete != null) {
-            var extractedObjectToDelete = new ArrayList<>();
-            deepScanRecursion.handleDeep(objectToDelete, new EntityDelegate() {
-                @Override
-                public boolean visitEntity(Object entity, Proceed proceed) {
-                    extractedObjectToDelete.add(entity);
-                    return true;
-                }
-            });
-            var oriList = oriHelper.extractObjRefList(extractedObjectToDelete, mergeHandle);
-
-            appendDeleteContainers(extractedObjectToDelete, oriList, cudResult.getAllChanges(), cudResult.getOriginalRefs(), unpersistedObjectsToDelete);
-        }
         var success = false;
         try {
-            processCUDResult(objectToMerge, cudResult, unpersistedObjectsToDelete, proceedHook, dataChangeReceivedCallback, addNewEntitiesToCache);
+            var mergeHandle = beanContext.registerBean(MergeHandle.class)//
+                                         .ignoreProperties("Cache", "PrivilegedCache")//
+                                         .propertyValue("DeepMerge", deepMerge)//
+                                         .finish();
+            var cudResult = mergeController.mergeDeep(objectToMerge, mergeHandle);
+            var cacheToAddNewEntitiesTo = resolveCacheToAddNewEntitiesTo(addNewEntitiesToCache, mergeHandle.getRecognizedCaches());
+            var unpersistedObjectsToDelete = new ArrayList<>();
+            removeUnpersistedDeletedObjectsFromCudResult(cudResult.getAllChanges(), cudResult.getOriginalRefs(), unpersistedObjectsToDelete);
+            if (objectToDelete != null) {
+                var extractedObjectToDelete = new ArrayList<>();
+                deepScanRecursion.handleDeep(objectToDelete, (entity, proceed) -> {
+                    extractedObjectToDelete.add(entity);
+                    return true;
+                });
+                var oriList = oriHelper.extractObjRefList(extractedObjectToDelete, mergeHandle);
+
+                appendDeleteContainers(extractedObjectToDelete, oriList, cudResult.getAllChanges(), cudResult.getOriginalRefs(), unpersistedObjectsToDelete);
+            }
+            processCUDResult(objectToMerge, cudResult, unpersistedObjectsToDelete, proceedHook, dataChangeReceivedCallback, cacheToAddNewEntitiesTo);
             success = true;
         } finally {
             if (mergeFinishedCallback != null) {
                 mergeFinishedCallback.invoke(success);
             }
         }
+    }
+
+    private ICache resolveCacheToAddNewEntitiesTo(boolean addNewEntitiesToCache, Collection<ICache> recognizedCaches) {
+        if (recognizedCaches.isEmpty()) {
+            if (addNewEntitiesToCache) {
+                return cache.getCurrentCache();
+            } else {
+                return null;
+            }
+        }
+        if (recognizedCaches.size() > 1) {
+            throw new IllegalStateException(
+                    "Entities in merge scope are from different caches. This is not supported for consistency. Please fetch all to-be-modified entities from the same cache scope");
+        }
+        return recognizedCaches.iterator().next();
     }
 
     @Override
@@ -220,7 +242,7 @@ public class MergeProcess implements IMergeProcess {
     }
 
     protected void processCUDResult(Object objectToMerge, final ICUDResult cudResult, IList<Object> unpersistedObjectsToDelete, ProceedWithMergeHook proceedHook,
-            DataChangeReceivedCallback dataChangeReceivedCallback, boolean addNewEntitiesToCache) {
+            DataChangeReceivedCallback dataChangeReceivedCallback, ICache cacheToAddNewEntitiesTo) {
         IDataChange dataChange = null;
         if (cudResult.getAllChanges().isEmpty()) {
             if (log.isDebugEnabled()) {
@@ -236,14 +258,13 @@ public class MergeProcess implements IMergeProcess {
             var uuid = UUID.randomUUID().toString();
             final CountDownLatch latch;
             var foreignThreadDCE = new ParamHolder<IDataChange>();
-            final IEventListener listenOnce;
             if (isNetworkClientMode || dataChangeReceivedCallback != null) {
                 if (isNetworkClientMode) {
                     latch = new CountDownLatch(1);
                 } else {
                     latch = null;
                 }
-                listenOnce = new IEventListener() {
+                var listenOnce = new IEventListener() {
                     @Override
                     public void handleEvent(Object eventObject, long dispatchTime, long sequenceId) throws Exception {
                         // wait for the DCE corresponding to our merge process is dispatched
@@ -267,31 +288,27 @@ public class MergeProcess implements IMergeProcess {
                 eventListenerExtendable.registerEventListener(listenOnce, IDataChange.class);
             } else {
                 latch = null;
-                listenOnce = null;
             }
             final IOriCollection oriColl;
             eventDispatcher.enableEventQueue();
             try {
-                eventDispatcher.pause(cache);
+                var rollback = StateRollback.chain(chain -> {
+                    chain.append(eventDispatcher.pause(cache));
+                    chain.append(pushAddNewlyPersistedEntities(cacheToAddNewEntitiesTo != null));
+                });
                 try {
-                    var oldNewlyPersistedEntities = addNewlyPersistedEntitiesTL.get();
-                    addNewlyPersistedEntitiesTL.set(Boolean.valueOf(addNewEntitiesToCache));
-                    try {
-                        CheckedSupplier<IOriCollection> runnable = () -> {
-                            var mergeResult = mergeService.merge(cudResult, new String[] { uuid }, null);
-                            mergeController.applyChangesToOriginals(cudResult, mergeResult, null);
-                            return mergeResult;
-                        };
-                        if (transaction == null || transaction.isActive()) {
-                            oriColl = CheckedSupplier.invoke(runnable);
-                        } else {
-                            oriColl = transaction.runInLazyTransaction(runnable);
-                        }
-                    } finally {
-                        addNewlyPersistedEntitiesTL.set(oldNewlyPersistedEntities);
+                    CheckedSupplier<IOriCollection> runnable = () -> {
+                        var mergeResult = mergeService.merge(cudResult, new String[] { uuid }, null);
+                        mergeController.applyChangesToOriginals(cudResult, mergeResult, cacheToAddNewEntitiesTo);
+                        return mergeResult;
+                    };
+                    if (transaction == null || transaction.isActive()) {
+                        oriColl = CheckedSupplier.invoke(runnable);
+                    } else {
+                        oriColl = transaction.runInLazyTransaction(runnable);
                     }
                 } finally {
-                    eventDispatcher.resume(cache);
+                    rollback.rollback();
                 }
             } finally {
                 eventDispatcher.flushEventQueue();

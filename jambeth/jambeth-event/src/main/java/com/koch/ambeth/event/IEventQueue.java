@@ -21,6 +21,7 @@ limitations under the License.
  */
 
 import com.koch.ambeth.util.event.ILightweightEventQueue;
+import com.koch.ambeth.util.state.IStateRollback;
 
 public interface IEventQueue extends ILightweightEventQueue {
 
@@ -40,21 +41,7 @@ public interface IEventQueue extends ILightweightEventQueue {
      *
      * @param eventTarget
      */
-    void pause(Object eventTarget);
-
-    /**
-     * Propagates that the given eventTarget is now again "free" for the eventqueue-dispatching
-     * engine.<br>
-     * <br>
-     * If the given eventTarget is a proxy instance of something then there might be a need for an
-     * instance of {@link IEventTargetExtractor} which is to be registered to
-     * {@link IEventTargetExtractorExtendable}. The eventdispatching-engine considers this extractor
-     * to resolve the real "target eventHandle" needed for identity equality checks when resolving the
-     * correct "paused" states.
-     *
-     * @param eventTarget
-     */
-    void resume(Object eventTarget);
+    IStateRollback pause(Object eventTarget);
 
     /**
      * Evaluates whether the current thread is flagged as dispatching a batch of events

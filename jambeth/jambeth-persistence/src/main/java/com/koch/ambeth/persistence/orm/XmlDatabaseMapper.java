@@ -47,6 +47,7 @@ import com.koch.ambeth.merge.orm.blueprint.IOrmDatabaseMapper;
 import com.koch.ambeth.persistence.DatabaseMetaData;
 import com.koch.ambeth.persistence.DirectedExternalLinkMetaData;
 import com.koch.ambeth.persistence.DirectedLinkMetaData;
+import com.koch.ambeth.persistence.FieldMetaData;
 import com.koch.ambeth.persistence.IConfigurableDatabaseMetaData;
 import com.koch.ambeth.persistence.IConnectionDialect;
 import com.koch.ambeth.persistence.LinkMetaData;
@@ -59,6 +60,7 @@ import com.koch.ambeth.persistence.api.sql.ISqlBuilder;
 import com.koch.ambeth.persistence.database.IDatabaseMappedListener;
 import com.koch.ambeth.persistence.sql.SqlLinkMetaData;
 import com.koch.ambeth.service.merge.IEntityMetaDataProvider;
+import com.koch.ambeth.service.merge.model.IObjRef;
 import com.koch.ambeth.service.metadata.Member;
 import com.koch.ambeth.util.StringConversionHelper;
 import com.koch.ambeth.util.collections.ArrayList;
@@ -410,7 +412,9 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IDisposa
         for (int a = 0, size = idMemberConfig.length; a < size; a++) {
             var idColumnName = idMemberConfig[a].getColumnName();
             if (idColumnName != null && !idColumnName.isEmpty() && table instanceof TableMetaData) {
-                idFields[a] = table.getFieldByName(idColumnName);
+                var idField = table.getFieldByName(idColumnName);
+                ((FieldMetaData) idField).setIdIndex(IObjRef.PRIMARY_KEY_INDEX);
+                idFields[a] = idField;
             } else {
                 throw new IllegalStateException("Cannot set id field");
             }

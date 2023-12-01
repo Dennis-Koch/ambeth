@@ -59,7 +59,6 @@ import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.HashMap;
 import com.koch.ambeth.util.collections.HashSet;
 import com.koch.ambeth.util.collections.ILinkedMap;
-import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.IMap;
 import com.koch.ambeth.util.collections.LinkedHashMap;
 import com.koch.ambeth.util.collections.LinkedHashSet;
@@ -69,6 +68,7 @@ import lombok.SneakyThrows;
 import java.sql.Connection;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -179,9 +179,6 @@ public class JDBCDatabaseMetaData extends DatabaseMetaData implements IDatabaseM
         var pkFields = new FieldMetaData[pkFieldNames.size()];
         handleTechnicalFields(table, pkFieldNames, fields, pkFields);
 
-        if (pkFields.length > 1 && !isPermissionGroupTable && log.isWarnEnabled()) {
-            log.warn("TableMetaData '" + table.getName() + "' has a composite primary key which is currently not supported.");
-        }
         if (pkFields.length > 0) {
             table.setIdFields(pkFields);
             for (var pkField : pkFields) {
@@ -643,7 +640,7 @@ public class JDBCDatabaseMetaData extends DatabaseMetaData implements IDatabaseM
         for (var fqTableName : fqDataTableNames) {
             createOneTable(connection, fkFields, tableNameToFields.get(fqTableName), tableNameToPkFieldsMap.get(fqTableName), fqTableName);
         }
-        Collections.sort(getTables(), (o1, o2) -> o1.getName().compareTo(o2.getName()));
+        Collections.sort(getTables(), Comparator.comparing(ITableMetaData::getName));
         findAndAssignFulltextFields(connection);
 
         for (var entry : linkNameToEntryMap) {
@@ -676,26 +673,26 @@ public class JDBCDatabaseMetaData extends DatabaseMetaData implements IDatabaseM
             link = serviceContext.registerWithLifecycle(link).finish();
             links.set(a, link);
         }
-        IList<IDatabaseMapper> objects = serviceContext.getObjects(IDatabaseMapper.class);
+        var objects = serviceContext.getObjects(IDatabaseMapper.class);
         for (int a = objects.size(); a-- > 0; ) {
             objects.get(a).mapFields(connection, schemaNames, this);
         }
         for (int a = objects.size(); a-- > 0; ) {
             objects.get(a).mapLinks(connection, schemaNames, this);
         }
-        int maxNameLength = getMaxNameLength();
-        for (ITableMetaData table : getTables()) {
+        var maxNameLength = getMaxNameLength();
+        for (var table : getTables()) {
             if (table.isPermissionGroup()) {
                 continue;
             }
-            ITableMetaData permissionGroupTable = getTableByName(ormPatternMatcher.buildPermissionGroupFromTableName(table.getName(), maxNameLength));
+            var permissionGroupTable = getTableByName(ormPatternMatcher.buildPermissionGroupFromTableName(table.getName(), maxNameLength));
             if (permissionGroupTable != null) {
                 mapPermissionGroupTable(permissionGroupTable, table);
             }
         }
         super.afterStarted();
 
-        IList<IDatabaseMappedListener> databaseMappedListeners = serviceContext.getObjects(IDatabaseMappedListener.class);
+        var databaseMappedListeners = serviceContext.getObjects(IDatabaseMappedListener.class);
         for (int a = databaseMappedListeners.size(); a-- > 0; ) {
             databaseMappedListeners.get(a).databaseMapped(this);
         }

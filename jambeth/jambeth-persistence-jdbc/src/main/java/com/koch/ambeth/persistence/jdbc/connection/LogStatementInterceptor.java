@@ -95,7 +95,8 @@ public class LogStatementInterceptor extends AbstractSimpleInterceptor implement
     protected IPersistenceExceptionUtil persistenceExceptionUtil;
     @Autowired(optional = true)
     protected ITransactionInfo transactionInfo;
-    protected int identityHashCode;
+    protected String identityHashCode;
+
     @Property(name = PersistenceJdbcConfigurationConstants.JdbcLogExceptionActive, defaultValue = "false")
     protected boolean isLogExceptionActive;
     @Property(name = PersistenceJdbcConfigurationConstants.JdbcTraceActive, defaultValue = "true")
@@ -111,7 +112,7 @@ public class LogStatementInterceptor extends AbstractSimpleInterceptor implement
     @Override
     public void afterPropertiesSet() throws Throwable {
         ParamChecker.assertNotNull(statement, "Statement");
-        identityHashCode = System.identityHashCode(statement.getConnection());
+        identityHashCode = Integer.toHexString(System.identityHashCode(statement.getConnection()));
     }
 
     protected ILogger getLog() {
@@ -120,7 +121,7 @@ public class LogStatementInterceptor extends AbstractSimpleInterceptor implement
 
     protected String getSqlIntern(Method method, Object[] args) {
         if (args.length > 0) {
-            Object arg = args[0];
+            var arg = args[0];
             if (arg instanceof String) {
                 return (String) arg;
             }
@@ -134,11 +135,11 @@ public class LogStatementInterceptor extends AbstractSimpleInterceptor implement
             return connection;
         }
         try {
-            boolean doLog = true;
+            var doLog = true;
             if (addBatchMethod.equals(method)) {
                 batchCount++;
 
-                String currentSql = (String) args[0];
+                var currentSql = (String) args[0];
                 if (recentSql == null || recentSql.equals(currentSql)) {
                     batchCountWithEqualSql++;
                     int batchCountWithEqualSql = this.batchCountWithEqualSql;
@@ -154,10 +155,10 @@ public class LogStatementInterceptor extends AbstractSimpleInterceptor implement
                 }
                 recentSql = currentSql;
             }
-            boolean doNotLog = notLoggedMethods.contains(method);
-            ISensor sensor = this.sensor;
+            var doNotLog = notLoggedMethods.contains(method);
+            var sensor = this.sensor;
             if (sensor != null && !doNotLog) {
-                String sql = getSqlIntern(method, args);
+                var sql = getSqlIntern(method, args);
                 if (sql == null) {
                     sql = recentSql;
                 }
@@ -168,19 +169,19 @@ public class LogStatementInterceptor extends AbstractSimpleInterceptor implement
                 }
             }
             try {
-                long start = System.currentTimeMillis();
-                Object result = proxy.invoke(statement, args);
+                var start = System.currentTimeMillis();
+                var result = proxy.invoke(statement, args);
                 if (result instanceof ResultSet) {
                     ((ResultSet) result).setFetchSize(1000);
                 }
                 if (doNotLog) {
                     return result;
                 }
-                long end = System.currentTimeMillis();
+                var end = System.currentTimeMillis();
                 if (doLog) {
                     logMeasurement(method, args, end - start);
                 }
-                String methodName = method.getName();
+                var methodName = method.getName();
                 if (modifyingDatabase != null && ("execute".equals(methodName) || "executeUpdate".equals(methodName))) {
                     modifyingDatabase.setModifyingDatabase(true);
                 }
@@ -206,7 +207,7 @@ public class LogStatementInterceptor extends AbstractSimpleInterceptor implement
     }
 
     protected void logError(Throwable e, Method method, Object[] args) {
-        ILogger log = getLog();
+        var log = getLog();
         if (log.isErrorEnabled() && isLogExceptionActive) {
             if (executeQueryMethod.equals(method)) {
                 log.error("[cn:" + identityHashCode + " tx:" + getSessionId() + "] " + method.getName() + ": " + args[0], e);
@@ -241,12 +242,12 @@ public class LogStatementInterceptor extends AbstractSimpleInterceptor implement
         if (transactionInfo == null) {
             return "-";
         }
-        return Long.toString(transactionInfo.getSessionId());
+        return Long.toHexString(transactionInfo.getSessionId());
     }
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder();
+        var sb = new StringBuilder();
         toString(sb);
         return sb.toString();
     }

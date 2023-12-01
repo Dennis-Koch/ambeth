@@ -28,6 +28,7 @@ import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.util.collections.HashMap;
 import com.koch.ambeth.util.function.CheckedConsumer;
+import com.koch.ambeth.util.state.IStateRollback;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -160,12 +161,7 @@ public class FilterRegistry implements IFilterExtendable, IEventDispatcher {
     }
 
     @Override
-    public void pause(Object eventTarget) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void resume(Object eventTarget) {
+    public IStateRollback pause(Object eventTarget) {
         throw new UnsupportedOperationException();
     }
 }

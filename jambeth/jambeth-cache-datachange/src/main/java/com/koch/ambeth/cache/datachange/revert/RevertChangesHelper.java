@@ -23,8 +23,6 @@ import com.koch.ambeth.merge.IRevertChangesSavepoint;
 import com.koch.ambeth.merge.RevertChangesFinishedCallback;
 import com.koch.ambeth.merge.cache.CacheDirective;
 import com.koch.ambeth.merge.cache.ICacheModification;
-import com.koch.ambeth.merge.cache.IWritableCache;
-import com.koch.ambeth.merge.cache.ValueHolderState;
 import com.koch.ambeth.merge.proxy.IEntityMetaDataHolder;
 import com.koch.ambeth.merge.proxy.IObjRefContainer;
 import com.koch.ambeth.merge.transfer.ObjRef;
@@ -32,9 +30,7 @@ import com.koch.ambeth.merge.util.DirectValueHolderRef;
 import com.koch.ambeth.merge.util.IPrefetchHelper;
 import com.koch.ambeth.merge.util.ValueHolderRef;
 import com.koch.ambeth.service.merge.IEntityMetaDataProvider;
-import com.koch.ambeth.service.merge.model.IEntityMetaData;
 import com.koch.ambeth.service.merge.model.IObjRef;
-import com.koch.ambeth.service.metadata.Member;
 import com.koch.ambeth.service.metadata.RelationMember;
 import com.koch.ambeth.util.IParamHolder;
 import com.koch.ambeth.util.ParamHolder;
@@ -49,16 +45,12 @@ import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.function.CheckedConsumer;
 import com.koch.ambeth.util.model.IDataObject;
 import com.koch.ambeth.util.threading.IGuiThreadHelper;
-import com.koch.ambeth.util.typeinfo.ITypeInfo;
-import com.koch.ambeth.util.typeinfo.ITypeInfoItem;
 import com.koch.ambeth.util.typeinfo.ITypeInfoProvider;
 
 import java.lang.reflect.Array;
 import java.util.Collection;
 import java.util.EnumSet;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map.Entry;
 
 public class RevertChangesHelper implements IRevertChangesHelper {
     @Autowired
@@ -101,66 +93,66 @@ public class RevertChangesHelper implements IRevertChangesHelper {
         if (obj == null) {
             return;
         }
-        Class<?> objType = proxyHelper.getRealType(obj.getClass());
+        var objType = proxyHelper.getRealType(obj.getClass());
         if (immutableTypeSet.isImmutableType(objType) || originalToValueBackup.containsKey(obj)) {
             return;
         }
         if (obj.getClass().isArray()) {
-            Class<?> elementType = obj.getClass().getComponentType();
-            int length = Array.getLength(obj);
-            Object clone = Array.newInstance(elementType, length);
+            var elementType = obj.getClass().getComponentType();
+            var length = Array.getLength(obj);
+            var clone = Array.newInstance(elementType, length);
             System.arraycopy(objType, 0, clone, 0, length);
-            ArrayBackup arrayBackup = new ArrayBackup(clone);
+            var arrayBackup = new ArrayBackup(clone);
             originalToValueBackup.put(obj, arrayBackup);
             if (!immutableTypeSet.isImmutableType(elementType)) {
                 for (int a = length; a-- > 0; ) {
-                    Object arrayItem = Array.get(obj, a);
+                    var arrayItem = Array.get(obj, a);
                     backupObjects(arrayItem, originalToValueBackup);
                 }
             }
             return;
         }
         if (obj instanceof List) {
-            List<?> list = (List<?>) obj;
-            Object[] array = list.toArray(new Object[list.size()]);
-            IBackup listBackup = ListBackup.create(array);
+            var list = (List<?>) obj;
+            var array = list.toArray(new Object[list.size()]);
+            var listBackup = ListBackup.create(array);
             originalToValueBackup.put(obj, listBackup);
-            for (Object item : array) {
+            for (var item : array) {
                 backupObjects(item, originalToValueBackup);
             }
             return;
         } else if (obj instanceof Collection) {
-            Collection<?> coll = (Collection<?>) obj;
-            Object[] array = coll.toArray(new Object[coll.size()]);
-            IBackup collBackup = CollectionBackup.create(array);
+            var coll = (Collection<?>) obj;
+            var array = coll.toArray(new Object[coll.size()]);
+            var collBackup = CollectionBackup.create(array);
             originalToValueBackup.put(obj, collBackup);
-            for (Object item : array) {
+            for (var item : array) {
                 backupObjects(item, originalToValueBackup);
             }
             return;
         }
-        ITypeInfo typeInfo = typeInfoProvider.getTypeInfo(objType);
-        IEntityMetaData metaData = entityMetaDataProvider.getMetaData(objType, true);
+        var typeInfo = typeInfoProvider.getTypeInfo(objType);
+        var metaData = entityMetaDataProvider.getMetaData(objType, true);
 
-        ITypeInfoItem[] members = typeInfo.getMembers();
-        Object[] originalValues = new Object[members.length];
-        ObjectBackup objBackup = new ObjectBackup(members, originalValues);
+        var members = typeInfo.getMembers();
+        var originalValues = new Object[members.length];
+        var objBackup = new ObjectBackup(members, originalValues);
         originalToValueBackup.put(obj, objBackup);
 
         for (int b = members.length; b-- > 0; ) {
-            ITypeInfoItem typeInfoMember = members[b];
+            var typeInfoMember = members[b];
             if (metaData != null) {
-                Member member = metaData.getMemberByName(typeInfoMember.getName());
+                var member = metaData.getMemberByName(typeInfoMember.getName());
                 if (member instanceof RelationMember) {
-                    int relationIndex = metaData.getIndexByRelation(member);
-                    ValueHolderState state = ((IObjRefContainer) obj).get__State(relationIndex);
+                    var relationIndex = metaData.getIndexByRelation(member);
+                    var state = ((IObjRefContainer) obj).get__State(relationIndex);
                     switch (state) {
                         case INIT: {
                             // nothing to do
                             break;
                         }
                         case LAZY: {
-                            IObjRef[] objRefs = ((IObjRefContainer) obj).get__ObjRefs(relationIndex);
+                            var objRefs = ((IObjRefContainer) obj).get__ObjRefs(relationIndex);
                             originalValues[b] = ObjRefBackup.create(objRefs, relationIndex);
                             continue;
                         }
@@ -173,16 +165,16 @@ public class RevertChangesHelper implements IRevertChangesHelper {
                     }
                 }
             }
-            Object originalValue = typeInfoMember.getValue(obj);
+            var originalValue = typeInfoMember.getValue(obj);
             originalValues[b] = originalValue;
 
             backupObjects(originalValue, originalToValueBackup);
         }
     }
 
-    private void callWaitEventToResumeInGui(final IList<IDataChangeEntry> directObjectDeletes, final IList<IObjRef> orisToRevert, final ISet<Object> persistedObjectsToRevert,
-            final IList<Object> objectsToRevert, final IList<Object> rootCacheValues, final IParamHolder<Boolean> success1, final IParamHolder<Boolean> success2, final IParamHolder<Boolean> success3,
-            final RevertChangesFinishedCallback revertChangesFinishedCallback) {
+    private void callWaitEventToResumeInGui(IList<IDataChangeEntry> directObjectDeletes, IList<IObjRef> orisToRevert, ISet<Object> persistedObjectsToRevert, IList<Object> objectsToRevert,
+            IList<Object> rootCacheValues, IParamHolder<Boolean> success1, IParamHolder<Boolean> success2, IParamHolder<Boolean> success3,
+            RevertChangesFinishedCallback revertChangesFinishedCallback) {
         guiThreadHelper.invokeInGui(() -> {
             waitEventToResume(processResumeItem -> {
                 try {
@@ -282,7 +274,7 @@ public class RevertChangesHelper implements IRevertChangesHelper {
         if (source == null) {
             return null;
         }
-        IList<Object> objList = mergeController.scanForInitializedObjects(source, false, null, null, null, null);
+        var objList = mergeController.scanForInitializedObjects(source, false, null, null, null, null, null);
         return createSavepointIntern(objList);
     }
 
@@ -291,21 +283,21 @@ public class RevertChangesHelper implements IRevertChangesHelper {
         if (sources == null || sources.length == 0) {
             return null;
         }
-        IList<Object> objList = mergeController.scanForInitializedObjects(sources, false, null, null, null, null);
+        var objList = mergeController.scanForInitializedObjects(sources, false, null, null, null, null, null);
         return createSavepointIntern(objList);
     }
 
     protected IRevertChangesSavepoint createSavepointIntern(IList<Object> objList) {
-        IdentityLinkedMap<Object, IBackup> originalToValueBackup = new IdentityLinkedMap<>();
+        var originalToValueBackup = new IdentityLinkedMap<Object, IBackup>();
 
         // Iterate manually through the list because the list itself should not be 'backuped'
         for (int a = 0, size = objList.size(); a < size; a++) {
             backupObjects(objList.get(a), originalToValueBackup);
         }
-        Iterator<Entry<Object, IBackup>> iter = originalToValueBackup.iterator();
+        var iter = originalToValueBackup.iterator();
         while (iter.hasNext()) {
-            Entry<Object, IBackup> entry = iter.next();
-            IBackup backup = entry.getValue();
+            var entry = iter.next();
+            var backup = entry.getValue();
             if (backup == null) {
                 iter.remove();
             }
@@ -336,7 +328,7 @@ public class RevertChangesHelper implements IRevertChangesHelper {
         if (objectsToRevert == null) {
             return;
         }
-        IList<Object> objList = mergeController.scanForInitializedObjects(objectsToRevert, recursive, null, null, null, null);
+        var objList = mergeController.scanForInitializedObjects(objectsToRevert, recursive, null, null, null, null, null);
         revertChangesIntern(objList, false, revertChangesFinishedCallback);
     }
 
@@ -360,7 +352,7 @@ public class RevertChangesHelper implements IRevertChangesHelper {
         if (objectsToRevert == null) {
             return;
         }
-        IList<Object> objList = mergeController.scanForInitializedObjects(objectsToRevert, recursive, null, null, null, null);
+        var objList = mergeController.scanForInitializedObjects(objectsToRevert, recursive, null, null, null, null, null);
         revertChangesIntern(objList, true, revertChangesFinishedCallback);
     }
 
@@ -387,18 +379,18 @@ public class RevertChangesHelper implements IRevertChangesHelper {
         ParamHolder<Boolean> success2 = new ParamHolder<>();
         ParamHolder<Boolean> success3 = new ParamHolder<>();
         try {
-            ArrayList<IDataChangeEntry> directObjectDeletes = new ArrayList<>();
-            ArrayList<IObjRef> objRefs = new ArrayList<>();
-            ArrayList<IObjRef> privilegedObjRefs = new ArrayList<>();
-            ArrayList<ValueHolderRef> valueHolderKeys = new ArrayList<>();
-            IList<Object> initializedObjects = mergeController.scanForInitializedObjects(objectsToRevert, false, null, objRefs, privilegedObjRefs, valueHolderKeys);
+            var directObjectDeletes = new ArrayList<IDataChangeEntry>();
+            var objRefs = new ArrayList<IObjRef>();
+            var privilegedObjRefs = new ArrayList<IObjRef>();
+            var valueHolderKeys = new ArrayList<ValueHolderRef>();
+            var initializedObjects = mergeController.scanForInitializedObjects(objectsToRevert, false, null, objRefs, privilegedObjRefs, valueHolderKeys, null);
 
-            IList<IObjRef> orisToRevert = new ArrayList<>();
-            ISet<Object> persistedObjectsToRevert = new IdentityHashSet<>();
+            var orisToRevert = new ArrayList<IObjRef>();
+            var persistedObjectsToRevert = new IdentityHashSet<>();
             for (int a = initializedObjects.size(); a-- > 0; ) {
-                Object objectToRevert = initializedObjects.get(a);
-                IEntityMetaData metaData = ((IEntityMetaDataHolder) objectToRevert).get__EntityMetaData();
-                Object id = metaData.getIdMember().getValue(objectToRevert, false);
+                var objectToRevert = initializedObjects.get(a);
+                var metaData = ((IEntityMetaDataHolder) objectToRevert).get__EntityMetaData();
+                var id = metaData.getIdMember().getValue(objectToRevert, false);
 
                 if (id == null) {
                     directObjectDeletes.add(new DirectDataChangeEntry(objectToRevert));
@@ -407,7 +399,7 @@ public class RevertChangesHelper implements IRevertChangesHelper {
                 persistedObjectsToRevert.add(objectToRevert);
                 orisToRevert.add(new ObjRef(metaData.getEntityType(), ObjRef.PRIMARY_KEY_INDEX, id, null));
             }
-            IList<Object> hardRefsToRootCacheValues = rootCache.getObjects(orisToRevert, EnumSet.of(CacheDirective.CacheValueResult, CacheDirective.ReturnMisses));
+            var hardRefsToRootCacheValues = rootCache.getObjects(orisToRevert, EnumSet.of(CacheDirective.CacheValueResult, CacheDirective.ReturnMisses));
 
             for (int a = orisToRevert.size(); a-- > 0; ) {
                 if (hardRefsToRootCacheValues.get(a) == null) {
@@ -432,14 +424,14 @@ public class RevertChangesHelper implements IRevertChangesHelper {
     }
 
     protected void revertChangesInternOutOfGuiGlobally(IList<Object> objectsToRevert, RevertChangesFinishedCallback revertChangesFinishedCallback) {
-        boolean success = false;
+        var success = false;
         try {
-            DataChangeEvent dataChange = DataChangeEvent.create(0, -1, -1);
+            var dataChange = DataChangeEvent.create(0, -1, -1);
 
             for (int a = objectsToRevert.size(); a-- > 0; ) {
-                Object objectToRevert = objectsToRevert.get(a);
-                IEntityMetaData metaData = ((IEntityMetaDataHolder) objectToRevert).get__EntityMetaData();
-                Object id = metaData.getIdMember().getValue(objectToRevert, false);
+                var objectToRevert = objectsToRevert.get(a);
+                var metaData = ((IEntityMetaDataHolder) objectToRevert).get__EntityMetaData();
+                var id = metaData.getIdMember().getValue(objectToRevert, false);
 
                 if (id == null) {
                     dataChange.getDeletes().add(new DirectDataChangeEntry(objectToRevert));
@@ -458,10 +450,10 @@ public class RevertChangesHelper implements IRevertChangesHelper {
     }
 
     protected void waitEventToResume(CheckedConsumer<IProcessResumeItem> resumeDelegate, CheckedConsumer<Throwable> errorDelegate) {
-        IRootCache rootCache = this.rootCache;
-        IList<IWritableCache> selectedFirstLevelCaches = firstLevelCacheManager.selectFirstLevelCaches();
+        var rootCache = this.rootCache;
+        var selectedFirstLevelCaches = firstLevelCacheManager.selectFirstLevelCaches();
 
-        ISet<Object> collisionSet = new IdentityHashSet<>();
+        var collisionSet = new IdentityHashSet<>();
         collisionSet.add(rootCache);
         for (int a = selectedFirstLevelCaches.size(); a-- > 0; ) {
             collisionSet.add(selectedFirstLevelCaches.get(a));

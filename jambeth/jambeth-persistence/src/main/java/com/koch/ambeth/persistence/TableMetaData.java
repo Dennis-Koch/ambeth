@@ -85,7 +85,7 @@ public class TableMetaData implements ITableMetaData, IInitializingBean {
     protected boolean viewBased;
     protected Class<?> entityType;
     protected boolean archive = false, permissionGroup = false;
-    protected IFieldMetaData[] idFields = EMPTY_FIELD_ARRAY;
+    protected IFieldMetaData[] idFields;
     protected IFieldMetaData versionField;
     protected IFieldMetaData descriminatorField;
     protected IFieldMetaData createdByField;

@@ -37,7 +37,6 @@ import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.IMap;
 import com.koch.ambeth.util.collections.IdentityHashMap;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
-import com.koch.ambeth.util.function.CheckedSupplier;
 import com.koch.ambeth.util.model.IMethodDescription;
 import com.koch.ambeth.util.proxy.Factory;
 import com.koch.ambeth.util.proxy.ICascadedInterceptor;
@@ -109,10 +108,9 @@ public class MergeServiceRegistry implements IMergeService, IMergeServiceExtensi
     }
 
     protected IOriCollection mergeIntern(final ICUDResult cudResultOriginal, final String[] causingUuids, final IMethodDescription methodDescription) {
-        CheckedSupplier<IOriCollection> runnable = () -> mergeInternRunnable(cudResultOriginal, causingUuids, methodDescription);
         var rollback = securityActivation != null ? securityActivation.pushWithoutFiltering() : StateRollback.empty();
         try {
-            return CheckedSupplier.invoke(runnable);
+            return mergeInternRunnable(cudResultOriginal, causingUuids, methodDescription);
         } finally {
             rollback.rollback();
         }

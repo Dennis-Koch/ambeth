@@ -42,9 +42,11 @@ import com.koch.ambeth.merge.model.RelationUpdateItemBuild;
 import com.koch.ambeth.merge.proxy.IEntityMetaDataHolder;
 import com.koch.ambeth.merge.proxy.IObjRefContainer;
 import com.koch.ambeth.merge.security.ISecurityActivation;
+import com.koch.ambeth.merge.transfer.CreateContainer;
 import com.koch.ambeth.merge.transfer.ObjRef;
 import com.koch.ambeth.merge.transfer.PrimitiveUpdateItem;
 import com.koch.ambeth.merge.transfer.RelationUpdateItem;
+import com.koch.ambeth.merge.transfer.UpdateContainer;
 import com.koch.ambeth.merge.util.DirectValueHolderRef;
 import com.koch.ambeth.merge.util.IPrefetchHelper;
 import com.koch.ambeth.merge.util.OptimisticLockUtil;
@@ -60,6 +62,7 @@ import com.koch.ambeth.util.collections.EmptySet;
 import com.koch.ambeth.util.collections.HashSet;
 import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.ISet;
+import com.koch.ambeth.util.collections.IdentityHashSet;
 import com.koch.ambeth.util.collections.LinkedHashMap;
 import com.koch.ambeth.util.model.IDataObject;
 import com.koch.ambeth.util.threading.IGuiThreadHelper;
@@ -107,7 +110,7 @@ public class MergeController implements IMergeController, IMergeExtendable {
     protected boolean alwaysUpdateVersionInChangedEntities;
 
     protected IList<IUpdateItem> addModification(Object obj, MergeHandle handle) {
-        IList<IUpdateItem> modItemList = handle.objToModDict.get(obj);
+        var modItemList = handle.objToModDict.get(obj);
         if (modItemList == null) {
             modItemList = new ArrayList<>();
             handle.objToModDict.put(obj, modItemList);
@@ -120,53 +123,53 @@ public class MergeController implements IMergeController, IMergeExtendable {
             return;
         }
         if (value instanceof Optional) {
-            Optional<?> optValue = (Optional<?>) value;
+            var optValue = (Optional<?>) value;
             if (optValue.isPresent()) {
                 value = optValue.get();
             } else {
                 value = null;
             }
         }
-        for (IMergeExtension mergeExtension : mergeExtensions.getExtensionsShared()) {
+        for (var mergeExtension : mergeExtensions.getExtensionsShared()) {
             if (mergeExtension.handlesType(targetValueType)) {
                 value = mergeExtension.extractPrimitiveValueToMerge(value);
             }
         }
-        PrimitiveUpdateItem primModItem = new PrimitiveUpdateItem();
+        var primModItem = new PrimitiveUpdateItem();
         primModItem.setMemberName(memberName);
         primModItem.setNewValue(value);
 
-        IList<IUpdateItem> modItemList = addModification(obj, handle);
+        var modItemList = addModification(obj, handle);
         modItemList.add(primModItem);
     }
 
     @SuppressWarnings("rawtypes")
     protected void addOriModification(Object obj, String memberName, Object value, Object cloneValue, MergeHandle handle) {
         if (value instanceof List) {
-            List list = (List) value;
+            var list = (List) value;
             for (int a = 0, size = list.size(); a < size; a++) {
-                Object objItem = list.get(a);
+                var objItem = list.get(a);
                 mergeOrPersist(objItem, handle);
             }
         } else if (value instanceof Collection) {
-            Iterator<?> iter = ((Collection<?>) value).iterator();
+            var iter = ((Collection<?>) value).iterator();
             while (iter.hasNext()) {
-                Object objItem = iter.next();
+                var objItem = iter.next();
                 mergeOrPersist(objItem, handle);
             }
         } else {
             mergeOrPersist(value, handle);
         }
         try {
-            IList<IObjRef> oldOriList = oriHelper.extractObjRefList(cloneValue, handle, handle.getOldOrList());
-            IList<IObjRef> newOriList = oriHelper.extractObjRefList(value, handle, handle.getNewOrList());
+            var oldOriList = oriHelper.extractObjRefList(cloneValue, handle, handle.getOldOrList());
+            var newOriList = oriHelper.extractObjRefList(value, handle, handle.getNewOrList());
 
-            IRelationUpdateItem oriModItem = createRUI(memberName, oldOriList, newOriList);
+            var oriModItem = createRUI(memberName, oldOriList, newOriList);
             if (oriModItem == null) {
                 return;
             }
 
-            IList<IUpdateItem> modItemList = addModification(obj, handle);
+            var modItemList = addModification(obj, handle);
 
             modItemList.add(oriModItem);
         } finally {
@@ -176,7 +179,7 @@ public class MergeController implements IMergeController, IMergeExtendable {
     }
 
     @Override
-    public void applyChangesToOriginals(final ICUDResult cudResult, final IOriCollection oriCollection, final ICache cache) {
+    public void applyChangesToOriginals(ICUDResult cudResult, IOriCollection oriCollection, ICache cache) {
         if (guiThreadHelper.isInGuiThread()) {
             applyChangesToOriginalsIntern(cudResult, oriCollection, cache);
             return;
@@ -185,40 +188,39 @@ public class MergeController implements IMergeController, IMergeExtendable {
     }
 
     protected void applyChangesToOriginalsIntern(ICUDResult cudResult, IOriCollection oriCollection, ICache cache) {
-        ICacheModification cacheModification = this.cacheModification;
-        IConversionHelper conversionHelper = this.conversionHelper;
-        IEntityMetaDataProvider entityMetaDataProvider = this.entityMetaDataProvider;
-        List<Object> originalRefs = cudResult.getOriginalRefs();
-        List<IObjRef> allChangeORIs = oriCollection.getAllChangeORIs();
-        String[] allChangedBy = oriCollection.getAllChangedBy();
-        Long[] allChangedOn = oriCollection.getAllChangedOn();
-        String singleChangedBy = oriCollection.getChangedBy();
-        Long singleChangedOn = oriCollection.getChangedOn();
+        var cacheModification = this.cacheModification;
+        var conversionHelper = this.conversionHelper;
+        var entityMetaDataProvider = this.entityMetaDataProvider;
+        var allChanges = cudResult.getAllChanges();
+        var originalRefs = cudResult.getOriginalRefs();
+        var allChangeORIs = oriCollection.getAllChangeORIs();
+        var allChangedBy = oriCollection.getAllChangedBy();
+        var allChangedOn = oriCollection.getAllChangedOn();
+        var singleChangedBy = oriCollection.getChangedBy();
+        var singleChangedOn = oriCollection.getChangedOn();
 
-        boolean newInstanceOnCall = cacheProvider.isNewInstanceOnCall();
-        boolean oldCacheModificationValue = cacheModification.isActive();
-        ArrayList<Object> validObjects = new ArrayList<>();
+        var newInstanceOnCall = cacheProvider.isNewInstanceOnCall();
+        var oldCacheModificationValue = cacheModification.isActive();
+        var validObjects = new ArrayList<>(originalRefs.size());
         cacheModification.setActive(true);
         try {
             for (int a = originalRefs.size(); a-- > 0; ) {
-                Object originalRef = originalRefs.get(a);
-                IObjRef ori = allChangeORIs.get(a);
+                var originalRef = originalRefs.get(a);
+                var ori = allChangeORIs.get(a);
 
                 if (originalRef == null) {
-                    // Object has been deleted by cascade delete contraints on server merge or
-                    // simply a "not
-                    // specified" original ref
+                    // Object has been deleted by cascade delete constraints on server merge or simply a "not specified" original ref
                     continue;
                 }
                 if (originalRef instanceof IObjRef) {
                     continue;
                 }
-                Long changedOn = allChangedOn != null ? allChangedOn[a] : singleChangedOn;
-                String changedBy = allChangedBy != null ? allChangedBy[a] : singleChangedBy;
-                IEntityMetaData metaData = entityMetaDataProvider.getMetaData(originalRef.getClass());
+                var changedOn = allChangedOn != null ? allChangedOn[a] : singleChangedOn;
+                var changedBy = allChangedBy != null ? allChangedBy[a] : singleChangedBy;
+                var metaData = entityMetaDataProvider.getMetaData(originalRef.getClass());
 
-                Member keyMember = metaData.getIdMember();
-                Member versionMember = metaData.getVersionMember();
+                var keyMember = metaData.getIdMember();
+                var versionMember = metaData.getVersionMember();
 
                 Member onMember, byMember;
                 if (keyMember.getValue(originalRef, false) == null) {
@@ -229,11 +231,11 @@ public class MergeController implements IMergeController, IMergeExtendable {
                     byMember = metaData.getUpdatedByMember();
                 }
                 if (onMember != null && changedOn != null) {
-                    Object createdOn = conversionHelper.convertValueToType(onMember.getElementType(), changedOn);
+                    var createdOn = conversionHelper.convertValueToType(onMember.getElementType(), changedOn);
                     onMember.setValue(originalRef, createdOn);
                 }
                 if (byMember != null && changedBy != null) {
-                    Object createdBy = conversionHelper.convertValueToType(byMember.getElementType(), changedBy);
+                    var createdBy = conversionHelper.convertValueToType(byMember.getElementType(), changedBy);
                     byMember.setValue(originalRef, createdBy);
                 }
                 if (ori == null) {
@@ -252,25 +254,19 @@ public class MergeController implements IMergeController, IMergeExtendable {
                     if (alwaysUpdateVersionInChangedEntities) {
                         versionMember.setValue(originalRef, conversionHelper.convertValueToType(versionMember.getRealType(), ori.getVersion()));
                     } else {
-                        // We INTENTIONALLY do NOT set the version and let it on its old value, to
-                        // force the
-                        // following
-                        // DCE to refresh the cached object with 'real' data
-                        // If we set the version here to the ori.getVersion(), the DCE will 'see' a
-                        // already
-                        // valid object
-                        // - but it is NOT valid
-                        // because it may not contain bi-directional information which can only be
-                        // resolved by
-                        // reloading
-                        // the object from persistence layer
+                        // We INTENTIONALLY do NOT set the version and let it on its old value, to force the following DCE to refresh the cached object with 'real' data
+                        // If we set the version here to the ori.getVersion(), the DCE will 'see' an already valid object - but it is NOT valid
+                        // because it may not contain bi-directional information which can only be  resolved by reloading the object from persistence layer
                     }
                 }
                 if (originalRef instanceof IDataObject) {
                     ((IDataObject) originalRef).setToBeUpdated(false);
                     ((IDataObject) originalRef).setToBeDeleted(false);
                 }
-                validObjects.add(originalRef);
+                var changeContainer = allChanges.get(a);
+                if (changeContainer instanceof CreateContainer || changeContainer instanceof UpdateContainer) {
+                    validObjects.add(originalRef);
+                }
             }
             putInstancesToCurrentCache(validObjects, cache);
         } finally {
@@ -641,7 +637,7 @@ public class MergeController implements IMergeController, IMergeExtendable {
 
     @Override
     public ICUDResult mergeDeep(Object obj, MergeHandle handle) {
-        LinkedHashMap<Class<?>, IList<Object>> typeToObjectsToMerge = null;
+        LinkedHashMap<Class<?>, List<Object>> typeToObjectsToMerge = null;
         var entityPersistOrder = entityMetaDataProvider.getEntityPersistOrder();
         if (entityPersistOrder != null && entityPersistOrder.length > 0) {
             typeToObjectsToMerge = new LinkedHashMap<>();
@@ -649,7 +645,9 @@ public class MergeController implements IMergeController, IMergeExtendable {
         var objRefs = new ArrayList<IObjRef>();
         var privilegedObjRefs = new ArrayList<IObjRef>();
         var valueHolderKeys = new ArrayList<ValueHolderRef>();
-        var objectsToMerge = scanForInitializedObjects(obj, handle.isDeepMerge(), typeToObjectsToMerge, objRefs, privilegedObjRefs, valueHolderKeys);
+        var recognizedCaches = new IdentityHashSet<ICache>();
+        var objectsToMerge = scanForInitializedObjects(obj, handle.isDeepMerge(), typeToObjectsToMerge, objRefs, privilegedObjRefs, valueHolderKeys, recognizedCaches);
+        handle.setRecognizedCaches(recognizedCaches);
         var hardRef = new ArrayList<>();
         // Load all requested object originals in one roundtrip
         try {
@@ -693,7 +691,7 @@ public class MergeController implements IMergeController, IMergeExtendable {
             return;
         }
         if (obj instanceof List) {
-            if (!handle.alreadyProcessedSet.add(obj)) {
+            if (!handle.getAlreadyProcessedSet().add(obj)) {
                 return;
             }
             var objList = (List) obj;
@@ -701,7 +699,7 @@ public class MergeController implements IMergeController, IMergeExtendable {
                 mergeOrPersist(objList.get(a), handle);
             }
         } else if (obj instanceof Iterable) {
-            if (!handle.alreadyProcessedSet.add(obj)) {
+            if (!handle.getAlreadyProcessedSet().add(obj)) {
                 return;
             }
             var iter = ((Iterable<?>) obj).iterator();
@@ -827,8 +825,7 @@ public class MergeController implements IMergeController, IMergeExtendable {
             if (!metaData.isMergeRelevant(primitiveMember)) {
                 continue;
             }
-            Object objMember = primitiveMember.getValue(obj, true);
-
+            var objMember = primitiveMember.getValue(obj, true);
             if (objMember != null) {
                 addModification(obj, primitiveMember.getName(), primitiveMember.getElementType(), objMember, null, handle);
             }
@@ -836,7 +833,7 @@ public class MergeController implements IMergeController, IMergeExtendable {
     }
 
     protected void putInstancesToCurrentCache(List<Object> validObjects, ICache cache) {
-        if (!MergeProcess.isAddNewlyPersistedEntities()) {
+        if (validObjects.isEmpty() || !MergeProcess.isAddNewlyPersistedEntities()) {
             return;
         }
         var currentCache = cache != null ? (IWritableCache) cache : (IWritableCache) cacheProvider.getCurrentCache();
@@ -849,10 +846,16 @@ public class MergeController implements IMergeController, IMergeExtendable {
     }
 
     @Override
-    public IList<Object> scanForInitializedObjects(Object obj, final boolean isDeepMerge, final Map<Class<?>, IList<Object>> typeToObjectsToMerge, final List<IObjRef> objRefs,
-            final List<IObjRef> privilegedObjRefs, final List<ValueHolderRef> valueHolderKeys) {
+    public IList<Object> scanForInitializedObjects(Object obj, boolean isDeepMerge, Map<Class<?>, List<Object>> typeToObjectsToMerge, List<IObjRef> objRefs, List<IObjRef> privilegedObjRefs,
+            List<ValueHolderRef> valueHolderKeys, Set<ICache> recognizedCaches) {
         var objects = new ArrayList<>();
         deepScanRecursion.handleDeep(obj, (entity, p) -> {
+            if (recognizedCaches != null) {
+                var cache = ((IObjRefContainer) entity).get__Cache();
+                if (cache != null) {
+                    recognizedCaches.add(cache);
+                }
+            }
             var metaData = ((IEntityMetaDataHolder) entity).get__EntityMetaData();
             IObjRef objRef = null;
             if (objects != null || objRefs != null || privilegedObjRefs != null || valueHolderKeys != null) {
@@ -885,7 +888,7 @@ public class MergeController implements IMergeController, IMergeExtendable {
         return objects;
     }
 
-    private IObjRef markObjRef(Map<Class<?>, IList<Object>> typeToObjectsToMerge, List<IObjRef> objRefs, List<IObjRef> privilegedObjRefs, Object entity, IEntityMetaData metaData,
+    private IObjRef markObjRef(Map<Class<?>, List<Object>> typeToObjectsToMerge, List<IObjRef> objRefs, List<IObjRef> privilegedObjRefs, Object entity, IEntityMetaData metaData,
             List<Object> objects) {
         var id = metaData.getIdMember().getValue(entity, false);
         var isEntityFromPrivilegedCache = false;

@@ -24,6 +24,7 @@ import com.koch.ambeth.ioc.IInitializingBean;
 import com.koch.ambeth.merge.transfer.ObjRef;
 import com.koch.ambeth.persistence.api.IFieldMetaData;
 import com.koch.ambeth.persistence.api.ITableMetaData;
+import com.koch.ambeth.service.merge.model.IObjRef;
 import com.koch.ambeth.service.metadata.Member;
 import com.koch.ambeth.util.ParamChecker;
 import com.koch.ambeth.util.config.IProperties;
@@ -106,6 +107,9 @@ public class FieldMetaData implements IFieldMetaData, IInitializingBean {
     }
 
     public void setIdIndex(byte idIndex) {
+        if (this.idIndex != IObjRef.UNDEFINED_KEY_INDEX) {
+            throw new IllegalStateException("IdIndex already assigned: " + this.idIndex + " vs. " + idIndex + " for " + this);
+        }
         this.idIndex = idIndex;
     }
 

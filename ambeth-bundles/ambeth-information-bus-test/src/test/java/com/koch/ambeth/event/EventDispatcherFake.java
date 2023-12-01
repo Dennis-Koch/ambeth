@@ -21,6 +21,7 @@ limitations under the License.
  */
 
 import com.koch.ambeth.util.function.CheckedConsumer;
+import com.koch.ambeth.util.state.IStateRollback;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -64,12 +65,7 @@ public class EventDispatcherFake implements IEventDispatcher {
     }
 
     @Override
-    public void pause(Object eventTarget) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void resume(Object eventTarget) {
+    public IStateRollback pause(Object eventTarget) {
         throw new UnsupportedOperationException();
     }
 

@@ -438,7 +438,10 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
         var additionalAuditInfo = getAdditionalAuditInfo();
         additionalAuditInfo.ownAuditMergeActive = Boolean.TRUE;
         try {
-            var rollback = securityActivation.pushWithoutSecurity();
+            var rollback = StateRollback.chain(chain -> {
+                chain.append(securityActivation.pushWithoutSecurity());
+                chain.append(MergeProcess.pushAddNewlyPersistedEntities(Boolean.FALSE));
+            });
             try {
                 var auditedChanges = auditEntryState.auditedChanges;
                 var auditEntry = auditedChanges.get(0);
@@ -462,18 +465,10 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
                 signAuditEntry(auditEntry, additionalAuditInfo, signatureOfUser);
                 var auditMerge = buildAuditCUDResult(auditedChanges);
 
-                var oldAddNewlyPersistedEntities = MergeProcess.getAddNewlyPersistedEntities();
-                MergeProcess.setAddNewlyPersistedEntities(Boolean.FALSE);
-                try {
-                    mergeService.merge(auditMerge, null, null);
-                } finally {
-                    MergeProcess.setAddNewlyPersistedEntities(oldAddNewlyPersistedEntities);
-                }
+                mergeService.merge(auditMerge, null, null);
             } finally {
                 rollback.rollback();
             }
-        } catch (Exception e) {
-            throw RuntimeExceptionUtil.mask(e);
         } finally {
             additionalAuditInfo.ownAuditMergeActive = null;
             if (additionalAuditInfo.doClearPassword) {

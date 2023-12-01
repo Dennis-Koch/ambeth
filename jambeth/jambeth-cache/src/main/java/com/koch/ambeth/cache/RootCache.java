@@ -306,8 +306,9 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
         }
         var isCacheRetrieverCallAllowed = isCacheRetrieverCallAllowed(cacheDirective);
         var eventQueue = this.eventQueue;
+        var rollback = StateRollback.empty();
         if (eventQueue != null) {
-            eventQueue.pause(this);
+            rollback = eventQueue.pause(this);
         }
         try {
             var readLock = getReadLock();
@@ -362,9 +363,7 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
                 clearHardRefs(acquireSuccess);
             }
         } finally {
-            if (eventQueue != null) {
-                eventQueue.resume(this);
-            }
+            rollback.rollback();
         }
     }
 
@@ -461,8 +460,9 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
         var returnMisses = cacheDirective.contains(CacheDirective.ReturnMisses);
 
         var eventQueue = this.eventQueue;
+        var rollback = StateRollback.empty();
         if (eventQueue != null) {
-            eventQueue.pause(this);
+            rollback = eventQueue.pause(this);
         }
         try {
             var readLock = getReadLock();
@@ -507,14 +507,14 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
                 }
                 if (!objRelMisses.isEmpty()) {
                     List<IObjRelationResult> loadedObjectRelations;
-                    var rollback = StateRollback.empty();
+                    var rollback2 = StateRollback.empty();
                     if (privileged && securityActivation != null && securityActivation.isFilterActivated()) {
-                        rollback = securityActivation.pushWithoutFiltering();
+                        rollback2 = securityActivation.pushWithoutFiltering();
                     }
                     try {
                         loadedObjectRelations = cacheRetriever.getRelations(objRelMisses);
                     } finally {
-                        rollback.rollback();
+                        rollback2.rollback();
                     }
                     loadObjects(loadedObjectRelations, objRelToResultMap);
                     readLock.lock();
@@ -538,9 +538,7 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
                 clearHardRefs(acquireSuccess);
             }
         } finally {
-            if (eventQueue != null) {
-                eventQueue.resume(this);
-            }
+            rollback.rollback();
         }
     }
 
@@ -855,8 +853,9 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
             return new ArrayList<>(0);
         }
         var eventQueue = this.eventQueue;
+        var rollback = StateRollback.empty();
         if (targetCacheAccess && eventQueue != null) {
-            eventQueue.pause(targetCache);
+            rollback = eventQueue.pause(targetCache);
         }
         try {
             var result = new ArrayList<>(objRefsToGet.size());
@@ -943,9 +942,7 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
             }
             return result;
         } finally {
-            if (targetCacheAccess && eventQueue != null) {
-                eventQueue.resume(targetCache);
-            }
+            rollback.rollback();
         }
     }
 
