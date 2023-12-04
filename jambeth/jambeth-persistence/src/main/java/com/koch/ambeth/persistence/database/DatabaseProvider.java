@@ -29,65 +29,74 @@ import com.koch.ambeth.persistence.api.IDatabasePool;
 import com.koch.ambeth.persistence.api.database.IDatabaseProvider;
 import com.koch.ambeth.util.proxy.ITargetProvider;
 import com.koch.ambeth.util.threading.SensitiveThreadLocal;
+import com.koch.ambeth.util.transaction.ILightweightTransaction;
+import jakarta.persistence.PersistenceException;
 
-public class DatabaseProvider
-		implements ITargetProvider, IDatabaseProvider, IThreadLocalCleanupBean {
-	@Autowired
-	protected IDatabasePool databasePool;
+public class DatabaseProvider implements ITargetProvider, IDatabaseProvider, IThreadLocalCleanupBean {
+    @Forkable
+    protected final SensitiveThreadLocal<IDatabase> databaseTL = new SensitiveThreadLocal<>();
+    @Autowired
+    protected IDatabasePool databasePool;
 
-	@Property(defaultValue = "PERSISTENT")
-	protected DatabaseType databaseType;
+    @Autowired
+    protected ILightweightTransaction transaction;
 
-	@Forkable
-	protected final SensitiveThreadLocal<IDatabase> databaseTL =
-			new SensitiveThreadLocal<>();
+    @Property(defaultValue = "PERSISTENT")
+    protected DatabaseType databaseType;
 
-	@Override
-	public void cleanupThreadLocal() {
-		databaseTL.remove();
-	}
+    @Override
+    public void cleanupThreadLocal() {
+        databaseTL.remove();
+    }
 
-	@Override
-	public IDatabase tryGetInstance() {
-		return databaseTL.get();
-	}
+    @Override
+    public IDatabase tryGetInstance() {
+        return databaseTL.get();
+    }
 
-	@Override
-	public ThreadLocal<IDatabase> getDatabaseLocal() {
-		return databaseTL;
-	}
+    @Override
+    public ThreadLocal<IDatabase> getDatabaseLocal() {
+        return databaseTL;
+    }
 
-	@Override
-	public IDatabase acquireInstance() {
-		return acquireInstance(false);
-	}
+    @Override
+    public IDatabase acquireInstance() {
+        return acquireInstance(false);
+    }
 
-	@Override
-	public IDatabase acquireInstance(boolean readonly) {
-		IDatabase database = tryGetInstance();
-		if (database != null) {
-			throw new RuntimeException(
-					"Instance already acquired. Maybe you must not acquire instances at your current application scope?");
-		}
-		database = databasePool.acquireDatabase(readonly);
-		databaseTL.set(database);
-		return database;
-	}
+    @Override
+    public IDatabase acquireInstance(boolean readonly) {
+        var database = tryGetInstance();
+        if (database != null) {
+            throw new PersistenceException("Instance already acquired. Maybe you must not acquire instances at your current application scope?");
+        }
+        database = databasePool.acquireDatabase(readonly);
+        databaseTL.set(database);
+        return database;
+    }
 
-	public IDatabase getInstance() {
-		IDatabase database = tryGetInstance();
-		if (database == null) {
-			throw new RuntimeException(
-					"No instance acquired, yet. It should have been done at this point!"
-							+ " If this exception happens within a service request from a client your service implementing method"
-							+ " might not be specified as virtual. A service method must be to allow dynamic proxying"
-							+ " for database session operations");
-		}
-		return database;
-	}
+    public IDatabase getInstance() {
+        var database = tryGetInstance();
+        if (database != null) {
+            return database;
+        }
+        // maybe we have a lazy transaction. if so we now ensure a transactional state and try to resolve the DB handle again
+        if (transaction.isLazyActive()) {
+            // resolve database handle now "eagerly" again
+            transaction.runInTransaction(() -> {
+            });
+        }
+        database = tryGetInstance();
+        if (database != null) {
+            return database;
+        }
+        throw new PersistenceException(
+                "No instance acquired, yet. It should have been done at this point!" + " If this exception happens within a service request from a client your service implementing method" +
+                        " might not be specified as virtual. A service method virtual must be to allow dynamic proxying" + " for database session operations");
+    }
 
-	@Override
-	public Object getTarget() {
-		return getInstance();
-	}
+    @Override
+    public Object getTarget() {
+        return getInstance();
+    }
 }

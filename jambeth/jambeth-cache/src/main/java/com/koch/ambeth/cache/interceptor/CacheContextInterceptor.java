@@ -20,8 +20,6 @@ limitations under the License.
  * #L%
  */
 
-import java.lang.reflect.Method;
-
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.merge.cache.ICacheContext;
 import com.koch.ambeth.merge.cache.ICacheFactory;
@@ -29,36 +27,33 @@ import com.koch.ambeth.merge.cache.ICacheProvider;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.proxy.CascadedInterceptor;
 import com.koch.ambeth.util.proxy.MethodProxy;
-import com.koch.ambeth.util.state.IStateRollback;
+
+import java.lang.reflect.Method;
 
 public class CacheContextInterceptor extends CascadedInterceptor {
-	@Autowired
-	protected ICacheContext cacheContext;
+    @Autowired
+    protected ICacheContext cacheContext;
 
-	@Autowired
-	protected ICacheFactory cacheFactory;
+    @Autowired
+    protected ICacheFactory cacheFactory;
 
-	@Autowired
-	protected ICacheProvider cacheProvider;
+    @Autowired
+    protected ICacheProvider cacheProvider;
 
-	@Override
-	protected Object interceptIntern(final Object obj, final Method method, final Object[] args,
-			final MethodProxy proxy) throws Throwable {
-		if (method.getDeclaringClass().equals(Object.class)) {
-			return invokeTarget(obj, method, args, proxy);
-		}
-		IStateRollback rollback = cacheContext.pushCache(cacheProvider);
-		try {
-			return invokeTarget(obj, method, args, proxy);
-		}
-		catch (Error e) {
-			throw e;
-		}
-		catch (Throwable e) {
-			throw RuntimeExceptionUtil.mask(e, method.getExceptionTypes());
-		}
-		finally {
-			rollback.rollback();
-		}
-	}
+    @Override
+    protected Object interceptIntern(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable {
+        if (method.getDeclaringClass().equals(Object.class)) {
+            return invokeTarget(obj, method, args, proxy);
+        }
+        var rollback = cacheContext.pushCache(cacheProvider);
+        try {
+            return invokeTarget(obj, method, args, proxy);
+        } catch (Error e) {
+            throw e;
+        } catch (Throwable e) {
+            throw RuntimeExceptionUtil.mask(e, method.getExceptionTypes());
+        } finally {
+            rollback.rollback();
+        }
+    }
 }

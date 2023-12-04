@@ -20,41 +20,39 @@ limitations under the License.
  * #L%
  */
 
-import java.lang.reflect.Method;
-
 import com.koch.ambeth.util.IDisposable;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
+import java.lang.reflect.Method;
+
 public class TargetingInterceptor extends AbstractSimpleInterceptor {
-	public static final String TARGET_PROVIDER_PROP = "TargetProvider";
+    public static final String TARGET_PROVIDER_PROP = "TargetProvider";
 
-	protected ITargetProvider targetProvider;
+    protected ITargetProvider targetProvider;
 
-	public void setTargetProvider(ITargetProvider targetProvider) {
-		this.targetProvider = targetProvider;
-	}
+    public ITargetProvider getTargetProvider() {
+        return targetProvider;
+    }
 
-	public ITargetProvider getTargetProvider() {
-		return targetProvider;
-	}
+    public void setTargetProvider(ITargetProvider targetProvider) {
+        this.targetProvider = targetProvider;
+    }
 
-	@Override
-	protected Object interceptIntern(Object obj, Method method, Object[] args, MethodProxy proxy)
-			throws Throwable {
-		if (obj instanceof IDisposable && "dispose".equals(method.getName())
-				&& method.getParameterTypes().length == 0) {
-			return null;
-		}
-		Object target = targetProvider.getTarget();
-		if (target == null) {
-			throw new NullPointerException(
-					"Object reference has to be valid. TargetProvider: " + targetProvider);
-		}
-		try {
-			return proxy.invoke(target, args);
-		}
-		catch (Throwable e) {
-			throw RuntimeExceptionUtil.mask(e, method.getExceptionTypes());
-		}
-	}
+    @Override
+    protected Object interceptIntern(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable {
+        if (obj instanceof IDisposable && "dispose".equals(method.getName()) && method.getParameterTypes().length == 0) {
+            return null;
+        }
+        var target = targetProvider.getTarget();
+        if (target == null) {
+            throw new NullPointerException("Object reference has to be valid. TargetProvider: " + targetProvider);
+        }
+        try {
+            return proxy.invoke(target, args);
+        } catch (Error | RuntimeException e) {
+            throw e;
+        } catch (Throwable e) {
+            throw RuntimeExceptionUtil.mask(e, method.getExceptionTypes());
+        }
+    }
 }

@@ -19,8 +19,15 @@ import java.lang.reflect.Type;
 public class MethodInterceptorMixin {
 
     @SneakyThrows
-    public static <T> DynamicType.Builder<T> weave(DynamicType.Builder<T> builder, Type... interfaces) {
-        return builder.implement(interfaces).method(ElementMatchers.any()).intercept(MethodDelegation.to(MethodInterceptorMixin.class));
+    public static <T> DynamicType.Builder<T> weave(DynamicType.Builder<T> builder, Type... interfaceTypes) {
+        for (var interfaceType : interfaceTypes) {
+            if (Factory.class.equals(interfaceType)) {
+                // already implemented by FactoryMixin
+                continue;
+            }
+            builder = builder.implement(interfaceType);
+        }
+        return builder.method(ElementMatchers.any()).intercept(MethodDelegation.to(MethodInterceptorMixin.class));
     }
 
     @RuntimeType

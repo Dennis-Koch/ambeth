@@ -68,7 +68,6 @@ import java.sql.Array;
 import java.sql.Blob;
 import java.sql.Clob;
 import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Savepoint;
@@ -194,7 +193,7 @@ public class PostgresDialect extends AbstractConnectionDialect {
             Class<?> leftOperandFieldType) {
         if (splitValues.isEmpty()) {
             // Special scenario with EMPTY argument
-            ArrayQueryItem aqi = new ArrayQueryItem(new Object[0], leftOperandFieldType);
+            var aqi = new ArrayQueryItem(new Object[0], leftOperandFieldType);
             ParamsUtil.addParam(parameters, aqi);
             querySB.append("SELECT ");
             if (!caseSensitive) {
@@ -214,7 +213,7 @@ public class PostgresDialect extends AbstractConnectionDialect {
             }
 
             for (int a = 0, size = splitValues.size(); a < size; a++) {
-                IList<Object> values = splitValues.get(a);
+                var values = splitValues.get(a);
                 if (a > 0) {
                     // A union allows us to suppress the "ROWNUM" column because table(?) will already get
                     // materialized without it
@@ -223,7 +222,7 @@ public class PostgresDialect extends AbstractConnectionDialect {
                 if (size > 1) {
                     querySB.append('(');
                 }
-                ArrayQueryItem aqi = new ArrayQueryItem(values.toArray(), leftOperandFieldType);
+                var aqi = new ArrayQueryItem(values.toArray(), leftOperandFieldType);
                 ParamsUtil.addParam(parameters, aqi);
 
                 querySB.append("SELECT ").append(placeholder);
@@ -247,7 +246,7 @@ public class PostgresDialect extends AbstractConnectionDialect {
     @SneakyThrows
     @Override
     public Blob createBlob(Connection connection) {
-        PGConnection pgConnection = connection.unwrap(PGConnection.class);
+        var pgConnection = connection.unwrap(PGConnection.class);
         long oid = pgConnection.getLargeObjectAPI().createLO();
         return new PostgresBlob(pgConnection, oid);
     }
@@ -255,7 +254,7 @@ public class PostgresDialect extends AbstractConnectionDialect {
     @SneakyThrows
     @Override
     public Clob createClob(Connection connection) {
-        PGConnection pgConnection = connection.unwrap(PGConnection.class);
+        var pgConnection = connection.unwrap(PGConnection.class);
         long oid = pgConnection.getLargeObjectAPI().createLO();
         return new PostgresClob(pgConnection, oid);
     }
@@ -273,10 +272,10 @@ public class PostgresDialect extends AbstractConnectionDialect {
     @Override
     public Object convertFromFieldType(IDatabase database, IFieldMetaData field, Class<?> expectedType, Object value) {
         if (isBLobColumnName(field.getOriginalTypeName())) {
-            long oid = conversionHelper.convertValueToType(Number.class, value).longValue();
+            var oid = conversionHelper.convertValueToType(Number.class, value).longValue();
             try {
-                PGConnection connection = database.getAutowiredBeanInContext(Connection.class).unwrap(PGConnection.class);
-                PostgresBlob blob = new PostgresBlob(connection, oid);
+                var connection = database.getAutowiredBeanInContext(Connection.class).unwrap(PGConnection.class);
+                var blob = new PostgresBlob(connection, oid);
                 Object targetValue = null;
                 try {
                     targetValue = conversionHelper.convertValueToType(expectedType, blob);
@@ -290,10 +289,10 @@ public class PostgresDialect extends AbstractConnectionDialect {
                 throw createPersistenceException(e, null);
             }
         } else if (isCLobColumnName(field.getOriginalTypeName())) {
-            long oid = conversionHelper.convertValueToType(Number.class, value).longValue();
+            var oid = conversionHelper.convertValueToType(Number.class, value).longValue();
             try {
-                PGConnection connection = database.getAutowiredBeanInContext(Connection.class).unwrap(PGConnection.class);
-                PostgresClob clob = new PostgresClob(connection, oid);
+                var connection = database.getAutowiredBeanInContext(Connection.class).unwrap(PGConnection.class);
+                var clob = new PostgresClob(connection, oid);
 
                 Object targetValue = null;
                 try {
@@ -347,7 +346,7 @@ public class PostgresDialect extends AbstractConnectionDialect {
 
     @Override
     protected String buildDeferrableForeignKeyConstraintsSelectSQL(String[] schemaNames) {
-        StringBuilder sb = new StringBuilder(
+        var sb = new StringBuilder(
                 "SELECT n.nspname AS OWNER, cl.relname AS TABLE_NAME, c.conname AS CONSTRAINT_NAME FROM pg_constraint c JOIN pg_namespace n ON c.connamespace=n.oid JOIN pg_class cl ON c" +
                         ".conrelid=cl" + ".oid WHERE c.condeferrable='t' AND c.condeferred='f' AND n.nspname");
         buildSchemaInClause(sb, schemaNames);
@@ -357,32 +356,28 @@ public class PostgresDialect extends AbstractConnectionDialect {
     @SneakyThrows
     @Override
     public IList<IMap<String, String>> getExportedKeys(Connection connection, String[] schemaNames) {
-        ArrayList<IMap<String, String>> allForeignKeys = new ArrayList<>();
-        PreparedStatement pstm = null;
-        ResultSet allForeignKeysRS = null;
-        try {
-            String[] newSchemaNames = new String[schemaNames.length];
-            System.arraycopy(schemaNames, 0, newSchemaNames, 0, schemaNames.length);
-            for (int a = newSchemaNames.length; a-- > 0; ) {
-                newSchemaNames[a] = newSchemaNames[a].toLowerCase();
-            }
-            String subselect =
-                    "SELECT ns.nspname AS \"owner\", con1.conname AS \"constraint_name\", unnest(con1.conkey) AS \"parent\", unnest(con1.confkey) AS \"child\", con1.confrelid, con1.conrelid"//
-                            + " FROM pg_class cl"//
-                            + " JOIN pg_namespace ns ON cl.relnamespace=ns.oid"//
-                            + " JOIN pg_constraint con1 ON con1.conrelid=cl.oid"//
-                            + " WHERE con1.contype='f' AND ns.nspname" + buildSchemaInClause(newSchemaNames);
+        var newSchemaNames = new String[schemaNames.length];
+        System.arraycopy(schemaNames, 0, newSchemaNames, 0, schemaNames.length);
+        for (int a = newSchemaNames.length; a-- > 0; ) {
+            newSchemaNames[a] = newSchemaNames[a].toLowerCase();
+        }
+        var subselect = "SELECT ns.nspname AS \"owner\", con1.conname AS \"constraint_name\", unnest(con1.conkey) AS \"parent\", unnest(con1.confkey) AS \"child\", con1.confrelid, con1.conrelid"//
+                + " FROM pg_class cl"//
+                + " JOIN pg_namespace ns ON cl.relnamespace=ns.oid"//
+                + " JOIN pg_constraint con1 ON con1.conrelid=cl.oid"//
+                + " WHERE con1.contype='f' AND ns.nspname" + buildSchemaInClause(newSchemaNames);
 
-            String sql = "select owner, constraint_name, cl2.relname as \"fk_table\", att2.attname as \"fk_column\", cl.relname as \"pk_table\", att.attname as \"pk_column\""//
-                    + " from (" + subselect + ") con"//
-                    + " JOIN pg_attribute att ON att.attrelid=con.confrelid AND att.attnum=con.child"//
-                    + " JOIN pg_class cl ON cl.oid=con.confrelid"//
-                    + " JOIN pg_class cl2 ON cl2.oid=con.conrelid"//
-                    + " JOIN pg_attribute att2 ON att2.attrelid = con.conrelid AND att2.attnum=con.parent";
-            pstm = connection.prepareStatement(sql);
-            allForeignKeysRS = pstm.executeQuery();
+        var sql = "select owner, constraint_name, cl2.relname as \"fk_table\", att2.attname as \"fk_column\", cl.relname as \"pk_table\", att.attname as \"pk_column\""//
+                + " from (" + subselect + ") con"//
+                + " JOIN pg_attribute att ON att.attrelid=con.confrelid AND att.attnum=con.child"//
+                + " JOIN pg_class cl ON cl.oid=con.confrelid"//
+                + " JOIN pg_class cl2 ON cl2.oid=con.conrelid"//
+                + " JOIN pg_attribute att2 ON att2.attrelid = con.conrelid AND att2.attnum=con.parent";
+
+        try (var pstm = connection.prepareStatement(sql); var allForeignKeysRS = pstm.executeQuery()) {
+            var allForeignKeys = new ArrayList<IMap<String, String>>();
             while (allForeignKeysRS.next()) {
-                HashMap<String, String> foreignKey = new HashMap<>();
+                var foreignKey = new HashMap<String, String>();
 
                 foreignKey.put("OWNER", allForeignKeysRS.getString("owner"));
                 foreignKey.put("CONSTRAINT_NAME", allForeignKeysRS.getString("constraint_name"));
@@ -393,10 +388,8 @@ public class PostgresDialect extends AbstractConnectionDialect {
 
                 allForeignKeys.add(foreignKey);
             }
-        } finally {
-            JdbcUtil.close(pstm, allForeignKeysRS);
+            return allForeignKeys;
         }
-        return allForeignKeys;
     }
 
     @Override

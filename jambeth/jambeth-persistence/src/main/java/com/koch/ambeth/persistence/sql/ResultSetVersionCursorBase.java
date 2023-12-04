@@ -1,13 +1,12 @@
 package com.koch.ambeth.persistence.sql;
 
 import com.koch.ambeth.merge.transfer.ObjRef;
-import com.koch.ambeth.util.ParamChecker;
 import lombok.Setter;
 
 import java.util.function.Function;
 
 public class ResultSetVersionCursorBase extends ResultSetPkVersionCursorBase {
-    private static final Object[] EMPTY_ALTERNATE_IDS = new Object[0][0];
+    private static final Object[][] EMPTY_ALTERNATE_IDS_ARRAY = new Object[0][0];
 
     protected Object[][] alternateIdsArray;
 
@@ -19,9 +18,12 @@ public class ResultSetVersionCursorBase extends ResultSetPkVersionCursorBase {
     @Override
     public void afterPropertiesSet() {
         super.afterPropertiesSet();
-        ParamChecker.assertNotNull(resultSetItemToAlternateIdConverter, "resultSetItemToAlternateIdConverter");
-        idCompositePlusVersionCount = compositeIdCount + (versionIndex != -1 ? 1 : 0);
-        alternateIdsArray = new Object[resultSetItemToAlternateIdConverter.length][];
+        if (resultSetItemToAlternateIdConverter != null) {
+            idCompositePlusVersionCount = compositeIdCount + (versionIndex != -1 ? 1 : 0);
+            alternateIdsArray = new Object[resultSetItemToAlternateIdConverter.length][];
+        } else {
+            alternateIdsArray = EMPTY_ALTERNATE_IDS_ARRAY;
+        }
     }
 
     @Override
@@ -44,6 +46,9 @@ public class ResultSetVersionCursorBase extends ResultSetPkVersionCursorBase {
     protected void processResultSetItem(Object[] current) {
         super.processResultSetItem(current);
         var alternateIdsArray = this.alternateIdsArray;
+        if (alternateIdsArray.length == 0) {
+            return;
+        }
         if (current == null) {
             if (alternateIdsArray.length == 1) {
                 alternateIdsArray[0] = null;

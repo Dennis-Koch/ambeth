@@ -23,27 +23,32 @@ limitations under the License.
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Set;
+import java.util.function.IntFunction;
 
 public interface ISet<K> extends Set<K> {
-	Iterator<K> iterator(boolean removeAllowed);
+    Iterator<K> iterator(boolean removeAllowed);
 
-	K get(K key);
+    K get(K key);
 
-	boolean containsAny(Collection<?> coll);
+    boolean containsAny(Collection<?> coll);
 
-	<S extends K> boolean containsAny(S[] array);
+    <S extends K> boolean containsAny(S[] array);
 
-	IList<K> toList();
+    IList<K> toList();
 
-	<T> T[] toArray(Class<T> componentType);
+    <T> T[] toArray(Class<T> componentType);
 
-	void toList(Collection<K> targetList);
+    void toList(Collection<K> targetList);
 
-	boolean addAll(Iterable<? extends K> c);
+    boolean addAll(Iterable<? extends K> c);
 
-	<S extends K> boolean addAll(S[] array);
+    <S extends K> boolean addAll(S[] array);
 
-	<S extends K> boolean removeAll(S[] array);
+    <S extends K> boolean removeAll(S[] array);
 
-	K removeAndGet(K key);
+    K removeAndGet(K key);
+
+    default <T> T[] toArray(IntFunction<T[]> generator) {
+        return toArray(generator.apply(size()));
+    }
 }

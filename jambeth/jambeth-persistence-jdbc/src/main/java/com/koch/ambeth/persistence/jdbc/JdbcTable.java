@@ -260,7 +260,6 @@ public class JdbcTable extends SqlTable {
         var versionField = metaData.getVersionField() != null ? metaData.getVersionField() : null;
         var initialVersion = getMetaData().getInitialVersion();
         var newVersion = versionField != null ? conversionHelper.convertValueToType(versionField.getMember().getRealType(), initialVersion) : null;
-
         try {
             var index = 1;
             if (idFields.length == 1) {
@@ -282,7 +281,7 @@ public class JdbcTable extends SqlTable {
                     // Value not specified
                     continue;
                 }
-                var convertedValue = values[a];
+                var convertedValue = conversionHelper.convertValueToType(metaData.getFieldByName(fieldName).getFieldType(), values[a], null);
                 prep.setObject(index++, convertedValue);
             }
             var createdOnField = metaData.getCreatedOnField();
@@ -374,7 +373,7 @@ public class JdbcTable extends SqlTable {
                     // Value not specified
                     continue;
                 }
-                var convertedValue = values[a];
+                var convertedValue = conversionHelper.convertValueToType(metaData.getFieldByName(fieldName).getFieldType(), values[a], null);
                 prep.setObject(index++, convertedValue);
             }
             var updatedOnField = tableMetaData.getUpdatedOnField();

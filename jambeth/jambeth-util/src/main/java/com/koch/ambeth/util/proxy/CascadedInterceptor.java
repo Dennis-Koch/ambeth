@@ -20,7 +20,7 @@ public abstract class CascadedInterceptor extends AbstractSimpleInterceptor impl
 
     @SneakyThrows
     protected Object invokeTarget(Object obj, Method method, Object[] args, MethodProxy proxy) {
-        Object target = getTarget();
+        var target = getTarget();
         if (target instanceof MethodInterceptor) {
             return ((MethodInterceptor) target).intercept(obj, method, args, proxy);
         }

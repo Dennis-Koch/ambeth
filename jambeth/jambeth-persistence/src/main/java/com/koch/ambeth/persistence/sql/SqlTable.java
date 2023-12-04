@@ -207,7 +207,7 @@ public class SqlTable extends Table {
 
             if (retrieveAlternateIds) {
                 var versionCursor = new ResultSetVersionCursor();
-                versionCursor.setCompositeIdCount(tableMetaData.getIdFields().length);
+                versionCursor.setCompositeIdCount(selectState.compositeIdCount);
                 versionCursor.setVersionIndex(selectState.versionIndex);
                 versionCursor.setResultSetItemToAlternateIdConverter(selectState.resultSetItemToAlternateIdConverter);
                 versionCursor.setResultSet(selectResult);
@@ -216,7 +216,7 @@ public class SqlTable extends Table {
                 return versionCursor;
             }
             var versionCursor = new ResultSetPkVersionCursor();
-            versionCursor.setCompositeIdCount(tableMetaData.getIdFields().length);
+            versionCursor.setCompositeIdCount(selectState.compositeIdCount);
             versionCursor.setVersionIndex(selectState.versionIndex);
             versionCursor.setResultSet(selectResult);
             versionCursor.afterPropertiesSet();
@@ -269,7 +269,7 @@ public class SqlTable extends Table {
 
             if (retrieveAlternateIds) {
                 var versionCursor = new ResultSetVersionCursor();
-                versionCursor.setCompositeIdCount(tableMetaData.getIdFields().length);
+                versionCursor.setCompositeIdCount(selectState.compositeIdCount);
                 versionCursor.setVersionIndex(selectState.versionIndex);
                 versionCursor.setResultSetItemToAlternateIdConverter(selectState.resultSetItemToAlternateIdConverter);
                 versionCursor.setResultSet(selectResult);
@@ -278,7 +278,7 @@ public class SqlTable extends Table {
                 return versionCursor;
             }
             var versionCursor = new ResultSetPkVersionCursor();
-            versionCursor.setCompositeIdCount(tableMetaData.getIdFields().length);
+            versionCursor.setCompositeIdCount(selectState.compositeIdCount);
             versionCursor.setVersionIndex(selectState.versionIndex);
             versionCursor.setResultSet(selectResult);
             versionCursor.afterPropertiesSet();
@@ -442,6 +442,8 @@ public class SqlTable extends Table {
             appendSelectPrimaryIds(tableMetaData, null, false, null, selectState);
             appendSelectVersion(tableMetaData, null, selectState);
             var versionCursor = new ResultSetVersionCursor();
+            versionCursor.setCompositeIdCount(selectState.compositeIdCount);
+            versionCursor.setResultSetItemToAlternateIdConverter(null);
             versionCursor.setVersionIndex(selectState.versionIndex);
             versionCursor.setResultSet(sqlConnection.selectFields(getMetaData().getFullqualifiedEscapedName(), selectSB, null, null, null, null));
             versionCursor.afterPropertiesSet();
@@ -468,6 +470,7 @@ public class SqlTable extends Table {
                 selectSB.append(" AS PK").append(pkIndex);
             }
         }
+        selectState.compositeIdCount = idFields.length;
     }
 
     protected void appendSelectVersion(ITableMetaData tableMetaData, String tableAlias, SelectState selectState) {
@@ -493,6 +496,8 @@ public class SqlTable extends Table {
         final AppendableStringBuilder selectSB;
         IdentityHashMap<IFieldMetaData, Integer> fieldToColumnIndexMap;
         int columnIndex = -1;
+
+        int compositeIdCount = -1;
 
         @Getter
         int versionIndex = -1;

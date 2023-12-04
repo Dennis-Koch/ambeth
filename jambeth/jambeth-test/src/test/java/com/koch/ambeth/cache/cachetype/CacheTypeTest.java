@@ -20,11 +20,6 @@ limitations under the License.
  * #L%
  */
 
-import java.util.concurrent.Exchanger;
-
-import org.junit.Assert;
-import org.junit.Test;
-
 import com.koch.ambeth.cache.IRootCache;
 import com.koch.ambeth.cache.cachetype.CacheTypeTest.CacheTypeTestModule;
 import com.koch.ambeth.informationbus.persistence.setup.SQLData;
@@ -39,129 +34,152 @@ import com.koch.ambeth.testutil.TestModule;
 import com.koch.ambeth.testutil.TestProperties;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.proxy.IProxyFactory;
+import org.junit.Assert;
+import org.junit.Test;
+
+import java.util.concurrent.Exchanger;
 
 @SQLData("cachetype_data.sql")
 @SQLStructure("cachetype_structure.sql")
 @TestModule(CacheTypeTestModule.class)
-@TestProperties(name = ServiceConfigurationConstants.mappingFile,
-		value = "com/koch/ambeth/cache/cachetype/cachetype_orm.xml")
+@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "com/koch/ambeth/cache/cachetype/cachetype_orm.xml")
 public class CacheTypeTest extends AbstractInformationBusWithPersistenceTest {
-	public static class CacheTypeTestModule implements IInitializingModule {
-		@Autowired
-		protected IProxyFactory proxyFactory;
+    @Autowired
+    protected IRootCache rootCache;
 
-		@Override
-		public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
-			beanContextFactory.registerBean("prototypeProxy", IAlternateIdEntityServiceCTPrototype.class)
-					.autowireable(IAlternateIdEntityServiceCTPrototype.class);
-			beanContextFactory.registerBean("singletonProxy", IAlternateIdEntityServiceCTSingleton.class)
-					.autowireable(IAlternateIdEntityServiceCTSingleton.class);
-			beanContextFactory
-					.registerBean("threadLocalProxy", IAlternateIdEntityServiceCTThreadLocal.class)
-					.autowireable(IAlternateIdEntityServiceCTThreadLocal.class);
-		}
-	}
+    @Test
+    public void singletonBehavior() throws Exception {
+        var service = beanContext.getService(IAlternateIdEntityServiceCTSingleton.class);
 
-	@Autowired
-	protected IRootCache rootCache;
+        var entity = entityFactory.createEntity(AlternateIdEntity.class);
+        entity.setName("MyEntitySingleton");
+        service.updateAlternateIdEntity(entity);
 
-	// @Test
-	// public void prototypeBehavior()
-	// {
-	// IAlternateIdEntityServiceCTPrototype service =
-	// beanContext.getService(IAlternateIdEntityServiceCTPrototype.class);
-	//
-	// AlternateIdEntity entity = entityFactory.createEntity(AlternateIdEntity.class);
-	// entity.setName("MyEntityProto");
-	// service.updateAlternateIdEntity(entity);
-	//
-	// AlternateIdEntity loadedEntity = service.getAlternateIdEntityByName(entity.getName());
-	//
-	// Assert.assertNotNull("Loaded entity must be valid", loadedEntity);
-	// Assert.assertEquals("Id must be equal", entity.getId(), loadedEntity.getId());
-	//
-	// AlternateIdEntity loadedEntity2 = service.getAlternateIdEntityByName(entity.getName());
-	// Assert.assertNotSame("Loaded entity instances must not be identical", loadedEntity,
-	// loadedEntity2);
-	// }
+        var entity1Ex = new Exchanger<AlternateIdEntity>();
+        var entity2Ex = new Exchanger<AlternateIdEntity>();
 
-	@Test
-	public void singletonBehavior() {
-		IAlternateIdEntityServiceCTSingleton service =
-				beanContext.getService(IAlternateIdEntityServiceCTSingleton.class);
+        var thread1 = new Thread(() -> {
+            AlternateIdEntity loadedEntity = service.getAlternateIdEntityByName(entity.getName());
 
-		AlternateIdEntity entity = entityFactory.createEntity(AlternateIdEntity.class);
-		entity.setName("MyEntityNameSingle");
-		service.updateAlternateIdEntity(entity);
+            Assert.assertNotNull("Loaded entity must be valid", loadedEntity);
+            Assert.assertEquals("Id must be equal", entity.getId(), loadedEntity.getId());
 
-		AlternateIdEntity loadedEntity = service.getAlternateIdEntityByName(entity.getName());
+            AlternateIdEntity loadedEntity2 = service.getAlternateIdEntityByName(entity.getName());
+            Assert.assertSame("Loaded entity instances must be identical", loadedEntity, loadedEntity2);
 
-		Assert.assertNotNull("Loaded entity must be valid", loadedEntity);
-		Assert.assertEquals("Id must be equal", entity.getId(), loadedEntity.getId());
+            try {
+                entity1Ex.exchange(loadedEntity2);
+            } catch (InterruptedException e) {
+                throw RuntimeExceptionUtil.mask(e);
+            }
+        });
+        var thread2 = new Thread(() -> {
+            AlternateIdEntity loadedEntity = service.getAlternateIdEntityByName(entity.getName());
 
-		AlternateIdEntity loadedEntity2 = service.getAlternateIdEntityByName(entity.getName());
-		Assert.assertSame("Loaded entity instances must be identical", loadedEntity, loadedEntity2);
-	}
+            Assert.assertNotNull("Loaded entity must be valid", loadedEntity);
+            Assert.assertEquals("Id must be equal", entity.getId(), loadedEntity.getId());
 
-	@Test
-	public void threadLocalBehavior() throws Exception {
-		final IAlternateIdEntityServiceCTThreadLocal service =
-				beanContext.getService(IAlternateIdEntityServiceCTThreadLocal.class);
+            AlternateIdEntity loadedEntity2 = service.getAlternateIdEntityByName(entity.getName());
+            Assert.assertSame("Loaded entity instances must be identical", loadedEntity, loadedEntity2);
 
-		final AlternateIdEntity entity = entityFactory.createEntity(AlternateIdEntity.class);
-		entity.setName("MyEntityThreadLocal");
-		service.updateAlternateIdEntity(entity);
+            try {
+                entity2Ex.exchange(loadedEntity2);
+            } catch (InterruptedException e) {
+                throw RuntimeExceptionUtil.mask(e);
+            }
+        });
+        thread1.setContextClassLoader(Thread.currentThread().getContextClassLoader());
+        thread2.setContextClassLoader(Thread.currentThread().getContextClassLoader());
+        thread1.start();
+        thread2.start();
 
-		final Exchanger<AlternateIdEntity> entity1Ex = new Exchanger<>();
-		final Exchanger<AlternateIdEntity> entity2Ex = new Exchanger<>();
+        var entity1 = entity1Ex.exchange(null);
+        var entity2 = entity2Ex.exchange(null);
 
-		Thread thread1 = new Thread(new Runnable() {
-			@Override
-			public void run() {
-				AlternateIdEntity loadedEntity = service.getAlternateIdEntityByName(entity.getName());
+        Assert.assertSame("Entities from different threads must be identical", entity1, entity2);
+    }
 
-				Assert.assertNotNull("Loaded entity must be valid", loadedEntity);
-				Assert.assertEquals("Id must be equal", entity.getId(), loadedEntity.getId());
+    // @Test
+    // public void prototypeBehavior()
+    // {
+    // IAlternateIdEntityServiceCTPrototype service =
+    // beanContext.getService(IAlternateIdEntityServiceCTPrototype.class);
+    //
+    // AlternateIdEntity entity = entityFactory.createEntity(AlternateIdEntity.class);
+    // entity.setName("MyEntityProto");
+    // service.updateAlternateIdEntity(entity);
+    //
+    // AlternateIdEntity loadedEntity = service.getAlternateIdEntityByName(entity.getName());
+    //
+    // Assert.assertNotNull("Loaded entity must be valid", loadedEntity);
+    // Assert.assertEquals("Id must be equal", entity.getId(), loadedEntity.getId());
+    //
+    // AlternateIdEntity loadedEntity2 = service.getAlternateIdEntityByName(entity.getName());
+    // Assert.assertNotSame("Loaded entity instances must not be identical", loadedEntity,
+    // loadedEntity2);
+    // }
 
-				AlternateIdEntity loadedEntity2 = service.getAlternateIdEntityByName(entity.getName());
-				Assert.assertSame("Loaded entity instances must be identical", loadedEntity, loadedEntity2);
+    @Test
+    public void threadLocalBehavior() throws Exception {
+        var service = beanContext.getService(IAlternateIdEntityServiceCTThreadLocal.class);
 
-				try {
-					entity1Ex.exchange(loadedEntity2);
-				}
-				catch (InterruptedException e) {
-					throw RuntimeExceptionUtil.mask(e);
-				}
-			}
-		});
-		Thread thread2 = new Thread(new Runnable() {
-			@Override
-			public void run() {
-				AlternateIdEntity loadedEntity = service.getAlternateIdEntityByName(entity.getName());
+        var entity = entityFactory.createEntity(AlternateIdEntity.class);
+        entity.setName("MyEntityThreadLocal");
+        service.updateAlternateIdEntity(entity);
 
-				Assert.assertNotNull("Loaded entity must be valid", loadedEntity);
-				Assert.assertEquals("Id must be equal", entity.getId(), loadedEntity.getId());
+        var entity1Ex = new Exchanger<AlternateIdEntity>();
+        var entity2Ex = new Exchanger<AlternateIdEntity>();
 
-				AlternateIdEntity loadedEntity2 = service.getAlternateIdEntityByName(entity.getName());
-				Assert.assertSame("Loaded entity instances must be identical", loadedEntity, loadedEntity2);
+        var thread1 = new Thread(() -> {
+            AlternateIdEntity loadedEntity = service.getAlternateIdEntityByName(entity.getName());
 
-				try {
-					entity2Ex.exchange(loadedEntity2);
-				}
-				catch (InterruptedException e) {
-					throw RuntimeExceptionUtil.mask(e);
-				}
-			}
-		});
-		thread1.setContextClassLoader(Thread.currentThread().getContextClassLoader());
-		thread2.setContextClassLoader(Thread.currentThread().getContextClassLoader());
-		thread1.start();
-		thread2.start();
+            Assert.assertNotNull("Loaded entity must be valid", loadedEntity);
+            Assert.assertEquals("Id must be equal", entity.getId(), loadedEntity.getId());
 
-		AlternateIdEntity entity1 = entity1Ex.exchange(null);
-		AlternateIdEntity entity2 = entity2Ex.exchange(null);
+            AlternateIdEntity loadedEntity2 = service.getAlternateIdEntityByName(entity.getName());
+            Assert.assertSame("Loaded entity instances must be identical", loadedEntity, loadedEntity2);
 
-		Assert.assertNotSame("Entities from different threads must not be identical", entity1, entity2);
+            try {
+                entity1Ex.exchange(loadedEntity2);
+            } catch (InterruptedException e) {
+                throw RuntimeExceptionUtil.mask(e);
+            }
+        });
+        var thread2 = new Thread(() -> {
+            AlternateIdEntity loadedEntity = service.getAlternateIdEntityByName(entity.getName());
 
-	}
+            Assert.assertNotNull("Loaded entity must be valid", loadedEntity);
+            Assert.assertEquals("Id must be equal", entity.getId(), loadedEntity.getId());
+
+            AlternateIdEntity loadedEntity2 = service.getAlternateIdEntityByName(entity.getName());
+            Assert.assertSame("Loaded entity instances must be identical", loadedEntity, loadedEntity2);
+
+            try {
+                entity2Ex.exchange(loadedEntity2);
+            } catch (InterruptedException e) {
+                throw RuntimeExceptionUtil.mask(e);
+            }
+        });
+        thread1.setContextClassLoader(Thread.currentThread().getContextClassLoader());
+        thread2.setContextClassLoader(Thread.currentThread().getContextClassLoader());
+        thread1.start();
+        thread2.start();
+
+        var entity1 = entity1Ex.exchange(null);
+        var entity2 = entity2Ex.exchange(null);
+
+        Assert.assertNotSame("Entities from different threads must not be identical", entity1, entity2);
+    }
+
+    public static class CacheTypeTestModule implements IInitializingModule {
+        @Autowired
+        protected IProxyFactory proxyFactory;
+
+        @Override
+        public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
+            beanContextFactory.registerBean("prototypeProxy", IAlternateIdEntityServiceCTPrototype.class).autowireable(IAlternateIdEntityServiceCTPrototype.class);
+            beanContextFactory.registerBean("singletonProxy", IAlternateIdEntityServiceCTSingleton.class).autowireable(IAlternateIdEntityServiceCTSingleton.class);
+            beanContextFactory.registerBean("threadLocalProxy", IAlternateIdEntityServiceCTThreadLocal.class).autowireable(IAlternateIdEntityServiceCTThreadLocal.class);
+        }
+    }
 }

@@ -61,7 +61,7 @@ import java.sql.SQLException;
 
 public class JdbcTransaction implements ILightweightTransaction, ITransaction, ITransactionState, IThreadLocalCleanupBean {
     @Forkable
-    protected final ThreadLocal<ThreadLocalItem> tliTL = new SensitiveThreadLocal<>();
+    protected final ThreadLocal<TransactionInfo> tliTL = new SensitiveThreadLocal<>();
     @Autowired
     protected IConnectionHolderRegistry connectionHolderRegistry;
     @Autowired
@@ -81,10 +81,10 @@ public class JdbcTransaction implements ILightweightTransaction, ITransaction, I
     @LogInstance
     private ILogger log;
 
-    protected ThreadLocalItem getEnsureTLI() {
-        ThreadLocalItem tli = tliTL.get();
+    protected TransactionInfo getEnsureTLI() {
+        var tli = tliTL.get();
         if (tli == null) {
-            tli = new ThreadLocalItem();
+            tli = new TransactionInfo();
             tliTL.set(tli);
         }
         return tli;
@@ -93,6 +93,12 @@ public class JdbcTransaction implements ILightweightTransaction, ITransaction, I
     @Override
     public boolean isTransactionActive() {
         return isActive();
+    }
+
+    @Override
+    public boolean isLazyActive() {
+        var tli = tliTL.get();
+        return tli != null && tli.lazyMode;
     }
 
     @Override
@@ -125,6 +131,7 @@ public class JdbcTransaction implements ILightweightTransaction, ITransaction, I
         var persistenceUnitToDatabaseMap = new LinkedHashMap<Object, IDatabase>();
 
         long sessionId = databaseSessionIdController.acquireSessionId();
+        tli.lazyMode = false;
         tli.sessionId = new Long(sessionId);
         tli.isReadOnly = Boolean.valueOf(readonly);
         if (sessionId != -1 && eventDispatcher != null && !readonly) {
@@ -164,7 +171,7 @@ public class JdbcTransaction implements ILightweightTransaction, ITransaction, I
             tli.beginInProgress = null;
         }
         var transactionListeners = transactionListenerProvider.getTransactionListeners();
-        for (ITransactionListener transactionListener : transactionListeners) {
+        for (var transactionListener : transactionListeners) {
             transactionListener.handlePostBegin(sessionId);
         }
         if (eventDispatcher != null) {
@@ -396,7 +403,7 @@ public class JdbcTransaction implements ILightweightTransaction, ITransaction, I
     public <R> R processAndCommitWithResult(ResultingDatabaseCallback<R> databaseCallback, boolean expectOwnDatabaseSession, boolean readOnly, boolean lazyTransaction) {
         readOnly = false;
         var tli = getEnsureTLI();
-        if (isActive()) {
+        if (isActive(tli)) {
             if (expectOwnDatabaseSession) {
                 throw new IllegalStateException("Transaction already active");
             }
@@ -414,7 +421,7 @@ public class JdbcTransaction implements ILightweightTransaction, ITransaction, I
             Throwable recoverableException = null;
             try {
                 R result = databaseCallback.callback(null);
-                if (!isActive()) {
+                if (!isActive(tli)) {
                     // during the callback no transaction has been opened & pending for close
                     // so we have nothing to do in this case
                     return result;
@@ -445,14 +452,10 @@ public class JdbcTransaction implements ILightweightTransaction, ITransaction, I
         if (tli.lazyMode) {
             // previous call to this JdbcTransaction with "lazy" flag. So we handle rollbacks/success at
             // the "previous" outer level
-            try {
-                begin(false); // intentionally open the transaction "writable" in any case if we are in lazy
-                // mode
-                var databaseMap = tli.databaseMap;
-                return databaseCallback.callback(databaseMap);
-            } catch (Exception e) {
-                throw RuntimeExceptionUtil.mask(e);
-            }
+            begin(false); // intentionally open the transaction "writable" in any case if we are in lazy
+            // mode
+            var databaseMap = tli.databaseMap;
+            return databaseCallback.callback(databaseMap);
         }
         var success = false;
         Exception recoverableException = null;
@@ -482,6 +485,13 @@ public class JdbcTransaction implements ILightweightTransaction, ITransaction, I
         return getTransactionInfo() != null;
     }
 
+    protected boolean isActive(TransactionInfo transactionInfo) {
+        if (transactionInfo != null && transactionInfo.sessionId != null) {
+            return true;
+        }
+        return false;
+    }
+
     @Override
     public void cleanupThreadLocal() {
         if (getTransactionInfo() == null) {
@@ -502,7 +512,7 @@ public class JdbcTransaction implements ILightweightTransaction, ITransaction, I
 
     @Override
     public void setExternalTransactionManagerActive(Boolean active) {
-        ThreadLocalItem tli = null;
+        TransactionInfo tli = null;
         if (active == null) {
             tli = tliTL.get();
             if (tli == null) {
@@ -538,7 +548,7 @@ public class JdbcTransaction implements ILightweightTransaction, ITransaction, I
 
     @Override
     public void runOnTransactionPreCommit(CheckedRunnable runnable) {
-        ThreadLocalItem tli = tliTL.get();
+        var tli = tliTL.get();
         if (tli == null || tli.sessionId == null) {
             throw new IllegalStateException("No transaction is currently active");
         }
@@ -550,7 +560,7 @@ public class JdbcTransaction implements ILightweightTransaction, ITransaction, I
 
     @Override
     public void runOnTransactionPostCommit(CheckedRunnable runnable) {
-        ThreadLocalItem tli = tliTL.get();
+        var tli = tliTL.get();
         if (tli == null || tli.sessionId == null) {
             throw new IllegalStateException("No transaction is currently active");
         }
@@ -560,7 +570,7 @@ public class JdbcTransaction implements ILightweightTransaction, ITransaction, I
         tli.postCommitRunnables.add(runnable);
     }
 
-    public static class ThreadLocalItem implements ITransactionInfo {
+    public static class TransactionInfo implements ITransactionInfo {
         public Boolean ignoreReleaseDatabase;
 
         public Boolean alreadyOnStack;

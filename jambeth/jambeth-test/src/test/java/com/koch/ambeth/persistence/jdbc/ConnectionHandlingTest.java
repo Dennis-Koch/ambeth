@@ -29,13 +29,11 @@ import com.koch.ambeth.testutil.TestPropertiesList;
 import com.koch.ambeth.testutil.TestRebuildContext;
 import com.koch.ambeth.util.collections.ILinkedMap;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
-import org.junit.Test;
-
 import jakarta.persistence.PersistenceException;
+import org.junit.Test;
 
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.sql.SQLRecoverableException;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -116,8 +114,8 @@ public class ConnectionHandlingTest extends AbstractInformationBusWithPersistenc
         } catch (Exception e) {
             assertTrue("Is instance of '" + e.getClass().getName() + "'", e instanceof PersistenceException);
             Throwable e2 = e.getCause();
-            assertTrue("Is instance of '" + e2.getClass().getName() + "'", e2 instanceof SQLRecoverableException);
-            assertTrue("Getrennte Verbindung".equals(e2.getMessage()) || "Closed Connection".equals(e2.getMessage()));
+            assertTrue("Is instance of '" + e2.getClass().getName() + "'", e2 instanceof SQLException);
+            assertEquals("808003", ((SQLException) e2).getErrorCode());
             // Ignore to simulate other thread for next transaction.
         }
         // DP: Please review, this does not make sense to me. The connection is still closed.

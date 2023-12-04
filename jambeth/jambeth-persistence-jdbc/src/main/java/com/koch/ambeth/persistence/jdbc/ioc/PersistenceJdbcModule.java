@@ -20,16 +20,13 @@ limitations under the License.
  * #L%
  */
 
-import io.toolisticon.spiap.api.SpiService;
 import com.koch.ambeth.event.IEventListenerExtendable;
 import com.koch.ambeth.ioc.IFrameworkModule;
 import com.koch.ambeth.ioc.IPropertyLoadingBean;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.annotation.FrameworkModule;
-import com.koch.ambeth.ioc.config.IBeanConfiguration;
 import com.koch.ambeth.ioc.config.Property;
 import com.koch.ambeth.ioc.factory.IBeanContextFactory;
-import com.koch.ambeth.ioc.util.DedicatedConverterUtil;
 import com.koch.ambeth.log.config.Properties;
 import com.koch.ambeth.merge.ITransactionState;
 import com.koch.ambeth.merge.copy.IObjectCopierExtendable;
@@ -83,6 +80,7 @@ import com.koch.ambeth.util.proxy.IProxyFactory;
 import com.koch.ambeth.util.proxy.MethodInterceptor;
 import com.koch.ambeth.util.transaction.ILightweightTransaction;
 import com.koch.ambeth.util.typeinfo.INoEntityTypeExtendable;
+import io.toolisticon.spiap.api.SpiService;
 
 import java.sql.Array;
 import java.sql.Blob;
@@ -92,6 +90,8 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+
+import static com.koch.ambeth.ioc.util.DedicatedConverterUtil.biLink;
 
 @SpiService(IFrameworkModule.class)
 @FrameworkModule
@@ -129,7 +129,7 @@ public class PersistenceJdbcModule implements IFrameworkModule, IPropertyLoading
             beanContextFactory.registerAutowireableBean(IDatabasePool.class, NoopDatabasePool.class);
         }
 
-        IBeanConfiguration databaseProvider = beanContextFactory.registerBean(IDatabaseProvider.DEFAULT_DATABASE_PROVIDER_NAME, DatabaseProvider.class);
+        var databaseProvider = beanContextFactory.registerBean(IDatabaseProvider.DEFAULT_DATABASE_PROVIDER_NAME, DatabaseProvider.class);
         beanContextFactory.link(databaseProvider).to(IDatabaseProviderExtendable.class).with(Object.class);
 
         beanContextFactory.registerBean(JDBCDatabaseMetaData.class).propertyValue("DefaultVersionFieldName", "Version")//
@@ -139,11 +139,11 @@ public class PersistenceJdbcModule implements IFrameworkModule, IPropertyLoading
                           .propertyValue("DefaultUpdatedOnFieldName", "Updated_On")//
                           .autowireable(IDatabaseMetaData.class, IDatabaseMappedListenerExtendable.class);
 
-        List<Class<?>> connectionModuleTypes = new ArrayList<>();
+        var connectionModuleTypes = new ArrayList<Class<?>>();
         if (additionalConnectionModules != null) {
-            String[] typeNames = additionalConnectionModules.split(";");
+            var typeNames = additionalConnectionModules.split(";");
             for (int a = typeNames.length; a-- > 0; ) {
-                Class<?> type = classCache.loadClass(typeNames[a]);
+                var type = classCache.loadClass(typeNames[a]);
                 connectionModuleTypes.add(type);
             }
         }
@@ -157,13 +157,13 @@ public class PersistenceJdbcModule implements IFrameworkModule, IPropertyLoading
 
         beanContextFactory.registerBean(ConnectionHolderRegistry.class).autowireable(IConnectionHolderRegistry.class, IConnectionHolderExtendable.class);
 
-        MethodInterceptor chInterceptor = (MethodInterceptor) beanContextFactory.registerBean(ConnectionHolderInterceptor.class)
-                                                                                .autowireable(IConnectionHolder.class)
-                                                                                .ignoreProperties(ConnectionHolderInterceptor.P_CONNECTION)
-                                                                                .getInstance();
+        var chInterceptor = (MethodInterceptor) beanContextFactory.registerBean(ConnectionHolderInterceptor.class)
+                                                                  .autowireable(IConnectionHolder.class)
+                                                                  .ignoreProperties(ConnectionHolderInterceptor.P_CONNECTION)
+                                                                  .getInstance();
         beanContextFactory.link(chInterceptor).to(IConnectionHolderExtendable.class).with(Object.class);
 
-        Object connectionHolderProxy = proxyFactory.createProxy(Connection.class, chInterceptor);
+        var connectionHolderProxy = proxyFactory.createProxy(Connection.class, chInterceptor);
         beanContextFactory.registerExternalBean("connectionHolderProxy", connectionHolderProxy).autowireable(Connection.class);
 
         if (integratedConnectionFactory) {
@@ -175,80 +175,79 @@ public class PersistenceJdbcModule implements IFrameworkModule, IPropertyLoading
 
         beanContextFactory.registerBean(LobInputSourceController.class).autowireable(ILobInputSourceController.class);
 
-        IBeanConfiguration blobInputSourceObjectCopier = beanContextFactory.registerBean(BlobInputSourceObjectCopier.class);
+        var blobInputSourceObjectCopier = beanContextFactory.registerBean(BlobInputSourceObjectCopier.class);
         beanContextFactory.link(blobInputSourceObjectCopier).to(IObjectCopierExtendable.class).with(BlobInputSource.class);
 
-        IBeanConfiguration clobInputSourceObjectCopier = beanContextFactory.registerBean(ClobInputSourceObjectCopier.class);
+        var clobInputSourceObjectCopier = beanContextFactory.registerBean(ClobInputSourceObjectCopier.class);
         beanContextFactory.link(clobInputSourceObjectCopier).to(IObjectCopierExtendable.class).with(ClobInputSource.class);
 
-        IBeanConfiguration clobToEnumConverter = beanContextFactory.registerBean(ClobToEnumConverter.class);
+        var clobToEnumConverter = beanContextFactory.registerBean(ClobToEnumConverter.class);
         beanContextFactory.link(clobToEnumConverter, ClobToEnumConverter.HANDLE_ENTITY_META_DATA_ADDED_EVENT).to(IEventListenerExtendable.class).with(EntityMetaDataAddedEvent.class);
         beanContextFactory.link(clobToEnumConverter, ClobToEnumConverter.HANDLE_ENTITY_META_DATA_REMOVED_EVENT).to(IEventListenerExtendable.class).with(EntityMetaDataRemovedEvent.class);
 
-        IBeanConfiguration arrayConverter = beanContextFactory.registerBean(ArrayConverter.class);
-        DedicatedConverterUtil.biLink(beanContextFactory, arrayConverter, Array.class, boolean[].class);
-        DedicatedConverterUtil.biLink(beanContextFactory, arrayConverter, Array.class, Boolean[].class);
-        DedicatedConverterUtil.biLink(beanContextFactory, arrayConverter, Array.class, byte[].class);
-        DedicatedConverterUtil.biLink(beanContextFactory, arrayConverter, Array.class, Byte[].class);
-        DedicatedConverterUtil.biLink(beanContextFactory, arrayConverter, Array.class, char[].class);
-        DedicatedConverterUtil.biLink(beanContextFactory, arrayConverter, Array.class, Character[].class);
-        DedicatedConverterUtil.biLink(beanContextFactory, arrayConverter, Array.class, short[].class);
-        DedicatedConverterUtil.biLink(beanContextFactory, arrayConverter, Array.class, Short[].class);
-        DedicatedConverterUtil.biLink(beanContextFactory, arrayConverter, Array.class, int[].class);
-        DedicatedConverterUtil.biLink(beanContextFactory, arrayConverter, Array.class, Integer[].class);
-        DedicatedConverterUtil.biLink(beanContextFactory, arrayConverter, Array.class, long[].class);
-        DedicatedConverterUtil.biLink(beanContextFactory, arrayConverter, Array.class, Long[].class);
-        DedicatedConverterUtil.biLink(beanContextFactory, arrayConverter, Array.class, float[].class);
-        DedicatedConverterUtil.biLink(beanContextFactory, arrayConverter, Array.class, Float[].class);
-        DedicatedConverterUtil.biLink(beanContextFactory, arrayConverter, Array.class, double[].class);
-        DedicatedConverterUtil.biLink(beanContextFactory, arrayConverter, Array.class, Double[].class);
-        DedicatedConverterUtil.biLink(beanContextFactory, arrayConverter, Array.class, String[].class);
-        DedicatedConverterUtil.biLink(beanContextFactory, arrayConverter, Array.class, List.class);
-        DedicatedConverterUtil.biLink(beanContextFactory, arrayConverter, Array.class, Collection.class);
-        DedicatedConverterUtil.biLink(beanContextFactory, arrayConverter, Array.class, Set.class);
+        var arrayConverter = beanContextFactory.registerBean(ArrayConverter.class);
+        biLink(beanContextFactory, arrayConverter, Array.class, boolean[].class);
+        biLink(beanContextFactory, arrayConverter, Array.class, Boolean[].class);
+        biLink(beanContextFactory, arrayConverter, Array.class, byte[].class);
+        biLink(beanContextFactory, arrayConverter, Array.class, Byte[].class);
+        biLink(beanContextFactory, arrayConverter, Array.class, char[].class);
+        biLink(beanContextFactory, arrayConverter, Array.class, Character[].class);
+        biLink(beanContextFactory, arrayConverter, Array.class, short[].class);
+        biLink(beanContextFactory, arrayConverter, Array.class, Short[].class);
+        biLink(beanContextFactory, arrayConverter, Array.class, int[].class);
+        biLink(beanContextFactory, arrayConverter, Array.class, Integer[].class);
+        biLink(beanContextFactory, arrayConverter, Array.class, long[].class);
+        biLink(beanContextFactory, arrayConverter, Array.class, Long[].class);
+        biLink(beanContextFactory, arrayConverter, Array.class, float[].class);
+        biLink(beanContextFactory, arrayConverter, Array.class, Float[].class);
+        biLink(beanContextFactory, arrayConverter, Array.class, double[].class);
+        biLink(beanContextFactory, arrayConverter, Array.class, Double[].class);
+        biLink(beanContextFactory, arrayConverter, Array.class, String[].class);
+        biLink(beanContextFactory, arrayConverter, Array.class, List.class);
+        biLink(beanContextFactory, arrayConverter, Array.class, Collection.class);
+        biLink(beanContextFactory, arrayConverter, Array.class, Set.class);
 
-        IBeanConfiguration lobConverter = beanContextFactory.registerBean(LobConverter.class);
-        DedicatedConverterUtil.biLink(beanContextFactory, lobConverter, Blob.class, byte[].class);
-        DedicatedConverterUtil.biLink(beanContextFactory, lobConverter, Clob.class, char[].class);
-        DedicatedConverterUtil.biLink(beanContextFactory, lobConverter, Clob.class, String.class);
+        var lobConverter = beanContextFactory.registerBean(LobConverter.class);
+        biLink(beanContextFactory, lobConverter, Blob.class, byte[].class);
+        biLink(beanContextFactory, lobConverter, Clob.class, char[].class);
+        biLink(beanContextFactory, lobConverter, Clob.class, String.class);
 
-        IBeanConfiguration extendedLobConverter = beanContextFactory.registerBean(ExtendedCLobConverter.class);
-        DedicatedConverterUtil.biLink(beanContextFactory, extendedLobConverter, Clob.class, Boolean.class);
-        DedicatedConverterUtil.biLink(beanContextFactory, extendedLobConverter, Clob.class, Boolean.TYPE);
-        DedicatedConverterUtil.biLink(beanContextFactory, extendedLobConverter, Clob.class, Character.class);
-        DedicatedConverterUtil.biLink(beanContextFactory, extendedLobConverter, Clob.class, Byte.class);
-        DedicatedConverterUtil.biLink(beanContextFactory, extendedLobConverter, Clob.class, Short.class);
-        DedicatedConverterUtil.biLink(beanContextFactory, extendedLobConverter, Clob.class, Integer.class);
-        DedicatedConverterUtil.biLink(beanContextFactory, extendedLobConverter, Clob.class, Integer.TYPE);
+        var extendedLobConverter = beanContextFactory.registerBean(ExtendedCLobConverter.class);
+        biLink(beanContextFactory, extendedLobConverter, Clob.class, Boolean.class);
+        biLink(beanContextFactory, extendedLobConverter, Clob.class, Boolean.TYPE);
+        biLink(beanContextFactory, extendedLobConverter, Clob.class, Character.class);
+        biLink(beanContextFactory, extendedLobConverter, Clob.class, Byte.class);
+        biLink(beanContextFactory, extendedLobConverter, Clob.class, Short.class);
+        biLink(beanContextFactory, extendedLobConverter, Clob.class, Integer.class);
+        biLink(beanContextFactory, extendedLobConverter, Clob.class, Integer.TYPE);
 
-        DedicatedConverterUtil.biLink(beanContextFactory, extendedLobConverter, Clob.class, Float.class);
-        DedicatedConverterUtil.biLink(beanContextFactory, extendedLobConverter, Clob.class, Long.class);
-        DedicatedConverterUtil.biLink(beanContextFactory, extendedLobConverter, Clob.class, Double.class);
-        DedicatedConverterUtil.biLink(beanContextFactory, extendedLobConverter, Clob.class, boolean[].class);
-        DedicatedConverterUtil.biLink(beanContextFactory, extendedLobConverter, Clob.class, Boolean[].class);
-        DedicatedConverterUtil.biLink(beanContextFactory, extendedLobConverter, Clob.class, byte[].class);
-        DedicatedConverterUtil.biLink(beanContextFactory, extendedLobConverter, Clob.class, Byte[].class);
-        DedicatedConverterUtil.biLink(beanContextFactory, extendedLobConverter, Clob.class, char[].class);
-        DedicatedConverterUtil.biLink(beanContextFactory, extendedLobConverter, Clob.class, Character[].class);
-        DedicatedConverterUtil.biLink(beanContextFactory, extendedLobConverter, Clob.class, short[].class);
-        DedicatedConverterUtil.biLink(beanContextFactory, extendedLobConverter, Clob.class, Short[].class);
-        DedicatedConverterUtil.biLink(beanContextFactory, extendedLobConverter, Clob.class, int[].class);
-        DedicatedConverterUtil.biLink(beanContextFactory, extendedLobConverter, Clob.class, Integer[].class);
-        DedicatedConverterUtil.biLink(beanContextFactory, extendedLobConverter, Clob.class, long[].class);
-        DedicatedConverterUtil.biLink(beanContextFactory, extendedLobConverter, Clob.class, Long[].class);
-        DedicatedConverterUtil.biLink(beanContextFactory, extendedLobConverter, Clob.class, float[].class);
-        DedicatedConverterUtil.biLink(beanContextFactory, extendedLobConverter, Clob.class, Float[].class);
-        DedicatedConverterUtil.biLink(beanContextFactory, extendedLobConverter, Clob.class, double[].class);
-        DedicatedConverterUtil.biLink(beanContextFactory, extendedLobConverter, Clob.class, Double[].class);
-        DedicatedConverterUtil.biLink(beanContextFactory, extendedLobConverter, Clob.class, Calendar.class);
-        // DedicatedConverterUtil.biLink(beanContextFactory, extendedLobConverter, Clob.class,
-        // GregorianCalendar.class);
+        biLink(beanContextFactory, extendedLobConverter, Clob.class, Float.class);
+        biLink(beanContextFactory, extendedLobConverter, Clob.class, Long.class);
+        biLink(beanContextFactory, extendedLobConverter, Clob.class, Double.class);
+        biLink(beanContextFactory, extendedLobConverter, Clob.class, boolean[].class);
+        biLink(beanContextFactory, extendedLobConverter, Clob.class, Boolean[].class);
+        biLink(beanContextFactory, extendedLobConverter, Clob.class, byte[].class);
+        biLink(beanContextFactory, extendedLobConverter, Clob.class, Byte[].class);
+        biLink(beanContextFactory, extendedLobConverter, Clob.class, char[].class);
+        biLink(beanContextFactory, extendedLobConverter, Clob.class, Character[].class);
+        biLink(beanContextFactory, extendedLobConverter, Clob.class, short[].class);
+        biLink(beanContextFactory, extendedLobConverter, Clob.class, Short[].class);
+        biLink(beanContextFactory, extendedLobConverter, Clob.class, int[].class);
+        biLink(beanContextFactory, extendedLobConverter, Clob.class, Integer[].class);
+        biLink(beanContextFactory, extendedLobConverter, Clob.class, long[].class);
+        biLink(beanContextFactory, extendedLobConverter, Clob.class, Long[].class);
+        biLink(beanContextFactory, extendedLobConverter, Clob.class, float[].class);
+        biLink(beanContextFactory, extendedLobConverter, Clob.class, Float[].class);
+        biLink(beanContextFactory, extendedLobConverter, Clob.class, double[].class);
+        biLink(beanContextFactory, extendedLobConverter, Clob.class, Double[].class);
+        biLink(beanContextFactory, extendedLobConverter, Clob.class, Calendar.class);
+        // DedicatedConverterUtil.biLink(beanContextFactory, extendedLobConverter, Clob.class, GregorianCalendar.class);
 
-        IBeanConfiguration lobStreamConverter = beanContextFactory.registerBean(LobStreamConverter.class);
-        DedicatedConverterUtil.biLink(beanContextFactory, lobStreamConverter, Blob.class, IBinaryInputSource.class);
-        DedicatedConverterUtil.biLink(beanContextFactory, lobStreamConverter, Clob.class, ICharacterInputSource.class);
+        var lobStreamConverter = beanContextFactory.registerBean(LobStreamConverter.class);
+        biLink(beanContextFactory, lobStreamConverter, Blob.class, IBinaryInputSource.class);
+        biLink(beanContextFactory, lobStreamConverter, Clob.class, ICharacterInputSource.class);
 
-        IBeanConfiguration timestampConverter = beanContextFactory.registerBean(TimestampToCalendarConverter.class);
-        DedicatedConverterUtil.biLink(beanContextFactory, timestampConverter, Long.class, java.util.Calendar.class);
+        var timestampConverter = beanContextFactory.registerBean(TimestampToCalendarConverter.class);
+        biLink(beanContextFactory, timestampConverter, Long.class, java.util.Calendar.class);
     }
 }

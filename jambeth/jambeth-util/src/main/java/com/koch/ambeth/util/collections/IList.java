@@ -21,22 +21,27 @@ limitations under the License.
  */
 
 import java.util.List;
+import java.util.function.IntFunction;
 
 public interface IList<V> extends List<V> {
-	<T extends V> boolean addAll(T[] array);
+    <T extends V> boolean addAll(T[] array);
 
-	<T extends V> boolean addAll(T[] array, int startIndex, int length);
+    <T extends V> boolean addAll(T[] array, int startIndex, int length);
 
-	<T extends V> boolean removeAll(T[] array);
+    <T extends V> boolean removeAll(T[] array);
 
-	<T extends V> boolean removeAll(T[] array, int startIndex, int length);
+    <T extends V> boolean removeAll(T[] array, int startIndex, int length);
 
-	@Override
-	IList<V> subList(int fromIndex, int toIndex);
+    @Override
+    IList<V> subList(int fromIndex, int toIndex);
 
-	<T> T[] toArray(Class<T> componentType);
+    <T> T[] toArray(Class<T> componentType);
 
-	V peek();
+    V peek();
 
-	V popLastElement();
+    V popLastElement();
+
+    default <T> T[] toArray(IntFunction<T[]> generator) {
+        return toArray(generator.apply(size()));
+    }
 }

@@ -38,6 +38,7 @@ import com.koch.ambeth.util.proxy.IProxyFactory;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.Set;
 
 public abstract class AbstractCascadePostProcessor implements IBeanPostProcessor, IInitializingBean, IOrderedBeanProcessor {
@@ -84,14 +85,23 @@ public abstract class AbstractCascadePostProcessor implements IBeanPostProcessor
                 lastInterceptor = (ICascadedInterceptor) lastInterceptor.getTarget();
             }
             lastInterceptor.setTarget(proxiedTargetBean);
-            Object proxy;
-            if (requestedTypes.isEmpty()) {
-                proxy = proxyFactory.createProxy(beanType, emptyClasses, interceptor);
-            } else {
-                proxy = proxyFactory.createProxy(requestedTypes.toArray(Class[]::new), interceptor);
+            try {
+                Object proxy;
+                if (requestedTypes.isEmpty()) {
+                    proxy = proxyFactory.createProxy(beanType, emptyClasses, interceptor);
+                } else {
+                    if (Arrays.toString(requestedTypes.toArray()).contains("Factory")) {
+                        System.out.println("adfdf");
+                    }
+                    proxy = proxyFactory.createProxy(requestedTypes.toArray(Class[]::new), interceptor);
+                }
+
+                postHandleServiceIntern(beanContextFactory, beanContext, beanConfiguration, beanType, requestedTypes, proxy);
+                return proxy;
+            } catch (IllegalStateException e) {
+                e.printStackTrace();
+                throw e;
             }
-            postHandleServiceIntern(beanContextFactory, beanContext, beanConfiguration, beanType, requestedTypes, proxy);
-            return proxy;
         }
         interceptor.setTarget(cascadedInterceptor);
         factory.setCallback(0, interceptor);

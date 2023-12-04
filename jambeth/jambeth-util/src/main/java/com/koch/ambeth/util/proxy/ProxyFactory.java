@@ -63,7 +63,7 @@ public class ProxyFactory extends SmartCopyMap<ProxyTypeKey, Class<? extends Fac
             allInterfaces.add(type);
             allInterfaces.addAll(interfaces);
 
-            return (T) createProxy(allInterfaces.toArray(Class.class), interceptors);
+            return (T) createProxy(allInterfaces.toArray(Class[]::new), interceptors);
         }
         var tempList = new ArrayList<Class<?>>();
         for (int a = interfaces.length; a-- > 0; ) {
@@ -83,7 +83,7 @@ public class ProxyFactory extends SmartCopyMap<ProxyTypeKey, Class<? extends Fac
                 tempList.add(potentialNewInterfaces);
             }
         }
-        var interfaceArray = tempList != null ? tempList.toArray(new Class<?>[tempList.size()]) : interfaces;
+        var interfaceArray = tempList != null ? tempList.toArray(Class[]::new) : interfaces;
         var unloadedType = (DynamicType.Unloaded) FactoryMixin.weave(MethodInterceptorMixin.weave(new ByteBuddy().subclass(type), interfaceArray)).make();
         proxyType = unloadedType.load(classLoaderProvider.getClassLoader()).getLoaded();
         var proxy = createProxyIntern(proxyType, interceptors);
@@ -115,34 +115,6 @@ public class ProxyFactory extends SmartCopyMap<ProxyTypeKey, Class<? extends Fac
         var proxy = createProxyIntern(proxyType, interceptors);
         put(key, proxyType);
         return proxy;
-
-        //		Enhancer enhancer = new Enhancer();
-        //		enhancer.setClassLoader(classLoaderProvider.getClassLoader());
-        //		enhancer.setInterfaces(interfaces);
-        //		enhancer.setCallbacks(interceptors);
-        //
-        //		Object proxy;
-        //		try {
-        //			proxy = enhancer.create();
-        //		}
-        //		catch (RuntimeException | Error e) {
-        //			if (interceptors.length != 1) {
-        //				throw e;
-        //			}
-        //			final MethodInterceptor interceptor = interceptors[0];
-        //			if (interceptor instanceof InvocationHandler) {
-        //				return Proxy.newProxyInstance(interfaces[0].getClassLoader(), interfaces,
-        //						(InvocationHandler) interceptor);
-        //			}
-        //			return Proxy.newProxyInstance(interfaces[0].getClassLoader(), interfaces,
-        //					new InvocationHandler() {
-        //						@Override
-        //						public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-        //							return interceptor.intercept(proxy, method, args, null);
-        //						}
-        //					});
-        //		}
-        //		put(key, (Class<? extends Factory>) proxy.getClass());
     }
 
     @Override

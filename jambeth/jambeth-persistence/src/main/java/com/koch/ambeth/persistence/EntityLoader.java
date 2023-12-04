@@ -62,7 +62,6 @@ import com.koch.ambeth.service.merge.model.IObjRef;
 import com.koch.ambeth.service.metadata.Member;
 import com.koch.ambeth.util.IConversionHelper;
 import com.koch.ambeth.util.IInterningFeature;
-import com.koch.ambeth.util.IPreparedConverter;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.HashMap;
 import com.koch.ambeth.util.collections.HashSet;
@@ -927,17 +926,12 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
         }
     }
 
-    private IPreparedConverter prepareIdsFromEntityMetaDataConverter(IEntityMetaData metaData, int idIndex, Collection<?> ids) {
-        var idMember = metaData.getIdMemberByIdIndex(idIndex);
-        if (idMember instanceof CompositeIdMember || ids.size() == 0) {
-            return (value, additionalInformation) -> value;
-        }
-        return conversionHelper.prepareConverter(idMember.getElementType());
-    }
-
     private List<Object> prepareIdsFromEntityMetaData(IEntityMetaData metaData, int idIndex, Collection<?> ids) {
         var idMember = metaData.getIdMemberByIdIndex(idIndex);
-        if (idMember instanceof CompositeIdMember || ids.size() == 0) {
+        if (idMember instanceof CompositeIdMember) {
+            return new ArrayList<>(ids);
+        }
+        if (ids.isEmpty()) {
             return List.of();
         }
         var convertedIds = new ArrayList<>(ids.size());

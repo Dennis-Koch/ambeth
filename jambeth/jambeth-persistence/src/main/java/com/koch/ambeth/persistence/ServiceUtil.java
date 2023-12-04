@@ -23,16 +23,20 @@ limitations under the License.
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.merge.cache.CacheDirective;
 import com.koch.ambeth.merge.cache.ICache;
+import com.koch.ambeth.merge.compositeid.CompositeIdMember;
 import com.koch.ambeth.merge.compositeid.ICompositeIdFactory;
 import com.koch.ambeth.merge.metadata.IObjRefFactory;
 import com.koch.ambeth.merge.transfer.ObjRef;
 import com.koch.ambeth.persistence.api.IDatabaseMetaData;
 import com.koch.ambeth.persistence.api.ILinkCursor;
+import com.koch.ambeth.persistence.api.ITableMetaData;
 import com.koch.ambeth.query.persistence.IVersionCursor;
 import com.koch.ambeth.query.persistence.IVersionItem;
 import com.koch.ambeth.service.merge.IEntityMetaDataProvider;
+import com.koch.ambeth.service.merge.model.IEntityMetaData;
 import com.koch.ambeth.service.merge.model.IObjRef;
 import com.koch.ambeth.util.IConversionHelper;
+import com.koch.ambeth.util.IPreparedConverter;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.IList;
 
@@ -66,43 +70,20 @@ public class ServiceUtil implements IServiceUtil {
         if (cursor == null) {
             return;
         }
-        Object[] convertedIds = null;
         try {
             var conversionHelper = this.conversionHelper;
-            var table = databaseMetaData.getTableByType(entityType);
-            var idFields = table.getIdFields();
-            if (idFields.length > 1) {
-                convertedIds = new Object[idFields.length];
-            }
+            var tableMetaData = databaseMetaData.getTableByType(entityType);
             var metaData = entityMetaDataProvider.getMetaData(entityType);
-            var idMember = metaData.getIdMember();
-            var idTypeOfObject = idMember.getRealType();
-            var versionTypeOfObject = metaData.getVersionMember() != null ? metaData.getVersionMember().getRealType() : null;
+            var versionConverter = metaData.getVersionMember() != null ? conversionHelper.prepareConverter(metaData.getVersionMember().getElementType()) : null;
+            var preparedCompositeIdFactory = prepareCompositeIdFactory(metaData, tableMetaData);
             var preparedObjRefFactory = objRefFactory.prepareObjRefFactory(entityType, ObjRef.PRIMARY_KEY_INDEX);
 
             var objRefs = new ArrayList<IObjRef>();
             for (var item : cursor) {
-                // INTENTIONALLY converting the id in 2 steps: first to the fieldType, then to the
-                // idTypeOfObject
-                // this is because of the fact that the idTypeOfObject may be an Object.class which does not
-                // convert the id correctly by itself
-                var itemId = item.getId();
-                if (idFields.length == 1) {
-                    var id = conversionHelper.convertValueToType(idFields[0].getFieldType(), itemId);
-                    id = conversionHelper.convertValueToType(idTypeOfObject, id);
-                    var version = conversionHelper.convertValueToType(versionTypeOfObject, item.getVersion());
-                    var objRef = preparedObjRefFactory.createObjRef(id, version);
-                    objRefs.add(objRef);
-                } else {
-                    var itemIdArray = (Object[]) itemId;
-                    for (int a = idFields.length; a-- > 0; ) {
-                        convertedIds[a] = conversionHelper.convertValueToType(idFields[a].getFieldType(), itemIdArray[a]);
-                    }
-                    var id = compositeIdFactory.createCompositeId(metaData, idMember, convertedIds);
-                    var version = conversionHelper.convertValueToType(versionTypeOfObject, item.getVersion());
-                    var objRef = preparedObjRefFactory.createObjRef(id, version);
-                    objRefs.add(objRef);
-                }
+                var id = preparedCompositeIdFactory.convertValue(item.getId(), null);
+                var version = versionConverter != null ? versionConverter.convertValue(item.getVersion(), null) : null;
+                var objRef = preparedObjRefFactory.createObjRef(id, version);
+                objRefs.add(objRef);
             }
             var objects = cache.getObjects(objRefs, CacheDirective.none());
             for (int a = 0, size = objects.size(); a < size; a++) {
@@ -111,6 +92,43 @@ public class ServiceUtil implements IServiceUtil {
         } finally {
             cursor.dispose();
         }
+    }
+
+    private IPreparedConverter<?> prepareCompositeIdFactory(IEntityMetaData metaData, ITableMetaData table) {
+        var conversionHelper = this.conversionHelper;
+        var idFields = table.getIdFields();
+        var idMember = metaData.getIdMember();
+        if (!Object.class.equals(idMember.getElementType())) {
+            return compositeIdFactory.prepareCompositeIdFactory(metaData, idMember);
+        }
+        // INTENTIONALLY converting the id in 2 steps: first to field.fieldType, then to idMember.elementType
+        // this is because of the fact that the idTypeOfObject may be an Object.class which does not convert the id correctly by itself
+        if (idFields.length == 1) {
+            var tableIdConverter = conversionHelper.prepareConverter(idFields[0].getFieldType());
+            var cacheIdConverter = conversionHelper.prepareConverter(idMember.getElementType());
+            return (value, additionalInformation) -> {
+                var tableId = tableIdConverter.convertValue(value, additionalInformation);
+                return cacheIdConverter.convertValue(tableId, additionalInformation);
+            };
+        }
+        var compositeIdMember = (CompositeIdMember) idMember;
+        var compositeIdMembers = compositeIdMember.getMembers();
+        var tableIdConverters = new IPreparedConverter<?>[idFields.length];
+        var cacheIdConverters = new IPreparedConverter<?>[idFields.length];
+        for (int compositeIdIndex = idFields.length; compositeIdIndex-- > 0; ) {
+            tableIdConverters[compositeIdIndex] = conversionHelper.prepareConverter(idFields[compositeIdIndex].getFieldType());
+            cacheIdConverters[compositeIdIndex] = conversionHelper.prepareConverter(compositeIdMembers[compositeIdIndex].getElementType());
+        }
+        var nestedPreparedCompositeIdFactory = compositeIdFactory.prepareCompositeIdFactory(metaData, compositeIdMember);
+
+        return (value, additionalInformation) -> {
+            var ids = (Object[]) value;
+            for (int compositeIdIndex = idFields.length; compositeIdIndex-- > 0; ) {
+                var tableId = tableIdConverters[compositeIdIndex].convertValue(ids[compositeIdIndex], null);
+                ids[compositeIdIndex] = cacheIdConverters[compositeIdIndex].convertValue(tableId, null);
+            }
+            return nestedPreparedCompositeIdFactory.convertValue(ids, null);
+        };
     }
 
     @SuppressWarnings("unchecked")

@@ -1,1 +1,0 @@
--- Intended empty for the ClobTest!

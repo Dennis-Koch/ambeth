@@ -26,6 +26,8 @@ import com.koch.ambeth.util.function.CheckedSupplier;
 public interface ILightweightTransaction {
     boolean isActive();
 
+    boolean isLazyActive();
+
     void runInTransaction(CheckedRunnable runnable);
 
     <R> R runInTransaction(CheckedSupplier<R> runnable);
