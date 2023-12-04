@@ -23,7 +23,7 @@ limitations under the License.
 import java.sql.Connection;
 
 public interface IConnectionHolder {
-	void setConnection(Connection conn);
+    Connection getConnection();
 
-	Connection getConnection();
+    void setConnection(Connection conn);
 }

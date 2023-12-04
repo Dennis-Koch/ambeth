@@ -20,105 +20,55 @@ limitations under the License.
  * #L%
  */
 
-import java.util.Collection;
-
 import com.koch.ambeth.ioc.IServiceContext;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.merge.IObjRefHelper;
 import com.koch.ambeth.merge.transfer.CreateContainer;
 import com.koch.ambeth.merge.transfer.UpdateContainer;
+import com.koch.ambeth.service.metadata.Member;
 import com.koch.ambeth.util.collections.HashMap;
-import com.koch.ambeth.util.typeinfo.ITypeInfoItem;
+
+import java.util.Collection;
 
 public class CommandBuilder implements ICommandBuilder {
-	@Autowired
-	protected IServiceContext beanContext;
+    protected final HashMap<Class<?>, ICommandCreator> commandTypeToCreatorMap = new HashMap<>();
+    @Autowired
+    protected IServiceContext beanContext;
+    @Autowired
+    protected ICommandBuilder commandBuilder;
+    @Autowired
+    protected IObjRefHelper objRefHelper;
 
-	@Autowired
-	protected ICommandBuilder commandBuilder;
+    public CommandBuilder() {
+        commandTypeToCreatorMap.put(ResolveObjectCommand.class, (commandTypeRegistry, objectFuture, parent, optionals) -> new ResolveObjectCommand(objectFuture));
+        commandTypeToCreatorMap.put(ArraySetterCommand.class,
+                (commandTypeRegistry, objectFuture, parent, optionals) -> new ArraySetterCommand(objectFuture, parent, ((Number) optionals[0]).intValue()));
+        commandTypeToCreatorMap.put(CollectionSetterCommand.class,
+                (commandTypeRegistry, objectFuture, parent, optionals) -> new CollectionSetterCommand(objectFuture, parent, optionals.length == 1 ? optionals[0] : null));
+        commandTypeToCreatorMap.put(MergeCommand.class, (commandTypeRegistry, objectFuture, parent, optionals) -> new MergeCommand(objectFuture, parent, commandBuilder, objRefHelper));
+        commandTypeToCreatorMap.put(ObjectSetterCommand.class, (commandTypeRegistry, objectFuture, parent, optionals) -> new ObjectSetterCommand(objectFuture, parent, (Member) optionals[0]));
+    }
 
-	@Autowired
-	protected IObjRefHelper objRefHelper;
+    @Override
+    public IObjectCommand build(ICommandTypeRegistry commandTypeRegistry, IObjectFuture objectFuture, Object parent, Object... optionals) {
+        if (parent == null) {
+            return buildIntern(commandTypeRegistry, ResolveObjectCommand.class, objectFuture, parent, optionals);
+        } else if (parent.getClass().isArray()) {
+            return buildIntern(commandTypeRegistry, ArraySetterCommand.class, objectFuture, parent, optionals);
+        } else if (parent instanceof Collection) {
+            return buildIntern(commandTypeRegistry, CollectionSetterCommand.class, objectFuture, parent, optionals);
+        } else if (parent instanceof CreateContainer || parent instanceof UpdateContainer) {
+            return buildIntern(commandTypeRegistry, MergeCommand.class, objectFuture, parent, optionals);
+        }
+        return buildIntern(commandTypeRegistry, ObjectSetterCommand.class, objectFuture, parent, optionals);
+    }
 
-	protected final HashMap<Class<?>, ICommandCreator> commandTypeToCreatorMap =
-			new HashMap<>();
-
-	public CommandBuilder() {
-		commandTypeToCreatorMap.put(ResolveObjectCommand.class, new ICommandCreator() {
-			@Override
-			public IObjectCommand createCommand(ICommandTypeRegistry commandTypeRegistry,
-					IObjectFuture objectFuture, Object parent, Object[] optionals) {
-				return new ResolveObjectCommand(objectFuture);
-			}
-		});
-		commandTypeToCreatorMap.put(ArraySetterCommand.class, new ICommandCreator() {
-			@Override
-			public IObjectCommand createCommand(ICommandTypeRegistry commandTypeRegistry,
-					IObjectFuture objectFuture, Object parent, Object[] optionals) {
-				return new ArraySetterCommand(objectFuture, parent,
-						((Number) optionals[0]).intValue());
-			}
-		});
-		commandTypeToCreatorMap.put(CollectionSetterCommand.class, new ICommandCreator() {
-			@Override
-			public IObjectCommand createCommand(ICommandTypeRegistry commandTypeRegistry,
-					IObjectFuture objectFuture, Object parent, Object[] optionals) {
-				return new CollectionSetterCommand(objectFuture, parent,
-						optionals.length == 1 ? optionals[0] : null);
-			}
-		});
-		commandTypeToCreatorMap.put(MergeCommand.class, new ICommandCreator() {
-			@Override
-			public IObjectCommand createCommand(ICommandTypeRegistry commandTypeRegistry,
-					IObjectFuture objectFuture, Object parent, Object[] optionals) {
-				return new MergeCommand(objectFuture, parent, commandBuilder, objRefHelper);
-			}
-		});
-		commandTypeToCreatorMap.put(ObjectSetterCommand.class, new ICommandCreator() {
-			@Override
-			public IObjectCommand createCommand(ICommandTypeRegistry commandTypeRegistry,
-					IObjectFuture objectFuture, Object parent, Object[] optionals) {
-				return new ObjectSetterCommand(objectFuture, parent, (ITypeInfoItem) optionals[0]);
-			}
-		});
-	}
-
-	@Override
-	public IObjectCommand build(ICommandTypeRegistry commandTypeRegistry, IObjectFuture objectFuture,
-			Object parent, Object... optionals) {
-		IObjectCommand command;
-		if (parent == null) {
-			command = buildIntern(commandTypeRegistry, ResolveObjectCommand.class, objectFuture, parent,
-					optionals);
-		}
-		else if (parent.getClass().isArray()) {
-			command = buildIntern(commandTypeRegistry, ArraySetterCommand.class, objectFuture, parent,
-					optionals);
-		}
-		else if (parent instanceof Collection) {
-			command = buildIntern(commandTypeRegistry, CollectionSetterCommand.class, objectFuture,
-					parent, optionals);
-		}
-		else if (parent instanceof CreateContainer || parent instanceof UpdateContainer) {
-			command =
-					buildIntern(commandTypeRegistry, MergeCommand.class, objectFuture, parent, optionals);
-		}
-		else {
-			command = buildIntern(commandTypeRegistry, ObjectSetterCommand.class, objectFuture, parent,
-					optionals);
-		}
-		return command;
-	}
-
-	protected <C extends IObjectCommand> IObjectCommand buildIntern(
-			ICommandTypeRegistry commandTypeRegistry, Class<? extends C> commandType,
-			IObjectFuture objectFuture, Object parent, Object[] optionals) {
-		ICommandCreator commandCreator = commandTypeRegistry
-				.getOverridingCommandType(commandType);
-		if (commandCreator == null) {
-			commandCreator = commandTypeToCreatorMap.get(commandType);
-		}
-		return commandCreator.createCommand(commandTypeRegistry, objectFuture, parent,
-				optionals);
-	}
+    protected <C extends IObjectCommand> IObjectCommand buildIntern(ICommandTypeRegistry commandTypeRegistry, Class<? extends C> commandType, IObjectFuture objectFuture, Object parent,
+            Object[] optionals) {
+        var commandCreator = commandTypeRegistry.getOverridingCommandType(commandType);
+        if (commandCreator == null) {
+            commandCreator = commandTypeToCreatorMap.get(commandType);
+        }
+        return commandCreator.createCommand(commandTypeRegistry, objectFuture, parent, optionals);
+    }
 }

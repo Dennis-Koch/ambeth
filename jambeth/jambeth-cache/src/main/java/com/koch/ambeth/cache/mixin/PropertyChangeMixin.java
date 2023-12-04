@@ -35,9 +35,6 @@ import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.cache.ICacheModification;
 import com.koch.ambeth.merge.proxy.IEntityMetaDataHolder;
-import com.koch.ambeth.service.merge.model.IEntityMetaData;
-import com.koch.ambeth.service.metadata.PrimitiveMember;
-import com.koch.ambeth.service.metadata.RelationMember;
 import com.koch.ambeth.util.annotation.FireTargetOnPropertyChange;
 import com.koch.ambeth.util.annotation.FireThisOnPropertyChange;
 import com.koch.ambeth.util.annotation.ParentChild;
@@ -148,19 +145,19 @@ public class PropertyChangeMixin implements IPropertyChangeExtensionExtendable, 
     }
 
     public void handleCollectionChange(INotifyPropertyChangedSource obj, Object evnt, Object source, ICollectionChangeProcessor collectionChangeProcessor) {
-        IEntityMetaData metaData = ((IEntityMetaDataHolder) obj).get__EntityMetaData();
+        var metaData = ((IEntityMetaDataHolder) obj).get__EntityMetaData();
 
         Object base = null;
         boolean parentChildProperty = false;
         IPropertyInfo property = null;
 
-        RelationMember[] relationMembers = metaData.getRelationMembers();
+        var relationMembers = metaData.getRelationMembers();
         for (int relationIndex = relationMembers.length; relationIndex-- > 0; ) {
-            Object valueDirect = ((IValueHolderContainer) obj).get__ValueDirect(relationIndex);
+            var valueDirect = ((IValueHolderContainer) obj).get__ValueDirect(relationIndex);
             if (valueDirect != source) {
                 continue;
             }
-            RelationMember relationMember = relationMembers[relationIndex];
+            var relationMember = relationMembers[relationIndex];
             property = propertyInfoProvider.getProperty(valueDirect.getClass(), relationMember.getName());
             if (relationMember.getAnnotation(ParentChild.class) != null) {
                 base = obj;
@@ -171,8 +168,8 @@ public class PropertyChangeMixin implements IPropertyChangeExtensionExtendable, 
             break;
         }
         if (base == null) {
-            for (PrimitiveMember primitiveMember : metaData.getPrimitiveMembers()) {
-                Object valueDirect = primitiveMember.getValue(obj);
+            for (var primitiveMember : metaData.getPrimitiveMembers()) {
+                var valueDirect = primitiveMember.getValue(obj);
                 if (valueDirect != source) {
                     continue;
                 }
@@ -185,9 +182,9 @@ public class PropertyChangeMixin implements IPropertyChangeExtensionExtendable, 
         if (base == null) {
             throw new IllegalStateException("Must never happen");
         }
-        ICacheModification cacheModification = this.cacheModification;
-        boolean oldCacheModification = cacheModification.isActive();
-        boolean cacheModificationUsed = false;
+        var cacheModification = this.cacheModification;
+        var oldCacheModification = cacheModification.isActive();
+        var cacheModificationUsed = false;
         try {
             collectionChangeProcessor.processCollectionChangeEvent(obj, property, evnt, parentChildProperty);
         } finally {
@@ -202,18 +199,18 @@ public class PropertyChangeMixin implements IPropertyChangeExtensionExtendable, 
 
     @Override
     public void processCollectionChangeEvent(INotifyPropertyChangedSource obj, IPropertyInfo property, Object anon_evnt, boolean isParentChildProperty) {
-        NotifyCollectionChangedEvent evnt = (NotifyCollectionChangedEvent) anon_evnt;
+        var evnt = (NotifyCollectionChangedEvent) anon_evnt;
         switch (evnt.getAction()) {
             case Add:
             case Remove:
             case Replace:
                 if (evnt.getOldItems() != null) {
-                    for (Object oldItem : evnt.getOldItems()) {
+                    for (var oldItem : evnt.getOldItems()) {
                         handleRemovedItem(obj, property, oldItem, isParentChildProperty);
                     }
                 }
                 if (evnt.getNewItems() != null) {
-                    for (Object newItem : evnt.getNewItems()) {
+                    for (var newItem : evnt.getNewItems()) {
                         handleAddedItem(obj, property, newItem, isParentChildProperty);
                     }
                 }
@@ -226,7 +223,7 @@ public class PropertyChangeMixin implements IPropertyChangeExtensionExtendable, 
             default:
                 throw RuntimeExceptionUtil.createEnumNotSupportedException(evnt.getAction());
         }
-        IList<ICollectionChangeExtension> extensions = collectionChangeExtensions.getExtensions(obj.getClass());
+        var extensions = collectionChangeExtensions.getExtensions(obj.getClass());
         if (extensions != null) {
             for (int a = 0, size = extensions.size(); a < size; a++) {
                 extensions.get(a).collectionChanged(obj, evnt);
@@ -239,7 +236,7 @@ public class PropertyChangeMixin implements IPropertyChangeExtensionExtendable, 
     }
 
     public IPropertyInfo getMethodHandle(INotifyPropertyChangedSource obj, String propertyName) {
-        IPropertyInfo property = propertyInfoProvider.getProperty(obj.getClass(), propertyName);
+        var property = propertyInfoProvider.getProperty(obj.getClass(), propertyName);
         if (property != null) {
             return property;
         }
@@ -250,7 +247,7 @@ public class PropertyChangeMixin implements IPropertyChangeExtensionExtendable, 
         if (removedItem instanceof INotifyCollectionChanged) {
             ((INotifyCollectionChanged) removedItem).removeNotifyCollectionChangedListener(obj.getCollectionEventHandler());
         }
-        for (IPropertyChangeItemListener propertyChangeItemListener : propertyChangeItemListeners.getExtensionsShared()) {
+        for (var propertyChangeItemListener : propertyChangeItemListeners.getExtensionsShared()) {
             propertyChangeItemListener.handleRemovedItem(obj, property, removedItem, isParentChildProperty);
         }
         if (isParentChildProperty && removedItem instanceof INotifyPropertyChanged) {
@@ -265,7 +262,7 @@ public class PropertyChangeMixin implements IPropertyChangeExtensionExtendable, 
         if (addedItem instanceof INotifyCollectionChanged) {
             ((INotifyCollectionChanged) addedItem).addNotifyCollectionChangedListener(obj.getCollectionEventHandler());
         }
-        for (IPropertyChangeItemListener propertyChangeItemListener : propertyChangeItemListeners.getExtensionsShared()) {
+        for (var propertyChangeItemListener : propertyChangeItemListeners.getExtensionsShared()) {
             propertyChangeItemListener.handleAddedItem(obj, property, addedItem, isParentChildProperty);
         }
     }
@@ -277,8 +274,8 @@ public class PropertyChangeMixin implements IPropertyChangeExtensionExtendable, 
         if (left == null || right == null) {
             return false;
         }
-        Object leftValue = left.isPresent() ? left.get() : null;
-        Object rightValue = right.isPresent() ? right.get() : null;
+        var leftValue = left.isPresent() ? left.get() : null;
+        var rightValue = right.isPresent() ? right.get() : null;
         return leftValue == rightValue;
     }
 
@@ -289,8 +286,8 @@ public class PropertyChangeMixin implements IPropertyChangeExtensionExtendable, 
     // / <param name="invocation">IInvocation of the Setter</param>
     // / <param name="getterItem">The getter fitting to the setter in invocation</param>
     public void firePropertyChange(INotifyPropertyChangedSource obj, PropertyChangeSupport propertyChangeSupport, IPropertyInfo property, Object oldValue, Object currentValue) {
-        ICacheModification cacheModification = this.cacheModification;
-        PropertyChangeMixinEntry entry = getPropertyEntry(obj.getClass(), property);
+        var cacheModification = this.cacheModification;
+        var entry = getPropertyEntry(obj.getClass(), property);
         try {
             if (entry.isAddedRemovedCheckNecessary) {
                 if (oldValue != null) {
@@ -300,10 +297,10 @@ public class PropertyChangeMixin implements IPropertyChangeExtensionExtendable, 
                     handleAddedItem(obj, property, currentValue, entry.isParentChildSetter);
                 }
             }
-            String[] propertyNames = entry.propertyNames;
+            var propertyNames = entry.propertyNames;
 
-            boolean includeNewValue = entry.includeNewValue != null ? entry.includeNewValue.booleanValue() : fireOldPropertyValueActive;
-            boolean includeOldValue = entry.includeOldValue != null ? entry.includeOldValue.booleanValue() : fireOldPropertyValueActive;
+            var includeNewValue = entry.includeNewValue != null ? entry.includeNewValue.booleanValue() : fireOldPropertyValueActive;
+            var includeOldValue = entry.includeOldValue != null ? entry.includeOldValue.booleanValue() : fireOldPropertyValueActive;
 
             Object[] oldValues;
             if (includeOldValue) {
@@ -323,7 +320,7 @@ public class PropertyChangeMixin implements IPropertyChangeExtensionExtendable, 
             }
             firePropertyChange(obj, propertyNames, oldValues, currentValues);
             if (entry.firesToBeCreatedPCE) {
-                IDataObject dObj = (IDataObject) obj;
+                var dObj = (IDataObject) obj;
                 if (dObj.isToBeCreated() && dObj.isToBeUpdated()) {
                     dObj.setToBeUpdated(false);
                 }
@@ -340,7 +337,7 @@ public class PropertyChangeMixin implements IPropertyChangeExtensionExtendable, 
             obj = ((IEmbeddedType) obj).getRoot();
         }
         if (obj instanceof IDataObject) {
-            IDataObject dp = (IDataObject) obj;
+            var dp = (IDataObject) obj;
             if (!dp.isToBeCreated()) {
                 dp.setToBeUpdated(value);
             }
@@ -348,13 +345,13 @@ public class PropertyChangeMixin implements IPropertyChangeExtensionExtendable, 
     }
 
     public void firePropertyChange(final INotifyPropertyChangedSource obj, final String[] propertyNames, final Object[] oldValues, final Object[] currentValues) {
-        final PropertyChangeSupport propertyChangeSupport = obj.getPropertyChangeSupport();
-        final IList<IPropertyChangeExtension> extensions = propertyChangeExtensions.getExtensions(obj.getClass());
+        var propertyChangeSupport = obj.getPropertyChangeSupport();
+        var extensions = propertyChangeExtensions.getExtensions(obj.getClass());
         if (propertyChangeSupport == null && extensions == null && !(obj instanceof PropertyChangeListener)) {
             return;
         }
         if (obj instanceof IDataObject) {
-            ICacheModification cacheModification = this.cacheModification;
+            var cacheModification = this.cacheModification;
             if (cacheModification.isActive()) {
                 cacheModification.queuePropertyChangeEvent(() -> executeFirePropertyChange(propertyChangeSupport, extensions, obj, propertyNames, oldValues, currentValues));
                 return;
@@ -374,16 +371,16 @@ public class PropertyChangeMixin implements IPropertyChangeExtensionExtendable, 
 
     protected void executeFirePropertyChangeIntern(PropertyChangeSupport propertyChangeSupport, IList<IPropertyChangeExtension> extensions, Object obj, String[] propertyNames, Object[] oldValues,
             Object[] currentValues) {
-        boolean debugEnabled = log.isDebugEnabled();
-        PropertyChangeListener pcl = (PropertyChangeListener) (obj instanceof PropertyChangeListener ? obj : null);
+        var debugEnabled = log.isDebugEnabled();
+        var pcl = (PropertyChangeListener) (obj instanceof PropertyChangeListener ? obj : null);
 
         for (int a = 0, size = propertyNames.length; a < size; a++) {
-            String propertyName = propertyNames[a];
+            var propertyName = propertyNames[a];
             if (debugEnabled) {
                 log.debug("Process PCE '" + propertyName + "' on " + obj);
             }
-            Object oldValue = oldValues[a];
-            Object currentValue = currentValues[a];
+            var oldValue = oldValues[a];
+            var currentValue = currentValues[a];
             if (oldValue == UNKNOWN_VALUE) {
                 oldValue = null;
             }

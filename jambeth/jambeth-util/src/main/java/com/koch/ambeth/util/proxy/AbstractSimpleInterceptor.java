@@ -22,6 +22,7 @@ limitations under the License.
 
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 public abstract class AbstractSimpleInterceptor implements MethodInterceptor {
@@ -46,18 +47,24 @@ public abstract class AbstractSimpleInterceptor implements MethodInterceptor {
 
     @Override
     public final Object intercept(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable {
-        if (finalizeMethod.equals(method)) {
-            // Do nothing. This is to prevent unnecessary exceptions in tomcat in REDEPLOY scenarios
-            return null;
+        try {
+            if (finalizeMethod.equals(method)) {
+                // Do nothing. This is to prevent unnecessary exceptions in tomcat in REDEPLOY scenarios
+                return null;
+            }
+            if (equalsMethod.equals(method) && args[0] == obj) {
+                // Do nothing. This is to prevent unnecessary exceptions in tomcat in REDEPLOY scenarios
+                return Boolean.TRUE;
+            }
+            if (hashCodeMethod.equals(method)) {
+                return proxy.invokeSuper(obj, args);
+            }
+            return interceptIntern(obj, method, args, proxy);
+        } catch (Error | RuntimeException e) {
+            throw e;
+        } catch (InvocationTargetException e) {
+            throw RuntimeExceptionUtil.mask(e, method.getExceptionTypes());
         }
-        if (equalsMethod.equals(method) && args[0] == obj) {
-            // Do nothing. This is to prevent unnecessary exceptions in tomcat in REDEPLOY scenarios
-            return Boolean.TRUE;
-        }
-        if (hashCodeMethod.equals(method)) {
-            return proxy.invokeSuper(obj, args);
-        }
-        return interceptIntern(obj, method, args, proxy);
     }
 
     protected abstract Object interceptIntern(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable;

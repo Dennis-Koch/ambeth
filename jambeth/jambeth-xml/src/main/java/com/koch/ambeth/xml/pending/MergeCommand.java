@@ -20,8 +20,6 @@ limitations under the License.
  * #L%
  */
 
-import java.util.Collection;
-
 import com.koch.ambeth.ioc.IInitializingBean;
 import com.koch.ambeth.merge.IObjRefHelper;
 import com.koch.ambeth.merge.cache.ValueHolderState;
@@ -37,197 +35,169 @@ import com.koch.ambeth.merge.util.DirectValueHolderRef;
 import com.koch.ambeth.merge.util.OptimisticLockUtil;
 import com.koch.ambeth.service.merge.model.IEntityMetaData;
 import com.koch.ambeth.service.merge.model.IObjRef;
-import com.koch.ambeth.service.metadata.Member;
 import com.koch.ambeth.service.metadata.RelationMember;
 import com.koch.ambeth.util.ListUtil;
 import com.koch.ambeth.util.ParamChecker;
 import com.koch.ambeth.util.collections.ArrayList;
-import com.koch.ambeth.util.collections.ILinkedSet;
-import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.LinkedHashSet;
-import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.xml.IReader;
+import lombok.SneakyThrows;
 
-public class MergeCommand extends AbstractObjectCommand
-		implements IObjectCommand, IInitializingBean {
-	protected final ICommandBuilder commandBuilder;
+public class MergeCommand extends AbstractObjectCommand implements IObjectCommand, IInitializingBean {
+    protected final ICommandBuilder commandBuilder;
 
-	protected final IObjRefHelper objRefHelper;
+    protected final IObjRefHelper objRefHelper;
 
-	public MergeCommand(IObjectFuture objectFuture, Object parent, ICommandBuilder commandBuilder,
-			IObjRefHelper objRefHelper) {
-		super(objectFuture, parent);
-		this.commandBuilder = commandBuilder;
-		this.objRefHelper = objRefHelper;
-		try {
-			afterPropertiesSet();
-		}
-		catch (Throwable e) {
-			throw RuntimeExceptionUtil.mask(e);
-		}
-	}
+    @SneakyThrows
+    public MergeCommand(IObjectFuture objectFuture, Object parent, ICommandBuilder commandBuilder, IObjRefHelper objRefHelper) {
+        super(objectFuture, parent);
+        this.commandBuilder = commandBuilder;
+        this.objRefHelper = objRefHelper;
+        afterPropertiesSet();
+    }
 
-	@Override
-	public void afterPropertiesSet() throws Throwable {
-		super.afterPropertiesSet();
+    @Override
+    public void afterPropertiesSet() throws Throwable {
+        super.afterPropertiesSet();
 
-		ParamChecker.assertParamOfType(parent, "Parent", IChangeContainer.class);
-	}
+        ParamChecker.assertParamOfType(parent, "Parent", IChangeContainer.class);
+    }
 
-	@Override
-	public void execute(IReader reader) {
-		IPrimitiveUpdateItem[] puis;
-		IRelationUpdateItem[] ruis;
-		if (parent instanceof CreateContainer) {
-			CreateContainer createContainer = (CreateContainer) parent;
-			puis = createContainer.getPrimitives();
-			ruis = createContainer.getRelations();
-		}
-		else if (parent instanceof UpdateContainer) {
-			UpdateContainer updateContainer = (UpdateContainer) parent;
-			puis = updateContainer.getPrimitives();
-			ruis = updateContainer.getRelations();
-		}
-		else {
-			throw new IllegalArgumentException("Unsupported " + IChangeContainer.class.getSimpleName()
-					+ " of type '" + parent.getClass().getName() + "'");
-		}
+    @Override
+    public void execute(IReader reader) {
+        IPrimitiveUpdateItem[] puis;
+        IRelationUpdateItem[] ruis;
+        if (parent instanceof CreateContainer) {
+            CreateContainer createContainer = (CreateContainer) parent;
+            puis = createContainer.getPrimitives();
+            ruis = createContainer.getRelations();
+        } else if (parent instanceof UpdateContainer) {
+            UpdateContainer updateContainer = (UpdateContainer) parent;
+            puis = updateContainer.getPrimitives();
+            ruis = updateContainer.getRelations();
+        } else {
+            throw new IllegalArgumentException("Unsupported " + IChangeContainer.class.getSimpleName() + " of type '" + parent.getClass().getName() + "'");
+        }
 
-		Object entity = objectFuture.getValue();
-		IEntityMetaData metadata = ((IEntityMetaDataHolder) entity).get__EntityMetaData();
-		applyPrimitiveUpdateItems(entity, puis, metadata);
+        var entity = objectFuture.getValue();
+        var metadata = ((IEntityMetaDataHolder) entity).get__EntityMetaData();
+        applyPrimitiveUpdateItems(entity, puis, metadata);
 
-		if (ruis != null && ruis.length > 0) {
-			applyRelationUpdateItems((IObjRefContainer) entity, ruis, parent instanceof UpdateContainer,
-					metadata, reader);
-		}
-	}
+        if (ruis != null && ruis.length > 0) {
+            applyRelationUpdateItems((IObjRefContainer) entity, ruis, parent instanceof UpdateContainer, metadata, reader);
+        }
+    }
 
-	protected void applyPrimitiveUpdateItems(Object entity, IPrimitiveUpdateItem[] puis,
-			IEntityMetaData metadata) {
-		if (puis == null) {
-			return;
-		}
+    protected void applyPrimitiveUpdateItems(Object entity, IPrimitiveUpdateItem[] puis, IEntityMetaData metadata) {
+        if (puis == null) {
+            return;
+        }
 
-		for (IPrimitiveUpdateItem pui : puis) {
-			String memberName = pui.getMemberName();
-			Object newValue = pui.getNewValue();
-			Member member = metadata.getMemberByName(memberName);
-			member.setValue(entity, newValue);
-		}
-	}
+        for (var pui : puis) {
+            var memberName = pui.getMemberName();
+            var newValue = pui.getNewValue();
+            var member = metadata.getMemberByName(memberName);
+            member.setValue(entity, newValue);
+        }
+    }
 
-	protected void applyRelationUpdateItems(IObjRefContainer entity, IRelationUpdateItem[] ruis,
-			boolean isUpdate, IEntityMetaData metadata, IReader reader) {
-		IList<Object> toPrefetch = new ArrayList<>();
-		RelationMember[] relationMembers = metadata.getRelationMembers();
-		for (IRelationUpdateItem rui : ruis) {
-			String memberName = rui.getMemberName();
-			int relationIndex = metadata.getIndexByRelationName(memberName);
-			if (ValueHolderState.INIT == entity.get__State(relationIndex)) {
-				throw new IllegalStateException(
-						"ValueHolder already initialized for property '" + memberName + "'");
-			}
+    protected void applyRelationUpdateItems(IObjRefContainer entity, IRelationUpdateItem[] ruis, boolean isUpdate, IEntityMetaData metadata, IReader reader) {
+        var toPrefetch = new ArrayList<>();
+        var relationMembers = metadata.getRelationMembers();
+        for (var rui : ruis) {
+            var memberName = rui.getMemberName();
+            var relationIndex = metadata.getIndexByRelationName(memberName);
+            if (ValueHolderState.INIT == entity.get__State(relationIndex)) {
+                throw new IllegalStateException("ValueHolder already initialized for property '" + memberName + "'");
+            }
 
-			IObjRef[] existingORIs = entity.get__ObjRefs(relationIndex);
-			IObjRef[] addedORIs = rui.getAddedORIs();
-			IObjRef[] removedORIs = rui.getRemovedORIs();
+            var existingORIs = entity.get__ObjRefs(relationIndex);
+            var addedORIs = rui.getAddedORIs();
+            var removedORIs = rui.getRemovedORIs();
 
-			IObjRef[] newORIs;
-			if (existingORIs.length == 0) {
-				if (removedORIs != null && addedORIs.length > 0) {
-					throw new IllegalArgumentException("Removing from empty member");
-				}
-				newORIs = addedORIs != null ? addedORIs : IObjRef.EMPTY_ARRAY;
-			}
-			else {
-				// Set to efficiently remove entries
-				ILinkedSet<IObjRef> existingORIsSet = new LinkedHashSet<>(existingORIs);
-				if (removedORIs != null && removedORIs.length > 0) {
-					for (IObjRef removedORI : removedORIs) {
-						if (!existingORIsSet.remove(removedORI)) {
-							throw OptimisticLockUtil.throwModified(objRefHelper.entityToObjRef(entity), null,
-									entity);
-						}
-					}
-				}
-				if (addedORIs != null && addedORIs.length > 0) {
-					for (IObjRef addedORI : addedORIs) {
-						if (!existingORIsSet.add(addedORI)) {
-							throw OptimisticLockUtil.throwModified(objRefHelper.entityToObjRef(entity), null,
-									entity);
-						}
-					}
-				}
-				if (existingORIsSet.isEmpty()) {
-					newORIs = IObjRef.EMPTY_ARRAY;
-				}
-				else {
-					newORIs = existingORIsSet.toArray(IObjRef.class);
-				}
-			}
+            IObjRef[] newORIs;
+            if (existingORIs.length == 0) {
+                if (removedORIs != null && addedORIs.length > 0) {
+                    throw new IllegalArgumentException("Removing from empty member");
+                }
+                newORIs = addedORIs != null ? addedORIs : IObjRef.EMPTY_ARRAY;
+            } else {
+                // Set to efficiently remove entries
+                var existingORIsSet = new LinkedHashSet<>(existingORIs);
+                if (removedORIs != null && removedORIs.length > 0) {
+                    for (var removedORI : removedORIs) {
+                        if (!existingORIsSet.remove(removedORI)) {
+                            throw OptimisticLockUtil.throwModified(objRefHelper.entityToObjRef(entity), null, entity);
+                        }
+                    }
+                }
+                if (addedORIs != null && addedORIs.length > 0) {
+                    for (var addedORI : addedORIs) {
+                        if (!existingORIsSet.add(addedORI)) {
+                            throw OptimisticLockUtil.throwModified(objRefHelper.entityToObjRef(entity), null, entity);
+                        }
+                    }
+                }
+                if (existingORIsSet.isEmpty()) {
+                    newORIs = IObjRef.EMPTY_ARRAY;
+                } else {
+                    newORIs = existingORIsSet.toArray(IObjRef.class);
+                }
+            }
 
-			RelationMember member = relationMembers[relationIndex];
-			if (isUpdate) {
-				entity.set__ObjRefs(relationIndex, newORIs);
-				if (!entity.is__Initialized(relationIndex)) {
-					DirectValueHolderRef dvhr = new DirectValueHolderRef(entity, member);
-					toPrefetch.add(dvhr);
-				}
-			}
-			else {
-				resolveAndSetEntities(entity, newORIs, member, reader);
-			}
-		}
-		if (!toPrefetch.isEmpty()) {
-			IObjectFuture objectFuture = new PrefetchFuture(toPrefetch);
-			IObjectCommand command =
-					commandBuilder.build(reader.getCommandTypeRegistry(), objectFuture, null);
-			reader.addObjectCommand(command);
-		}
-	}
+            var member = relationMembers[relationIndex];
+            if (isUpdate) {
+                entity.set__ObjRefs(relationIndex, newORIs);
+                if (!entity.is__Initialized(relationIndex)) {
+                    var dvhr = new DirectValueHolderRef(entity, member);
+                    toPrefetch.add(dvhr);
+                }
+            } else {
+                resolveAndSetEntities(entity, newORIs, member, reader);
+            }
+        }
+        if (!toPrefetch.isEmpty()) {
+            var objectFuture = new PrefetchFuture(toPrefetch);
+            var command = commandBuilder.build(reader.getCommandTypeRegistry(), objectFuture, null);
+            reader.addObjectCommand(command);
+        }
+    }
 
-	protected void resolveAndSetEntities(Object entity, IObjRef[] newORIs, RelationMember member,
-			IReader reader) {
-		if (!member.isToMany()) {
-			if (newORIs.length == 0) {
-				return;
-			}
-			else if (newORIs.length == 1) {
-				IObjectFuture objectFuture = new ObjRefFuture(newORIs[0]);
-				IObjectCommand command =
-						commandBuilder.build(reader.getCommandTypeRegistry(), objectFuture, entity, member);
-				reader.addObjectCommand(command);
-			}
-			else {
-				throw new IllegalArgumentException("Multiple values for to-one relation");
-			}
-		}
-		else {
-			Collection<Object> coll =
-					ListUtil.createCollectionOfType(member.getRealType(), newORIs.length);
+    protected void resolveAndSetEntities(Object entity, IObjRef[] newORIs, RelationMember member, IReader reader) {
+        if (!member.isToMany()) {
+            if (newORIs.length == 0) {
+                return;
+            } else if (newORIs.length == 1) {
+                var objectFuture = new ObjRefFuture(newORIs[0]);
+                var command = commandBuilder.build(reader.getCommandTypeRegistry(), objectFuture, entity, member);
+                reader.addObjectCommand(command);
+            } else {
+                throw new IllegalArgumentException("Multiple values for to-one relation");
+            }
+        } else {
+            var coll = ListUtil.createCollectionOfType(member.getRealType(), newORIs.length);
 
-			boolean useObjectFuture = false;
-			ICommandBuilder commandBuilder = this.commandBuilder;
-			ICommandTypeRegistry commandTypeRegistry = reader.getCommandTypeRegistry();
-			for (IObjRef ori : newORIs) {
-				if (!(ori instanceof IDirectObjRef)) {
-					IObjectFuture objectFuture = new ObjRefFuture(ori);;
-					IObjectCommand command = commandBuilder.build(commandTypeRegistry, objectFuture, coll);
-					reader.addObjectCommand(command);
-					useObjectFuture = true;
-					continue;
-				}
+            var useObjectFuture = false;
+            var commandBuilder = this.commandBuilder;
+            var commandTypeRegistry = reader.getCommandTypeRegistry();
+            for (var ori : newORIs) {
+                if (!(ori instanceof IDirectObjRef)) {
+                    var objectFuture = new ObjRefFuture(ori);
+                    ;
+                    var command = commandBuilder.build(commandTypeRegistry, objectFuture, coll);
+                    reader.addObjectCommand(command);
+                    useObjectFuture = true;
+                    continue;
+                }
 
-				Object item = ((IDirectObjRef) ori).getDirect();
-				if (useObjectFuture) {
-					IObjectCommand command = commandBuilder.build(commandTypeRegistry, null, coll, item);
-					reader.addObjectCommand(command);
-				}
-				else {
-					coll.add(item);
-				}
-			}
-		}
-	}
+                var item = ((IDirectObjRef) ori).getDirect();
+                if (useObjectFuture) {
+                    var command = commandBuilder.build(commandTypeRegistry, null, coll, item);
+                    reader.addObjectCommand(command);
+                } else {
+                    coll.add(item);
+                }
+            }
+        }
+    }
 }

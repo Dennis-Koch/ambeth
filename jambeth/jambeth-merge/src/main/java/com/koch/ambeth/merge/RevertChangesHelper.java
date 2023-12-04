@@ -40,7 +40,7 @@ limitations under the License.
 // import com.koch.ambeth.log.ILogger;
 // import com.koch.ambeth.log.LoggerFactory;
 // import com.koch.ambeth.merge.model.IEntityMetaData;
-// import com.koch.ambeth.merge.model.IObjRef;
+// import com.koch.ambeth.service.merge.model.IObjRef;
 // import com.koch.ambeth.merge.transfer.ObjRef;
 // import com.koch.ambeth.util.Lock;
 // import com.koch.ambeth.util.ParamChecker;

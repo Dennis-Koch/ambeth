@@ -20,8 +20,6 @@ limitations under the License.
  * #L%
  */
 
-import java.lang.reflect.Method;
-
 import com.koch.ambeth.cache.IRootCache;
 import com.koch.ambeth.cache.RootCache;
 import com.koch.ambeth.ioc.config.Property;
@@ -29,43 +27,42 @@ import com.koch.ambeth.ioc.threadlocal.Forkable;
 import com.koch.ambeth.util.proxy.MethodProxy;
 import com.koch.ambeth.util.threading.SensitiveThreadLocal;
 
+import java.lang.reflect.Method;
+
 public class ThreadLocalRootCacheInterceptor extends AbstractRootCacheAwareInterceptor {
-	protected static final Method clearMethod = AbstractRootCacheAwareInterceptor.clearMethod;
+    protected static final Method clearMethod = AbstractRootCacheAwareInterceptor.clearMethod;
+    @Forkable
+    protected final ThreadLocal<RootCache> rootCacheTL = new SensitiveThreadLocal<>();
+    @Property(defaultValue = "false")
+    protected boolean privileged;
 
-	@Property(defaultValue = "false")
-	protected boolean privileged;
+    protected IRootCache getCurrentRootCache() {
+        var rootCache = getCurrentRootCacheIfValid();
+        if (rootCache == null) {
+            rootCache = acquireRootCache(privileged, rootCacheTL);
+        }
+        return rootCache;
+    }
 
-	@Forkable
-	protected final ThreadLocal<RootCache> rootCacheTL = new SensitiveThreadLocal<>();
+    protected IRootCache getCurrentRootCacheIfValid() {
+        return rootCacheTL.get();
+    }
 
-	protected IRootCache getCurrentRootCache() {
-		IRootCache rootCache = getCurrentRootCacheIfValid();
-		if (rootCache == null) {
-			rootCache = acquireRootCache(privileged, rootCacheTL);
-		}
-		return rootCache;
-	}
+    @Override
+    protected Object interceptIntern(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable {
+        if (clearMethod.equals(method)) {
+            IRootCache rootCache = getCurrentRootCacheIfValid();
+            if (rootCache == null) {
+                // Nothing to do
+                return null;
+            }
+        }
+        IRootCache rootCache = getCurrentRootCache();
+        return proxy.invoke(rootCache, args);
+    }
 
-	protected IRootCache getCurrentRootCacheIfValid() {
-		return rootCacheTL.get();
-	}
-
-	@Override
-	protected Object interceptIntern(Object obj, Method method, Object[] args, MethodProxy proxy)
-			throws Throwable {
-		if (clearMethod.equals(method)) {
-			IRootCache rootCache = getCurrentRootCacheIfValid();
-			if (rootCache == null) {
-				// Nothing to do
-				return null;
-			}
-		}
-		IRootCache rootCache = getCurrentRootCache();
-		return proxy.invoke(rootCache, args);
-	}
-
-	@Override
-	public void cleanupThreadLocal() {
-		disposeCurrentRootCache(rootCacheTL);
-	}
+    @Override
+    public void cleanupThreadLocal() {
+        disposeCurrentRootCache(rootCacheTL);
+    }
 }

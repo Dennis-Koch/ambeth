@@ -21,28 +21,23 @@ limitations under the License.
  */
 
 import com.koch.ambeth.ioc.IInitializingBean;
-import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
-import com.koch.ambeth.util.typeinfo.ITypeInfoItem;
+import com.koch.ambeth.service.metadata.Member;
 import com.koch.ambeth.xml.IReader;
+import lombok.SneakyThrows;
 
-public class ObjectSetterCommand extends AbstractObjectCommand
-		implements IObjectCommand, IInitializingBean {
-	protected final ITypeInfoItem member;
+public class ObjectSetterCommand extends AbstractObjectCommand implements IObjectCommand, IInitializingBean {
+    protected final Member member;
 
-	public ObjectSetterCommand(IObjectFuture objectFuture, Object parent, ITypeInfoItem member) {
-		super(objectFuture, parent);
-		this.member = member;
-		try {
-			afterPropertiesSet();
-		}
-		catch (Throwable e) {
-			throw RuntimeExceptionUtil.mask(e);
-		}
-	}
+    @SneakyThrows
+    public ObjectSetterCommand(IObjectFuture objectFuture, Object parent, Member member) {
+        super(objectFuture, parent);
+        this.member = member;
+        afterPropertiesSet();
+    }
 
-	@Override
-	public void execute(IReader reader) {
-		Object value = objectFuture.getValue();
-		member.setValue(parent, value);
-	}
+    @Override
+    public void execute(IReader reader) {
+        var value = objectFuture.getValue();
+        member.setValue(parent, value);
+    }
 }

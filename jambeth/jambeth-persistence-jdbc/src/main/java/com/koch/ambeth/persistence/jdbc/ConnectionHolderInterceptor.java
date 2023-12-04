@@ -20,24 +20,25 @@ limitations under the License.
  * #L%
  */
 
+import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.threadlocal.Forkable;
 import com.koch.ambeth.ioc.threadlocal.IThreadLocalCleanupBean;
 import com.koch.ambeth.persistence.IConnectionHolder;
-import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.proxy.AbstractSimpleInterceptor;
 import com.koch.ambeth.util.proxy.MethodProxy;
 import com.koch.ambeth.util.threading.SensitiveThreadLocal;
 import com.koch.ambeth.util.transaction.ILightweightTransaction;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.sql.Connection;
 
 public class ConnectionHolderInterceptor extends AbstractSimpleInterceptor implements IConnectionHolder, IThreadLocalCleanupBean {
     public static final String P_CONNECTION = "Connection";
-
     @Forkable
     protected final ThreadLocal<Connection> connectionTL = new SensitiveThreadLocal<>();
+
+    @Autowired
+    protected ILightweightTransaction transaction;
 
     @Override
     public void cleanupThreadLocal() {
@@ -48,16 +49,18 @@ public class ConnectionHolderInterceptor extends AbstractSimpleInterceptor imple
 
     @Override
     protected Object interceptIntern(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable {
-        try {
-            Connection connection = getConnection();
-            if (connection == null) {
-                throw new IllegalStateException(
-                        "No connection currently applied. This often occurs if a " + Connection.class.getName() + "-bean is used without scoping the call through the " + ILightweightTransaction.class.getName() + "-bean");
+        var connection = getConnection();
+        if (connection == null) {
+            // maybe we have a lazy transaction. if so we now ensure a transactional state from this moment on and try to resolve the DB handle again
+            if (transaction.initializeTransactionIfLazyActive()) {
+                connection = getConnection();
             }
-            return proxy.invoke(connection, args);
-        } catch (InvocationTargetException e) {
-            throw RuntimeExceptionUtil.mask(e, method.getExceptionTypes());
+            if (connection == null) {
+                throw new IllegalStateException("No connection currently applied. This often occurs if a " + Connection.class.getName() + "-bean is used without scoping the call through the " +
+                        ILightweightTransaction.class.getName() + "-bean");
+            }
         }
+        return proxy.invoke(connection, args);
     }
 
     @Override
@@ -67,7 +70,7 @@ public class ConnectionHolderInterceptor extends AbstractSimpleInterceptor imple
 
     @Override
     public void setConnection(Connection connection) {
-        Connection oldConnection = connectionTL.get();
+        var oldConnection = connectionTL.get();
         if (oldConnection != null && connection != null && oldConnection != connection) {
             throw new IllegalStateException("Thread-local connection instance already applied!. This is a fatal state");
         }

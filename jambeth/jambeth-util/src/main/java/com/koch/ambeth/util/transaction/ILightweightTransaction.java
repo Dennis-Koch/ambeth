@@ -28,6 +28,8 @@ public interface ILightweightTransaction {
 
     boolean isLazyActive();
 
+    boolean initializeTransactionIfLazyActive();
+
     void runInTransaction(CheckedRunnable runnable);
 
     <R> R runInTransaction(CheckedSupplier<R> runnable);

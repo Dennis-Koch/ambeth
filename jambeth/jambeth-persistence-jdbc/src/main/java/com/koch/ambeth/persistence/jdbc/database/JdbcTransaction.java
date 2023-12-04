@@ -481,6 +481,15 @@ public class JdbcTransaction implements ILightweightTransaction, ITransaction, I
     }
 
     @Override
+    public boolean initializeTransactionIfLazyActive() {
+        if (!isLazyActive()) {
+            return false;
+        }
+        begin(false);
+        return true;
+    }
+
+    @Override
     public boolean isActive() {
         return getTransactionInfo() != null;
     }

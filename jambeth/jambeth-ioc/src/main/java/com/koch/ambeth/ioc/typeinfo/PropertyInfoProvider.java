@@ -20,16 +20,6 @@ limitations under the License.
  * #L%
  */
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.concurrent.locks.Lock;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import com.koch.ambeth.ioc.IInitializingBean;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.config.Property;
@@ -47,355 +37,325 @@ import com.koch.ambeth.util.objectcollector.IThreadLocalObjectCollector;
 import com.koch.ambeth.util.typeinfo.IPropertyInfo;
 import com.koch.ambeth.util.typeinfo.IPropertyInfoProvider;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.util.regex.Pattern;
+
 public class PropertyInfoProvider implements IPropertyInfoProvider, IInitializingBean {
-	private static final Pattern getSetIsPattern = Pattern.compile("(get|set|is)([A-ZÖÄÜ].*)");
+    private static final Pattern getSetIsPattern = Pattern.compile("(get|set|is)([A-ZÖÄÜ].*)");
+    protected final SmartCopyMap<Class<?>, PropertyInfoEntry> typeToPropertyMap = new SmartCopyMap<>();
+    protected final SmartCopyMap<Class<?>, PropertyInfoEntry> typeToJavaBeansPropertyMap = new SmartCopyMap<>();
+    protected final SmartCopyMap<Class<?>, PropertyInfoEntry> typeToIocPropertyMap = new SmartCopyMap<>();
+    protected final SmartCopyMap<Class<?>, PropertyInfoEntry> typeToPrivatePropertyMap = new SmartCopyMap<>();
+    protected IThreadLocalObjectCollector objectCollector;
 
-	protected IThreadLocalObjectCollector objectCollector;
+    @Override
+    public void afterPropertiesSet() throws Throwable {
+        ParamChecker.assertNotNull(objectCollector, "ObjectCollector");
+    }
 
-	protected final SmartCopyMap<Class<?>, PropertyInfoEntry> typeToPropertyMap =
-			new SmartCopyMap<>();
+    public void setObjectCollector(IThreadLocalObjectCollector objectCollector) {
+        this.objectCollector = objectCollector;
+    }
 
-	protected final SmartCopyMap<Class<?>, PropertyInfoEntry> typeToJavaBeansPropertyMap =
-			new SmartCopyMap<>();
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public IPropertyInfo getProperty(Object obj, String propertyName) {
+        return getProperty(obj.getClass(), propertyName);
+    }
 
-	protected final SmartCopyMap<Class<?>, PropertyInfoEntry> typeToIocPropertyMap =
-			new SmartCopyMap<>();
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public IPropertyInfo getProperty(Class<?> type, String propertyName) {
+        var map = getPropertyMap(type);
+        var property = map.get(propertyName);
+        if (property != null) {
+            return property;
+        }
+        map = getPropertyMapJavaBeans(type);
+        return map.get(propertyName);
+    }
 
-	protected final SmartCopyMap<Class<?>, PropertyInfoEntry> typeToPrivatePropertyMap =
-			new SmartCopyMap<>();
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public IPropertyInfo[] getProperties(Object obj) {
+        return getProperties(obj.getClass());
+    }
 
-	@Override
-	public void afterPropertiesSet() throws Throwable {
-		ParamChecker.assertNotNull(objectCollector, "ObjectCollector");
-	}
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public IPropertyInfo[] getProperties(Class<?> type) {
+        return getPropertyEntry(type, typeToPropertyMap, true, false, false).properties;
+    }
 
-	public void setObjectCollector(IThreadLocalObjectCollector objectCollector) {
-		this.objectCollector = objectCollector;
-	}
+    @Override
+    public IPropertyInfo[] getIocProperties(Class<?> type) {
+        return getPropertyEntry(type, typeToIocPropertyMap, true, true, false).properties;
+    }
 
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public IPropertyInfo getProperty(Object obj, String propertyName) {
-		return getProperty(obj.getClass(), propertyName);
-	}
+    @Override
+    public IPropertyInfo[] getPrivateProperties(Class<?> type) {
+        return getPropertyEntry(type, typeToPrivatePropertyMap, false, false, false).properties;
+    }
 
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public IPropertyInfo getProperty(Class<?> type, String propertyName) {
-		Map<String, IPropertyInfo> map = getPropertyMap(type);
-		IPropertyInfo property = map.get(propertyName);
-		if (property != null) {
-			return property;
-		}
-		map = getPropertyMapJavaBeans(type);
-		return map.get(propertyName);
-	}
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public IMap<String, IPropertyInfo> getPropertyMap(Object obj) {
+        return getPropertyMap(obj.getClass());
+    }
 
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public IPropertyInfo[] getProperties(Object obj) {
-		return getProperties(obj.getClass());
-	}
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public IMap<String, IPropertyInfo> getPropertyMap(Class<?> type) {
+        return getPropertyEntry(type, typeToPropertyMap, true, false, false).map;
+    }
 
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public IPropertyInfo[] getProperties(Class<?> type) {
-		return getPropertyEntry(type, typeToPropertyMap, true, false, false).properties;
-	}
+    public IMap<String, IPropertyInfo> getPropertyMapJavaBeans(Class<?> type) {
+        return getPropertyEntry(type, typeToJavaBeansPropertyMap, true, false, true).map;
+    }
 
-	@Override
-	public IPropertyInfo[] getIocProperties(Class<?> type) {
-		return getPropertyEntry(type, typeToIocPropertyMap, true, true, false).properties;
-	}
+    @Override
+    public IMap<String, IPropertyInfo> getIocPropertyMap(Class<?> type) {
+        return getPropertyEntry(type, typeToIocPropertyMap, true, true, false).map;
+    }
 
-	@Override
-	public IPropertyInfo[] getPrivateProperties(Class<?> type) {
-		return getPropertyEntry(type, typeToPrivatePropertyMap, false, false, false).properties;
-	}
+    @Override
+    public IMap<String, IPropertyInfo> getPrivatePropertyMap(Class<?> type) {
+        return getPropertyEntry(type, typeToPrivatePropertyMap, false, false, false).map;
+    }
 
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public IMap<String, IPropertyInfo> getPropertyMap(Object obj) {
-		return getPropertyMap(obj.getClass());
-	}
+    protected PropertyInfoEntry getPropertyEntry(Class<?> type, SmartCopyMap<Class<?>, PropertyInfoEntry> map, boolean isOldIocMode, boolean isIocMode, boolean isJavaBeans) {
+        ParamChecker.assertParamNotNull(type, "type");
+        var propertyEntry = map.get(type);
+        if (propertyEntry != null) {
+            return propertyEntry;
+        }
+        var writeLock = map.getWriteLock();
+        writeLock.lock();
+        try {
+            propertyEntry = map.get(type);
+            if (propertyEntry != null) {
+                // Concurrent thread might have been faster
+                return propertyEntry;
+            }
 
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public IMap<String, IPropertyInfo> getPropertyMap(Class<?> type) {
-		return getPropertyEntry(type, typeToPropertyMap, true, false, false).map;
-	}
+            var sortedMethods = new LinkedHashMap<String, IMap<Class<?>, IMap<String, Method>>>();
+            var methods = ReflectUtil.getDeclaredMethodsInHierarchy(type);
 
-	public IMap<String, IPropertyInfo> getPropertyMapJavaBeans(Class<?> type) {
-		return getPropertyEntry(type, typeToJavaBeansPropertyMap, true, false, true).map;
-	}
+            MethodAccess methodAccess = null;
+            for (int i = methods.length; i-- > 0; ) {
+                var method = methods[i];
+                if (method.getDeclaringClass().equals(Object.class)) {
+                    continue;
+                }
+                int modifiers = method.getModifiers();
+                if (Modifier.isStatic(modifiers)) {
+                    continue;
+                }
+                try {
+                    String propName = getPropertyNameFor(method);
+                    if (propName.isEmpty()) {
+                        continue;
+                    }
+                    var sortedMethod = sortedMethods.get(propName);
+                    if (sortedMethod == null) {
+                        sortedMethod = LinkedHashMap.create(1);
+                        sortedMethods.put(propName, sortedMethod);
+                    }
 
-	@Override
-	public IMap<String, IPropertyInfo> getIocPropertyMap(Class<?> type) {
-		return getPropertyEntry(type, typeToIocPropertyMap, true, true, false).map;
-	}
+                    var parameterTypes = method.getParameterTypes();
+                    Class<?> propertyType;
+                    String prefix;
+                    if (parameterTypes.length == 1) {
+                        propertyType = parameterTypes[0];
+                        prefix = "set";
+                    } else if (parameterTypes.length == 0) {
+                        propertyType = method.getReturnType();
+                        prefix = "get";
+                    } else {
+                        throw new IllegalStateException("Method is not an accessor: " + method);
+                    }
 
-	@Override
-	public IMap<String, IPropertyInfo> getPrivatePropertyMap(Class<?> type) {
-		return getPropertyEntry(type, typeToPrivatePropertyMap, false, false, false).map;
-	}
+                    var methodPerType = sortedMethod.get(propertyType);
+                    if (methodPerType == null) {
+                        methodPerType = LinkedHashMap.create(2);
+                        sortedMethod.put(propertyType, methodPerType);
+                    }
 
-	protected PropertyInfoEntry getPropertyEntry(Class<?> type,
-			SmartCopyMap<Class<?>, PropertyInfoEntry> map, boolean isOldIocMode, boolean isIocMode,
-			boolean isJavaBeans) {
-		ParamChecker.assertParamNotNull(type, "type");
-		PropertyInfoEntry propertyEntry = map.get(type);
-		if (propertyEntry != null) {
-			return propertyEntry;
-		}
-		Lock writeLock = map.getWriteLock();
-		writeLock.lock();
-		try {
-			propertyEntry = map.get(type);
-			if (propertyEntry != null) {
-				// Concurrent thread might have been faster
-				return propertyEntry;
-			}
+                    methodPerType.put(prefix, method);
+                } catch (Throwable e) {
+                    throw RuntimeExceptionUtil.mask(e, "Error occured while processing " + method);
+                }
+            }
 
-			IMap<String, IMap<Class<?>, IMap<String, Method>>> sortedMethods = new LinkedHashMap<>();
-			Method[] methods = ReflectUtil.getDeclaredMethodsInHierarchy(type);
+            var filteredMethods = filterOverriddenMethods(sortedMethods, type);
 
-			MethodAccess methodAccess = null;
-			for (int i = methods.length; i-- > 0;) {
-				Method method = methods[i];
-				if (method.getDeclaringClass().equals(Object.class)) {
-					continue;
-				}
-				int modifiers = method.getModifiers();
-				if (Modifier.isStatic(modifiers)) {
-					continue;
-				}
-				try {
-					String propName = getPropertyNameFor(method);
-					if (propName.isEmpty()) {
-						continue;
-					}
-					IMap<Class<?>, IMap<String, Method>> sortedMethod = sortedMethods.get(propName);
-					if (sortedMethod == null) {
-						sortedMethod = LinkedHashMap.create(1);
-						sortedMethods.put(propName, sortedMethod);
-					}
+            var propertyMap = new LinkedHashMap<String, IPropertyInfo>(0.5f);
+            for (var propertyData : filteredMethods) {
+                var propertyName = propertyData.getKey();
+                var propertyMethods = propertyData.getValue();
+                var getter = propertyMethods.get("get");
+                var setter = propertyMethods.get("set");
 
-					Class<?>[] parameterTypes = method.getParameterTypes();
-					Class<?> propertyType;
-					String prefix;
-					if (parameterTypes.length == 1) {
-						propertyType = parameterTypes[0];
-						prefix = "set";
-					}
-					else if (parameterTypes.length == 0) {
-						propertyType = method.getReturnType();
-						prefix = "get";
-					}
-					else {
-						throw new IllegalStateException("Method is not an accessor: " + method);
-					}
+                if (isIocMode) {
+                    if (setter == null || (!Modifier.isPublic(setter.getModifiers()) && !setter.isAnnotationPresent(Autowired.class) && !setter.isAnnotationPresent(Property.class))) {
+                        continue;
+                    }
+                }
+                IPropertyInfo propertyInfo;
+                if (methodAccess == null && !type.isInterface() && !type.isPrimitive()) {
+                    methodAccess = MethodAccess.get(type);
+                }
+                if (methodAccess != null && isNullOrNonAbstractNonPrivateMethod(getter) && isNullOrNonAbstractNonPrivateMethod(setter)) {
+                    propertyInfo = new MethodPropertyInfoASM(type, propertyName, getter, setter, objectCollector, methodAccess);
+                } else {
+                    propertyInfo = new MethodPropertyInfo(type, propertyName, getter, setter, objectCollector);
+                }
+                propertyMap.put(isJavaBeans ? propertyInfo.getNameForJavaBeans() : propertyInfo.getName(), propertyInfo);
+            }
 
-					IMap<String, Method> methodPerType = sortedMethod.get(propertyType);
-					if (methodPerType == null) {
-						methodPerType = LinkedHashMap.create(2);
-						sortedMethod.put(propertyType, methodPerType);
-					}
+            FieldAccess fieldAccess = null;
+            var fields = ReflectUtil.getDeclaredFieldsInHierarchy(type);
+            for (var field : fields) {
+                var modifiers = field.getModifiers();
+                if (Modifier.isStatic(modifiers)) {
+                    continue;
+                }
+                if (isOldIocMode) {
+                    if (!field.isAnnotationPresent(Autowired.class) && !field.isAnnotationPresent(Property.class)) {
+                        continue;
+                    }
+                }
+                var propertyName = getPropertyNameFor(field);
+                var existingProperty = propertyMap.get(propertyName);
+                if (existingProperty != null && existingProperty.isWritable()) {
+                    // Ignore field injection if the already resolved (method-)property is writable
+                    continue;
+                }
+                IPropertyInfo propertyInfo;
+                if (fieldAccess == null && !type.isInterface() && !type.isPrimitive()) {
+                    fieldAccess = FieldAccess.get(type);
+                }
+                if (fieldAccess != null && (field.getModifiers() & Modifier.PRIVATE) == 0) {
+                    FieldAccess fieldAccessOfDeclaringType =
+                            field.getDeclaringClass() != type ? FieldAccess.get(field.getDeclaringClass()) : fieldAccess;// type.getClassLoader().loadClass("com.koch.ambeth.event.ioc.EventModule")
+                    propertyInfo = new FieldPropertyInfoASM(type, propertyName, field, objectCollector, fieldAccessOfDeclaringType);
+                } else {
+                    propertyInfo = new FieldPropertyInfo(type, propertyName, field, objectCollector);
+                }
+                propertyMap.put(isJavaBeans ? propertyInfo.getNameForJavaBeans() : propertyInfo.getName(), propertyInfo);
+            }
+            propertyEntry = new PropertyInfoEntry(propertyMap);
+            map.put(type, propertyEntry);
+            return propertyEntry;
+        } finally {
+            writeLock.unlock();
+        }
+    }
 
-					methodPerType.put(prefix, method);
-				}
-				catch (Throwable e) {
-					throw RuntimeExceptionUtil.mask(e, "Error occured while processing " + method);
-				}
-			}
+    protected boolean isNullOrNonAbstractNonPrivateMethod(Method method) {
+        if (method == null) {
+            return true;
+        }
+        return !Modifier.isAbstract(method.getModifiers()) && !Modifier.isPrivate(method.getModifiers());
+    }
 
-			IMap<String, IMap<String, Method>> filteredMethods =
-					filterOverriddenMethods(sortedMethods, type);
+    protected IMap<String, IMap<String, Method>> filterOverriddenMethods(IMap<String, IMap<Class<?>, IMap<String, Method>>> sortedMethods, Class<?> entityType) {
+        var filteredMethods = LinkedHashMap.<String, IMap<String, Method>>create(sortedMethods.size());
 
-			LinkedHashMap<String, IPropertyInfo> propertyMap = new LinkedHashMap<>(0.5f);
-			for (Entry<String, IMap<String, Method>> propertyData : filteredMethods) {
-				String propertyName = propertyData.getKey();
-				IMap<String, Method> propertyMethods = propertyData.getValue();
-				Method getter = propertyMethods.get("get");
-				Method setter = propertyMethods.get("set");
+        for (var entry : sortedMethods) {
+            var propName = entry.getKey();
+            var typedHashMap = entry.getValue();
 
-				if (isIocMode) {
-					if (setter == null || (!Modifier.isPublic(setter.getModifiers())
-							&& !setter.isAnnotationPresent(Autowired.class)
-							&& !setter.isAnnotationPresent(Property.class))) {
-						continue;
-					}
-				}
-				IPropertyInfo propertyInfo;
-				if (methodAccess == null && !type.isInterface() && !type.isPrimitive()) {
-					methodAccess = MethodAccess.get(type);
-				}
-				if (methodAccess != null && isNullOrNonAbstractNonPrivateMethod(getter)
-						&& isNullOrNonAbstractNonPrivateMethod(setter)) {
-					propertyInfo = new MethodPropertyInfoASM(type, propertyName, getter, setter,
-							objectCollector, methodAccess);
-				}
-				else {
-					propertyInfo =
-							new MethodPropertyInfo(type, propertyName, getter, setter, objectCollector);
-				}
-				propertyMap.put(isJavaBeans ? propertyInfo.getNameForJavaBeans() : propertyInfo.getName(),
-						propertyInfo);
-			}
+            if (typedHashMap.size() == 1) {
+                var iter = typedHashMap.values().iterator();
+                var accessorMap = iter.next();
+                filteredMethods.put(propName, accessorMap);
+                continue;
+            }
 
-			FieldAccess fieldAccess = null;
-			Field[] fields = ReflectUtil.getDeclaredFieldsInHierarchy(type);
-			for (Field field : fields) {
-				int modifiers = field.getModifiers();
-				if (Modifier.isStatic(modifiers)) {
-					continue;
-				}
-				if (isOldIocMode) {
-					if (!field.isAnnotationPresent(Autowired.class)
-							&& !field.isAnnotationPresent(Property.class)) {
-						continue;
-					}
-				}
-				String propertyName = getPropertyNameFor(field);
-				IPropertyInfo existingProperty = propertyMap.get(propertyName);
-				if (existingProperty != null && existingProperty.isWritable()) {
-					// Ignore field injection if the already resolved (method-)property is writable
-					continue;
-				}
-				IPropertyInfo propertyInfo;
-				if (fieldAccess == null && !type.isInterface() && !type.isPrimitive()) {
-					fieldAccess = FieldAccess.get(type);
-				}
-				if (fieldAccess != null && (field.getModifiers() & Modifier.PRIVATE) == 0) {
-					FieldAccess fieldAccessOfDeclaringType = field.getDeclaringClass() != type
-							? FieldAccess.get(field.getDeclaringClass()) : fieldAccess;// type.getClassLoader().loadClass("com.koch.ambeth.event.ioc.EventModule")
-					propertyInfo = new FieldPropertyInfoASM(type, propertyName, field, objectCollector,
-							fieldAccessOfDeclaringType);
-				}
-				else {
-					propertyInfo = new FieldPropertyInfo(type, propertyName, field, objectCollector);
-				}
-				propertyMap.put(isJavaBeans ? propertyInfo.getNameForJavaBeans() : propertyInfo.getName(),
-						propertyInfo);
-			}
-			propertyEntry = new PropertyInfoEntry(propertyMap);
-			map.put(type, propertyEntry);
-			return propertyEntry;
-		}
-		finally {
-			writeLock.unlock();
-		}
-	}
+            Class<?> mostConcreteType = null;
+            Class<?> mostConcreteGetterType = null;
+            Class<?> mostConcreteSetterType = null;
+            for (var typedEntries : typedHashMap) {
+                var currentType = typedEntries.getKey();
+                var accessorMap = typedEntries.getValue();
+                if (accessorMap.size() != 2) {
+                    if (accessorMap.get("get") != null) {
+                        mostConcreteGetterType = resolveMostConcreteType(mostConcreteGetterType, currentType);
+                    } else {
+                        mostConcreteSetterType = resolveMostConcreteType(mostConcreteSetterType, currentType);
+                    }
+                    continue;
+                }
+                mostConcreteType = resolveMostConcreteType(mostConcreteType, currentType);
+            }
+            if (mostConcreteType != null) {
+                var accessorMap = typedHashMap.get(mostConcreteType);
+                filteredMethods.put(propName, accessorMap);
+            } else if (mostConcreteGetterType != null) {
+                var accessorMap = typedHashMap.get(mostConcreteGetterType);
+                filteredMethods.put(propName, accessorMap);
+            } else if (mostConcreteSetterType != null) {
+                var accessorMap = typedHashMap.get(mostConcreteSetterType);
+                filteredMethods.put(propName, accessorMap);
+            }
+        }
 
-	protected boolean isNullOrNonAbstractNonPrivateMethod(Method method) {
-		if (method == null) {
-			return true;
-		}
-		return !Modifier.isAbstract(method.getModifiers())
-				&& !Modifier.isPrivate(method.getModifiers());
-	}
+        return filteredMethods;
+    }
 
-	protected IMap<String, IMap<String, Method>> filterOverriddenMethods(
-			IMap<String, IMap<Class<?>, IMap<String, Method>>> sortedMethods, Class<?> entityType) {
-		IMap<String, IMap<String, Method>> filteredMethods = LinkedHashMap.create(sortedMethods.size());
+    protected Class<?> resolveMostConcreteType(Class<?> mostConcreteType, Class<?> currentType) {
+        if (mostConcreteType == null || mostConcreteType.isAssignableFrom(currentType)) {
+            return currentType;
+        }
+        return mostConcreteType;
+    }
 
-		for (Entry<String, IMap<Class<?>, IMap<String, Method>>> entry : sortedMethods) {
-			String propName = entry.getKey();
-			IMap<Class<?>, IMap<String, Method>> typedHashMap = entry.getValue();
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String getPropertyNameFor(Method method) {
+        var propertyAccessor = method.getAnnotation(PropertyAccessor.class);
+        if (propertyAccessor != null) {
+            return propertyAccessor.value();
+        }
+        var matcher = getSetIsPattern.matcher(method.getName());
+        if (!matcher.matches()) {
+            return "";
+        }
+        var paramLength = method.getParameterTypes().length;
+        var getSetIs = matcher.group(1);
+        if ("get".equals(getSetIs) && (0 != paramLength || void.class.equals(method.getReturnType()))) {
+            return "";
+        } else if ("set".equals(getSetIs) && 1 != paramLength) {
+            return "";
+        } else if ("is".equals(getSetIs) && (0 != paramLength || void.class.equals(method.getReturnType()))) {
+            return "";
+        }
+        var name = matcher.group(2);
+        return StringConversionHelper.upperCaseFirst(objectCollector, name);
+    }
 
-			if (typedHashMap.size() == 1) {
-				Iterator<IMap<String, Method>> iter = typedHashMap.values().iterator();
-				IMap<String, Method> accessorMap = iter.next();
-				filteredMethods.put(propName, accessorMap);
-				continue;
-			}
-
-			Class<?> mostConcreteType = null;
-			Class<?> mostConcreteGetterType = null;
-			Class<?> mostConcreteSetterType = null;
-			for (Entry<Class<?>, IMap<String, Method>> typedEntries : typedHashMap) {
-				Class<?> currentType = typedEntries.getKey();
-				IMap<String, Method> accessorMap = typedEntries.getValue();
-				if (accessorMap.size() != 2) {
-					if (accessorMap.get("get") != null) {
-						mostConcreteGetterType = resolveMostConcreteType(mostConcreteGetterType, currentType);
-					}
-					else {
-						mostConcreteSetterType = resolveMostConcreteType(mostConcreteSetterType, currentType);
-					}
-					continue;
-				}
-				mostConcreteType = resolveMostConcreteType(mostConcreteType, currentType);
-			}
-			if (mostConcreteType != null) {
-				IMap<String, Method> accessorMap = typedHashMap.get(mostConcreteType);
-				filteredMethods.put(propName, accessorMap);
-			}
-			else if (mostConcreteGetterType != null) {
-				IMap<String, Method> accessorMap = typedHashMap.get(mostConcreteGetterType);
-				filteredMethods.put(propName, accessorMap);
-			}
-			else if (mostConcreteSetterType != null) {
-				IMap<String, Method> accessorMap = typedHashMap.get(mostConcreteSetterType);
-				filteredMethods.put(propName, accessorMap);
-			}
-		}
-
-		return filteredMethods;
-	}
-
-	protected Class<?> resolveMostConcreteType(Class<?> mostConcreteType, Class<?> currentType) {
-		if (mostConcreteType == null || mostConcreteType.isAssignableFrom(currentType)) {
-			return currentType;
-		}
-		return mostConcreteType;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public String getPropertyNameFor(Method method) {
-		PropertyAccessor propertyAccessor = method.getAnnotation(PropertyAccessor.class);
-		if (propertyAccessor != null) {
-			return propertyAccessor.value();
-		}
-		Matcher matcher = getSetIsPattern.matcher(method.getName());
-		if (!matcher.matches()) {
-			return "";
-		}
-		int paramLength = method.getParameterTypes().length;
-		String getSetIs = matcher.group(1);
-		if ("get".equals(getSetIs) && (0 != paramLength || void.class.equals(method.getReturnType()))) {
-			return "";
-		}
-		else if ("set".equals(getSetIs) && 1 != paramLength) {
-			return "";
-		}
-		else if ("is".equals(getSetIs)
-				&& (0 != paramLength || void.class.equals(method.getReturnType()))) {
-			return "";
-		}
-		String name = matcher.group(2);
-		return StringConversionHelper.upperCaseFirst(objectCollector, name);
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public String getPropertyNameFor(Field field) {
-		return StringConversionHelper.upperCaseFirst(objectCollector, field.getName());
-	}
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String getPropertyNameFor(Field field) {
+        return StringConversionHelper.upperCaseFirst(objectCollector, field.getName());
+    }
 }

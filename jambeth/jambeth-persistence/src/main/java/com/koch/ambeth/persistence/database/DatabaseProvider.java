@@ -80,15 +80,12 @@ public class DatabaseProvider implements ITargetProvider, IDatabaseProvider, ITh
         if (database != null) {
             return database;
         }
-        // maybe we have a lazy transaction. if so we now ensure a transactional state and try to resolve the DB handle again
-        if (transaction.isLazyActive()) {
-            // resolve database handle now "eagerly" again
-            transaction.runInTransaction(() -> {
-            });
-        }
-        database = tryGetInstance();
-        if (database != null) {
-            return database;
+        // maybe we have a lazy transaction. if so we now ensure a transactional state from this moment on and try to resolve the DB handle again
+        if (transaction.initializeTransactionIfLazyActive()) {
+            database = tryGetInstance();
+            if (database != null) {
+                return database;
+            }
         }
         throw new PersistenceException(
                 "No instance acquired, yet. It should have been done at this point!" + " If this exception happens within a service request from a client your service implementing method" +
