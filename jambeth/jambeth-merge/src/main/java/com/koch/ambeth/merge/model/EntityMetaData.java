@@ -176,7 +176,7 @@ public class EntityMetaData implements IEntityMetaData {
 
     @Override
     public byte getIdIndexByMemberName(String memberName) {
-        Byte value = memberNameToIdIndexDict.get(memberName);
+        var value = memberNameToIdIndexDict.get(memberName);
         if (value == null) {
             throw new IllegalArgumentException("No alternate id index found for member name '" + getEntityType().getName() + "." + memberName + "'");
         }

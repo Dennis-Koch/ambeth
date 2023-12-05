@@ -21,67 +21,70 @@ limitations under the License.
  */
 
 public abstract class AbstractEntity extends AbstractBusinessObject {
-	public static final String Version = "Version";
 
-	protected int id;
+    public static final String Id = "Id";
 
-	protected short version;
+    public static final String Version = "Version";
 
-	protected String updatedBy, createdBy;
+    protected int id;
 
-	protected long updatedOn, createdOn;
+    protected short version;
 
-	protected AbstractEntity() {
-		// Intended blank
-	}
+    protected String updatedBy, createdBy;
 
-	@Override
-	public int getId() {
-		return id;
-	}
+    protected long updatedOn, createdOn;
 
-	public void setId(int id) {
-		this.id = id;
-	}
+    protected AbstractEntity() {
+        // Intended blank
+    }
 
-	public short getVersion() {
-		return version;
-	}
+    @Override
+    public int getId() {
+        return id;
+    }
 
-	public void setVersion(short version) {
-		this.version = version;
-	}
+    public void setId(int id) {
+        this.id = id;
+    }
 
-	public String getUpdatedBy() {
-		return updatedBy;
-	}
+    public short getVersion() {
+        return version;
+    }
 
-	public void setUpdatedBy(String updatedBy) {
-		this.updatedBy = updatedBy;
-	}
+    public void setVersion(short version) {
+        this.version = version;
+    }
 
-	public String getCreatedBy() {
-		return createdBy;
-	}
+    public String getUpdatedBy() {
+        return updatedBy;
+    }
 
-	public void setCreatedBy(String createdBy) {
-		this.createdBy = createdBy;
-	}
+    public void setUpdatedBy(String updatedBy) {
+        this.updatedBy = updatedBy;
+    }
 
-	public long getUpdatedOn() {
-		return updatedOn;
-	}
+    public String getCreatedBy() {
+        return createdBy;
+    }
 
-	public void setUpdatedOn(long updatedOn) {
-		this.updatedOn = updatedOn;
-	}
+    public void setCreatedBy(String createdBy) {
+        this.createdBy = createdBy;
+    }
 
-	public long getCreatedOn() {
-		return createdOn;
-	}
+    public long getUpdatedOn() {
+        return updatedOn;
+    }
 
-	public void setCreatedOn(long createdOn) {
-		this.createdOn = createdOn;
-	}
+    public void setUpdatedOn(long updatedOn) {
+        this.updatedOn = updatedOn;
+    }
+
+    public long getCreatedOn() {
+        return createdOn;
+    }
+
+    public void setCreatedOn(long createdOn) {
+        this.createdOn = createdOn;
+    }
 
 }

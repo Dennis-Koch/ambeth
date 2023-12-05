@@ -107,13 +107,13 @@ public class QueryResultCache implements IQueryResultCache {
     public IList<IObjRef> getQueryResult(IQueryKey queryKey, IQueryResultRetriever queryResultRetriever, byte idIndex, int offset, int length, IParamHolder<Long> totalSize) {
         ParamChecker.assertParamNotNull(queryKey, "queryKey");
         ParamChecker.assertParamNotNull(queryResultRetriever, "queryResultRetriever");
-        boolean containsPageOnly = queryResultRetriever.containsPageOnly();
+        var containsPageOnly = queryResultRetriever.containsPageOnly();
         if (!queryCacheActive) {
             // A retriever which only selects a specific page can currently not be cached
             IQueryResultCacheItem queryResultCacheItem = queryResultRetriever.getQueryResult();
             return createResult(queryResultCacheItem, idIndex, offset, length, containsPageOnly, totalSize);
         }
-        IQueryResultCacheItem queryResultCacheItem = getCacheItem(queryKey, offset, length, containsPageOnly);
+        var queryResultCacheItem = getCacheItem(queryKey, offset, length, containsPageOnly);
         if (queryResultCacheItem != null) {
             return createResult(queryResultCacheItem, idIndex, offset, length, containsPageOnly, totalSize);
         }

@@ -20,22 +20,8 @@ limitations under the License.
  * #L%
  */
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.koch.ambeth.filter.FilterDescriptor;
 import com.koch.ambeth.filter.FilterOperator;
-import com.koch.ambeth.filter.IPagingResponse;
 import com.koch.ambeth.filter.ISortDescriptor;
 import com.koch.ambeth.filter.PagingRequest;
 import com.koch.ambeth.filter.SortDescriptor;
@@ -43,247 +29,241 @@ import com.koch.ambeth.filter.SortDirection;
 import com.koch.ambeth.informationbus.persistence.setup.SQLData;
 import com.koch.ambeth.informationbus.persistence.setup.SQLStructure;
 import com.koch.ambeth.query.filter.IFilterToQueryBuilder;
-import com.koch.ambeth.query.filter.IPagingQuery;
 import com.koch.ambeth.service.config.ServiceConfigurationConstants;
-import com.koch.ambeth.service.merge.model.IObjRef;
 import com.koch.ambeth.testutil.AbstractInformationBusWithPersistenceTest;
 import com.koch.ambeth.testutil.TestProperties;
 import com.koch.ambeth.util.collections.ArrayList;
+import org.junit.After;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+
+import static org.junit.Assert.*;
 
 @SQLData("FilterDescriptor_data.sql")
 @SQLStructure("FilterDescriptor_structure.sql")
-@TestProperties(name = ServiceConfigurationConstants.mappingFile,
-		value = "com/koch/ambeth/query/FilterDescriptor_orm.xml")
+@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "com/koch/ambeth/query/FilterDescriptor_orm.xml")
 public class FilterDescriptorTest extends AbstractInformationBusWithPersistenceTest {
-	protected static final String paramName1 = "param.1";
-	protected static final String paramName2 = "param.2";
-	protected static final String columnName1 = "ID";
-	protected static final String propertyName1 = "Id";
-	protected static final String columnName2 = "VERSION";
-	protected static final String propertyName2 = "Version";
-	protected static final String columnName3 = "FK";
-	protected static final String propertyName3 = "Fk";
-	protected static final String columnName4 = "CONTENT";
-	protected static final String propertyName4 = "Content";
-	protected static final String propertyName5 = "Name1";
+    protected static final String paramName1 = "param.1";
+    protected static final String paramName2 = "param.2";
+    protected static final String columnName1 = "ID";
+    protected static final String propertyName1 = "Id";
+    protected static final String columnName2 = "VERSION";
+    protected static final String propertyName2 = "Version";
+    protected static final String columnName3 = "FK";
+    protected static final String propertyName3 = "Fk";
+    protected static final String columnName4 = "CONTENT";
+    protected static final String propertyName4 = "Content";
+    protected static final String propertyName5 = "Name1";
 
-	protected IQueryBuilder<QueryEntity> qb;
+    protected static void assertSimilar(List<Integer> expectedIds, List<QueryEntity> actual) {
+        assertNotNull(actual);
+        assertEquals(expectedIds.size(), actual.size());
+        for (int i = actual.size(); i-- > 0; ) {
+            assertTrue(actual.get(i).getId() + " not expected", expectedIds.contains(actual.get(i).getId()));
+        }
+    }
 
-	protected HashMap<Object, Object> nameToValueMap = new HashMap<>();
+    protected IQueryBuilder<QueryEntity> qb;
+    protected HashMap<Object, Object> nameToValueMap = new HashMap<>();
 
-	@Before
-	public void setUp() throws Exception {
-		qb = queryBuilderFactory.create(QueryEntity.class);
-		nameToValueMap.clear();
-	}
+    @Before
+    public void setUp() throws Exception {
+        qb = queryBuilderFactory.create(QueryEntity.class);
+        nameToValueMap.clear();
+    }
 
-	@After
-	public void tearDown() throws Exception {
-		if (qb != null) {
-			qb.dispose();
-			qb = null;
-		}
-	}
+    @After
+    public void tearDown() throws Exception {
+        if (qb != null) {
+            qb.dispose();
+            qb = null;
+        }
+    }
 
-	@Test
-	public void retrievePagingSimpleWithDescriptor() throws Exception {
-		IFilterToQueryBuilder ftqb = beanContext.getService(IFilterToQueryBuilder.class);
+    @Test
+    public void retrievePagingSimpleWithDescriptor() throws Exception {
+        var ftqb = beanContext.getService(IFilterToQueryBuilder.class);
 
-		List<Integer> expected = Arrays.asList(new Integer[] {4, 3});
+        var expected = Arrays.asList(4, 2);
 
-		FilterDescriptor<QueryEntity> fd = new FilterDescriptor<>(QueryEntity.class);
+        var fd = new FilterDescriptor<>(QueryEntity.class);
 
-		SortDescriptor sd1 = new SortDescriptor();
-		sd1.setMember("Id");
-		sd1.setSortDirection(SortDirection.DESCENDING);
+        var sd1 = new SortDescriptor();
+        sd1.setMember(QueryEntity.Version);
+        sd1.setSortDirection(SortDirection.ASCENDING);
 
-		SortDescriptor sd2 = new SortDescriptor();
-		sd2.setMember("Version");
-		sd2.setSortDirection(SortDirection.ASCENDING);
+        var sd2 = new SortDescriptor();
+        sd2.setMember(QueryEntity.Id);
+        sd2.setSortDirection(SortDirection.DESCENDING);
 
-		PagingRequest pReq = new PagingRequest();
-		pReq.setNumber(1);
-		pReq.setSize(expected.size());
+        var pReq = new PagingRequest();
+        pReq.setNumber(1);
+        pReq.setSize(expected.size());
 
-		PagingRequest randomPReq = new PagingRequest();
-		randomPReq.setNumber(1);
-		randomPReq.setSize(2);
-		IPagingQuery<QueryEntity> pagingQuery = ftqb.buildQuery(fd, new ISortDescriptor[] {sd1, sd2});
+        var randomPReq = new PagingRequest();
+        randomPReq.setNumber(1);
+        randomPReq.setSize(2);
+        var pagingQuery = ftqb.buildQuery(fd, new ISortDescriptor[] { sd1, sd2 });
 
-		IPagingResponse<QueryEntity> response = pagingQuery.retrieve(randomPReq);
-		// IPagingResponse<QueryEntity> response1_2 = pagingQuery.retrieve(randomPReq);
+        var response = pagingQuery.retrieve(randomPReq);
 
-		// IPagingQuery<QueryEntity> pagingQuery2 = ftqb.buildQuery(fd, new ISortDescriptor[] { sd2, sd1
-		// });
+        var result = response.getResult();
 
-		// IPagingResponse<QueryEntity> response2 = pagingQuery2.retrieve(randomPReq);
+        Assert.assertEquals(randomPReq.getSize(), result.size());
 
-		List<QueryEntity> result = response.getResult();
+        assertSimilar(expected, result);
+    }
 
-		// List<QueryEntity> result2 = response2.getResult();
+    @Test
+    public void retrievePagingWithEmptyResult() throws Exception {
+        var ftqb = beanContext.getService(IFilterToQueryBuilder.class);
 
-		ArrayList<QueryEntity> qeResult = new ArrayList<>(result.size());
-		for (int a = 0, size = result.size(); a < size; a++) {
-			qeResult.add(result.get(a));
-		}
-		Assert.assertEquals(randomPReq.getSize(), qeResult.size());
+        var fd = new FilterDescriptor<>(QueryEntity.class);
+        fd.setOperator(FilterOperator.IS_IN);
+        fd.setMember("Id");
+        fd.withValue("-1");
 
-		assertSimilar(expected, qeResult);
-	}
+        var pReq = new PagingRequest();
+        pReq.setNumber(0);
+        pReq.setSize(5);
 
-	@Test
-	public void retrievePagingWithEmptyResult() throws Exception {
-		IFilterToQueryBuilder ftqb = beanContext.getService(IFilterToQueryBuilder.class);
+        var pagingQuery = ftqb.buildQuery(fd, new ISortDescriptor[0]);
 
-		FilterDescriptor<QueryEntity> fd = new FilterDescriptor<>(QueryEntity.class);
-		fd.setOperator(FilterOperator.IS_IN);
-		fd.setMember("Id");
-		fd.withValue("-1");
+        var response = pagingQuery.retrieve(pReq);
+        var result = response.getResult();
 
-		PagingRequest pReq = new PagingRequest();
-		pReq.setNumber(0);
-		pReq.setSize(5);
+        Assert.assertEquals(0, result.size());
+    }
 
-		IPagingQuery<QueryEntity> pagingQuery = ftqb.buildQuery(fd, new ISortDescriptor[0]);
+    @Test
+    public void retrievePagingRefOrderedByRef() throws Exception {
+        var ftqb = beanContext.getService(IFilterToQueryBuilder.class);
 
-		IPagingResponse<QueryEntity> response = pagingQuery.retrieve(pReq);
-		List<QueryEntity> result = response.getResult();
+        var fd = new FilterDescriptor<>(QueryEntity.class);
 
-		Assert.assertEquals(0, result.size());
-	}
+        var sd = new SortDescriptor();
+        sd.setMember("Fk.Id");
 
-	@Test
-	public void retrievePagingRefOrderedByRef() throws Exception {
-		IFilterToQueryBuilder ftqb = beanContext.getService(IFilterToQueryBuilder.class);
+        var pReq = new PagingRequest();
+        pReq.setNumber(1);
+        pReq.setSize(5);
 
-		FilterDescriptor<QueryEntity> fd = new FilterDescriptor<>(QueryEntity.class);
+        var pagingQuery = ftqb.buildQuery(fd, new ISortDescriptor[] { sd });
 
-		SortDescriptor sd = new SortDescriptor();
-		sd.setMember("Fk.Id");
+        var pagingResponse = pagingQuery.retrieveRefs(pReq, QueryEntity.Name1);
+        var refResult = pagingResponse.getRefResult();
 
-		PagingRequest pReq = new PagingRequest();
-		pReq.setNumber(0);
-		pReq.setSize(5);
+        Assert.assertEquals(5, refResult.size());
+    }
 
-		IPagingQuery<QueryEntity> pagingQuery = ftqb.buildQuery(fd, new ISortDescriptor[] {sd});
+    @Test
+    public void retrieveIsIn() throws Exception {
+        var ftqb = beanContext.getService(IFilterToQueryBuilder.class);
 
-		IPagingResponse<QueryEntity> pagingResponse = pagingQuery.retrieveRefs(pReq, QueryEntity.Name1);
-		List<IObjRef> refResult = pagingResponse.getRefResult();
+        var expected = Arrays.asList(4);
 
-		Assert.assertEquals(5, refResult.size());
-	}
+        var fd = new FilterDescriptor<>(QueryEntity.class);
+        fd.setOperator(FilterOperator.IS_IN);
+        fd.setMember("Id");
+        fd.withValue("4").withValue("3");
 
-	@Test
-	public void retrieveIsIn() throws Exception {
-		IFilterToQueryBuilder ftqb = beanContext.getService(IFilterToQueryBuilder.class);
+        var sd1 = new SortDescriptor();
+        sd1.setMember("Id");
+        sd1.setSortDirection(SortDirection.DESCENDING);
 
-		List<Integer> expected = Arrays.asList(3);
+        var sd2 = new SortDescriptor();
+        sd2.setMember("Version");
+        sd2.setSortDirection(SortDirection.ASCENDING);
 
-		FilterDescriptor<QueryEntity> fd = new FilterDescriptor<>(QueryEntity.class);
-		fd.setOperator(FilterOperator.IS_IN);
-		fd.setMember("Id");
-		fd.withValue("4").withValue("3");
+        var pReq = new PagingRequest();
+        pReq.setNumber(1);
+        pReq.setSize(expected.size());
 
-		SortDescriptor sd1 = new SortDescriptor();
-		sd1.setMember("Id");
-		sd1.setSortDirection(SortDirection.DESCENDING);
+        var randomPReq = new PagingRequest();
+        randomPReq.setNumber(1);
+        randomPReq.setSize(1);
+        var pagingQuery = ftqb.buildQuery(fd, new ISortDescriptor[] { sd1, sd2 });
 
-		SortDescriptor sd2 = new SortDescriptor();
-		sd2.setMember("Version");
-		sd2.setSortDirection(SortDirection.ASCENDING);
+        var response = pagingQuery.retrieve(randomPReq);
 
-		PagingRequest pReq = new PagingRequest();
-		pReq.setNumber(1);
-		pReq.setSize(expected.size());
+        var result = response.getResult();
 
-		PagingRequest randomPReq = new PagingRequest();
-		randomPReq.setNumber(1);
-		randomPReq.setSize(1);
-		IPagingQuery<QueryEntity> pagingQuery = ftqb.buildQuery(fd, new ISortDescriptor[] {sd1, sd2});
+        var qeResult = new ArrayList<QueryEntity>(result.size());
+        for (int a = 0, size = result.size(); a < size; a++) {
+            qeResult.add(result.get(a));
+        }
+        Assert.assertEquals(randomPReq.getSize(), qeResult.size());
 
-		IPagingResponse<QueryEntity> response = pagingQuery.retrieve(randomPReq);
+        assertSimilar(expected, qeResult);
+    }
 
-		List<QueryEntity> result = response.getResult();
+    @Test
+    public void retrieveEmptyIsIn() throws Exception {
+        var ftqb = beanContext.getService(IFilterToQueryBuilder.class);
 
-		ArrayList<QueryEntity> qeResult = new ArrayList<>(result.size());
-		for (int a = 0, size = result.size(); a < size; a++) {
-			qeResult.add(result.get(a));
-		}
-		Assert.assertEquals(randomPReq.getSize(), qeResult.size());
+        var expected = Arrays.asList(3);
 
-		assertSimilar(expected, qeResult);
-	}
+        var fd = new FilterDescriptor<>(QueryEntity.class);
+        fd.setOperator(FilterOperator.IS_IN);
+        fd.setMember(QueryEntity.Id);
 
-	@Test
-	public void retrieveEmptyIsIn() throws Exception {
-		IFilterToQueryBuilder ftqb = beanContext.getService(IFilterToQueryBuilder.class);
+        var sd1 = new SortDescriptor();
+        sd1.setMember(QueryEntity.Id);
+        sd1.setSortDirection(SortDirection.DESCENDING);
 
-		List<Integer> expected = Arrays.asList(new Integer[] {3});
+        var sd2 = new SortDescriptor();
+        sd2.setMember(QueryEntity.Version);
+        sd2.setSortDirection(SortDirection.ASCENDING);
 
-		FilterDescriptor<QueryEntity> fd = new FilterDescriptor<>(QueryEntity.class);
-		fd.setOperator(FilterOperator.IS_IN);
-		fd.setMember("Id");
+        var pReq = new PagingRequest();
+        pReq.setNumber(1);
+        pReq.setSize(expected.size());
 
-		SortDescriptor sd1 = new SortDescriptor();
-		sd1.setMember("Id");
-		sd1.setSortDirection(SortDirection.DESCENDING);
+        var randomPReq = new PagingRequest();
+        randomPReq.setNumber(1);
+        randomPReq.setSize(1);
 
-		SortDescriptor sd2 = new SortDescriptor();
-		sd2.setMember("Version");
-		sd2.setSortDirection(SortDirection.ASCENDING);
+        var pagingQuery = ftqb.buildQuery(fd, new ISortDescriptor[] { sd1, sd2 });
 
-		PagingRequest pReq = new PagingRequest();
-		pReq.setNumber(1);
-		pReq.setSize(expected.size());
+        var response = pagingQuery.retrieve(randomPReq);
 
-		PagingRequest randomPReq = new PagingRequest();
-		randomPReq.setNumber(1);
-		randomPReq.setSize(1);
-		IPagingQuery<QueryEntity> pagingQuery = ftqb.buildQuery(fd, new ISortDescriptor[] {sd1, sd2});
+        var result = response.getResult();
 
-		IPagingResponse<QueryEntity> response = pagingQuery.retrieve(randomPReq);
+        Assert.assertEquals(0, result.size());
+    }
 
-		List<QueryEntity> result = response.getResult();
+    /**
+     * JIRA Ticket AMBETH-321 describes a NullPointerException in NullValueOperand.expandQuery() when
+     * accessing the typeStack. JIRA Ticket AMBETH-322 describes a problem with field names with
+     * paging subselects that contain joins.
+     */
+    @Test
+    public void testForAMBETH321AndAMBETH322() {
+        var ftqb = beanContext.getService(IFilterToQueryBuilder.class);
 
-		Assert.assertEquals(0, result.size());
-	}
+        var fd = new FilterDescriptor<>(QueryEntity.class);
+        fd.setOperator(FilterOperator.IS_EQUAL_TO);
+        fd.setMember("Fk.Version");
 
-	/**
-	 * JIRA Ticket AMBETH-321 describes a NullPointerException in NullValueOperand.expandQuery() when
-	 * accessing the typeStack. JIRA Ticket AMBETH-322 describes a problem with field names with
-	 * paging subselects that contain joins.
-	 */
-	@Test
-	public void testForAMBETH321AndAMBETH322() {
-		IFilterToQueryBuilder ftqb = beanContext.getService(IFilterToQueryBuilder.class);
+        var sd1 = new SortDescriptor();
+        sd1.setMember("Id");
+        sd1.setSortDirection(SortDirection.DESCENDING);
 
-		FilterDescriptor<QueryEntity> fd = new FilterDescriptor<>(QueryEntity.class);
-		fd.setOperator(FilterOperator.IS_EQUAL_TO);
-		fd.setMember("Fk.Version");
+        var pReq = new PagingRequest();
+        pReq.setNumber(1);
+        pReq.setSize(1);
 
-		SortDescriptor sd1 = new SortDescriptor();
-		sd1.setMember("Id");
-		sd1.setSortDirection(SortDirection.DESCENDING);
+        var randomPReq = new PagingRequest();
+        randomPReq.setNumber(1);
+        randomPReq.setSize(1);
+        var pagingQuery = ftqb.buildQuery(fd, new ISortDescriptor[] { sd1 });
 
-		PagingRequest pReq = new PagingRequest();
-		pReq.setNumber(1);
-		pReq.setSize(1);
-
-		PagingRequest randomPReq = new PagingRequest();
-		randomPReq.setNumber(1);
-		randomPReq.setSize(1);
-		IPagingQuery<QueryEntity> pagingQuery = ftqb.buildQuery(fd, new ISortDescriptor[] {sd1});
-
-		// If this does not throws an exception it is ok
-		pagingQuery.retrieve(randomPReq);
-	}
-
-	protected static void assertSimilar(List<Integer> expectedIds, List<QueryEntity> actual) {
-		assertNotNull(actual);
-		assertEquals(expectedIds.size(), actual.size());
-		for (int i = actual.size(); i-- > 0;) {
-			assertTrue(actual.get(i).getId() + " not expected",
-					expectedIds.contains(actual.get(i).getId()));
-		}
-	}
+        // If this does not throws an exception it is ok
+        pagingQuery.retrieve(randomPReq);
+    }
 }

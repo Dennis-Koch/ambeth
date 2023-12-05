@@ -24,6 +24,5 @@ import com.koch.ambeth.filter.IFilterDescriptor;
 import com.koch.ambeth.filter.ISortDescriptor;
 
 public interface IFilterToQueryBuilder {
-	<T> IPagingQuery<T> buildQuery(IFilterDescriptor<T> filterDescriptor,
-			ISortDescriptor[] sortDescriptors);
+    <T> IPagingQuery<T> buildQuery(IFilterDescriptor<T> filterDescriptor, ISortDescriptor[] sortDescriptors);
 }

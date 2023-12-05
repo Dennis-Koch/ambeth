@@ -140,9 +140,10 @@ public class Query<T> implements IQuery<T>, IQueryIntern<T>, ISubQuery<T> {
 
     protected Object buildCursor(Map<Object, Object> nameToValueMapSrc, RetrievalType retrievalType, int limitValue, boolean retrieveAlternateIds) {
         if (!transaction.isActive()) {
-            throw new IllegalStateException(
-                    IQuery.class.getSimpleName() + ".retrieveAsVersions() can only be called from within a @" + PersistenceContext.class.getSimpleName() + ". This is because the IVersionCursor may "
-                            + "hold active resources of underlying databases");
+            if (transaction.initializeTransactionIfLazyActive() && !transaction.isActive()) {
+                throw new IllegalStateException(IQuery.class.getSimpleName() + ".retrieveAsVersions() can only be called from within a @" + PersistenceContext.class.getSimpleName() +
+                        ". This is because the IVersionCursor may " + "hold active resources of underlying databases");
+            }
         }
         var nameToValueMap = new HashMap<>();
         if (nameToValueMapSrc != null) {

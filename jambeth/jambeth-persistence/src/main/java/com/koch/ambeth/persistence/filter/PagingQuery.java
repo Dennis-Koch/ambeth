@@ -24,7 +24,6 @@ import com.koch.ambeth.filter.IPagingRequest;
 import com.koch.ambeth.filter.IPagingResponse;
 import com.koch.ambeth.filter.PagingRequest;
 import com.koch.ambeth.filter.PagingResponse;
-import com.koch.ambeth.ioc.IBeanRuntime;
 import com.koch.ambeth.ioc.IServiceContext;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.config.Property;
@@ -38,10 +37,7 @@ import com.koch.ambeth.query.IQueryKey;
 import com.koch.ambeth.query.config.QueryConfigurationConstants;
 import com.koch.ambeth.query.filter.IPagingQuery;
 import com.koch.ambeth.query.filter.IQueryResultCache;
-import com.koch.ambeth.query.filter.IQueryResultRetriever;
 import com.koch.ambeth.service.merge.IEntityMetaDataProvider;
-import com.koch.ambeth.service.merge.model.IEntityMetaData;
-import com.koch.ambeth.service.merge.model.IObjRef;
 import com.koch.ambeth.util.ParamHolder;
 import com.koch.ambeth.util.StringBuilderUtil;
 import com.koch.ambeth.util.collections.HashMap;
@@ -84,7 +80,7 @@ public class PagingQuery<T> implements IPagingQuery<T>, IPagingQueryIntern<T> {
 
     @Override
     public IPagingRequest createRequest(int pageNumber, int sizePerPage) {
-        PagingRequest request = new PagingRequest();
+        var request = new PagingRequest();
         request.setNumber(pageNumber);
         request.setSize(sizePerPage);
         return request;
@@ -97,7 +93,7 @@ public class PagingQuery<T> implements IPagingQuery<T>, IPagingQueryIntern<T> {
 
     @Override
     public IPagingResponse<T> retrieveRefs(IPagingRequest pagingRequest) {
-        IEntityMetaData metaData = entityMetaDataProvider.getMetaData(query.getEntityType());
+        var metaData = entityMetaDataProvider.getMetaData(query.getEntityType());
         return retrieveIntern(pagingRequest, metaData.getIdMember().getName(), null);
     }
 
@@ -113,7 +109,7 @@ public class PagingQuery<T> implements IPagingQuery<T>, IPagingQueryIntern<T> {
 
     @Override
     public IPagingResponse<T> retrieveRefs(IPagingRequest pagingRequest, Map<Object, Object> paramMap) {
-        IEntityMetaData metaData = entityMetaDataProvider.getMetaData(query.getEntityType());
+        var metaData = entityMetaDataProvider.getMetaData(query.getEntityType());
         return retrieveIntern(pagingRequest, metaData.getIdMember().getName(), paramMap);
     }
 
@@ -129,17 +125,17 @@ public class PagingQuery<T> implements IPagingQuery<T>, IPagingQueryIntern<T> {
 
     protected IPagingResponse<T> retrieveIntern(IPagingRequest pagingRequest, String alternateIdPropertyName, Map<Object, Object> nameToValueMap) {
         long start = System.currentTimeMillis();
-        IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
-        HashMap<Object, Object> currentNameToValueMap = new HashMap<>();
+        var tlObjectCollector = objectCollector.getCurrent();
+        var currentNameToValueMap = new HashMap<>();
         if (nameToValueMap != null) {
             currentNameToValueMap.putAll(nameToValueMap);
         }
-        PagingResponse<T> pagingResponse = new PagingResponse<>();
+        var pagingResponse = new PagingResponse<T>();
 
         int offset, length;
 
         if (pagingRequest != null) {
-            int number = pagingRequest.getNumber();
+            var number = pagingRequest.getNumber();
             length = pagingRequest.getSize();
 
             if (number < 1 || length < 1) {
@@ -162,19 +158,19 @@ public class PagingQuery<T> implements IPagingQuery<T>, IPagingQueryIntern<T> {
         pagingResponse.setTotalNumber(-1);
         pagingResponse.setTotalSize(-1);
 
-        ParamHolder<Long> totalSize = new ParamHolder<>();
+        var totalSize = new ParamHolder<Long>();
 
-        IEntityMetaData metaData = entityMetaDataProvider.getMetaData(query.getEntityType());
-        byte idIndex = alternateIdPropertyName == null ? ObjRef.PRIMARY_KEY_INDEX : metaData.getIdIndexByMemberName(alternateIdPropertyName);
+        var metaData = entityMetaDataProvider.getMetaData(query.getEntityType());
+        var idIndex = alternateIdPropertyName == null ? ObjRef.PRIMARY_KEY_INDEX : metaData.getIdIndexByMemberName(alternateIdPropertyName);
 
-        IBeanRuntime<DefaultQueryResultRetriever> queryResultRetrieverBC = beanContext.registerBean(DefaultQueryResultRetriever.class);
+        var queryResultRetrieverBC = beanContext.registerBean(DefaultQueryResultRetriever.class);
         queryResultRetrieverBC.propertyValue("Query", query);
         queryResultRetrieverBC.propertyValue("CurrentNameToValueMap", currentNameToValueMap);
         queryResultRetrieverBC.propertyValue("Size", length);
-        IQueryResultRetriever queryResultRetriever = queryResultRetrieverBC.finish();
+        var queryResultRetriever = queryResultRetrieverBC.finish();
 
-        IQueryKey queryKey = query.getQueryKey(currentNameToValueMap);
-        IList<IObjRef> queryRefResult = queryResultCache.getQueryResult(queryKey, queryResultRetriever, idIndex, offset, length, totalSize);
+        var queryKey = query.getQueryKey(currentNameToValueMap);
+        var queryRefResult = queryResultCache.getQueryResult(queryKey, queryResultRetriever, idIndex, offset, length, totalSize);
 
         pagingResponse.setTotalSize(totalSize.getValue().longValue());
         if (length <= 0) {
@@ -192,7 +188,7 @@ public class PagingQuery<T> implements IPagingQuery<T>, IPagingQueryIntern<T> {
             @SuppressWarnings("unchecked") IList<T> result = (IList<T>) cache.getObjects(queryRefResult, Collections.<CacheDirective>emptySet());
             pagingResponse.setResult(result);
         }
-        long end = System.currentTimeMillis();
+        var end = System.currentTimeMillis();
         if (log.isDebugEnabled()) {
             if (alternateIdPropertyName != null) {
                 log.debug(StringBuilderUtil.concat(tlObjectCollector, "Spent ", end - start, " ms executing query returning ", pagingResponse.getRefResult().size(), " ORIs of entity type '",
@@ -207,7 +203,7 @@ public class PagingQuery<T> implements IPagingQuery<T>, IPagingQueryIntern<T> {
 
     @Override
     public IPagingQuery<T> param(Object paramKey, Object param) {
-        StatefulPagingQuery<T> statefulQuery = new StatefulPagingQuery<>(this);
+        var statefulQuery = new StatefulPagingQuery<>(this);
         return statefulQuery.param(paramKey, param);
     }
 }

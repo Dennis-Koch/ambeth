@@ -921,6 +921,8 @@ public class AmbethPersistenceSetup implements Closeable {
 
             ensureExistanceOfNeededDatabaseObjects(connection, sqlExecutionOrder, connectionDialect, connectionTestDialect, getLog(), doExecuteStrict);
             AmbethPersistenceSetup.sqlExecutionOrder = sqlExecutionOrder.toArray(String.class);
+
+            connectionDialect.preProcessConnection(connection, null, true);
         } finally {
             rollback.rollback();
         }

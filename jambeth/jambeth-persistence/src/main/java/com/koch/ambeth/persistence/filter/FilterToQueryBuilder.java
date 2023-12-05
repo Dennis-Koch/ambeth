@@ -20,15 +20,6 @@ limitations under the License.
  * #L%
  */
 
-import java.sql.Timestamp;
-import java.util.List;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
-
-import jakarta.persistence.criteria.JoinType;
-
-import javax.xml.datatype.XMLGregorianCalendar;
-
 import com.koch.ambeth.filter.FilterOperator;
 import com.koch.ambeth.filter.IFilterDescriptor;
 import com.koch.ambeth.filter.ISortDescriptor;
@@ -48,10 +39,15 @@ import com.koch.ambeth.query.filter.IFilterToQueryBuilder;
 import com.koch.ambeth.query.filter.IPagingQuery;
 import com.koch.ambeth.service.merge.IEntityMetaDataProvider;
 import com.koch.ambeth.service.merge.IValueObjectConfig;
-import com.koch.ambeth.service.merge.model.IEntityMetaData;
 import com.koch.ambeth.util.IConversionHelper;
 import com.koch.ambeth.util.ParamHolder;
-import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
+import jakarta.persistence.criteria.JoinType;
+
+import javax.xml.datatype.XMLGregorianCalendar;
+import java.sql.Timestamp;
+import java.util.List;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 @PersistenceContext(PersistenceContextType.NOT_REQUIRED)
 public class FilterToQueryBuilder implements IFilterToQueryBuilder {
@@ -75,7 +71,7 @@ public class FilterToQueryBuilder implements IFilterToQueryBuilder {
     @PersistenceContext(PersistenceContextType.REQUIRED)
     public <T> IPagingQuery<T> buildQuery(IFilterDescriptor<T> filterDescriptor, ISortDescriptor[] sortDescriptors) {
         Class<?> entityType = filterDescriptor.getEntityType();
-        IEntityMetaData metaData = entityMetaDataProvider.getMetaData(entityType, true);
+        var metaData = entityMetaDataProvider.getMetaData(entityType, true);
         IValueObjectConfig valueObjectConfig = null;
         if (metaData == null) {
             valueObjectConfig = entityMetaDataProvider.getValueObjectConfig(entityType);
@@ -83,39 +79,35 @@ public class FilterToQueryBuilder implements IFilterToQueryBuilder {
                 entityType = valueObjectConfig.getEntityType();
             }
         }
-        IQueryBuilder<?> queryBuilder = queryBuilderFactory.create(entityType);
+        var queryBuilder = queryBuilderFactory.create(entityType);
 
-        try {
-            IOperand currentRootOperand = buildOperandFromFilterDescriptor(queryBuilder, filterDescriptor);
+        var currentRootOperand = buildOperandFromFilterDescriptor(queryBuilder, filterDescriptor);
 
-            if (sortDescriptors != null) {
-                for (int a = 0, size = sortDescriptors.length; a < size; a++) {
-                    ISortDescriptor sortDescriptor = sortDescriptors[a];
-                    SortDirection sortDirection = sortDescriptor.getSortDirection();
+        if (sortDescriptors != null) {
+            for (int a = 0, size = sortDescriptors.length; a < size; a++) {
+                var sortDescriptor = sortDescriptors[a];
+                SortDirection sortDirection = sortDescriptor.getSortDirection();
 
-                    IOperand sortOperand = queryBuilder.property(sortDescriptor.getMember());
-                    switch (sortDirection) {
-                        case ASCENDING:
-                            queryBuilder.orderBy(sortOperand, OrderByType.ASC);
-                            break;
-                        case DESCENDING:
-                            queryBuilder.orderBy(sortOperand, OrderByType.DESC);
-                            break;
-                        default:
-                            throw new IllegalStateException("Not supported " + SortDirection.class.getSimpleName() + ": " + sortDirection);
-                    }
+                var sortOperand = queryBuilder.property(sortDescriptor.getMember());
+                switch (sortDirection) {
+                    case ASCENDING:
+                        queryBuilder.orderBy(sortOperand, OrderByType.ASC);
+                        break;
+                    case DESCENDING:
+                        queryBuilder.orderBy(sortOperand, OrderByType.DESC);
+                        break;
+                    default:
+                        throw new IllegalStateException("Not supported " + SortDirection.class.getSimpleName() + ": " + sortDirection);
                 }
             }
-            IPagingQuery<?> query = queryBuilder.buildPaging(currentRootOperand);
-            queryBuilder.dispose();
-            return (IPagingQuery<T>) query;
-        } catch (Exception e) {
-            throw RuntimeExceptionUtil.mask(e);
         }
+        var query = queryBuilder.buildPaging(currentRootOperand);
+        queryBuilder.dispose();
+        return (IPagingQuery<T>) query;
     }
 
     protected <T> IOperand buildOperandFromFilterDescriptor(IQueryBuilder<?> queryBuilder, IFilterDescriptor<T> filterDescriptor) {
-        List<IFilterDescriptor<T>> childFilterDescriptors = filterDescriptor.getChildFilterDescriptors();
+        var childFilterDescriptors = filterDescriptor.getChildFilterDescriptors();
 
         if (childFilterDescriptors != null) {
             return buildOperandFromCompositeDescriptor(queryBuilder, filterDescriptor);
@@ -124,11 +116,11 @@ public class FilterToQueryBuilder implements IFilterToQueryBuilder {
     }
 
     protected <T> IOperand buildOperandFromCompositeDescriptor(IQueryBuilder<?> queryBuilder, IFilterDescriptor<T> filterDescriptor) {
-        List<IFilterDescriptor<T>> childFilterDescriptors = filterDescriptor.getChildFilterDescriptors();
+        var childFilterDescriptors = filterDescriptor.getChildFilterDescriptors();
 
-        LogicalOperator logicalOperator = filterDescriptor.getLogicalOperator();
+        var logicalOperator = filterDescriptor.getLogicalOperator();
 
-        IOperand operand = buildBalancedTree(childFilterDescriptors, logicalOperator, queryBuilder);
+        var operand = buildBalancedTree(childFilterDescriptors, logicalOperator, queryBuilder);
 
         return operand;
     }
@@ -136,7 +128,7 @@ public class FilterToQueryBuilder implements IFilterToQueryBuilder {
     protected <T> IOperand buildBalancedTree(List<IFilterDescriptor<T>> childFilterDescriptors, LogicalOperator logicalOperator, IQueryBuilder<?> queryBuilder) {
         IOperand operand = null;
 
-        int childCount = childFilterDescriptors.size();
+        var childCount = childFilterDescriptors.size();
 
         if (childCount == 0) {
             throw new IllegalArgumentException("CompositeFilterDescriptor with no ChildFilterDescriptors not allowed");
@@ -173,16 +165,16 @@ public class FilterToQueryBuilder implements IFilterToQueryBuilder {
     protected <T> IOperand buildOperandFromSimpleFilterDescriptor(IQueryBuilder<?> queryBuilder, IFilterDescriptor<T> filterDescriptor) {
         IOperand operand = null;
 
-        Boolean isCaseSensitive = filterDescriptor.isCaseSensitive();
+        var isCaseSensitive = filterDescriptor.isCaseSensitive();
 
-        ParamHolder<Class<?>> columnType = new ParamHolder<>();
+        var columnType = new ParamHolder<Class<?>>();
 
-        String memberName = filterDescriptor.getMember();
+        var memberName = filterDescriptor.getMember();
         IOperand leftOperand = null;
         if (memberName != null) {
             leftOperand = queryBuilder.property(memberName, JoinType.LEFT, columnType);
         }
-        FilterOperator filterOperator = filterDescriptor.getOperator();
+        var filterOperator = filterDescriptor.getOperator();
 
         if (filterOperator == null) {
             if (memberName != null) {
@@ -190,8 +182,8 @@ public class FilterToQueryBuilder implements IFilterToQueryBuilder {
             }
             return queryBuilder.all();
         }
-        List<String> values = filterDescriptor.getValue();
-        String valueString = values.size() == 1 ? values.get(0) : null;
+        var values = filterDescriptor.getValue();
+        var valueString = values.size() == 1 ? values.get(0) : null;
 
         Object value;
         switch (filterOperator) {
@@ -230,9 +222,9 @@ public class FilterToQueryBuilder implements IFilterToQueryBuilder {
                 operand = queryBuilder.let(leftOperand).isGreaterThanOrEqualTo(queryBuilder.value(value));
                 break;
             case IS_IN: {
-                Object[] convertedValues = new Object[values.size()];
+                var convertedValues = new Object[values.size()];
                 for (int i = values.size(); i-- > 0; ) {
-                    String item = values.get(i);
+                    var item = values.get(i);
                     convertedValues[i] = conversionHelper.convertValueToType(columnType.getValue(), item);
                 }
                 operand = queryBuilder.let(leftOperand).isIn(queryBuilder.value(convertedValues), isCaseSensitive);
@@ -255,9 +247,9 @@ public class FilterToQueryBuilder implements IFilterToQueryBuilder {
                 operand = queryBuilder.let(leftOperand).isNotEqualTo(queryBuilder.value(value), isCaseSensitive);
                 break;
             case IS_NOT_IN: {
-                Object[] convertedValues = new Object[values.size()];
+                var convertedValues = new Object[values.size()];
                 for (int i = values.size(); i-- > 0; ) {
-                    String item = values.get(i);
+                    var item = values.get(i);
                     convertedValues[i] = conversionHelper.convertValueToType(columnType.getValue(), item);
                 }
                 operand = queryBuilder.let(leftOperand).isNotIn(queryBuilder.value(convertedValues), isCaseSensitive);

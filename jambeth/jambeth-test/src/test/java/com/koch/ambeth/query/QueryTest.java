@@ -54,10 +54,10 @@ import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.HashMap;
 import com.koch.ambeth.util.collections.ILinkedMap;
 import com.koch.ambeth.util.collections.IList;
+import jakarta.persistence.PersistenceException;
+import jakarta.persistence.criteria.JoinType;
 import org.junit.Assert;
 import org.junit.Test;
-
-import jakarta.persistence.criteria.JoinType;
 
 import java.sql.Date;
 import java.sql.Timestamp;
@@ -143,7 +143,7 @@ public class QueryTest extends AbstractInformationBusWithPersistenceTest {
     }
 
     @SuppressWarnings("deprecation")
-    @Test(expected = IllegalStateException.class)
+    @Test(expected = PersistenceException.class)
     public void testRetrieveAsVersionCursorNoTransaction() throws Exception {
         Object value1 = Integer.valueOf(3);
 

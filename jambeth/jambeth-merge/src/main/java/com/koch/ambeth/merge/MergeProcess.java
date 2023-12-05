@@ -317,6 +317,7 @@ public class MergeProcess implements IMergeProcess {
                 try {
                     latch.await();
                 } catch (InterruptedException e) {
+                    Thread.interrupted();
                     throw RuntimeExceptionUtil.mask(e);
                 }
             }
