@@ -23,122 +23,134 @@ limitations under the License.
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.function.IntFunction;
 
 public class ReadOnlyMapWrapper<K, V> implements IMap<K, V>, ILinkedMap<K, V> {
-	protected IMap<K, V> hashMap;
 
-	protected ILinkedMap<K, V> linkedHashMap;
+    protected IMap<K, V> hashMap;
 
-	public ReadOnlyMapWrapper(IMap<K, V> map) {
-		if (map instanceof ILinkedMap) {
-			linkedHashMap = (ILinkedMap<K, V>) map;
-		}
+    protected ILinkedMap<K, V> linkedHashMap;
 
-		hashMap = map;
-	}
+    public ReadOnlyMapWrapper(IMap<K, V> map) {
+        if (map instanceof ILinkedMap) {
+            linkedHashMap = (ILinkedMap<K, V>) map;
+        }
 
-	@Override
-	public int size() {
-		return hashMap.size();
-	}
+        hashMap = map;
+    }
 
-	@Override
-	public boolean isEmpty() {
-		return hashMap.isEmpty();
-	}
+    @Override
+    public int size() {
+        return hashMap.size();
+    }
 
-	@Override
-	public boolean containsKey(Object key) {
-		return hashMap.containsKey(key);
-	}
+    @Override
+    public boolean isEmpty() {
+        return hashMap.isEmpty();
+    }
 
-	@Override
-	public boolean containsValue(Object value) {
-		return hashMap.containsValue(value);
-	}
+    @Override
+    public boolean containsKey(Object key) {
+        return hashMap.containsKey(key);
+    }
 
-	@Override
-	public V get(Object key) {
-		return hashMap.get(key);
-	}
+    @Override
+    public boolean containsValue(Object value) {
+        return hashMap.containsValue(value);
+    }
 
-	@Override
-	public K getKey(K key) {
-		return hashMap.getKey(key);
-	}
+    @Override
+    public V get(Object key) {
+        return hashMap.get(key);
+    }
 
-	@Override
-	public V put(K key, V value) {
-		throw new UnsupportedOperationException();
-	}
+    @Override
+    public K getKey(K key) {
+        return hashMap.getKey(key);
+    }
 
-	@Override
-	public V remove(Object key) {
-		throw new UnsupportedOperationException();
-	}
+    @Override
+    public V put(K key, V value) {
+        throw new UnsupportedOperationException();
+    }
 
-	@Override
-	public void putAll(Map<? extends K, ? extends V> m) {
-		throw new UnsupportedOperationException();
-	}
+    @Override
+    public V remove(Object key) {
+        throw new UnsupportedOperationException();
+    }
 
-	@Override
-	public void clear() {
-		throw new UnsupportedOperationException();
-	}
+    @Override
+    public void putAll(Map<? extends K, ? extends V> m) {
+        throw new UnsupportedOperationException();
+    }
 
-	@Override
-	public Iterator<Entry<K, V>> iterator() {
-		return linkedHashMap.iterator(false);
-	}
+    @Override
+    public void clear() {
+        throw new UnsupportedOperationException();
+    }
 
-	@Override
-	public Iterator<Entry<K, V>> iterator(boolean removeAllowed) {
-		return iterator();
-	}
+    @Override
+    public Iterator<Entry<K, V>> iterator() {
+        return linkedHashMap.iterator(false);
+    }
 
-	@Override
-	public ISet<Entry<K, V>> entrySet() {
-		return hashMap.entrySet();
-	}
+    @Override
+    public Iterator<Entry<K, V>> iterator(boolean removeAllowed) {
+        return iterator();
+    }
 
-	@Override
-	public void entrySet(ISet<Entry<K, V>> targetEntrySet) {
-		hashMap.entrySet(targetEntrySet);
-	}
+    @Override
+    public ISet<Entry<K, V>> entrySet() {
+        return hashMap.entrySet();
+    }
 
-	@Override
-	public ISet<K> keySet() {
-		return hashMap.keySet();
-	}
+    @Override
+    public void entrySet(ISet<Entry<K, V>> targetEntrySet) {
+        hashMap.entrySet(targetEntrySet);
+    }
 
-	@Override
-	public void keySet(Collection<K> targetKeySet) {
-		hashMap.keySet(targetKeySet);
-	}
+    @Override
+    public ISet<K> keySet() {
+        return hashMap.keySet();
+    }
 
-	@Override
-	public IList<K> keyList() {
-		return hashMap.keyList();
-	}
+    @Override
+    public void keySet(Collection<K> targetKeySet) {
+        hashMap.keySet(targetKeySet);
+    }
 
-	@Override
-	public V[] toArray(Class<V> arrayType) {
-		return hashMap.toArray(arrayType);
-	}
+    @Override
+    public IList<K> keyList() {
+        return hashMap.keyList();
+    }
 
-	@Override
-	public IList<V> values() {
-		return hashMap.values();
-	}
+    @Override
+    public V[] toArray(Class<V> arrayType) {
+        return hashMap.toArray(arrayType);
+    }
 
-	@Override
-	public boolean putIfNotExists(K key, V value) {
-		throw new UnsupportedOperationException();
-	}
+    @Override
+    public V[] toArray(V[] targetArray) {
+        return hashMap.toArray(targetArray);
+    }
 
-	@Override
-	public boolean removeIfValue(K key, V value) {
-		throw new UnsupportedOperationException();
-	}
+    @Override
+    public V[] toArray(IntFunction<V[]> generator) {
+        return hashMap.toArray(generator);
+    }
+
+    @Override
+    public IList<V> values() {
+        return hashMap.values();
+    }
+
+    @Override
+    public boolean putIfNotExists(K key, V value) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean removeIfValue(K key, V value) {
+        throw new UnsupportedOperationException();
+    }
 }

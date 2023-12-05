@@ -39,7 +39,6 @@ import com.koch.ambeth.security.IAuthorizationProcess;
 import com.koch.ambeth.security.ISecurityContext;
 import com.koch.ambeth.security.ISecurityContextHolder;
 import com.koch.ambeth.util.collections.ArrayList;
-import com.koch.ambeth.util.collections.IList;
 import jakarta.persistence.criteria.JoinType;
 
 import java.util.List;
@@ -62,7 +61,7 @@ public class SecurityQueryBuilderExtension implements IQueryBuilderExtension {
     protected boolean securityActive;
 
     @Override
-    public IOperand applyOnWhereClause(IServiceContext queryBeanContext, IQueryBuilderIntern<?> queryBuilder, IOperand whereClause, IList<ISqlJoin> joinClauses, QueryType queryType) {
+    public IOperand applyOnWhereClause(IServiceContext queryBeanContext, IQueryBuilderIntern<?> queryBuilder, IOperand whereClause, List<ISqlJoin> joinClauses, QueryType queryType) {
         if (!securityActive || (whereClause instanceof SqlPermissionOperand)) {
             return null;
         }
@@ -121,7 +120,7 @@ public class SecurityQueryBuilderExtension implements IQueryBuilderExtension {
     }
 
     @Override
-    public void applyOnQuery(Map<Object, Object> nameToValueMap, IList<Object> parameters, IList<String> additionalSelectColumnList) {
+    public void applyOnQuery(Map<Object, Object> nameToValueMap, List<Object> parameters, List<String> additionalSelectColumnList) {
         if (!securityActive || nameToValueMap.containsKey(SqlPermissionOperand.USER_ID_CRITERIA_NAME)) {
             // id is explicitly specified. nothing to do here
             return;

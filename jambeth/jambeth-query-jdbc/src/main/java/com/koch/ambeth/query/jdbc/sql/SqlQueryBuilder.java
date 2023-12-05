@@ -70,7 +70,6 @@ import com.koch.ambeth.util.IClassCache;
 import com.koch.ambeth.util.IParamHolder;
 import com.koch.ambeth.util.ParamChecker;
 import com.koch.ambeth.util.collections.ArrayList;
-import com.koch.ambeth.util.collections.EmptyList;
 import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.LinkedHashMap;
 import com.koch.ambeth.util.collections.LinkedHashSet;
@@ -137,7 +136,7 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
     protected IQueryBuilderExtension[] queryBuilderExtensions;
     protected IList<IOperand> groupByOperands;
     protected IList<IOperand> orderByOperands;
-    protected IOperand limitOperand;
+    protected IValueOperand limitOperand;
     protected IList<IOperand> selectOperands;
     protected ThreadLocal<String> lastPropertyPathTL;
     protected boolean disposed = false;
@@ -591,7 +590,7 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 
     @Override
     public IQueryBuilder<T> limit(IOperand operand) {
-        limitOperand = operand;
+        limitOperand = (IValueOperand) operand;
         return self;
     }
 
@@ -911,7 +910,7 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
         if (joinMap.isEmpty()) {
             return emptyJoins;
         }
-        return joinMap.toArray(ISqlJoin.class);
+        return joinMap.toArray(ISqlJoin[]::new);
     }
 
     @SuppressWarnings("unchecked")
@@ -959,21 +958,20 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 
         if (QueryType.PAGING == queryType && (orderByOperands == null || orderByOperands.isEmpty())) {
             // Default order by id ASC if nothing else is explicitly specified
-            IEntityMetaData metaData = entityMetaDataProvider.getMetaData(entityType);
+            var metaData = entityMetaDataProvider.getMetaData(entityType);
             self.orderBy(self.property(metaData.getIdMember().getName()), OrderByType.ASC);
         }
-        IValueOperand limitOperandForFramework =
-                getBeanContext().registerBean(SimpleValueOperand.class).propertyValue("ParamName", QueryConstants.LIMIT_VALUE).propertyValue("TryOnly", Boolean.TRUE).finish();
-        IValueOperand[] limitOperands = { limitOperandForFramework, (IValueOperand) limitOperand };
-        final IOperand findFirstValueLimitOperand = limitIntern(getBeanContext().registerBean(FindFirstValueOperand.class).propertyValue("operands", limitOperands).finish());
-        final IOperand[] groupByOperandArray = groupByOperands != null ? groupByOperands.toArray(new IOperand[groupByOperands.size()]) : emptyOperands;
-        final IOperand[] orderByOperandArray = orderByOperands != null ? orderByOperands.toArray(new IOperand[orderByOperands.size()]) : emptyOperands;
-        final IOperand[] selectArray = selectOperands != null ? selectOperands.toArray(new IOperand[selectOperands.size()]) : emptyOperands;
-        final IList<Class<?>> relatedEntityTypesList = relatedEntityTypes.toList();
+        var limitOperandForFramework = getBeanContext().registerBean(SimpleValueOperand.class).propertyValue("ParamName", QueryConstants.LIMIT_VALUE).propertyValue("TryOnly", Boolean.TRUE).finish();
+        IValueOperand[] limitOperands = { limitOperandForFramework, limitOperand };
+        var findFirstValueLimitOperand = limitIntern(getBeanContext().registerBean(FindFirstValueOperand.class).propertyValue(FindFirstValueOperand.P_OPERANDS, limitOperands).finish());
+        var groupByOperandArray = groupByOperands != null ? groupByOperands.toArray(IOperand[]::new) : emptyOperands;
+        var orderByOperandArray = orderByOperands != null ? orderByOperands.toArray(IOperand[]::new) : emptyOperands;
+        var selectArray = selectOperands != null ? selectOperands.toArray(IOperand[]::new) : emptyOperands;
+        var relatedEntityTypesList = relatedEntityTypes.toList();
 
-        IServiceContext beanContext = getBeanContext();
+        var beanContext = getBeanContext();
 
-        IList<ISqlJoin> allJoinClauses = new ArrayList<>(joinClauses);
+        List<ISqlJoin> allJoinClauses = new ArrayList<>(joinClauses);
         for (IQueryBuilderExtension queryBuilderExtension : queryBuilderExtensions) {
             IOperand extensionWhereClause = queryBuilderExtension.applyOnWhereClause(beanContext, self, whereClause, allJoinClauses, queryType);
             if (extensionWhereClause == null) {
@@ -982,50 +980,50 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
             whereClause = extensionWhereClause;
         }
         if (allJoinClauses.isEmpty()) {
-            allJoinClauses = EmptyList.getInstance();
+            allJoinClauses = List.of();
         }
         for (int i = 0; i < allJoinClauses.size(); i++) {
             ((SqlJoinOperator) allJoinClauses.get(i)).setTableAlias(tableAliasProvider.getNextJoinAlias());
         }
-        StringQuery stringQuery = beanContext.registerBean(StringQuery.class)//
-                                             .propertyValue(StringQuery.P_ENTITY_TYPE, SqlQueryBuilder.this.entityType)//
-                                             .propertyValue(StringQuery.P_JOIN_CLAUSES, joinClauses)//
-                                             .propertyValue(StringQuery.P_ALL_JOIN_CLAUSES, allJoinClauses.toArray(ISqlJoin.class))//
-                                             .propertyValue("RootOperand", whereClause).finish();
+        var stringQuery = beanContext.registerBean(StringQuery.class)//
+                                     .propertyValue(StringQuery.P_ENTITY_TYPE, SqlQueryBuilder.this.entityType)//
+                                     .propertyValue(StringQuery.P_JOIN_CLAUSES, joinClauses)//
+                                     .propertyValue(StringQuery.P_ALL_JOIN_CLAUSES, allJoinClauses.toArray(ISqlJoin[]::new))//
+                                     .propertyValue(StringQuery.P_ROOT_OPERAND, whereClause).finish();
 
-        IBeanRuntime<QueryDelegate> queryDelegateR = beanContext.registerBean(QueryDelegate.class);
+        var queryDelegateR = beanContext.registerBean(QueryDelegate.class);
 
-        IBeanRuntime<Query> query = beanContext.registerBean(Query.class)//
-                                               .propertyValue("EntityType", entityType)//
-                                               .propertyValue("StringQuery", stringQuery)//
-                                               .propertyValue("TransactionalQuery", queryDelegateR.getInstance())//
-                                               .propertyValue("GroupByOperands", groupByOperandArray)//
-                                               .propertyValue("OrderByOperands", orderByOperandArray)//
-                                               .propertyValue("LimitOperand", findFirstValueLimitOperand)//
-                                               .propertyValue("QueryBuilderExtensions", queryBuilderExtensions)//
-                                               .propertyValue("RelatedEntityTypes", relatedEntityTypesList)//
-                                               .propertyValue("SelectOperands", selectArray)//
-                                               .propertyValue("TableAliasHolder", tableAliasHolder)//
-                                               .propertyValue("ContainsSubQuery", !subQueries.isEmpty())//
-                                               .propertyValue("RootOperand", whereClause);
+        var query = beanContext.registerBean(Query.class)//
+                               .propertyValue("EntityType", entityType)//
+                               .propertyValue("StringQuery", stringQuery)//
+                               .propertyValue("TransactionalQuery", queryDelegateR.getInstance())//
+                               .propertyValue("GroupByOperands", groupByOperandArray)//
+                               .propertyValue("OrderByOperands", orderByOperandArray)//
+                               .propertyValue("LimitOperand", findFirstValueLimitOperand)//
+                               .propertyValue("QueryBuilderExtensions", queryBuilderExtensions)//
+                               .propertyValue("RelatedEntityTypes", relatedEntityTypesList)//
+                               .propertyValue("SelectOperands", selectArray)//
+                               .propertyValue("TableAliasHolder", tableAliasHolder)//
+                               .propertyValue("ContainsSubQuery", !subQueries.isEmpty())//
+                               .propertyValue("RootOperand", whereClause);
 
-        IQuery<T> queryInstance = query.getInstance();
+        var queryInstance = query.getInstance();
         ISubQuery<T> proxiedQuery = query.finish();
 
-        QueryDelegate<T> queryDelegate = queryDelegateR//
-                                                       .propertyValue("Query", queryInstance)//
-                                                       .propertyValue("QueryIntern", queryInstance)//
-                                                       .propertyValue("TransactionalQuery", proxiedQuery).finish();
+        var queryDelegate = queryDelegateR//
+                                          .propertyValue("Query", queryInstance)//
+                                          .propertyValue("QueryIntern", queryInstance)//
+                                          .propertyValue("TransactionalQuery", proxiedQuery).finish();
 
         switch (queryType) {
             case PAGING: {
-                PagingQuery<T> pagingQuery = beanContext.registerBean(PagingQuery.class)//
-                                                        .propertyValue("Query", queryDelegate)//
-                                                        .finish();
+                IPagingQuery<T> pagingQuery = beanContext.registerBean(PagingQuery.class)//
+                                                         .propertyValue("Query", queryDelegate)//
+                                                         .finish();
                 return garbageProxyFactory.createGarbageProxy(pagingQuery, IPagingQuery.class);
             }
             case SUBQUERY: {
-                SubQuery<T> realSubQuery = new SubQuery<>(proxiedQuery, joinClauses, subQueries.toArray(SqlSubselectOperand.class));
+                var realSubQuery = new SubQuery<>(proxiedQuery, joinClauses, subQueries.toArray(SqlSubselectOperand[]::new));
                 return garbageProxyFactory.createGarbageProxy(realSubQuery, ISubQuery.class, ISubQueryIntern.class);
             }
             case DEFAULT: {
@@ -1044,7 +1042,7 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
         if (propertyProxy instanceof CharSequence) {
             return property(propertyProxy.toString());
         }
-        String propertyPath = QueryBuilderProxyInterceptor.getPropertyPath(propertyProxy, lastPropertyPathTL);
+        var propertyPath = QueryBuilderProxyInterceptor.getPropertyPath(propertyProxy, lastPropertyPathTL);
         return property(propertyPath);
     }
 

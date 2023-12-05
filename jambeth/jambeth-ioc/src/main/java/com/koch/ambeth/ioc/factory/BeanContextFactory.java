@@ -513,9 +513,9 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
             contextName = "c";
         }
         if (parent != null) {
-            return parent.getName() + "/" + contextName + " " + uniqueIdentifier;
+            return parent.getName() + "/" + contextName + " " + Integer.toHexString(uniqueIdentifier);
         }
-        return contextName + " " + uniqueIdentifier;
+        return contextName + " " + Integer.toHexString(uniqueIdentifier);
     }
 
     public IServiceContext create(String contextName, CheckedConsumer<IBeanContextFactory> registerPhaseDelegate, List<IBeanInstantiationProcessor> instantiationProcessors,

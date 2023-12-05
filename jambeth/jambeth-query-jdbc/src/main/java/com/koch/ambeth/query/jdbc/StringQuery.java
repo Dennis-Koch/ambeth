@@ -39,6 +39,8 @@ public class StringQuery implements IStringQuery, IInitializingBean {
 
     public static final String P_JOIN_CLAUSES = "JoinClauses";
 
+    public static final String P_ROOT_OPERAND = "RootOperand";
+
     @Autowired
     protected IThreadLocalObjectCollector objectCollector;
 

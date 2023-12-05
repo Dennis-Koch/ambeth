@@ -294,11 +294,6 @@ public interface IServiceContext extends IDisposable, ILinkRuntimeExtendable, Au
 
     @Override
     default void toString(StringBuilder sb) {
-        var parent = getParent();
-        if (parent != null) {
-            parent.toString(sb);
-            sb.append('/');
-        }
         sb.append(getName());
     }
 }

@@ -20,8 +20,6 @@ limitations under the License.
  * #L%
  */
 
-import java.util.List;
-
 import com.koch.ambeth.cache.Cached;
 import com.koch.ambeth.filter.IFilterDescriptor;
 import com.koch.ambeth.filter.IPagingRequest;
@@ -31,26 +29,25 @@ import com.koch.ambeth.service.proxy.Service;
 import com.koch.ambeth.util.annotation.Find;
 import com.koch.ambeth.util.annotation.QueryResultType;
 
+import java.util.List;
+
 @Service(IEntityBService.class)
 public interface IEntityBService {
-	@Cached
-	Entity retrieve(int id);
+    @Cached
+    Entity retrieve(int id);
 
-	@Cached
-	List<Entity> retrieve(List<Integer> ids);
+    @Cached
+    List<Entity> retrieve(List<Integer> ids);
 
-	IPagingResponse<Entity> findReferences(IPagingRequest pagingRequest,
-			IFilterDescriptor<Entity> filterDescriptor, ISortDescriptor[] sortDescriptors);
+    @Find
+    IPagingResponse<Entity> findReferences(IPagingRequest pagingRequest, IFilterDescriptor<Entity> filterDescriptor, ISortDescriptor[] sortDescriptors);
 
-	@Find(resultType = QueryResultType.REFERENCES, referenceIdName = Entity.ALTERNATE_ID)
-	IPagingResponse<Entity> findReferencesAlternate(IPagingRequest pagingRequest,
-			IFilterDescriptor<Entity> filterDescriptor, ISortDescriptor[] sortDescriptors);
+    @Find(resultType = QueryResultType.REFERENCES, referenceIdName = Entity.ALTERNATE_ID)
+    IPagingResponse<Entity> findReferencesAlternate(IPagingRequest pagingRequest, IFilterDescriptor<Entity> filterDescriptor, ISortDescriptor[] sortDescriptors);
 
-	@Find(resultType = QueryResultType.ENTITIES)
-	IPagingResponse<Entity> findEntities(IPagingRequest pagingRequest,
-			IFilterDescriptor<Entity> filterDescriptor, ISortDescriptor[] sortDescriptors);
+    @Find(resultType = QueryResultType.ENTITIES)
+    IPagingResponse<Entity> findEntities(IPagingRequest pagingRequest, IFilterDescriptor<Entity> filterDescriptor, ISortDescriptor[] sortDescriptors);
 
-	@Find(resultType = QueryResultType.BOTH)
-	IPagingResponse<Entity> findBoth(IPagingRequest pagingRequest,
-			IFilterDescriptor<Entity> filterDescriptor, ISortDescriptor[] sortDescriptors);
+    @Find(resultType = QueryResultType.BOTH)
+    IPagingResponse<Entity> findBoth(IPagingRequest pagingRequest, IFilterDescriptor<Entity> filterDescriptor, ISortDescriptor[] sortDescriptors);
 }

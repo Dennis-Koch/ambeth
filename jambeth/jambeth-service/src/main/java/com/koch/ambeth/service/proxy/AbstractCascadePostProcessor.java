@@ -37,7 +37,6 @@ import com.koch.ambeth.util.proxy.IProxyFactory;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
-import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Set;
 
@@ -121,7 +120,7 @@ public abstract class AbstractCascadePostProcessor implements IBeanPostProcessor
     public IMethodLevelBehavior<Annotation> createInterceptorModeBehavior(Class<?> beanType) {
         var methodToAnnotationMap = new MethodLevelHashMap<Annotation>();
         var methods = ReflectUtil.getMethods(beanType);
-        for (Method method : methods) {
+        for (var method : methods) {
             var annotation = lookForAnnotation(method);
             if (annotation != null) {
                 methodToAnnotationMap.put(method.getName(), method.getParameterTypes(), annotation);

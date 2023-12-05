@@ -20,10 +20,6 @@ limitations under the License.
  * #L%
  */
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.AnnotatedElement;
-import java.util.Set;
-
 import com.koch.ambeth.ioc.IOrderedBeanProcessor;
 import com.koch.ambeth.ioc.IServiceContext;
 import com.koch.ambeth.ioc.ProcessorOrder;
@@ -31,7 +27,6 @@ import com.koch.ambeth.ioc.config.IBeanConfiguration;
 import com.koch.ambeth.ioc.factory.IBeanContextFactory;
 import com.koch.ambeth.merge.interceptor.MergeInterceptor;
 import com.koch.ambeth.service.proxy.AbstractCascadePostProcessor;
-import com.koch.ambeth.service.proxy.IMethodLevelBehavior;
 import com.koch.ambeth.util.annotation.AnnotationCache;
 import com.koch.ambeth.util.annotation.Find;
 import com.koch.ambeth.util.annotation.Merge;
@@ -39,67 +34,62 @@ import com.koch.ambeth.util.annotation.NoProxy;
 import com.koch.ambeth.util.annotation.Remove;
 import com.koch.ambeth.util.proxy.ICascadedInterceptor;
 
-public class MergePostProcessor extends AbstractCascadePostProcessor
-		implements IOrderedBeanProcessor {
-	protected final AnnotationCache<MergeContext> mergeContextCache = new AnnotationCache<MergeContext>(
-			MergeContext.class) {
-		@Override
-		protected boolean annotationEquals(MergeContext left, MergeContext right) {
-			return true;
-		}
-	};
+import java.lang.annotation.Annotation;
+import java.lang.reflect.AnnotatedElement;
+import java.util.Set;
 
-	@Override
-	public ProcessorOrder getOrder() {
-		return ProcessorOrder.HIGH;
-	}
+public class MergePostProcessor extends AbstractCascadePostProcessor implements IOrderedBeanProcessor {
+    protected final AnnotationCache<MergeContext> mergeContextCache = new AnnotationCache<MergeContext>(MergeContext.class) {
+        @Override
+        protected boolean annotationEquals(MergeContext left, MergeContext right) {
+            return true;
+        }
+    };
 
-	@Override
-	protected ICascadedInterceptor handleServiceIntern(IBeanContextFactory beanContextFactory,
-			IServiceContext beanContext, IBeanConfiguration beanConfiguration, Class<?> type,
-			Set<Class<?>> requestedTypes) {
-		MergeContext mergeContext = mergeContextCache.getAnnotation(type);
-		if (mergeContext == null) {
-			return null;
-		}
-		IMethodLevelBehavior<Annotation> behavior = createInterceptorModeBehavior(type);
+    @Override
+    public ProcessorOrder getOrder() {
+        return ProcessorOrder.HIGH;
+    }
 
-		MergeInterceptor mergeInterceptor = new MergeInterceptor();
-		if (beanContext.isRunning()) {
-			return beanContext.registerWithLifecycle(mergeInterceptor)//
-					.propertyValue(MergeInterceptor.BEHAVIOR_PROP, behavior)//
-					.ignoreProperties(MergeInterceptor.SERVICE_NAME_PROP)//
-					.finish();
-		}
-		beanContextFactory.registerWithLifecycle(mergeInterceptor)//
-				.propertyValue(MergeInterceptor.BEHAVIOR_PROP, behavior)//
-				.ignoreProperties(MergeInterceptor.SERVICE_NAME_PROP);
-		return mergeInterceptor;
-	}
+    @Override
+    protected ICascadedInterceptor handleServiceIntern(IBeanContextFactory beanContextFactory, IServiceContext beanContext, IBeanConfiguration beanConfiguration, Class<?> type,
+            Set<Class<?>> requestedTypes) {
+        var mergeContext = mergeContextCache.getAnnotation(type);
+        if (mergeContext == null) {
+            return null;
+        }
+        var behavior = createInterceptorModeBehavior(type);
 
-	@Override
-	protected Annotation lookForAnnotation(AnnotatedElement member) {
-		Annotation annotation = super.lookForAnnotation(member);
-		if (annotation != null) {
-			return annotation;
-		}
-		NoProxy noProxy = member.getAnnotation(NoProxy.class);
-		if (noProxy != null) {
-			return noProxy;
-		}
-		com.koch.ambeth.util.annotation.Process process = member
-				.getAnnotation(com.koch.ambeth.util.annotation.Process.class);
-		if (process != null) {
-			return process;
-		}
-		Find find = member.getAnnotation(Find.class);
-		if (find != null) {
-			return find;
-		}
-		Merge merge = member.getAnnotation(Merge.class);
-		if (merge != null) {
-			return merge;
-		}
-		return member.getAnnotation(Remove.class);
-	}
+        var mergeInterceptor = new MergeInterceptor();
+        if (beanContext.isRunning()) {
+            return beanContext.registerWithLifecycle(mergeInterceptor).propertyValue(MergeInterceptor.BEHAVIOR_PROP, behavior).ignoreProperties(MergeInterceptor.SERVICE_NAME_PROP).finish();
+        }
+        beanContextFactory.registerWithLifecycle(mergeInterceptor).propertyValue(MergeInterceptor.BEHAVIOR_PROP, behavior).ignoreProperties(MergeInterceptor.SERVICE_NAME_PROP);
+        return mergeInterceptor;
+    }
+
+    @Override
+    protected Annotation lookForAnnotation(AnnotatedElement member) {
+        var annotation = super.lookForAnnotation(member);
+        if (annotation != null) {
+            return annotation;
+        }
+        var noProxy = member.getAnnotation(NoProxy.class);
+        if (noProxy != null) {
+            return noProxy;
+        }
+        var process = member.getAnnotation(com.koch.ambeth.util.annotation.Process.class);
+        if (process != null) {
+            return process;
+        }
+        var find = member.getAnnotation(Find.class);
+        if (find != null) {
+            return find;
+        }
+        var merge = member.getAnnotation(Merge.class);
+        if (merge != null) {
+            return merge;
+        }
+        return member.getAnnotation(Remove.class);
+    }
 }

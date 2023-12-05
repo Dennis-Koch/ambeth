@@ -86,7 +86,7 @@ public class FilterToQueryBuilder implements IFilterToQueryBuilder {
         if (sortDescriptors != null) {
             for (int a = 0, size = sortDescriptors.length; a < size; a++) {
                 var sortDescriptor = sortDescriptors[a];
-                SortDirection sortDirection = sortDescriptor.getSortDirection();
+                var sortDirection = sortDescriptor.getSortDirection();
 
                 var sortOperand = queryBuilder.property(sortDescriptor.getMember());
                 switch (sortDirection) {

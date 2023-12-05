@@ -23,6 +23,7 @@ limitations under the License.
 import java.util.Collection;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.function.IntFunction;
 
 /**
  * Interface for Ambeth map implementation. Overrides methods from java.util.Map to be comparable
@@ -32,44 +33,50 @@ import java.util.Map.Entry;
  * @param <V> Value type
  */
 public interface IMap<K, V> extends Map<K, V>, Iterable<Entry<K, V>> {
-	@Override
-	void clear();
+    @Override
+    void clear();
 
-	@Override
-	boolean containsKey(Object key);
+    @Override
+    boolean containsKey(Object key);
 
-	@Override
-	ISet<Entry<K, V>> entrySet();
+    @Override
+    ISet<Entry<K, V>> entrySet();
 
-	void entrySet(ISet<Entry<K, V>> targetEntrySet);
+    void entrySet(ISet<Entry<K, V>> targetEntrySet);
 
-	@Override
-	V get(Object key);
+    @Override
+    V get(Object key);
 
-	@Override
-	boolean isEmpty();
+    @Override
+    boolean isEmpty();
 
-	@Override
-	ISet<K> keySet();
+    @Override
+    ISet<K> keySet();
 
-	void keySet(Collection<K> targetKeySet);
+    void keySet(Collection<K> targetKeySet);
 
-	IList<K> keyList();
+    IList<K> keyList();
 
-	@Override
-	V put(K key, V value);
+    @Override
+    V put(K key, V value);
 
-	@Override
-	V remove(Object key);
+    @Override
+    V remove(Object key);
 
-	@Override
-	IList<V> values();
+    @Override
+    IList<V> values();
 
-	K getKey(K key);
+    K getKey(K key);
 
-	boolean putIfNotExists(K key, V value);
+    boolean putIfNotExists(K key, V value);
 
-	boolean removeIfValue(K key, V value);
+    boolean removeIfValue(K key, V value);
 
-	V[] toArray(Class<V> arrayType);
+    V[] toArray(Class<V> arrayType);
+
+    V[] toArray(V[] targetArray);
+
+    default V[] toArray(IntFunction<V[]> generator) {
+        return toArray(generator.apply(size()));
+    }
 }

@@ -107,7 +107,7 @@ public class ServiceContext implements IServiceContext, IServiceContextIntern, I
 
         this.objectCollector = objectCollector;
 
-        ReadWriteLock rwLock = new ReadWriteLock();
+        var rwLock = new ReadWriteLock();
         readLock = rwLock.getReadLock();
         writeLock = rwLock.getWriteLock();
 
@@ -126,7 +126,7 @@ public class ServiceContext implements IServiceContext, IServiceContextIntern, I
 
         ParamChecker.assertNotNull(objectCollector, "objectCollector");
 
-        ReadWriteLock rwLock = new ReadWriteLock();
+        var rwLock = new ReadWriteLock();
         readLock = rwLock.getReadLock();
         writeLock = rwLock.getWriteLock();
 
@@ -731,9 +731,9 @@ public class ServiceContext implements IServiceContext, IServiceContextIntern, I
             try {
                 Object factoryResult = ((IFactoryBean) service).getObject();
                 if (factoryResult == null) {
-                    throw new IllegalStateException("Anonymous factory bean of type " + service.getClass()
-                                                                                               .getName() + " returned null for service type " + serviceType.getName() + ". Possibly a cyclic " +
-                            "relationship from the factory to its cascaded dependencies and back");
+                    throw new IllegalStateException(
+                            "Anonymous factory bean of type " + service.getClass().getName() + " returned null for service type " + serviceType.getName() + ". Possibly a cyclic " +
+                                    "relationship from the factory to its cascaded dependencies and back");
                 }
                 service = factoryResult;
             } catch (Exception e) {
@@ -802,8 +802,9 @@ public class ServiceContext implements IServiceContext, IServiceContextIntern, I
             try {
                 Object factoryResult = ((IFactoryBean) service).getObject();
                 if (factoryResult == null) {
-                    throw new BeanContextInitException("Factory bean '" + serviceName + "' of type " + service.getClass()
-                                                                                                              .getName() + " returned null for service type " + serviceType.getName() + ". Possibly " + "a" + " cyclic relationship from the factory to its cascaded dependencies and back");
+                    throw new BeanContextInitException(
+                            "Factory bean '" + serviceName + "' of type " + service.getClass().getName() + " returned null for service type " + serviceType.getName() + ". Possibly " + "a" +
+                                    " cyclic relationship from the factory to its cascaded dependencies and back");
                 }
                 service = factoryResult;
             } catch (Exception e) {

@@ -20,30 +20,35 @@ limitations under the License.
  * #L%
  */
 
-import java.util.Map;
-
+import com.koch.ambeth.ioc.config.Property;
 import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.query.IOperand;
 import com.koch.ambeth.query.IValueOperand;
 import com.koch.ambeth.util.appendable.IAppendable;
 import com.koch.ambeth.util.collections.IList;
-import com.koch.ambeth.util.collections.IMap;
+
+import java.util.Map;
 
 public class FindFirstValueOperand implements IValueOperand, IOperand {
+    public static final String P_OPERANDS = "Operands";
+
+    @Property
     protected IValueOperand[] operands;
+
     @LogInstance
     private ILogger log;
 
     @Override
     public Object getValue(Map<Object, Object> nameToValueMap) {
+        var operands = this.operands;
         if (operands == null) {
             return null;
         }
         for (int i = 0; i < operands.length; i++) {
-            IValueOperand operand = operands[i];
+            var operand = operands[i];
             if (operand != null) {
-                Object value = operand.getValue(nameToValueMap);
+                var value = operand.getValue(nameToValueMap);
                 if (value != null) {
                     return value;
                 }
