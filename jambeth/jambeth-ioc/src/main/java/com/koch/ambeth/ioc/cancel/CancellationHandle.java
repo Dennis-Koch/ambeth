@@ -27,6 +27,7 @@ import com.koch.ambeth.util.function.CheckedRunnable;
 import com.koch.ambeth.util.function.CheckedSupplier;
 import com.koch.ambeth.util.state.IStateRollback;
 import com.koch.ambeth.util.state.StateRollback;
+import lombok.SneakyThrows;
 
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -97,11 +98,12 @@ public class CancellationHandle implements ICancellationHandle {
         cancellation.cancelledTL.set(null);
     }
 
+    @SneakyThrows
     @Override
     public <V> void withCancellationAwareness(CheckedConsumer<V> consumer, V state) {
         var rollback = addOwningThread();
         try {
-            CheckedConsumer.invoke(consumer, state);
+            consumer.accept(state);
         } finally {
             rollback.rollback();
         }
@@ -127,11 +129,12 @@ public class CancellationHandle implements ICancellationHandle {
         }
     }
 
+    @SneakyThrows
     @Override
     public <R, V> R withCancellationAwareness(CheckedFunction<V, R> function, V state) {
         var rollback = addOwningThread();
         try {
-            return CheckedFunction.invoke(function, state);
+            return function.apply(state);
         } finally {
             rollback.rollback();
         }

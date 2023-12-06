@@ -35,11 +35,11 @@ public class ParallelRunnable<V> extends AbstractParallelRunnable<V> {
     }
 
     @Override
-    protected void runIntern(V item) {
+    protected void runIntern(V item) throws Exception {
         if (buildThreadLocals) {
             forkState.use(run, item);
         } else {
-            CheckedConsumer.invoke(run, item);
+            run.accept(item);
         }
     }
 }

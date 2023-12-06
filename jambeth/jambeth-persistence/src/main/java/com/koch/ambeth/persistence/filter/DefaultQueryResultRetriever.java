@@ -27,7 +27,9 @@ import com.koch.ambeth.query.IQueryIntern;
 import com.koch.ambeth.query.filter.IQueryResultCacheItem;
 import com.koch.ambeth.query.filter.IQueryResultRetriever;
 import com.koch.ambeth.service.merge.IEntityMetaDataProvider;
+import com.koch.ambeth.util.Arrays;
 import com.koch.ambeth.util.IConversionHelper;
+import com.koch.ambeth.util.IPreparedConverter;
 import com.koch.ambeth.util.WrapperTypeSet;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.IMap;
@@ -77,24 +79,27 @@ public class DefaultQueryResultRetriever implements IQueryResultRetriever {
             var alternateIdMembers = metaData.getAlternateIdMembers();
             var length = alternateIdMembers.length + 1;
 
-            var idLists = new ArrayList[length];
+            var totalSize = query.count(currentNameToValueMap);
+            var versionList = new ArrayList<>((int) totalSize);
             var versionType = metaData.getVersionMember() != null ? metaData.getVersionMember().getRealType() : null;
-            var idTypes = new Class[length];
+            var cacheVersionConverter = versionType != null ? conversionHelper.prepareConverter(versionType) : null;
+            var cacheIdLists = new ArrayList[length];
+            var cacheIdTypes = new Class[length];
+            var cacheIdConverters = new IPreparedConverter[length];
             for (int a = length; a-- > 0; ) {
-                idLists[a] = new ArrayList<>();
-                idTypes[a] = metaData.getIdMemberByIdIndex((byte) (a - 1)).getRealType();
+                cacheIdLists[a] = new ArrayList<>((int) totalSize);
+                cacheIdTypes[a] = metaData.getIdMemberByIdIndex(a - 1).getRealType();
+                cacheIdConverters[a] = conversionHelper.prepareConverter(cacheIdTypes[a]);
             }
-            var versionList = new ArrayList<>();
-            long totalSize = query.count(currentNameToValueMap);
             if (size != 0) {
                 var versionCursor = query.retrieveAsVersions(currentNameToValueMap, true);
                 try {
                     for (var versionItem : versionCursor) {
-                        for (int idIndex = length; idIndex-- > 0; ) {
-                            var id = conversionHelper.convertValueToType(idTypes[idIndex], versionItem.getId((byte) (idIndex - 1)));
-                            idLists[idIndex].add(id);
+                        for (var idIndex = length; idIndex-- > 0; ) {
+                            var id = cacheIdConverters[idIndex].convertValue(versionItem.getId(idIndex - 1), null);
+                            cacheIdLists[idIndex].add(id);
                         }
-                        var version = versionType != null ? conversionHelper.convertValueToType(versionType, versionItem.getVersion()) : null;
+                        var version = cacheVersionConverter != null ? cacheVersionConverter.convertValue(versionItem.getVersion(), null) : null;
                         versionList.add(version);
                     }
                 } finally {
@@ -103,14 +108,14 @@ public class DefaultQueryResultRetriever implements IQueryResultRetriever {
             }
             var idArrays = new Object[length];
             for (int a = length; a-- > 0; ) {
-                idArrays[a] = convertListToArray(idLists[a], idTypes[a]);
+                idArrays[a] = convertListToArray(cacheIdLists[a], cacheIdTypes[a]);
             }
             var versionArray = versionType != null ? convertListToArray(versionList, versionType) : null;
-            return new QueryResultCacheItem(entityType, totalSize, idLists[0].size(), idArrays, versionArray);
+            return new QueryResultCacheItem(entityType, totalSize, cacheIdLists[0].size(), idArrays, versionArray);
         });
     }
 
-    protected Object convertListToArray(List<Object> list, Class<?> expectedItemType) {
+    protected Object convertListToArray(List<?> list, Class<?> expectedItemType) {
         if (expectedItemType != null) {
             var unwrappedType = WrapperTypeSet.getUnwrappedType(expectedItemType);
             if (unwrappedType != null) {
@@ -118,11 +123,12 @@ public class DefaultQueryResultRetriever implements IQueryResultRetriever {
             }
         }
         if (expectedItemType == null) {
-            return list.toArray(new Object[list.size()]);
+            return list.toArray(Object[]::new);
         }
         var array = Array.newInstance(expectedItemType, list.size());
+        var preparedArraySet = Arrays.prepareSet(array);
         for (int a = list.size(); a-- > 0; ) {
-            Array.set(array, a, list.get(a));
+            preparedArraySet.set(a, list.get(a));
         }
         return array;
     }

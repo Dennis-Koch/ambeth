@@ -20,14 +20,9 @@ limitations under the License.
  * #L%
  */
 
-import com.koch.ambeth.ioc.threadlocal.IForkState;
-import com.koch.ambeth.util.ParamHolder;
-import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.function.CheckedConsumer;
-import com.koch.ambeth.util.state.IStateRollback;
 import com.koch.ambeth.util.state.StateRollback;
 
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.locks.Lock;
 
 public class ParallelRunnable<V> implements Runnable {
@@ -42,19 +37,19 @@ public class ParallelRunnable<V> implements Runnable {
 
     @Override
     public void run() {
-        IStateRollback rollback = StateRollback.empty();
+        var rollback = StateRollback.empty();
         if (buildThreadLocals) {
             rollback = runnableHandle.threadLocalCleanupController.pushThreadLocalState();
         }
         try {
-            final Lock parallelLock = runnableHandle.parallelLock;
-            IList<V> items = runnableHandle.items;
-            IForkState forkState = runnableHandle.forkState;
-            ParamHolder<Throwable> exHolder = runnableHandle.exHolder;
-            CountDownLatch latch = runnableHandle.latch;
+            var parallelLock = runnableHandle.parallelLock;
+            var items = runnableHandle.items;
+            var forkState = runnableHandle.forkState;
+            var exHolder = runnableHandle.exHolder;
+            var latch = runnableHandle.latch;
 
             CheckedConsumer<V> run = state -> {
-                CheckedConsumer.invoke(runnableHandle.run, state);
+                runnableHandle.run.accept(state);
                 writeParallelResult(parallelLock, state);
             };
 
@@ -79,7 +74,7 @@ public class ParallelRunnable<V> implements Runnable {
                     if (buildThreadLocals) {
                         forkState.use(run, item);
                     } else {
-                        CheckedConsumer.invoke(run, item);
+                        run.accept(item);
                     }
                 } catch (Throwable e) {
                     parallelLock.lock();

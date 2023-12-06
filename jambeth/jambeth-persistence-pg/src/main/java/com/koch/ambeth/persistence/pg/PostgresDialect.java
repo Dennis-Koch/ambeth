@@ -46,6 +46,7 @@ import com.koch.ambeth.persistence.jdbc.sql.LimitByLimitOperator;
 import com.koch.ambeth.persistence.sql.ParamsUtil;
 import com.koch.ambeth.query.IOperand;
 import com.koch.ambeth.query.IValueOperand;
+import com.koch.ambeth.util.Arrays;
 import com.koch.ambeth.util.appendable.IAppendable;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.HashMap;
@@ -330,13 +331,14 @@ public class PostgresDialect extends AbstractConnectionDialect {
 
         var fieldIdConverter = conversionHelper.prepareConverter(fieldType);
         var javaArray = java.lang.reflect.Array.newInstance(fieldType, splittedIds.size());
+        var preparedArraySet = Arrays.prepareSet(javaArray);
         var index = 0;
         for (var id : splittedIds) {
             if (idDecompositor != null) {
                 id = idDecompositor.apply(id);
             }
             var value = fieldIdConverter.convertValue(id, null);
-            java.lang.reflect.Array.set(javaArray, index, value);
+            preparedArraySet.set(index, value);
             index++;
         }
         var values = connectionExtension.createJDBCArray(fieldType, javaArray);

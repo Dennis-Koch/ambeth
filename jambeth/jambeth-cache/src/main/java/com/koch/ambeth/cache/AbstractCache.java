@@ -40,6 +40,7 @@ import com.koch.ambeth.service.merge.IEntityMetaDataProvider;
 import com.koch.ambeth.service.merge.model.IEntityMetaData;
 import com.koch.ambeth.service.merge.model.IObjRef;
 import com.koch.ambeth.service.metadata.Member;
+import com.koch.ambeth.util.Arrays;
 import com.koch.ambeth.util.DebugMode;
 import com.koch.ambeth.util.IConversionHelper;
 import com.koch.ambeth.util.IDisposable;
@@ -498,8 +499,9 @@ public abstract class AbstractCache<V> implements ICache, IInitializingBean, IDi
         }
         if (objectToCache.getClass().isArray()) {
             var length = Array.getLength(objectToCache);
+            var preparedArrayGet = Arrays.prepareGet(objectToCache);
             for (int a = length; a-- > 0; ) {
-                putIntern(Array.get(objectToCache, a), hardRefsToCacheValue, alreadyHandledSet, cascadeNeededORIs);
+                putIntern(preparedArrayGet.get(a), hardRefsToCacheValue, alreadyHandledSet, cascadeNeededORIs);
             }
             return;
         }

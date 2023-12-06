@@ -38,6 +38,7 @@ import com.koch.ambeth.util.state.IStateRollback;
 import com.koch.ambeth.util.state.StateRollback;
 import com.koch.ambeth.util.threading.IGuiThreadHelper;
 import com.koch.ambeth.util.threading.SensitiveThreadLocal;
+import lombok.SneakyThrows;
 
 import java.util.Collection;
 import java.util.List;
@@ -437,6 +438,7 @@ public class EventListenerRegistry
         }
     }
 
+    @SneakyThrows
     @Override
     public void waitEventToResume(final Object eventTargetToResume, final long maxWaitTime, final CheckedConsumer<IProcessResumeItem> resumeDelegate, final CheckedConsumer<Throwable> errorDelegate) {
         try {
@@ -493,7 +495,7 @@ public class EventListenerRegistry
                 log.error(e);
             }
             if (errorDelegate != null) {
-                CheckedConsumer.invoke(errorDelegate, e);
+                errorDelegate.accept(e);
             }
             throw RuntimeExceptionUtil.mask(e);
         }

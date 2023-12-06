@@ -25,6 +25,7 @@ import com.koch.ambeth.persistence.api.sql.ISqlBuilder;
 import com.koch.ambeth.query.IOperand;
 import com.koch.ambeth.query.OperandConstants;
 import com.koch.ambeth.service.merge.IEntityMetaDataProvider;
+import com.koch.ambeth.util.Arrays;
 import com.koch.ambeth.util.appendable.IAppendable;
 
 import java.lang.reflect.Array;
@@ -79,8 +80,9 @@ public final class ListToSqlUtil {
             }
         } else if (value != null && value.getClass().isArray()) {
             var size = Array.getLength(value);
+            var preparedArrayGet = Arrays.prepareGet(value);
             for (int a = 0; a < size; a++) {
-                var item = Array.get(value, a);
+                var item = preparedArrayGet.get(a);
                 if (a > 0) {
                     querySB.append(',');
                 }
@@ -122,8 +124,9 @@ public final class ListToSqlUtil {
             }
         } else if (value != null && value.getClass().isArray()) {
             var size = Array.getLength(value);
+            var preparedArrayGet = Arrays.prepareGet(value);
             for (int a = 0; a < size; a++) {
-                var item = Array.get(value, a);
+                var item = preparedArrayGet.get(a);
                 extractValueList(item, items, propertyName);
             }
         } else {

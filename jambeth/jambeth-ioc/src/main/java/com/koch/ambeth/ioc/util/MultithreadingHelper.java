@@ -13,6 +13,7 @@ import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.function.CheckedConsumer;
 import com.koch.ambeth.util.function.CheckedFunction;
+import lombok.SneakyThrows;
 import lombok.Value;
 
 import java.util.List;
@@ -96,6 +97,7 @@ public class MultithreadingHelper implements IMultithreadingHelper {
         return transparentParallelizationActive && executor != null;
     }
 
+    @SneakyThrows
     @Override
     public <R, V> void invokeAndWait(List<V> items, CheckedFunction<V, R> itemHandler, IAggregrateResultHandler<R, V> aggregateResultHandler) {
         if (items.isEmpty()) {
@@ -103,24 +105,24 @@ public class MultithreadingHelper implements IMultithreadingHelper {
         }
         if (!isMultiThreadingAllowed() || items.size() == 1) {
             for (int a = items.size(); a-- > 0; ) {
-                V item = items.get(a);
-                R result = CheckedFunction.invoke(itemHandler, item);
+                var item = items.get(a);
+                var result = itemHandler.apply(item);
                 if (aggregateResultHandler != null) {
                     aggregateResultHandler.aggregateResult(result, item);
                 }
             }
             return;
         }
-        ResultingRunnableHandle<R, V> runnableHandle =
-                new ResultingRunnableHandle<>(new CancellationCheckResultingBackgroundWorker<>(itemHandler), aggregateResultHandler, new ArrayList<>(items), threadLocalCleanupController);
+        var runnableHandle = new ResultingRunnableHandle<>(new CancellationCheckResultingBackgroundWorker<>(itemHandler), aggregateResultHandler, new ArrayList<>(items), threadLocalCleanupController);
 
-        Runnable parallelRunnable = new ResultingParallelRunnable<>(runnableHandle, true);
-        Runnable mainRunnable = new ResultingParallelRunnable<>(runnableHandle, false);
+        var parallelRunnable = new ResultingParallelRunnable<>(runnableHandle, true);
+        var mainRunnable = new ResultingParallelRunnable<>(runnableHandle, false);
 
         queueAndWait(items.size() - 1, parallelRunnable, mainRunnable, runnableHandle);
     }
 
     @SuppressWarnings("unchecked")
+    @SneakyThrows
     @Override
     public <R, K, V> void invokeAndWait(Map<K, V> items, CheckedFunction<Entry<K, V>, R> itemHandler, IAggregrateResultHandler<R, Entry<K, V>> aggregateResultHandler) {
         if (items.isEmpty()) {
@@ -128,15 +130,15 @@ public class MultithreadingHelper implements IMultithreadingHelper {
         }
         if (!isMultiThreadingAllowed() || items.size() == 1) {
             if (items instanceof Iterable) {
-                for (Entry<K, V> item : (Iterable<Entry<K, V>>) items) {
-                    R result = CheckedFunction.invoke(itemHandler, item);
+                for (var item : (Iterable<Entry<K, V>>) items) {
+                    var result = itemHandler.apply(item);
                     if (aggregateResultHandler != null) {
                         aggregateResultHandler.aggregateResult(result, item);
                     }
                 }
             } else {
-                for (Entry<K, V> item : items.entrySet()) {
-                    R result = CheckedFunction.invoke(itemHandler, item);
+                for (var item : items.entrySet()) {
+                    var result = itemHandler.apply(item);
                     if (aggregateResultHandler != null) {
                         aggregateResultHandler.aggregateResult(result, item);
                     }
@@ -163,6 +165,7 @@ public class MultithreadingHelper implements IMultithreadingHelper {
         queueAndWait(items.size() - 1, parallelRunnable, mainRunnable, runnableHandle);
     }
 
+    @SneakyThrows
     @Override
     public <V> void invokeAndWait(List<V> items, CheckedConsumer<V> itemHandler) {
         if (items.isEmpty()) {
@@ -170,8 +173,8 @@ public class MultithreadingHelper implements IMultithreadingHelper {
         }
         if (!isMultiThreadingAllowed() || items.size() == 1) {
             for (int a = items.size(); a-- > 0; ) {
-                V item = items.get(a);
-                CheckedConsumer.invoke(itemHandler, item);
+                var item = items.get(a);
+                itemHandler.accept(item);
             }
             return;
         }
@@ -184,6 +187,7 @@ public class MultithreadingHelper implements IMultithreadingHelper {
     }
 
     @SuppressWarnings("unchecked")
+    @SneakyThrows
     @Override
     public <K, V> void invokeAndWait(Map<K, V> items, CheckedConsumer<Entry<K, V>> itemHandler) {
         if (items.isEmpty()) {
@@ -192,11 +196,11 @@ public class MultithreadingHelper implements IMultithreadingHelper {
         if (!isMultiThreadingAllowed() || items.size() == 1) {
             if (items instanceof Iterable) {
                 for (var item : (Iterable<Entry<K, V>>) items) {
-                    CheckedConsumer.invoke(itemHandler, item);
+                    itemHandler.accept(item);
                 }
             } else {
                 for (var item : items.entrySet()) {
-                    CheckedConsumer.invoke(itemHandler, item);
+                    itemHandler.accept(item);
                 }
             }
             return;

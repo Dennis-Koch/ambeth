@@ -35,6 +35,7 @@ import com.koch.ambeth.service.merge.model.IObjRef;
 import com.koch.ambeth.service.metadata.Member;
 import com.koch.ambeth.service.proxy.IMethodLevelBehavior;
 import com.koch.ambeth.service.proxy.ServiceClient;
+import com.koch.ambeth.util.Arrays;
 import com.koch.ambeth.util.IConversionHelper;
 import com.koch.ambeth.util.annotation.Process;
 import com.koch.ambeth.util.annotation.Remove;
@@ -183,8 +184,9 @@ public class MergeInterceptor extends AbstractInterceptor {
             return;
         } else if (ids.getClass().isArray()) {
             var size = Array.getLength(ids);
+            var preparedArrayGet = Arrays.prepareGet(ids);
             for (int a = 0; a < size; a++) {
-                var id = Array.get(ids, a);
+                var id = preparedArrayGet.get(a);
                 buildObjRefs(entityType, idIndex, idType, id, objRefs);
             }
             return;
@@ -198,7 +200,8 @@ public class MergeInterceptor extends AbstractInterceptor {
         var metaData = entityMetaDataProvider.getMetaData(entityType);
         if (metaData == null) {
             throw new IllegalArgumentException(
-                    "Please specify a valid returnType for the " + annotation.getSimpleName() + " annotation on method " + method.toString() + ". The current value " + entityType.getName() + " is " + "not a valid entity");
+                    "Please specify a valid returnType for the " + annotation.getSimpleName() + " annotation on method " + method.toString() + ". The current value " + entityType.getName() + " is " +
+                            "not a valid entity");
         }
         return metaData;
     }

@@ -21,6 +21,7 @@ limitations under the License.
  */
 
 import com.koch.ambeth.ioc.IInitializingBean;
+import com.koch.ambeth.util.Arrays;
 import com.koch.ambeth.util.IConversionHelper;
 import com.koch.ambeth.util.IDedicatedConverter;
 import com.koch.ambeth.util.IDedicatedConverterExtendable;
@@ -98,18 +99,21 @@ public class DelegatingConversionHelper extends IConversionHelper implements IIn
             if (sourceValue.getClass().isArray()) {
                 // try to convert item by item of the array
                 int size = Array.getLength(sourceValue);
-                var targetValue = Array.newInstance(expectedComponentType, size);
+                var array = Array.newInstance(expectedComponentType, size);
+                var preparedArrayGet = Arrays.prepareGet(sourceValue);
+                var preparedArraySet = Arrays.prepareSet(array);
                 for (int a = size; a-- > 0; ) {
-                    var sourceItem = Array.get(sourceValue, a);
+                    var sourceItem = preparedArrayGet.get(a);
                     var targetItem = convertValueToType(expectedComponentType, sourceItem, additionalInformation);
-                    Array.set(targetValue, a, targetItem);
+                    preparedArraySet.set(a, targetItem);
                 }
-                return (T) targetValue;
+                return (T) array;
             } else {
                 // try to create an array of length=1
                 var array = Array.newInstance(expectedComponentType, 1);
+                var preparedArraySet = Arrays.prepareSet(array);
                 var targetItem = convertValueToType(expectedComponentType, sourceValue, additionalInformation);
-                Array.set(array, 0, targetItem);
+                preparedArraySet.set(0, targetItem);
                 return (T) array;
             }
         }
@@ -188,41 +192,47 @@ public class DelegatingConversionHelper extends IConversionHelper implements IIn
             if (dedicatedConverter == null) {
                 return (source, additionalInformation) -> {
                     var size = Array.getLength(source);
-                    var targetValue = Array.newInstance(expectedComponentType, size);
+                    var array = Array.newInstance(expectedComponentType, size);
+                    var preparedArrayGet = Arrays.prepareGet(source);
+                    var preparedArraySet = Arrays.prepareSet(array);
                     for (int a = size; a-- > 0; ) {
-                        var sourceItem = Array.get(source, a);
+                        var sourceItem = preparedArrayGet.get(a);
                         var targetItem = convertValueToType(expectedComponentType, sourceItem, exemplaryAdditionalInformation);
-                        Array.set(targetValue, a, targetItem);
+                        preparedArraySet.set(a, targetItem);
                     }
-                    return (T) targetValue;
+                    return (T) array;
                 };
             }
             return (source, additionalInformation) -> {
                 source = dedicatedConverter.convertValueToType(expectedType, source.getClass(), source, additionalInformation);
                 var size = Array.getLength(source);
-                var targetValue = Array.newInstance(expectedComponentType, size);
+                var array = Array.newInstance(expectedComponentType, size);
+                var preparedArrayGet = Arrays.prepareGet(source);
+                var preparedArraySet = Arrays.prepareSet(array);
                 for (int a = size; a-- > 0; ) {
-                    var sourceItem = Array.get(source, a);
+                    var sourceItem = preparedArrayGet.get(a);
                     var targetItem = convertValueToType(expectedComponentType, sourceItem, exemplaryAdditionalInformation);
-                    Array.set(targetValue, a, targetItem);
+                    preparedArraySet.set(a, targetItem);
                 }
-                return (T) targetValue;
+                return (T) array;
             };
         }
         // try to create an array of length=1
         if (dedicatedConverter == null) {
             return (source, additionalInformation) -> {
                 var array = Array.newInstance(expectedComponentType, 1);
+                var preparedArraySet = Arrays.prepareSet(array);
                 var targetItem = convertValueToType(expectedComponentType, source, additionalInformation);
-                Array.set(array, 0, targetItem);
+                preparedArraySet.set(0, targetItem);
                 return (T) array;
             };
         }
         return (source, additionalInformation) -> {
             var sourceValue = dedicatedConverter.convertValueToType(expectedType, source.getClass(), source, additionalInformation);
             var array = Array.newInstance(expectedComponentType, 1);
+            var preparedArraySet = Arrays.prepareSet(array);
             var targetItem = convertValueToType(expectedComponentType, sourceValue, additionalInformation);
-            Array.set(array, 0, targetItem);
+            preparedArraySet.set(0, targetItem);
             return (T) array;
         };
     }

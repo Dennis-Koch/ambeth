@@ -62,6 +62,7 @@ import com.koch.ambeth.service.cache.model.IObjRelationResult;
 import com.koch.ambeth.service.merge.model.IEntityMetaData;
 import com.koch.ambeth.service.merge.model.IObjRef;
 import com.koch.ambeth.service.metadata.Member;
+import com.koch.ambeth.util.Arrays;
 import com.koch.ambeth.util.ListUtil;
 import com.koch.ambeth.util.LockState;
 import com.koch.ambeth.util.ParamHolder;
@@ -813,6 +814,7 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
                 ((isPrivileged() && targetCache != null && !targetCache.isPrivileged()) || (targetCache == null && securityActivation != null && securityActivation.isFilterActivated()));
     }
 
+    @SneakyThrows
     protected IList<Object> createResult(List<IObjRef> objRefsToGet, RootCacheValue[] rootCacheValuesToGet, Set<CacheDirective> cacheDirective, ICacheIntern targetCache, boolean checkVersion,
             List<IObjRef> objRefsToLoad) {
         var loadContainerResult = cacheDirective.contains(CacheDirective.LoadContainerResult);
@@ -937,7 +939,7 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
                 var whiteListObjRefs = buildWhiteListedObjRefs(greyListObjRefs);
                 for (int a = runnables.size(); a-- > 0; ) {
                     var runnable = runnables.get(a);
-                    CheckedConsumer.invoke(runnable, whiteListObjRefs);
+                    runnable.accept(whiteListObjRefs);
                 }
             }
             return result;
@@ -1239,8 +1241,9 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
                 }
                 // Clone template to access its ITEMS by REFERENCE
                 primitiveTemplate = copyByValue(primitiveTemplate);
+                var preparedArrayGet = Arrays.prepareGet(primitiveTemplate);
                 for (int a = 0; a < length; a++) {
-                    var item = Array.get(primitiveTemplate, a);
+                    var item = preparedArrayGet.get(a);
                     primitive.add(item);
                 }
                 return primitive;

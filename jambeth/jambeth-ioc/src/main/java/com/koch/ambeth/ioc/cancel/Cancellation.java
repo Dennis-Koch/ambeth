@@ -29,6 +29,7 @@ import com.koch.ambeth.util.function.CheckedRunnable;
 import com.koch.ambeth.util.function.CheckedSupplier;
 import com.koch.ambeth.util.state.IStateRollback;
 import com.koch.ambeth.util.state.StateRollback;
+import lombok.SneakyThrows;
 
 public class Cancellation implements ICancellation, ICancellationWritable, IThreadLocalCleanupBean {
     @Forkable
@@ -41,51 +42,55 @@ public class Cancellation implements ICancellation, ICancellationWritable, IThre
 
     @Override
     public boolean isCancelled() {
-        ICancellationHandle cancellationHandle = cancelledTL.get();
+        var cancellationHandle = cancelledTL.get();
         if (cancellationHandle == null) {
             return false;
         }
         return cancellationHandle.isCancelled();
     }
 
+    @SneakyThrows
     @Override
     public <V> void withCancellationAwareness(CheckedConsumer<V> consumer, V state) {
         ensureNotCancelled();
         var cancellationHandle = cancelledTL.get();
         if (cancellationHandle == null) {
-            CheckedConsumer.invoke(consumer, state);
+            consumer.accept(state);
             return;
         }
         cancellationHandle.withCancellationAwareness(consumer, state);
     }
 
+    @SneakyThrows
     @Override
     public void withCancellationAwareness(CheckedRunnable runnable) {
         ensureNotCancelled();
         var cancellationHandle = cancelledTL.get();
         if (cancellationHandle == null) {
-            CheckedRunnable.invoke(runnable);
+            runnable.run();
         }
         cancellationHandle.withCancellationAwareness(runnable);
     }
 
 
+    @SneakyThrows
     @Override
     public <R> R withCancellationAwareness(CheckedSupplier<R> supplier) {
         ensureNotCancelled();
         var cancellationHandle = cancelledTL.get();
         if (cancellationHandle == null) {
-            return CheckedSupplier.invoke(supplier);
+            return supplier.get();
         }
         return cancellationHandle.withCancellationAwareness(supplier);
     }
 
+    @SneakyThrows
     @Override
     public <R, V> R withCancellationAwareness(CheckedFunction<V, R> function, V state) {
         ensureNotCancelled();
         var cancellationHandle = cancelledTL.get();
         if (cancellationHandle == null) {
-            return CheckedFunction.invoke(function, state);
+            return function.apply(state);
         }
         return cancellationHandle.withCancellationAwareness(function, state);
     }

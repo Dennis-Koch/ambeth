@@ -49,10 +49,8 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 
 public class DataSetup implements IDataSetup, IDatasetBuilderExtendable {
@@ -155,36 +153,38 @@ public class DataSetup implements IDataSetup, IDatasetBuilderExtendable {
             return true;
         }
         if (value.getClass().isArray()) {
-            int length = Array.getLength(value);
+            var length = Array.getLength(value);
+            var preparedArrayGet = com.koch.ambeth.util.Arrays.prepareGet(value);
+            var preparedArraySet = com.koch.ambeth.util.Arrays.prepareSet(value);
             for (int a = 0, size = length; a < size; a++) {
-                if (eraseFieldValueIfNecessary(Array.get(value, a))) {
-                    Array.set(value, a, null);
+                if (eraseFieldValueIfNecessary(preparedArrayGet.get(a))) {
+                    preparedArraySet.set(a, null);
                 }
             }
         } else if (value instanceof IMap) {
-            Iterator<? extends Entry<?, ?>> iter = ((IMap<?, ?>) value).iterator();
+            var iter = ((IMap<?, ?>) value).iterator();
             while (iter.hasNext()) {
-                Entry<?, ?> entry = iter.next();
-                Object key = entry.getKey();
-                Object entryValue = entry.getValue();
+                var entry = iter.next();
+                var key = entry.getKey();
+                var entryValue = entry.getValue();
                 if (eraseFieldValueIfNecessary(key) || eraseFieldValueIfNecessary(entryValue)) {
                     iter.remove();
                     continue;
                 }
             }
         } else if (value instanceof Map) {
-            Iterator<? extends Entry<?, ?>> iter = ((Map<?, ?>) value).entrySet().iterator();
+            var iter = ((Map<?, ?>) value).entrySet().iterator();
             while (iter.hasNext()) {
-                Entry<?, ?> entry = iter.next();
-                Object key = entry.getKey();
-                Object entryValue = entry.getValue();
+                var entry = iter.next();
+                var key = entry.getKey();
+                var entryValue = entry.getValue();
                 if (eraseFieldValueIfNecessary(key) || eraseFieldValueIfNecessary(entryValue)) {
                     iter.remove();
                     continue;
                 }
             }
         } else if (value instanceof Collection<?>) {
-            Iterator<?> iter = ((Collection<?>) value).iterator();
+            var iter = ((Collection<?>) value).iterator();
             while (iter.hasNext()) {
                 if (eraseFieldValueIfNecessary(iter.next())) {
                     iter.remove();
@@ -268,8 +268,10 @@ public class DataSetup implements IDataSetup, IDatasetBuilderExtendable {
         }
         if (value.getClass().isArray()) {
             var length = Array.getLength(value);
+            var preparedArrayGet = com.koch.ambeth.util.Arrays.prepareGet(value);
+            var preparedArraySet = com.koch.ambeth.util.Arrays.prepareSet(value);
             for (int a = 0, size = length; a < size; a++) {
-                var objRef = refreshFieldValue(Array.get(value, a), objRefs, runnables, objRefToEntityMap, isAuthenticated, cachesToClear);
+                var objRef = refreshFieldValue(preparedArrayGet.get(a), objRefs, runnables, objRefToEntityMap, isAuthenticated, cachesToClear);
                 if (objRef == null) {
                     continue;
                 }
@@ -277,7 +279,7 @@ public class DataSetup implements IDataSetup, IDatasetBuilderExtendable {
                 var index = a;
                 runnables.add(() -> {
                     var entity = objRefToEntityMap.get(objRef);
-                    Array.set(value, index, entity);
+                    preparedArraySet.set(index, entity);
                 });
             }
         } else if (value instanceof Collection<?>) {

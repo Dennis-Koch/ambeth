@@ -140,10 +140,11 @@ public class GuiThreadHelper implements IGuiThreadHelper {
         }
     }
 
+    @SneakyThrows
     @Override
     public <R, S> R invokeInGuiAndWait(final CheckedFunction<S, R> runnable, final S state) {
         if (!isGuiInitialized() || EventQueue.isDispatchThread()) {
-            return CheckedFunction.invoke(runnable, state);
+            return runnable.apply(state);
         } else {
             var ph = new ParamHolder<R>();
             try {
@@ -161,11 +162,7 @@ public class GuiThreadHelper implements IGuiThreadHelper {
     @Override
     public void invokeInGuiAndWait(final ISendOrPostCallback runnable, final Object state) {
         if (!isGuiInitialized() || EventQueue.isDispatchThread()) {
-            try {
-                runnable.invoke(state);
-            } catch (Exception e) {
-                throw RuntimeExceptionUtil.mask(e);
-            }
+            runnable.invoke(state);
         } else {
             try {
                 EventQueue.invokeAndWait(() -> {
@@ -181,10 +178,11 @@ public class GuiThreadHelper implements IGuiThreadHelper {
         }
     }
 
+    @SneakyThrows
     @Override
     public void invokeInGui(final CheckedRunnable runnable) {
         if (!isGuiInitialized() || EventQueue.isDispatchThread()) {
-            CheckedRunnable.invoke(runnable);
+            runnable.run();
         } else {
             EventQueue.invokeLater(() -> CheckedRunnable.invoke(runnable));
         }
@@ -193,11 +191,7 @@ public class GuiThreadHelper implements IGuiThreadHelper {
     @Override
     public void invokeInGui(final ISendOrPostCallback runnable, final Object state) {
         if (!isGuiInitialized() || EventQueue.isDispatchThread()) {
-            try {
-                runnable.invoke(state);
-            } catch (Exception e) {
-                throw RuntimeExceptionUtil.mask(e);
-            }
+            runnable.invoke(state);
         } else {
             EventQueue.invokeLater(() -> {
                 try {
@@ -219,10 +213,11 @@ public class GuiThreadHelper implements IGuiThreadHelper {
         invokeInGui(runnable, state);
     }
 
+    @SneakyThrows
     @Override
-    public void invokeOutOfGui(final CheckedRunnable runnable) {
+    public void invokeOutOfGui(CheckedRunnable runnable) {
         if (executor == null || !isGuiInitialized() || !EventQueue.isDispatchThread()) {
-            CheckedRunnable.invoke(runnable);
+            runnable.run();
         } else {
             executor.execute(() -> CheckedRunnable.invoke(runnable));
         }

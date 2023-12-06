@@ -57,6 +57,7 @@ import com.koch.ambeth.util.collections.IdentityLinkedMap;
 import com.koch.ambeth.util.function.CheckedConsumer;
 import com.koch.ambeth.util.proxy.Factory;
 import com.koch.ambeth.util.proxy.ICascadedInterceptor;
+import lombok.SneakyThrows;
 
 import java.util.List;
 import java.util.Objects;
@@ -154,6 +155,7 @@ public class CacheRetrieverRegistry implements ICacheRetriever, ICacheRetrieverE
         nameToCacheServiceEC.unregister(cacheService, serviceName);
     }
 
+    @SneakyThrows
     @Override
     public List<ILoadContainer> getEntities(List<IObjRef> orisToLoad) {
         ParamChecker.assertParamNotNull(orisToLoad, "orisToLoad");
@@ -174,7 +176,7 @@ public class CacheRetrieverRegistry implements ICacheRetriever, ICacheRetrieverE
             for (int a = objRels.size(); a-- > 0; ) {
                 var objRel = objRels.get(a);
                 var delegate = objRelToDelegateMap.get(objRel);
-                CheckedConsumer.invoke(delegate, resultOfFork[a]);
+                delegate.accept(resultOfFork[a]);
             }
         });
 
@@ -190,7 +192,7 @@ public class CacheRetrieverRegistry implements ICacheRetriever, ICacheRetrieverE
                 return;
             }
             for (int a = 0, size = resultOfFork.size(); a < size; a++) {
-                ILoadContainer partItem = resultOfFork.get(a);
+                var partItem = resultOfFork.get(a);
                 result.add(partItem);
             }
             if (resultOfFork instanceof IDisposable) {

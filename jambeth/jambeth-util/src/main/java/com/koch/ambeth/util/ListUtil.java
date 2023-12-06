@@ -70,11 +70,12 @@ public final class ListUtil {
         if (list == null) {
             return null;
         }
-        Object array = Array.newInstance(type, list.size());
-        int index = 0;
-        Iterator<?> iter = list.iterator();
+        var array = Array.newInstance(type, list.size());
+        var index = 0;
+        var iter = list.iterator();
+        var preparedArraySet = Arrays.prepareSet(array);
         while (iter.hasNext()) {
-            Array.set(array, index++, iter.next());
+            preparedArraySet.set(index++, iter.next());
         }
         return (T[]) array;
     }
@@ -87,7 +88,7 @@ public final class ListUtil {
         if (enumerable instanceof List<?>) {
             return (List<T>) enumerable;
         }
-        ArrayList<T> list = new ArrayList<>();
+        var list = new ArrayList<T>();
         while (enumerable.hasMoreElements()) {
             list.add(enumerable.nextElement());
         }
@@ -102,8 +103,8 @@ public final class ListUtil {
         if (enumerable instanceof List<?>) {
             return (List<T>) enumerable;
         }
-        Iterator<T> iter = enumerable.iterator();
-        ArrayList<T> list = new ArrayList<>();
+        var iter = enumerable.iterator();
+        var list = new ArrayList<T>();
         while (iter.hasNext()) {
             list.add(iter.next());
         }
@@ -120,7 +121,7 @@ public final class ListUtil {
         } else if (obj instanceof Enumeration<?>) {
             return toList((Enumeration<Object>) obj);
         }
-        ArrayList<Object> list = new ArrayList<>(1);
+        var list = new ArrayList<>(1);
         list.add(obj);
         return list;
     }
@@ -128,13 +129,14 @@ public final class ListUtil {
     @SuppressWarnings("unchecked")
     public static <T> IList<T> anyToList(IObjectCollector objectCollector, Object obj) {
         // Always build a new list
-        ArrayList<T> list = new ArrayList<>();
+        var list = new ArrayList<T>();
         if (obj == null) {
             return list;
         } else if (obj.getClass().isArray()) {
             int length = Array.getLength(obj);
+            var preparedArrayGet = Arrays.prepareGet(obj);
             for (int a = 0; a < length; a++) {
-                list.add((T) Array.get(obj, a));
+                list.add((T) preparedArrayGet.get(a));
             }
         } else if (obj instanceof List) {
             List<?> objList = (List<?>) obj;
@@ -199,10 +201,11 @@ public final class ListUtil {
             list = Collections.<Object>emptyList();
         } else if (obj.getClass().isArray()) {
             int length = Array.getLength(obj);
+            var preparedArrayGet = Arrays.prepareGet(obj);
             if (length > 0) {
                 list = new ArrayList<>(length);
                 for (int i = 0; i < length; i++) {
-                    list.add(Array.get(obj, i));
+                    list.add(preparedArrayGet.get(i));
                 }
             } else {
                 list = Collections.<Object>emptyList();
@@ -262,9 +265,11 @@ public final class ListUtil {
             var length = Array.getLength(obj);
             var resultArray = Array.newInstance(targetElementType, length);
             try {
+                var preparedArrayGet = Arrays.prepareGet(obj);
+                var preparedArraySet = Arrays.prepareSet(resultArray);
                 for (int i = length; i-- > 0; ) {
-                    var source = Array.get(obj, i);
-                    Array.set(resultArray, i, source);
+                    var source = preparedArrayGet.get(i);
+                    preparedArraySet.set(i, source);
                 }
             } catch (Exception e) {
                 throw new RuntimeException("Element Types of this this array are not compatible \"" + objType.getComponentType().getName() + "\" -> \"" + targetElementType.getName() + "\".", e);
@@ -274,8 +279,9 @@ public final class ListUtil {
         var list = anyToList(obj);
         var size = list.size();
         var resultArray = Array.newInstance(targetElementType, size);
+        var preparedArraySet = Arrays.prepareSet(resultArray);
         for (int a = size; a-- > 0; ) {
-            Array.set(resultArray, a, list.get(a));
+            preparedArraySet.set(a, list.get(a));
         }
         return (V[]) resultArray;
     }

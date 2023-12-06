@@ -20,47 +20,51 @@ limitations under the License.
  * #L%
  */
 
-import java.lang.reflect.Array;
-
 import com.koch.ambeth.merge.transfer.ObjRef;
 import com.koch.ambeth.query.filter.IQueryResultCacheItem;
 import com.koch.ambeth.service.merge.model.IObjRef;
+import com.koch.ambeth.util.Arrays;
 
 public class QueryResultCacheItem implements IQueryResultCacheItem {
-	protected final Class<?> entityType;
+    protected final Class<?> entityType;
 
-	protected final long totalSize;
+    protected final long totalSize;
 
-	protected final int size;
+    protected final int size;
 
-	protected final Object[] idArrays;
+    protected final Object[] idArrays;
 
-	protected final Object versionArray;
+    protected final Arrays.PreparedArrayGet[] idArrayGetters;
 
-	public QueryResultCacheItem(Class<?> entityType, long totalSize, int size, Object[] idArrays,
-			Object versionArray) {
-		super();
-		this.entityType = entityType;
-		this.totalSize = totalSize;
-		this.size = size;
-		this.idArrays = idArrays;
-		this.versionArray = versionArray;
-	}
+    protected final Object versionArray;
 
-	@Override
-	public long getTotalSize() {
-		return totalSize;
-	}
+    protected final Arrays.PreparedArrayGet versionArrayGetter;
 
-	@Override
-	public int getSize() {
-		return size;
-	}
+    public QueryResultCacheItem(Class<?> entityType, long totalSize, int size, Object[] idArrays, Object versionArray) {
+        super();
+        this.entityType = entityType;
+        this.totalSize = totalSize;
+        this.size = size;
+        this.idArrays = idArrays;
+        this.versionArray = versionArray;
+        idArrayGetters = java.util.Arrays.stream(idArrays).map(Arrays::prepareGet).toArray(Arrays.PreparedArrayGet[]::new);
+        versionArrayGetter = versionArray != null ? Arrays.prepareGet(versionArray) : null;
+    }
 
-	@Override
-	public IObjRef getObjRef(int index, byte idIndex) {
-		Object id = Array.get(idArrays[idIndex + 1], index);
-		Object version = versionArray != null ? Array.get(versionArray, index) : null;
-		return new ObjRef(entityType, idIndex, id, version);
-	}
+    @Override
+    public long getTotalSize() {
+        return totalSize;
+    }
+
+    @Override
+    public int getSize() {
+        return size;
+    }
+
+    @Override
+    public IObjRef getObjRef(int index, byte idIndex) {
+        var id = idArrayGetters[idIndex + 1].get(index);
+        var version = versionArrayGetter != null ? versionArrayGetter.get(index) : null;
+        return new ObjRef(entityType, idIndex, id, version);
+    }
 }

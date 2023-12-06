@@ -20,15 +20,6 @@ limitations under the License.
  * #L%
  */
 
-import java.lang.reflect.Array;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import com.koch.ambeth.cache.ICacheIntern;
 import com.koch.ambeth.cache.proxy.IValueHolderContainer;
 import com.koch.ambeth.cache.rootcachevalue.RootCacheValue;
@@ -84,6 +75,15 @@ import com.koch.ambeth.util.typeinfo.IPropertyInfoProvider;
 import com.koch.ambeth.util.typeinfo.ITypeInfoItem;
 import com.koch.ambeth.util.typeinfo.ITypeInfoProvider;
 import com.koch.ambeth.util.typeinfo.NullEquivalentValueUtil;
+
+import java.lang.reflect.Array;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class ModelTransferMapper implements IMapperService, IDisposable {
     protected static final Object NOT_YET_READY = new Object();
@@ -1193,30 +1193,31 @@ public class ModelTransferMapper implements IMapperService, IDisposable {
         } else if (!(value instanceof Collection)) {
             return conversionHelper.convertValueToType(targetRealType, value);
         }
-        IConversionHelper conversionHelper = this.conversionHelper;
+        var conversionHelper = this.conversionHelper;
 
-        Collection<?> coll = (Collection<?>) value;
+        var coll = (Collection<?>) value;
 
         if (targetRealType.isArray()) {
-            Object array = Array.newInstance(targetRealType.getComponentType(), coll.size());
+            var array = Array.newInstance(targetRealType.getComponentType(), coll.size());
             int index = 0;
-            for (Object item : coll) {
-                Object convertedItem = conversionHelper.convertValueToType(targetElementType, item);
-                Array.set(array, index++, convertedItem);
+            var preparedArraySet = com.koch.ambeth.util.Arrays.prepareSet(array);
+            for (var item : coll) {
+                var convertedItem = conversionHelper.convertValueToType(targetElementType, item);
+                preparedArraySet.set(index++, convertedItem);
             }
             return array;
         } else if (Set.class.isAssignableFrom(targetRealType)) {
-            int size = coll.size();
-            java.util.HashSet<Object> set = new java.util.HashSet<>((int) (size / 0.75f) + 1, 0.75f);
-            for (Object item : coll) {
-                Object convertedItem = conversionHelper.convertValueToType(targetElementType, item);
+            var size = coll.size();
+            var set = new java.util.HashSet<>((int) (size / 0.75f) + 1, 0.75f);
+            for (var item : coll) {
+                var convertedItem = conversionHelper.convertValueToType(targetElementType, item);
                 set.add(convertedItem);
             }
             return set;
         } else if (Collection.class.isAssignableFrom(targetRealType)) {
-            java.util.ArrayList<Object> list = new java.util.ArrayList<>(coll.size());
-            for (Object item : coll) {
-                Object convertedItem = conversionHelper.convertValueToType(targetElementType, item);
+            var list = new java.util.ArrayList<>(coll.size());
+            for (var item : coll) {
+                var convertedItem = conversionHelper.convertValueToType(targetElementType, item);
                 list.add(convertedItem);
             }
             return list;

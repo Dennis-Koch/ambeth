@@ -320,7 +320,7 @@ public class Ambeth implements IAmbethConfiguration, IAmbethConfigurationIntern,
                         if (moduleDelegate == null) {
                             continue;
                         }
-                        CheckedConsumer.invoke(moduleDelegate, childContextFactory);
+                        moduleDelegate.accept(childContextFactory);
                     }
                     for (var autowiredFrameworkBean : autowiredFrameworkBeans) {
                         var typeToPublish = autowiredFrameworkBean.getKey();
@@ -332,7 +332,7 @@ public class Ambeth implements IAmbethConfiguration, IAmbethConfigurationIntern,
                 if (!allApplicationModules.isEmpty() || !applicationModuleDelegates.isEmpty()) {
                     currentApplicationContext = currentApplicationContext.createService("application", childContextFactory -> {
                         for (var moduleDelegate : applicationModuleDelegates) {
-                            CheckedConsumer.invoke(moduleDelegate, childContextFactory);
+                            moduleDelegate.accept(childContextFactory);
                         }
                     }, allApplicationModules.toArray(Class.class));
                 }

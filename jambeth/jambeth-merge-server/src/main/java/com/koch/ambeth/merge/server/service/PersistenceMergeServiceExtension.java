@@ -100,6 +100,7 @@ import com.koch.ambeth.util.model.IMethodDescription;
 import com.koch.ambeth.util.objectcollector.IThreadLocalObjectCollector;
 import jakarta.persistence.OptimisticLockException;
 import jakarta.persistence.PersistenceException;
+import lombok.SneakyThrows;
 
 import java.util.Collections;
 import java.util.EnumSet;
@@ -392,6 +393,7 @@ public class PersistenceMergeServiceExtension implements IMergeServiceExtension 
         }
     }
 
+    @SneakyThrows
     @SuppressWarnings("unchecked")
     protected void ensureCorrectIdIndexOfAllRelations(ICUDResult cudResult) {
         var runnables = new ArrayList<CheckedConsumer<IMap<IObjRef, Object>>>();
@@ -446,7 +448,7 @@ public class PersistenceMergeServiceExtension implements IMergeServiceExtension 
             var runnablesArray = runnables.toArray(CheckedConsumer[]::new);
             runnables.clear();
             for (var runnable : runnablesArray) {
-                CheckedConsumer.invoke(runnable, objRefToEntityMap);
+                runnable.accept(objRefToEntityMap);
             }
         }
     }

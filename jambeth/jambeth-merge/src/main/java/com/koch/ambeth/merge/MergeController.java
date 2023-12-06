@@ -56,6 +56,7 @@ import com.koch.ambeth.service.merge.IEntityMetaDataProvider;
 import com.koch.ambeth.service.merge.model.IEntityMetaData;
 import com.koch.ambeth.service.merge.model.IObjRef;
 import com.koch.ambeth.service.metadata.Member;
+import com.koch.ambeth.util.Arrays;
 import com.koch.ambeth.util.IConversionHelper;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.EmptySet;
@@ -282,22 +283,24 @@ public class MergeController implements IMergeController, IMergeExtendable {
         }
         if (objValue != null && cloneValue != null) {
             if (objValue.getClass().isArray() && cloneValue.getClass().isArray()) {
-                int objLength = Array.getLength(objValue);
-                int cloneLength = Array.getLength(cloneValue);
+                var objLength = Array.getLength(objValue);
+                var cloneLength = Array.getLength(cloneValue);
                 if (objLength != cloneLength) {
                     return false;
                 }
+                var preparedArrayGetObj = Arrays.prepareGet(objValue);
+                var preparedArrayGetClone = Arrays.prepareGet(cloneValue);
                 for (int b = objLength; b-- > 0; ) {
-                    Object objItem = Array.get(objValue, b);
-                    Object cloneItem = Array.get(cloneValue, b);
+                    var objItem = preparedArrayGetObj.get(b);
+                    var cloneItem = preparedArrayGetClone.get(b);
                     if (!equalsObjects(objItem, cloneItem)) {
                         return false;
                     }
                 }
                 return true;
             } else if (objValue instanceof Optional && cloneValue instanceof Optional) {
-                Optional<?> objOpt = (Optional<?>) objValue;
-                Optional<?> cloneOpt = (Optional<?>) cloneValue;
+                var objOpt = (Optional<?>) objValue;
+                var cloneOpt = (Optional<?>) cloneValue;
                 if (!objOpt.isPresent() && !cloneOpt.isPresent()) {
                     return true; // both have nothing
                 }
@@ -306,8 +309,8 @@ public class MergeController implements IMergeController, IMergeExtendable {
                 }
                 return false;
             } else if (objValue instanceof List && cloneValue instanceof List) {
-                List<?> objList = (List<?>) objValue;
-                List<?> cloneList = (List<?>) cloneValue;
+                var objList = (List<?>) objValue;
+                var cloneList = (List<?>) cloneValue;
                 if (objList.size() != cloneList.size()) {
                     return false;
                 }
@@ -320,21 +323,21 @@ public class MergeController implements IMergeController, IMergeExtendable {
                 }
                 return true;
             } else if (objValue instanceof Set && cloneValue instanceof Set) {
-                Set<?> objColl = (Set<?>) objValue;
-                Set<?> cloneColl = (Set<?>) cloneValue;
+                var objColl = (Set<?>) objValue;
+                var cloneColl = (Set<?>) cloneValue;
                 if (objColl.size() != cloneColl.size()) {
                     return false;
                 }
                 return cloneColl.containsAll(objColl);
             } else if (objValue instanceof Iterable && cloneValue instanceof Iterable) {
-                Iterator<?> objIter = ((Iterable<?>) objValue).iterator();
-                Iterator<?> cloneIter = ((Iterable<?>) cloneValue).iterator();
+                var objIter = ((Iterable<?>) objValue).iterator();
+                var cloneIter = ((Iterable<?>) cloneValue).iterator();
                 while (objIter.hasNext()) {
                     if (!cloneIter.hasNext()) {
                         return false;
                     }
-                    Object objItem = objIter.next();
-                    Object cloneItem = cloneIter.next();
+                    var objItem = objIter.next();
+                    var cloneItem = cloneIter.next();
                     if (!equalsObjects(objItem, cloneItem)) {
                         return false;
                     }

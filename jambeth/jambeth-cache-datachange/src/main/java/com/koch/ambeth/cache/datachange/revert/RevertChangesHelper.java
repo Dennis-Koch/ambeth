@@ -32,6 +32,7 @@ import com.koch.ambeth.merge.util.ValueHolderRef;
 import com.koch.ambeth.service.merge.IEntityMetaDataProvider;
 import com.koch.ambeth.service.merge.model.IObjRef;
 import com.koch.ambeth.service.metadata.RelationMember;
+import com.koch.ambeth.util.Arrays;
 import com.koch.ambeth.util.IParamHolder;
 import com.koch.ambeth.util.ParamHolder;
 import com.koch.ambeth.util.collections.ArrayList;
@@ -100,13 +101,14 @@ public class RevertChangesHelper implements IRevertChangesHelper {
         if (obj.getClass().isArray()) {
             var elementType = obj.getClass().getComponentType();
             var length = Array.getLength(obj);
+            var preparedArrayGet = Arrays.prepareGet(obj);
             var clone = Array.newInstance(elementType, length);
             System.arraycopy(objType, 0, clone, 0, length);
             var arrayBackup = new ArrayBackup(clone);
             originalToValueBackup.put(obj, arrayBackup);
             if (!immutableTypeSet.isImmutableType(elementType)) {
                 for (int a = length; a-- > 0; ) {
-                    var arrayItem = Array.get(obj, a);
+                    var arrayItem = preparedArrayGet.get(a);
                     backupObjects(arrayItem, originalToValueBackup);
                 }
             }

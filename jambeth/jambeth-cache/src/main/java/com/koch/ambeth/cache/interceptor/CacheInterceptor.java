@@ -36,6 +36,7 @@ import com.koch.ambeth.service.cache.model.IServiceResult;
 import com.koch.ambeth.service.merge.model.IObjRef;
 import com.koch.ambeth.service.metadata.IDTOType;
 import com.koch.ambeth.service.transfer.ServiceDescription;
+import com.koch.ambeth.util.Arrays;
 import com.koch.ambeth.util.ListUtil;
 import com.koch.ambeth.util.annotation.Find;
 import com.koch.ambeth.util.annotation.QueryResultType;
@@ -160,8 +161,9 @@ public class CacheInterceptor extends MergeInterceptor {
                 orisToGet.add(objRef);
             }
         } else if (argument.getClass().isArray()) {
+            var preparedArrayGet = Arrays.prepareGet(argument);
             for (int a = 0, size = Array.getLength(argument); a < size; a++) {
-                var id = Array.get(argument, a);
+                var id = preparedArrayGet.get(a);
                 if (id == null) {
                     if (returnMisses) {
                         orisToGet.add(null);

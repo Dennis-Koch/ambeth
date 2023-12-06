@@ -29,6 +29,7 @@ import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.util.collections.HashMap;
 import com.koch.ambeth.util.function.CheckedConsumer;
 import com.koch.ambeth.util.state.IStateRollback;
+import lombok.SneakyThrows;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -93,9 +94,10 @@ public class FilterRegistry implements IFilterExtendable, IEventDispatcher {
         return eventDispatcher.hasListeners(eventType);
     }
 
+    @SneakyThrows
     @Override
     public void waitEventToResume(Object eventTargetToResume, long maxWaitTime, CheckedConsumer<IProcessResumeItem> resumeDelegate, CheckedConsumer<Throwable> errorDelegate) {
-        CheckedConsumer.invoke(resumeDelegate, null);
+        resumeDelegate.accept(null);
     }
 
     protected String[] evaluateMatchingTopics(final IDataChangeEntry dataChangeEntry, Iterable<Map.Entry<String, IFilter>> dictIter) {

@@ -28,6 +28,7 @@ import com.koch.ambeth.ioc.typeinfo.TypeInfoItemUtil;
 import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.service.transfer.AmbethServiceException;
+import com.koch.ambeth.util.Arrays;
 import com.koch.ambeth.util.IClassCache;
 import com.koch.ambeth.util.IConversionHelper;
 import com.koch.ambeth.util.ListUtil;
@@ -199,15 +200,15 @@ public class InMemoryClientServiceInterceptor extends AbstractSimpleInterceptor 
             return null;
         }
         if (Collection.class.isAssignableFrom(expectedType)) {
-            Collection targetCollection = ListUtil.createCollectionOfType(expectedType);
+            var targetCollection = ListUtil.createCollectionOfType(expectedType);
 
-            IdentityLinkedMap<Object, Object> alreadyConvertedMap = new IdentityLinkedMap<>();
+            var alreadyConvertedMap = new IdentityLinkedMap<>();
 
-            Class<?> itemType = TypeInfoItemUtil.getElementTypeUsingReflection(expectedType, genericType);
+            var itemType = TypeInfoItemUtil.getElementTypeUsingReflection(expectedType, genericType);
 
             if (result instanceof Iterable) {
-                for (Object item : (Iterable<?>) result) {
-                    Object convertedItem = alreadyConvertedMap.get(item);
+                for (var item : (Iterable<?>) result) {
+                    var convertedItem = alreadyConvertedMap.get(item);
                     if (convertedItem == null && !alreadyConvertedMap.containsKey(item)) {
                         convertedItem = conversionHelper.convertValueToType(itemType, item);
                         alreadyConvertedMap.put(item, convertedItem);
@@ -215,12 +216,12 @@ public class InMemoryClientServiceInterceptor extends AbstractSimpleInterceptor 
                     targetCollection.add(convertedItem);
                 }
             } else {
-                Object convertedItem = conversionHelper.convertValueToType(itemType, result);
+                var convertedItem = conversionHelper.convertValueToType(itemType, result);
                 targetCollection.add(convertedItem);
             }
             return targetCollection;
         } else if (expectedType.isArray()) {
-            ArrayList<Object> list = new ArrayList<>();
+            var list = new ArrayList<>();
             if (result instanceof Iterable) {
                 for (Object item : (Iterable<?>) result) {
                     list.add(item);
@@ -229,19 +230,20 @@ public class InMemoryClientServiceInterceptor extends AbstractSimpleInterceptor 
                 list.add(result);
             }
 
-            IdentityLinkedMap<Object, Object> alreadyConvertedMap = new IdentityLinkedMap<>();
+            var alreadyConvertedMap = new IdentityLinkedMap<>();
 
-            Class<?> itemType = TypeInfoItemUtil.getElementTypeUsingReflection(expectedType, genericType);
+            var itemType = TypeInfoItemUtil.getElementTypeUsingReflection(expectedType, genericType);
 
-            Object array = Array.newInstance(expectedType.getComponentType(), list.size());
+            var array = Array.newInstance(expectedType.getComponentType(), list.size());
+            var preparedArraySet = Arrays.prepareSet(array);
             for (int a = 0, size = list.size(); a < size; a++) {
-                Object item = list.get(a);
-                Object convertedItem = alreadyConvertedMap.get(item);
+                var item = list.get(a);
+                var convertedItem = alreadyConvertedMap.get(item);
                 if (convertedItem == null && !alreadyConvertedMap.containsKey(item)) {
                     convertedItem = conversionHelper.convertValueToType(itemType, item);
                     alreadyConvertedMap.put(item, convertedItem);
                 }
-                Array.set(array, a, convertedItem);
+                preparedArraySet.set(a, convertedItem);
             }
             return array;
         }

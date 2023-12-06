@@ -20,38 +20,33 @@ limitations under the License.
  * #L%
  */
 
-import java.lang.reflect.Array;
-
 import com.koch.ambeth.ioc.IInitializingBean;
 import com.koch.ambeth.util.ParamChecker;
-import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.xml.IReader;
+import lombok.SneakyThrows;
 
-public class ArraySetterCommand extends AbstractObjectCommand
-		implements IObjectCommand, IInitializingBean {
-	protected int index;
+import java.lang.reflect.Array;
 
-	public ArraySetterCommand(IObjectFuture objectFuture, Object parent, int index) {
-		super(objectFuture, parent);
-		this.index = index;
-		try {
-			afterPropertiesSet();
-		}
-		catch (Throwable e) {
-			throw RuntimeExceptionUtil.mask(e);
-		}
-	}
+public class ArraySetterCommand extends AbstractObjectCommand implements IObjectCommand, IInitializingBean {
+    protected int index;
 
-	@Override
-	public void afterPropertiesSet() throws Throwable {
-		super.afterPropertiesSet();
+    @SneakyThrows
+    public ArraySetterCommand(IObjectFuture objectFuture, Object parent, int index) {
+        super(objectFuture, parent);
+        this.index = index;
+        afterPropertiesSet();
+    }
 
-		ParamChecker.assertTrue(parent.getClass().isArray(), "Parent has to be an array");
-	}
+    @Override
+    public void afterPropertiesSet() throws Throwable {
+        super.afterPropertiesSet();
 
-	@Override
-	public void execute(IReader reader) {
-		Object value = objectFuture.getValue();
-		Array.set(parent, index, value);
-	}
+        ParamChecker.assertTrue(parent.getClass().isArray(), "Parent has to be an array");
+    }
+
+    @Override
+    public void execute(IReader reader) {
+        var value = objectFuture.getValue();
+        Array.set(parent, index, value);
+    }
 }

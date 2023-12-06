@@ -312,6 +312,7 @@ public class QueryMassdataTest extends AbstractInformationBusWithPersistenceTest
 
         for (int threadIndex = threads; threadIndex-- > 0; ) {
             var thread = new Thread(runnable);
+            thread.setName("QueryMassdata-Read-" + threadIndex);
             thread.setContextClassLoader(Thread.currentThread().getContextClassLoader());
             thread.start();
         }
@@ -515,115 +516,114 @@ public class QueryMassdataTest extends AbstractInformationBusWithPersistenceTest
         final ParamHolder<Throwable> throwableHolder = new ParamHolder<>();
 
         final boolean[] usedPages = new boolean[dataCount / size];
-        Runnable runnable = new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    IRootCache rootCache = beanContext.getService("rootCache", IRootCache.class);
-                    IThreadLocalCleanupController threadLocalCleanupController = beanContext.getService(IThreadLocalCleanupController.class);
-                    while (System.currentTimeMillis() <= finishTime && throwableHolder.getValue() == null) {
-                        try {
-                            int usedPage;
-                            while (true) {
-                                oqciLock.lock();
-                                try {
-                                    usedPage = (int) (Math.random() * usedPages.length);
-                                    if (!usedPages[usedPage]) {
-                                        usedPages[usedPage] = true;
-                                        break;
-                                    }
-                                } finally {
-                                    oqciLock.unlock();
+        Runnable runnable = () -> {
+            try {
+                IRootCache rootCache = beanContext.getService("rootCache", IRootCache.class);
+                IThreadLocalCleanupController threadLocalCleanupController = beanContext.getService(IThreadLocalCleanupController.class);
+                while (System.currentTimeMillis() <= finishTime && throwableHolder.getValue() == null) {
+                    try {
+                        int usedPage;
+                        while (true) {
+                            oqciLock.lock();
+                            try {
+                                usedPage = (int) (Math.random() * usedPages.length);
+                                if (!usedPages[usedPage]) {
+                                    usedPages[usedPage] = true;
+                                    break;
                                 }
+                            } finally {
+                                oqciLock.unlock();
+                            }
+                        }
+                        try {
+                            final PagingRequest randomPReq = new PagingRequest();
+                            randomPReq.setNumber(usedPage);
+                            randomPReq.setSize(size);
+                            final IPagingQuery<QueryEntity> randomPagingQuery = ftqb.buildQuery(fd, new ISortDescriptor[] { sd1, sd2 });
+
+                            IPagingResponse<QueryEntity> response;
+                            IStateRollback rollback = cacheContext.pushCache(cacheProvider);
+                            try {
+                                response = randomPagingQuery.retrieve(randomPReq);
+                            } finally {
+                                rollback.rollback();
+                            }
+                            randomPagingQuery.dispose();
+
+                            List<QueryEntity> result = response.getResult();
+
+                            Assert.assertEquals(randomPReq.getNumber(), response.getNumber());
+                            if (response.getNumber() == lastPageNumber) {
+                                Assert.assertEquals(lastPageNumberSize, result.size());
+                            } else {
+                                Assert.assertEquals(size, result.size());
+                            }
+                            QueryEntity objectBefore = result.get(0);
+                            for (int a = 1, resultSize = result.size(); a < resultSize; a++) {
+                                QueryEntity objectCurrent = result.get(a);
+                                // IDs descending
+                                // Version ascending
+                                Assert.assertFalse(objectBefore.equals(objectCurrent));
+                                Assert.assertTrue(objectBefore.getId() >= objectCurrent.getId());
+                                if (objectBefore.getId() == objectCurrent.getId()) {
+                                    Assert.assertTrue(objectBefore.getVersion() <= objectCurrent.getVersion());
+                                }
+                                objectCurrent.setName1("1_" + Math.random());
+                                objectCurrent.setName2("2_" + Math.random() + "");
+                                objectBefore = objectCurrent;
                             }
                             try {
-                                final PagingRequest randomPReq = new PagingRequest();
-                                randomPReq.setNumber(usedPage);
-                                randomPReq.setSize(size);
-                                final IPagingQuery<QueryEntity> randomPagingQuery = ftqb.buildQuery(fd, new ISortDescriptor[] { sd1, sd2 });
-
-                                IPagingResponse<QueryEntity> response;
-                                IStateRollback rollback = cacheContext.pushCache(cacheProvider);
-                                try {
-                                    response = randomPagingQuery.retrieve(randomPReq);
-                                } finally {
-                                    rollback.rollback();
-                                }
-                                randomPagingQuery.dispose();
-
-                                List<QueryEntity> result = response.getResult();
-
-                                Assert.assertEquals(randomPReq.getNumber(), response.getNumber());
-                                if (response.getNumber() == lastPageNumber) {
-                                    Assert.assertEquals(lastPageNumberSize, result.size());
-                                } else {
-                                    Assert.assertEquals(size, result.size());
-                                }
-                                QueryEntity objectBefore = result.get(0);
-                                for (int a = 1, resultSize = result.size(); a < resultSize; a++) {
-                                    QueryEntity objectCurrent = result.get(a);
-                                    // IDs descending
-                                    // Version ascending
-                                    Assert.assertFalse(objectBefore.equals(objectCurrent));
-                                    Assert.assertTrue(objectBefore.getId() >= objectCurrent.getId());
-                                    if (objectBefore.getId() == objectCurrent.getId()) {
-                                        Assert.assertTrue(objectBefore.getVersion() <= objectCurrent.getVersion());
-                                    }
-                                    objectCurrent.setName1("1_" + Math.random());
-                                    objectCurrent.setName2("2_" + Math.random() + "");
-                                    objectBefore = objectCurrent;
-                                }
-                                try {
-                                    queryEntityCRUD.IwantAFunnySaveMethod(result);
-                                } catch (OptimisticLockException e) {
-                                    // Intended blank
-                                    continue;
-                                } catch (PessimisticLockException e) {
-                                    // Intended blank
-                                    continue;
-                                }
-                                oqciLock.lock();
-                                try {
-                                    overallQueryCountIndex.setValue(new Integer(overallQueryCountIndex.getValue().intValue() + 1));
-                                } finally {
-                                    oqciLock.unlock();
-                                }
-                                // if (Math.random() < 0.5)
-                                // {
-                                // for (int a = result.size(); a-- > 0;)
-                                // {
-                                // QueryEntity queryEntity = (QueryEntity) result.get(a);
-                                // queryEntity.setName1("1_" + Math.random());
-                                // queryEntity.setName2("2_" + Math.random());
-                                // }
-                                // queryEntityCRUD.IwantAFunnySaveMethod(result);
-                                // }
+                                queryEntityCRUD.IwantAFunnySaveMethod(result);
+                            } catch (OptimisticLockException e) {
+                                // Intended blank
+                                continue;
+                            } catch (PessimisticLockException e) {
+                                // Intended blank
+                                continue;
+                            }
+                            oqciLock.lock();
+                            try {
+                                overallQueryCountIndex.setValue(new Integer(overallQueryCountIndex.getValue().intValue() + 1));
                             } finally {
-                                oqciLock.lock();
-                                try {
-                                    usedPages[usedPage] = false;
-                                } finally {
-                                    oqciLock.unlock();
-                                }
+                                oqciLock.unlock();
                             }
+                            // if (Math.random() < 0.5)
+                            // {
+                            // for (int a = result.size(); a-- > 0;)
+                            // {
+                            // QueryEntity queryEntity = (QueryEntity) result.get(a);
+                            // queryEntity.setName1("1_" + Math.random());
+                            // queryEntity.setName2("2_" + Math.random());
+                            // }
+                            // queryEntityCRUD.IwantAFunnySaveMethod(result);
+                            // }
                         } finally {
-                            if (!useSecondLevelCache) {
-                                rootCache.clear();
+                            oqciLock.lock();
+                            try {
+                                usedPages[usedPage] = false;
+                            } finally {
+                                oqciLock.unlock();
                             }
-                            threadLocalCleanupController.cleanupThreadLocal();
                         }
+                    } finally {
+                        if (!useSecondLevelCache) {
+                            rootCache.clear();
+                        }
+                        threadLocalCleanupController.cleanupThreadLocal();
                     }
-                } catch (Throwable e) {
-                    throwableHolder.setValue(e);
-                    throw RuntimeExceptionUtil.mask(e);
-                } finally {
-                    latch.countDown();
                 }
+            } catch (Throwable e) {
+                throwableHolder.setValue(e);
+                throw RuntimeExceptionUtil.mask(e);
+            } finally {
+                latch.countDown();
             }
         };
 
         for (int threadIndex = threads; threadIndex-- > 0; ) {
-            Thread thread = new Thread(runnable);
+            var thread = new Thread(runnable);
+            thread.setName("QueryMassdata-Write-" + threadIndex);
+            thread.setContextClassLoader(Thread.currentThread().getContextClassLoader());
             thread.start();
         }
 

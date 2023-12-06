@@ -439,12 +439,12 @@ public abstract class AbstractServiceREST {
                     ((DeflaterOutputStream) output).finish();
                 }
                 if (streamingFinishedCallback != null) {
-                    CheckedConsumer.invoke(streamingFinishedCallback, null);
+                    streamingFinishedCallback.accept(null);
                 }
             } catch (Throwable e) {
                 if (streamingFinishedCallback != null) {
                     try {
-                        CheckedConsumer.invoke(streamingFinishedCallback, e);
+                        streamingFinishedCallback.accept(e);
                     } catch (Throwable e1) {
                         // intended blank
                     }

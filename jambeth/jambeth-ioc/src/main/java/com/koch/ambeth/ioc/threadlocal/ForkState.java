@@ -26,6 +26,7 @@ import com.koch.ambeth.util.function.CheckedFunction;
 import com.koch.ambeth.util.function.CheckedRunnable;
 import com.koch.ambeth.util.function.CheckedSupplier;
 import com.koch.ambeth.util.state.IStateRollback;
+import lombok.SneakyThrows;
 
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -61,21 +62,21 @@ public class ForkState extends ReentrantLock implements IForkState {
 
     @SuppressWarnings("unchecked")
     protected void restoreThreadLocals(Object[] oldValues) {
-        ForkStateEntry[] forkStateEntries = this.forkStateEntries;
-        IForkedValueResolver[] forkedValueResolvers = this.forkedValueResolvers;
-        ArrayList<Object>[] forkedValues = this.forkedValues;
+        var forkStateEntries = this.forkStateEntries;
+        var forkedValueResolvers = this.forkedValueResolvers;
+        var forkedValues = this.forkedValues;
         lock();
         try {
             for (int a = 0, size = forkStateEntries.length; a < size; a++) {
-                ForkStateEntry forkStateEntry = forkStateEntries[a];
-                ThreadLocal<Object> tlHandle = (ThreadLocal<Object>) forkStateEntry.valueTL;
-                Object forkedValue = tlHandle.get();
+                var forkStateEntry = forkStateEntries[a];
+                var tlHandle = (ThreadLocal<Object>) forkStateEntry.valueTL;
+                var forkedValue = tlHandle.get();
                 tlHandle.set(oldValues[a]);
-                IForkedValueResolver forkedValueResolver = forkedValueResolvers[a];
+                var forkedValueResolver = forkedValueResolvers[a];
                 if (!(forkedValueResolver instanceof ForkProcessorValueResolver)) {
                     continue;
                 }
-                ArrayList<Object> forkedValuesItem = forkedValues[a];
+                var forkedValuesItem = forkedValues[a];
                 if (forkedValuesItem == null) {
                     forkedValuesItem = new ArrayList<>();
                     forkedValues[a] = forkedValuesItem;
@@ -97,41 +98,45 @@ public class ForkState extends ReentrantLock implements IForkState {
         }
     }
 
+    @SneakyThrows
     @Override
     public void use(CheckedRunnable runnable) {
         var rollback = setThreadLocals();
         try {
-            CheckedRunnable.invoke(runnable);
+            runnable.run();
         } finally {
             rollback.rollback();
         }
     }
 
+    @SneakyThrows
     @Override
     public <V> void use(CheckedConsumer<V> runnable, V arg) {
         var rollback = setThreadLocals();
         try {
-            CheckedConsumer.invoke(runnable, arg);
+            runnable.accept(arg);
         } finally {
             rollback.rollback();
         }
     }
 
+    @SneakyThrows
     @Override
     public <R> R use(CheckedSupplier<R> runnable) {
         var rollback = setThreadLocals();
         try {
-            return CheckedSupplier.invoke(runnable);
+            return runnable.get();
         } finally {
             rollback.rollback();
         }
     }
 
+    @SneakyThrows
     @Override
     public <R, V> R use(CheckedFunction<V, R> runnable, V arg) {
         var rollback = setThreadLocals();
         try {
-            return CheckedFunction.invoke(runnable, arg);
+            return runnable.apply(arg);
         } finally {
             rollback.rollback();
         }
@@ -139,20 +144,20 @@ public class ForkState extends ReentrantLock implements IForkState {
 
     @Override
     public void reintegrateForkedValues() {
-        ForkStateEntry[] forkStateEntries = this.forkStateEntries;
-        IForkedValueResolver[] forkedValueResolvers = this.forkedValueResolvers;
-        ArrayList<Object>[] forkedValues = this.forkedValues;
+        var forkStateEntries = this.forkStateEntries;
+        var forkedValueResolvers = this.forkedValueResolvers;
+        var forkedValues = this.forkedValues;
         for (int a = 0, size = forkStateEntries.length; a < size; a++) {
-            ForkStateEntry forkStateEntry = forkStateEntries[a];
-            ArrayList<Object> forkedValuesItem = forkedValues[a];
+            var forkStateEntry = forkStateEntries[a];
+            var forkedValuesItem = forkedValues[a];
 
             if (forkedValuesItem == null) {
                 // nothing to do
                 continue;
             }
-            Object originalValue = forkedValueResolvers[a].getOriginalValue();
+            var originalValue = forkedValueResolvers[a].getOriginalValue();
             for (int b = 0, sizeB = forkedValuesItem.size(); b < sizeB; b++) {
-                Object forkedValue = forkedValuesItem.get(b);
+                var forkedValue = forkedValuesItem.get(b);
                 forkStateEntry.forkProcessor.returnForkedValue(originalValue, forkedValue);
             }
         }

@@ -523,6 +523,7 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
         return create(contextName, registerPhaseDelegate, instantiationProcessors, preProcessors, postProcessors, externalServiceContext, emptyServiceModules);
     }
 
+    @SneakyThrows
     public IServiceContext create(String contextName, CheckedConsumer<IBeanContextFactory> registerPhaseDelegate, List<IBeanInstantiationProcessor> instantiationProcessors,
             List<IBeanPreProcessor> preProcessors, List<IBeanPostProcessor> postProcessors, IExternalServiceContext externalServiceContext, Class<?>... serviceModuleTypes) {
 
@@ -530,7 +531,7 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
         var context = new ServiceContext(generateUniqueContextName(contextName, null, uniqueIdentifier), uniqueIdentifier, objectCollector, externalServiceContext);
 
         if (registerPhaseDelegate != null) {
-            CheckedConsumer.invoke(registerPhaseDelegate, this);
+            registerPhaseDelegate.accept(this);
         }
         for (var serviceModuleType : serviceModuleTypes) {
             registerBean(serviceModuleType);
@@ -558,12 +559,13 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
         return create(contextName, parent, registerPhaseDelegate, emptyServiceModules);
     }
 
+    @SneakyThrows
     public IServiceContext create(String contextName, ServiceContext parent, CheckedConsumer<IBeanContextFactory> registerPhaseDelegate, Class<?>... serviceModuleTypes) {
         var uniqueIdentifier = generateUniqueIdentifier();
         var context = new ServiceContext(generateUniqueContextName(contextName, parent, uniqueIdentifier), uniqueIdentifier, parent);
 
         if (registerPhaseDelegate != null) {
-            CheckedConsumer.invoke(registerPhaseDelegate, this);
+            registerPhaseDelegate.accept(this);
         }
         for (var serviceModuleType : serviceModuleTypes) {
             registerBean(serviceModuleType);

@@ -202,23 +202,23 @@ public class ThreadLocalCleanupController implements IInitializingBean, IDisposa
 
     @Override
     public void registerThreadLocalCleanupBean(IThreadLocalCleanupBean threadLocalCleanupBean) {
-        Lock writeLock = listeners.getWriteLock();
+        var writeLock = listeners.getWriteLock();
         writeLock.lock();
         try {
             listeners.register(threadLocalCleanupBean);
             cachedForkStateEntries = null;
             cachedThreadLocalStateEntries = null;
-            IServiceContext currentBeanContext = BeanContextInitializer.getCurrentBeanContext();
+            var currentBeanContext = BeanContextInitializer.getCurrentBeanContext();
             if (currentBeanContext != null) {
                 extensionToContextMap.put(threadLocalCleanupBean, new WeakReference<>(currentBeanContext));
                 if (alreadyHookedContextSet.putIfNotExists(currentBeanContext, null)) {
-                    final ParamHolder<Boolean> inactive = new ParamHolder<>();
+                    var inactive = new ParamHolder<Boolean>();
 
                     currentBeanContext.registerDisposeHook(beanContext -> {
                         if (Boolean.TRUE.equals(inactive.getValue())) {
                             return;
                         }
-                        CheckedConsumer.invoke(foreignContextHook, beanContext);
+                        foreignContextHook.accept(beanContext);
                     });
                     alreadyHookedContextSet.put(currentBeanContext, inactive);
                 }

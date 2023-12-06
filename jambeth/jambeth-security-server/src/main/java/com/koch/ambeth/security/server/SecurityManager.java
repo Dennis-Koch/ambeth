@@ -20,22 +20,12 @@ limitations under the License.
  * #L%
  */
 
-import java.lang.reflect.Array;
-import java.lang.reflect.Method;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
-
 import com.koch.ambeth.ioc.DefaultExtendableContainer;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.merge.IMergeSecurityManager;
 import com.koch.ambeth.merge.model.ICUDResult;
 import com.koch.ambeth.merge.model.IChangeContainer;
 import com.koch.ambeth.merge.model.IDirectObjRef;
-import com.koch.ambeth.merge.model.IPrimitiveUpdateItem;
 import com.koch.ambeth.merge.model.IRelationUpdateItem;
 import com.koch.ambeth.merge.security.ISecurityActivation;
 import com.koch.ambeth.merge.security.ISecurityScopeProvider;
@@ -57,576 +47,511 @@ import com.koch.ambeth.security.privilege.model.IPropertyPrivilege;
 import com.koch.ambeth.security.privilege.model.ReadPermission;
 import com.koch.ambeth.service.exceptions.ServiceCallForbiddenException;
 import com.koch.ambeth.service.merge.IEntityMetaDataProvider;
-import com.koch.ambeth.service.merge.model.IEntityMetaData;
 import com.koch.ambeth.service.merge.model.IObjRef;
 import com.koch.ambeth.service.model.ISecurityScope;
+import com.koch.ambeth.util.Arrays;
 import com.koch.ambeth.util.IDisposable;
 import com.koch.ambeth.util.StringBuilderUtil;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.HashMap;
 import com.koch.ambeth.util.collections.HashSet;
-import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.IMap;
 import com.koch.ambeth.util.collections.ISet;
 import com.koch.ambeth.util.collections.IdentityHashMap;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.model.IMethodDescription;
 import com.koch.ambeth.util.objectcollector.IThreadLocalObjectCollector;
+import lombok.SneakyThrows;
 
-public class SecurityManager
-		implements ISecurityManager, IMergeSecurityManager, IServiceFilterExtendable {
-	protected final DefaultExtendableContainer<IServiceFilter> serviceFilters =
-			new DefaultExtendableContainer<>(
-					IServiceFilter.class, "serviceFilter");
+import java.lang.reflect.Array;
+import java.lang.reflect.Method;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-	protected final Lock readLock, writeLock;
+public class SecurityManager implements ISecurityManager, IMergeSecurityManager, IServiceFilterExtendable {
+    protected final DefaultExtendableContainer<IServiceFilter> serviceFilters = new DefaultExtendableContainer<>(IServiceFilter.class, "serviceFilter");
 
-	@Autowired
-	protected IEntityMetaDataProvider entityMetaDataProvider;
+    protected final Lock readLock, writeLock;
 
-	@Autowired
-	protected IThreadLocalObjectCollector objectCollector;
+    @Autowired
+    protected IEntityMetaDataProvider entityMetaDataProvider;
 
-	@Autowired
-	protected IPrivilegeProviderIntern privilegeProvider;
+    @Autowired
+    protected IThreadLocalObjectCollector objectCollector;
 
-	@Autowired
-	protected ISecurityActivation securityActivation;
+    @Autowired
+    protected IPrivilegeProviderIntern privilegeProvider;
 
-	@Autowired
-	protected ISecurityContextHolder securityContextHolder;
+    @Autowired
+    protected ISecurityActivation securityActivation;
 
-	@Autowired
-	protected ISecurityScopeProvider securityScopeProvider;
+    @Autowired
+    protected ISecurityContextHolder securityContextHolder;
 
-	public SecurityManager() {
-		ReentrantReadWriteLock rwLock = new ReentrantReadWriteLock();
-		readLock = rwLock.readLock();
-		writeLock = rwLock.writeLock();
-	}
+    @Autowired
+    protected ISecurityScopeProvider securityScopeProvider;
 
-	@SuppressWarnings("unchecked")
-	@Override
-	public <T> T filterValue(T value) {
-		IdentityHashMap<Object, ReadPermission> alreadyProcessedMap = new IdentityHashMap<>();
+    public SecurityManager() {
+        ReentrantReadWriteLock rwLock = new ReentrantReadWriteLock();
+        readLock = rwLock.readLock();
+        writeLock = rwLock.writeLock();
+    }
 
-		return (T) filterValue(value, alreadyProcessedMap,
-				securityContextHolder.getCreateContext().getAuthorization(),
-				securityScopeProvider.getSecurityScopes());
-	}
+    @SuppressWarnings("unchecked")
+    @Override
+    public <T> T filterValue(T value) {
+        var alreadyProcessedMap = new IdentityHashMap<Object, ReadPermission>();
 
-	@SuppressWarnings("unchecked")
-	protected Object filterList(List<?> list, Map<Object, ReadPermission> alreadyProcessedMap,
-			IAuthorization authorization, ISecurityScope[] securityScopes) {
-		if (list.isEmpty()) {
-			// nothing to filter
-			return list;
-		}
-		Object firstItem = list.get(0);
-		IPrivilege[] privileges;
-		if (firstItem instanceof IObjRef) {
-			privileges = privilegeProvider.getPrivilegesByObjRef((List<IObjRef>) list, securityScopes)
-					.getPrivileges();
-		}
-		else if (firstItem != null
-				&& entityMetaDataProvider.getMetaData(firstItem.getClass(), true) != null) {
-			privileges = privilegeProvider.getPrivileges(list, securityScopes).getPrivileges();
-		}
-		else {
-			// nothing to filter
-			return list;
-		}
-		Collection<Object> cloneCollection;
-		try {
-			cloneCollection = list.getClass().newInstance();
-		}
-		catch (Exception e) {
-			throw RuntimeExceptionUtil.mask(e);
-		}
-		for (int a = 0, size = list.size(); a < size; a++) {
-			Object item = list.get(a);
-			if (item == null) {
-				cloneCollection.add(null);
-				continue;
-			}
-			IPrivilege privilege = privileges[a];
-			if (privilege.isReadAllowed()) {
-				cloneCollection.add(item);
-			}
-			// Object filteredItem = filterValue(item, alreadyProcessedMap, userHandle, entityFilters);
-			// if (filteredItem == item)
-			// {
-			// // Filtering ok and unchanged
-			// cloneCollection.add(filteredItem);
-			// continue;
-			// }
-			// // Item got replaced
-			// if (item != null)
-			// {
-			// cloneCollection.add(filteredItem);
-			// }
-		}
-		return cloneCollection;
-	}
+        return (T) filterValue(value, alreadyProcessedMap, securityContextHolder.getCreateContext().getAuthorization(), securityScopeProvider.getSecurityScopes());
+    }
 
-	protected Object filterValue(Object value, Map<Object, ReadPermission> alreadyProcessedMap,
-			IAuthorization authorization, ISecurityScope[] securityScopes) {
-		if (value == null) {
-			return null;
-		}
-		ReadPermission existingReadPermission = alreadyProcessedMap.get(value);
-		if (existingReadPermission != null) {
-			// Object has already been processes regarding visibility check
-			if (ReadPermission.FORBIDDEN.equals(existingReadPermission)) {
-				return null;
-			}
-			return value;
-		}
-		if (value instanceof List) {
-			return filterList((List<?>) value, alreadyProcessedMap, authorization, securityScopes);
-		}
-		else if (value instanceof Collection) {
-			return filterCollection((Collection<?>) value, alreadyProcessedMap, authorization,
-					securityScopes);
-		}
-		else if (value.getClass().isArray()) {
-			int length = Array.getLength(value);
-			ArrayList<Object> tempList = new ArrayList<>(length);
-			for (int a = 0, size = length; a < size; a++) {
-				Object item = Array.get(value, a);
-				Object filteredItem = filterValue(item, alreadyProcessedMap, authorization, securityScopes);
-				if (filteredItem == item) {
-					// Filtering ok and unchanged
-					tempList.add(filteredItem);
-					continue;
-				}
-				// Item got replaced
-				if (item != null) {
-					tempList.add(filteredItem);
-				}
-			}
-			Object cloneArray = Array.newInstance(value.getClass().getComponentType(), tempList.size());
-			for (int a = tempList.size(); a-- > 0;) {
-				Array.set(cloneArray, a, tempList.get(a));
-			}
-			return cloneArray;
-		}
-		if (!(value instanceof IObjRef)
-				&& entityMetaDataProvider.getMetaData(value.getClass(), true) == null) {
-			// not an entity. So nothing to filter
-			return value;
-		}
-		ReadPermission readPermission = filterEntity(value, alreadyProcessedMap, authorization,
-				securityScopes);
-		switch (readPermission) {
-			case PARTLY_ALLOWED:
-				// Fall through intended
-			case ALLOWED:
-				return value;
-			default:
-				return null;
-		}
-	}
+    @SuppressWarnings("unchecked")
+    protected Object filterList(List<?> list, Map<Object, ReadPermission> alreadyProcessedMap, IAuthorization authorization, ISecurityScope[] securityScopes) {
+        if (list.isEmpty()) {
+            // nothing to filter
+            return list;
+        }
+        var firstItem = list.get(0);
+        IPrivilege[] privileges;
+        if (firstItem instanceof IObjRef) {
+            privileges = privilegeProvider.getPrivilegesByObjRef((List<IObjRef>) list, securityScopes).getPrivileges();
+        } else if (firstItem != null && entityMetaDataProvider.getMetaData(firstItem.getClass(), true) != null) {
+            privileges = privilegeProvider.getPrivileges(list, securityScopes).getPrivileges();
+        } else {
+            // nothing to filter
+            return list;
+        }
+        Collection<Object> cloneCollection;
+        try {
+            cloneCollection = list.getClass().newInstance();
+        } catch (Exception e) {
+            throw RuntimeExceptionUtil.mask(e);
+        }
+        for (int a = 0, size = list.size(); a < size; a++) {
+            var item = list.get(a);
+            if (item == null) {
+                cloneCollection.add(null);
+                continue;
+            }
+            var privilege = privileges[a];
+            if (privilege.isReadAllowed()) {
+                cloneCollection.add(item);
+            }
+            // Object filteredItem = filterValue(item, alreadyProcessedMap, userHandle, entityFilters);
+            // if (filteredItem == item)
+            // {
+            // // Filtering ok and unchanged
+            // cloneCollection.add(filteredItem);
+            // continue;
+            // }
+            // // Item got replaced
+            // if (item != null)
+            // {
+            // cloneCollection.add(filteredItem);
+            // }
+        }
+        return cloneCollection;
+    }
 
-	@SuppressWarnings("unchecked")
-	protected Object filterCollection(Collection<?> coll,
-			Map<Object, ReadPermission> alreadyProcessedMap, IAuthorization authorization,
-			ISecurityScope[] securityScopes) {
-		if (coll.isEmpty()) {
-			// nothing to filter
-			return coll;
-		}
-		Object firstItem;
-		{
-			Iterator<?> iter = coll.iterator();
-			try {
-				if (!iter.hasNext()) {
-					throw new IllegalStateException("Must never happen");
-				}
-				firstItem = iter.next();
-			}
-			finally {
-				if (iter instanceof IDisposable) {
-					((IDisposable) iter).dispose();
-				}
-			}
-		}
-		IPrivilege[] privileges;
-		List<?> listToCheck;
-		if (firstItem instanceof IObjRef) {
-			List<IObjRef> list = coll instanceof List ? (List<IObjRef>) coll
-					: new ArrayList<>((Collection<? extends IObjRef>) coll);
-			privileges = privilegeProvider.getPrivilegesByObjRef(list, securityScopes).getPrivileges();
-			listToCheck = list;
-		}
-		else if (firstItem != null
-				&& entityMetaDataProvider.getMetaData(firstItem.getClass(), true) != null) {
-			List<?> list = coll instanceof List ? (List<?>) coll : new ArrayList<>(coll);
-			privileges = privilegeProvider.getPrivileges(list, securityScopes).getPrivileges();
-			listToCheck = list;
-		}
-		else {
-			// nothing to filter
-			return coll;
-		}
-		Collection<Object> cloneCollection;
-		try {
-			cloneCollection = coll.getClass().newInstance();
-		}
-		catch (Exception e) {
-			throw RuntimeExceptionUtil.mask(e);
-		}
-		for (int index = 0, size = listToCheck.size(); index < size; index++) {
-			Object item = listToCheck.get(index);
-			if (item == null) {
-				cloneCollection.add(null);
-				continue;
-			}
-			IPrivilege privilege = privileges[index];
-			if (privilege.isReadAllowed()) {
-				cloneCollection.add(item);
-			}
-			// Object filteredItem = filterValue(item, alreadyProcessedMap, userHandle, entityFilters);
-			// if (filteredItem == item)
-			// {
-			// // Filtering ok and unchanged
-			// cloneCollection.add(filteredItem);
-			// continue;
-			// }
-			// // Item got replaced
-			// if (item != null)
-			// {
-			// cloneCollection.add(filteredItem);
-			// }
-		}
-		return cloneCollection;
+    protected Object filterValue(Object value, Map<Object, ReadPermission> alreadyProcessedMap, IAuthorization authorization, ISecurityScope[] securityScopes) {
+        if (value == null) {
+            return null;
+        }
+        var existingReadPermission = alreadyProcessedMap.get(value);
+        if (existingReadPermission != null) {
+            // Object has already been processes regarding visibility check
+            if (ReadPermission.FORBIDDEN.equals(existingReadPermission)) {
+                return null;
+            }
+            return value;
+        }
+        if (value instanceof List) {
+            return filterList((List<?>) value, alreadyProcessedMap, authorization, securityScopes);
+        } else if (value instanceof Collection) {
+            return filterCollection((Collection<?>) value, alreadyProcessedMap, authorization, securityScopes);
+        } else if (value.getClass().isArray()) {
+            var length = Array.getLength(value);
+            var tempList = new ArrayList<>(length);
+            var preparedArrayGet = Arrays.prepareGet(value);
+            for (int a = 0, size = length; a < size; a++) {
+                var item = preparedArrayGet.get(a);
+                var filteredItem = filterValue(item, alreadyProcessedMap, authorization, securityScopes);
+                if (filteredItem == item) {
+                    // Filtering ok and unchanged
+                    tempList.add(filteredItem);
+                    continue;
+                }
+                // Item got replaced
+                if (item != null) {
+                    tempList.add(filteredItem);
+                }
+            }
+            var cloneArray = Array.newInstance(value.getClass().getComponentType(), tempList.size());
+            var preparedArraySet = Arrays.prepareSet(cloneArray);
+            for (int a = tempList.size(); a-- > 0; ) {
+                preparedArraySet.set(a, tempList.get(a));
+            }
+            return cloneArray;
+        }
+        if (!(value instanceof IObjRef) && entityMetaDataProvider.getMetaData(value.getClass(), true) == null) {
+            // not an entity. So nothing to filter
+            return value;
+        }
+        var readPermission = filterEntity(value, alreadyProcessedMap, authorization, securityScopes);
+        switch (readPermission) {
+            case PARTLY_ALLOWED:
+                // Fall through intended
+            case ALLOWED:
+                return value;
+            default:
+                return null;
+        }
+    }
 
-	}
+    @SneakyThrows
 
-	protected ReadPermission filterEntity(Object entity,
-			Map<Object, ReadPermission> alreadyProcessedMap, IAuthorization authorization,
-			ISecurityScope[] securityScopes) {
-		IPrivilege privilege = privilegeProvider.getPrivilege(entity, securityScopes);
-		ReadPermission rp;
-		if (privilege == null || privilege.isReadAllowed()) {
-			rp = ReadPermission.ALLOWED;
-		}
-		else {
-			rp = ReadPermission.FORBIDDEN;
-		}
-		alreadyProcessedMap.put(entity, rp);
-		return rp;
-	}
+    @SuppressWarnings("unchecked")
+    protected Object filterCollection(Collection<?> coll, Map<Object, ReadPermission> alreadyProcessedMap, IAuthorization authorization, ISecurityScope[] securityScopes) {
+        if (coll.isEmpty()) {
+            // nothing to filter
+            return coll;
+        }
+        Object firstItem;
+        {
+            var iter = coll.iterator();
+            try {
+                if (!iter.hasNext()) {
+                    throw new IllegalStateException("Must never happen");
+                }
+                firstItem = iter.next();
+            } finally {
+                if (iter instanceof IDisposable) {
+                    ((IDisposable) iter).dispose();
+                }
+            }
+        }
+        IPrivilege[] privileges;
+        List<?> listToCheck;
+        if (firstItem instanceof IObjRef) {
+            var list = coll instanceof List ? (List<IObjRef>) coll : new ArrayList<>((Collection<? extends IObjRef>) coll);
+            privileges = privilegeProvider.getPrivilegesByObjRef(list, securityScopes).getPrivileges();
+            listToCheck = list;
+        } else if (firstItem != null && entityMetaDataProvider.getMetaData(firstItem.getClass(), true) != null) {
+            var list = coll instanceof List ? (List<?>) coll : new ArrayList<>(coll);
+            privileges = privilegeProvider.getPrivileges(list, securityScopes).getPrivileges();
+            listToCheck = list;
+        } else {
+            // nothing to filter
+            return coll;
+        }
+        var cloneCollection = coll.getClass().getConstructor().newInstance();
+        for (int index = 0, size = listToCheck.size(); index < size; index++) {
+            var item = listToCheck.get(index);
+            if (item == null) {
+                cloneCollection.add(null);
+                continue;
+            }
+            var privilege = privileges[index];
+            if (privilege.isReadAllowed()) {
+                cloneCollection.add(item);
+            }
+            // Object filteredItem = filterValue(item, alreadyProcessedMap, userHandle, entityFilters);
+            // if (filteredItem == item)
+            // {
+            // // Filtering ok and unchanged
+            // cloneCollection.add(filteredItem);
+            // continue;
+            // }
+            // // Item got replaced
+            // if (item != null)
+            // {
+            // cloneCollection.add(filteredItem);
+            // }
+        }
+        return cloneCollection;
 
-	// protected void FilterEntityChildren(Object entity, IDictionary<Object, ReadPermission>
-	// alreadyProcessedSet, IUserHandle userHandle)
-	// {
-	// PropertyInfo[] properties = entity.GetType().GetProperties(BindingFlags.FlattenHierarchy |
-	// BindingFlags.Instance | BindingFlags.Public);
-	// foreach (PropertyInfo property in properties)
-	// {
-	// Object value = property.GetValue(entity, null);
-	// Object filteredValue = FilterValue(value, alreadyProcessedSet, userHandle);
-	// if (filteredValue == value)
-	// {
-	// continue; // Nothing to do
-	// }
-	// property.SetValue(entity, filteredValue, null);
-	// }
-	// }
+    }
 
-	@Override
-	public void checkMethodAccess(Method method, Object[] arguments,
-			SecurityContextType securityContextType, IAuthorization authorization) {
-		CallPermission callPermission = filterService(method, arguments, securityContextType,
-				authorization);
-		if (callPermission == CallPermission.FORBIDDEN) {
-			throw new ServiceCallForbiddenException(StringBuilderUtil.concat(objectCollector,
-					"For current user with sid '", authorization != null ? authorization.getSID() : "n/a",
-					"' it is not permitted to call service ", method.getDeclaringClass().getName(), ".",
-					method.getName()));
-		}
-	}
+    protected ReadPermission filterEntity(Object entity, Map<Object, ReadPermission> alreadyProcessedMap, IAuthorization authorization, ISecurityScope[] securityScopes) {
+        var privilege = privilegeProvider.getPrivilege(entity, securityScopes);
+        ReadPermission rp;
+        if (privilege == null || privilege.isReadAllowed()) {
+            rp = ReadPermission.ALLOWED;
+        } else {
+            rp = ReadPermission.FORBIDDEN;
+        }
+        alreadyProcessedMap.put(entity, rp);
+        return rp;
+    }
 
-	@Override
-	public void checkMergeAccess(ICUDResult cudResult, IMethodDescription methodDescription) {
-		if (!securityActivation.isFilterActivated()) {
-			return;
-		}
-		ISet<IObjRef> relatedObjRefs = scanForAllObjRefs(cudResult);
+    // protected void FilterEntityChildren(Object entity, IDictionary<Object, ReadPermission>
+    // alreadyProcessedSet, IUserHandle userHandle)
+    // {
+    // PropertyInfo[] properties = entity.GetType().GetProperties(BindingFlags.FlattenHierarchy |
+    // BindingFlags.Instance | BindingFlags.Public);
+    // foreach (PropertyInfo property in properties)
+    // {
+    // Object value = property.GetValue(entity, null);
+    // Object filteredValue = FilterValue(value, alreadyProcessedSet, userHandle);
+    // if (filteredValue == value)
+    // {
+    // continue; // Nothing to do
+    // }
+    // property.SetValue(entity, filteredValue, null);
+    // }
+    // }
 
-		IList<IObjRef> relatedObjRefsList = relatedObjRefs.toList();
-		IPrivilegeResult privilegeResult = privilegeProvider.getPrivilegesByObjRef(relatedObjRefsList,
-				securityScopeProvider.getSecurityScopes());
-		IPrivilege[] privilegeItems = privilegeResult.getPrivileges();
-		HashMap<IObjRef, IPrivilege> objRefToPrivilege = HashMap
-				.<IObjRef, IPrivilege>create(relatedObjRefsList.size());
+    @Override
+    public void checkMethodAccess(Method method, Object[] arguments, SecurityContextType securityContextType, IAuthorization authorization) {
+        var callPermission = filterService(method, arguments, securityContextType, authorization);
+        if (callPermission == CallPermission.FORBIDDEN) {
+            throw new ServiceCallForbiddenException(
+                    StringBuilderUtil.concat(objectCollector, "For current user with sid '", authorization != null ? authorization.getSID() : "n/a", "' it is not permitted to call service ",
+                            method.getDeclaringClass().getName(), ".", method.getName()));
+        }
+    }
 
-		for (int a = relatedObjRefsList.size(); a-- > 0;) {
-			IObjRef objRef = relatedObjRefsList.get(a);
-			IPrivilege privilegeItem = privilegeItems[a];
-			objRefToPrivilege.put(objRef, privilegeItem);
-		}
-		evaluatePermssionOnAllObjRefs(cudResult, objRefToPrivilege, privilegeResult);
-	}
+    @Override
+    public void checkMergeAccess(ICUDResult cudResult, IMethodDescription methodDescription) {
+        if (!securityActivation.isFilterActivated()) {
+            return;
+        }
+        var relatedObjRefs = scanForAllObjRefs(cudResult);
 
-	protected ISet<IObjRef> scanForAllObjRefs(ICUDResult cudResult) {
-		HashSet<IObjRef> relatedObjRefs = new HashSet<>();
+        var relatedObjRefsList = relatedObjRefs.toList();
+        var privilegeResult = privilegeProvider.getPrivilegesByObjRef(relatedObjRefsList, securityScopeProvider.getSecurityScopes());
+        var privilegeItems = privilegeResult.getPrivileges();
+        var objRefToPrivilege = HashMap.<IObjRef, IPrivilege>create(relatedObjRefsList.size());
 
-		List<Object> originalRefs = cudResult.getOriginalRefs();
-		List<IChangeContainer> allChanges = cudResult.getAllChanges();
-		for (int a = allChanges.size(); a-- > 0;) {
-			IChangeContainer changeContainer = allChanges.get(a);
-			IObjRef reference = changeContainer.getReference();
+        for (int a = relatedObjRefsList.size(); a-- > 0; ) {
+            var objRef = relatedObjRefsList.get(a);
+            var privilegeItem = privilegeItems[a];
+            objRefToPrivilege.put(objRef, privilegeItem);
+        }
+        evaluatePermssionOnAllObjRefs(cudResult, objRefToPrivilege, privilegeResult);
+    }
 
-			if (reference instanceof IDirectObjRef
-					&& ((IDirectObjRef) reference).getDirect() instanceof IChangeContainer) {
-				Object directEntity = originalRefs
-						.get(((IDirectObjRef) reference).getCreateContainerIndex());
-				relatedObjRefs.add(new DirectObjRef(reference.getRealType(), directEntity));
-			}
-			else {
-				relatedObjRefs.add(reference);
-			}
-			IRelationUpdateItem[] ruis = null;
-			if (changeContainer instanceof CreateContainer) {
-				ruis = ((CreateContainer) changeContainer).getRelations();
-			}
-			else if (changeContainer instanceof UpdateContainer) {
-				ruis = ((UpdateContainer) changeContainer).getRelations();
-			}
-			if (ruis == null) {
-				continue;
-			}
-			for (IRelationUpdateItem rui : ruis) {
-				addRelatedObjRefs(rui.getAddedORIs(), relatedObjRefs, originalRefs);
-				addRelatedObjRefs(rui.getRemovedORIs(), relatedObjRefs, originalRefs);
-			}
-		}
-		return relatedObjRefs;
-	}
+    protected ISet<IObjRef> scanForAllObjRefs(ICUDResult cudResult) {
+        var relatedObjRefs = new HashSet<IObjRef>();
 
-	protected void evaluatePermssionOnAllObjRefs(ICUDResult cudResult,
-			Map<IObjRef, IPrivilege> objRefToPrivilege, IPrivilegeResult privilegeResult) {
-		List<IChangeContainer> allChanges = cudResult.getAllChanges();
-		for (int a = allChanges.size(); a-- > 0;) {
-			IChangeContainer changeContainer = allChanges.get(a);
-			IObjRef reference = changeContainer.getReference();
+        var originalRefs = cudResult.getOriginalRefs();
+        var allChanges = cudResult.getAllChanges();
+        for (int a = allChanges.size(); a-- > 0; ) {
+            var changeContainer = allChanges.get(a);
+            var reference = changeContainer.getReference();
 
-			IPrivilege privilege = objRefToPrivilege.get(reference);
+            if (reference instanceof IDirectObjRef && ((IDirectObjRef) reference).getDirect() instanceof IChangeContainer) {
+                var directEntity = originalRefs.get(((IDirectObjRef) reference).getCreateContainerIndex());
+                relatedObjRefs.add(new DirectObjRef(reference.getRealType(), directEntity));
+            } else {
+                relatedObjRefs.add(reference);
+            }
+            IRelationUpdateItem[] ruis = null;
+            if (changeContainer instanceof CreateContainer) {
+                ruis = ((CreateContainer) changeContainer).getRelations();
+            } else if (changeContainer instanceof UpdateContainer) {
+                ruis = ((UpdateContainer) changeContainer).getRelations();
+            }
+            if (ruis == null) {
+                continue;
+            }
+            for (IRelationUpdateItem rui : ruis) {
+                addRelatedObjRefs(rui.getAddedORIs(), relatedObjRefs, originalRefs);
+                addRelatedObjRefs(rui.getRemovedORIs(), relatedObjRefs, originalRefs);
+            }
+        }
+        return relatedObjRefs;
+    }
 
-			if (!privilege.isReadAllowed()) {
-				// just for robustness
-				throw new SecurityException("User '" + privilegeResult.getSID()
-						+ "' has no permission to read entity and is therefore not allowed to imply any change: "
-						+ reference);
-			}
+    protected void evaluatePermssionOnAllObjRefs(ICUDResult cudResult, Map<IObjRef, IPrivilege> objRefToPrivilege, IPrivilegeResult privilegeResult) {
+        var allChanges = cudResult.getAllChanges();
+        for (int a = allChanges.size(); a-- > 0; ) {
+            var changeContainer = allChanges.get(a);
+            var reference = changeContainer.getReference();
 
-			IRelationUpdateItem[] ruis = null;
-			if (changeContainer instanceof CreateContainer) {
-				if (!privilege.isCreateAllowed()) {
-					throw new SecurityException("User '" + privilegeResult.getSID()
-							+ "' has no permission to create entity: " + reference);
-				}
-				evaluatePermissionOnEntityCreate((CreateContainer) changeContainer, privilege);
-				ruis = ((CreateContainer) changeContainer).getRelations();
-			}
-			else if (changeContainer instanceof UpdateContainer) {
-				if (!privilege.isUpdateAllowed()) {
-					throw new SecurityException("User '" + privilegeResult.getSID()
-							+ "' has no permission to update entity: " + reference);
-				}
-				evaluatePermissionOnEntityUpdate((UpdateContainer) changeContainer, privilege);
-				ruis = ((UpdateContainer) changeContainer).getRelations();
-			}
-			else if (!privilege.isDeleteAllowed()) {
-				throw new SecurityException("User '" + privilegeResult.getSID()
-						+ "' has no permission to delete entity: " + reference);
-			}
-			if (ruis == null) {
-				continue;
-			}
-			for (IRelationUpdateItem rui : ruis) {
-				evaulatePermissionOnRelatedObjRefs(rui.getAddedORIs(), objRefToPrivilege);
-				evaulatePermissionOnRelatedObjRefs(rui.getRemovedORIs(), objRefToPrivilege);
-			}
-		}
-	}
+            var privilege = objRefToPrivilege.get(reference);
 
-	protected void evaluatePermissionOnEntityCreate(CreateContainer changeContainer,
-			IPrivilege privilege) {
-		IPropertyPrivilege defaultPropertyPrivilege = privilege.getDefaultPropertyPrivilegeIfValid();
-		IEntityMetaData metaData = defaultPropertyPrivilege == null
-				? entityMetaDataProvider.getMetaData(changeContainer.getReference().getRealType())
-				: null;
-		IPrimitiveUpdateItem[] primitives = changeContainer.getPrimitives();
-		IRelationUpdateItem[] relations = changeContainer.getRelations();
-		if (primitives != null) {
-			for (IPrimitiveUpdateItem pui : primitives) {
-				IPropertyPrivilege propertyPrivilege;
-				if (metaData != null) {
-					int primitiveIndex = metaData.getIndexByPrimitiveName(pui.getMemberName());
-					propertyPrivilege = privilege.getPrimitivePropertyPrivilege(primitiveIndex);
-				}
-				else {
-					propertyPrivilege = defaultPropertyPrivilege;
-				}
-				boolean createPrivilege = propertyPrivilege != null ? propertyPrivilege.isCreateAllowed()
-						: true;
-				if (!createPrivilege) {
-					throw new SecurityException("Current user has no permssion to create property '"
-							+ pui.getMemberName() + "' on entity: " + changeContainer.getReference());
-				}
-			}
-		}
-		if (relations != null) {
-			for (IRelationUpdateItem rui : relations) {
-				IPropertyPrivilege propertyPrivilege;
-				if (metaData != null) {
-					int relationIndex = metaData.getIndexByRelationName(rui.getMemberName());
-					propertyPrivilege = privilege.getRelationPropertyPrivilege(relationIndex);
-				}
-				else {
-					propertyPrivilege = defaultPropertyPrivilege;
-				}
-				boolean createPrivilege = propertyPrivilege != null ? propertyPrivilege.isCreateAllowed()
-						: true;
-				if (!createPrivilege) {
-					throw new SecurityException("Current user has no permssion to create property '"
-							+ rui.getMemberName() + "' on entity: " + changeContainer.getReference());
-				}
-			}
-		}
-	}
+            if (!privilege.isReadAllowed()) {
+                // just for robustness
+                throw new SecurityException("User '" + privilegeResult.getSID() + "' has no permission to read entity and is therefore not allowed to imply any change: " + reference);
+            }
 
-	protected void evaluatePermissionOnEntityUpdate(UpdateContainer changeContainer,
-			IPrivilege privilege) {
-		IPropertyPrivilege defaultPropertyPrivilege = privilege.getDefaultPropertyPrivilegeIfValid();
-		IEntityMetaData metaData = defaultPropertyPrivilege == null
-				? entityMetaDataProvider.getMetaData(changeContainer.getReference().getRealType())
-				: null;
-		IPrimitiveUpdateItem[] primitives = changeContainer.getPrimitives();
-		IRelationUpdateItem[] relations = changeContainer.getRelations();
-		if (primitives != null) {
-			for (IPrimitiveUpdateItem pui : primitives) {
-				IPropertyPrivilege propertyPrivilege;
-				if (metaData != null) {
-					int primitiveIndex = metaData.getIndexByPrimitiveName(pui.getMemberName());
-					propertyPrivilege = privilege.getPrimitivePropertyPrivilege(primitiveIndex);
-				}
-				else {
-					propertyPrivilege = defaultPropertyPrivilege;
-				}
-				boolean updatePrivilege = propertyPrivilege != null ? propertyPrivilege.isUpdateAllowed()
-						: true;
-				if (!updatePrivilege) {
-					throw new SecurityException("Current user has no permssion to update property '"
-							+ pui.getMemberName() + "' on entity: " + changeContainer.getReference());
-				}
-			}
-		}
-		if (relations != null) {
-			for (IRelationUpdateItem rui : relations) {
-				IPropertyPrivilege propertyPrivilege;
-				if (metaData != null) {
-					int relationIndex = metaData.getIndexByRelationName(rui.getMemberName());
-					propertyPrivilege = privilege.getRelationPropertyPrivilege(relationIndex);
-				}
-				else {
-					propertyPrivilege = defaultPropertyPrivilege;
-				}
-				boolean updatePrivilege = propertyPrivilege != null ? propertyPrivilege.isUpdateAllowed()
-						: true;
-				if (!updatePrivilege) {
-					throw new SecurityException("Current user has no permssion to update property '"
-							+ rui.getMemberName() + "' on entity: " + changeContainer.getReference());
-				}
-			}
-		}
-	}
+            IRelationUpdateItem[] ruis = null;
+            if (changeContainer instanceof CreateContainer) {
+                if (!privilege.isCreateAllowed()) {
+                    throw new SecurityException("User '" + privilegeResult.getSID() + "' has no permission to create entity: " + reference);
+                }
+                evaluatePermissionOnEntityCreate((CreateContainer) changeContainer, privilege);
+                ruis = ((CreateContainer) changeContainer).getRelations();
+            } else if (changeContainer instanceof UpdateContainer) {
+                if (!privilege.isUpdateAllowed()) {
+                    throw new SecurityException("User '" + privilegeResult.getSID() + "' has no permission to update entity: " + reference);
+                }
+                evaluatePermissionOnEntityUpdate((UpdateContainer) changeContainer, privilege);
+                ruis = ((UpdateContainer) changeContainer).getRelations();
+            } else if (!privilege.isDeleteAllowed()) {
+                throw new SecurityException("User '" + privilegeResult.getSID() + "' has no permission to delete entity: " + reference);
+            }
+            if (ruis == null) {
+                continue;
+            }
+            for (IRelationUpdateItem rui : ruis) {
+                evaulatePermissionOnRelatedObjRefs(rui.getAddedORIs(), objRefToPrivilege);
+                evaulatePermissionOnRelatedObjRefs(rui.getRemovedORIs(), objRefToPrivilege);
+            }
+        }
+    }
 
-	protected void addRelatedObjRefs(IObjRef[] objRefs, ISet<IObjRef> relatedObjRefs,
-			List<Object> originalRefs) {
-		if (objRefs == null) {
-			return;
-		}
-		for (IObjRef objRef : objRefs) {
-			if (objRef instanceof IDirectObjRef
-					&& ((IDirectObjRef) objRef).getDirect() instanceof IChangeContainer) {
-				Object directEntity = originalRefs.get(((IDirectObjRef) objRef).getCreateContainerIndex());
-				relatedObjRefs.add(new DirectObjRef(objRef.getRealType(), directEntity));
-			}
-			else {
-				relatedObjRefs.add(objRef);
-			}
-		}
-	}
+    protected void evaluatePermissionOnEntityCreate(CreateContainer changeContainer, IPrivilege privilege) {
+        var defaultPropertyPrivilege = privilege.getDefaultPropertyPrivilegeIfValid();
+        var metaData = defaultPropertyPrivilege == null ? entityMetaDataProvider.getMetaData(changeContainer.getReference().getRealType()) : null;
+        var primitives = changeContainer.getPrimitives();
+        var relations = changeContainer.getRelations();
+        if (primitives != null) {
+            for (var pui : primitives) {
+                IPropertyPrivilege propertyPrivilege;
+                if (metaData != null) {
+                    int primitiveIndex = metaData.getIndexByPrimitiveName(pui.getMemberName());
+                    propertyPrivilege = privilege.getPrimitivePropertyPrivilege(primitiveIndex);
+                } else {
+                    propertyPrivilege = defaultPropertyPrivilege;
+                }
+                var createPrivilege = propertyPrivilege != null ? propertyPrivilege.isCreateAllowed() : true;
+                if (!createPrivilege) {
+                    throw new SecurityException("Current user has no permssion to create property '" + pui.getMemberName() + "' on entity: " + changeContainer.getReference());
+                }
+            }
+        }
+        if (relations != null) {
+            for (var rui : relations) {
+                IPropertyPrivilege propertyPrivilege;
+                if (metaData != null) {
+                    int relationIndex = metaData.getIndexByRelationName(rui.getMemberName());
+                    propertyPrivilege = privilege.getRelationPropertyPrivilege(relationIndex);
+                } else {
+                    propertyPrivilege = defaultPropertyPrivilege;
+                }
+                boolean createPrivilege = propertyPrivilege != null ? propertyPrivilege.isCreateAllowed() : true;
+                if (!createPrivilege) {
+                    throw new SecurityException("Current user has no permssion to create property '" + rui.getMemberName() + "' on entity: " + changeContainer.getReference());
+                }
+            }
+        }
+    }
 
-	protected void evaulatePermissionOnRelatedObjRefs(IObjRef[] objRefs,
-			Map<IObjRef, IPrivilege> objRefToPrivilege) {
-		if (objRefs == null) {
-			return;
-		}
-		for (IObjRef objRef : objRefs) {
-			IPrivilege privilege = objRefToPrivilege.get(objRef);
+    protected void evaluatePermissionOnEntityUpdate(UpdateContainer changeContainer, IPrivilege privilege) {
+        var defaultPropertyPrivilege = privilege.getDefaultPropertyPrivilegeIfValid();
+        var metaData = defaultPropertyPrivilege == null ? entityMetaDataProvider.getMetaData(changeContainer.getReference().getRealType()) : null;
+        var primitives = changeContainer.getPrimitives();
+        var relations = changeContainer.getRelations();
+        if (primitives != null) {
+            for (var pui : primitives) {
+                IPropertyPrivilege propertyPrivilege;
+                if (metaData != null) {
+                    var primitiveIndex = metaData.getIndexByPrimitiveName(pui.getMemberName());
+                    propertyPrivilege = privilege.getPrimitivePropertyPrivilege(primitiveIndex);
+                } else {
+                    propertyPrivilege = defaultPropertyPrivilege;
+                }
+                boolean updatePrivilege = propertyPrivilege != null ? propertyPrivilege.isUpdateAllowed() : true;
+                if (!updatePrivilege) {
+                    throw new SecurityException("Current user has no permssion to update property '" + pui.getMemberName() + "' on entity: " + changeContainer.getReference());
+                }
+            }
+        }
+        if (relations != null) {
+            for (var rui : relations) {
+                IPropertyPrivilege propertyPrivilege;
+                if (metaData != null) {
+                    var relationIndex = metaData.getIndexByRelationName(rui.getMemberName());
+                    propertyPrivilege = privilege.getRelationPropertyPrivilege(relationIndex);
+                } else {
+                    propertyPrivilege = defaultPropertyPrivilege;
+                }
+                boolean updatePrivilege = propertyPrivilege != null ? propertyPrivilege.isUpdateAllowed() : true;
+                if (!updatePrivilege) {
+                    throw new SecurityException("Current user has no permssion to update property '" + rui.getMemberName() + "' on entity: " + changeContainer.getReference());
+                }
+            }
+        }
+    }
 
-			if (!privilege.isReadAllowed()) {
-				// just for robustness
-				throw new SecurityException(
-						"Current user has no permssion to read entity and is therefore not allowed to imply any change where this entity is involved: "
-								+ objRef);
-			}
-		}
-	}
+    protected void addRelatedObjRefs(IObjRef[] objRefs, ISet<IObjRef> relatedObjRefs, List<Object> originalRefs) {
+        if (objRefs == null) {
+            return;
+        }
+        for (var objRef : objRefs) {
+            if (objRef instanceof IDirectObjRef && ((IDirectObjRef) objRef).getDirect() instanceof IChangeContainer) {
+                var directEntity = originalRefs.get(((IDirectObjRef) objRef).getCreateContainerIndex());
+                relatedObjRefs.add(new DirectObjRef(objRef.getRealType(), directEntity));
+            } else {
+                relatedObjRefs.add(objRef);
+            }
+        }
+    }
 
-	protected IMap<Class<?>, List<IChangeContainer>> buildTypeToChanges(
-			List<IChangeContainer> allChanges) {
-		HashMap<Class<?>, List<IChangeContainer>> typeToChanges = new HashMap<>();
+    protected void evaulatePermissionOnRelatedObjRefs(IObjRef[] objRefs, Map<IObjRef, IPrivilege> objRefToPrivilege) {
+        if (objRefs == null) {
+            return;
+        }
+        for (var objRef : objRefs) {
+            var privilege = objRefToPrivilege.get(objRef);
 
-		for (int a = allChanges.size(); a-- > 0;) {
-			IChangeContainer changeContainer = allChanges.get(a);
-			IObjRef objRef = changeContainer.getReference();
-			List<IChangeContainer> changes = typeToChanges.get(objRef.getRealType());
-			if (changes == null) {
-				changes = new ArrayList<>();
-				typeToChanges.put(objRef.getRealType(), changes);
-			}
-			changes.add(changeContainer);
-		}
-		return typeToChanges;
-	}
+            if (!privilege.isReadAllowed()) {
+                // just for robustness
+                throw new SecurityException("Current user has no permssion to read entity and is therefore not allowed to imply any change where this entity is involved: " + objRef);
+            }
+        }
+    }
 
-	protected CallPermission filterService(Method method, Object[] arguments,
-			SecurityContextType securityContextType, IAuthorization authorization) {
-		ISecurityScope[] securityScopes = securityScopeProvider.getSecurityScopes();
-		if (securityScopes.length == 0) {
-			securityScopes = new ISecurityScope[] {StringSecurityScope.DEFAULT_SCOPE};
-		}
-		CallPermission restrictiveCallPermission = CallPermission.ALLOWED;
-		for (IServiceFilter serviceFilter : serviceFilters.getExtensionsShared()) {
-			CallPermission callPermission = serviceFilter.checkCallPermissionOnService(method, arguments,
-					securityContextType, authorization, securityScopes);
-			switch (callPermission) {
-				case UNDEFINED:
-					break;
-				case FORBIDDEN:
-					return callPermission;
-				case ALLOWED:
-					break;
-				default:
-					throw new IllegalStateException("Enum " + callPermission + " not supported");
-			}
-		}
-		return restrictiveCallPermission;
-	}
+    protected IMap<Class<?>, List<IChangeContainer>> buildTypeToChanges(List<IChangeContainer> allChanges) {
+        var typeToChanges = new HashMap<Class<?>, List<IChangeContainer>>();
 
-	@Override
-	public void registerServiceFilter(IServiceFilter serviceFilter) {
-		serviceFilters.register(serviceFilter);
-	}
+        for (int a = allChanges.size(); a-- > 0; ) {
+            var changeContainer = allChanges.get(a);
+            var objRef = changeContainer.getReference();
+            var changes = typeToChanges.get(objRef.getRealType());
+            if (changes == null) {
+                changes = new ArrayList<>();
+                typeToChanges.put(objRef.getRealType(), changes);
+            }
+            changes.add(changeContainer);
+        }
+        return typeToChanges;
+    }
 
-	@Override
-	public void unregisterServiceFilter(IServiceFilter serviceFilter) {
-		serviceFilters.unregister(serviceFilter);
-	}
+    protected CallPermission filterService(Method method, Object[] arguments, SecurityContextType securityContextType, IAuthorization authorization) {
+        var securityScopes = securityScopeProvider.getSecurityScopes();
+        if (securityScopes.length == 0) {
+            securityScopes = new ISecurityScope[] { StringSecurityScope.DEFAULT_SCOPE };
+        }
+        var restrictiveCallPermission = CallPermission.ALLOWED;
+        for (var serviceFilter : serviceFilters.getExtensionsShared()) {
+            var callPermission = serviceFilter.checkCallPermissionOnService(method, arguments, securityContextType, authorization, securityScopes);
+            switch (callPermission) {
+                case UNDEFINED:
+                    break;
+                case FORBIDDEN:
+                    return callPermission;
+                case ALLOWED:
+                    break;
+                default:
+                    throw new IllegalStateException("Enum " + callPermission + " not supported");
+            }
+        }
+        return restrictiveCallPermission;
+    }
+
+    @Override
+    public void registerServiceFilter(IServiceFilter serviceFilter) {
+        serviceFilters.register(serviceFilter);
+    }
+
+    @Override
+    public void unregisterServiceFilter(IServiceFilter serviceFilter) {
+        serviceFilters.unregister(serviceFilter);
+    }
 }
