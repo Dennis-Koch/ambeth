@@ -83,87 +83,177 @@ public final class Arrays {
         var componentType = array.getClass().getComponentType();
         if (byte.class.equals(componentType)) {
             var castArray = (byte[]) array;
-            return index -> Byte.valueOf(castArray[index]);
+            return new PreparedArrayGet() {
+                @Override
+                public Object get(int index) {
+                    return Byte.valueOf(castArray[index]);
+                }
+            };
         }
         if (char.class.equals(componentType)) {
             var castArray = (char[]) array;
-            return index -> Character.valueOf(castArray[index]);
+            return new PreparedArrayGet() {
+                @Override
+                public Object get(int index) {
+                    return Character.valueOf(castArray[index]);
+                }
+            };
         }
         if (boolean.class.equals(componentType)) {
             var castArray = (boolean[]) array;
-            return index -> Boolean.valueOf(castArray[index]);
+            return new PreparedArrayGet() {
+                @Override
+                public Object get(int index) {
+                    return Boolean.valueOf(castArray[index]);
+                }
+            };
         }
         if (short.class.equals(componentType)) {
             var castArray = (short[]) array;
-            return index -> Short.valueOf(castArray[index]);
+            return new PreparedArrayGet() {
+                @Override
+                public Object get(int index) {
+                    return Short.valueOf(castArray[index]);
+                }
+            };
         }
         if (int.class.equals(componentType)) {
             var castArray = (int[]) array;
-            return index -> Integer.valueOf(castArray[index]);
+            return new PreparedArrayGet() {
+                @Override
+                public Object get(int index) {
+                    return Integer.valueOf(castArray[index]);
+                }
+            };
         }
         if (float.class.equals(componentType)) {
             var castArray = (float[]) array;
-            return index -> Float.valueOf(castArray[index]);
+            return new PreparedArrayGet() {
+                @Override
+                public Object get(int index) {
+                    return Float.valueOf(castArray[index]);
+                }
+            };
         }
         if (long.class.equals(componentType)) {
             var castArray = (long[]) array;
-            return index -> Long.valueOf(castArray[index]);
+            return new PreparedArrayGet() {
+                @Override
+                public Object get(int index) {
+                    return Long.valueOf(castArray[index]);
+                }
+            };
         }
         if (double.class.equals(componentType)) {
             var castArray = (double[]) array;
-            return index -> Double.valueOf(castArray[index]);
+            return new PreparedArrayGet() {
+                @Override
+                public Object get(int index) {
+                    return Double.valueOf(castArray[index]);
+                }
+            };
         }
         var castArray = (Object[]) array;
-        return index -> castArray[index];
+        return new PreparedArrayGet() {
+            @Override
+            public Object get(int index) {
+                return castArray[index];
+            }
+        };
     }
 
     public static PreparedArraySet prepareSet(Object array) {
         var componentType = array.getClass().getComponentType();
         if (byte.class.equals(componentType)) {
             var castArray = (byte[]) array;
-            return (index, value) -> castArray[index] = ((Number) value).byteValue();
+            return new PreparedArraySet() {
+                @Override
+                public void set(int index, Object value) {
+                    castArray[index] = ((Number) value).byteValue();
+                }
+            };
         }
         if (char.class.equals(componentType)) {
             var castArray = (char[]) array;
-            return (index, value) -> castArray[index] = ((Character) value).charValue();
+            return new PreparedArraySet() {
+                @Override
+                public void set(int index, Object value) {
+                    castArray[index] = ((Character) value).charValue();
+                }
+            };
         }
         if (boolean.class.equals(componentType)) {
             var castArray = (boolean[]) array;
-            return (index, value) -> castArray[index] = ((Boolean) value).booleanValue();
+            return new PreparedArraySet() {
+                @Override
+                public void set(int index, Object value) {
+                    castArray[index] = ((Boolean) value).booleanValue();
+                }
+            };
         }
         if (short.class.equals(componentType)) {
             var castArray = (short[]) array;
-            return (index, value) -> castArray[index] = ((Number) value).shortValue();
+            return new PreparedArraySet() {
+                @Override
+                public void set(int index, Object value) {
+                    castArray[index] = ((Number) value).shortValue();
+                }
+            };
         }
         if (int.class.equals(componentType)) {
             var castArray = (int[]) array;
-            return (index, value) -> castArray[index] = ((Number) value).intValue();
+            return new PreparedArraySet() {
+                @Override
+                public void set(int index, Object value) {
+                    castArray[index] = ((Number) value).intValue();
+                }
+            };
         }
         if (float.class.equals(componentType)) {
             var castArray = (float[]) array;
-            return (index, value) -> castArray[index] = ((Number) value).floatValue();
+            return new PreparedArraySet() {
+                @Override
+                public void set(int index, Object value) {
+                    castArray[index] = ((Number) value).floatValue();
+                }
+            };
         }
         if (long.class.equals(componentType)) {
             var castArray = (long[]) array;
-            return (index, value) -> castArray[index] = ((Number) value).longValue();
+            return new PreparedArraySet() {
+                @Override
+                public void set(int index, Object value) {
+                    castArray[index] = ((Number) value).longValue();
+                }
+            };
         }
         if (double.class.equals(componentType)) {
             var castArray = (double[]) array;
-            return (index, value) -> castArray[index] = ((Number) value).doubleValue();
+            return new PreparedArraySet() {
+                @Override
+                public void set(int index, Object value) {
+                    castArray[index] = ((Number) value).doubleValue();
+                }
+            };
         }
         var castArray = (Object[]) array;
-        return (index, value) -> castArray[index] = value;
+        return new PreparedArraySet() {
+            @Override
+            public void set(int index, Object value) {
+                castArray[index] = value;
+            }
+        };
     }
 
     private Arrays() {
         // Intended blank
     }
 
-    public interface PreparedArraySet {
-        void set(int index, Object value);
+    public abstract static class PreparedArraySet {
+        public abstract void set(int index, Object value);
     }
 
-    public interface PreparedArrayGet {
-        Object get(int index);
+    public abstract static class PreparedArrayGet {
+        public abstract Object get(int index);
     }
 }
