@@ -20,120 +20,112 @@ limitations under the License.
  * #L%
  */
 
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.locks.Lock;
-
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.extendable.IMapExtendableContainer;
 import com.koch.ambeth.ioc.extendable.MapExtendableContainer;
 import com.koch.ambeth.service.merge.IEntityMetaDataProvider;
 import com.koch.ambeth.service.merge.IValueObjectConfig;
 import com.koch.ambeth.util.collections.ArrayList;
-import com.koch.ambeth.util.collections.EmptyList;
 import com.koch.ambeth.util.collections.ILinkedMap;
 import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.SmartCopyMap;
 
-public class ValueObjectMap extends SmartCopyMap<Class<?>, List<Class<?>>>
-		implements IMapExtendableContainer<Class<?>, IValueObjectConfig> {
-	protected final MapExtendableContainer<Class<?>, IValueObjectConfig> typeToValueObjectConfig =
-			new MapExtendableContainer<>(
-					"configuration", "value object class");
+import java.util.List;
+import java.util.Map;
 
-	@Autowired
-	protected IEntityMetaDataProvider entityMetaDataProvider;
+public class ValueObjectMap extends SmartCopyMap<Class<?>, List<Class<?>>> implements IMapExtendableContainer<Class<?>, IValueObjectConfig> {
+    protected final MapExtendableContainer<Class<?>, IValueObjectConfig> typeToValueObjectConfig = new MapExtendableContainer<>("configuration", "value object class");
 
-	@Override
-	public IList<IValueObjectConfig> getExtensions(Class<?> key) {
-		return typeToValueObjectConfig.getExtensions(key);
-	}
+    @Autowired
+    protected IEntityMetaDataProvider entityMetaDataProvider;
 
-	@Override
-	public ILinkedMap<Class<?>, IValueObjectConfig> getExtensions() {
-		return typeToValueObjectConfig.getExtensions();
-	}
+    @Override
+    public IList<IValueObjectConfig> getExtensions(Class<?> key) {
+        return typeToValueObjectConfig.getExtensions(key);
+    }
 
-	public IList<Class<?>> getValueObjectTypesByEntityType(Class<?> entityType) {
-		List<Class<?>> valueObjectTypes = get(entityType);
-		if (valueObjectTypes == null) {
-			// Check if the entityType is really an entity type
-			if (entityMetaDataProvider.getMetaData(entityType, true) == null) {
-				throw new IllegalStateException("'" + entityType + "' is no valid entity type");
-			}
-			return EmptyList.getInstance();
-		}
-		ArrayList<Class<?>> resultList = new ArrayList<>(valueObjectTypes.size());
-		for (int a = 0, size = valueObjectTypes.size(); a < size; a++) {
-			Class<?> valueObjectType = valueObjectTypes.get(a);
-			resultList.add(valueObjectType);
-		}
-		return resultList;
-	}
+    @Override
+    public ILinkedMap<Class<?>, IValueObjectConfig> getExtensions() {
+        return typeToValueObjectConfig.getExtensions();
+    }
 
-	@Override
-	public IValueObjectConfig getExtension(Class<?> key) {
-		return typeToValueObjectConfig.getExtension(key);
-	}
+    public List<Class<?>> getValueObjectTypesByEntityType(Class<?> entityType) {
+        var valueObjectTypes = get(entityType);
+        if (valueObjectTypes == null) {
+            // Check if the entityType is really an entity type
+            if (entityMetaDataProvider.getMetaData(entityType, true) == null) {
+                throw new IllegalStateException("'" + entityType + "' is no valid entity type");
+            }
+            return List.of();
+        }
+        var resultList = new ArrayList<Class<?>>(valueObjectTypes.size());
+        for (int a = 0, size = valueObjectTypes.size(); a < size; a++) {
+            var valueObjectType = valueObjectTypes.get(a);
+            resultList.add(valueObjectType);
+        }
+        return resultList;
+    }
 
-	@Override
-	public void getExtensions(Map<Class<?>, IValueObjectConfig> targetExtensionMap) {
-		typeToValueObjectConfig.getExtensions(targetExtensionMap);
-	}
+    @Override
+    public IValueObjectConfig getExtension(Class<?> key) {
+        return typeToValueObjectConfig.getExtension(key);
+    }
 
-	@Override
-	public ILinkedMap<Class<?>, IList<IValueObjectConfig>> getAllExtensions() {
-		return typeToValueObjectConfig.getAllExtensions();
-	}
+    @Override
+    public void getExtensions(Map<Class<?>, IValueObjectConfig> targetExtensionMap) {
+        typeToValueObjectConfig.getExtensions(targetExtensionMap);
+    }
 
-	@Override
-	public void getAllExtensions(Map<Class<?>, IList<IValueObjectConfig>> targetExtensionMap) {
-		typeToValueObjectConfig.getAllExtensions(targetExtensionMap);
-	}
+    @Override
+    public ILinkedMap<Class<?>, IList<IValueObjectConfig>> getAllExtensions() {
+        return typeToValueObjectConfig.getAllExtensions();
+    }
 
-	@Override
-	public void register(IValueObjectConfig config, Class<?> key) {
-		Class<?> entityType = config.getEntityType();
-		Class<?> valueType = config.getValueType();
+    @Override
+    public void getAllExtensions(Map<Class<?>, IList<IValueObjectConfig>> targetExtensionMap) {
+        typeToValueObjectConfig.getAllExtensions(targetExtensionMap);
+    }
 
-		Lock writeLock = getWriteLock();
-		writeLock.lock();
-		try {
-			typeToValueObjectConfig.register(config, valueType);
+    @Override
+    public void register(IValueObjectConfig config, Class<?> key) {
+        var entityType = config.getEntityType();
+        var valueType = config.getValueType();
 
-			// Clone list because of SmartCopy behavior
-			List<Class<?>> valueObjectTypes = get(entityType);
-			if (valueObjectTypes == null) {
-				valueObjectTypes = new ArrayList<>(1);
-			}
-			else {
-				valueObjectTypes = new ArrayList<>(valueObjectTypes);
-			}
-			valueObjectTypes.add(valueType);
-			put(entityType, valueObjectTypes);
-		}
-		finally {
-			writeLock.unlock();
-		}
-	}
+        var writeLock = getWriteLock();
+        writeLock.lock();
+        try {
+            typeToValueObjectConfig.register(config, valueType);
 
-	@Override
-	public void unregister(IValueObjectConfig config, Class<?> key) {
-		Class<?> entityType = config.getEntityType();
-		Class<?> valueType = config.getValueType();
+            // Clone list because of SmartCopy behavior
+            var valueObjectTypes = get(entityType);
+            if (valueObjectTypes == null) {
+                valueObjectTypes = new ArrayList<>(1);
+            } else {
+                valueObjectTypes = new ArrayList<>(valueObjectTypes);
+            }
+            valueObjectTypes.add(valueType);
+            put(entityType, valueObjectTypes);
+        } finally {
+            writeLock.unlock();
+        }
+    }
 
-		Lock writeLock = getWriteLock();
-		writeLock.lock();
-		try {
-			typeToValueObjectConfig.unregister(config, valueType);
-			List<Class<?>> valueObjectTypes = get(entityType);
-			valueObjectTypes.remove(valueType);
-			if (valueObjectTypes.isEmpty()) {
-				remove(entityType);
-			}
-		}
-		finally {
-			writeLock.unlock();
-		}
-	}
+    @Override
+    public void unregister(IValueObjectConfig config, Class<?> key) {
+        var entityType = config.getEntityType();
+        var valueType = config.getValueType();
+
+        var writeLock = getWriteLock();
+        writeLock.lock();
+        try {
+            typeToValueObjectConfig.unregister(config, valueType);
+            var valueObjectTypes = get(entityType);
+            valueObjectTypes.remove(valueType);
+            if (valueObjectTypes.isEmpty()) {
+                remove(entityType);
+            }
+        } finally {
+            writeLock.unlock();
+        }
+    }
 }

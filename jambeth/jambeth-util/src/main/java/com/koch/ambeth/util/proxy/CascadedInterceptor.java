@@ -1,6 +1,6 @@
 package com.koch.ambeth.util.proxy;
 
-import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
+import lombok.SneakyThrows;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
@@ -18,19 +18,15 @@ public abstract class CascadedInterceptor extends AbstractSimpleInterceptor impl
         target = obj;
     }
 
+    @SneakyThrows
     public Object invokeTarget(Object obj, Method method, Object[] args, MethodProxy proxy) {
-        try {
-            var target = getTarget();
-            if (target instanceof MethodInterceptor) {
-                return ((MethodInterceptor) target).intercept(obj, method, args, proxy);
-            }
-            if (target instanceof InvocationHandler) {
-                return ((InvocationHandler) target).invoke(proxy, method, args);
-            }
-            return proxy.invoke(target, args);
-        } catch (Throwable e) {
-            e.printStackTrace();
-            throw RuntimeExceptionUtil.mask(e);
+        var target = getTarget();
+        if (target instanceof MethodInterceptor) {
+            return ((MethodInterceptor) target).intercept(obj, method, args, proxy);
         }
+        if (target instanceof InvocationHandler) {
+            return ((InvocationHandler) target).invoke(proxy, method, args);
+        }
+        return proxy.invoke(target, args);
     }
 }

@@ -47,8 +47,6 @@ import com.koch.ambeth.service.merge.IEntityMetaDataProvider;
 import com.koch.ambeth.service.merge.model.IEntityMetaData;
 import com.koch.ambeth.service.merge.model.IObjRef;
 import com.koch.ambeth.service.metadata.Member;
-import com.koch.ambeth.service.metadata.PrimitiveMember;
-import com.koch.ambeth.service.metadata.RelationMember;
 import com.koch.ambeth.util.IClassCache;
 import com.koch.ambeth.util.IConversionHelper;
 import com.koch.ambeth.util.StringBuilderUtil;
@@ -78,7 +76,6 @@ import java.security.SignatureException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.concurrent.locks.Lock;
 
@@ -276,43 +273,42 @@ public class AuditEntryVerifier implements IAuditEntryVerifier, IVerifyOnLoad, I
             auditedEntitiesToVerify.addAll(auditedEntities);
             return;
         }
-        @SuppressWarnings("unused") IPrefetchState prefetch = getPref_filterAuditedEntities().prefetch(auditedEntities);
+        @SuppressWarnings("unused") var prefetch = getPref_filterAuditedEntities().prefetch(auditedEntities);
 
-        IConversionHelper conversionHelper = this.conversionHelper;
-        IList<Object> entities = cache.getObjects(objRefs, CacheDirective.returnMisses());
-        HashMap<IObjRef, IObjRefContainer> objRefToEntityMap = HashMap.<IObjRef, IObjRefContainer>create(objRefs.size());
-        HashMap<IObjRef, HashMap<String, Boolean>> objRefToValidPropertyMap = HashMap.<IObjRef, HashMap<String, Boolean>>create(objRefs.size());
-        ArrayList<DirectValueHolderRef> valueHoldersToPrefetch = new ArrayList<>(objRefs.size());
+        var conversionHelper = this.conversionHelper;
+        var entities = cache.getObjects(objRefs, CacheDirective.returnMisses());
+        var objRefToEntityMap = HashMap.<IObjRef, IObjRefContainer>create(objRefs.size());
+        var objRefToValidPropertyMap = HashMap.<IObjRef, HashMap<String, Boolean>>create(objRefs.size());
+        var valueHoldersToPrefetch = new ArrayList<DirectValueHolderRef>(objRefs.size());
         for (int a = objRefs.size(); a-- > 0; ) {
-            IObjRef objRef = objRefs.get(a);
-            IObjRefContainer entity = (IObjRefContainer) entities.get(a);
+            var objRef = objRefs.get(a);
+            var entity = (IObjRefContainer) entities.get(a);
             objRefToEntityMap.put(objRef, entity);
-            IEntityMetaData metaData = entity.get__EntityMetaData();
-            HashMap<String, Boolean> invalidPropertyMap = HashMap.<String, Boolean>create(objRefToPrimitiveMap.get(objRef).size() + metaData.getRelationMembers().length);
+            var metaData = entity.get__EntityMetaData();
+            var invalidPropertyMap = HashMap.<String, Boolean>create(objRefToPrimitiveMap.get(objRef).size() + metaData.getRelationMembers().length);
             objRefToValidPropertyMap.put(objRef, invalidPropertyMap);
 
-            for (RelationMember relationMember : metaData.getRelationMembers()) {
+            for (var relationMember : metaData.getRelationMembers()) {
                 valueHoldersToPrefetch.add(new DirectValueHolderRef(entity, relationMember));
             }
         }
         prefetchHelper.prefetch(valueHoldersToPrefetch);
 
-        Tuple2KeyHashMap<Class<?>, String, IMap<String, Tuple2KeyHashMap<Class<?>, String, Boolean>>> objRefToRelationMap =
-                Tuple2KeyHashMap.<Class<?>, String, IMap<String, Tuple2KeyHashMap<Class<?>, String, Boolean>>>create(objRefs.size());
+        var objRefToRelationMap = Tuple2KeyHashMap.<Class<?>, String, IMap<String, Tuple2KeyHashMap<Class<?>, String, Boolean>>>create(objRefs.size());
 
-        ObjRef tempObjRef = new ObjRef();
+        var tempObjRef = new ObjRef();
         tempObjRef.setIdNameIndex(ObjRef.PRIMARY_KEY_INDEX);
 
-        ArrayList<IAuditedEntity> realAuditedEntities = new ArrayList<>(auditedEntities.size());
+        var realAuditedEntities = new ArrayList<IAuditedEntity>(auditedEntities.size());
 
         try {
             for (int a = 0, size = auditedEntities.size(); a < size; a++) {
-                IAuditedEntity auditedEntity = auditedEntities.get(a);
-                IAuditedEntityRef ref = auditedEntity.getRef();
-                Class<?> refEntityType = classCache.loadClass(ref.getEntityType());
+                var auditedEntity = auditedEntities.get(a);
+                var ref = auditedEntity.getRef();
+                var refEntityType = classCache.loadClass(ref.getEntityType());
 
-                IEntityMetaData metaData = entityMetaDataProvider.getMetaData(refEntityType);
-                Class<?> entityType = metaData.getEntityType();
+                var metaData = entityMetaDataProvider.getMetaData(refEntityType);
+                var entityType = metaData.getEntityType();
                 tempObjRef.setRealType(entityType);
                 tempObjRef.setId(conversionHelper.convertValueToType(metaData.getIdMember().getRealType(), ref.getEntityId()));
 
@@ -320,29 +316,29 @@ public class AuditEntryVerifier implements IAuditEntryVerifier, IVerifyOnLoad, I
                     continue;
                 }
                 realAuditedEntities.add(auditedEntity);
-                RelationMember[] relationMembers = metaData.getRelationMembers();
+                var relationMembers = metaData.getRelationMembers();
 
                 if (relationMembers.length > 0) {
-                    IMap<String, Tuple2KeyHashMap<Class<?>, String, Boolean>> relationsMap = objRefToRelationMap.get(refEntityType, ref.getEntityId());
+                    var relationsMap = objRefToRelationMap.get(refEntityType, ref.getEntityId());
                     if (relationsMap == null) {
                         relationsMap = HashMap.<String, Tuple2KeyHashMap<Class<?>, String, Boolean>>create(relationMembers.length);
                         objRefToRelationMap.put(refEntityType, ref.getEntityId(), relationsMap);
                     }
-                    List<? extends IAuditedEntityRelationProperty> relations = auditedEntity.getRelations();
+                    var relations = auditedEntity.getRelations();
                     if (!relations.isEmpty()) {
-                        List<? extends IAuditedEntityRelationProperty> auditedEntityRelations = auditedEntity.getRelations();
+                        var auditedEntityRelations = auditedEntity.getRelations();
                         for (int b = auditedEntityRelations.size(); b-- > 0; ) {
-                            IAuditedEntityRelationProperty relation = auditedEntityRelations.get(b);
-                            Tuple2KeyHashMap<Class<?>, String, Boolean> relationMap = relationsMap.get(relation.getName());
+                            var relation = auditedEntityRelations.get(b);
+                            var relationMap = relationsMap.get(relation.getName());
                             if (relationMap == null) {
                                 relationMap = Tuple2KeyHashMap.<Class<?>, String, Boolean>create(relationMembers.length);
                                 relationsMap.put(relation.getName(), relationMap);
                             }
                             List<? extends IAuditedEntityRelationPropertyItem> items = relation.getItems();
                             for (int c = items.size(); c-- > 0; ) {
-                                IAuditedEntityRelationPropertyItem item = items.get(c);
-                                IAuditedEntityRef itemRef = item.getRef();
-                                Class<?> itemEntityType = classCache.loadClass(itemRef.getEntityType());
+                                var item = items.get(c);
+                                var itemRef = item.getRef();
+                                var itemEntityType = classCache.loadClass(itemRef.getEntityType());
                                 switch (item.getChangeType()) {
                                     case ADD:
                                         relationMap.putIfNotExists(itemEntityType, itemRef.getEntityId(), Boolean.TRUE);
@@ -359,27 +355,27 @@ public class AuditEntryVerifier implements IAuditEntryVerifier, IVerifyOnLoad, I
                     }
                 }
             }
-            Tuple2KeyHashMap<Class<?>, Object, IMap<String, IAuditedEntity>> objRefToPreviousRefVersionMap = Tuple2KeyHashMap.create(objRefs.size());
-            Tuple2KeyHashMap<Class<?>, Object, Object> objRefToMaxVersionOfAuditTrailMap = new Tuple2KeyHashMap<>();
+            var objRefToPreviousRefVersionMap = Tuple2KeyHashMap.<Class<?>, Object, IMap<String, IAuditedEntity>>create(objRefs.size());
+            var objRefToMaxVersionOfAuditTrailMap = new Tuple2KeyHashMap<Class<?>, Object, Object>();
 
             // audit entries are ordered by timestamp DESC. So the newest auditEntries are last
             // so we do a reverse iteration because we are interested in the LAST/RECENT assigned value to
             // primitives
             for (int a = realAuditedEntities.size(); a-- > 0; ) {
-                IAuditedEntity auditedEntity = realAuditedEntities.get(a);
-                IAuditedEntityRef ref = auditedEntity.getRef();
-                Class<?> refEntityType = classCache.loadClass(ref.getEntityType());
-                IEntityMetaData metaData = entityMetaDataProvider.getMetaData(refEntityType);
+                var auditedEntity = realAuditedEntities.get(a);
+                var ref = auditedEntity.getRef();
+                var refEntityType = classCache.loadClass(ref.getEntityType());
+                var metaData = entityMetaDataProvider.getMetaData(refEntityType);
 
                 tempObjRef.setRealType(metaData.getEntityType());
                 tempObjRef.setId(conversionHelper.convertValueToType(metaData.getIdMember().getRealType(), ref.getEntityId()));
 
-                IMap<String, IAuditedEntity> previousRefVersionToEntityMap = objRefToPreviousRefVersionMap.get(tempObjRef.getRealType(), tempObjRef.getId());
+                var previousRefVersionToEntityMap = objRefToPreviousRefVersionMap.get(tempObjRef.getRealType(), tempObjRef.getId());
                 if (previousRefVersionToEntityMap == null) {
                     previousRefVersionToEntityMap = new HashMap<>();
                     objRefToPreviousRefVersionMap.put(tempObjRef.getRealType(), tempObjRef.getId(), previousRefVersionToEntityMap);
                 }
-                String refPreviousVersion = auditedEntity.getRefPreviousVersion();
+                var refPreviousVersion = auditedEntity.getRefPreviousVersion();
                 if (refPreviousVersion == null) {
                     if (auditedEntity.getChangeType() != AuditedEntityChangeType.INSERT) {
                         throw new IllegalStateException("Illegal null string for '" + IAuditedEntity.RefPreviousVersion + "' of a non-INSERT " + auditedEntity);
@@ -452,11 +448,11 @@ public class AuditEntryVerifier implements IAuditEntryVerifier, IVerifyOnLoad, I
 
                 boolean atleastOnePropertyInvalid = false;
 
-                RelationMember[] relationMembers = metaData.getRelationMembers();
+                var relationMembers = metaData.getRelationMembers();
                 for (int relationIndex = relationMembers.length; relationIndex-- > 0; ) {
-                    RelationMember relationMember = relationMembers[relationIndex];
-                    IList<IObjRef> relationsOfMember = objRefHelper.extractObjRefList(relationMember.getValue(entity), null);
-                    Tuple2KeyHashMap<Class<?>, String, Boolean> relationMap = relationsMap != null ? relationsMap.get(relationMember.getName()) : null;
+                    var relationMember = relationMembers[relationIndex];
+                    var relationsOfMember = objRefHelper.extractObjRefList(relationMember.getValue(entity), null);
+                    var relationMap = relationsMap != null ? relationsMap.get(relationMember.getName()) : null;
                     boolean valid;
                     if (relationMap == null) {
                         // no audit entry did note a change to this member. So it has to be still empty for the
@@ -478,8 +474,8 @@ public class AuditEntryVerifier implements IAuditEntryVerifier, IVerifyOnLoad, I
                     validPropertyMap.put(relationMember.getName(), Boolean.valueOf(valid));
                     atleastOnePropertyInvalid |= !valid;
                 }
-                for (PrimitiveMember member : metaData.getPrimitiveMembers()) {
-                    Boolean valid = validPropertyMap.get(member.getName());
+                for (var member : metaData.getPrimitiveMembers()) {
+                    var valid = validPropertyMap.get(member.getName());
                     if (valid == null) {
                         continue;
                     }
@@ -490,19 +486,19 @@ public class AuditEntryVerifier implements IAuditEntryVerifier, IVerifyOnLoad, I
                     // AuditedEntities for a given ObjRef where the AuditedEntities by itself might all be
                     // correctly verified but the overall CHAIN has been compromised (e.g. a specific
                     // AuditedEntity
-                    IMap<String, IAuditedEntity> previousRefVersionToEntityMap = objRefToPreviousRefVersionMap.get(tempObjRef.getRealType(), tempObjRef.getId());
+                    var previousRefVersionToEntityMap = objRefToPreviousRefVersionMap.get(tempObjRef.getRealType(), tempObjRef.getId());
                     if (previousRefVersionToEntityMap == null) {
                         atleastOnePropertyInvalid = true;
                     } else {
-                        for (Entry<String, IAuditedEntity> entry : previousRefVersionToEntityMap) {
-                            IAuditedEntityRef ref = entry.getValue().getRef();
-                            String refVersion = ref.getEntityVersion();
-                            IAuditedEntity followingAuditEntry = previousRefVersionToEntityMap.get(refVersion);
+                        for (var entry : previousRefVersionToEntityMap) {
+                            var ref = entry.getValue().getRef();
+                            var refVersion = ref.getEntityVersion();
+                            var followingAuditEntry = previousRefVersionToEntityMap.get(refVersion);
                             if (followingAuditEntry == null) {
                                 // this is only allowed for the LAST audited entity in the chain so we check whether
                                 // this is the case here
-                                Object maxVersion = objRefToMaxVersionOfAuditTrailMap.get(tempObjRef.getRealType(), tempObjRef.getId());
-                                Object convertedRefVersion = conversionHelper.convertValueToType(metaData.getVersionMember().getRealType(), refVersion);
+                                var maxVersion = objRefToMaxVersionOfAuditTrailMap.get(tempObjRef.getRealType(), tempObjRef.getId());
+                                var convertedRefVersion = conversionHelper.convertValueToType(metaData.getVersionMember().getRealType(), refVersion);
                                 if (!convertedRefVersion.equals(maxVersion)) {
                                     atleastOnePropertyInvalid = true;
                                     break;
@@ -520,24 +516,24 @@ public class AuditEntryVerifier implements IAuditEntryVerifier, IVerifyOnLoad, I
 
     @SuppressWarnings("rawtypes")
     private void mapMaxEntityVersionOfAuditTrail(IEntityMetaData metaData, ObjRef tempObjRef, IAuditedEntityRef ref, Tuple2KeyHashMap<Class<?>, Object, Object> objRefToMaxVersionOfAuditTrailMap) {
-        Comparable existingMaxVersion = (Comparable) objRefToMaxVersionOfAuditTrailMap.get(tempObjRef.getRealType(), tempObjRef.getId());
+        var existingMaxVersion = (Comparable) objRefToMaxVersionOfAuditTrailMap.get(tempObjRef.getRealType(), tempObjRef.getId());
         if (existingMaxVersion == null) {
-            Class<?> versionType = metaData.getVersionMember().getRealType();
-            Comparable currentVersion = (Comparable) conversionHelper.convertValueToType(versionType, ref.getEntityVersion());
+            var versionType = metaData.getVersionMember().getRealType();
+            var currentVersion = (Comparable) conversionHelper.convertValueToType(versionType, ref.getEntityVersion());
             objRefToMaxVersionOfAuditTrailMap.put(tempObjRef.getRealType(), tempObjRef.getId(), currentVersion);
         }
     }
 
     protected IMap<IObjRef, ISet<String>> fillNameToValueMap(IMap<String, Object> nameToValueMap, ILinkedMap<IEntityMetaData, IList<IObjRef>> bucketSortObjRefs) {
-        HashMap<IObjRef, ISet<String>> remainingPropertyMap = filterAuditedEntities ? new HashMap<IObjRef, ISet<String>>() : null;
+        var remainingPropertyMap = filterAuditedEntities ? new HashMap<IObjRef, ISet<String>>() : null;
 
-        for (Entry<IEntityMetaData, IList<IObjRef>> entry : bucketSortObjRefs) {
-            IEntityMetaData metaData = entry.getKey();
-            IList<IObjRef> objRefsOfEntityType = entry.getValue();
+        for (var entry : bucketSortObjRefs) {
+            var metaData = entry.getKey();
+            var objRefsOfEntityType = entry.getValue();
 
             nameToValueMap.put("param" + nameToValueMap.size(), metaData.getEntityType());
 
-            Object[] ids = new Object[objRefsOfEntityType.size()];
+            var ids = new Object[objRefsOfEntityType.size()];
             for (int a = objRefsOfEntityType.size(); a-- > 0; ) {
                 ids[a] = objRefsOfEntityType.get(a).getId();
             }
@@ -546,9 +542,9 @@ public class AuditEntryVerifier implements IAuditEntryVerifier, IVerifyOnLoad, I
             if (!filterAuditedEntities) {
                 continue;
             }
-            PrimitiveMember[] primitiveMembers = metaData.getPrimitiveMembers();
-            ISet<String> primitiveMembersSet = primitiveMembers.length > 0 ? HashSet.<String>create(primitiveMembers.length) : EmptySet.<String>emptySet();
-            for (PrimitiveMember primitiveMember : primitiveMembers) {
+            var primitiveMembers = metaData.getPrimitiveMembers();
+            var primitiveMembersSet = primitiveMembers.length > 0 ? HashSet.<String>create(primitiveMembers.length) : EmptySet.<String>emptySet();
+            for (var primitiveMember : primitiveMembers) {
                 if (metaData.getUpdatedByMember() == primitiveMember || metaData.getUpdatedOnMember() == primitiveMember || metaData.getCreatedByMember() == primitiveMember ||
                         metaData.getCreatedOnMember() == primitiveMember) {
                     continue;
@@ -556,7 +552,7 @@ public class AuditEntryVerifier implements IAuditEntryVerifier, IVerifyOnLoad, I
                 primitiveMembersSet.add(primitiveMember.getName());
             }
             for (int a = objRefsOfEntityType.size(); a-- > 0; ) {
-                IObjRef objRef = objRefsOfEntityType.get(a);
+                var objRef = objRefsOfEntityType.get(a);
                 remainingPropertyMap.put(objRef, primitiveMembersSet.isEmpty() ? primitiveMembersSet : new HashSet<>(primitiveMembersSet));
             }
         }
@@ -565,15 +561,15 @@ public class AuditEntryVerifier implements IAuditEntryVerifier, IVerifyOnLoad, I
 
     @Override
     public void queueVerifyEntitiesOnLoad(IList<ILoadContainer> loadedEntities) {
-        ArrayList<IObjRef> objRefsToVerify = objRefsToVerifyTL.get();
+        var objRefsToVerify = objRefsToVerifyTL.get();
         if (objRefsToVerify == null) {
             return;
         }
         for (int a = 0, size = loadedEntities.size(); a < size; a++) {
-            IObjRef objRef = loadedEntities.get(a).getReference();
-            IEntityMetaData metaData = entityMetaDataProvider.getMetaData(objRef.getRealType());
+            var objRef = loadedEntities.get(a).getReference();
+            var metaData = entityMetaDataProvider.getMetaData(objRef.getRealType());
 
-            IAuditConfiguration auditConfiguration = auditConfigurationProvider.getAuditConfiguration(metaData.getEntityType());
+            var auditConfiguration = auditConfigurationProvider.getAuditConfiguration(metaData.getEntityType());
             if (!auditConfiguration.isAuditActive()) {
                 continue;
             }

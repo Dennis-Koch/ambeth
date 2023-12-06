@@ -94,7 +94,6 @@ import com.koch.ambeth.util.collections.IdentityHashSet;
 import com.koch.ambeth.util.collections.IdentityLinkedSet;
 import com.koch.ambeth.util.collections.InterfaceFastList;
 import com.koch.ambeth.util.collections.LinkedHashMap;
-import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.function.CheckedConsumer;
 import com.koch.ambeth.util.function.CheckedRunnable;
 import com.koch.ambeth.util.model.IMethodDescription;
@@ -575,8 +574,6 @@ public class PersistenceMergeServiceExtension implements IMergeServiceExtension 
             if (mockIdToObjRefMap != null) {
                 undoMockIds(mockIdToObjRefMap);
             }
-        } catch (Exception e) {
-            throw RuntimeExceptionUtil.mask(e);
         } finally {
             rollback.rollback();
         }
@@ -599,7 +596,7 @@ public class PersistenceMergeServiceExtension implements IMergeServiceExtension 
 
     protected ITable getEnsureTable(IDatabase database, Class<?> referenceClass) {
         referenceClass = entityMetaDataProvider.getMetaData(referenceClass).getEntityType();
-        ITable table = database.getTableByType(referenceClass);
+        var table = database.getTableByType(referenceClass);
         if (table == null) {
             throw new RuntimeException("No table configured for entity '" + referenceClass + "'");
         }

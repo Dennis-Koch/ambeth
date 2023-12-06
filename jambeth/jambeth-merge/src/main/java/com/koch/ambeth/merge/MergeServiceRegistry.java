@@ -328,14 +328,14 @@ public class MergeServiceRegistry implements IMergeService, IMergeServiceExtensi
         if (explAndImplCudResult == null || cudResult == explAndImplCudResult) {
             return cudResult;
         }
-        ICUDResult diffCUDResult = cudResultComparer.diffCUDResult(cudResult, explAndImplCudResult);
+        var diffCUDResult = cudResultComparer.diffCUDResult(cudResult, explAndImplCudResult);
         if (diffCUDResult == null) {
             return cudResult;
         }
         hasAtLeastOneImplicitChange.setValue(Boolean.TRUE);
         cudResultApplier.applyCUDResultOnEntitiesOfCache(diffCUDResult, false, state);
         if (log.isDebugEnabled()) {
-            Object currHandle = implyingHandle;
+            var currHandle = implyingHandle;
             if (currHandle instanceof Factory) {
                 var interceptor = (MethodInterceptor) ((Factory) currHandle).getCallbacks()[0];
                 while (interceptor instanceof ICascadedInterceptor) {
@@ -361,7 +361,7 @@ public class MergeServiceRegistry implements IMergeService, IMergeServiceExtensi
     }
 
     protected ICUDResult buildCUDResult(IList<IChangeContainer> changesForMergeService, IMap<IChangeContainer, Integer> changeToChangeIndexDict, List<Object> originalRefs) {
-        Object[] msOriginalRefs = new Object[changesForMergeService.size()];
+        var msOriginalRefs = new Object[changesForMergeService.size()];
         for (int b = changesForMergeService.size(); b-- > 0; ) {
             int index = changeToChangeIndexDict.get(changesForMergeService.get(b)).intValue();
             if (originalRefs != null) {

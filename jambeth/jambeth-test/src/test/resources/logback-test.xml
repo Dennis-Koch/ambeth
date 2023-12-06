@@ -17,6 +17,10 @@
         <appender-ref ref="STDOUT"/>
     </logger>
 
+    <logger name="com.koch.ambeth.merge.MergeServiceRegistry" level="debug" additivity="false">
+        <appender-ref ref="STDOUT"/>
+    </logger>
+
     <logger name="com.koch.ambeth.persistence.jdbc.connection.LogPreparedStatementInterceptor" level="debug" additivity="false">
         <appender-ref ref="STDOUT"/>
     </logger>

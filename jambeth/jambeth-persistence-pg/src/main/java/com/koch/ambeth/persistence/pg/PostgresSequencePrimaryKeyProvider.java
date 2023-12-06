@@ -23,14 +23,11 @@ limitations under the License.
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.persistence.IConnectionDialect;
 import com.koch.ambeth.persistence.api.ITableMetaData;
-import com.koch.ambeth.persistence.jdbc.JdbcUtil;
 import com.koch.ambeth.persistence.orm.XmlDatabaseMapper;
 import com.koch.ambeth.persistence.sql.AbstractCachingPrimaryKeyProvider;
 import lombok.SneakyThrows;
 
 import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.util.List;
 
 public class PostgresSequencePrimaryKeyProvider extends AbstractCachingPrimaryKeyProvider {
@@ -43,24 +40,20 @@ public class PostgresSequencePrimaryKeyProvider extends AbstractCachingPrimaryKe
     @SneakyThrows
     @Override
     protected void acquireIdsIntern(ITableMetaData table, int count, List<Object> targetIdList) {
-        String[] schemaAndName = XmlDatabaseMapper.splitSchemaAndName(table.getSequenceName());
+        var schemaAndName = XmlDatabaseMapper.splitSchemaAndName(table.getSequenceName());
         if (schemaAndName[0] == null) {
             // if no schema is explicitly specified in the sequence we look in the schema of the table
             schemaAndName[0] = XmlDatabaseMapper.splitSchemaAndName(table.getFullqualifiedEscapedName())[0];
         }
-        PreparedStatement pstm = null;
-        ResultSet rs = null;
-        try {
-            pstm = connection.prepareStatement("SELECT nextval('" + connectionDialect.escapeSchemaAndSymbolName(schemaAndName[0], schemaAndName[1]) + "') FROM generate_series(1,?)");
+        try (var pstm = connection.prepareStatement("SELECT nextval('" + connectionDialect.escapeSchemaAndSymbolName(schemaAndName[0], schemaAndName[1]) + "') FROM generate_series(1,?)")) {
             pstm.setInt(1, count);
-            rs = pstm.executeQuery();
-            while (rs.next()) {
-                Object id = rs.getObject(1); // We have only 1 column in the select so it is ok to retrieve
-                // it by the unique id
-                targetIdList.add(id);
+            try (var rs = pstm.executeQuery()) {
+                while (rs.next()) {
+                    var id = rs.getObject(1); // We have only 1 column in the select so it is ok to retrieve
+                    // it by the unique id
+                    targetIdList.add(id);
+                }
             }
-        } finally {
-            JdbcUtil.close(pstm, rs);
         }
     }
 }

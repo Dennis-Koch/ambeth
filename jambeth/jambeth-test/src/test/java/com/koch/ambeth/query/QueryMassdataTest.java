@@ -38,10 +38,9 @@ import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.merge.cache.ICacheContext;
 import com.koch.ambeth.merge.cache.ICacheProvider;
-import com.koch.ambeth.persistence.api.IDatabase;
-import com.koch.ambeth.persistence.api.database.DatabaseCallback;
 import com.koch.ambeth.persistence.config.PersistenceConfigurationConstants;
 import com.koch.ambeth.persistence.jdbc.IConnectionExtension;
+import com.koch.ambeth.persistence.jdbc.IConnectionTestDialect;
 import com.koch.ambeth.persistence.jdbc.JdbcUtil;
 import com.koch.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationConstants;
 import com.koch.ambeth.persistence.xml.TestServicesModule;
@@ -57,26 +56,19 @@ import com.koch.ambeth.testutil.TestPropertiesList;
 import com.koch.ambeth.testutil.category.PerformanceTests;
 import com.koch.ambeth.util.MeasurementUtil;
 import com.koch.ambeth.util.ParamHolder;
-import com.koch.ambeth.util.collections.ILinkedMap;
-import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.config.IProperties;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.state.IStateRollback;
 import com.koch.ambeth.util.threading.ProcessIdHelper;
+import jakarta.persistence.OptimisticLockException;
+import jakarta.persistence.PessimisticLockException;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
-import jakarta.persistence.OptimisticLockException;
-import jakarta.persistence.PersistenceException;
-import jakarta.persistence.PessimisticLockException;
-
 import java.sql.Array;
 import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.text.DecimalFormat;
 import java.util.HashMap;
 import java.util.List;
@@ -96,7 +88,7 @@ import java.util.concurrent.locks.ReentrantLock;
         @TestProperties(name = QueryMassdataTest.THREAD_COUNT, value = "10"),
         @TestProperties(name = PersistenceConfigurationConstants.DatabasePoolMaxUnused, value = "${" + QueryMassdataTest.THREAD_COUNT + "}"),
         @TestProperties(name = PersistenceConfigurationConstants.DatabasePoolMaxUsed, value = "${" + QueryMassdataTest.THREAD_COUNT + "}"),
-        @TestProperties(name = QueryMassDataModule.ROW_COUNT, value = "2000000"),
+        @TestProperties(name = QueryMassDataModule.ROW_COUNT, value = "20005"),
         @TestProperties(name = CacheConfigurationConstants.CacheLruThreshold, value = "${" + QueryMassDataModule.ROW_COUNT + "}"),
         @TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "com/koch/ambeth/query/QueryMassdata_orm.xml"),
         @TestProperties(name = CacheConfigurationConstants.SecondLevelCacheActive, value = "false"),
@@ -132,6 +124,10 @@ public class QueryMassdataTest extends AbstractInformationBusWithPersistenceTest
     protected Connection connection;
     @Autowired
     protected IConnectionExtension connectionExtension;
+
+    @Property(name = PersistenceJdbcConfigurationConstants.DatabaseProtocol)
+    protected String databaseProtocol;
+
     @Property(name = PersistenceJdbcConfigurationConstants.DatabaseSchemaName)
     protected String[] schemaNames;
     @Property(name = DURATION_PER_TEST)
@@ -205,59 +201,46 @@ public class QueryMassdataTest extends AbstractInformationBusWithPersistenceTest
 
     @Test
     public void massDataReadAll() {
-        IQueryBuilder<QueryEntity> qb = queryBuilderFactory.create(QueryEntity.class);
-        IQuery<QueryEntity> query = qb.build();
-        IList<QueryEntity> all = query.retrieve();
+        var qb = queryBuilderFactory.create(QueryEntity.class);
+        var query = qb.build();
+        var all = query.retrieve();
         System.out.println(all.size());
     }
 
     protected void flushSharedPool() {
-        transaction.processAndCommit(new DatabaseCallback() {
-            @Override
-            public void callback(ILinkedMap<Object, IDatabase> persistenceUnitToDatabaseMap) throws Exception {
-                Connection connection = beanContext.getService(Connection.class);
-                Statement stm = connection.createStatement();
-                try {
-                    stm.execute("alter system flush shared_pool");
-                } catch (PersistenceException e) {
-                    if (e.getCause() instanceof SQLException && "42000".equals(((SQLException) e.getCause()).getSQLState())) {
-                        return;
-                    }
-                    throw e;
-                } finally {
-                    JdbcUtil.close(stm);
-                }
-            }
+        transaction.runInTransaction(() -> {
+            var connection = beanContext.getService(Connection.class);
+            beanContext.getService(IConnectionTestDialect.class).flushSharedObjects(connection);
         });
     }
 
     protected void massDataReadIntern() throws Exception {
         flushSharedPool();
 
-        final boolean useSecondLevelCache = Boolean.parseBoolean(beanContext.getService(IProperties.class).getString(CacheConfigurationConstants.SecondLevelCacheActive));
+        var useSecondLevelCache = Boolean.parseBoolean(beanContext.getService(IProperties.class).getString(CacheConfigurationConstants.SecondLevelCacheActive));
 
-        final IFilterToQueryBuilder ftqb = beanContext.getService(IFilterToQueryBuilder.class);
+        var ftqb = beanContext.getService(IFilterToQueryBuilder.class);
 
-        final ICacheContext cacheContext = beanContext.getService(ICacheContext.class);
+        var cacheContext = beanContext.getService(ICacheContext.class);
 
-        final ICacheProvider cacheProvider = beanContext.getService(CacheNamedBeans.CacheProviderThreadLocal, ICacheProvider.class);
+        var cacheProvider = beanContext.getService(CacheNamedBeans.CacheProviderThreadLocal, ICacheProvider.class);
 
-        final FilterDescriptor<QueryEntity> fd = new FilterDescriptor<>(QueryEntity.class);
+        var fd = new FilterDescriptor<>(QueryEntity.class);
 
-        final SortDescriptor sd1 = new SortDescriptor();
-        sd1.setMember("Id");
+        var sd1 = new SortDescriptor();
+        sd1.setMember(QueryEntity.Id);
         sd1.setSortDirection(SortDirection.DESCENDING);
 
-        final SortDescriptor sd2 = new SortDescriptor();
-        sd2.setMember("Version");
+        var sd2 = new SortDescriptor();
+        sd2.setMember(QueryEntity.Version);
         sd2.setSortDirection(SortDirection.ASCENDING);
 
-        final int lastPageNumber = dataCount / size, lastPageNumberSize = dataCount - lastPageNumber * size;
+        final int lastPageNumber = (dataCount + size - 1) / size, lastPageNumberSize = dataCount - (lastPageNumber - 1) * size;
 
-        final ParamHolder<Integer> overallQueryCountIndex = new ParamHolder<>();
+        var overallQueryCountIndex = new ParamHolder<Integer>();
         overallQueryCountIndex.setValue(new Integer(0));
 
-        final ReentrantLock oqciLock = new ReentrantLock();
+        var oqciLock = new ReentrantLock();
 
         long start = System.currentTimeMillis();
         long startCpuUsage = ProcessIdHelper.getCumulatedCpuUsage();
@@ -265,80 +248,77 @@ public class QueryMassdataTest extends AbstractInformationBusWithPersistenceTest
         final long finishTime = start + duration * 1000; // Duration measured in seconds
         long lastPrint = start;
 
-        final CountDownLatch latch = new CountDownLatch(threads);
+        var latch = new CountDownLatch(threads);
 
-        final ParamHolder<Throwable> throwableHolder = new ParamHolder<>();
+        var throwableHolder = new ParamHolder<Throwable>();
 
-        Runnable runnable = new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    IRootCache rootCache = beanContext.getService("rootCache", IRootCache.class);
-                    IThreadLocalCleanupController threadLocalCleanupController = beanContext.getService(IThreadLocalCleanupController.class);
+        Runnable runnable = () -> {
+            try {
+                var rootCache = beanContext.getService("rootCache", IRootCache.class);
+                var threadLocalCleanupController = beanContext.getService(IThreadLocalCleanupController.class);
 
-                    final IPagingQuery<QueryEntity> randomPagingQuery = ftqb.buildQuery(fd, new ISortDescriptor[] { sd1, sd2 });
+                var randomPagingQuery = ftqb.buildQuery(fd, new ISortDescriptor[] { sd1, sd2 });
 
-                    while (System.currentTimeMillis() <= finishTime && throwableHolder.getValue() == null) {
-                        IStateRollback rollback = cacheContext.pushCache(cacheProvider);
-                        try {
-                            final PagingRequest randomPReq = new PagingRequest();
-                            randomPReq.setNumber((int) (Math.random() * dataCount / size));
-                            randomPReq.setSize(size);
+                while (System.currentTimeMillis() <= finishTime && throwableHolder.getValue() == null) {
+                    var rollback = cacheContext.pushCache(cacheProvider);
+                    try {
+                        var randomPReq = new PagingRequest();
+                        randomPReq.setNumber((int) (Math.random() * lastPageNumber + 1));
+                        randomPReq.setSize(size);
 
-                            IPagingResponse<QueryEntity> response = randomPagingQuery.retrieve(randomPReq);
-                            List<QueryEntity> result = response.getResult();
+                        var response = randomPagingQuery.retrieve(randomPReq);
+                        var result = response.getResult();
 
-                            Assert.assertEquals(randomPReq.getNumber(), response.getNumber());
-                            if (response.getNumber() == lastPageNumber) {
-                                Assert.assertEquals(lastPageNumberSize, result.size());
-                            } else {
-                                Assert.assertEquals(size, result.size());
-                            }
-                            QueryEntity objectBefore = result.get(0);
-                            for (int a = 1, resultSize = result.size(); a < resultSize; a++) {
-                                QueryEntity objectCurrent = result.get(a);
-                                // IDs descending
-                                // Version ascending
-                                Assert.assertFalse(objectBefore.equals(objectCurrent));
-                                Assert.assertTrue(objectBefore.getId() >= objectCurrent.getId());
-                                if (objectBefore.getId() == objectCurrent.getId()) {
-                                    Assert.assertTrue(objectBefore.getVersion() <= objectCurrent.getVersion());
-                                }
-                                objectBefore = objectCurrent;
-                            }
-                            oqciLock.lock();
-                            try {
-                                overallQueryCountIndex.setValue(new Integer(overallQueryCountIndex.getValue().intValue() + 1));
-                            } finally {
-                                oqciLock.unlock();
-                            }
-                        } finally {
-                            rollback.rollback();
-                            if (!useSecondLevelCache) {
-                                rootCache.clear();
-                            }
-                            threadLocalCleanupController.cleanupThreadLocal();
+                        Assert.assertEquals(randomPReq.getNumber(), response.getNumber());
+                        if (response.getNumber() == lastPageNumber) {
+                            Assert.assertEquals(lastPageNumberSize, result.size());
+                        } else {
+                            Assert.assertEquals(size, result.size());
                         }
+                        var objectBefore = result.get(0);
+                        for (int a = 1, resultSize = result.size(); a < resultSize; a++) {
+                            var objectCurrent = result.get(a);
+                            // IDs descending
+                            // Version ascending
+                            Assert.assertFalse(objectBefore.equals(objectCurrent));
+                            Assert.assertTrue(objectBefore.getId() >= objectCurrent.getId());
+                            if (objectBefore.getId() == objectCurrent.getId()) {
+                                Assert.assertTrue(objectBefore.getVersion() <= objectCurrent.getVersion());
+                            }
+                            objectBefore = objectCurrent;
+                        }
+                        oqciLock.lock();
+                        try {
+                            overallQueryCountIndex.setValue(new Integer(overallQueryCountIndex.getValue().intValue() + 1));
+                        } finally {
+                            oqciLock.unlock();
+                        }
+                    } finally {
+                        rollback.rollback();
+                        if (!useSecondLevelCache) {
+                            rootCache.clear();
+                        }
+                        threadLocalCleanupController.cleanupThreadLocal();
                     }
-                    randomPagingQuery.dispose();
-                } catch (Throwable e) {
-                    throwableHolder.setValue(e);
-                    throw RuntimeExceptionUtil.mask(e);
-                } finally {
-                    latch.countDown();
                 }
+                randomPagingQuery.dispose();
+            } catch (Throwable e) {
+                throwableHolder.setValue(e);
+                throw RuntimeExceptionUtil.mask(e);
+            } finally {
+                latch.countDown();
             }
         };
 
         for (int threadIndex = threads; threadIndex-- > 0; ) {
-            Thread thread = new Thread(runnable);
+            var thread = new Thread(runnable);
             thread.setContextClassLoader(Thread.currentThread().getContextClassLoader());
             thread.start();
         }
 
         double lastOverallCount = overallQueryCountIndex.getValue().intValue();
         while (!latch.await(5000, TimeUnit.MILLISECONDS)) {
-            Throwable e = throwableHolder.getValue();
+            var e = throwableHolder.getValue();
             if (e != null) {
                 if (e instanceof RuntimeException) {
                     throw (RuntimeException) e;
@@ -352,34 +332,34 @@ public class QueryMassdataTest extends AbstractInformationBusWithPersistenceTest
 
                 double intervalCount = overallCount - lastOverallCount;
 
-                ValueWithTimeUnit timeSpent = new ValueWithTimeUnit(lastPrint - start);
-                ValueWithTimeUnit timeSpentLastInterval = new ValueWithTimeUnit(lastPrint - beforeLastPrint);
-                ValueWithTimeUnit timeSpentPerExecution = new ValueWithTimeUnit(timeSpentLastInterval.getValue() / intervalCount);
-                ValueWithTimeUnit timeSpentPerLoadedEntity = new ValueWithTimeUnit(timeSpentLastInterval.getValue() / (intervalCount * size));
+                var timeSpent = new ValueWithTimeUnit(lastPrint - start);
+                var timeSpentLastInterval = new ValueWithTimeUnit(lastPrint - beforeLastPrint);
+                var timeSpentPerExecution = new ValueWithTimeUnit(timeSpentLastInterval.getValue() / intervalCount);
+                var timeSpentPerLoadedEntity = new ValueWithTimeUnit(timeSpentLastInterval.getValue() / (intervalCount * size));
 
-                log.info(lastPrint - start + " ms for " + overallCount + " queries (" + new ValueWithTimeUnit(timeSpent.withTimeUnit(TimeUnit.MILLISECONDS)
-                                                                                                                       .getValue() / overallCount).toNonZeroValue() + " per query, last interval " +
-                        "overall: " + timeSpentPerExecution.toNonZeroValue() + " per query, " + timeSpentPerLoadedEntity.toNonZeroValue() + " per entity");
+                log.info(
+                        lastPrint - start + " ms for " + overallCount + " queries (" + new ValueWithTimeUnit(timeSpent.withTimeUnit(TimeUnit.MILLISECONDS).getValue() / overallCount).toNonZeroValue() +
+                                " per query, last interval " + "overall: " + timeSpentPerExecution.toNonZeroValue() + " per query, " + timeSpentPerLoadedEntity.toNonZeroValue() + " per entity");
                 lastOverallCount = overallCount;
             }
         }
         long end = System.currentTimeMillis();
-        ValueWithTimeUnit timeSpent = new ValueWithTimeUnit(end - start);
+        var timeSpent = new ValueWithTimeUnit(end - start);
         int overallCount = overallQueryCountIndex.getValue().intValue();
-        ValueWithTimeUnit timeSpentPerExecution = new ValueWithTimeUnit(timeSpent.getValue() / overallCount);
-        ValueWithTimeUnit timeSpentPerLoadedEntity = new ValueWithTimeUnit(timeSpent.getValue() / (overallCount * size));
+        var timeSpentPerExecution = new ValueWithTimeUnit(timeSpent.getValue() / overallCount);
+        var timeSpentPerLoadedEntity = new ValueWithTimeUnit(timeSpent.getValue() / (overallCount * size));
 
-        log.info(
-                timeSpent.toNonZeroValue() + " for " + overallCount + " queries distributed among " + threads + " threads in parallel (" + timeSpentPerExecution.toNonZeroValue() + " per query, " + timeSpentPerLoadedEntity.toNonZeroValue() + " per entity)");
+        log.info(timeSpent.toNonZeroValue() + " for " + overallCount + " queries distributed among " + threads + " threads in parallel (" + timeSpentPerExecution.toNonZeroValue() + " per query, " +
+                timeSpentPerLoadedEntity.toNonZeroValue() + " per entity)");
         ValueWithTimeUnit cpuUsage = new ValueWithTimeUnit(ProcessIdHelper.getCumulatedCpuUsage() - startCpuUsage);
         toMeasurementString("Read Data", timeSpent, overallCount, timeSpentPerExecution, cpuUsage);
     }
 
     protected void toMeasurementString(String name, ValueWithTimeUnit timeSpent, int overallCount, ValueWithTimeUnit timeSpentPerExecution, ValueWithTimeUnit cpuUsage) {
-        String queryCacheActive = beanContext.getService(IProperties.class).getString(PersistenceConfigurationConstants.QueryCacheActive);
-        String secondLevelCacheActive = beanContext.getService(IProperties.class).getString(CacheConfigurationConstants.SecondLevelCacheActive);
-        String serviceResultCacheActive = beanContext.getService(IProperties.class).getString(CacheConfigurationConstants.ServiceResultCacheActive);
-        final String prefix = name + " 2ndLevelCache(" + secondLevelCacheActive + ") QueryCache(" + queryCacheActive + ") ServiceCache(" + serviceResultCacheActive + ")";
+        var queryCacheActive = beanContext.getService(IProperties.class).getString(PersistenceConfigurationConstants.QueryCacheActive);
+        var secondLevelCacheActive = beanContext.getService(IProperties.class).getString(CacheConfigurationConstants.SecondLevelCacheActive);
+        var serviceResultCacheActive = beanContext.getService(IProperties.class).getString(CacheConfigurationConstants.ServiceResultCacheActive);
+        var prefix = name + " 2ndLevelCache(" + secondLevelCacheActive + ") QueryCache(" + queryCacheActive + ") ServiceCache(" + serviceResultCacheActive + ")";
         MeasurementUtil.logMeasurement(prefix + " Time spent for scenario (ms)", timeSpent);
         MeasurementUtil.logMeasurement(prefix + " Sum of executions", overallCount);
         MeasurementUtil.logMeasurement(prefix + " Time spent per execution (ms)", timeSpentPerExecution);
@@ -391,49 +371,44 @@ public class QueryMassdataTest extends AbstractInformationBusWithPersistenceTest
         measurement.log(prefix + " Time spent per execution (ms)", timeSpentPerExecution);
         measurement.log(prefix + " CPU usage for scenario (%)", (int) (100 * cpuUsage.withTimeUnit(TimeUnit.MILLISECONDS).getValue() / timeSpent.withTimeUnit(TimeUnit.MILLISECONDS).getValue()));
 
-        transaction.processAndCommit(new DatabaseCallback() {
-            @Override
-            public void callback(ILinkedMap<Object, IDatabase> persistenceUnitToDatabaseMap) throws Exception {
-                PreparedStatement pstm = null;
-                ResultSet rs = null;
+        if (databaseProtocol.startsWith("oracle:jdbc")) {
+            transaction.runInTransaction(() -> {
+                var uppercaseSchemaNames = new String[schemaNames.length];
+                for (int a = schemaNames.length; a-- > 0; ) {
+                    uppercaseSchemaNames[a] = schemaNames[a].toUpperCase();
+                }
                 Array array = null;
-                try {
-                    pstm = connection.prepareStatement(
-                            "SELECT sql_text,cpu_time/1000000 cpu_time,elapsed_time/1000000 elapsed_time,executions,parse_calls,disk_reads,buffer_gets,rows_processed FROM v$sqlarea WHERE " +
-                                    "PARSING_SCHEMA_NAME IN (SELECT COLUMN_VALUE FROM TABLE(?)) AND MODULE='JDBC Thin Client' ORDER BY executions DESC");
-                    String[] uppercaseSchemaNames = new String[schemaNames.length];
-                    for (int a = schemaNames.length; a-- > 0; ) {
-                        uppercaseSchemaNames[a] = schemaNames[a].toUpperCase();
-                    }
+                try (var pstm = connection.prepareStatement(
+                        "SELECT sql_text,cpu_time/1000000 cpu_time,elapsed_time/1000000 elapsed_time,executions,parse_calls,disk_reads,buffer_gets,rows_processed FROM v$sqlarea WHERE " +
+                                "PARSING_SCHEMA_NAME IN (SELECT COLUMN_VALUE FROM TABLE(?)) AND MODULE='JDBC Thin Client' ORDER BY executions DESC");) {
                     array = connectionExtension.createJDBCArray(String.class, uppercaseSchemaNames);
                     pstm.setArray(1, array);
-                    rs = pstm.executeQuery();
-                    final int columnCount = rs.getMetaData().getColumnCount();
-                    while (rs.next()) {
-                        final ResultSet fRs = rs;
-                        measurement.log(prefix + " database", new Object() {
-                            @Override
-                            public String toString() {
-                                for (int a = 0; a < columnCount; a++) {
-                                    try {
-                                        String name = fRs.getMetaData().getColumnName(a + 1);
-                                        Object value = fRs.getObject(a + 1);
-                                        MeasurementUtil.logMeasurement(name, value);
-                                        measurement.log(name, value);
-                                    } catch (SQLException e) {
-                                        throw RuntimeExceptionUtil.mask(e);
+                    try (var rs = pstm.executeQuery()) {
+                        var columnCount = rs.getMetaData().getColumnCount();
+                        while (rs.next()) {
+                            measurement.log(prefix + " database", new Object() {
+                                @Override
+                                public String toString() {
+                                    for (int a = 0; a < columnCount; a++) {
+                                        try {
+                                            var name = rs.getMetaData().getColumnName(a + 1);
+                                            var value = rs.getObject(a + 1);
+                                            MeasurementUtil.logMeasurement(name, value);
+                                            measurement.log(name, value);
+                                        } catch (SQLException e) {
+                                            throw RuntimeExceptionUtil.mask(e);
+                                        }
                                     }
+                                    return "";
                                 }
-                                return "";
-                            }
-                        });
+                            });
+                        }
                     }
                 } finally {
                     JdbcUtil.close(array);
-                    JdbcUtil.close(pstm, rs);
                 }
-            }
-        });
+            });
+        }
     }
 
     @Test
@@ -670,9 +645,9 @@ public class QueryMassdataTest extends AbstractInformationBusWithPersistenceTest
                 ValueWithTimeUnit timeSpentPerExecution = new ValueWithTimeUnit(timeSpentLastInterval.getValue() / intervalCount);
                 ValueWithTimeUnit timeSpentPerLoadedEntity = new ValueWithTimeUnit(timeSpentLastInterval.getValue() / (intervalCount * size));
 
-                log.info(lastPrint - start + " ms for " + overallCount + " queries (" + new ValueWithTimeUnit(timeSpent.withTimeUnit(TimeUnit.MILLISECONDS)
-                                                                                                                       .getValue() / overallCount).toNonZeroValue() + " per query, last interval " +
-                        "overall: " + timeSpentPerExecution.toNonZeroValue() + " per query, " + timeSpentPerLoadedEntity.toNonZeroValue() + " per entity");
+                log.info(
+                        lastPrint - start + " ms for " + overallCount + " queries (" + new ValueWithTimeUnit(timeSpent.withTimeUnit(TimeUnit.MILLISECONDS).getValue() / overallCount).toNonZeroValue() +
+                                " per query, last interval " + "overall: " + timeSpentPerExecution.toNonZeroValue() + " per query, " + timeSpentPerLoadedEntity.toNonZeroValue() + " per entity");
                 lastOverallCount = overallCount;
             }
         }
@@ -689,8 +664,8 @@ public class QueryMassdataTest extends AbstractInformationBusWithPersistenceTest
         ValueWithTimeUnit timeSpentPerExecution = new ValueWithTimeUnit(timeSpent.getValue() / overallCount);
         ValueWithTimeUnit timeSpentPerLoadedEntity = new ValueWithTimeUnit(timeSpent.getValue() / (overallCount * size));
 
-        log.info(
-                timeSpent.toNonZeroValue() + " for " + overallCount + " queries distributed among " + threads + " threads in parallel (" + timeSpentPerExecution.toNonZeroValue() + " per query, " + timeSpentPerLoadedEntity.toNonZeroValue() + " per entity)");
+        log.info(timeSpent.toNonZeroValue() + " for " + overallCount + " queries distributed among " + threads + " threads in parallel (" + timeSpentPerExecution.toNonZeroValue() + " per query, " +
+                timeSpentPerLoadedEntity.toNonZeroValue() + " per entity)");
         ValueWithTimeUnit cpuUsage = new ValueWithTimeUnit(ProcessIdHelper.getCumulatedCpuUsage() - startCpuUsage);
         toMeasurementString("Write Data", timeSpent, overallCount, timeSpentPerExecution, cpuUsage);
     }

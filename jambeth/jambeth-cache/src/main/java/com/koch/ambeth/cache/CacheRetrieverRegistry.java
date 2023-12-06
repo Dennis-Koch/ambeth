@@ -320,7 +320,7 @@ public class CacheRetrieverRegistry implements ICacheRetriever, ICacheRetrieverE
                     retrieverToAssignedObjRelsDict.put(primitiveRetriever, primitiveRetrieverArg);
                 }
                 var objRefs = objRefHelper.entityToAllObjRefs(loadContainer, metaData);
-                var objRel = new ObjRelation(objRefs.toArray(IObjRef.class), memberName);
+                var objRel = new ObjRelation(objRefs.toArray(IObjRef[]::new), memberName);
                 objRel.setRealType(entityType);
                 objRel.setVersion(objRef.getVersion());
                 primitiveRetrieverArg.addArg(loadContainer, objRel);

@@ -24,11 +24,11 @@ import com.koch.ambeth.ioc.IInitializingBean;
 import com.koch.ambeth.persistence.sql.IResultSet;
 import com.koch.ambeth.util.ParamChecker;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
+import com.koch.ambeth.util.function.CheckedFunction;
 import com.koch.ambeth.util.sensor.ISensor;
 import lombok.SneakyThrows;
 
 import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
@@ -45,7 +45,7 @@ public class JDBCResultSet implements IResultSet, Iterator<Object[]>, IInitializ
 
     protected Object[] values;
 
-    protected boolean[] isClob;
+    protected CheckedFunction<ResultSet, Object>[] resultSetValueExtractors;
 
     private Boolean hasNext;
 
@@ -54,14 +54,20 @@ public class JDBCResultSet implements IResultSet, Iterator<Object[]>, IInitializ
         ParamChecker.assertNotNull(resultSet, "resultSet");
         ParamChecker.assertNotNull(sql, "sql");
         try {
-            ResultSetMetaData rsMetaData = resultSet.getMetaData();
-            int numberOfColumns = rsMetaData.getColumnCount();
+            var rsMetaData = resultSet.getMetaData();
+            var numberOfColumns = rsMetaData.getColumnCount();
             values = new Object[numberOfColumns];
-            isClob = new boolean[numberOfColumns];
+            resultSetValueExtractors = new CheckedFunction[numberOfColumns];
 
             for (int i = 0; i < numberOfColumns; i++) {
-                int columnType = rsMetaData.getColumnType(i + 1);
-                isClob[i] = columnType == Types.CLOB;
+                var columnIndex = i + 1;
+                int columnType = rsMetaData.getColumnType(columnIndex);
+
+                if (columnType == Types.CLOB) {
+                    resultSetValueExtractors[i] = resultSet -> resultSet.getClob(columnIndex);
+                } else {
+                    resultSetValueExtractors[i] = resultSet -> resultSet.getObject(columnIndex);
+                }
             }
         } catch (SQLException e) {
             throw RuntimeExceptionUtil.mask(e);
@@ -98,7 +104,7 @@ public class JDBCResultSet implements IResultSet, Iterator<Object[]>, IInitializ
             JdbcUtil.close(stm, resultSet);
         }
         resultSet = null;
-        ISensor sensor = this.sensor;
+        var sensor = this.sensor;
         if (sensor != null) {
             sensor.off();
         }
@@ -123,12 +129,9 @@ public class JDBCResultSet implements IResultSet, Iterator<Object[]>, IInitializ
             hasNext = Boolean.FALSE;
             return false;
         }
+        var resultSetValueExtractors = this.resultSetValueExtractors;
         for (int a = values.length; a-- > 0; ) {
-            if (!isClob[a]) {
-                values[a] = resultSet.getObject(a + 1);
-            } else {
-                values[a] = resultSet.getClob(a + 1);
-            }
+            values[a] = resultSetValueExtractors[a].apply(resultSet);
         }
         hasNext = Boolean.TRUE;
         return true;

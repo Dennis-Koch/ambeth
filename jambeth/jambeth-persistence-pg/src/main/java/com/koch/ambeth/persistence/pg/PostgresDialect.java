@@ -64,7 +64,6 @@ import org.postgresql.core.BaseConnection;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.sql.Array;
 import java.sql.Blob;
 import java.sql.Clob;
 import java.sql.Connection;
@@ -329,17 +328,18 @@ public class PostgresDialect extends AbstractConnectionDialect {
         sb.append(" = ANY (?)");
         var connectionExtension = serviceContext.getService(IConnectionExtension.class);
 
+        var fieldIdConverter = conversionHelper.prepareConverter(fieldType);
         var javaArray = java.lang.reflect.Array.newInstance(fieldType, splittedIds.size());
         var index = 0;
         for (var id : splittedIds) {
             if (idDecompositor != null) {
                 id = idDecompositor.apply(id);
             }
-            var value = conversionHelper.convertValueToType(fieldType, id);
+            var value = fieldIdConverter.convertValue(id, null);
             java.lang.reflect.Array.set(javaArray, index, value);
             index++;
         }
-        Array values = connectionExtension.createJDBCArray(fieldType, javaArray);
+        var values = connectionExtension.createJDBCArray(fieldType, javaArray);
 
         ParamsUtil.addParam(parameters, values);
     }
@@ -637,6 +637,7 @@ public class PostgresDialect extends AbstractConnectionDialect {
         sqlCommand = prepareCommandInternWithGroup(sqlCommand, " PRIMARY KEY (\\([^\\)]+\\)) USING INDEX", " PRIMARY KEY \\2");
         sqlCommand = prepareCommandInternWithGroup(sqlCommand, " PRIMARY KEY (\\([^\\)]+\\)) USING INDEX", " PRIMARY KEY \\2");
 
+        sqlCommand = prepareCommandInternWithGroup(sqlCommand, "([^a-zA-Z0-9])STRING_ARRAY\\(([^\\)]+)\\)", "\\2ARRAY[\\3]");
         sqlCommand = prepareCommandInternWithGroup(sqlCommand, "([^a-zA-Z0-9])STRING_ARRAY([^a-zA-Z0-9])", "\\2TEXT[]\\3");
 
         sqlCommand = prepareCommandIntern(sqlCommand, " NOORDER", "");

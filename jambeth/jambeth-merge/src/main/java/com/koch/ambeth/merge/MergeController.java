@@ -32,6 +32,7 @@ import com.koch.ambeth.merge.cache.ICacheProvider;
 import com.koch.ambeth.merge.cache.IDisposableCache;
 import com.koch.ambeth.merge.cache.IWritableCache;
 import com.koch.ambeth.merge.cache.ValueHolderState;
+import com.koch.ambeth.merge.compositeid.CompositeIdMember;
 import com.koch.ambeth.merge.config.MergeConfigurationConstants;
 import com.koch.ambeth.merge.metadata.IObjRefFactory;
 import com.koch.ambeth.merge.model.ICUDResult;
@@ -55,7 +56,6 @@ import com.koch.ambeth.service.merge.IEntityMetaDataProvider;
 import com.koch.ambeth.service.merge.model.IEntityMetaData;
 import com.koch.ambeth.service.merge.model.IObjRef;
 import com.koch.ambeth.service.metadata.Member;
-import com.koch.ambeth.service.metadata.RelationMember;
 import com.koch.ambeth.util.IConversionHelper;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.EmptySet;
@@ -481,18 +481,40 @@ public class MergeController implements IMergeController, IMergeExtendable {
     }
 
     protected boolean equalsReferenceOrId(Object original, Object clone, MergeHandle handle, IEntityMetaData metaData) {
+        if (original instanceof Optional opt) {
+            original = opt.isPresent() ? opt.get() : null;
+        }
+        if (clone instanceof Optional opt) {
+            clone = opt.isPresent() ? opt.get() : null;
+        }
         if (original == null) {
             return clone == null;
         }
         if (clone == null) {
             return false;
         }
-        Member keyMember = metaData.getIdMember();
+        var keyMember = metaData.getIdMember();
+        if (keyMember instanceof CompositeIdMember compositeIdMember) {
+            for (int compositeIdIndex = compositeIdMember.getMembersCount(); compositeIdIndex-- > 0; ) {
+                var cloneValue = compositeIdMember.getDecompositedValue(clone, compositeIdIndex);
+                var originalValue = compositeIdMember.getDecompositedValue(original, compositeIdIndex);
+                if (!Objects.equals(cloneValue, originalValue)) {
+                    return false;
+                }
+            }
+            return true;
+        }
         return Objects.equals(keyMember.getValue(clone, false), keyMember.getValue(original, false));
     }
 
     @SuppressWarnings("rawtypes")
     protected boolean isMemberModified(Object objValue, Object cloneValue, MergeHandle handle, IEntityMetaData metaData) {
+        if (objValue instanceof Optional opt) {
+            objValue = opt.isPresent() ? opt.get() : null;
+        }
+        if (cloneValue instanceof Optional opt) {
+            cloneValue = opt.isPresent() ? opt.get() : null;
+        }
         if (objValue == null) {
             return cloneValue != null;
         }
@@ -501,19 +523,19 @@ public class MergeController implements IMergeController, IMergeExtendable {
             return true;
         }
         if (objValue instanceof List) {
-            List objList = (List) objValue;
-            List cloneList = (List) cloneValue;
+            var objList = (List) objValue;
+            var cloneList = (List) cloneValue;
 
-            boolean memberModified = false;
+            var memberModified = false;
 
             if (objList.size() != cloneList.size()) {
                 memberModified = true;
             }
             for (int a = 0, size = objList.size(); a < size; a++) {
-                Object objItem = objList.get(a);
+                var objItem = objList.get(a);
 
                 if (cloneList.size() > a) {
-                    Object cloneItem = cloneList.get(a);
+                    var cloneItem = cloneList.get(a);
                     if (!equalsReferenceOrId(objItem, cloneItem, handle, metaData)) {
                         memberModified = true;
                     }
@@ -523,16 +545,16 @@ public class MergeController implements IMergeController, IMergeExtendable {
             return memberModified;
         }
         if (objValue instanceof Iterable) {
-            Iterator<?> objEnumerator = ((Iterable<?>) objValue).iterator();
-            Iterator<?> cloneEnumerator = ((Iterable<?>) cloneValue).iterator();
+            var objEnumerator = ((Iterable<?>) objValue).iterator();
+            var cloneEnumerator = ((Iterable<?>) cloneValue).iterator();
 
-            boolean memberModified = false;
+            var memberModified = false;
             while (objEnumerator.hasNext()) {
-                Object objItem = objEnumerator.next();
+                var objItem = objEnumerator.next();
                 if (!cloneEnumerator.hasNext()) {
                     memberModified = true;
                 } else {
-                    Object cloneItem = cloneEnumerator.next();
+                    var cloneItem = cloneEnumerator.next();
                     if (!equalsReferenceOrId(objItem, cloneItem, handle, metaData)) {
                         memberModified = true;
                     }
@@ -551,17 +573,17 @@ public class MergeController implements IMergeController, IMergeExtendable {
     }
 
     protected void merge(Object obj, Object clone, MergeHandle handle) {
-        IEntityMetaDataProvider entityMetaDataProvider = this.entityMetaDataProvider;
-        IEntityMetaData metaData = entityMetaDataProvider.getMetaData(obj.getClass());
+        var entityMetaDataProvider = this.entityMetaDataProvider;
+        var metaData = entityMetaDataProvider.getMetaData(obj.getClass());
 
-        boolean fieldBasedMergeActive = handle.isFieldBasedMergeActive();
-        boolean oneChangeOccured = false;
-        RelationMember[] relationMembers = metaData.getRelationMembers();
+        var fieldBasedMergeActive = handle.isFieldBasedMergeActive();
+        var oneChangeOccured = false;
+        var relationMembers = metaData.getRelationMembers();
         if (relationMembers.length > 0) {
-            IObjRefContainer vhc = (IObjRefContainer) obj;
+            var vhc = (IObjRefContainer) obj;
 
             for (int relationIndex = relationMembers.length; relationIndex-- > 0; ) {
-                RelationMember relationMember = relationMembers[relationIndex];
+                var relationMember = relationMembers[relationIndex];
                 if (!metaData.isMergeRelevant(relationMember)) {
                     continue;
                 }
@@ -569,16 +591,16 @@ public class MergeController implements IMergeController, IMergeExtendable {
                     // v2 valueholder is not initialized. so a change is impossible
                     continue;
                 }
-                Object objMember = relationMember.getValue(obj, false);
-                Object cloneMember = relationMember.getValue(clone, false);
+                var objMember = relationMember.getValue(obj, false);
+                var cloneMember = relationMember.getValue(clone, false);
                 if (objMember instanceof IDataObject && !((IDataObject) objMember).hasPendingChanges()) {
-                    IEntityMetaData relationMetaData = entityMetaDataProvider.getMetaData(relationMember.getRealType());
+                    var relationMetaData = entityMetaDataProvider.getMetaData(relationMember.getRealType());
                     if (equalsReferenceOrId(objMember, cloneMember, handle, relationMetaData)) {
                         continue;
                     }
                 }
 
-                IEntityMetaData childMetaData = entityMetaDataProvider.getMetaData(relationMember.getElementType());
+                var childMetaData = entityMetaDataProvider.getMetaData(relationMember.getElementType());
 
                 if (isMemberModified(objMember, cloneMember, handle, childMetaData)) {
                     oneChangeOccured = true;
@@ -596,16 +618,16 @@ public class MergeController implements IMergeController, IMergeExtendable {
         boolean additionalRound;
         do {
             additionalRound = !oneChangeOccured;
-            for (Member primitiveMember : metaData.getPrimitiveMembers()) {
+            for (var primitiveMember : metaData.getPrimitiveMembers()) {
                 if (!metaData.isMergeRelevant(primitiveMember)) {
                     continue;
                 }
-                Object objValue = primitiveMember.getValue(obj, true);
+                var objValue = primitiveMember.getValue(obj, true);
                 if (oneChangeOccured) {
                     addModification(obj, primitiveMember.getName(), primitiveMember.getElementType(), objValue, null, handle);
                     continue;
                 }
-                Object cloneValue = primitiveMember.getValue(clone, true);
+                var cloneValue = primitiveMember.getValue(clone, true);
                 if (!arePrimitivesEqual(metaData, primitiveMember, objValue, cloneValue, handle)) {
                     oneChangeOccured = true;
                     break;
@@ -620,16 +642,16 @@ public class MergeController implements IMergeController, IMergeExtendable {
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
     private void checkOptimisticLock(Object obj, Object clone, IEntityMetaData metaData) {
-        Member versionMember = metaData.getVersionMember();
+        var versionMember = metaData.getVersionMember();
         if (versionMember == null) {
             return;
         }
         // Check for early optimistic locking (Another, later level is directly on
         // persistence layer)
-        Object versionToMerge = versionMember.getValue(obj, true);
-        Object currentVersion = versionMember.getValue(clone, true);
+        var versionToMerge = versionMember.getValue(obj, true);
+        var currentVersion = versionMember.getValue(clone, true);
 
-        int compareResult = ((Comparable) versionToMerge).compareTo(currentVersion);
+        var compareResult = ((Comparable) versionToMerge).compareTo(currentVersion);
         if (exactVersionForOptimisticLockingRequired ? compareResult != 0 : compareResult < 0) {
             throw OptimisticLockUtil.throwModified(oriHelper.entityToObjRef(clone), versionToMerge, obj);
         }
@@ -849,41 +871,44 @@ public class MergeController implements IMergeController, IMergeExtendable {
     public IList<Object> scanForInitializedObjects(Object obj, boolean isDeepMerge, Map<Class<?>, List<Object>> typeToObjectsToMerge, List<IObjRef> objRefs, List<IObjRef> privilegedObjRefs,
             List<ValueHolderRef> valueHolderKeys, Set<ICache> recognizedCaches) {
         var objects = new ArrayList<>();
-        deepScanRecursion.handleDeep(obj, (entity, p) -> {
-            if (recognizedCaches != null) {
-                var cache = ((IObjRefContainer) entity).get__Cache();
-                if (cache != null) {
-                    recognizedCaches.add(cache);
+        deepScanRecursion.handleDeep(obj, new IDeepScanRecursion.EntityDelegate() {
+            @Override
+            public boolean visitEntity(Object entity, IDeepScanRecursion.Proceed proceed) {
+                if (recognizedCaches != null) {
+                    var cache = ((IObjRefContainer) entity).get__Cache();
+                    if (cache != null) {
+                        recognizedCaches.add(cache);
+                    }
                 }
-            }
-            var metaData = ((IEntityMetaDataHolder) entity).get__EntityMetaData();
-            IObjRef objRef = null;
-            if (objects != null || objRefs != null || privilegedObjRefs != null || valueHolderKeys != null) {
-                objRef = markObjRef(typeToObjectsToMerge, objRefs, privilegedObjRefs, entity, metaData, objects);
-            }
-            if (!isDeepMerge) {
+                var metaData = ((IEntityMetaDataHolder) entity).get__EntityMetaData();
+                IObjRef objRef = null;
+                if (objects != null || objRefs != null || privilegedObjRefs != null || valueHolderKeys != null) {
+                    objRef = markObjRef(typeToObjectsToMerge, objRefs, privilegedObjRefs, entity, metaData, objects);
+                }
+                if (!isDeepMerge) {
+                    return true;
+                }
+                var relationMembers = metaData.getRelationMembers();
+                if (relationMembers.length == 0) {
+                    return true;
+                }
+                var vhc = (IObjRefContainer) entity;
+                for (int relationIndex = relationMembers.length; relationIndex-- > 0; ) {
+                    if (!vhc.is__Initialized(relationIndex)) {
+                        continue;
+                    }
+                    var relationMember = relationMembers[relationIndex];
+                    var item = relationMember.getValue(entity);
+                    if (valueHolderKeys != null && objRef != null && item != null) {
+                        var vhk = new ValueHolderRef(objRef, relationMember, relationIndex);
+                        valueHolderKeys.add(vhk);
+                    }
+                    if (!proceed.proceed(item)) {
+                        return false;
+                    }
+                }
                 return true;
             }
-            var relationMembers = metaData.getRelationMembers();
-            if (relationMembers.length == 0) {
-                return true;
-            }
-            var vhc = (IObjRefContainer) entity;
-            for (int relationIndex = relationMembers.length; relationIndex-- > 0; ) {
-                if (!vhc.is__Initialized(relationIndex)) {
-                    continue;
-                }
-                var relationMember = relationMembers[relationIndex];
-                var item = relationMember.getValue(entity);
-                if (valueHolderKeys != null && objRef != null && item != null) {
-                    var vhk = new ValueHolderRef(objRef, relationMember, relationIndex);
-                    valueHolderKeys.add(vhk);
-                }
-                if (!p.proceed(item)) {
-                    return false;
-                }
-            }
-            return true;
         });
         return objects;
     }

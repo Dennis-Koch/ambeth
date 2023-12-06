@@ -618,7 +618,7 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 
             var selfResult = new ObjRelationResult();
             selfResult.setReference(objRel);
-            selfResult.setRelations(oriList.toArray(IObjRef.class));
+            selfResult.setRelations(oriList.toArray(IObjRef[]::new));
             objRelResults.add(selfResult);
         }
         return objRelResults;

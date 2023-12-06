@@ -20,9 +20,6 @@ limitations under the License.
  * #L%
  */
 
-import java.io.BufferedInputStream;
-import java.io.InputStream;
-
 import com.koch.ambeth.cache.IParentEntityAware;
 import com.koch.ambeth.cache.chunk.ChunkProviderStubInputStream;
 import com.koch.ambeth.cache.chunk.IChunkProvider;
@@ -35,57 +32,57 @@ import com.koch.ambeth.service.merge.model.IObjRef;
 import com.koch.ambeth.service.metadata.Member;
 import com.koch.ambeth.stream.IInputSource;
 import com.koch.ambeth.util.ParamChecker;
-import com.koch.ambeth.util.collections.IList;
 
-public abstract class AbstractInputSourceValueHolder
-		implements IInputSource, IParentEntityAware, IInitializingBean {
-	protected int chunkSize = 65536;
+import java.io.BufferedInputStream;
+import java.io.InputStream;
 
-	protected IServiceContext beanContext;
+public abstract class AbstractInputSourceValueHolder implements IInputSource, IParentEntityAware, IInitializingBean {
+    protected int chunkSize = 65536;
 
-	protected String chunkProviderName;
+    protected IServiceContext beanContext;
 
-	protected Member member;
+    protected String chunkProviderName;
 
-	protected Object parentEntity;
+    protected Member member;
 
-	@Override
-	public void afterPropertiesSet() throws Throwable {
-		ParamChecker.assertNotNull(beanContext, "beanContext");
-		ParamChecker.assertNotNull(chunkProviderName, "chunkProviderName");
-	}
+    protected Object parentEntity;
 
-	public void setBeanContext(IServiceContext beanContext) {
-		this.beanContext = beanContext;
-	}
+    @Override
+    public void afterPropertiesSet() throws Throwable {
+        ParamChecker.assertNotNull(beanContext, "beanContext");
+        ParamChecker.assertNotNull(chunkProviderName, "chunkProviderName");
+    }
 
-	public void setChunkProviderName(String chunkProviderName) {
-		this.chunkProviderName = chunkProviderName;
-	}
+    public void setBeanContext(IServiceContext beanContext) {
+        this.beanContext = beanContext;
+    }
 
-	public void setChunkSize(int chunkSize) {
-		this.chunkSize = chunkSize;
-	}
+    public void setChunkProviderName(String chunkProviderName) {
+        this.chunkProviderName = chunkProviderName;
+    }
 
-	@Override
-	public void setParentEntity(Object parentEntity, Member member) {
-		this.parentEntity = parentEntity;
-		this.member = member;
-	}
+    public void setChunkSize(int chunkSize) {
+        this.chunkSize = chunkSize;
+    }
 
-	public IObjRelation getSelf() {
-		IObjRefHelper oriHelper = beanContext.getService(IObjRefHelper.class);
-		IList<IObjRef> allObjRefs = oriHelper.entityToAllObjRefs(parentEntity);
-		return new ObjRelation(allObjRefs.toArray(IObjRef.class), member.getName());
-	}
+    @Override
+    public void setParentEntity(Object parentEntity, Member member) {
+        this.parentEntity = parentEntity;
+        this.member = member;
+    }
 
-	protected IChunkProvider getChunkProvider() {
-		return beanContext.getService(chunkProviderName, IChunkProvider.class);
-	}
+    public IObjRelation getSelf() {
+        var oriHelper = beanContext.getService(IObjRefHelper.class);
+        var allObjRefs = oriHelper.entityToAllObjRefs(parentEntity);
+        return new ObjRelation(allObjRefs.toArray(IObjRef[]::new), member.getName());
+    }
 
-	protected InputStream createBinaryInputStream() {
-		IChunkProvider chunkProvider = getChunkProvider();
-		return new BufferedInputStream(new ChunkProviderStubInputStream(getSelf(), chunkProvider),
-				chunkSize);
-	}
+    protected IChunkProvider getChunkProvider() {
+        return beanContext.getService(chunkProviderName, IChunkProvider.class);
+    }
+
+    protected InputStream createBinaryInputStream() {
+        IChunkProvider chunkProvider = getChunkProvider();
+        return new BufferedInputStream(new ChunkProviderStubInputStream(getSelf(), chunkProvider), chunkSize);
+    }
 }

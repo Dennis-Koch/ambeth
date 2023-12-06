@@ -24,12 +24,15 @@ import com.koch.ambeth.ioc.IDisposableBean;
 import com.koch.ambeth.ioc.IServiceContext;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.config.Property;
+import com.koch.ambeth.merge.compositeid.ICompositeIdFactory;
 import com.koch.ambeth.persistence.api.IPrimaryKeyProvider;
 import com.koch.ambeth.persistence.api.ITableMetaData;
 import com.koch.ambeth.persistence.config.PersistenceConfigurationConstants;
+import com.koch.ambeth.service.merge.IEntityMetaDataProvider;
 import com.koch.ambeth.service.merge.model.IObjRef;
 import com.koch.ambeth.util.IClassCache;
 import com.koch.ambeth.util.IConversionHelper;
+import com.koch.ambeth.util.IPreparedConverter;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.EmptyList;
 import com.koch.ambeth.util.collections.HashMap;
@@ -46,10 +49,19 @@ public abstract class AbstractCachingPrimaryKeyProvider implements IPrimaryKeyPr
     protected final Lock writeLock = new ReentrantLock();
     @Autowired
     protected IServiceContext beanContext;
+
     @Autowired
     protected IClassCache classCache;
+
+    @Autowired
+    protected ICompositeIdFactory compositeIdFactory;
+
     @Autowired
     protected IConversionHelper conversionHelper;
+
+    @Autowired
+    protected IEntityMetaDataProvider entityMetaDataProvider;
+
     @Property(name = PersistenceConfigurationConstants.SequencePrefetchSize, defaultValue = "200")
     protected int prefetchIdAmount;
 
@@ -147,24 +159,27 @@ public abstract class AbstractCachingPrimaryKeyProvider implements IPrimaryKeyPr
         // Make sure after the request are still enough ids cached
         acquireIdsIntern(table, requestCount, newIds);
 
-        var conversionHelper = this.conversionHelper;
-        var idMember = table.getIdField().getMember();
-        var idType = idMember != null ? idMember.getRealType() : null;
-
+        var idFields = table.getIdFields();
+        IPreparedConverter cacheIdConverter;
+        if (idFields != null && idFields.length > 0) {
+            var metaData = entityMetaDataProvider.getMetaData(table.getEntityType());
+            cacheIdConverter = compositeIdFactory.prepareCompositeIdFactory(metaData, metaData.getIdMember());
+        } else {
+            cacheIdConverter = null;
+        }
         if (newIds.size() < requestCount) {
             throw new IllegalStateException("Requested at least " + requestCount + " ids from sequence '" + sequenceName + "' but retrieved only " + newIds.size());
         }
-        var preparedConverter = idType != null && !newIds.isEmpty() ? conversionHelper.prepareConverter(idType) : null;
         for (int a = 0; a < count; a++) {
             var id = newIds.get(a);
-            id = preparedConverter != null ? preparedConverter.convertValue(id, null) : id;
+            id = cacheIdConverter != null ? cacheIdConverter.convertValue(id, null) : id;
             ids.add(id);
         }
         writeLock.lock();
         try {
             for (int a = newIds.size(); a-- > count; ) {
                 var id = newIds.get(a);
-                id = preparedConverter != null ? preparedConverter.convertValue(id, null) : id;
+                id = cacheIdConverter != null ? cacheIdConverter.convertValue(id, null) : id;
                 cachedIds.add(id);
             }
         } finally {

@@ -26,7 +26,6 @@ import com.koch.ambeth.ioc.IInitializingModule;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.annotation.FrameworkModule;
 import com.koch.ambeth.ioc.factory.IBeanContextFactory;
-import com.koch.ambeth.model.Material;
 import com.koch.ambeth.persistence.config.PersistenceConfigurationConstants;
 import com.koch.ambeth.persistence.jdbc.transaction.ExternalTransactionManagerTest.ExternalTransactionManagerTestModule;
 import com.koch.ambeth.service.IMaterialService;
@@ -52,8 +51,8 @@ import org.junit.Test;
         @TestProperties(name = ServiceConfigurationConstants.GenericTransferMapping, value = "true"),
         @TestProperties(name = PersistenceConfigurationConstants.ExternalTransactionManager, value = "true")
 })
-@SQLStructure("../JDBCDatabase_structure.sql")
-@SQLData("../Example_data.sql")
+@SQLStructure("com/koch/ambeth/persistence/jdbc/JDBCDatabase_structure.sql")
+@SQLData("com/koch/ambeth/persistence/jdbc/Example_data.sql")
 public class ExternalTransactionManagerTest extends AbstractInformationBusWithPersistenceTest {
     @Autowired
     protected TransactionManager transactionManager;
@@ -65,8 +64,8 @@ public class ExternalTransactionManagerTest extends AbstractInformationBusWithPe
      */
     @Test
     public void testRollback() throws SystemException {
-        IMaterialService materialService = beanContext.getService(IMaterialService.class);
-        Material material = materialService.getMaterialByName("test 1");
+        var materialService = beanContext.getService(IMaterialService.class);
+        var material = materialService.getMaterialByName("test 1");
         material.setName("Updated");
         material.setVersion((short) (material.getVersion() - 1)); // Force OptLock exception
 
@@ -77,7 +76,7 @@ public class ExternalTransactionManagerTest extends AbstractInformationBusWithPe
             // we want this exception for the test
         }
 
-        TransactionFake transaction = (TransactionFake) transactionManager.getTransaction();
+        var transaction = (TransactionFake) transactionManager.getTransaction();
         Assert.assertTrue("Set rollbackOnly should be set to true", transaction.getRollbackOnly());
     }
 

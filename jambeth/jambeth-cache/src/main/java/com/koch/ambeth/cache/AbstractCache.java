@@ -59,6 +59,7 @@ import java.lang.reflect.Array;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 public abstract class AbstractCache<V> implements ICache, IInitializingBean, IDisposable {
@@ -477,7 +478,7 @@ public abstract class AbstractCache<V> implements ICache, IInitializingBean, IDi
     }
 
     protected Object getVersionOfObject(IEntityMetaData metaData, Object obj) {
-        Member versionMember = metaData.getVersionMember();
+        var versionMember = metaData.getVersionMember();
         return versionMember != null ? versionMember.getValue(obj, false) : null;
     }
 
@@ -496,33 +497,38 @@ public abstract class AbstractCache<V> implements ICache, IInitializingBean, IDi
             return;
         }
         if (objectToCache.getClass().isArray()) {
-            int length = Array.getLength(objectToCache);
+            var length = Array.getLength(objectToCache);
             for (int a = length; a-- > 0; ) {
                 putIntern(Array.get(objectToCache, a), hardRefsToCacheValue, alreadyHandledSet, cascadeNeededORIs);
             }
             return;
         }
-        if (objectToCache instanceof List) {
-            List<?> list = (List<?>) objectToCache;
+        if (objectToCache instanceof List list) {
             for (int a = list.size(); a-- > 0; ) {
                 putIntern(list.get(a), hardRefsToCacheValue, alreadyHandledSet, cascadeNeededORIs);
             }
             return;
         }
-        if (objectToCache instanceof Collection) {
-            for (Object item : (Collection<?>) objectToCache) {
+        if (objectToCache instanceof Collection coll) {
+            for (var item : coll) {
                 putIntern(item, hardRefsToCacheValue, alreadyHandledSet, cascadeNeededORIs);
             }
             return;
         }
+        if (objectToCache instanceof Optional opt) {
+            if (opt.isPresent()) {
+                putIntern(opt.get(), hardRefsToCacheValue, alreadyHandledSet, cascadeNeededORIs);
+            }
+            return;
+        }
         if (objectToCache instanceof IObjRelationResult) {
-            IObjRelationResult objRelationResult = (IObjRelationResult) objectToCache;
-            IObjRelation objRelation = objRelationResult.getReference();
-            IObjRef objRef = objRelation.getObjRefs()[0];
-            IEntityMetaData metaData2 = entityMetaDataProvider.getMetaData(objRef.getRealType());
+            var objRelationResult = (IObjRelationResult) objectToCache;
+            var objRelation = objRelationResult.getReference();
+            var objRef = objRelation.getObjRefs()[0];
+            var metaData2 = entityMetaDataProvider.getMetaData(objRef.getRealType());
 
-            Object cacheValueR = getCacheValueR(metaData2, objRef.getIdNameIndex(), objRef.getId());
-            V cacheValue = getCacheValueFromReference(cacheValueR);
+            var cacheValueR = getCacheValueR(metaData2, objRef.getIdNameIndex(), objRef.getId());
+            var cacheValue = getCacheValueFromReference(cacheValueR);
             if (cacheValue == null) {
                 return;
             }
@@ -533,23 +539,23 @@ public abstract class AbstractCache<V> implements ICache, IInitializingBean, IDi
             putIntern((ILoadContainer) objectToCache);
             return;
         }
-        IEntityMetaData metaData = entityMetaDataProvider.getMetaData(getEntityTypeOfObject(objectToCache));
-        Object key = getIdOfObject(metaData, objectToCache);
+        var metaData = entityMetaDataProvider.getMetaData(getEntityTypeOfObject(objectToCache));
+        var key = getIdOfObject(metaData, objectToCache);
 
-        ArrayList<Object> relationValues = new ArrayList<>();
-        IObjRef[][] relations = extractRelations(metaData, objectToCache, relationValues);
+        var relationValues = new ArrayList<>();
+        var relations = extractRelations(metaData, objectToCache, relationValues);
 
         if (key != null) {
             // Object itself can only be cached with a primary key
-            Object version = getVersionOfObject(metaData, objectToCache);
+            var version = getVersionOfObject(metaData, objectToCache);
 
-            Object cacheValueR = getCacheValueR(metaData, ObjRef.PRIMARY_KEY_INDEX, key);
-            V cacheValue = getCacheValueFromReference(cacheValueR);
-            boolean objectItselfIsUpToDate = false;
+            var cacheValueR = getCacheValueR(metaData, ObjRef.PRIMARY_KEY_INDEX, key);
+            var cacheValue = getCacheValueFromReference(cacheValueR);
+            var objectItselfIsUpToDate = false;
             if (cacheValue != null && getIdOfCacheValue(metaData, cacheValue) != null) {
                 // Similar object already cached. Let's see how the version
                 // compares...
-                Object cachedVersion = getVersionOfCacheValue(metaData, cacheValue);
+                var cachedVersion = getVersionOfCacheValue(metaData, cacheValue);
                 if (cachedVersion != null && cachedVersion.equals(version)) {
                     // Object has even already the same version, so there is
                     // absolutely nothing to do here
@@ -557,9 +563,9 @@ public abstract class AbstractCache<V> implements ICache, IInitializingBean, IDi
                 }
             }
             if (!objectItselfIsUpToDate) {
-                Object[] primitives = extractPrimitives(metaData, objectToCache);
-                CacheKey[] alternateCacheKeys = extractAlternateCacheKeys(metaData, primitives);
-                Object hardRef = putIntern(metaData, objectToCache, key, version, alternateCacheKeys, primitives, relations);
+                var primitives = extractPrimitives(metaData, objectToCache);
+                var alternateCacheKeys = extractAlternateCacheKeys(metaData, primitives);
+                var hardRef = putIntern(metaData, objectToCache, key, version, alternateCacheKeys, primitives, relations);
                 hardRefsToCacheValue.add(hardRef);
             } else {
                 hardRefsToCacheValue.add(cacheValue);

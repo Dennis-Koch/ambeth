@@ -22,62 +22,59 @@ limitations under the License.
 
 import com.koch.ambeth.service.merge.model.IEntityMetaData;
 import com.koch.ambeth.service.merge.model.IObjRef;
-import com.koch.ambeth.util.collections.IList;
+
+import java.util.List;
 
 public interface IObjRefHelper {
-	IList<IObjRef> extractObjRefList(Object objValue, MergeHandle mergeHandle);
+    List<IObjRef> extractObjRefList(Object objValue, MergeHandle mergeHandle);
 
-	IList<IObjRef> extractObjRefList(Object objValue, MergeHandle mergeHandle,
-			IList<IObjRef> targetOriList);
+    List<IObjRef> extractObjRefList(Object objValue, MergeHandle mergeHandle, List<IObjRef> targetObjRefList);
 
-	IList<IObjRef> extractObjRefList(Object objValue, MergeHandle mergeHandle,
-			IList<IObjRef> targetOriList, EntityCallback entityCallback);
+    List<IObjRef> extractObjRefList(Object objValue, MergeHandle mergeHandle, List<IObjRef> targetObjRefList, EntityCallback entityCallback);
 
-	IList<IObjRef> extractObjRefList(Object objValue, IObjRefProvider oriProvider,
-			IList<IObjRef> targetOriList, EntityCallback entityCallback);
+    List<IObjRef> extractObjRefList(Object objValue, IObjRefProvider oriProvider, List<IObjRef> targetObjRefList, EntityCallback entityCallback);
 
-	IObjRef getCreateObjRef(Object obj, IObjRefProvider oriProvider);
+    IObjRef getCreateObjRef(Object obj, IObjRefProvider oriProvider);
 
-	IObjRef getCreateObjRef(Object obj, MergeHandle mergeHandle);
+    IObjRef getCreateObjRef(Object obj, MergeHandle mergeHandle);
 
-	IObjRef entityToObjRef(Object entity);
+    IObjRef entityToObjRef(Object entity);
 
-	IObjRef entityToObjRef(Object entity, boolean forceOri);
+    IObjRef entityToObjRef(Object entity, boolean forceOri);
 
-	IObjRef entityToObjRef(Object entity, int idIndex);
+    IObjRef entityToObjRef(Object entity, int idIndex);
 
-	IObjRef entityToObjRef(Object entity, IEntityMetaData metaData);
+    IObjRef entityToObjRef(Object entity, IEntityMetaData metaData);
 
-	IObjRef entityToObjRef(Object entity, int idIndex, IEntityMetaData metaData);
+    IObjRef entityToObjRef(Object entity, int idIndex, IEntityMetaData metaData);
 
-	IObjRef entityToObjRef(Object entity, int idIndex, IEntityMetaData metaData, boolean forceOri);
+    IObjRef entityToObjRef(Object entity, int idIndex, IEntityMetaData metaData, boolean forceOri);
 
-	/**
-	 * Returns all valid (key != null) references for the given values.
-	 *
-	 * @param id Primary ID
-	 * @param version Entity version
-	 * @param primitives Array of all primitive values
-	 * @param metaData Meta data of the described entity
-	 * @return All valid ORIs
-	 */
-	IList<IObjRef> entityToAllObjRefs(Object id, Object version, Object[] primitives,
-			IEntityMetaData metaData);
+    /**
+     * Returns all valid (key != null) references for the given values.
+     *
+     * @param id         Primary ID
+     * @param version    Entity version
+     * @param primitives Array of all primitive values
+     * @param metaData   Meta data of the described entity
+     * @return All valid ORIs
+     */
+    List<IObjRef> entityToAllObjRefs(Object id, Object version, Object[] primitives, IEntityMetaData metaData);
 
-	/**
-	 * Returns all valid (key != null) references for the given entity.
-	 *
-	 * @param entity Entity to build ORIS for
-	 * @return All valid ORIs
-	 */
-	IList<IObjRef> entityToAllObjRefs(Object entity);
+    /**
+     * Returns all valid (key != null) references for the given entity.
+     *
+     * @param entity Entity to build ORIS for
+     * @return All valid ORIs
+     */
+    List<IObjRef> entityToAllObjRefs(Object entity);
 
-	/**
-	 * Returns all valid (key != null) references for the given entity.
-	 *
-	 * @param entity Entity to build ORIS for
-	 * @param metaData Meta data of the given entity
-	 * @return All valid ORIs
-	 */
-	IList<IObjRef> entityToAllObjRefs(Object entity, IEntityMetaData metaData);
+    /**
+     * Returns all valid (key != null) references for the given entity.
+     *
+     * @param entity   Entity to build ORIS for
+     * @param metaData Meta data of the given entity
+     * @return All valid ORIs
+     */
+    List<IObjRef> entityToAllObjRefs(Object entity, IEntityMetaData metaData);
 }

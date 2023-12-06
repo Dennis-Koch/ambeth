@@ -39,7 +39,6 @@ import com.koch.ambeth.merge.proxy.IObjRefContainer;
 import com.koch.ambeth.merge.util.DirectValueHolderRef;
 import com.koch.ambeth.merge.util.ICacheHelper;
 import com.koch.ambeth.merge.util.IPrefetchConfig;
-import com.koch.ambeth.merge.util.IPrefetchHandle;
 import com.koch.ambeth.merge.util.IPrefetchHelper;
 import com.koch.ambeth.merge.util.IPrefetchState;
 import com.koch.ambeth.service.cache.model.IObjRelation;
@@ -731,31 +730,31 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 
     @Override
     public IObjRef[][] extractRelations(IEntityMetaData metaData, Object obj, List<Object> relationValues) {
-        RelationMember[] relationMembers = metaData.getRelationMembers();
+        var relationMembers = metaData.getRelationMembers();
 
         if (relationMembers.length == 0) {
             return IObjRef.EMPTY_ARRAY_ARRAY;
         }
-        IValueHolderContainer vhc = (IValueHolderContainer) obj;
-        IObjRef[][] relations = new IObjRef[relationMembers.length][];
+        var vhc = (IValueHolderContainer) obj;
+        var relations = new IObjRef[relationMembers.length][];
 
-        IObjRefHelper objRefHelper = this.objRefHelper;
+        var objRefHelper = this.objRefHelper;
         for (int a = relationMembers.length; a-- > 0; ) {
             if (ValueHolderState.INIT != vhc.get__State(a)) {
                 relations[a] = vhc.get__ObjRefs(a);
                 continue;
             }
-            Object relationValue = relationMembers[a].getValue(obj, false);
+            var relationValue = relationMembers[a].getValue(obj, false);
             if (relationValue == null) {
                 relations[a] = IObjRef.EMPTY_ARRAY;
                 continue;
             }
-            IList<IObjRef> oris = objRefHelper.extractObjRefList(relationValue, null, null);
+            var oris = objRefHelper.extractObjRefList(relationValue, null);
             if (relationValues != null) {
                 relationValues.add(relationValue);
             }
             if (oris != null) {
-                relations[a] = oris.toArray(IObjRef.class);
+                relations[a] = oris.toArray(IObjRef[]::new);
             }
         }
 
@@ -767,44 +766,44 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
     public <T, S> IList<T> extractTargetEntities(List<S> sourceEntities, String sourceToTargetEntityPropertyPath, Class<S> sourceEntityType) {
         // Einen Accessor ermitteln, der die gesamte Hierachie aus dem propertyPath ('A.B.C')
         // selbststaendig traversiert
-        Member member = memberTypeProvider.getMember(sourceEntityType, sourceToTargetEntityPropertyPath);
+        var member = memberTypeProvider.getMember(sourceEntityType, sourceToTargetEntityPropertyPath);
 
         // MetaDaten der Ziel-Entity ermitteln, da wir (generisch) den PK brauchen, um damit ein
         // DISTINCT-Behavior durch
         // eine Map als Zwischenstruktur zu
         // erreichen
-        IEntityMetaData targetMetaData = entityMetaDataProvider.getMetaData(member.getElementType());
-        Member targetIdMember = targetMetaData.getIdMember();
+        var targetMetaData = entityMetaDataProvider.getMetaData(member.getElementType());
+        var targetIdMember = targetMetaData.getIdMember();
 
         // Damit bei der Traversion keine Initialisierungen mit DB-Roundtrips entstehen, machen wir
         // vorher eine Prefetch
         // passend zum PropertyPath auf allen
         // uebergebenen Quell-Entities
         // Dadurch entstehen maximal 2 gebatchte SELECTs, egal wie gross die Liste ist
-        IPrefetchHandle prefetch = createPrefetch().add(sourceEntityType, sourceToTargetEntityPropertyPath).build();
+        var prefetch = createPrefetch().add(sourceEntityType, sourceToTargetEntityPropertyPath).build();
         @SuppressWarnings("unused")
         // Speichere das State-Result unbenutzt - wichtig fuer concurrent GC Aktivitaeten, um Verluste
         // an Entity-Referenzen zu verhindern
-        IPrefetchState state = prefetch.prefetch(sourceEntities);
+        var state = prefetch.prefetch(sourceEntities);
 
-        LinkedHashMap<Object, T> targetDistinctMap = new LinkedHashMap<>();
+        var targetDistinctMap = new LinkedHashMap<Object, T>();
         // Danach traversieren, wobei wir jetzt wissen, dass uns das keine Roundtrips kostet
         for (int a = 0, size = sourceEntities.size(); a < size; a++) {
-            S sourceEntity = sourceEntities.get(a);
+            var sourceEntity = sourceEntities.get(a);
             if (sourceEntity == null) {
                 continue;
             }
-            Object targetEntities = member.getValue(sourceEntity);
+            var targetEntities = member.getValue(sourceEntity);
             if (targetEntities == null) {
                 continue;
             }
             // Ergebnismenge flexibel (bei *-To-Many) verarbeiten oder so lassen (bei *-To-One)
             if (targetEntities instanceof Iterable) {
-                for (Object targetEntity : (Iterable<?>) targetEntities) {
+                for (var targetEntity : (Iterable<?>) targetEntities) {
                     if (targetEntity == null) {
                         continue;
                     }
-                    Object targetId = targetIdMember.getValue(targetEntity);
+                    var targetId = targetIdMember.getValue(targetEntity);
                     if (targetId == null) {
                         // Falls die Entity keine ID hat, speichern wir sie ausnahmsweise selbst als Key
                         targetId = targetEntity;
@@ -812,7 +811,7 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
                     targetDistinctMap.put(targetId, (T) targetEntity);
                 }
             } else {
-                Object targetId = targetIdMember.getValue(targetEntities);
+                var targetId = targetIdMember.getValue(targetEntities);
                 if (targetId == null) {
                     // Falls die Entity keine ID hat, speichern wir sie ausnahmsweise selbst als Key
                     targetId = targetEntities;
@@ -826,7 +825,7 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 
     @Override
     public AppendableCachePath copyCachePathToAppendable(PrefetchPath cachePath) {
-        PrefetchPath[] children = cachePath.children;
+        var children = cachePath.children;
         LinkedHashSet<AppendableCachePath> clonedChildren = null;
         if (children != null) {
             clonedChildren = LinkedHashSet.create(children.length);
@@ -834,7 +833,7 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
                 clonedChildren.add(copyCachePathToAppendable(children[a]));
             }
         }
-        AppendableCachePath clonedCachePath = new AppendableCachePath(cachePath.memberType, cachePath.memberIndex, cachePath.memberName);
+        var clonedCachePath = new AppendableCachePath(cachePath.memberType, cachePath.memberIndex, cachePath.memberName);
         clonedCachePath.children = clonedChildren;
         return clonedCachePath;
     }
@@ -844,9 +843,9 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
         if (children == null) {
             return null;
         }
-        PrefetchPath[] clonedChildren = new PrefetchPath[children.size()];
-        int index = 0;
-        for (AppendableCachePath child : children) {
+        var clonedChildren = new PrefetchPath[children.size()];
+        var index = 0;
+        for (var child : children) {
             clonedChildren[index] = copyAppendableToCachePath(child);
             index++;
         }
@@ -855,12 +854,12 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 
     @Override
     public PrefetchPath copyAppendableToCachePath(AppendableCachePath cachePath) {
-        PrefetchPath[] clonedChildren = copyAppendableToCachePath(cachePath.children);
+        var clonedChildren = copyAppendableToCachePath(cachePath.children);
         if (clonedChildren == null) {
             return new PrefetchPath(cachePath.memberType, cachePath.memberIndex, cachePath.memberName, clonedChildren, TypeUtil.EMPTY_TYPES);
         }
-        HashSet<Class<?>> memberTypesOnDescendants = new HashSet<>();
-        for (PrefetchPath clonedChild : clonedChildren) {
+        var memberTypesOnDescendants = new HashSet<Class<?>>();
+        for (var clonedChild : clonedChildren) {
             memberTypesOnDescendants.add(clonedChild.memberType);
             memberTypesOnDescendants.addAll(clonedChild.memberTypesOnDescendants);
         }
@@ -869,18 +868,18 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 
     @Override
     public void unionCachePath(AppendableCachePath cachePath, AppendableCachePath other) {
-        ISet<AppendableCachePath> otherChildren = other.children;
+        var otherChildren = other.children;
         if (otherChildren == null) {
             // fast case 1
             return;
         }
-        ISet<AppendableCachePath> children = cachePath.children;
+        var children = cachePath.children;
         if (children == null) {
             // fast case 2
             cachePath.children = otherChildren;
             return;
         }
-        for (AppendableCachePath otherCachePath : otherChildren) {
+        for (var otherCachePath : otherChildren) {
             if (children.add(otherCachePath)) {
                 continue;
             }

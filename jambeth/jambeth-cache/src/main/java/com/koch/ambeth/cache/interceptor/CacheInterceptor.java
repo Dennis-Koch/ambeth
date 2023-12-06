@@ -42,6 +42,8 @@ import com.koch.ambeth.util.annotation.QueryResultType;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.proxy.MethodProxy;
+import com.koch.ambeth.util.state.IStateRollback;
+import com.koch.ambeth.util.state.StateRollback;
 import com.koch.ambeth.util.threading.SensitiveThreadLocal;
 
 import java.lang.annotation.Annotation;
@@ -51,7 +53,16 @@ import java.util.Collection;
 import java.util.List;
 
 public class CacheInterceptor extends MergeInterceptor {
-    public static final ThreadLocal<Boolean> pauseCache = new SensitiveThreadLocal<>();
+    private static final ThreadLocal<Boolean> pauseCacheTL = new SensitiveThreadLocal<>();
+
+    public static IStateRollback pushPauseCache() {
+        var oldPauseCache = pauseCacheTL.get();
+        if (Boolean.TRUE.equals(oldPauseCache)) {
+            return StateRollback.empty();
+        }
+        pauseCacheTL.set(Boolean.TRUE);
+        return () -> pauseCacheTL.remove();
+    }
 
     @Autowired
     protected ICacheService cacheService;
@@ -74,7 +85,7 @@ public class CacheInterceptor extends MergeInterceptor {
         IServiceResult serviceResult;
 
         var cached = annotation instanceof Cached ? (Cached) annotation : null;
-        if (cached == null && (Boolean.TRUE.equals(pauseCache.get()) || serviceResultHolder != null && !serviceResultHolder.isExpectServiceResult())) {
+        if (cached == null && (Boolean.TRUE.equals(pauseCacheTL.get()) || serviceResultHolder != null && !serviceResultHolder.isExpectServiceResult())) {
             return super.interceptLoad(obj, method, args, proxy, annotation, isAsyncBegin);
         }
 

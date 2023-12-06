@@ -114,14 +114,14 @@ public class ValueHolderContainerMixin implements IDisposableBean, IAsyncLazyLoa
     }
 
     public IObjRelation getSelf(Object entity, String memberName) {
-        IList<IObjRef> allObjRefs = objRefHelper.entityToAllObjRefs(entity);
-        return new ObjRelation(allObjRefs.toArray(IObjRef.class), memberName);
+        var allObjRefs = objRefHelper.entityToAllObjRefs(entity);
+        return new ObjRelation(allObjRefs.toArray(IObjRef[]::new), memberName);
     }
 
     public IObjRelation getSelf(IObjRefContainer entity, int relationIndex) {
-        String memberName = entity.get__EntityMetaData().getRelationMembers()[relationIndex].getName();
-        IList<IObjRef> allObjRefs = objRefHelper.entityToAllObjRefs(entity);
-        return new ObjRelation(allObjRefs.toArray(IObjRef.class), memberName);
+        var memberName = entity.get__EntityMetaData().getRelationMembers()[relationIndex].getName();
+        var allObjRefs = objRefHelper.entityToAllObjRefs(entity);
+        return new ObjRelation(allObjRefs.toArray(IObjRef[]::new), memberName);
     }
 
     public Object getValue(IObjRefContainer entity, RelationMember[] relationMembers, int relationIndex, ICacheIntern targetCache, IObjRef[] objRefs) {
@@ -134,11 +134,11 @@ public class ValueHolderContainerMixin implements IDisposableBean, IAsyncLazyLoa
             // collections to add sth)
             return cacheHelper.createInstanceOfTargetExpectedType(relationMember.getRealType(), relationMember.getElementType());
         }
-        IGuiThreadHelper guiThreadHelper = this.guiThreadHelper;
-        boolean isInGuiThread = guiThreadHelper.isInGuiThread();
-        ValueHolderState state = entity.get__State(relationIndex);
-        boolean initPending = ValueHolderState.PENDING == state;
-        boolean asynchronousResultAllowed = Boolean.TRUE.equals(asynchronousResultAllowedTL.get());
+        var guiThreadHelper = this.guiThreadHelper;
+        var isInGuiThread = guiThreadHelper.isInGuiThread();
+        var state = entity.get__State(relationIndex);
+        var initPending = ValueHolderState.PENDING == state;
+        var asynchronousResultAllowed = Boolean.TRUE.equals(asynchronousResultAllowedTL.get());
         if (isInGuiThread && initPending) {
             // Content is not really loaded, but instance is available to use (SOLELY for DataBinding in
             // GUI Thread)

@@ -34,3 +34,5 @@ OSGI-INF
 /ambeth-integrity/de.osthus.classbrowser.csharp/CsharpClassbrowser/TestResults
 *.synctex
 latex-tmp
+
+/jambeth/jambeth-test/measurements.xml

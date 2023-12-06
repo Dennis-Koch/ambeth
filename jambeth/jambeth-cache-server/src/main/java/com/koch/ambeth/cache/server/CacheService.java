@@ -176,19 +176,19 @@ public class CacheService implements ICacheService, IInitializingBean, ExecuteSe
     public IServiceResult invoke(IServiceDescription serviceDescription) {
         ParamChecker.assertParamNotNull(serviceDescription, "serviceDescription");
 
-        Object service = serviceByNameProvider.getService(serviceDescription.getServiceName());
+        var service = serviceByNameProvider.getService(serviceDescription.getServiceName());
 
         if (service == null) {
             throw new IllegalStateException("No service with name '" + serviceDescription.getServiceName() + "' found");
         }
-        Method method = serviceDescription.getMethod(service.getClass(), objectCollector);
+        var method = serviceDescription.getMethod(service.getClass(), objectCollector);
         if (method == null) {
             throw new IllegalStateException("Requested method not found on service '" + serviceDescription.getServiceName() + "'");
         }
         // Look first at the real instance to support annotations of implementing classes
-        Object realService = getRealTargetOfService(service);
+        var realService = getRealTargetOfService(service);
 
-        QueryBehaviorType queryBehaviorType = findQueryBehaviorType(realService, method);
+        var queryBehaviorType = findQueryBehaviorType(realService, method);
 
         boolean useFastOriResultFeature;
         switch (queryBehaviorType) {
@@ -201,29 +201,27 @@ public class CacheService implements ICacheService, IInitializingBean, ExecuteSe
             default:
                 throw RuntimeExceptionUtil.createEnumNotSupportedException(queryBehaviorType);
         }
-        IServiceResult preCallServiceResult = oriResultHolder.getServiceResult();
-        boolean preCallExpectServiceResult = oriResultHolder.isExpectServiceResult();
+        var preCallServiceResult = oriResultHolder.getServiceResult();
+        var preCallExpectServiceResult = oriResultHolder.isExpectServiceResult();
         oriResultHolder.setExpectServiceResult(useFastOriResultFeature);
-        ThreadLocal<Boolean> pauseCache = CacheInterceptor.pauseCache;
-        Boolean oldValue = pauseCache.get();
-        pauseCache.set(Boolean.TRUE);
+        var rollback = CacheInterceptor.pushPauseCache();
         try {
-            Object result = method.invoke(service, serviceDescription.getArguments());
-            IServiceResult postCallServiceResult = oriResultHolder.getServiceResult();
+            var result = method.invoke(service, serviceDescription.getArguments());
+            var postCallServiceResult = oriResultHolder.getServiceResult();
             oriResultHolder.setServiceResult(null);
 
             if (postCallServiceResult == null) {
-                Object currResult = result;
+                var currResult = result;
                 if (currResult instanceof IPagingResponse) {
-                    IPagingResponse<?> pr = (IPagingResponse<?>) currResult;
-                    List<IObjRef> refResult = pr.getRefResult();
+                    var pr = (IPagingResponse<?>) currResult;
+                    var refResult = pr.getRefResult();
                     if (refResult != null) {
                         currResult = refResult;
                     } else {
                         currResult = pr.getResult();
                     }
                 }
-                List<IObjRef> oris = oriHelper.extractObjRefList(currResult, null, null);
+                var oris = oriHelper.extractObjRefList(currResult, null);
                 for (int a = oris.size(); a-- > 0; ) {
                     if (oris.get(a) instanceof IDirectObjRef) {
                         oris.remove(a);
@@ -242,11 +240,7 @@ public class CacheService implements ICacheService, IInitializingBean, ExecuteSe
         } catch (Exception e) {
             throw RuntimeExceptionUtil.mask(e);
         } finally {
-            if (oldValue != null) {
-                pauseCache.set(oldValue);
-            } else {
-                pauseCache.remove();
-            }
+            rollback.rollback();
             oriResultHolder.clearResult();
             oriResultHolder.setExpectServiceResult(preCallExpectServiceResult);
             if (preCallServiceResult != null) {

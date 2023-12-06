@@ -346,15 +346,15 @@ public class CUDResultApplier implements ICUDResultApplier {
         }
     }
 
-    protected void applyRelationUpdateItem(final IObjRefContainer entity, final IRelationUpdateItem rui, final boolean isUpdate, final IEntityMetaData metaData,
-            final IList<DirectValueHolderRef> toPrefetch, final IList<IObjRef> toFetchFromCache, final boolean checkBaseState, final IList<CheckedRunnable> runnables) {
+    protected void applyRelationUpdateItem(IObjRefContainer entity, IRelationUpdateItem rui, boolean isUpdate, IEntityMetaData metaData, List<DirectValueHolderRef> toPrefetch,
+            IList<IObjRef> toFetchFromCache, boolean checkBaseState, List<CheckedRunnable> runnables) {
         var objRefHelper = this.objRefHelper;
         var memberName = rui.getMemberName();
         var relationIndex = metaData.getIndexByRelationName(memberName);
         var relationMember = metaData.getRelationMembers()[relationIndex];
         IObjRef[] existingORIs;
         if (entity.is__Initialized(relationIndex)) {
-            existingORIs = objRefHelper.extractObjRefList(relationMember.getValue(entity), null).toArray(IObjRef.class);
+            existingORIs = objRefHelper.extractObjRefList(relationMember.getValue(entity), null).toArray(IObjRef[]::new);
         } else {
             existingORIs = entity.get__ObjRefs(relationIndex);
             if (existingORIs == null) {

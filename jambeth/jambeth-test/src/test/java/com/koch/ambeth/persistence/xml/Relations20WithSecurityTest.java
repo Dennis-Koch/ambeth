@@ -20,21 +20,12 @@ limitations under the License.
  * #L%
  */
 
-import static org.junit.Assert.assertEquals;
-
-import java.sql.Connection;
-import java.util.Arrays;
-import java.util.List;
-
-import org.junit.Test;
-
 import com.koch.ambeth.audit.Signature;
 import com.koch.ambeth.cache.interceptor.CacheInterceptor;
 import com.koch.ambeth.informationbus.persistence.setup.SQLStructure;
 import com.koch.ambeth.informationbus.persistence.setup.SQLStructureList;
 import com.koch.ambeth.ioc.IInitializingModule;
 import com.koch.ambeth.ioc.annotation.Autowired;
-import com.koch.ambeth.ioc.config.IBeanConfiguration;
 import com.koch.ambeth.ioc.factory.IBeanContextFactory;
 import com.koch.ambeth.merge.ITechnicalEntityTypeExtendable;
 import com.koch.ambeth.merge.config.MergeConfigurationConstants;
@@ -44,8 +35,6 @@ import com.koch.ambeth.merge.util.setup.IDatasetBuilderExtendable;
 import com.koch.ambeth.persistence.api.IDatabase;
 import com.koch.ambeth.persistence.xml.Relations20WithSecurityTest.Relations20WithSecurityTestModule;
 import com.koch.ambeth.persistence.xml.model.Employee;
-import com.koch.ambeth.query.IQuery;
-import com.koch.ambeth.query.IQueryBuilder;
 import com.koch.ambeth.security.SecurityTest;
 import com.koch.ambeth.security.SecurityTest.SecurityTestFrameworkModule;
 import com.koch.ambeth.security.TestAuthentication;
@@ -55,63 +44,64 @@ import com.koch.ambeth.service.config.ServiceConfigurationConstants;
 import com.koch.ambeth.testutil.TestFrameworkModule;
 import com.koch.ambeth.testutil.TestProperties;
 import com.koch.ambeth.testutil.TestPropertiesList;
+import org.junit.Test;
 
-@SQLStructureList({@SQLStructure("Relations_structure_with_security.sql"),
-		@SQLStructure("com/koch/ambeth/audit/security-structure.sql")})
-@TestFrameworkModule({Relations20WithSecurityTestModule.class, ChangeControllerModule.class})
+import java.sql.Connection;
+import java.util.Arrays;
+
+import static org.junit.Assert.assertEquals;
+
+@SQLStructureList({
+        @SQLStructure("Relations_structure_with_security.sql"), @SQLStructure("com/koch/ambeth/audit/security-structure.sql")
+})
+@TestFrameworkModule({ Relations20WithSecurityTestModule.class, ChangeControllerModule.class })
 @TestPropertiesList({
-		@TestProperties(name = ServiceConfigurationConstants.mappingFile,
-				value = "com/koch/ambeth/persistence/xml/orm20.xml;com/koch/ambeth/audit/security-orm.xml"),
-		@TestProperties(name = MergeConfigurationConstants.SecurityActive, value = "true"),
-		@TestProperties(name = SecurityServerConfigurationConstants.LoginPasswordAutoRehashActive,
-				value = "false")})
+        @TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "com/koch/ambeth/persistence/xml/orm20.xml;com/koch/ambeth/audit/security-orm.xml"),
+        @TestProperties(name = MergeConfigurationConstants.SecurityActive, value = "true"),
+        @TestProperties(name = SecurityServerConfigurationConstants.LoginPasswordAutoRehashActive, value = "false")
+})
 @TestAuthentication(name = SecurityTest.userName1, password = SecurityTest.userPass1)
 public class Relations20WithSecurityTest extends Relations20Test {
-	public static class Relations20WithSecurityTestModule implements IInitializingModule {
-		@Override
-		public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
-			beanContextFactory.registerBean(SecurityTestFrameworkModule.class);
+    @Autowired
+    protected Connection conn;
+    @Autowired
+    protected IDatabase database;
 
-			beanContextFactory.link(ISignature.class).to(ITechnicalEntityTypeExtendable.class)
-					.with(Signature.class);
+    @Override
+    @Test
+    public void testCascadedRetrieve() throws Throwable {
+        var names = Arrays.asList("Steve Smith", "Oscar Meyer");
 
-			IBeanConfiguration dataSetBuilder =
-					beanContextFactory.registerBean(Relations20WithSecurityTestDataSetBuilder.class);
-			beanContextFactory.link(dataSetBuilder).to(IDatasetBuilderExtendable.class);
-		}
-	}
+        var rollback = CacheInterceptor.pushPauseCache();
+        try {
+            var qb = queryBuilderFactory.create(Employee.class);
+            var query = qb.build(qb.let(qb.property("AllProjects.Employees.Name")).isIn(qb.value(names)));
+            var actual = query.retrieve();
+            assertEquals(1, actual.size());
 
-	@Autowired
-	protected Connection conn;
+            beanContext.getService(IPrefetchHelper.class).createPrefetch()//
+                       .add(Employee.class, "AllProjects")//
+                       .add(Employee.class, "Boat")//
+                       .add(Employee.class, "PrimaryAddress")//
+                       .add(Employee.class, "Supervisor")//
+                       .add(Employee.class, "PrimaryProject")//
+                       .add(Employee.class, "SecondaryProject")//
 
-	@Autowired
-	protected IDatabase database;
+                       .build().prefetch(actual);
+        } finally {
+            rollback.rollback();
+        }
+    }
 
-	@Override
-	@Test
-	public void testCascadedRetrieve() throws Throwable {
-		List<String> names = Arrays.asList(new String[] {"Steve Smith", "Oscar Meyer"});
+    public static class Relations20WithSecurityTestModule implements IInitializingModule {
+        @Override
+        public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
+            beanContextFactory.registerBean(SecurityTestFrameworkModule.class);
 
-		CacheInterceptor.pauseCache.set(Boolean.TRUE);
-		try {
-			IQueryBuilder<Employee> qb = queryBuilderFactory.create(Employee.class);
-			IQuery<Employee> query =
-					qb.build(qb.let(qb.property("AllProjects.Employees.Name")).isIn(qb.value(names)));
-			List<Employee> actual = query.retrieve();
-			assertEquals(1, actual.size());
+            beanContextFactory.link(ISignature.class).to(ITechnicalEntityTypeExtendable.class).with(Signature.class);
 
-			beanContext.getService(IPrefetchHelper.class).createPrefetch()//
-					.add(Employee.class, "AllProjects")//
-					.add(Employee.class, "Boat")//
-					.add(Employee.class, "PrimaryAddress")//
-					.add(Employee.class, "Supervisor")//
-					.add(Employee.class, "PrimaryProject")//
-					.add(Employee.class, "SecondaryProject")//
-
-					.build().prefetch(actual);
-		}
-		finally {
-			CacheInterceptor.pauseCache.remove();
-		}
-	}
+            var dataSetBuilder = beanContextFactory.registerBean(Relations20WithSecurityTestDataSetBuilder.class);
+            beanContextFactory.link(dataSetBuilder).to(IDatasetBuilderExtendable.class);
+        }
+    }
 }

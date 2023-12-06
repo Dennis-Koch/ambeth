@@ -20,9 +20,6 @@ limitations under the License.
  * #L%
  */
 
-import java.util.Map;
-import java.util.concurrent.locks.Lock;
-
 import com.koch.ambeth.ioc.exception.ExtendableException;
 import com.koch.ambeth.util.ParamChecker;
 import com.koch.ambeth.util.collections.ArrayList;
@@ -32,174 +29,162 @@ import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.LinkedHashMap;
 import com.koch.ambeth.util.collections.SmartCopyMap;
 
-public class MapExtendableContainer<K, V> extends SmartCopyMap<K, Object>
-		implements
-		IMapExtendableContainer<K, V> {
-	protected final boolean multiValue;
+import java.util.Map;
 
-	protected final String message, keyMessage;
+public class MapExtendableContainer<K, V> extends SmartCopyMap<K, Object> implements IMapExtendableContainer<K, V> {
+    protected final boolean multiValue;
 
-	public MapExtendableContainer(String message, String keyMessage) {
-		this(message, keyMessage, false);
-	}
+    protected final String message, keyMessage;
 
-	public MapExtendableContainer(String message, String keyMessage, boolean multiValue) {
-		ParamChecker.assertParamNotNull(message, "message");
-		ParamChecker.assertParamNotNull(keyMessage, "keyMessage");
-		this.multiValue = multiValue;
-		this.message = message;
-		this.keyMessage = keyMessage;
-	}
+    public MapExtendableContainer(String message, String keyMessage) {
+        this(message, keyMessage, false);
+    }
 
-	@SuppressWarnings("unchecked")
-	@Override
-	public V getExtension(K key) {
-		ParamChecker.assertParamNotNull(key, "key");
-		Object item = get(key);
-		if (item == null) {
-			return null;
-		}
-		if (!multiValue) {
-			return (V) item;
-		}
-		ArrayList<V> values = (ArrayList<V>) item;
-		// unregister removes empty value lists -> at least one entry
-		return values.get(0);
-	}
+    public MapExtendableContainer(String message, String keyMessage, boolean multiValue) {
+        ParamChecker.assertParamNotNull(message, "message");
+        ParamChecker.assertParamNotNull(keyMessage, "keyMessage");
+        this.multiValue = multiValue;
+        this.message = message;
+        this.keyMessage = keyMessage;
+    }
 
-	@Override
-	public ILinkedMap<K, V> getExtensions() {
-		LinkedHashMap<K, V> targetMap = LinkedHashMap.create(size());
-		getExtensions(targetMap);
-		return targetMap;
-	}
+    @SuppressWarnings("unchecked")
+    @Override
+    public V getExtension(K key) {
+        ParamChecker.assertParamNotNull(key, "key");
+        var item = get(key);
+        if (item == null) {
+            return null;
+        }
+        if (!multiValue) {
+            return (V) item;
+        }
+        var values = (ArrayList<V>) item;
+        // unregister removes empty value lists -> at least one entry
+        return values.get(0);
+    }
 
-	@Override
-	public ILinkedMap<K, IList<V>> getAllExtensions() {
-		LinkedHashMap<K, IList<V>> targetMap = LinkedHashMap.create(size());
-		getAllExtensions(targetMap);
-		return targetMap;
-	}
+    @Override
+    public ILinkedMap<K, V> getExtensions() {
+        var targetMap = LinkedHashMap.<K, V>create(size());
+        getExtensions(targetMap);
+        return targetMap;
+    }
 
-	@SuppressWarnings("unchecked")
-	@Override
-	public IList<V> getExtensions(K key) {
-		ParamChecker.assertParamNotNull(key, "key");
-		Object item = get(key);
-		if (item == null) {
-			return EmptyList.getInstance();
-		}
-		if (!multiValue) {
-			return new ArrayList<>(new Object[] {item});
-		}
-		return new ArrayList<>((ArrayList<V>) item);
-	}
+    @Override
+    public ILinkedMap<K, IList<V>> getAllExtensions() {
+        var targetMap = LinkedHashMap.<K, IList<V>>create(size());
+        getAllExtensions(targetMap);
+        return targetMap;
+    }
 
-	@SuppressWarnings("unchecked")
-	@Override
-	public void getExtensions(Map<K, V> targetMap) {
-		if (!multiValue) {
-			for (Entry<K, Object> entry : this) {
-				targetMap.put(entry.getKey(), (V) entry.getValue());
-			}
-		}
-		else {
-			for (Entry<K, Object> entry : this) {
-				// unregister removes empty value lists -> at least one entry
-				targetMap.put(entry.getKey(), ((IList<V>) entry.getValue()).get(0));
-			}
-		}
-	}
+    @SuppressWarnings("unchecked")
+    @Override
+    public IList<V> getExtensions(K key) {
+        ParamChecker.assertParamNotNull(key, "key");
+        var item = get(key);
+        if (item == null) {
+            return EmptyList.getInstance();
+        }
+        if (!multiValue) {
+            return new ArrayList<>(new Object[] { item });
+        }
+        return new ArrayList<>((ArrayList<V>) item);
+    }
 
-	@SuppressWarnings("unchecked")
-	@Override
-	public void getAllExtensions(Map<K, IList<V>> targetMap) {
-		if (!multiValue) {
-			for (Entry<K, Object> entry : this) {
-				targetMap.put(entry.getKey(), new ArrayList<V>(new Object[] {entry.getValue()}));
-			}
-		}
-		else {
-			for (Entry<K, Object> entry : this) {
-				// unregister removes empty value lists -> at least one entry
-				targetMap.put(entry.getKey(), (IList<V>) entry.getValue());
-			}
-		}
-	}
+    @SuppressWarnings("unchecked")
+    @Override
+    public void getExtensions(Map<K, V> targetMap) {
+        if (!multiValue) {
+            for (var entry : this) {
+                targetMap.put(entry.getKey(), (V) entry.getValue());
+            }
+        } else {
+            for (var entry : this) {
+                // unregister removes empty value lists -> at least one entry
+                targetMap.put(entry.getKey(), ((IList<V>) entry.getValue()).get(0));
+            }
+        }
+    }
 
-	@Override
-	public void register(V extension, K key) {
-		ParamChecker.assertParamNotNull(extension, message);
-		ParamChecker.assertParamNotNull(key, keyMessage);
-		Lock writeLock = getWriteLock();
-		writeLock.lock();
-		try {
-			boolean putted = false;
-			if (!multiValue) {
-				putted = putIfNotExists(key, extension);
-			}
-			else {
-				@SuppressWarnings("unchecked")
-				ArrayList<V> values = (ArrayList<V>) get(key);
-				if (values == null) {
-					values = new ArrayList<>(1);
-				}
-				else {
-					values = new ArrayList<>(values);
-				}
-				if (!values.contains(extension)) {
-					values.add(extension);
-					putted = true;
-					put(key, values);
-				}
-			}
-			if (!putted) {
-				throw new ExtendableException("Key '" + keyMessage + "' already added: " + key);
-			}
-		}
-		finally {
-			writeLock.unlock();
-		}
-	}
+    @SuppressWarnings("unchecked")
+    @Override
+    public void getAllExtensions(Map<K, IList<V>> targetMap) {
+        if (!multiValue) {
+            for (var entry : this) {
+                targetMap.put(entry.getKey(), new ArrayList<V>(new Object[] { entry.getValue() }));
+            }
+        } else {
+            for (var entry : this) {
+                // unregister removes empty value lists -> at least one entry
+                targetMap.put(entry.getKey(), (IList<V>) entry.getValue());
+            }
+        }
+    }
 
-	@Override
-	public void unregister(V extension, K key) {
-		ParamChecker.assertParamNotNull(extension, message);
-		ParamChecker.assertParamNotNull(key, keyMessage);
+    @Override
+    public void register(V extension, K key) {
+        ParamChecker.assertParamNotNull(extension, message);
+        ParamChecker.assertParamNotNull(key, keyMessage);
+        var writeLock = getWriteLock();
+        writeLock.lock();
+        try {
+            boolean putted = false;
+            if (!multiValue) {
+                putted = putIfNotExists(key, extension);
+            } else {
+                @SuppressWarnings("unchecked") ArrayList<V> values = (ArrayList<V>) get(key);
+                if (values == null) {
+                    values = new ArrayList<>(1);
+                } else {
+                    values = new ArrayList<>(values);
+                }
+                if (!values.contains(extension)) {
+                    values.add(extension);
+                    putted = true;
+                    put(key, values);
+                }
+            }
+            if (!putted) {
+                throw new ExtendableException("Key '" + keyMessage + "' already added: " + key);
+            }
+        } finally {
+            writeLock.unlock();
+        }
+    }
 
-		try {
-			Lock writeLock = getWriteLock();
-			writeLock.lock();
-			try {
-				if (!multiValue) {
-					ParamChecker.assertTrue(removeIfValue(key, extension), message);
-				}
-				else {
-					@SuppressWarnings("unchecked")
-					ArrayList<V> values = (ArrayList<V>) get(key);
-					ArrayList<V> clone = new ArrayList<>(values.size() - 1);
-					for (int a = 0, size = values.size(); a < size; a++) {
-						V item = values.get(a);
-						if (!extension.equals(item)) {
-							clone.add(item);
-						}
-					}
-					ParamChecker.assertTrue(clone.size() == values.size() - 1, message);
-					if (clone.isEmpty()) {
-						remove(key);
-					}
-					else {
-						put(key, clone);
-					}
-				}
-			}
-			finally {
-				writeLock.unlock();
-			}
-		}
-		catch (RuntimeException e) {
-			throw new ExtendableException("Provided extension is not registered at key '" + key
-					+ "'. Extension: " + extension);
-		}
-	}
+    @Override
+    public void unregister(V extension, K key) {
+        ParamChecker.assertParamNotNull(extension, message);
+        ParamChecker.assertParamNotNull(key, keyMessage);
+
+        try {
+            var writeLock = getWriteLock();
+            writeLock.lock();
+            try {
+                if (!multiValue) {
+                    ParamChecker.assertTrue(removeIfValue(key, extension), message);
+                } else {
+                    @SuppressWarnings("unchecked") ArrayList<V> values = (ArrayList<V>) get(key);
+                    var clone = new ArrayList<V>(values.size() - 1);
+                    for (int a = 0, size = values.size(); a < size; a++) {
+                        var item = values.get(a);
+                        if (!extension.equals(item)) {
+                            clone.add(item);
+                        }
+                    }
+                    ParamChecker.assertTrue(clone.size() == values.size() - 1, message);
+                    if (clone.isEmpty()) {
+                        remove(key);
+                    } else {
+                        put(key, clone);
+                    }
+                }
+            } finally {
+                writeLock.unlock();
+            }
+        } catch (RuntimeException e) {
+            throw new ExtendableException("Provided extension is not registered at key '" + key + "'. Extension: " + extension);
+        }
+    }
 }

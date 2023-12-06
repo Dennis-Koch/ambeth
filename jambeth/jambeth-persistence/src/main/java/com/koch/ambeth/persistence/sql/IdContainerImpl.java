@@ -20,7 +20,7 @@ public class IdContainerImpl implements ISqlConnection.IdContainer {
         if (idField.getIdIndex() == IObjRef.UNDEFINED_KEY_INDEX) {
             throw new IllegalStateException("Field must be from an idIndex: " + idField);
         }
-        return new IdContainerImpl(ids.size(), 1, idField.getIdIndex(), new String[] { idField.getName() }, new Class<?>[] { idField.getFieldType() }, ids, null);
+        return new IdContainerImpl(ids.size(), 1, idField.getIdIndex(), new String[] { idField.getName() }, new Class<?>[] { idField.getFieldType() }, ids, SINGLE_NO_OP_DECOMPOSITOR);
     }
 
     public static ISqlConnection.IdContainer ofIdIndex(IFieldMetaData[] idIndexFields, List<?> ids, Class<?> entityType, IEntityMetaDataProvider entityMetaDataProvider) {

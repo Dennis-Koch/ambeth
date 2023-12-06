@@ -79,8 +79,8 @@ import java.util.List;
 
 import static org.junit.Assert.*;
 
-@SQLData("../persistence/xml/Relations_data.sql")
-@SQLStructure("../persistence/xml/Relations_structure.sql")
+@SQLData("com/koch/ambeth/persistence/xml/Relations_data.sql")
+@SQLStructure("com/koch/ambeth/persistence/xml/Relations_structure.sql")
 @TestPropertiesList({
         @TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "com/koch/ambeth/persistence/xml/orm.xml"),
         @TestProperties(name = ServiceConfigurationConstants.valueObjectFile, value = "com/koch/ambeth/persistence/xml/value-object.xml"),

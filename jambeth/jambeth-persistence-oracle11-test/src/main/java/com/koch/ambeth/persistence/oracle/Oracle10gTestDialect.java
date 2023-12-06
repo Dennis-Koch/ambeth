@@ -20,16 +20,6 @@ limitations under the License.
  * #L%
  */
 
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.Map.Entry;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import jakarta.persistence.PersistenceException;
-
 import com.koch.ambeth.ioc.IServiceContext;
 import com.koch.ambeth.ioc.IocModule;
 import com.koch.ambeth.ioc.annotation.Autowired;
@@ -53,7 +43,16 @@ import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.LinkedHashMap;
 import com.koch.ambeth.util.config.IProperties;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
+import jakarta.persistence.PersistenceException;
 import lombok.SneakyThrows;
+
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.Map.Entry;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class Oracle10gTestDialect extends AbstractConnectionTestDialect {
     public static final String ROOT_DATABASE_USER = "ambeth.root.database.user";
@@ -443,6 +442,19 @@ public class Oracle10gTestDialect extends AbstractConnectionTestDialect {
         } finally {
             JdbcUtil.close(stmt, rs);
             JdbcUtil.close(stmt2);
+        }
+    }
+
+    @SneakyThrows
+    @Override
+    public void flushSharedObjects(Connection connection) {
+        try (var stm = connection.createStatement()) {
+            stm.execute("alter system flush shared_pool");
+        } catch (PersistenceException e) {
+            if (e.getCause() instanceof SQLException && "42000".equals(((SQLException) e.getCause()).getSQLState())) {
+                return;
+            }
+            throw e;
         }
     }
 }

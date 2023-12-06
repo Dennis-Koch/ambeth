@@ -186,7 +186,7 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
             var callingProxyPostProcessor = new CallingProxyPostProcessor();
             var classCache = new ClassCache();
             var classLoaderProvider = new SimpleClassLoaderProvider();
-            classLoaderProvider.setClassLoader((ClassLoader) properties.get(IocConfigurationConstants.ExplicitClassLoader));
+            classLoaderProvider.setClassLoader(properties.get(IocConfigurationConstants.ExplicitClassLoader));
             var delegateFactory = new DelegateFactory();
             var proxyFactory = new ProxyFactory();
             var threadLocalCleanupPreProcessor = new AutoLinkPreProcessor();

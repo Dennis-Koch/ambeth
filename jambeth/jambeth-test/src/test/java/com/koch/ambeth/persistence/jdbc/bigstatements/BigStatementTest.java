@@ -108,7 +108,7 @@ public class BigStatementTest extends AbstractInformationBusWithPersistenceTest 
     @Test
     public void testSelectFields100000() throws Exception {
         var bigList = new ArrayList<>();
-        for (int a = 100001; a-- > 0; ) {
+        for (int a = 100000; a-- > 0; ) {
             bigList.add(Integer.valueOf(a + 1));
         }
         transaction.processAndCommit(persistenceUnitToDatabaseMap -> {

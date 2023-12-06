@@ -30,7 +30,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * many reads and only some single occurences of write accesses. To allow extremely high concurrency
  * there is NO lock in read access scenarios. The design pattern to synchronize the reads with the
  * indeed synchronized write accesses the internal table-structure well be REPLACED on each write.
- *
+ * <p>
  * Because of this the existing internal object graph will NEVER be modified allowing unsynchronized
  * read access of any amount without performance loss.
  *
@@ -38,207 +38,203 @@ import java.util.concurrent.locks.ReentrantLock;
  * @param <V>
  */
 public class WeakSmartCopyMap<K, V> extends WeakHashMap<K, V> {
-	private final Lock writeLock = new ReentrantLock();
+    private final Lock writeLock = new ReentrantLock();
 
-	private boolean autoCleanupNullValue;
+    private boolean autoCleanupNullValue;
 
-	public WeakSmartCopyMap() {
-		super();
-	}
+    public WeakSmartCopyMap() {
+        super();
+    }
 
-	public WeakSmartCopyMap(float loadFactor) {
-		super(loadFactor);
-	}
+    public WeakSmartCopyMap(float loadFactor) {
+        super(loadFactor);
+    }
 
-	public WeakSmartCopyMap(int initialCapacity, float loadFactor) {
-		super(initialCapacity, loadFactor);
-	}
+    public WeakSmartCopyMap(int initialCapacity, float loadFactor) {
+        super(initialCapacity, loadFactor);
+    }
 
-	public WeakSmartCopyMap(int initialCapacity) {
-		super(initialCapacity);
-	}
+    public WeakSmartCopyMap(int initialCapacity) {
+        super(initialCapacity);
+    }
 
-	public boolean isAutoCleanupNullValue() {
-		return autoCleanupNullValue;
-	}
+    public boolean isAutoCleanupNullValue() {
+        return autoCleanupNullValue;
+    }
 
-	public void setAutoCleanupNullValue(boolean autoCleanupNullValue) {
-		this.autoCleanupNullValue = autoCleanupNullValue;
-	}
+    public void setAutoCleanupNullValue(boolean autoCleanupNullValue) {
+        this.autoCleanupNullValue = autoCleanupNullValue;
+    }
 
-	public Lock getWriteLock() {
-		return writeLock;
-	}
+    public Lock getWriteLock() {
+        return writeLock;
+    }
 
-	protected WeakHashMap<K, V> createEmptyInstance() {
-		final WeakSmartCopyMap<K, V> This = this;
-		return new WeakHashMap<K, V>(table.length, loadFactor) {
-			@Override
-			protected IMapEntry<K, V> createEntry(int hash, K key, V value, IMapEntry<K, V> nextEntry) {
-				return This.createEntry(hash, key, value, nextEntry);
-			}
+    protected WeakHashMap<K, V> createEmptyInstance() {
+        final WeakSmartCopyMap<K, V> This = this;
+        return new WeakHashMap<K, V>(table.length, loadFactor) {
+            @Override
+            protected IMapEntry<K, V> createEntry(int hash, K key, V value, IMapEntry<K, V> nextEntry) {
+                return This.createEntry(hash, key, value, nextEntry);
+            }
 
-			@Override
-			protected boolean equalKeys(K key, IMapEntry<K, V> entry) {
-				return This.equalKeys(key, entry);
-			}
+            @Override
+            protected boolean equalKeys(K key, IMapEntry<K, V> entry) {
+                return This.equalKeys(key, entry);
+            }
 
-			@Override
-			protected int extractHash(K key) {
-				return This.extractHash(key);
-			}
-		};
-	}
+            @Override
+            protected int extractHash(K key) {
+                return This.extractHash(key);
+            }
+        };
+    }
 
-	protected WeakHashMap<K, V> createCopy() {
-		// Copy existing data in FULLY NEW STRUCTURE
-		IMapEntry<K, V>[] table = this.table;
-		WeakHashMap<K, V> backupMap = createEmptyInstance();
-		if (autoCleanupNullValue) {
-			for (int a = table.length; a-- > 0;) {
-				IMapEntry<K, V> entry = table[a];
-				while (entry != null) {
-					K key = entry.getKey();
-					if (key != null) {
-						V value = entry.getValue();
-						Reference<?> valueAsRef = (Reference<?>) value;
-						if (valueAsRef.get() != null) {
-							// Only copy the entry if the value content is still valid
-							backupMap.put(cloneKey(key), cloneValue(value));
-						}
-					}
-					entry = entry.getNextEntry();
-				}
-			}
-		}
-		else {
-			for (int a = table.length; a-- > 0;) {
-				IMapEntry<K, V> entry = table[a];
-				while (entry != null) {
-					K key = entry.getKey();
-					if (key != null) {
-						V value = entry.getValue();
-						backupMap.put(cloneKey(key), cloneValue(value));
-					}
-					entry = entry.getNextEntry();
-				}
-			}
-		}
-		return backupMap;
-	}
+    protected WeakHashMap<K, V> createCopy() {
+        // Copy existing data in FULLY NEW STRUCTURE
+        var table = this.table;
+        var backupMap = createEmptyInstance();
+        if (autoCleanupNullValue) {
+            for (int a = table.length; a-- > 0; ) {
+                var entry = table[a];
+                while (entry != null) {
+                    var key = entry.getKey();
+                    if (key != null) {
+                        var value = entry.getValue();
+                        var valueAsRef = (Reference<?>) value;
+                        if (valueAsRef.get() != null) {
+                            // Only copy the entry if the value content is still valid
+                            backupMap.put(cloneKey(key), cloneValue(value));
+                        }
+                    }
+                    entry = entry.getNextEntry();
+                }
+            }
+        } else {
+            for (int a = table.length; a-- > 0; ) {
+                var entry = table[a];
+                while (entry != null) {
+                    var key = entry.getKey();
+                    if (key != null) {
+                        var value = entry.getValue();
+                        backupMap.put(cloneKey(key), cloneValue(value));
+                    }
+                    entry = entry.getNextEntry();
+                }
+            }
+        }
+        return backupMap;
+    }
 
-	protected void saveCopy(WeakHashMap<K, V> copy) {
-		// Now the structure contains all necessary data, so we "retarget" the existing table
-		table = copy.table;
-		threshold = copy.threshold;
-		size = copy.size;
-	}
+    protected void saveCopy(WeakHashMap<K, V> copy) {
+        // Now the structure contains all necessary data, so we "retarget" the existing table
+        table = copy.table;
+        threshold = copy.threshold;
+        size = copy.size;
+    }
 
-	protected K cloneKey(K key) {
-		return key;
-	}
+    protected K cloneKey(K key) {
+        return key;
+    }
 
-	protected V cloneValue(V value) {
-		return value;
-	}
+    protected V cloneValue(V value) {
+        return value;
+    }
 
-	@Override
-	public void clear() {
-		Lock writeLock = getWriteLock();
-		writeLock.lock();
-		try {
-			if (size() == 0) {
-				return;
-			}
-			WeakHashMap<K, V> backupMap = createCopy();
-			backupMap.clear();
-			saveCopy(backupMap);
-		}
-		finally {
-			writeLock.unlock();
-		}
-	}
+    @Override
+    public void clear() {
+        var writeLock = getWriteLock();
+        writeLock.lock();
+        try {
+            if (isEmpty()) {
+                return;
+            }
+            var backupMap = createCopy();
+            backupMap.clear();
+            saveCopy(backupMap);
+        } finally {
+            writeLock.unlock();
+        }
+    }
 
-	@Override
-	public V put(K key, V value) {
-		Lock writeLock = getWriteLock();
-		writeLock.lock();
-		try {
-			WeakHashMap<K, V> backupMap = createCopy();
-			// Write new data in the copied structure
-			V existingValue = backupMap.put(key, value);
-			saveCopy(backupMap);
-			return existingValue;
-		}
-		finally {
-			writeLock.unlock();
-		}
-	}
+    @Override
+    public V put(K key, V value) {
+        var writeLock = getWriteLock();
+        writeLock.lock();
+        try {
+            var backupMap = createCopy();
+            // Write new data in the copied structure
+            var existingValue = backupMap.put(key, value);
+            saveCopy(backupMap);
+            return existingValue;
+        } finally {
+            writeLock.unlock();
+        }
+    }
 
-	@Override
-	public void putAll(Map<? extends K, ? extends V> map) {
-		Lock writeLock = getWriteLock();
-		writeLock.lock();
-		try {
-			WeakHashMap<K, V> backupMap = createCopy();
-			// Write new data in the copied structure
-			backupMap.putAll(map);
-			saveCopy(backupMap);
-		}
-		finally {
-			writeLock.unlock();
-		}
-	}
+    @Override
+    public void putAll(Map<? extends K, ? extends V> map) {
+        if (map.isEmpty()) {
+            return;
+        }
+        var writeLock = getWriteLock();
+        writeLock.lock();
+        try {
+            var backupMap = createCopy();
+            // Write new data in the copied structure
+            backupMap.putAll(map);
+            saveCopy(backupMap);
+        } finally {
+            writeLock.unlock();
+        }
+    }
 
-	@Override
-	public boolean putIfNotExists(K key, V value) {
-		Lock writeLock = getWriteLock();
-		writeLock.lock();
-		try {
-			WeakHashMap<K, V> backupMap = createCopy();
-			// Write new data in the copied structure
-			if (!backupMap.putIfNotExists(key, value)) {
-				return false;
-			}
-			saveCopy(backupMap);
-			return true;
-		}
-		finally {
-			writeLock.unlock();
-		}
-	}
+    @Override
+    public boolean putIfNotExists(K key, V value) {
+        var writeLock = getWriteLock();
+        writeLock.lock();
+        try {
+            var backupMap = createCopy();
+            // Write new data in the copied structure
+            if (!backupMap.putIfNotExists(key, value)) {
+                return false;
+            }
+            saveCopy(backupMap);
+            return true;
+        } finally {
+            writeLock.unlock();
+        }
+    }
 
-	@Override
-	public V remove(Object key) {
-		Lock writeLock = getWriteLock();
-		writeLock.lock();
-		try {
-			WeakHashMap<K, V> backupMap = createCopy();
-			// Write new data in the copied structure
-			V existingValue = backupMap.remove(key);
-			saveCopy(backupMap);
-			return existingValue;
-		}
-		finally {
-			writeLock.unlock();
-		}
-	}
+    @Override
+    public V remove(Object key) {
+        var writeLock = getWriteLock();
+        writeLock.lock();
+        try {
+            var backupMap = createCopy();
+            // Write new data in the copied structure
+            var existingValue = backupMap.remove(key);
+            saveCopy(backupMap);
+            return existingValue;
+        } finally {
+            writeLock.unlock();
+        }
+    }
 
-	@Override
-	public boolean removeIfValue(K key, V value) {
-		Lock writeLock = getWriteLock();
-		writeLock.lock();
-		try {
-			WeakHashMap<K, V> backupMap = createCopy();
-			// Write new data in the copied structure
-			if (!backupMap.removeIfValue(key, value)) {
-				return false;
-			}
-			saveCopy(backupMap);
-			return true;
-		}
-		finally {
-			writeLock.unlock();
-		}
-	}
+    @Override
+    public boolean removeIfValue(K key, V value) {
+        var writeLock = getWriteLock();
+        writeLock.lock();
+        try {
+            var backupMap = createCopy();
+            // Write new data in the copied structure
+            if (!backupMap.removeIfValue(key, value)) {
+                return false;
+            }
+            saveCopy(backupMap);
+            return true;
+        } finally {
+            writeLock.unlock();
+        }
+    }
 }

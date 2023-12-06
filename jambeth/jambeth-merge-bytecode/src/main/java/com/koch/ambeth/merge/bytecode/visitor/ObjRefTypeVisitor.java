@@ -20,8 +20,6 @@ limitations under the License.
  * #L%
  */
 
-import org.objectweb.asm.ClassVisitor;
-
 import com.koch.ambeth.bytecode.ClassGenerator;
 import com.koch.ambeth.bytecode.MethodGenerator;
 import com.koch.ambeth.bytecode.MethodInstance;
@@ -30,85 +28,78 @@ import com.koch.ambeth.bytecode.Script;
 import com.koch.ambeth.merge.mixin.ObjRefTypeMixin;
 import com.koch.ambeth.service.merge.model.IObjRef;
 import com.koch.ambeth.service.merge.model.IObjRefType;
-import com.koch.ambeth.util.collections.IList;
+import org.objectweb.asm.ClassVisitor;
+
+import java.util.List;
 
 public class ObjRefTypeVisitor extends ClassGenerator {
-	public static final Class<?> templateType = ObjRefTypeMixin.class;
+    public static final Class<?> templateType = ObjRefTypeMixin.class;
 
-	public static final String templatePropertyName = "__" + templateType.getSimpleName();
+    public static final String templatePropertyName = "__" + templateType.getSimpleName();
 
-	public static final PropertyInstance t_p_ObjRef =
-			PropertyInstance.findByTemplate(IObjRefType.class, "ObjRef", IObjRef.class, false);
+    public static final PropertyInstance t_p_ObjRef = PropertyInstance.findByTemplate(IObjRefType.class, "ObjRef", IObjRef.class, false);
 
-	public static final MethodInstance t_m_getObjRefByName =
-			new MethodInstance(null, IObjRefType.class, IObjRef.class, "getObjRef", String.class);
+    public static final MethodInstance t_m_getObjRefByName = new MethodInstance(null, IObjRefType.class, IObjRef.class, "getObjRef", String.class);
 
-	public static final MethodInstance t_m_getAllObjRefs =
-			new MethodInstance(null, IObjRefType.class, IList.class, "getAllObjRefs");
+    public static final MethodInstance t_m_getAllObjRefs = new MethodInstance(null, IObjRefType.class, List.class, "getAllObjRefs");
 
-	public static final MethodInstance m_getObjRef =
-			new MethodInstance(null, templateType, IObjRef.class, "getObjRef", IObjRefType.class);
+    public static final MethodInstance m_getObjRef = new MethodInstance(null, templateType, IObjRef.class, "getObjRef", IObjRefType.class);
 
-	public static final MethodInstance m_getObjRefByName =
-			new MethodInstance(null, templateType, IObjRef.class, "getObjRef", IObjRefType.class,
-					String.class);
+    public static final MethodInstance m_getObjRefByName = new MethodInstance(null, templateType, IObjRef.class, "getObjRef", IObjRefType.class, String.class);
 
-	public static final MethodInstance m_getAllObjRefs =
-			new MethodInstance(null, templateType, IList.class, "getAllObjRefs", IObjRefType.class);
+    public static final MethodInstance m_getAllObjRefs = new MethodInstance(null, templateType, List.class, "getAllObjRefs", IObjRefType.class);
 
-	public static PropertyInstance getObjRefTypeTemplateProperty(ClassGenerator cv) {
-		Object bean = getState().getBeanContext().getService(templateType);
-		PropertyInstance p_embeddedTypeTemplate =
-				PropertyInstance.findByTemplate(templatePropertyName, bean.getClass(), true);
-		if (p_embeddedTypeTemplate != null) {
-			return p_embeddedTypeTemplate;
-		}
-		return cv.implementAssignedReadonlyProperty(templatePropertyName, bean);
-	}
+    public static PropertyInstance getObjRefTypeTemplateProperty(ClassGenerator cv) {
+        Object bean = getState().getBeanContext().getService(templateType);
+        PropertyInstance p_embeddedTypeTemplate = PropertyInstance.findByTemplate(templatePropertyName, bean.getClass(), true);
+        if (p_embeddedTypeTemplate != null) {
+            return p_embeddedTypeTemplate;
+        }
+        return cv.implementAssignedReadonlyProperty(templatePropertyName, bean);
+    }
 
-	public ObjRefTypeVisitor(ClassVisitor cv) {
-		super(cv);
-	}
+    public ObjRefTypeVisitor(ClassVisitor cv) {
+        super(cv);
+    }
 
-	@Override
-	public void visitEnd() {
-		implementForwardProperty(t_p_ObjRef, m_getObjRef);
-		implementForwardMethod(t_m_getObjRefByName, m_getObjRefByName);
-		implementForwardMethod(t_m_getAllObjRefs, m_getAllObjRefs);
-		super.visitEnd();
-	}
+    @Override
+    public void visitEnd() {
+        implementForwardProperty(t_p_ObjRef, m_getObjRef);
+        implementForwardMethod(t_m_getObjRefByName, m_getObjRefByName);
+        implementForwardMethod(t_m_getAllObjRefs, m_getAllObjRefs);
+        super.visitEnd();
+    }
 
-	private void implementForwardProperty(PropertyInstance p_template,
-			final MethodInstance mixinMethod) {
-		PropertyInstance p_objRef = PropertyInstance.findByTemplate(p_template, true);
-		if (p_objRef != null) {
-			return;
-		}
-		final PropertyInstance p_objRefTypeTemplate = getObjRefTypeTemplateProperty(this);
-		p_objRef = implementProperty(p_template, new Script() {
-			@Override
-			public void execute(MethodGenerator mg) {
-				mg.callThisGetter(p_objRefTypeTemplate);
-				mg.loadThis();
-				mg.loadArgs();
-				mg.invokeVirtual(mixinMethod);
-				mg.returnValue();
-			}
-		}, null);
+    private void implementForwardProperty(PropertyInstance p_template, final MethodInstance mixinMethod) {
+        PropertyInstance p_objRef = PropertyInstance.findByTemplate(p_template, true);
+        if (p_objRef != null) {
+            return;
+        }
+        final PropertyInstance p_objRefTypeTemplate = getObjRefTypeTemplateProperty(this);
+        p_objRef = implementProperty(p_template, new Script() {
+            @Override
+            public void execute(MethodGenerator mg) {
+                mg.callThisGetter(p_objRefTypeTemplate);
+                mg.loadThis();
+                mg.loadArgs();
+                mg.invokeVirtual(mixinMethod);
+                mg.returnValue();
+            }
+        }, null);
 
-		if (p_objRef == null) {
-			throw new IllegalStateException("Must never happen");
-		}
-	}
+        if (p_objRef == null) {
+            throw new IllegalStateException("Must never happen");
+        }
+    }
 
-	private void implementForwardMethod(MethodInstance m_template, final MethodInstance mixinMethod) {
-		final PropertyInstance p_objRefTypeTemplate = getObjRefTypeTemplateProperty(this);
-		MethodGenerator mg = visitMethod(m_template);
-		mg.callThisGetter(p_objRefTypeTemplate);
-		mg.loadThis();
-		mg.loadArgs();
-		mg.invokeVirtual(mixinMethod);
-		mg.returnValue();
-		mg.endMethod();
-	}
+    private void implementForwardMethod(MethodInstance m_template, final MethodInstance mixinMethod) {
+        final PropertyInstance p_objRefTypeTemplate = getObjRefTypeTemplateProperty(this);
+        MethodGenerator mg = visitMethod(m_template);
+        mg.callThisGetter(p_objRefTypeTemplate);
+        mg.loadThis();
+        mg.loadArgs();
+        mg.invokeVirtual(mixinMethod);
+        mg.returnValue();
+        mg.endMethod();
+    }
 }

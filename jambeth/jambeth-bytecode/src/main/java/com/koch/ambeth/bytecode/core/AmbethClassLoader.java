@@ -20,33 +20,64 @@ limitations under the License.
  * #L%
  */
 
+import com.koch.ambeth.util.IClassByteContentRegistry;
 import com.koch.ambeth.util.collections.WeakHashMap;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
-public class AmbethClassLoader extends ClassLoader {
-	protected final WeakHashMap<Class<?>, byte[]> classToContentMap = new WeakHashMap<>();
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
 
-	public AmbethClassLoader(ClassLoader parent) {
-		super(parent);
-	}
+public class AmbethClassLoader extends ClassLoader implements IClassByteContentRegistry {
+    protected final Map<Class<?>, byte[]> classToContentMap = new WeakHashMap<>();
 
-	public Class<?> defineClass(String name, byte[] b) {
-		try {
-			Class<?> type = defineClass(name, b, 0, b.length);
-			synchronized (classToContentMap) {
-				classToContentMap.put(type, b);
-			}
-			return type;
-		}
-		catch (NoClassDefFoundError e) {
-			throw RuntimeExceptionUtil.mask(e, "Error occurred while creating '" + name
-					+ "' in an Ambeth ClassLoader derived from '" + getParent() + "'");
-		}
-	}
+    protected final Map<String, byte[]> classNameToContentMap = new HashMap<>();
 
-	public byte[] getContent(Class<?> type) {
-		synchronized (classToContentMap) {
-			return classToContentMap.get(type);
-		}
-	}
+    public AmbethClassLoader(ClassLoader parent) {
+        super(parent);
+    }
+
+    public Class<?> defineClass(String name, byte[] b) {
+        try {
+            Class<?> type = defineClass(name, b, 0, b.length);
+            synchronized (classToContentMap) {
+                classToContentMap.put(type, b);
+            }
+            return type;
+        } catch (NoClassDefFoundError e) {
+            throw RuntimeExceptionUtil.mask(e, "Error occurred while creating '" + name + "' in an Ambeth ClassLoader derived from '" + getParent() + "'");
+        }
+    }
+
+    @Override
+    public InputStream getResourceAsStream(String name) {
+        var is = super.getResourceAsStream(name);
+        if (is != null) {
+            return is;
+        }
+        synchronized (classNameToContentMap) {
+            var content = classNameToContentMap.get(name);
+            if (content != null) {
+                return new ByteArrayInputStream(content);
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public void registerContent(Class<?> type, byte[] content) {
+        synchronized (classToContentMap) {
+            classToContentMap.put(type, content);
+        }
+        synchronized (classNameToContentMap) {
+            classNameToContentMap.put(type.getName().replace('.', '/') + ".class", content);
+        }
+    }
+
+    public byte[] getContent(Class<?> type) {
+        synchronized (classToContentMap) {
+            return classToContentMap.get(type);
+        }
+    }
 }

@@ -189,13 +189,22 @@ public class MergeProcess implements IMergeProcess {
             removeUnpersistedDeletedObjectsFromCudResult(cudResult.getAllChanges(), cudResult.getOriginalRefs(), unpersistedObjectsToDelete);
             if (objectToDelete != null) {
                 var extractedObjectToDelete = new ArrayList<>();
-                deepScanRecursion.handleDeep(objectToDelete, (entity, proceed) -> {
-                    extractedObjectToDelete.add(entity);
-                    return true;
-                });
-                var oriList = oriHelper.extractObjRefList(extractedObjectToDelete, mergeHandle);
+                deepScanRecursion.handleDeep(objectToDelete, new IDeepScanRecursion.EntityDelegate() {
+                    @Override
+                    public boolean visitEntity(Object entity, IDeepScanRecursion.Proceed proceed) {
+                        extractedObjectToDelete.add(entity);
+                        return true;
+                    }
 
-                appendDeleteContainers(extractedObjectToDelete, oriList, cudResult.getAllChanges(), cudResult.getOriginalRefs(), unpersistedObjectsToDelete);
+                    @Override
+                    public boolean visitEntityRef(IObjRef objRef, IDeepScanRecursion.Proceed proceed) {
+                        extractedObjectToDelete.add(objRef);
+                        return true;
+                    }
+                });
+                var objRefs = oriHelper.extractObjRefList(extractedObjectToDelete, mergeHandle);
+
+                appendDeleteContainers(extractedObjectToDelete, objRefs, cudResult.getAllChanges(), cudResult.getOriginalRefs(), unpersistedObjectsToDelete);
             }
             processCUDResult(objectToMerge, cudResult, unpersistedObjectsToDelete, proceedHook, dataChangeReceivedCallback, cacheToAddNewEntitiesTo);
             success = true;

@@ -75,8 +75,8 @@ import java.util.function.Consumer;
 
 import static org.junit.Assert.*;
 
-@SQLData("/com/koch/ambeth/persistence/xml/Relations_data.sql")
-@SQLStructure("/com/koch/ambeth/persistence/xml/Relations_structure.sql")
+@SQLData("com/koch/ambeth/persistence/xml/Relations_data.sql")
+@SQLStructure("com/koch/ambeth/persistence/xml/Relations_structure.sql")
 @TestPropertiesList({
         @TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "com/koch/ambeth/persistence/xml/orm.xml"),
         @TestProperties(name = CacheConfigurationConstants.ServiceResultCacheActive, value = "false")
@@ -258,7 +258,7 @@ public class RelationsTest extends AbstractInformationBusWithPersistenceTest {
 
     @Test
     public void testAlternateIdDelete() throws Throwable {
-        Employee employee = cache.getObject(Employee.class, 1);
+        var employee = cache.getObject(Employee.class, 1);
         employeeService.delete(employee.getName());
 
         assertNull(cache.getObject(Employee.class, 1));
@@ -283,39 +283,39 @@ public class RelationsTest extends AbstractInformationBusWithPersistenceTest {
 
     @Test
     public void testCascadedRetrieve() throws Throwable {
-        List<String> names = Arrays.asList(new String[] { "Steve Smith", "Oscar Meyer" });
+        var names = Arrays.asList("Steve Smith", "Oscar Meyer");
 
-        CacheInterceptor.pauseCache.set(Boolean.TRUE);
+        var rollback = CacheInterceptor.pushPauseCache();
         try {
-            List<Employee> actual = businessService.retrieve(names);
+            var actual = businessService.retrieve(names);
 
             assertEquals(2, actual.size());
         } finally {
-            CacheInterceptor.pauseCache.remove();
+            rollback.rollback();
         }
     }
 
     @Test
     public void testMultipleChanges() throws Throwable {
-        Employee employee1 = cache.getObject(Employee.class, 1);
+        var employee1 = cache.getObject(Employee.class, 1);
         employee1.setName(employee1.getName() + " jun.");
 
-        Employee employee2 = entityFactory.createEntity(Employee.class);
+        var employee2 = entityFactory.createEntity(Employee.class);
         employee2.setName("Jane Doe");
         employee2.setPrimaryProject(cache.getObject(Project.class, 21));
 
-        Address addr1 = entityFactory.createEntity(Address.class);
+        var addr1 = entityFactory.createEntity(Address.class);
         addr1.setStreet("First Street");
         addr1.setCity("New Town");
         employee2.setPrimaryAddress(Optional.of(addr1));
 
-        Employee employee3 = cache.getObject(Employee.class, 2);
+        var employee3 = cache.getObject(Employee.class, 2);
         employee3.setName(employee3.getName() + " jun.");
 
-        Employee employee4 = cache.getObject(Employee.class, 3);
+        var employee4 = cache.getObject(Employee.class, 3);
         employee4.setName(employee4.getName() + " jun.");
 
-        List<Employee> employees = Arrays.asList(new Employee[] { employee1, employee2, employee3, employee4 });
+        var employees = Arrays.asList(employee1, employee2, employee3, employee4);
 
         employeeService.save(employees);
     }
@@ -412,10 +412,10 @@ public class RelationsTest extends AbstractInformationBusWithPersistenceTest {
         int oldProjectId = 21;
         int nextProjectId = 23;
 
-        Employee employee = cache.getObject(Employee.class, employeeId);
+        var employee = cache.getObject(Employee.class, employeeId);
         assertEquals(2, employee.getAllProjects().size());
-        Project oldProject = cache.getObject(Project.class, oldProjectId);
-        Project nextProject = cache.getObject(Project.class, nextProjectId);
+        var oldProject = cache.getObject(Project.class, oldProjectId);
+        var nextProject = cache.getObject(Project.class, nextProjectId);
         assertTrue(employee.getAllProjects().contains(oldProject));
         assertFalse(employee.getAllProjects().contains(nextProject));
 
@@ -429,9 +429,9 @@ public class RelationsTest extends AbstractInformationBusWithPersistenceTest {
 
         assertFalse(employee.getAllProjects().contains(oldProject));
         assertTrue(employee.getAllProjects().contains(nextProject));
-        Employee loadedEmployee = cache.getObject(Employee.class, employeeId);
-        Project loadedOldProject = cache.getObject(Project.class, oldProjectId);
-        Project loadedNextProject = cache.getObject(Project.class, nextProjectId);
+        var loadedEmployee = cache.getObject(Employee.class, employeeId);
+        var loadedOldProject = cache.getObject(Project.class, oldProjectId);
+        var loadedNextProject = cache.getObject(Project.class, nextProjectId);
 
         assertTrue(versionEmployee < loadedEmployee.getVersion());
         assertTrue(versionOldProject < loadedOldProject.getVersion());

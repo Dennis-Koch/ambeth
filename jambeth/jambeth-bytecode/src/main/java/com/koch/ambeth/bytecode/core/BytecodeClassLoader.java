@@ -28,8 +28,11 @@ import com.koch.ambeth.bytecode.visitor.LogImplementationsClassVisitor;
 import com.koch.ambeth.bytecode.visitor.PublicConstructorVisitor;
 import com.koch.ambeth.bytecode.visitor.SuppressLinesClassVisitor;
 import com.koch.ambeth.event.IEventListener;
+import com.koch.ambeth.ioc.IDisposableBean;
+import com.koch.ambeth.ioc.IInitializingBean;
 import com.koch.ambeth.ioc.IServiceContext;
 import com.koch.ambeth.ioc.annotation.Autowired;
+import com.koch.ambeth.ioc.bytecode.SimpleClassLoaderProvider;
 import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.log.LogWriter;
@@ -39,6 +42,8 @@ import com.koch.ambeth.util.IClassLoaderProvider;
 import com.koch.ambeth.util.collections.WeakSmartCopyMap;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.proxy.ClassLoaderAwareClassWriter;
+import com.koch.ambeth.util.state.IStateRollback;
+import com.koch.ambeth.util.state.StateRollback;
 import lombok.SneakyThrows;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
@@ -49,17 +54,17 @@ import org.objectweb.asm.util.TraceClassVisitor;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.lang.ref.Reference;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Modifier;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class BytecodeClassLoader implements IBytecodeClassLoader, IEventListener {
+public class BytecodeClassLoader implements IBytecodeClassLoader, IEventListener, IInitializingBean, IDisposableBean {
     protected final WeakSmartCopyMap<ClassLoader, ClassLoaderEntry> typeToContentMap = new WeakSmartCopyMap<>();
     @Autowired
     protected IServiceContext beanContext;
@@ -67,6 +72,21 @@ public class BytecodeClassLoader implements IBytecodeClassLoader, IEventListener
     protected IClassLoaderProvider classLoaderProvider;
     @LogInstance
     private ILogger log;
+
+    private IStateRollback rollback = StateRollback.empty();
+
+    @Override
+    public void afterPropertiesSet() throws Throwable {
+        var classLoaderEntry = ensureEntry(null);
+        var oldClassLoader = ((SimpleClassLoaderProvider) classLoaderProvider).getClassLoader();
+        ((SimpleClassLoaderProvider) classLoaderProvider).setClassLoader(classLoaderEntry.ambethClassLoader);
+        rollback = () -> ((SimpleClassLoaderProvider) classLoaderProvider).setClassLoader(oldClassLoader);
+    }
+
+    @Override
+    public void destroy() throws Throwable {
+        rollback.rollback();
+    }
 
     @Override
     public void handleEvent(Object eventObject, long dispatchTime, long sequenceId) throws Exception {
@@ -80,10 +100,12 @@ public class BytecodeClassLoader implements IBytecodeClassLoader, IEventListener
         // if (classLoader == null) {
         classLoader = classLoaderProvider.getClassLoader();
         // }
-        ClassLoaderEntry entry = typeToContentMap.get(classLoader);
+        var entry = typeToContentMap.get(classLoader);
         if (entry == null) {
-            entry = new ClassLoaderEntry(new AmbethClassLoader(classLoader));
-            typeToContentMap.put(classLoader, entry);
+            var ambethClassLoader = new AmbethClassLoader(classLoader);
+            entry = new ClassLoaderEntry(ambethClassLoader);
+            var map = Map.of(classLoader, entry, ambethClassLoader, entry);
+            typeToContentMap.putAll(map);
         }
         return entry;
     }
@@ -91,15 +113,15 @@ public class BytecodeClassLoader implements IBytecodeClassLoader, IEventListener
     @Override
     public Class<?> loadClass(String typeName, byte[] content, ClassLoader classLoader) {
         typeName = typeName.replaceAll(Pattern.quote("/"), Matcher.quoteReplacement("."));
-        Class<?> type = ensureEntry(classLoader).ambethClassLoader.defineClass(typeName, content);
+        var type = ensureEntry(classLoader).ambethClassLoader.defineClass(typeName, content);
         type.getDeclaredConstructors(); // helps to get some early verification errors
         return type;
     }
 
     @Override
     public byte[] readTypeAsBinary(Class<?> type, ClassLoader classLoader) {
-        ClassLoaderEntry entry = ensureEntry(classLoader);
-        Reference<byte[]> contentR = entry.typeToContentMap.get(type);
+        var entry = ensureEntry(classLoader);
+        var contentR = entry.typeToContentMap.get(type);
         byte[] content = null;
         if (contentR != null) {
             content = contentR.get();
@@ -107,20 +129,20 @@ public class BytecodeClassLoader implements IBytecodeClassLoader, IEventListener
         if (content != null) {
             return content;
         }
-        AmbethClassLoader ambethClassLoader = entry.ambethClassLoader;
+        var ambethClassLoader = entry.ambethClassLoader;
         try {
             content = ambethClassLoader.getContent(type);
             if (content != null) {
                 entry.typeToContentMap.put(type, new WeakReference<>(content));
                 return content;
             }
-            String bytecodeTypeName = getBytecodeTypeName(type);
-            InputStream is = ambethClassLoader.getResourceAsStream(bytecodeTypeName + ".class");
+            var bytecodeTypeName = getBytecodeTypeName(type);
+            var is = ambethClassLoader.getResourceAsStream(bytecodeTypeName + ".class");
             if (is == null) {
                 throw new IllegalArgumentException("No class found with name '" + type.getName() + "'");
             }
             try {
-                ByteArrayOutputStream bos = new ByteArrayOutputStream();
+                var bos = new ByteArrayOutputStream();
                 int oneByte;
                 while ((oneByte = is.read()) != -1) {
                     bos.write(oneByte);
@@ -187,7 +209,7 @@ public class BytecodeClassLoader implements IBytecodeClassLoader, IEventListener
 
         // visitor = new ClassDeriver(visitor, newTypeName);
         // cr.accept(visitor, ClassReader.EXPAND_FRAMES);
-        byte[] content = cw.toByteArray();
+        var content = cw.toByteArray();
         verify(content, classLoader);
         return content;
     }
@@ -197,14 +219,10 @@ public class BytecodeClassLoader implements IBytecodeClassLoader, IEventListener
         if (type == null) {
             return "<null>";
         }
-        try {
-            var sb = new StringBuilder();
+        var sb = new StringBuilder();
 
-            toPrintableByteCodeIntern(type, sb, type.getClassLoader());
-            return sb.toString();
-        } catch (Exception e) {
-            throw RuntimeExceptionUtil.mask(e);
-        }
+        toPrintableByteCodeIntern(type, sb, type.getClassLoader());
+        return sb.toString();
     }
 
     protected void toPrintableByteCodeIntern(Class<?> type, StringBuilder sb, ClassLoader classLoader) {
@@ -238,7 +256,7 @@ public class BytecodeClassLoader implements IBytecodeClassLoader, IEventListener
     }
 
     protected String getBytecodeTypeName(String typeName) {
-        return typeName.replaceAll(Pattern.quote("."), "/");
+        return typeName.replace('.', '/');
     }
 
     public static class ClassLoaderEntry {
