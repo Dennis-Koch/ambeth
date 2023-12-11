@@ -35,6 +35,15 @@ public interface ICacheModification {
         return () -> setInternalUpdate(oldInternalUpdate);
     }
 
+    default IStateRollback pushInternalUpdate() {
+        var existingInternalUpdate = isInternalUpdate();
+        if (existingInternalUpdate) {
+            return StateRollback.empty();
+        }
+        setInternalUpdate(true);
+        return () -> setInternalUpdate(false);
+    }
+
     boolean isInternalUpdate();
 
     void setInternalUpdate(boolean internalUpdate);
@@ -42,6 +51,8 @@ public interface ICacheModification {
     boolean isActive();
 
     void setActive(boolean active);
+
+    IStateRollback pushActive();
 
     boolean isActiveOrFlushing();
 

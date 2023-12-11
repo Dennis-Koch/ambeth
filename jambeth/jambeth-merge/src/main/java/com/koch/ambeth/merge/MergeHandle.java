@@ -34,15 +34,21 @@ import com.koch.ambeth.util.collections.IdentityLinkedMap;
 import lombok.Getter;
 import lombok.Setter;
 
-public class MergeHandle {
+public class MergeHandle implements IObjRefHelper.IObjRefHelperState {
+    public static final String P_CACHE = "Cache";
+
+    public static final String P_DEEP_MERGE = "DeepMerge";
+
+    public static final String P_PRIVILEGED_CACHE = "PrivilegedCache";
+
     @Getter
     protected final IdentityHashSet<Object> alreadyProcessedSet = new IdentityHashSet<>();
 
     @Getter
-    protected final IdentityHashMap<Object, IObjRef> objToOriDict = new IdentityHashMap<>();
+    protected final IdentityHashMap<Object, IObjRef> objToObjRefMap = new IdentityHashMap<>();
 
     @Getter
-    protected final HashMap<IObjRef, Object> oriToObjDict = new HashMap<>();
+    protected final HashMap<IObjRef, Object> objRefToObjMap = new HashMap<>();
 
     protected final IdentityLinkedMap<Object, IList<IUpdateItem>> objToModDict = new IdentityLinkedMap<>();
 
@@ -63,7 +69,7 @@ public class MergeHandle {
 
     @Getter
     @Setter
-    protected IdentityHashSet<ICache> recognizedCaches;
+    protected IdentityHashMap<Object, ICache> entityToAssociatedCaches;
 
     @Getter
     @Setter

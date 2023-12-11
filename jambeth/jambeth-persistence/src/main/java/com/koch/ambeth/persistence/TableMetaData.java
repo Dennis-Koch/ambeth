@@ -38,6 +38,8 @@ import com.koch.ambeth.util.ParamChecker;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.HashSet;
 import com.koch.ambeth.util.objectcollector.IThreadLocalObjectCollector;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.HashMap;
 import java.util.List;
@@ -88,15 +90,29 @@ public class TableMetaData implements ITableMetaData, IInitializingBean {
     protected IFieldMetaData[] idFields;
     protected IFieldMetaData versionField;
     protected IFieldMetaData descriminatorField;
+
+    @Getter
+    @Setter
     protected IFieldMetaData createdByField;
+
+    @Getter
+    @Setter
     protected IFieldMetaData createdOnField;
+
+    @Getter
+    @Setter
     protected IFieldMetaData updatedByField;
+
+    @Getter
+    @Setter
     protected IFieldMetaData updatedOnField;
     protected String sequenceName;
     protected IFieldMetaData[][] alternateIdFields = EMPTY_FIELD_ARRAY_ARRAY;
     protected short[][] alternateIdFieldIndices = EMPTY_SHORT_ARRAY_ARRAY;
     @LogInstance
     private ILogger log;
+    @Getter
+    @Setter
     private Object initialVersion;
 
     public TableMetaData() {
@@ -134,24 +150,6 @@ public class TableMetaData implements ITableMetaData, IInitializingBean {
     public void setAlternateIdFields(IFieldMetaData[][] alternateIdFields) {
         this.alternateIdFields = alternateIdFields;
         refreshAlternateIdFieldIndices();
-    }
-
-    @Override
-    public IFieldMetaData getCreatedByField() {
-        return createdByField;
-    }
-
-    public void setCreatedByField(IFieldMetaData createdByField) {
-        this.createdByField = createdByField;
-    }
-
-    @Override
-    public IFieldMetaData getCreatedOnField() {
-        return createdOnField;
-    }
-
-    public void setCreatedOnField(IFieldMetaData createdOnField) {
-        this.createdOnField = createdOnField;
     }
 
     @Override
@@ -307,15 +305,6 @@ public class TableMetaData implements ITableMetaData, IInitializingBean {
     }
 
     @Override
-    public Object getInitialVersion() {
-        return initialVersion;
-    }
-
-    public void setInitialVersion(Object initialVersion) {
-        this.initialVersion = initialVersion;
-    }
-
-    @Override
     public IDirectedLinkMetaData getLinkByFieldName(String fieldName) {
         return fieldNameToLinkDict.get(fieldName);
     }
@@ -357,24 +346,6 @@ public class TableMetaData implements ITableMetaData, IInitializingBean {
 
     public void setSequenceName(String sequenceName) {
         this.sequenceName = sequenceName;
-    }
-
-    @Override
-    public IFieldMetaData getUpdatedByField() {
-        return updatedByField;
-    }
-
-    public void setUpdatedByField(IFieldMetaData updatedByField) {
-        this.updatedByField = updatedByField;
-    }
-
-    @Override
-    public IFieldMetaData getUpdatedOnField() {
-        return updatedOnField;
-    }
-
-    public void setUpdatedOnField(IFieldMetaData updatedOnField) {
-        this.updatedOnField = updatedOnField;
     }
 
     @Override

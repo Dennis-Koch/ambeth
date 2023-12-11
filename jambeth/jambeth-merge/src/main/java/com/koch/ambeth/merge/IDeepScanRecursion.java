@@ -8,21 +8,23 @@ import com.koch.ambeth.service.merge.model.IObjRef;
  * entity is forwarded exactly once.
  */
 public interface IDeepScanRecursion {
+
     /**
      * Instantiates a new recursive process to "crawl through" the given obj instance and calling the
      * specific delegate for each discovered entity instance.
      *
-     * @param obj            The initial object handle to start the crawling algorithm. It may be any type of
-     *                       {@link Iterable}, array or a single entity instance.
-     * @param entityDelegate The delegate which receives any discovered entity instance. This delegate
-     *                       may "finish" the recursion at that step or it may invoke an additional depth of
-     *                       recursion by calling one of the methods of the passed on {@link Proceed} handle.
+     * @param obj                 The initial object handle to start the crawling algorithm. It may be any type of
+     *                            {@link Iterable}, array or a single entity instance.
+     * @param entityDelegate      The delegate which receives any discovered entity instance. This delegate
+     *                            may "finish" the recursion at that step or it may invoke an additional depth of
+     *                            recursion by calling one of the methods of the passed on {@link Proceed} handle.
+     * @param visitEntityOnlyOnce true if the recursion shall be continued only on first visit of a distinct entity. False if multiple occurrences in the deep tree shall each trigger a visit event.
      */
-    void handleDeep(Object obj, EntityDelegate entityDelegate);
+    void handleDeep(Object obj, EntityDelegate entityDelegate, boolean visitEntityOnlyOnce);
 
     /**
      * The handle provided to the {@link EntityDelegate#visitEntity(Object, Proceed)} when called by
-     * the {@link IDeepScanRecursion#handleDeep(Object, EntityDelegate)} algorithm. It allows to
+     * the {@link IDeepScanRecursion#handleDeep(Object, EntityDelegate, boolean)} algorithm. It allows to
      * proceed recursively with a given object handle that - in most cases - may have been resolved by
      * accessing specific properties of the previous passed on entity instance (e.g. a relational
      * value).
@@ -35,7 +37,7 @@ public interface IDeepScanRecursion {
 
     /**
      * The delegate provided initially to the
-     * {@link IDeepScanRecursion#handleDeep(Object, EntityDelegate) algorithm. The delegate be locally
+     * {@link IDeepScanRecursion#handleDeep(Object, EntityDelegate, boolean) algorithm. The delegate be locally
      * exchanged can during recursion when using the {@link Proceed#proceed(Object, EntityDelegate)}
      * overload. As long as {@link Proceed#proceed(Object)} is used the current delegate is
      * continuously applied.
@@ -44,7 +46,7 @@ public interface IDeepScanRecursion {
         /**
          * Called by the recursion algorithm for each discovered entity. This method is called once per
          * each discovered instance per initial call to
-         * {@link IDeepScanRecursion#handleDeep(Object, EntityDelegate)}.
+         * {@link IDeepScanRecursion#handleDeep(Object, EntityDelegate, boolean)}.
          *
          * @param entity  The entity discovered by crawling through the initial object handle on any
          *                depth

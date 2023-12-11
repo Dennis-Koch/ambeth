@@ -20,11 +20,9 @@ limitations under the License.
  * #L%
  */
 
-import com.github.charithe.kafka.KafkaJunitRule;
 import com.koch.ambeth.cache.IRootCache;
 import com.koch.ambeth.cache.ioc.CacheModule;
 import com.koch.ambeth.core.Ambeth;
-import com.koch.ambeth.core.start.IAmbethApplication;
 import com.koch.ambeth.datachange.kafka.ioc.DataChangeKafkaModule;
 import com.koch.ambeth.datachange.transfer.DataChangeEntry;
 import com.koch.ambeth.datachange.transfer.DataChangeEvent;
@@ -32,6 +30,7 @@ import com.koch.ambeth.event.IEventDispatcher;
 import com.koch.ambeth.event.IEventListener;
 import com.koch.ambeth.event.IEventListenerExtendable;
 import com.koch.ambeth.event.kafka.AmbethKafkaConfiguration;
+import com.koch.ambeth.event.kafka.AmbethKafkaJUnitRuleLegacy;
 import com.koch.ambeth.event.kafka.config.EventKafkaConfigurationConstants;
 import com.koch.ambeth.event.kafka.ioc.EventKafkaModule;
 import com.koch.ambeth.informationbus.InformationBus;
@@ -60,6 +59,8 @@ import com.koch.ambeth.util.config.IProperties;
 import com.koch.ambeth.util.function.CheckedRunnable;
 import com.koch.ambeth.xml.ioc.XmlModule;
 import com.koch.ambeth.xml.util.ClasspathScanner;
+import org.apache.kafka.common.serialization.StringDeserializer;
+import org.apache.kafka.common.serialization.StringSerializer;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -67,7 +68,6 @@ import org.junit.experimental.categories.Category;
 
 import java.util.EnumSet;
 import java.util.Iterator;
-import java.util.concurrent.Callable;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 
@@ -92,14 +92,10 @@ import java.util.concurrent.TimeUnit;
 public class MassDataChangeTest extends AbstractIocTest {
     private static final int NUM_ENTITIES = 1000;
 
-    public static FutureTask<String> future = new FutureTask<>(new Callable<String>() {
-        @Override
-        public String call() throws Exception {
-            return null;
-        }
-    });
+    public static FutureTask<String> future = new FutureTask<>(() -> null);
+
     @Rule
-    public KafkaJunitRule kafkaRule = new KafkaJunitRule();
+    public AmbethKafkaJUnitRuleLegacy kafkaRule = new AmbethKafkaJUnitRuleLegacy(this);
     @Autowired
     protected IProperties properties;
     @LogInstance
@@ -107,27 +103,27 @@ public class MassDataChangeTest extends AbstractIocTest {
 
     @Test
     public void test() throws Throwable {
-        Properties props = new Properties(properties);
+        var props = new Properties(properties);
 
-        props.put(AmbethKafkaConfiguration.AMBETH_KAFKA_PROP_PREFIX + "zookeeper.connect", kafkaRule.zookeeperConnectionString());
-        // props.put("group.id", "group");
-        props.put(AmbethKafkaConfiguration.AMBETH_KAFKA_PROP_PREFIX + "bootstrap.servers", "localhost:" + kafkaRule.kafkaBrokerPort());
-        props.put(AmbethKafkaConfiguration.AMBETH_KAFKA_PROP_PREFIX + "zookeeper.session.timeout.ms", "400");
-        props.put(AmbethKafkaConfiguration.AMBETH_KAFKA_PROP_PREFIX + "zookeeper.sync.time.ms", "200");
-        props.put(AmbethKafkaConfiguration.AMBETH_KAFKA_PROP_PREFIX + "auto.commit.interval.ms", "1000");
+        for (var entry : kafkaRule.producerConfig(StringSerializer.class.getName()).originals().entrySet()) {
+            props.put(AmbethKafkaConfiguration.AMBETH_KAFKA_PROP_PREFIX + entry.getKey(), entry.getValue());
+        }
+        for (var entry : kafkaRule.consumerConfig(StringDeserializer.class.getName()).originals().entrySet()) {
+            props.put(AmbethKafkaConfiguration.AMBETH_KAFKA_PROP_PREFIX + entry.getKey(), entry.getValue());
+        }
         props.put(ServiceConfigurationConstants.mappingFile, "orm.xml");
 
-        IAmbethApplication app1 = Ambeth.createBundle(InformationBus.class)
-                                        .withFrameworkModules(EventKafkaModule.class, DataChangeKafkaModule.class, KafkaTestModule.class, XmlModule.class)
-                                        .withoutPropertiesFileSearch()
-                                        .withProperties(props)
-                                        .start();
+        var app1 = Ambeth.createBundle(InformationBus.class)
+                         .withFrameworkModules(EventKafkaModule.class, DataChangeKafkaModule.class, KafkaTestModule.class, XmlModule.class)
+                         .withoutPropertiesFileSearch()
+                         .withProperties(props)
+                         .start();
         try {
-            IAmbethApplication app2 = Ambeth.createBundle(InformationBus.class)
-                                            .withFrameworkModules(EventKafkaModule.class, DataChangeKafkaModule.class, KafkaTestModule.class, XmlModule.class)
-                                            .withoutPropertiesFileSearch()
-                                            .withProperties(props)
-                                            .start();
+            var app2 = Ambeth.createBundle(InformationBus.class)
+                             .withFrameworkModules(EventKafkaModule.class, DataChangeKafkaModule.class, KafkaTestModule.class, XmlModule.class)
+                             .withoutPropertiesFileSearch()
+                             .withProperties(props)
+                             .start();
             try {
                 // Measure processing time with Kafka
                 long kafkaTime = testDataChangeEventsWithKafka(app1.getApplicationContext(), app2.getApplicationContext(), NUM_ENTITIES);

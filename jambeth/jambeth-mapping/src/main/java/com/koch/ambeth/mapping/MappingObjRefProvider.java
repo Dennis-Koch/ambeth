@@ -27,24 +27,23 @@ import com.koch.ambeth.service.merge.model.IObjRef;
 import com.koch.ambeth.service.metadata.Member;
 
 public class MappingObjRefProvider implements IObjRefProvider {
-	protected final Member refBOBuidMember;
+    protected final Member refBOBuidMember;
 
-	protected final Member refBOVersionMember;
+    protected final Member refBOVersionMember;
 
-	protected final byte refBOBuidIndex;
+    protected final byte refBOBuidIndex;
 
-	public MappingObjRefProvider(Member refBOBuidMember, Member refBOVersionMember,
-			byte refBOBuidIndex) {
-		this.refBOBuidMember = refBOBuidMember;
-		this.refBOVersionMember = refBOVersionMember;
-		this.refBOBuidIndex = refBOBuidIndex;
-	}
+    public MappingObjRefProvider(Member refBOBuidMember, Member refBOVersionMember, byte refBOBuidIndex) {
+        this.refBOBuidMember = refBOBuidMember;
+        this.refBOVersionMember = refBOVersionMember;
+        this.refBOBuidIndex = refBOBuidIndex;
+    }
 
-	@Override
-	public IObjRef getORI(Object obj, IEntityMetaData metaData) {
-		Object buid = refBOBuidMember.getValue(obj, false);
-		Object version = refBOVersionMember != null ? refBOVersionMember.getValue(obj, true) : null;
-		IObjRef ori = new ObjRef(metaData.getEntityType(), refBOBuidIndex, buid, version);
-		return ori;
-	}
+    @Override
+    public IObjRef getObjRef(Object obj, IEntityMetaData metaData) {
+        var buid = refBOBuidMember.getValue(obj, false);
+        var version = refBOVersionMember != null ? refBOVersionMember.getValue(obj, true) : null;
+        var ori = new ObjRef(metaData.getEntityType(), refBOBuidIndex, buid, version);
+        return ori;
+    }
 }

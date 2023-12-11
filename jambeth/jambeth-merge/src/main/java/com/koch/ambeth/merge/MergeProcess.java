@@ -47,7 +47,7 @@ import com.koch.ambeth.service.config.ServiceConfigurationConstants;
 import com.koch.ambeth.service.merge.model.IObjRef;
 import com.koch.ambeth.util.ParamHolder;
 import com.koch.ambeth.util.collections.ArrayList;
-import com.koch.ambeth.util.collections.IList;
+import com.koch.ambeth.util.collections.IdentityHashMap;
 import com.koch.ambeth.util.collections.IdentityHashSet;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.function.CheckedSupplier;
@@ -58,10 +58,12 @@ import com.koch.ambeth.util.transaction.ILightweightTransaction;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
+import java.util.stream.Collectors;
 
 public class MergeProcess implements IMergeProcess {
     private static final ThreadLocal<Boolean> addNewlyPersistedEntitiesTL = new ThreadLocal<>();
@@ -175,16 +177,25 @@ public class MergeProcess implements IMergeProcess {
         }
     }
 
-    protected void mergeOutOfGui(final Object objectToMerge, final Object objectToDelete, final ProceedWithMergeHook proceedHook, final DataChangeReceivedCallback dataChangeReceivedCallback,
-            final MergeFinishedCallback mergeFinishedCallback, final boolean addNewEntitiesToCache, final boolean deepMerge) {
+    protected void mergeOutOfGui(Object objectToMerge, Object objectToDelete, ProceedWithMergeHook proceedHook, DataChangeReceivedCallback dataChangeReceivedCallback,
+            MergeFinishedCallback mergeFinishedCallback, boolean addNewEntitiesToCache, boolean deepMerge) {
         var success = false;
         try {
-            var mergeHandle = beanContext.registerBean(MergeHandle.class)//
-                                         .ignoreProperties("Cache", "PrivilegedCache")//
-                                         .propertyValue("DeepMerge", deepMerge)//
-                                         .finish();
+            var entityToAssociatedCaches = addNewEntitiesToCache ? new IdentityHashMap<Object, ICache>() : null;
+            var mergeHandle =
+                    beanContext.registerBean(MergeHandle.class).ignoreProperties(MergeHandle.P_CACHE, MergeHandle.P_PRIVILEGED_CACHE).propertyValue(MergeHandle.P_DEEP_MERGE, deepMerge).finish();
+            mergeHandle.setEntityToAssociatedCaches(entityToAssociatedCaches);
             var cudResult = mergeController.mergeDeep(objectToMerge, mergeHandle);
-            var cacheToAddNewEntitiesTo = resolveCacheToAddNewEntitiesTo(addNewEntitiesToCache, mergeHandle.getRecognizedCaches());
+            var hasPrivilegedCache = false;
+            var hasNonPrivilegedCache = false;
+            var associatedCaches = entityToAssociatedCaches.entrySet().stream().map(Map.Entry::getValue).collect(Collectors.toSet());
+            for (var associatedCache : associatedCaches) {
+                hasPrivilegedCache |= associatedCache.isPrivileged();
+                hasNonPrivilegedCache |= !associatedCache.isPrivileged();
+            }
+            if (hasPrivilegedCache && hasNonPrivilegedCache) {
+                throw new IllegalStateException("This merge operation refers to entities that are both partially from a privileged as well as non-privileged cache. This is not supported");
+            }
             var unpersistedObjectsToDelete = new ArrayList<>();
             removeUnpersistedDeletedObjectsFromCudResult(cudResult.getAllChanges(), cudResult.getOriginalRefs(), unpersistedObjectsToDelete);
             if (objectToDelete != null) {
@@ -201,12 +212,12 @@ public class MergeProcess implements IMergeProcess {
                         extractedObjectToDelete.add(objRef);
                         return true;
                     }
-                });
+                }, true);
                 var objRefs = oriHelper.extractObjRefList(extractedObjectToDelete, mergeHandle);
 
                 appendDeleteContainers(extractedObjectToDelete, objRefs, cudResult.getAllChanges(), cudResult.getOriginalRefs(), unpersistedObjectsToDelete);
             }
-            processCUDResult(objectToMerge, cudResult, unpersistedObjectsToDelete, proceedHook, dataChangeReceivedCallback, cacheToAddNewEntitiesTo);
+            processCUDResult(objectToMerge, cudResult, unpersistedObjectsToDelete, proceedHook, dataChangeReceivedCallback, entityToAssociatedCaches);
             success = true;
         } finally {
             if (mergeFinishedCallback != null) {
@@ -250,8 +261,8 @@ public class MergeProcess implements IMergeProcess {
         }
     }
 
-    protected void processCUDResult(Object objectToMerge, final ICUDResult cudResult, IList<Object> unpersistedObjectsToDelete, ProceedWithMergeHook proceedHook,
-            DataChangeReceivedCallback dataChangeReceivedCallback, ICache cacheToAddNewEntitiesTo) {
+    protected void processCUDResult(Object objectToMerge, ICUDResult cudResult, List<Object> unpersistedObjectsToDelete, ProceedWithMergeHook proceedHook,
+            DataChangeReceivedCallback dataChangeReceivedCallback, Map<Object, ICache> entityToAssociatedCaches) {
         IDataChange dataChange = null;
         if (cudResult.getAllChanges().isEmpty()) {
             if (log.isDebugEnabled()) {
@@ -303,12 +314,12 @@ public class MergeProcess implements IMergeProcess {
             try {
                 var rollback = StateRollback.chain(chain -> {
                     chain.append(eventDispatcher.pause(cache));
-                    chain.append(pushAddNewlyPersistedEntities(cacheToAddNewEntitiesTo != null));
+                    chain.append(pushAddNewlyPersistedEntities(entityToAssociatedCaches != null));
                 });
                 try {
                     CheckedSupplier<IOriCollection> runnable = () -> {
                         var mergeResult = mergeService.merge(cudResult, new String[] { uuid }, null);
-                        mergeController.applyChangesToOriginals(cudResult, mergeResult, cacheToAddNewEntitiesTo);
+                        mergeController.applyChangesToOriginals(cudResult, mergeResult, entityToAssociatedCaches::get);
                         return mergeResult;
                     };
                     if (transaction == null || transaction.isActive()) {

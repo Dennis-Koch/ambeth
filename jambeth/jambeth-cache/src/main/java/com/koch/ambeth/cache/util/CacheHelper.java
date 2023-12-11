@@ -749,10 +749,10 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
                 relations[a] = IObjRef.EMPTY_ARRAY;
                 continue;
             }
-            var oris = objRefHelper.extractObjRefList(relationValue, null);
             if (relationValues != null) {
                 relationValues.add(relationValue);
             }
+            var oris = objRefHelper.extractObjRefList(relationValue, null);
             if (oris != null) {
                 relations[a] = oris.toArray(IObjRef[]::new);
             }

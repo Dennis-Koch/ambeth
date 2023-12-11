@@ -21,27 +21,23 @@ limitations under the License.
  */
 
 public interface IRevertChangesHelper {
-	IRevertChangesSavepoint createSavepoint(Object source);
+    IRevertChangesSavepoint createSavepoint(Object source);
 
-	IRevertChangesSavepoint createSavepoint(Object... sources);
+    IRevertChangesSavepoint createSavepoint(Object... sources);
 
-	void revertChanges(Object objectsToRevert);
+    void revertChanges(Object objectsToRevert);
 
-	void revertChanges(Object objectsToRevert, boolean recursive);
+    void revertChanges(Object objectsToRevert, boolean recursive);
 
-	void revertChanges(Object objectsToRevert,
-			RevertChangesFinishedCallback revertChangesFinishedCallback);
+    void revertChanges(Object objectsToRevert, RevertChangesFinishedCallback revertChangesFinishedCallback);
 
-	void revertChanges(Object objectsToRevert,
-			RevertChangesFinishedCallback revertChangesFinishedCallback, boolean recursive);
+    void revertChanges(Object objectsToRevert, RevertChangesFinishedCallback revertChangesFinishedCallback, boolean recursive, boolean dirtyOnly);
 
-	void revertChangesGlobally(Object objectsToRevert);
+    void revertChangesGlobally(Object objectsToRevert);
 
-	void revertChangesGlobally(Object objectsToRevert, boolean recursive);
+    void revertChangesGlobally(Object objectsToRevert, boolean recursive);
 
-	void revertChangesGlobally(Object objectsToRevert,
-			RevertChangesFinishedCallback revertChangesFinishedCallback);
+    void revertChangesGlobally(Object objectsToRevert, RevertChangesFinishedCallback revertChangesFinishedCallback);
 
-	void revertChangesGlobally(Object objectsToRevert,
-			RevertChangesFinishedCallback revertChangesFinishedCallback, boolean recursive);
+    void revertChangesGlobally(Object objectsToRevert, RevertChangesFinishedCallback revertChangesFinishedCallback, boolean recursive, boolean dirtyOnly);
 }

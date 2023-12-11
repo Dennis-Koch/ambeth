@@ -544,7 +544,7 @@ public abstract class AbstractCache<V> implements ICache, IInitializingBean, IDi
         var metaData = entityMetaDataProvider.getMetaData(getEntityTypeOfObject(objectToCache));
         var key = getIdOfObject(metaData, objectToCache);
 
-        var relationValues = new ArrayList<>();
+        var relationValues = new ArrayList<>(metaData.getRelationMembers().length);
         var relations = extractRelations(metaData, objectToCache, relationValues);
 
         if (key != null) {

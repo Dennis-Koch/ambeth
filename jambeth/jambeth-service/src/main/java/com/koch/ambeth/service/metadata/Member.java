@@ -37,6 +37,8 @@ public abstract class Member extends AbstractAccessor implements Comparable<Memb
 
     public abstract Object getNullEquivalentValue();
 
+    public abstract Annotation[] getAnnotations();
+
     public abstract <V extends Annotation> V getAnnotation(Class<V> annotationType);
 
     public abstract String getName();

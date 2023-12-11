@@ -262,7 +262,7 @@ public class MergeServiceRegistry implements IMergeService, IMergeServiceExtensi
 
             var msOriCollection = mergeServiceExtension.merge(msCudResult, causingUuids, methodDescription);
 
-            mergeController.applyChangesToOriginals(msCudResult, msOriCollection, incrementalState != null ? incrementalState.getStateCache() : null);
+            mergeController.applyChangesToOriginals(msCudResult, msOriCollection, incrementalState != null ? entity -> incrementalState.getStateCache() : null);
 
             var allChangeORIs = msOriCollection.getAllChangeORIs();
 

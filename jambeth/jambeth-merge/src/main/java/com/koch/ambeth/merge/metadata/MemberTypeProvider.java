@@ -37,10 +37,9 @@ import com.koch.ambeth.service.metadata.RelationMember;
 import com.koch.ambeth.util.ReflectUtil;
 import com.koch.ambeth.util.annotation.Cascade;
 import com.koch.ambeth.util.annotation.CascadeLoadMode;
-import com.koch.ambeth.util.collections.Tuple2KeyEntry;
-import com.koch.ambeth.util.collections.Tuple2KeyHashMap;
+import com.koch.ambeth.util.collections.Tuple3KeyEntry;
+import com.koch.ambeth.util.collections.Tuple3KeyHashMap;
 import com.koch.ambeth.util.config.IProperties;
-import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.typeinfo.IPropertyInfo;
 import com.koch.ambeth.util.typeinfo.IPropertyInfoProvider;
 import lombok.SneakyThrows;
@@ -92,22 +91,27 @@ public class MemberTypeProvider implements IMemberTypeProvider, IIntermediateMem
 
     @Override
     public RelationMember getRelationMember(Class<?> type, String propertyName) {
-        return getMemberIntern(type, propertyName, typeToRelationMemberMap, RelationMember.class);
+        return getMemberIntern(type, propertyName, null, typeToRelationMemberMap, RelationMember.class);
     }
 
     @Override
     public PrimitiveMember getPrimitiveMember(Class<?> type, String propertyName) {
-        return getMemberIntern(type, propertyName, typeToPrimitiveMemberMap, PrimitiveMember.class);
+        return getMemberIntern(type, propertyName, null, typeToPrimitiveMemberMap, PrimitiveMember.class);
+    }
+
+    @Override
+    public PrimitiveMember getPrimitiveMember(Class<?> type, String propertyName, Class<?> forcedElementType) {
+        return getMemberIntern(type, propertyName, forcedElementType, typeToPrimitiveMemberMap, PrimitiveMember.class);
     }
 
     @Override
     public Member getMember(Class<?> type, String propertyName) {
-        return getMemberIntern(type, propertyName, typeToMemberMap, Member.class);
+        return getMemberIntern(type, propertyName, null, typeToMemberMap, Member.class);
     }
 
     @SuppressWarnings("unchecked")
-    protected <T extends Member> T getMemberIntern(Class<?> type, String propertyName, TypeAndStringWeakMap<T> map, Class<?> baseType) {
-        var accessorR = map.get(type, propertyName);
+    protected <T extends Member> T getMemberIntern(Class<?> type, String propertyName, Class<?> forcedElementType, TypeAndStringWeakMap<T> map, Class<?> baseType) {
+        var accessorR = map.get(type, propertyName, forcedElementType);
         var member = accessorR != null ? accessorR.get() : null;
         if (member != null) {
             return member;
@@ -116,7 +120,7 @@ public class MemberTypeProvider implements IMemberTypeProvider, IIntermediateMem
         writeLock.lock();
         try {
             // concurrent thread might have been faster
-            accessorR = map.get(type, propertyName);
+            accessorR = map.get(type, propertyName, forcedElementType);
             member = accessorR != null ? accessorR.get() : null;
             if (member != null) {
                 return member;
@@ -126,10 +130,10 @@ public class MemberTypeProvider implements IMemberTypeProvider, IIntermediateMem
         }
         // necessary to release the lock because getMemberIntern() needs the IBytecodeEnhancer to work - but in some code paths the IBytecodeEnhancer also needs the MemberTypeProvider. if multiple
         // threads each build up their own bytecode classes at the same time sometimes a deadlock could occur without releasing the lock
-        member = (T) getMemberIntern(type, propertyName, baseType);
+        member = (T) getMemberIntern(type, propertyName, forcedElementType, baseType);
         writeLock.lock();
         try {
-            accessorR = map.get(type, propertyName);
+            accessorR = map.get(type, propertyName, forcedElementType);
             var existingMember = accessorR != null ? accessorR.get() : null;
             if (existingMember != null) {
                 // concurrent thread might have been faster
@@ -142,38 +146,34 @@ public class MemberTypeProvider implements IMemberTypeProvider, IIntermediateMem
                     cascadeLoadMode = cascadeAnnotation.load();
                 }
                 if (cascadeLoadMode == null || CascadeLoadMode.DEFAULT.equals(cascadeLoadMode)) {
-                    cascadeLoadMode = CascadeLoadMode.valueOf(properties.getString(
-                            ((RelationMember) member).isToMany() ? ServiceConfigurationConstants.ToManyDefaultCascadeLoadMode : ServiceConfigurationConstants.ToOneDefaultCascadeLoadMode,
-                            CascadeLoadMode.DEFAULT.toString()));
+                    cascadeLoadMode = CascadeLoadMode.valueOf(
+                            properties.getString(member.isToMany() ? ServiceConfigurationConstants.ToManyDefaultCascadeLoadMode : ServiceConfigurationConstants.ToOneDefaultCascadeLoadMode,
+                                    CascadeLoadMode.DEFAULT.toString()));
                 }
                 if (cascadeLoadMode == null || CascadeLoadMode.DEFAULT.equals(cascadeLoadMode)) {
                     cascadeLoadMode = CascadeLoadMode.LAZY;
                 }
                 ((IRelationMemberWrite) member).setCascadeLoadMode(cascadeLoadMode);
             }
-            map.put(type, propertyName, new WeakReference<>(member));
+            map.put(type, propertyName, forcedElementType, new WeakReference<>(member));
             return member;
-        } catch (
-
-                Throwable e) {
-            throw RuntimeExceptionUtil.mask(e);
         } finally {
             writeLock.unlock();
         }
     }
 
     @SneakyThrows
-    protected Member getMemberIntern(Class<?> type, String propertyName, Class<?> baseType) {
+    protected Member getMemberIntern(Class<?> type, String propertyName, Class<?> forcedElementType, Class<?> baseType) {
         if (propertyName.contains("&")) {
             var compositePropertyNames = propertyName.split("&");
             var members = new PrimitiveMember[compositePropertyNames.length];
             for (int a = compositePropertyNames.length; a-- > 0; ) {
-                members[a] = (PrimitiveMember) getMemberIntern(type, compositePropertyNames[a], baseType);
+                members[a] = (PrimitiveMember) getMemberIntern(type, compositePropertyNames[a], null, baseType);
             }
             return compositeIdFactory.createCompositeIdMember(type, members);
         }
 
-        var enhancedType = getMemberTypeIntern(type, propertyName, baseType);
+        var enhancedType = getMemberTypeIntern(type, propertyName, forcedElementType, baseType);
         if (enhancedType == baseType) {
             throw new IllegalStateException("Must never happen. No enhancement for " + baseType + " has been done");
         }
@@ -181,15 +181,16 @@ public class MemberTypeProvider implements IMemberTypeProvider, IIntermediateMem
         return (Member) constructor.newInstance(EMPTY_OBJECTS);
     }
 
-    protected Class<?> getMemberTypeIntern(Class<?> targetType, String propertyName, Class<?> baseType) {
-        var memberTypeName = targetType.getName() + "$" + baseType.getSimpleName() + "$" + propertyName.replaceAll(Pattern.quote("."), Matcher.quoteReplacement("$"));
+    protected Class<?> getMemberTypeIntern(Class<?> targetType, String propertyName, Class<?> forcedElementType, Class<?> baseType) {
+        var memberTypeName = targetType.getName() + "$" + baseType.getSimpleName() + "$" + (forcedElementType != null ? forcedElementType.getSimpleName() : "") + "$" +
+                propertyName.replaceAll(Pattern.quote("."), Matcher.quoteReplacement("$"));
         if (memberTypeName.startsWith("java.")) {
             memberTypeName = "ambeth." + memberTypeName;
         }
         if (baseType == RelationMember.class) {
             return bytecodeEnhancer.getEnhancedType(baseType, new RelationMemberEnhancementHint(targetType, propertyName));
         }
-        return bytecodeEnhancer.getEnhancedType(baseType, new MemberEnhancementHint(targetType, propertyName));
+        return bytecodeEnhancer.getEnhancedType(baseType, new MemberEnhancementHint(targetType, propertyName, forcedElementType));
     }
 
     @Override
@@ -236,20 +237,20 @@ public class MemberTypeProvider implements IMemberTypeProvider, IIntermediateMem
         return (IntermediateRelationMember) members[0];
     }
 
-    public class TypeAndStringWeakMap<T> extends Tuple2KeyHashMap<Class<?>, String, Reference<T>> {
+    public class TypeAndStringWeakMap<T> extends Tuple3KeyHashMap<Class<?>, String, Class<?>, Reference<T>> {
         @Override
-        protected void transfer(Tuple2KeyEntry<Class<?>, String, Reference<T>>[] newTable) {
+        protected void transfer(Tuple3KeyEntry<Class<?>, String, Class<?>, Reference<T>>[] newTable) {
             var newCapacityMinus1 = newTable.length - 1;
             var table = this.table;
 
             for (int a = table.length; a-- > 0; ) {
-                Tuple2KeyEntry<Class<?>, String, Reference<T>> entry = table[a], next;
+                Tuple3KeyEntry<Class<?>, String, Class<?>, Reference<T>> entry = table[a], next;
                 while (entry != null) {
                     next = entry.getNextEntry();
 
                     // only handle this entry if it has still a valid value
                     if (entry.getValue().get() != null) {
-                        int i = entry.getHash() & newCapacityMinus1;
+                        var i = entry.getHash() & newCapacityMinus1;
                         entry.setNextEntry(newTable[i]);
                         newTable[i] = entry;
                     }

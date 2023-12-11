@@ -25,6 +25,9 @@ import com.koch.ambeth.util.annotation.ConfigurationConstants;
 
 @ConfigurationConstants
 public final class EventKafkaConfigurationConstants {
-	@ConfigurationConstantDescription("Kafka Topic to publish/subscribe for Ambeth Events")
-	public static final String TOPIC_NAME = "ambeth.event.kafka.topic";
+    @ConfigurationConstantDescription("Kafka Topic to publish/subscribe for Ambeth Events")
+    public static final String TOPIC_NAME = "ambeth.event.kafka.topic";
+
+    @ConfigurationConstantDescription("Types of Ambeth events supposed to get published to Kafka")
+    public static final String EVENTS_TO_PUBLISH = "ambeth.event.kafka.events-to-publish";
 }

@@ -22,6 +22,7 @@
 		<lombok.version>1.18.30</lombok.version>
         <spring.version>6.1.0</spring.version>
         <spi-ap.version>0.11.0</spi-ap.version>
+        <testcontainers.version>1.19.3</testcontainers.version>
 		<checkstyle.file>${jambeth.path.test}/checkstyle_checks.xml</checkstyle.file>
 		<checkstyle.properties>${jambeth.path.test}/checkstyle.properties</checkstyle.properties>
 		<findbugs.file>${jambeth.path.test}/findbugs_exclude_checks.xml</findbugs.file>
@@ -94,8 +95,14 @@
 			</dependency>
             <dependency>
                 <groupId>org.testcontainers</groupId>
+                <artifactId>kafka</artifactId>
+                <version>${testcontainers.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.testcontainers</groupId>
                 <artifactId>postgresql</artifactId>
-                <version>1.19.2</version>
+                <version>${testcontainers.version}</version>
                 <scope>test</scope>
             </dependency>
 

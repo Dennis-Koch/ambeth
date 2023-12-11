@@ -24,6 +24,7 @@ import com.koch.ambeth.service.merge.model.IEntityMetaData;
 import com.koch.ambeth.service.merge.model.IObjRef;
 
 import java.util.List;
+import java.util.Map;
 
 public interface IObjRefHelper {
     List<IObjRef> extractObjRefList(Object objValue, MergeHandle mergeHandle);
@@ -36,7 +37,7 @@ public interface IObjRefHelper {
 
     IObjRef getCreateObjRef(Object obj, IObjRefProvider oriProvider);
 
-    IObjRef getCreateObjRef(Object obj, MergeHandle mergeHandle);
+    IObjRef getCreateObjRef(Object obj, IObjRefHelperState state);
 
     IObjRef entityToObjRef(Object entity);
 
@@ -77,4 +78,19 @@ public interface IObjRefHelper {
      * @return All valid ORIs
      */
     List<IObjRef> entityToAllObjRefs(Object entity, IEntityMetaData metaData);
+
+    interface IObjRefHelperState {
+
+        default boolean isHandleExistingIdAsNewId() {
+            return false;
+        }
+
+        default Map<Object, IObjRef> getObjToObjRefMap() {
+            return null;
+        }
+
+        default Map<IObjRef, Object> getObjRefToObjMap() {
+            return null;
+        }
+    }
 }

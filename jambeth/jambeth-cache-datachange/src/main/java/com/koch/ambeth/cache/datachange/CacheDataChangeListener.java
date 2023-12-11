@@ -589,9 +589,7 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
                         for (int b = objectsToUpdate.size(); b-- > 0; ) {
                             var objectInCache = objectsToUpdate.get(b);
                             var objRefInCache = objRefsToUpdate.get(b);
-                            // Check if the objects still have their id. They may have lost them concurrently
-                            // because this
-                            // method here may be called from another thread (e.g. UI thread)
+                            // Check if the objects still have their id. They may have lost them concurrently because this method here may be called from another thread (e.g. UI thread)
                             var metaData = ((IEntityMetaDataHolder) objectInCache).get__EntityMetaData();
                             var id = metaData.getIdMember().getValue(objectInCache, false);
                             if (id == null) {

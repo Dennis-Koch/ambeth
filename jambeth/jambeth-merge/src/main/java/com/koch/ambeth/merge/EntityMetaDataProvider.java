@@ -730,7 +730,7 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
         if (member instanceof RelationMember) {
             return memberTypeProvider.getRelationMember(metaData.getEnhancedType(), member.getName());
         }
-        var refreshedMember = memberTypeProvider.getPrimitiveMember(metaData.getEnhancedType(), member.getName());
+        var refreshedMember = memberTypeProvider.getPrimitiveMember(metaData.getEnhancedType(), member.getName(), member.getElementType());
         ((IPrimitiveMemberWrite) refreshedMember).setTechnicalMember(((PrimitiveMember) member).isTechnicalMember());
         ((IPrimitiveMemberWrite) refreshedMember).setTransient(((PrimitiveMember) member).isTransient());
         ((IPrimitiveMemberWrite) refreshedMember).setDefinedBy(((PrimitiveMember) member).getDefinedBy());

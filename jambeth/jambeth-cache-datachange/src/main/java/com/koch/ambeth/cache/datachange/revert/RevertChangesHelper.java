@@ -174,9 +174,8 @@ public class RevertChangesHelper implements IRevertChangesHelper {
         }
     }
 
-    private void callWaitEventToResumeInGui(IList<IDataChangeEntry> directObjectDeletes, IList<IObjRef> orisToRevert, ISet<Object> persistedObjectsToRevert, IList<Object> objectsToRevert,
-            IList<Object> rootCacheValues, IParamHolder<Boolean> success1, IParamHolder<Boolean> success2, IParamHolder<Boolean> success3,
-            RevertChangesFinishedCallback revertChangesFinishedCallback) {
+    private void callWaitEventToResumeInGui(IList<IDataChangeEntry> directObjectDeletes, List<IObjRef> orisToRevert, ISet<Object> persistedObjectsToRevert, List<Object> objectsToRevert,
+            List<Object> rootCacheValues, IParamHolder<Boolean> success1, IParamHolder<Boolean> success2, IParamHolder<Boolean> success3, RevertChangesFinishedCallback revertChangesFinishedCallback) {
         guiThreadHelper.invokeInGui(() -> {
             waitEventToResume(processResumeItem -> {
                 try {
@@ -276,7 +275,7 @@ public class RevertChangesHelper implements IRevertChangesHelper {
         if (source == null) {
             return null;
         }
-        var objList = mergeController.scanForInitializedObjects(source, false, null, null, null, null, null);
+        var objList = mergeController.scanForInitializedObjects(source, false, false, null, null, null, null, null);
         return createSavepointIntern(objList);
     }
 
@@ -285,11 +284,11 @@ public class RevertChangesHelper implements IRevertChangesHelper {
         if (sources == null || sources.length == 0) {
             return null;
         }
-        var objList = mergeController.scanForInitializedObjects(sources, false, null, null, null, null, null);
+        var objList = mergeController.scanForInitializedObjects(sources, false, false, null, null, null, null, null);
         return createSavepointIntern(objList);
     }
 
-    protected IRevertChangesSavepoint createSavepointIntern(IList<Object> objList) {
+    protected IRevertChangesSavepoint createSavepointIntern(List<Object> objList) {
         var originalToValueBackup = new IdentityLinkedMap<Object, IBackup>();
 
         // Iterate manually through the list because the list itself should not be 'backuped'
@@ -312,53 +311,53 @@ public class RevertChangesHelper implements IRevertChangesHelper {
 
     @Override
     public void revertChanges(Object objectsToRevert) {
-        revertChanges(objectsToRevert, null, false);
+        revertChanges(objectsToRevert, null, false, true);
     }
 
     @Override
     public void revertChanges(Object objectsToRevert, boolean recursive) {
-        revertChanges(objectsToRevert, null, recursive);
+        revertChanges(objectsToRevert, null, recursive, true);
     }
 
     @Override
     public void revertChanges(Object objectsToRevert, RevertChangesFinishedCallback revertChangesFinishedCallback) {
-        revertChanges(objectsToRevert, revertChangesFinishedCallback, false);
+        revertChanges(objectsToRevert, revertChangesFinishedCallback, false, true);
     }
 
     @Override
-    public void revertChanges(Object objectsToRevert, RevertChangesFinishedCallback revertChangesFinishedCallback, boolean recursive) {
+    public void revertChanges(Object objectsToRevert, RevertChangesFinishedCallback revertChangesFinishedCallback, boolean recursive, boolean dirtyOnly) {
         if (objectsToRevert == null) {
             return;
         }
-        var objList = mergeController.scanForInitializedObjects(objectsToRevert, recursive, null, null, null, null, null);
-        revertChangesIntern(objList, false, revertChangesFinishedCallback);
+        var objList = mergeController.scanForInitializedObjects(objectsToRevert, recursive, dirtyOnly, null, null, null, null, null);
+        revertChangesIntern(objList, dirtyOnly, false, revertChangesFinishedCallback);
     }
 
     @Override
     public void revertChangesGlobally(Object objectsToRevert) {
-        revertChangesGlobally(objectsToRevert, null, false);
+        revertChangesGlobally(objectsToRevert, null, true, false);
     }
 
     @Override
     public void revertChangesGlobally(Object objectsToRevert, boolean recursive) {
-        revertChangesGlobally(objectsToRevert, null, recursive);
+        revertChangesGlobally(objectsToRevert, null, true, recursive);
     }
 
     @Override
     public void revertChangesGlobally(Object objectsToRevert, RevertChangesFinishedCallback revertChangesFinishedCallback) {
-        revertChangesGlobally(objectsToRevert, revertChangesFinishedCallback, false);
+        revertChangesGlobally(objectsToRevert, revertChangesFinishedCallback, false, true);
     }
 
     @Override
-    public void revertChangesGlobally(Object objectsToRevert, RevertChangesFinishedCallback revertChangesFinishedCallback, boolean recursive) {
+    public void revertChangesGlobally(Object objectsToRevert, RevertChangesFinishedCallback revertChangesFinishedCallback, boolean recursive, boolean dirtyOnly) {
         if (objectsToRevert == null) {
             return;
         }
-        var objList = mergeController.scanForInitializedObjects(objectsToRevert, recursive, null, null, null, null, null);
-        revertChangesIntern(objList, true, revertChangesFinishedCallback);
+        var objList = mergeController.scanForInitializedObjects(objectsToRevert, recursive, dirtyOnly, null, null, null, null, null);
+        revertChangesIntern(objList, dirtyOnly, true, revertChangesFinishedCallback);
     }
 
-    protected void revertChangesIntern(final IList<Object> objectsToRevert, final boolean globally, final RevertChangesFinishedCallback revertChangesFinishedCallback) {
+    protected void revertChangesIntern(List<Object> objectsToRevert, boolean dirtyOnly, boolean globally, RevertChangesFinishedCallback revertChangesFinishedCallback) {
         // Store the RevertChangesFinishedCallback from this thread on the stack and set the
         // property null (for following calls):
         if (objectsToRevert == null || objectsToRevert.isEmpty()) {
@@ -372,20 +371,20 @@ public class RevertChangesHelper implements IRevertChangesHelper {
                 revertChangesInternOutOfGuiGlobally(objectsToRevert, revertChangesFinishedCallback);
                 return;
             }
-            revertChangesInternOutOfGui(objectsToRevert, revertChangesFinishedCallback);
+            revertChangesInternOutOfGui(objectsToRevert, dirtyOnly, revertChangesFinishedCallback);
         });
     }
 
-    protected void revertChangesInternOutOfGui(IList<Object> objectsToRevert, RevertChangesFinishedCallback revertChangesFinishedCallback) {
-        ParamHolder<Boolean> success1 = new ParamHolder<>();
-        ParamHolder<Boolean> success2 = new ParamHolder<>();
-        ParamHolder<Boolean> success3 = new ParamHolder<>();
+    protected void revertChangesInternOutOfGui(List<Object> objectsToRevert, boolean dirtyOnly, RevertChangesFinishedCallback revertChangesFinishedCallback) {
+        var success1 = new ParamHolder<Boolean>();
+        var success2 = new ParamHolder<Boolean>();
+        var success3 = new ParamHolder<Boolean>();
         try {
             var directObjectDeletes = new ArrayList<IDataChangeEntry>();
             var objRefs = new ArrayList<IObjRef>();
             var privilegedObjRefs = new ArrayList<IObjRef>();
             var valueHolderKeys = new ArrayList<ValueHolderRef>();
-            var initializedObjects = mergeController.scanForInitializedObjects(objectsToRevert, false, null, objRefs, privilegedObjRefs, valueHolderKeys, null);
+            var initializedObjects = mergeController.scanForInitializedObjects(objectsToRevert, false, dirtyOnly, null, objRefs, privilegedObjRefs, valueHolderKeys, null);
 
             var orisToRevert = new ArrayList<IObjRef>();
             var persistedObjectsToRevert = new IdentityHashSet<>();
@@ -425,7 +424,7 @@ public class RevertChangesHelper implements IRevertChangesHelper {
         }
     }
 
-    protected void revertChangesInternOutOfGuiGlobally(IList<Object> objectsToRevert, RevertChangesFinishedCallback revertChangesFinishedCallback) {
+    protected void revertChangesInternOutOfGuiGlobally(List<Object> objectsToRevert, RevertChangesFinishedCallback revertChangesFinishedCallback) {
         var success = false;
         try {
             var dataChange = DataChangeEvent.create(0, -1, -1);

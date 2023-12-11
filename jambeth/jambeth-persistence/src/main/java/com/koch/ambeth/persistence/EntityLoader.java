@@ -159,6 +159,7 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
     public void assignInstances(List<IObjRef> orisToLoad, List<ILoadContainer> targetEntities) {
         var conversionHelper = this.conversionHelper;
         var databaseMetaData = this.databaseMetaData;
+        var entityMetaDataProvider = this.entityMetaDataProvider;
         var typeToPendingInit = new LinkedHashMap<Class<?>, Collection<Object>[]>();
         var cascadeTypeToPendingInit = new LinkedHashMap<Class<?>, Collection<Object>[]>();
         var loadContainerSet = IdentityLinkedSet.<ILoadContainer>create(orisToLoad.size());
@@ -194,9 +195,14 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
             }
             for (int a = orisToLoad.size(); a-- > 0; ) {
                 var oriToLoad = orisToLoad.get(a);
+                var metaData = entityMetaDataProvider.getMetaData(oriToLoad.getRealType());
+                var idMember = metaData.getIdMemberByIdIndex(oriToLoad.getIdNameIndex());
+                var idType = Object.class.equals(idMember.getElementType()) ?
+                        databaseMetaData.getTableByType(metaData.getEntityType()).getIdFieldByAlternateIdIndex(oriToLoad.getIdNameIndex()).getFieldType() : idMember.getElementType();
+                var cacheId = conversionHelper.convertValueToType(idType, oriToLoad.getId(), null);
 
                 var table = databaseMetaData.getTableByType(oriToLoad.getRealType());
-                var loadContainer = loadContainerMap.get(table.getEntityType(), Integer.valueOf(oriToLoad.getIdNameIndex()), oriToLoad.getId());
+                var loadContainer = loadContainerMap.get(table.getEntityType(), Integer.valueOf(oriToLoad.getIdNameIndex()), cacheId);
                 if (loadContainer == null) {
                     // beanContext.getService(java.sql.Connection.class).commit();
                     continue;
@@ -648,7 +654,7 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
     }
 
     @SuppressWarnings("unchecked")
-    protected void loadDefault(Class<?> entityType, int idIndex, Collection<Object> ids, LinkedHashMap<Class<?>, Collection<Object>[]> cascadeTypeToPendingInit) {
+    protected void loadDefault(Class<?> entityType, byte idIndex, Collection<Object> ids, LinkedHashMap<Class<?>, Collection<Object>[]> cascadeTypeToPendingInit) {
         var database = this.database.getCurrent();
         var conversionHelper = this.conversionHelper;
         var entityMetaDataProvider = this.entityMetaDataProvider;
@@ -660,7 +666,6 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
         var directedLinks = new IDirectedLink[standaloneDirectedLinks.length];
         var directedLinkQueues = new ArrayList[standaloneDirectedLinks.length];
         var fieldToDirectedLinkIndex = new IdentityHashMap<IFieldMetaData, Integer>();
-        var idList = prepareIdsFromEntityMetaData(metaData, idIndex, ids);
         var versionField = tableMD.getVersionField();
         var versionTypeOfObject = versionField != null ? versionField.getMember().getElementType() : null;
         var primitiveMemberCount = metaData.getPrimitiveMembers().length;
@@ -670,14 +675,21 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
         var loadContainerMap = getLoadContainerMap();
 
         var typesRelatingToThisCount = metaData.getTypesRelatingToThis().length;
-        var idConverter = compositeIdFactory.prepareCompositeIdFactory(metaData, metaData.getIdMember());
+        var idMember = metaData.getIdMemberByIdIndex(idIndex);
+        var cacheIdConverter = Object.class.equals(idMember.getElementType()) ? conversionHelper.prepareConverter(tableMD.getIdField().getFieldType()) :
+                compositeIdFactory.prepareCompositeIdFactory(metaData, idMember);
+        var cacheIds = new ArrayList<>(ids.size());
+        for (var id : ids) {
+            cacheIds.add(cacheIdConverter.convertValue(id, null));
+        }
 
-        var versionConverter = conversionHelper.prepareConverter(versionTypeOfObject);
+        var versionConverter =
+                Object.class.equals(versionTypeOfObject) ? conversionHelper.prepareConverter(tableMD.getVersionField().getFieldType()) : conversionHelper.prepareConverter(versionTypeOfObject);
 
         var cursorCount = 0;
         ICursor cursor = null;
         try {
-            cursor = table.selectValues(idIndex, idList);
+            cursor = table.selectValues(idIndex, cacheIds);
 
             var cursorFields = cursor.getFields();
             var cursorFieldToPrimitiveIndex = new int[cursorFields.length];
@@ -697,23 +709,23 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
             for (var item : cursor) {
                 cursorCount++;
 
-                var id = idConverter.convertValue(item.getId(IObjRef.PRIMARY_KEY_INDEX), null);
-                Object version;
+                var cacheId = cacheIdConverter.convertValue(item.getId(IObjRef.PRIMARY_KEY_INDEX), null);
+                Object cacheVersion;
                 if (versionField != null) {
-                    version = versionConverter.convertValue(item.getVersion(), null);
+                    cacheVersion = versionConverter.convertValue(item.getVersion(), null);
                 } else {
-                    version = null;
+                    cacheVersion = null;
                 }
-                if (id == null || versionField != null && version == null) {
+                if (cacheId == null || versionField != null && cacheVersion == null) {
                     throw new IllegalStateException("Retrieved row with either null-id or null-version from table '" + table.getMetaData().getName() + "'. This is a fatal database state");
                 }
                 if (interningFeature != null) {
                     if (typesRelatingToThisCount > 0 && doInternId) {
                         // If other entities may relate to this one, it makes sense to intern the id
-                        id = interningFeature.intern(id);
+                        cacheId = interningFeature.intern(cacheId);
                     }
-                    if (version != null && doInternVersion) {
-                        version = interningFeature.intern(version);
+                    if (cacheVersion != null && doInternVersion) {
+                        cacheVersion = interningFeature.intern(cacheVersion);
                     }
                 }
                 var primitives = new Object[primitiveMemberCount];
@@ -779,9 +791,9 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
                         continue;
                     }
                     var directedLinkQueue = directedLinkQueues[a];
-                    byte linkIdIndex = link.getMetaData().getFromField().getIdIndex();
+                    var linkIdIndex = link.getMetaData().getFromField().getIdIndex();
                     if (linkIdIndex == ObjRef.PRIMARY_KEY_INDEX) {
-                        directedLinkQueue.add(id);
+                        directedLinkQueue.add(cacheId);
                     } else {
                         var alternateId = alternateIds[linkIdIndex];
                         if (alternateId != null) {
@@ -790,7 +802,7 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
                     }
                 }
 
-                var loadContainer = unionLoadContainers(table, id, version, alternateIds);
+                var loadContainer = unionLoadContainers(table, cacheId, cacheVersion, alternateIds);
 
                 loadContainer.setPrimitives(primitives);
 
@@ -807,7 +819,7 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
                 loadContainer.setRelations(relations);
 
                 // Set version number to ORI explicitly here. It is not known earlier...
-                loadContainer.getReference().setVersion(version);
+                loadContainer.getReference().setVersion(cacheVersion);
 
                 if (!fieldToDirectedLinkIndex.isEmpty()) {
                     for (int a = cursorFields.length; a-- > 0; ) {
@@ -873,8 +885,8 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
         if (log.isDebugEnabled()) {
             log.debug("Retrieved " + cursorCount + " row(s)");
         }
-        for (int index = idList.size(); index-- > 0; ) {
-            var splittedId = idList.get(index);
+        for (int index = cacheIds.size(); index-- > 0; ) {
+            var splittedId = cacheIds.get(index);
             var loadContainer = (LoadContainer) loadContainerMap.get(entityType, Integer.valueOf(idIndex), splittedId);
             if (loadContainer == null) {
                 // Object with requested PK has not been found in

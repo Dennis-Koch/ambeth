@@ -43,6 +43,7 @@ import com.koch.ambeth.persistence.database.IDatabaseMappedListener;
 import com.koch.ambeth.service.merge.IEntityMetaDataProvider;
 import com.koch.ambeth.service.merge.IEntityMetaDataRefresher;
 import com.koch.ambeth.service.merge.model.IEntityMetaData;
+import com.koch.ambeth.service.metadata.IntermediatePrimitiveMember;
 import com.koch.ambeth.service.metadata.Member;
 import com.koch.ambeth.service.metadata.PrimitiveMember;
 import com.koch.ambeth.service.metadata.RelationMember;
@@ -354,6 +355,12 @@ public class DatabaseToEntityMetaData implements IDatabaseMappedListener, IDispo
         metaData.setRelationMembers(relations);
         metaData.setEnhancedType(null);
 
+        metaData.setIdMember(curateIdMember(metaData.getIdMember(), table.getIdFields()));
+        var alternateIdMembers = metaData.getAlternateIdMembers();
+        for (int idIndex = alternateIdMembers.length; idIndex-- > 0; ) {
+            alternateIdsMembers[idIndex] = curateIdMember(alternateIdMembers[idIndex], table.getIdFieldsByAlternateIdIndex(idIndex));
+        }
+
         entityMetaDataRefresher.refreshMembers(metaData);
         var allRefreshedMembers = new HashSet<Member>();
         addValidMember(allRefreshedMembers, metaData.getIdMember());
@@ -375,6 +382,18 @@ public class DatabaseToEntityMetaData implements IDatabaseMappedListener, IDispo
             }
         }
         newMetaDatas.add(metaData);
+    }
+
+    protected PrimitiveMember curateIdMember(PrimitiveMember idMember, IFieldMetaData[] idFields) {
+        if (!Object.class.equals(idMember.getElementType())) {
+            return idMember;
+        }
+        if (idFields.length > 1) {
+            throw new IllegalStateException("Composite id not supported if entity metadata only configures 'Object.class' als id type: " + idMember);
+        }
+        var elementType = idFields[0].getFieldType();
+        var realType = Object.class.equals(idMember.getRealType()) ? elementType : idMember.getRealType();
+        return new IntermediatePrimitiveMember(idMember.getDeclaringType(), idMember.getEntityType(), realType, elementType, idMember.getName(), idMember.getAnnotations());
     }
 
     @Override

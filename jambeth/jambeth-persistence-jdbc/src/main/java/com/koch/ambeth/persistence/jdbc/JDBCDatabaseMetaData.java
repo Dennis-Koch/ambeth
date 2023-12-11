@@ -673,12 +673,12 @@ public class JDBCDatabaseMetaData extends DatabaseMetaData implements IDatabaseM
             link = serviceContext.registerWithLifecycle(link).finish();
             links.set(a, link);
         }
-        var objects = serviceContext.getObjects(IDatabaseMapper.class);
-        for (int a = objects.size(); a-- > 0; ) {
-            objects.get(a).mapFields(connection, schemaNames, this);
+        var databaseMappers = serviceContext.getObjects(IDatabaseMapper.class);
+        for (int a = databaseMappers.size(); a-- > 0; ) {
+            databaseMappers.get(a).mapFields(connection, schemaNames, this);
         }
-        for (int a = objects.size(); a-- > 0; ) {
-            objects.get(a).mapLinks(connection, schemaNames, this);
+        for (int a = databaseMappers.size(); a-- > 0; ) {
+            databaseMappers.get(a).mapLinks(connection, schemaNames, this);
         }
         var maxNameLength = getMaxNameLength();
         for (var table : getTables()) {

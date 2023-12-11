@@ -80,7 +80,8 @@ public class EntityMetaDataMemberBehavior extends AbstractBehavior {
             if (propertyPath[0] == null) {
                 throw new IllegalArgumentException("Member not found: " + memberHint.getDeclaringType() + "." + memberHint.getMemberName());
             }
-            visitor = new EntityMetaDataMemberVisitor(visitor, memberHint.getDeclaringType(), memberHint.getDeclaringType(), memberHint.getMemberName(), entityMetaDataProvider, propertyPath);
+            visitor = new EntityMetaDataMemberVisitor(visitor, memberHint.getDeclaringType(), memberHint.getDeclaringType(), memberHint.getMemberName(), memberHint.getForcedElementType(),
+                    entityMetaDataProvider, propertyPath);
             if (relationMemberHint != null) {
                 visitor = new EntityMetaDataRelationMemberVisitor(visitor, memberHint.getDeclaringType(), memberHint.getMemberName(), propertyPath);
             } else {
@@ -114,7 +115,8 @@ public class EntityMetaDataMemberBehavior extends AbstractBehavior {
                 currType = members[a].getRealType();
             }
         }
-        visitor = new EntityMetaDataMemberVisitor(visitor, memberHint.getDeclaringType(), memberHint.getDeclaringType(), memberHint.getMemberName(), entityMetaDataProvider, propertyPath);
+        visitor = new EntityMetaDataMemberVisitor(visitor, memberHint.getDeclaringType(), memberHint.getDeclaringType(), memberHint.getMemberName(), memberHint.getForcedElementType(),
+                entityMetaDataProvider, propertyPath);
         if (relationMemberHint != null) {
             visitor = new EntityMetaDataRelationMemberVisitor(visitor, memberHint.getDeclaringType(), memberHint.getMemberName(), propertyPath);
         } else {

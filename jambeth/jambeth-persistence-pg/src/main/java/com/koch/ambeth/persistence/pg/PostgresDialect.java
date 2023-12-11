@@ -189,6 +189,16 @@ public class PostgresDialect extends AbstractConnectionDialect {
     }
 
     @Override
+    protected int getDefaultBatchSizeOfDialect() {
+        return Integer.MAX_VALUE;
+    }
+
+    @Override
+    protected int getDefaultPreparedBatchSizeOfDialect() {
+        return Integer.MAX_VALUE;
+    }
+
+    @Override
     public void handleWithMultiValueLeftField(IAppendable querySB, Map<Object, Object> nameToValueMap, IList<Object> parameters, IList<IList<Object>> splitValues, boolean caseSensitive,
             Class<?> leftOperandFieldType) {
         if (splitValues.isEmpty()) {
@@ -613,8 +623,11 @@ public class PostgresDialect extends AbstractConnectionDialect {
     public String prepareCommand(String sqlCommand) {
         var matcher = pattern.matcher(sqlCommand);
         if (matcher.matches()) {
-            var arrayTypeName = matcher.group(1);
+            var arrayTypeName = matcher.group(1).toUpperCase();
             if ("STRING_ARRAY".equals(arrayTypeName) || "\"STRING_ARRAY\"".equals(arrayTypeName)) {
+                return "";
+            }
+            if ("CHAR_ARRAY".equals(arrayTypeName) || "\"CHAR_ARRAY\"".equals(arrayTypeName)) {
                 return "";
             }
         }
@@ -639,12 +652,17 @@ public class PostgresDialect extends AbstractConnectionDialect {
         sqlCommand = prepareCommandInternWithGroup(sqlCommand, " PRIMARY KEY (\\([^\\)]+\\)) USING INDEX", " PRIMARY KEY \\2");
         sqlCommand = prepareCommandInternWithGroup(sqlCommand, " PRIMARY KEY (\\([^\\)]+\\)) USING INDEX", " PRIMARY KEY \\2");
 
+        sqlCommand = prepareCommandInternWithGroup(sqlCommand, "([^a-zA-Z0-9])CHAR_ARRAY\\(([^\\)]+)\\)", "\\2ARRAY[\\3]");
+        sqlCommand = prepareCommandInternWithGroup(sqlCommand, "([^a-zA-Z0-9])CHAR_ARRAY([^a-zA-Z0-9])", "\\2VARCHAR[]\\3");
+
         sqlCommand = prepareCommandInternWithGroup(sqlCommand, "([^a-zA-Z0-9])STRING_ARRAY\\(([^\\)]+)\\)", "\\2ARRAY[\\3]");
         sqlCommand = prepareCommandInternWithGroup(sqlCommand, "([^a-zA-Z0-9])STRING_ARRAY([^a-zA-Z0-9])", "\\2TEXT[]\\3");
 
         sqlCommand = prepareCommandIntern(sqlCommand, " NOORDER", "");
         sqlCommand = prepareCommandIntern(sqlCommand, " NOCYCLE", "");
         sqlCommand = prepareCommandIntern(sqlCommand, " USING +INDEX", "");
+        sqlCommand = prepareCommandInternWithGroup(sqlCommand, "([^a-zA-Z0-9])dbms_random\\.value\\(\\)", "\\2random()");
+        sqlCommand = prepareCommandInternWithGroup(sqlCommand, "([^a-zA-Z0-9])dbms_random\\.value", "\\2random()");
 
         sqlCommand = prepareCommandIntern(sqlCommand, " 999999999999999999999999999 ", " 9223372036854775807 ");
 

@@ -74,6 +74,19 @@ public abstract class AbstractConnectionDialect implements IConnectionDialect, I
     protected String schemaName;
     @Property(name = PersistenceJdbcConfigurationConstants.RegisterDriverEagerly, defaultValue = "true")
     protected boolean registerDriverEagerly;
+
+    @Property(name = PersistenceConfigurationConstants.BatchSize, defaultValue = "1000")
+    protected int batchSizeDefault;
+
+    @Property(name = PersistenceConfigurationConstants.PreparedBatchSize, defaultValue = "1000")
+    protected int preparedBatchSizeDefault;
+
+    @Property(name = PersistenceConfigurationConstants.BatchSize, mandatory = false)
+    protected int batchSize;
+
+    @Property(name = PersistenceConfigurationConstants.PreparedBatchSize, mandatory = false)
+    protected int preparedBatchSize;
+
     @Autowired(optional = true)
     protected TransactionManager transactionManager;
     protected String[] schemaNames;
@@ -217,6 +230,30 @@ public abstract class AbstractConnectionDialect implements IConnectionDialect, I
             DriverManager.deregisterDriver(driverRegisteredExplicitly);
             driverRegisteredExplicitly = null;
         }
+    }
+
+    @Override
+    public final int getBatchSize() {
+        if (batchSize > 0) {
+            return batchSize;
+        }
+        return getDefaultBatchSizeOfDialect();
+    }
+
+    protected int getDefaultBatchSizeOfDialect() {
+        return batchSizeDefault;
+    }
+
+    @Override
+    public final int getPreparedBatchSize() {
+        if (preparedBatchSize > 0) {
+            return preparedBatchSize;
+        }
+        return getDefaultPreparedBatchSizeOfDialect();
+    }
+
+    protected int getDefaultPreparedBatchSizeOfDialect() {
+        return preparedBatchSizeDefault;
     }
 
     @Override

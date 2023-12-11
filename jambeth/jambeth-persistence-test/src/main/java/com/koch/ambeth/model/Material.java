@@ -20,115 +20,116 @@ limitations under the License.
  * #L%
  */
 
-import java.util.Date;
-
 import com.koch.ambeth.util.annotation.EntityEqualsAspect;
 import com.koch.ambeth.util.annotation.XmlType;
+
+import java.util.Date;
 
 @XmlType
 @EntityEqualsAspect
 public class Material {
-	protected int id;
 
-	protected short version;
+    protected int id;
 
-	protected String name;
+    protected short version;
 
-	protected String buid;
+    protected String name;
 
-	protected Unit unit;
+    protected String buid;
 
-	protected MaterialGroup materialGroup;
+    protected Unit unit;
 
-	protected Date createdOn;
+    protected MaterialGroup materialGroup;
 
-	protected String createdBy;
+    protected Date createdOn;
 
-	protected Date updatedOn;
+    protected String createdBy;
 
-	protected String updatedBy;
+    protected Date updatedOn;
 
-	protected Material() {
-		// Intended blank
-	}
+    protected String updatedBy;
 
-	public int getId() {
-		return id;
-	}
+    protected Material() {
+        // Intended blank
+    }
 
-	public void setId(int id) {
-		this.id = id;
-	}
+    public int getId() {
+        return id;
+    }
 
-	public void setVersion(short version) {
-		this.version = version;
-	}
+    public void setId(int id) {
+        this.id = id;
+    }
 
-	public short getVersion() {
-		return version;
-	}
+    public short getVersion() {
+        return version;
+    }
 
-	public Date getCreatedOn() {
-		return createdOn;
-	}
+    public void setVersion(short version) {
+        this.version = version;
+    }
 
-	public void setCreatedOn(Date createdOn) {
-		this.createdOn = createdOn;
-	}
+    public Date getCreatedOn() {
+        return createdOn;
+    }
 
-	public String getCreatedBy() {
-		return createdBy;
-	}
+    public void setCreatedOn(Date createdOn) {
+        this.createdOn = createdOn;
+    }
 
-	public void setCreatedBy(String createdBy) {
-		this.createdBy = createdBy;
-	}
+    public String getCreatedBy() {
+        return createdBy;
+    }
 
-	public Date getUpdatedOn() {
-		return updatedOn;
-	}
+    public void setCreatedBy(String createdBy) {
+        this.createdBy = createdBy;
+    }
 
-	public void setUpdatedOn(Date updatedOn) {
-		this.updatedOn = updatedOn;
-	}
+    public Date getUpdatedOn() {
+        return updatedOn;
+    }
 
-	public String getUpdatedBy() {
-		return updatedBy;
-	}
+    public void setUpdatedOn(Date updatedOn) {
+        this.updatedOn = updatedOn;
+    }
 
-	public void setUpdatedBy(String updatedBy) {
-		this.updatedBy = updatedBy;
-	}
+    public String getUpdatedBy() {
+        return updatedBy;
+    }
 
-	public void setName(String name) {
-		this.name = name;
-	}
+    public void setUpdatedBy(String updatedBy) {
+        this.updatedBy = updatedBy;
+    }
 
-	public String getName() {
-		return name;
-	}
+    public String getName() {
+        return name;
+    }
 
-	public void setBuid(String buid) {
-		this.buid = buid;
-	}
+    public void setName(String name) {
+        this.name = name;
+    }
 
-	public String getBuid() {
-		return buid;
-	}
+    public String getBuid() {
+        return buid;
+    }
 
-	public void setUnit(Unit unit) {
-		this.unit = unit;
-	}
+    public void setBuid(String buid) {
+        this.buid = buid;
+    }
 
-	public Unit getUnit() {
-		return unit;
-	}
+    public Unit getUnit() {
+        return unit;
+    }
 
-	public void setMaterialGroup(MaterialGroup materialGroup) {
-		this.materialGroup = materialGroup;
-	}
+    public void setUnit(Unit unit) {
+        this.unit = unit;
+    }
 
-	public MaterialGroup getMaterialGroup() {
-		return materialGroup;
-	}
+    public MaterialGroup getMaterialGroup() {
+        return materialGroup;
+    }
+
+    public void setMaterialGroup(MaterialGroup materialGroup) {
+        this.materialGroup = materialGroup;
+    }
 }

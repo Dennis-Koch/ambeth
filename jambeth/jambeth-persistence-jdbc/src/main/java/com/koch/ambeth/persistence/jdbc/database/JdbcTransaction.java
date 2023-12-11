@@ -420,7 +420,7 @@ public class JdbcTransaction implements ILightweightTransaction, ITransaction, I
             var success = false;
             Throwable recoverableException = null;
             try {
-                R result = databaseCallback.callback(null);
+                var result = databaseCallback.callback(null);
                 if (!isActive(tli)) {
                     // during the callback no transaction has been opened & pending for close
                     // so we have nothing to do in this case
@@ -537,22 +537,22 @@ public class JdbcTransaction implements ILightweightTransaction, ITransaction, I
 
     @Override
     public void runInTransaction(final CheckedRunnable runnable) {
-        processAndCommit(persistenceUnitToDatabaseMap -> CheckedRunnable.invoke(runnable));
+        processAndCommit(persistenceUnitToDatabaseMap -> runnable.run(), false, false, false);
     }
 
     @Override
     public <R> R runInTransaction(final CheckedSupplier<R> runnable) {
-        return processAndCommitWithResult(persistenceUnitToDatabaseMap -> CheckedSupplier.invoke(runnable));
+        return processAndCommitWithResult(persistenceUnitToDatabaseMap -> runnable.get(), false, false, false);
     }
 
     @Override
     public void runInLazyTransaction(CheckedRunnable runnable) {
-        processAndCommit(persistenceUnitToDatabaseMap -> CheckedRunnable.invoke(runnable), false, false, true);
+        processAndCommit(persistenceUnitToDatabaseMap -> runnable.run(), false, false, true);
     }
 
     @Override
     public <R> R runInLazyTransaction(final CheckedSupplier<R> runnable) {
-        return processAndCommitWithResult(persistenceUnitToDatabaseMap -> CheckedSupplier.invoke(runnable), false, false, true);
+        return processAndCommitWithResult(persistenceUnitToDatabaseMap -> runnable.get(), false, false, true);
     }
 
     @Override

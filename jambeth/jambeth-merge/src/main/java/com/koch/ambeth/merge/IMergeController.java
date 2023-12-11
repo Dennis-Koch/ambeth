@@ -27,14 +27,13 @@ import com.koch.ambeth.merge.model.IRelationUpdateItem;
 import com.koch.ambeth.merge.model.RelationUpdateItemBuild;
 import com.koch.ambeth.merge.util.ValueHolderRef;
 import com.koch.ambeth.service.merge.model.IObjRef;
-import com.koch.ambeth.util.collections.IList;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.function.Function;
 
 public interface IMergeController {
-    void applyChangesToOriginals(ICUDResult cudResult, IOriCollection oriCollection, ICache cache);
+    void applyChangesToOriginals(ICUDResult cudResult, IOriCollection oriCollection, Function<Object, ICache> entityToAssociatedCaches);
 
     ICUDResult mergeDeep(Object obj, MergeHandle handle);
 
@@ -42,6 +41,6 @@ public interface IMergeController {
 
     RelationUpdateItemBuild createRUIBuild(String memberName, List<IObjRef> oldOriList, List<IObjRef> newOriList);
 
-    IList<Object> scanForInitializedObjects(Object obj, boolean isDeepMerge, Map<Class<?>, List<Object>> typeToObjectsToMerge, List<IObjRef> objRefs, List<IObjRef> privilegedObjRefs,
-            List<ValueHolderRef> valueHolderRefs, Set<ICache> recognizedCaches);
+    List<Object> scanForInitializedObjects(Object obj, boolean isDeepMerge, boolean dirtyOnly, Map<Class<?>, List<Object>> typeToObjectsToMerge, List<IObjRef> objRefs, List<IObjRef> privilegedObjRefs,
+            List<ValueHolderRef> valueHolderRefs, Map<Object, ICache> entityToAssociatedCaches);
 }

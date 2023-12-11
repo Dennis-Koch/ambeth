@@ -1047,7 +1047,7 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 
             var memberType = primitiveMember.getRealType();
             if (Collection.class.isAssignableFrom(memberType)) {
-                Collection existingCollection = (Collection) primitiveMember.getValue(obj, false);
+                var existingCollection = (Collection) primitiveMember.getValue(obj, false);
                 if (existingCollection != null) {
                     existingCollection.clear();
                     if (primitiveTemplate == null) {

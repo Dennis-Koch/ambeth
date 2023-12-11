@@ -20,146 +20,153 @@ limitations under the License.
  * #L%
  */
 
+import com.koch.ambeth.ioc.typeinfo.AbstractPropertyInfo;
+import com.koch.ambeth.util.collections.HashMap;
+
 import java.lang.annotation.Annotation;
 import java.util.Collection;
 
-import com.koch.ambeth.util.collections.HashMap;
-
 public class IntermediatePrimitiveMember extends PrimitiveMember implements IPrimitiveMemberWrite {
-	protected final String propertyName;
+    protected final String propertyName;
 
-	protected final Class<?> entityType;
+    protected final Class<?> entityType;
 
-	protected final Class<?> declaringType;
+    protected final Class<?> declaringType;
 
-	protected final Class<?> realType;
+    protected final Class<?> realType;
 
-	protected final Class<?> elementType;
+    protected final Class<?> elementType;
 
-	protected final HashMap<Class<?>, Annotation> annotationMap;
+    protected final Annotation[] annotations;
 
-	protected boolean technicalMember;
+    protected final HashMap<Class<?>, Annotation> annotationMap;
 
-	protected boolean isTransient;
+    protected boolean technicalMember;
 
-	protected PrimitiveMember definedBy;
+    protected boolean isTransient;
 
-	public IntermediatePrimitiveMember(Class<?> declaringType, Class<?> entityType, Class<?> realType,
-			Class<?> elementType, String propertyName, Annotation[] annotations) {
-		this.declaringType = declaringType;
-		this.entityType = entityType;
-		this.realType = realType;
-		this.elementType = elementType;
-		this.propertyName = propertyName;
-		if (annotations != null) {
-			annotationMap = new HashMap<>();
-			for (Annotation annotation : annotations) {
-				annotationMap.put(annotation.annotationType(), annotation);
-			}
-		}
-		else {
-			annotationMap = null;
-		}
-	}
+    protected PrimitiveMember definedBy;
 
-	@Override
-	public boolean canRead() {
-		return true;
-	}
+    public IntermediatePrimitiveMember(Class<?> declaringType, Class<?> entityType, Class<?> realType, Class<?> elementType, String propertyName, Annotation[] annotations) {
+        this.declaringType = declaringType;
+        this.entityType = entityType;
+        this.realType = realType;
+        this.elementType = elementType;
+        this.propertyName = propertyName;
+        if (annotations != null) {
+            annotationMap = new HashMap<>();
+            for (var annotation : annotations) {
+                annotationMap.put(annotation.annotationType(), annotation);
+            }
+            this.annotations = annotations;
+        } else {
+            annotationMap = null;
+            this.annotations = AbstractPropertyInfo.EMPTY_ANNOTATIONS;
+        }
+    }
 
-	@Override
-	public boolean canWrite() {
-		return true;
-	}
+    @Override
+    public boolean canRead() {
+        return true;
+    }
 
-	@Override
-	public String getName() {
-		return propertyName;
-	}
+    @Override
+    public boolean canWrite() {
+        return true;
+    }
 
-	@Override
-	public Class<?> getDeclaringType() {
-		return declaringType;
-	}
+    @Override
+    public String getName() {
+        return propertyName;
+    }
 
-	@Override
-	public Class<?> getRealType() {
-		return realType;
-	}
+    @Override
+    public Class<?> getDeclaringType() {
+        return declaringType;
+    }
 
-	@SuppressWarnings("unchecked")
-	@Override
-	public <V extends Annotation> V getAnnotation(Class<V> annotationType) {
-		return (V) annotationMap.get(annotationType);
-	}
+    @Override
+    public Class<?> getRealType() {
+        return realType;
+    }
 
-	protected RuntimeException createException() {
-		return new UnsupportedOperationException(
-				"This in an intermediate member which works only as a stub for a later bytecode-enhanced member");
-	}
+    @Override
+    public Annotation[] getAnnotations() {
+        return annotations;
+    }
 
-	@Override
-	public boolean isTechnicalMember() {
-		return technicalMember;
-	}
+    @SuppressWarnings("unchecked")
+    @Override
+    public <V extends Annotation> V getAnnotation(Class<V> annotationType) {
+        return (V) annotationMap.get(annotationType);
+    }
 
-	@Override
-	public void setTechnicalMember(boolean technicalMember) {
-		this.technicalMember = technicalMember;
-	}
+    protected RuntimeException createException() {
+        return new UnsupportedOperationException("This in an intermediate member which works only as a stub for a later bytecode-enhanced member");
+    }
 
-	@Override
-	public boolean isTransient() {
-		return isTransient;
-	}
+    @Override
+    public boolean isTechnicalMember() {
+        return technicalMember;
+    }
 
-	@Override
-	public void setTransient(boolean isTransient) {
-		this.isTransient = isTransient;
-	}
+    @Override
+    public void setTechnicalMember(boolean technicalMember) {
+        this.technicalMember = technicalMember;
+    }
 
-	@Override
-	public void setDefinedBy(PrimitiveMember definedBy) {
-		this.definedBy = definedBy;
-	}
+    @Override
+    public boolean isTransient() {
+        return isTransient;
+    }
 
-	@Override
-	public PrimitiveMember getDefinedBy() {
-		return definedBy;
-	}
+    @Override
+    public void setTransient(boolean isTransient) {
+        this.isTransient = isTransient;
+    }
 
-	@Override
-	public Object getNullEquivalentValue() {
-		throw createException();
-	}
+    @Override
+    public PrimitiveMember getDefinedBy() {
+        return definedBy;
+    }
 
-	@Override
-	public boolean isToMany() {
-		return Collection.class.isAssignableFrom(getRealType());
-	}
+    @Override
+    public void setDefinedBy(PrimitiveMember definedBy) {
+        this.definedBy = definedBy;
+    }
 
-	@Override
-	public Class<?> getElementType() {
-		return elementType;
-	}
+    @Override
+    public Object getNullEquivalentValue() {
+        throw createException();
+    }
 
-	@Override
-	public Class<?> getEntityType() {
-		return entityType;
-	}
+    @Override
+    public boolean isToMany() {
+        return Collection.class.isAssignableFrom(getRealType());
+    }
 
-	@Override
-	public Object getValue(Object obj) {
-		throw createException();
-	}
+    @Override
+    public Class<?> getElementType() {
+        return elementType;
+    }
 
-	@Override
-	public Object getValue(Object obj, boolean allowNullEquivalentValue) {
-		throw createException();
-	}
+    @Override
+    public Class<?> getEntityType() {
+        return entityType;
+    }
 
-	@Override
-	public void setValue(Object obj, Object value) {
-		throw createException();
-	}
+    @Override
+    public Object getValue(Object obj) {
+        throw createException();
+    }
+
+    @Override
+    public Object getValue(Object obj, boolean allowNullEquivalentValue) {
+        throw createException();
+    }
+
+    @Override
+    public void setValue(Object obj, Object value) {
+        throw createException();
+    }
 }

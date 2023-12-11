@@ -259,10 +259,13 @@ public class JDBCDatabaseTest extends AbstractInformationBusWithPersistenceTest 
         var materialService = beanContext.getService(IMaterialService.class);
         var cache = beanContext.getService(ICache.class);
 
+        var materialGroup = cache.getObject(MaterialGroup.class, "pl");
+        var unit = cache.getObject(Unit.class, 1);
+
         var material = entityFactory.createEntity(Material.class);
         material.setName("testCreatedUpdated");
-        material.setMaterialGroup(cache.getObject(MaterialGroup.class, "pl"));
-        material.setUnit(cache.getObject(Unit.class, 1));
+        material.setMaterialGroup(materialGroup);
+        material.setUnit(unit);
 
         assertNull(material.getCreatedOn());
         assertNull(material.getCreatedBy());

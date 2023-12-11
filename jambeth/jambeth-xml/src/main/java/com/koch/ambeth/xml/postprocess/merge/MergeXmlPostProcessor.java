@@ -87,15 +87,16 @@ public class MergeXmlPostProcessor implements IXmlPostProcessor, IStartingBean {
         }
 
         var childCache = cacheFactory.create(CacheFactoryDirective.NoDCE, "XmlMerge");
-        var mergeContext =
-                beanContext.createService("mergeXml", childContextFactory -> childContextFactory.registerAutowireableBean(MergeHandle.class, MergeHandle.class).propertyValue("Cache", childCache));
+        var mergeContext = beanContext.createService("mergeXml",
+                childContextFactory -> childContextFactory.registerAutowireableBean(MergeHandle.class, MergeHandle.class).propertyValue(MergeHandle.P_CACHE, childCache));
         try {
             var mutableToIdMap = writer.getMutableToIdMap();
             var objRefHelper = this.objRefHelper;
             var mergeHandle = mergeContext.getService(MergeHandle.class);
+            var objToObjRefMap = mergeHandle.getObjToObjRefMap();
             for (var entity : substitutedEntities) {
                 var ori = objRefHelper.entityToObjRef(entity);
-                mergeHandle.getObjToOriDict().put(entity, ori);
+                objToObjRefMap.put(entity, ori);
                 var id = mutableToIdMap.get(entity);
                 mutableToIdMap.put(ori, id);
             }

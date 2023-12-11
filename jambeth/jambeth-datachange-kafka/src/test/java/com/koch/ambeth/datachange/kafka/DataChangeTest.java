@@ -32,7 +32,7 @@ import com.koch.ambeth.event.IEventDispatcher;
 import com.koch.ambeth.event.IEventListener;
 import com.koch.ambeth.event.IEventListenerExtendable;
 import com.koch.ambeth.event.kafka.AmbethKafkaConfiguration;
-import com.koch.ambeth.event.kafka.AmbethKafkaJunitRule;
+import com.koch.ambeth.event.kafka.AmbethKafkaJUnitRuleLegacy;
 import com.koch.ambeth.event.kafka.config.EventKafkaConfigurationConstants;
 import com.koch.ambeth.event.kafka.ioc.EventKafkaModule;
 import com.koch.ambeth.informationbus.InformationBus;
@@ -49,13 +49,11 @@ import com.koch.ambeth.merge.cache.CacheDirective;
 import com.koch.ambeth.merge.transfer.ObjRef;
 import com.koch.ambeth.service.config.ServiceConfigurationConstants;
 import com.koch.ambeth.service.merge.IEntityMetaDataProvider;
-import com.koch.ambeth.service.merge.model.IEntityMetaData;
 import com.koch.ambeth.testutil.AbstractIocTest;
 import com.koch.ambeth.testutil.TestProperties;
 import com.koch.ambeth.testutil.TestPropertiesList;
 import com.koch.ambeth.testutil.category.SlowTests;
 import com.koch.ambeth.util.IClasspathScanner;
-import com.koch.ambeth.util.ParamHolder;
 import com.koch.ambeth.util.config.IProperties;
 import com.koch.ambeth.xml.ioc.XmlModule;
 import com.koch.ambeth.xml.util.ClasspathScanner;
@@ -67,6 +65,7 @@ import org.junit.experimental.categories.Category;
 import java.util.EnumSet;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Category(SlowTests.class)
 @TestPropertiesList({
@@ -102,7 +101,7 @@ import java.util.concurrent.TimeUnit;
 })
 public class DataChangeTest extends AbstractIocTest {
     @Rule
-    public AmbethKafkaJunitRule kafkaRule = new AmbethKafkaJunitRule();
+    public AmbethKafkaJUnitRuleLegacy kafkaRule = new AmbethKafkaJUnitRuleLegacy(this);
     @Autowired
     protected IProperties properties;
     @LogInstance
@@ -110,20 +109,13 @@ public class DataChangeTest extends AbstractIocTest {
 
     @Test
     public void test() throws Throwable {
-        Properties props = new Properties(properties);
+        var props = new Properties(properties);
 
-        props.put(AmbethKafkaConfiguration.buildAmbethProperty(AmbethKafkaConfiguration.ZOOKEEPER_URL), kafkaRule.zookeeperConnectionString());
-        // props.put("group.id", "group");
-        props.put(AmbethKafkaConfiguration.buildAmbethProperty(AmbethKafkaConfiguration.BROKER_URL), "localhost:" + kafkaRule.kafkaBrokerPort());
-        // props.put(EventToKafkaPublisher.AMBETH_KAFKA_PROP_PREFIX + "zookeeper.session.timeout.ms",
-        // "400");
-        // props.put(EventToKafkaPublisher.AMBETH_KAFKA_PROP_PREFIX + "zookeeper.sync.time.ms", "200");
-        // props.put(EventToKafkaPublisher.AMBETH_KAFKA_PROP_PREFIX + "auto.commit.interval.ms",
-        // "1000");
+        props.put(AmbethKafkaConfiguration.buildAmbethProperty(AmbethKafkaConfiguration.BROKER_URL), kafkaRule.kafkaBootstrapServers());
 
-        IAmbethApplication app1 = createAmbethKafkaApp(props);
+        var app1 = createAmbethKafkaApp(props);
         try {
-            IAmbethApplication app2 = createAmbethKafkaApp(props);
+            var app2 = createAmbethKafkaApp(props);
             try {
                 testContexts(app1.getApplicationContext(), app2.getApplicationContext());
             } finally {
@@ -151,19 +143,19 @@ public class DataChangeTest extends AbstractIocTest {
         // that entity
         // on success the cached entity should not be there any more
 
-        int messageCount = 1;
-        final ParamHolder<Integer> chunkCountPH = new ParamHolder<>(0);
-        final CountDownLatch latch = new CountDownLatch(1);
+        var messageCount = 1;
+        var chunkCountPH = new AtomicInteger();
+        var latch = new CountDownLatch(1);
         IRootCache leftRootCache;
         TestEntity testEntity;
         {
-            IEntityFactory entityFactory = left.getService(IEntityFactory.class);
-            IEntityMetaDataProvider entityMetaDataProvider = left.getService(IEntityMetaDataProvider.class);
+            var entityFactory = left.getService(IEntityFactory.class);
+            var entityMetaDataProvider = left.getService(IEntityMetaDataProvider.class);
             leftRootCache = left.getService(CacheModule.COMMITTED_ROOT_CACHE, IRootCache.class);
 
             // create cache entry in "left"
             testEntity = entityFactory.createEntity(TestEntity.class);
-            IEntityMetaData metaData = entityMetaDataProvider.getMetaData(TestEntity.class);
+            var metaData = entityMetaDataProvider.getMetaData(TestEntity.class);
             metaData.getIdMember().setIntValue(testEntity, 1);
             metaData.getVersionMember().setIntValue(testEntity, 1);
 
@@ -175,14 +167,14 @@ public class DataChangeTest extends AbstractIocTest {
                 @Override
                 public void handleEvent(Object eventObject, long dispatchTime, long sequenceId) throws Exception {
                     if (eventObject instanceof IDataChange && !((IDataChange) eventObject).isLocalSource()) {
-                        chunkCountPH.setValue(chunkCountPH.getValue().intValue() + 1);
+                        chunkCountPH.incrementAndGet();
                         latch.countDown();
                     }
                 }
             });
         }
         {
-            IEventDispatcher eventDispatcher = right.getService(IEventDispatcher.class);
+            var eventDispatcher = right.getService(IEventDispatcher.class);
 
             // eventDispatcher.enableEventQueue();
             try {
@@ -200,7 +192,7 @@ public class DataChangeTest extends AbstractIocTest {
         }
         latch.await(60000, TimeUnit.MILLISECONDS); // maybe 100ms can be fully sufficient but just to be
         // sure...
-        log.debug("Chunk Count: " + chunkCountPH.getValue());
+        log.debug("Chunk Count: " + chunkCountPH.get());
 
         {
             // ensure that entry in "left" is removed

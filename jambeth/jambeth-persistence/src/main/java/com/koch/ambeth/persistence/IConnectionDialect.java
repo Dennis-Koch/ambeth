@@ -106,6 +106,10 @@ public interface IConnectionDialect {
 
     IList<String> queryDefault(Connection connection, String resultColumnName, String sql, Object... args);
 
+    int getBatchSize();
+
+    int getPreparedBatchSize();
+
     int getMaxInClauseBatchThreshold();
 
     boolean isEmptyStringAsNullStored(IFieldMetaData field);

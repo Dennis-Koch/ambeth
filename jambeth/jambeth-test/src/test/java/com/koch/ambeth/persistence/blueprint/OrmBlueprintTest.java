@@ -32,7 +32,6 @@ import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.mapping.IMapperServiceFactory;
 import com.koch.ambeth.mapping.ioc.MappingModule;
 import com.koch.ambeth.merge.ITechnicalEntityTypeExtendable;
-import com.koch.ambeth.merge.config.IEntityMetaDataReader;
 import com.koch.ambeth.merge.orm.blueprint.IBlueprintOrmProvider;
 import com.koch.ambeth.merge.orm.blueprint.IBlueprintProvider;
 import com.koch.ambeth.merge.orm.blueprint.IBlueprintVomProvider;
@@ -66,21 +65,24 @@ import org.junit.Test;
 public class OrmBlueprintTest extends AbstractInformationBusWithPersistenceTest {
     public static final String AMBETH_PERSISTENCE_BLUEPRINT_TEST_CLASS = "com.koch.ambeth.persistence.blueprint.TestClass";
     public static final String AMBETH_PERSISTENCE_BLUEPRINT_TEST_CLASS_PROP = "Something";
-    @Autowired(XmlBlueprintModule.JAVASSIST_ORM_ENTITY_TYPE_PROVIDER)
-    protected JavassistOrmEntityTypeProvider entityTypeProvider;
-    @Autowired
-    protected IPropertyInfoProvider propertyInfoProvider;
-    @Autowired
-    protected IEntityMetaDataReader entityMetaDataReader;
-    @Autowired
-    protected IMapperServiceFactory mapperServiceFactory;
+
     @Autowired
     protected IAuditConfigurationProvider auditConfigurationProvider;
+
+    @Autowired(XmlBlueprintModule.JAVASSIST_ORM_ENTITY_TYPE_PROVIDER)
+    protected JavassistOrmEntityTypeProvider entityTypeProvider;
+
+    @Autowired
+    protected IMapperServiceFactory mapperServiceFactory;
+
+    @Autowired
+    protected IPropertyInfoProvider propertyInfoProvider;
+
     @LogInstance
     private ILogger log;
 
     @Test
-    public void testIntatiateBlueprintedEntity() throws Throwable {
+    public void testInitiatiateBlueprintedEntity() throws Throwable {
         var resolveEntityType = entityTypeProvider.resolveEntityType(AMBETH_PERSISTENCE_BLUEPRINT_TEST_CLASS);
         Assert.assertNotNull(resolveEntityType);
 

@@ -31,7 +31,6 @@ import com.koch.ambeth.service.cache.model.ILoadContainer;
 import com.koch.ambeth.service.merge.IEntityMetaDataProvider;
 import com.koch.ambeth.service.merge.model.IEntityMetaData;
 import com.koch.ambeth.service.merge.model.IObjRef;
-import com.koch.ambeth.service.metadata.Member;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.IList;
 
@@ -166,18 +165,23 @@ public class ObjRefHelper implements IObjRefHelper {
             return (IObjRef) obj;
         }
         var metaData = ((IEntityMetaDataHolder) obj).get__EntityMetaData();
-        return oriProvider.getORI(obj, metaData);
+        return oriProvider.getObjRef(obj, metaData);
     }
 
     @Override
-    public IObjRef getCreateObjRef(Object obj, MergeHandle mergeHandle) {
+    public IObjRef getCreateObjRef(Object obj, IObjRefHelperState state) {
         if (obj == null) {
             return null;
+        } else if (obj instanceof Optional opt) {
+            if (!opt.isPresent()) {
+                return null;
+            }
+            obj = opt.get();
         }
         IObjRef objRef = null;
-        var objToOriDict = mergeHandle != null ? mergeHandle.objToOriDict : null;
-        if (objToOriDict != null) {
-            objRef = objToOriDict.get(obj);
+        var objToObjRefDict = state != null ? state.getObjToObjRefMap() : null;
+        if (objToObjRefDict != null) {
+            objRef = objToObjRefDict.get(obj);
         }
         if (objRef != null) {
             return objRef;
@@ -196,7 +200,7 @@ public class ObjRefHelper implements IObjRefHelper {
         } else {
             keyValue = metaData.getIdMember().getValue(obj, false);
         }
-        if (keyValue == null || mergeHandle != null && mergeHandle.isHandleExistingIdAsNewId()) {
+        if (keyValue == null || state != null && state.isHandleExistingIdAsNewId()) {
             var dirOri = new DirectObjRef(metaData.getEntityType(), obj);
             if (keyValue != null) {
                 dirOri.setId(keyValue);
@@ -207,24 +211,24 @@ public class ObjRefHelper implements IObjRefHelper {
             if (obj instanceof AbstractCacheValue) {
                 version = ((AbstractCacheValue) obj).getVersion();
             } else {
-                Member versionMember = metaData.getVersionMember();
+                var versionMember = metaData.getVersionMember();
                 version = versionMember != null ? versionMember.getValue(obj, true) : null;
             }
             objRef = objRefFactory.createObjRef(metaData.getEntityType(), ObjRef.PRIMARY_KEY_INDEX, keyValue, version);
         }
-        if (objToOriDict != null) {
-            objToOriDict.put(obj, objRef);
+        if (objToObjRefDict != null) {
+            objToObjRefDict.put(obj, objRef);
 
-            var oriToObjDict = mergeHandle != null ? mergeHandle.oriToObjDict : null;
-            if (oriToObjDict != null) {
-                oriToObjDict.putIfNotExists(objRef, obj);
+            var objRefToObjDict = state != null ? state.getObjRefToObjMap() : null;
+            if (objRefToObjDict != null) {
+                objRefToObjDict.putIfAbsent(objRef, obj);
             }
         }
         return objRef;
     }
 
-    protected void getCreateORIs(Object obj, MergeHandle mergeHandle, List<IObjRef> targetList, EntityCallback entityCallback) {
-        var ori = getCreateObjRef(obj, mergeHandle);
+    protected void getCreateORIs(Object obj, IObjRefHelperState state, List<IObjRef> targetList, EntityCallback entityCallback) {
+        var ori = getCreateObjRef(obj, state);
         targetList.add(ori);
         if (entityCallback != null) {
             entityCallback.callback(obj);

@@ -280,7 +280,7 @@ public class AmbethPersistenceSetup implements Closeable {
         }
     }
 
-    private static void handleSqlCommand(String command, final Statement stmt, final Map<String, Object> defaultOptions, IConnectionDialect connectionDialect) throws SQLException {
+    private static void handleSqlCommand(String command, Statement stmt, Map<String, Object> defaultOptions, IConnectionDialect connectionDialect) throws SQLException {
         var options = defaultOptions;
         var optionLine = AmbethPersistenceSetup.optionLine.matcher(command.trim());
         if (optionLine.find()) {
@@ -436,13 +436,13 @@ public class AmbethPersistenceSetup implements Closeable {
                 if (line.isEmpty()) {
                     continue allLines;
                 }
-                for (Pattern comment : sqlComments) {
+                for (var comment : sqlComments) {
                     if (comment.matcher(line).matches()) {
                         continue allLines;
                     }
                 }
                 if (endToLookFor == null) {
-                    for (Pattern ignore : ignoreOutside) {
+                    for (var ignore : ignoreOutside) {
                         if (ignore.matcher(line).matches()) {
                             continue allLines;
                         }

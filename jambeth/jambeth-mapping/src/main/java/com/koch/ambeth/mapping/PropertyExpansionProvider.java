@@ -20,101 +20,95 @@ limitations under the License.
  * #L%
  */
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
-
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.service.merge.IEntityMetaDataProvider;
 import com.koch.ambeth.service.merge.model.IEntityMetaData;
 import com.koch.ambeth.service.metadata.Member;
 import com.koch.ambeth.util.ParamChecker;
-import com.koch.ambeth.util.collections.AbstractTuple2KeyHashMap;
 import com.koch.ambeth.util.collections.Tuple2KeyHashMap;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
 public class PropertyExpansionProvider implements IPropertyExpansionProvider {
-	@Autowired
-	protected IEntityMetaDataProvider entityMetaDataProvider;
+    protected final Lock writeLock = new ReentrantLock();
+    @Autowired
+    protected IEntityMetaDataProvider entityMetaDataProvider;
+    protected Tuple2KeyHashMap<Class<?>, String, PropertyExpansion> propertyExpansionCache = new Tuple2KeyHashMap<>();
 
-	protected Tuple2KeyHashMap<Class<?>, String, PropertyExpansion> propertyExpansionCache = new Tuple2KeyHashMap<>();
+    @Override
+    public PropertyExpansion getPropertyExpansion(Class<?> entityType, String propertyPath) {
+        ParamChecker.assertParamNotNull(entityType, "entityType");
+        ParamChecker.assertParamNotNull(propertyPath, "propertyPath");
 
-	protected final Lock writeLock = new ReentrantLock();
+        var propertyExpansion = propertyExpansionCache.get(entityType, propertyPath);
+        if (propertyExpansion != null) {
+            return propertyExpansion;
+        }
+        // we have a cache miss. create the propertyExpansion
+        propertyExpansion = getPropertyExpansionIntern(entityType, propertyPath);
+        if (propertyExpansion == null) {
+            return propertyExpansion;
+        }
+        // here: COPY-ON-WRITE pattern to be threadsafe with reads (above) without a lock. This makes sense because after a limited "warmup" phase there will not be a cache miss anymore at runtime
+        writeLock.lock();
+        try {
+            propertyExpansion = propertyExpansionCache.get(entityType, propertyPath);
+            if (propertyExpansion != null) {
+                // concurrent thread was faster
+                return propertyExpansion;
+            }
+            var propertyExpansionCache = Tuple2KeyHashMap.<Class<?>, String, PropertyExpansion>create(this.propertyExpansionCache.size() + 1);
+            propertyExpansionCache.putAll(this.propertyExpansionCache);
+            if (!propertyExpansionCache.putIfNotExists(entityType, propertyPath, propertyExpansion)) {
+                return propertyExpansionCache.get(entityType, propertyPath);
+            }
+            this.propertyExpansionCache = propertyExpansionCache;
+            return propertyExpansion;
+        } finally {
+            writeLock.unlock();
+        }
+    }
 
-	@Override
-	public PropertyExpansion getPropertyExpansion(Class<?> entityType, String propertyPath) {
-		ParamChecker.assertParamNotNull(entityType, "entityType");
-		ParamChecker.assertParamNotNull(propertyPath, "propertyPath");
+    protected PropertyExpansion getPropertyExpansionIntern(Class<?> entityType, String propertyPath) {
+        var metaData = entityMetaDataProvider.getMetaData(entityType);
 
-		PropertyExpansion propertyExpansion = propertyExpansionCache.get(entityType, propertyPath);
-		if (propertyExpansion != null) {
-			return propertyExpansion;
-		}
-		// we have a cache miss. create the propertyExpansion
-		propertyExpansion = getPropertyExpansionIntern(entityType, propertyPath);
-		if (propertyExpansion == null) {
-			return propertyExpansion;
-		}
-		// here: COPY-ON-WRITE pattern to be threadsafe with reads (above) without a lock. This makes
-		// sense because after a limited "warmup" phase there will
-		// not be a cache miss any more with further runtime
-		writeLock.lock();
-		try {
-			Tuple2KeyHashMap<Class<?>, String, PropertyExpansion> propertyExpansionCache = new Tuple2KeyHashMap<>(
-					(int) (this.propertyExpansionCache.size() / AbstractTuple2KeyHashMap.DEFAULT_LOAD_FACTOR)
-							+ 2);
-			propertyExpansionCache.putAll(this.propertyExpansionCache);
-			if (!propertyExpansionCache.putIfNotExists(entityType, propertyPath, propertyExpansion)) {
-				return propertyExpansionCache.get(entityType, propertyPath);
-			}
-			this.propertyExpansionCache = propertyExpansionCache;
-			return propertyExpansion;
-		}
-		finally {
-			writeLock.unlock();
-		}
-	}
+        if (entityType == null) {
+            return null;
+        }
 
-	protected PropertyExpansion getPropertyExpansionIntern(Class<?> entityType, String propertyPath) {
-		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(entityType);
+        var path = getPath(propertyPath);
+        var memberPath = new Member[path.size()];
+        var metaDataPath = new IEntityMetaData[path.size()];
+        Class<?> lastType = null;
+        for (int a = 0, size = path.size(); a < size; a++) {
+            var pathToken = path.get(a);
+            if (metaData == null) {
+                throw new IllegalArgumentException("Could not find metaData for:" + (lastType == null ? "null" : lastType.toString()));
+            }
+            var member = metaData.getMemberByName(pathToken);
+            if (member == null) {
+                throw new IllegalArgumentException("The provided propertyPath can not be resolved. Check: " + pathToken + " (Hint: propertyNames need to start with an UpperCase letter!)");
+            }
+            memberPath[a] = member;
+            // get next metaData
+            metaData = entityMetaDataProvider.getMetaData(member.getRealType(), true);
+            metaDataPath[a] = metaData;
+            lastType = member.getRealType();
+        }
 
-		if (entityType == null) {
-			return null;
-		}
+        var propertyExpansion = new PropertyExpansion(memberPath, metaDataPath);
+        return propertyExpansion;
+    }
 
-		List<String> path = getPath(propertyPath);
-		Member[] memberPath = new Member[path.size()];
-		IEntityMetaData[] metaDataPath = new IEntityMetaData[path.size()];
-		Class<?> lastType = null;
-		for (int a = 0, size = path.size(); a < size; a++) {
-			String pathToken = path.get(a);
-			if (metaData == null) {
-				throw new IllegalArgumentException(
-						"Could not find metaData for:" + (lastType == null ? "null" : lastType.toString()));
-			}
-			Member member = metaData.getMemberByName(pathToken);
-			if (member == null) {
-				throw new IllegalArgumentException("The provided propertyPath can not be resolved. Check: "
-						+ pathToken + " (Hint: propertyNames need to start with an UpperCase letter!)");
-			}
-			memberPath[a] = member;
-			// get next metaData
-			metaData = entityMetaDataProvider.getMetaData(member.getRealType(), true);
-			metaDataPath[a] = metaData;
-			lastType = member.getRealType();
-		}
+    protected List<String> getPath(String propertyPath) {
+        var pathTokens = propertyPath.split("\\.");
+        if (pathTokens != null) {
+            return Arrays.asList(pathTokens);
+        }
 
-		PropertyExpansion propertyExpansion = new PropertyExpansion(memberPath, metaDataPath);
-		return propertyExpansion;
-	}
-
-	protected List<String> getPath(String propertyPath) {
-		String[] pathTokens = propertyPath.split("\\.");
-		if (pathTokens != null) {
-			return Arrays.asList(pathTokens);
-		}
-
-		return Collections.emptyList();
-	}
+        return List.of();
+    }
 }

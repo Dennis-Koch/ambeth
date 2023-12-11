@@ -23,6 +23,7 @@ limitations under the License.
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.config.Property;
 import com.koch.ambeth.ioc.extendable.ExtendableContainer;
+import com.koch.ambeth.ioc.garbageproxy.IGCProxy;
 import com.koch.ambeth.merge.cache.CacheDirective;
 import com.koch.ambeth.merge.cache.CacheFactoryDirective;
 import com.koch.ambeth.merge.cache.ICache;
@@ -56,6 +57,7 @@ import com.koch.ambeth.service.merge.IEntityMetaDataProvider;
 import com.koch.ambeth.service.merge.model.IEntityMetaData;
 import com.koch.ambeth.service.merge.model.IObjRef;
 import com.koch.ambeth.service.metadata.Member;
+import com.koch.ambeth.service.metadata.RelationMember;
 import com.koch.ambeth.util.Arrays;
 import com.koch.ambeth.util.IConversionHelper;
 import com.koch.ambeth.util.collections.ArrayList;
@@ -63,6 +65,7 @@ import com.koch.ambeth.util.collections.EmptySet;
 import com.koch.ambeth.util.collections.HashSet;
 import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.ISet;
+import com.koch.ambeth.util.collections.IdentityHashMap;
 import com.koch.ambeth.util.collections.IdentityHashSet;
 import com.koch.ambeth.util.collections.LinkedHashMap;
 import com.koch.ambeth.util.model.IDataObject;
@@ -77,6 +80,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.function.Predicate;
 
 public class MergeController implements IMergeController, IMergeExtendable {
     protected static final Set<CacheDirective> failEarlyAndReturnMissesSet = EnumSet.of(CacheDirective.FailEarly, CacheDirective.ReturnMisses);
@@ -102,7 +107,9 @@ public class MergeController implements IMergeController, IMergeExtendable {
     @Autowired
     protected IObjRefFactory objRefFactory;
     @Autowired
-    protected IObjRefHelper oriHelper;
+    protected IObjRefHelper objRefHelper;
+    @Autowired
+    protected IRevertChangesHelper revertChangesHelper;
     @Autowired
     protected ISecurityActivation securityActivation;
     @Property(name = MergeConfigurationConstants.ExactVersionForOptimisticLockingRequired, defaultValue = "false")
@@ -162,8 +169,8 @@ public class MergeController implements IMergeController, IMergeExtendable {
             mergeOrPersist(value, handle);
         }
         try {
-            var oldOriList = oriHelper.extractObjRefList(cloneValue, handle, handle.getOldOrList());
-            var newOriList = oriHelper.extractObjRefList(value, handle, handle.getNewOrList());
+            var oldOriList = objRefHelper.extractObjRefList(cloneValue, handle, handle.getOldOrList());
+            var newOriList = objRefHelper.extractObjRefList(value, handle, handle.getNewOrList());
 
             var oriModItem = createRUI(memberName, oldOriList, newOriList);
             if (oriModItem == null) {
@@ -180,16 +187,15 @@ public class MergeController implements IMergeController, IMergeExtendable {
     }
 
     @Override
-    public void applyChangesToOriginals(ICUDResult cudResult, IOriCollection oriCollection, ICache cache) {
+    public void applyChangesToOriginals(ICUDResult cudResult, IOriCollection oriCollection, Function<Object, ICache> entityToAssociatedCaches) {
         if (guiThreadHelper.isInGuiThread()) {
-            applyChangesToOriginalsIntern(cudResult, oriCollection, cache);
+            applyChangesToOriginalsIntern(cudResult, oriCollection, entityToAssociatedCaches);
             return;
         }
-        guiThreadHelper.invokeInGuiAndWait(() -> applyChangesToOriginalsIntern(cudResult, oriCollection, cache));
+        guiThreadHelper.invokeInGuiAndWait(() -> applyChangesToOriginalsIntern(cudResult, oriCollection, entityToAssociatedCaches));
     }
 
-    protected void applyChangesToOriginalsIntern(ICUDResult cudResult, IOriCollection oriCollection, ICache cache) {
-        var cacheModification = this.cacheModification;
+    protected void applyChangesToOriginalsIntern(ICUDResult cudResult, IOriCollection oriCollection, Function<Object, ICache> entityToAssociatedCaches) {
         var conversionHelper = this.conversionHelper;
         var entityMetaDataProvider = this.entityMetaDataProvider;
         var allChanges = cudResult.getAllChanges();
@@ -200,10 +206,8 @@ public class MergeController implements IMergeController, IMergeExtendable {
         var singleChangedBy = oriCollection.getChangedBy();
         var singleChangedOn = oriCollection.getChangedOn();
 
-        var newInstanceOnCall = cacheProvider.isNewInstanceOnCall();
-        var oldCacheModificationValue = cacheModification.isActive();
         var validObjects = new ArrayList<>(originalRefs.size());
-        cacheModification.setActive(true);
+        var rollback = cacheModification.pushActive();
         try {
             for (int a = originalRefs.size(); a-- > 0; ) {
                 var originalRef = originalRefs.get(a);
@@ -269,9 +273,9 @@ public class MergeController implements IMergeController, IMergeExtendable {
                     validObjects.add(originalRef);
                 }
             }
-            putInstancesToCurrentCache(validObjects, cache);
+            putInstancesToCurrentCache(validObjects, entityToAssociatedCaches);
         } finally {
-            cacheModification.setActive(oldCacheModificationValue);
+            rollback.rollback();
         }
     }
 
@@ -656,7 +660,7 @@ public class MergeController implements IMergeController, IMergeExtendable {
 
         var compareResult = ((Comparable) versionToMerge).compareTo(currentVersion);
         if (exactVersionForOptimisticLockingRequired ? compareResult != 0 : compareResult < 0) {
-            throw OptimisticLockUtil.throwModified(oriHelper.entityToObjRef(clone), versionToMerge, obj);
+            throw OptimisticLockUtil.throwModified(objRefHelper.entityToObjRef(clone), versionToMerge, obj);
         }
     }
 
@@ -670,9 +674,7 @@ public class MergeController implements IMergeController, IMergeExtendable {
         var objRefs = new ArrayList<IObjRef>();
         var privilegedObjRefs = new ArrayList<IObjRef>();
         var valueHolderKeys = new ArrayList<ValueHolderRef>();
-        var recognizedCaches = new IdentityHashSet<ICache>();
-        var objectsToMerge = scanForInitializedObjects(obj, handle.isDeepMerge(), typeToObjectsToMerge, objRefs, privilegedObjRefs, valueHolderKeys, recognizedCaches);
-        handle.setRecognizedCaches(recognizedCaches);
+        var objectsToMerge = scanForInitializedObjects(obj, handle.isDeepMerge(), true, typeToObjectsToMerge, objRefs, privilegedObjRefs, valueHolderKeys, handle.getEntityToAssociatedCaches());
         var hardRef = new ArrayList<>();
         // Load all requested object originals in one roundtrip
         try {
@@ -805,7 +807,7 @@ public class MergeController implements IMergeController, IMergeExtendable {
         }
         var clone = cache.getObject(metaData.getEntityType(), key, CacheDirective.none());
         if (clone == null) {
-            throw OptimisticLockUtil.throwDeleted(oriHelper.entityToObjRef(obj), obj);
+            throw OptimisticLockUtil.throwDeleted(objRefHelper.entityToObjRef(obj), obj);
         }
         merge(obj, clone, handle);
     }
@@ -857,12 +859,148 @@ public class MergeController implements IMergeController, IMergeExtendable {
         }
     }
 
-    protected void putInstancesToCurrentCache(List<Object> validObjects, ICache cache) {
+    protected void putInstancesToCurrentCache(List<Object> validObjects, Function<Object, ICache> entityToAssociatedCaches) {
         if (validObjects.isEmpty() || !MergeProcess.isAddNewlyPersistedEntities()) {
             return;
         }
-        var currentCache = cache != null ? (IWritableCache) cache : (IWritableCache) cacheProvider.getCurrentCache();
+        if (entityToAssociatedCaches != null) {
+            var cacheToEntitiesMap = buildCacheToEntitiesMap(validObjects, entityToAssociatedCaches);
+            var rollback = cacheModification.pushActive();
+            try {
+                var objToObjRefMap = new IdentityHashMap<Object, IObjRef>();
+                var objRefCache = new IObjRefHelper.IObjRefHelperState() {
+                    @Override
+                    public Map<Object, IObjRef> getObjToObjRefMap() {
+                        return objToObjRefMap;
+                    }
+                };
+                for (var entry : cacheToEntitiesMap) {
+                    var cache = entry.getKey();
+                    var entities = entry.getValue();
+
+                    var objRefs = new ArrayList<IObjRef>();
+                    var privilegedObjRefs = new ArrayList<IObjRef>();
+                    var valueHolderKeys = new ArrayList<ValueHolderRef>();
+
+                    var unownedObjectsToCache = new ArrayList<>();
+                    var objRefsToFetchFromCache = new ArrayList<IObjRef>();
+                    var entitiesToRefresh = new IdentityHashSet<>();
+                    var alreadyHandled = new IdentityHashSet<>();
+                    deepScanRecursion.handleDeep(entities, new IDeepScanRecursion.EntityDelegate() {
+                        Object parent;
+
+                        RelationMember parentMember;
+
+                        @Override
+                        public boolean visitEntity(Object entity, IDeepScanRecursion.Proceed proceed) {
+                            var cacheOfEntity = ((IObjRefContainer) entity).get__Cache();
+                            if (cacheOfEntity == null) {
+                                unownedObjectsToCache.add(entity);
+                            } else if (cacheOfEntity instanceof IGCProxy gcProxy) {
+                                cacheOfEntity = (IWritableCache) gcProxy.getGCProxyTarget();
+                            }
+                            if (cacheOfEntity == cache) {
+                                // cache of this nested entity is in sync with the outer cache. nothing to do
+                                return true;
+                            }
+                            if (parent != null) {
+                                var objRef = objRefHelper.getCreateObjRef(entity, objRefCache);
+                                objRefsToFetchFromCache.add(objRef);
+                                entitiesToRefresh.add(parent);
+                                // clear the relation from parent to this entity as we must refetch it from the correct cache and relink it from the parent entity
+                                if (parentMember.isToMany()) {
+                                    ((Collection<?>) parentMember.getValue(parent, false)).clear();
+                                } else {
+                                    parentMember.setValue(parent, null);
+                                }
+                            }
+                            if (!alreadyHandled.add(entity)) {
+                                return true;
+                            }
+                            var relationMembers = ((IEntityMetaDataHolder) entity).get__EntityMetaData().getRelationMembers();
+                            if (relationMembers.length == 0) {
+                                return true;
+                            }
+                            var oldParent = parent;
+                            var oldParentMember = parentMember;
+                            parent = entity;
+                            try {
+                                var vhc = (IObjRefContainer) entity;
+                                for (int relationIndex = relationMembers.length; relationIndex-- > 0; ) {
+                                    if (!vhc.is__Initialized(relationIndex)) {
+                                        continue;
+                                    }
+                                    var relationMember = relationMembers[relationIndex];
+                                    var item = relationMember.getValue(entity);
+                                    if (item == null) {
+                                        continue;
+                                    }
+                                    parentMember = relationMember;
+                                    if (!proceed.proceed(item)) {
+                                        return false;
+                                    }
+                                }
+                                return true;
+                            } finally {
+                                parent = oldParent;
+                                parentMember = oldParentMember;
+                            }
+                        }
+                    }, false);
+
+                    //                    var entitiesRecursive = scanForInitializedObjects(entities, true, false, null, objRefs, privilegedObjRefs, valueHolderKeys, null);
+
+                    var fetchedHardRefs = cache.getObjects(objRefsToFetchFromCache, CacheDirective.cacheValueResult());
+
+                    var fixWrongTransitiveCacheReferences = false;
+                    //                    for (var entity : entitiesRecursive) {
+                    //                        var cacheOfEntity = ((IObjRefContainer) entity).get__Cache();
+                    //                        if (cacheOfEntity == null) {
+                    //                            unownedObjectsToCache.add(entity);
+                    //                            continue;
+                    //                        }
+                    //                        if (cacheOfEntity instanceof IGCProxy gcProxy) {
+                    //                            cacheOfEntity = (IWritableCache) gcProxy.getGCProxyTarget();
+                    //                        }
+                    //                        if (cacheOfEntity != cache) {
+                    //                            fixWrongTransitiveCacheReferences = true;
+                    //                        }
+                    //                    }
+
+                    if (!unownedObjectsToCache.isEmpty()) {
+                        cache.put(unownedObjectsToCache);
+                    }
+                    if (!entitiesToRefresh.isEmpty()) {
+                        revertChangesHelper.revertChanges(entitiesToRefresh, null, false, false);
+                    }
+                }
+                return;
+            } finally {
+                rollback.rollback();
+            }
+        }
+        var currentCache = (IWritableCache) cacheProvider.getCurrentCache();
         currentCache.put(validObjects);
+    }
+
+    private IdentityHashMap<IWritableCache, List<Object>> buildCacheToEntitiesMap(List<Object> validObjects, Function<Object, ICache> entityToAssociatedCaches) {
+        IWritableCache currentCache = null;
+        var cacheToEntitiesMap = new IdentityHashMap<IWritableCache, List<Object>>();
+        for (var validObject : validObjects) {
+            var cache = (IWritableCache) entityToAssociatedCaches.apply(validObject);
+            if (cache == null) {
+                if (currentCache == null) {
+                    currentCache = (IWritableCache) cacheProvider.getCurrentCache();
+                }
+                cache = currentCache;
+            }
+            if (cache instanceof IGCProxy gcProxy) {
+                cache = (IWritableCache) gcProxy.getGCProxyTarget();
+            }
+            var entities = cacheToEntitiesMap.computeIfAbsent(cache, key -> new ArrayList<>());
+            entities.add(validObject);
+        }
+        return cacheToEntitiesMap;
     }
 
     @Override
@@ -871,65 +1009,86 @@ public class MergeController implements IMergeController, IMergeExtendable {
     }
 
     @Override
-    public IList<Object> scanForInitializedObjects(Object obj, boolean isDeepMerge, Map<Class<?>, List<Object>> typeToObjectsToMerge, List<IObjRef> objRefs, List<IObjRef> privilegedObjRefs,
-            List<ValueHolderRef> valueHolderKeys, Set<ICache> recognizedCaches) {
+    public IList<Object> scanForInitializedObjects(Object obj, boolean isDeepMerge, boolean dirtyOnly, Map<Class<?>, List<Object>> typeToObjectsToMerge, List<IObjRef> objRefs,
+            List<IObjRef> privilegedObjRefs, List<ValueHolderRef> valueHolderKeys, Map<Object, ICache> entityToAssociatedCaches) {
         var objects = new ArrayList<>();
+        var cacheTraversalStack = entityToAssociatedCaches != null ? new ArrayList<ICache>() : null;
+        var isFilterActivated = securityActivation.isFilterActivated();
+        Predicate<IDataObject> dataObjectPredicate = dirtyOnly ? dataObject -> dataObject.hasPendingChanges() : dataObject -> true;
         deepScanRecursion.handleDeep(obj, new IDeepScanRecursion.EntityDelegate() {
             @Override
             public boolean visitEntity(Object entity, IDeepScanRecursion.Proceed proceed) {
-                if (recognizedCaches != null) {
-                    var cache = ((IObjRefContainer) entity).get__Cache();
+                ICache cache = null;
+                if (entityToAssociatedCaches != null) {
+                    cache = ((IObjRefContainer) entity).get__Cache();
                     if (cache != null) {
-                        recognizedCaches.add(cache);
+                        entityToAssociatedCaches.put(entity, cache);
+                        cacheTraversalStack.add(cache);
+                    } else if (!cacheTraversalStack.isEmpty()) {
+                        // this is presumably a new entity which may potentially be referenced by an existing entity owned by an existing cache instance
+                        cache = cacheTraversalStack.peek();
+                        entityToAssociatedCaches.put(entity, cache);
                     }
                 }
-                var metaData = ((IEntityMetaDataHolder) entity).get__EntityMetaData();
-                IObjRef objRef = null;
-                if (objects != null || objRefs != null || privilegedObjRefs != null || valueHolderKeys != null) {
-                    objRef = markObjRef(typeToObjectsToMerge, objRefs, privilegedObjRefs, entity, metaData, objects);
-                }
-                if (!isDeepMerge) {
+                try {
+                    IEntityMetaData metaData = null;
+                    IObjRef objRef = null;
+                    if (objects != null || objRefs != null || privilegedObjRefs != null || valueHolderKeys != null) {
+                        metaData = ((IEntityMetaDataHolder) entity).get__EntityMetaData();
+                        objRef = markObjRef(typeToObjectsToMerge, objRefs, privilegedObjRefs, entity, metaData, objects, isFilterActivated, dataObjectPredicate);
+                    } else {
+
+                    }
+                    if (!isDeepMerge) {
+                        return true;
+                    }
+                    if (metaData == null) {
+                        metaData = ((IEntityMetaDataHolder) entity).get__EntityMetaData();
+                    }
+                    var relationMembers = metaData.getRelationMembers();
+                    if (relationMembers.length == 0) {
+                        return true;
+                    }
+                    var vhc = (IObjRefContainer) entity;
+                    for (int relationIndex = relationMembers.length; relationIndex-- > 0; ) {
+                        if (!vhc.is__Initialized(relationIndex)) {
+                            continue;
+                        }
+                        var relationMember = relationMembers[relationIndex];
+                        var item = relationMember.getValue(entity);
+                        if (valueHolderKeys != null && objRef != null && item != null) {
+                            var vhk = new ValueHolderRef(objRef, relationMember, relationIndex);
+                            valueHolderKeys.add(vhk);
+                        }
+                        if (!proceed.proceed(item)) {
+                            return false;
+                        }
+                    }
                     return true;
-                }
-                var relationMembers = metaData.getRelationMembers();
-                if (relationMembers.length == 0) {
-                    return true;
-                }
-                var vhc = (IObjRefContainer) entity;
-                for (int relationIndex = relationMembers.length; relationIndex-- > 0; ) {
-                    if (!vhc.is__Initialized(relationIndex)) {
-                        continue;
-                    }
-                    var relationMember = relationMembers[relationIndex];
-                    var item = relationMember.getValue(entity);
-                    if (valueHolderKeys != null && objRef != null && item != null) {
-                        var vhk = new ValueHolderRef(objRef, relationMember, relationIndex);
-                        valueHolderKeys.add(vhk);
-                    }
-                    if (!proceed.proceed(item)) {
-                        return false;
+                } finally {
+                    if (cacheTraversalStack != null && cache != null) {
+                        cacheTraversalStack.popLastElement();
                     }
                 }
-                return true;
             }
-        });
+        }, true);
         return objects;
     }
 
-    private IObjRef markObjRef(Map<Class<?>, List<Object>> typeToObjectsToMerge, List<IObjRef> objRefs, List<IObjRef> privilegedObjRefs, Object entity, IEntityMetaData metaData,
-            List<Object> objects) {
+    private IObjRef markObjRef(Map<Class<?>, List<Object>> typeToObjectsToMerge, List<IObjRef> objRefs, List<IObjRef> privilegedObjRefs, Object entity, IEntityMetaData metaData, List<Object> objects,
+            boolean isFilterActivated, Predicate<IDataObject> dataObjectPredicate) {
         var id = metaData.getIdMember().getValue(entity, false);
         var isEntityFromPrivilegedCache = false;
         IObjRef objRef = null;
         if (id != null) {
             objRef = objRefFactory.createObjRef(metaData.getEntityType(), ObjRef.PRIMARY_KEY_INDEX, id, null);
             var cache = ((IObjRefContainer) entity).get__Cache();
-            if (cache == null && securityActivation.isFilterActivated()) {
+            if (cache == null && isFilterActivated) {
                 throw new SecurityException("Entity '" + objRef + "' seems to be not readable by current user");
             }
             isEntityFromPrivilegedCache = cache.isPrivileged();
         }
-        if (!(entity instanceof IDataObject) || ((IDataObject) entity).hasPendingChanges()) {
+        if (!(entity instanceof IDataObject) || dataObjectPredicate.test((IDataObject) entity)) {
             if (typeToObjectsToMerge != null) {
                 var objectsToMerge = typeToObjectsToMerge.get(metaData.getEntityType());
                 if (objectsToMerge == null) {

@@ -20,11 +20,7 @@ limitations under the License.
  * #L%
  */
 
-import org.apache.kafka.clients.producer.KafkaProducer;
-import org.apache.kafka.clients.producer.Producer;
-import org.apache.kafka.clients.producer.ProducerRecord;
-import org.apache.kafka.common.serialization.StringSerializer;
-
+import com.koch.ambeth.datachange.model.IDataChange;
 import com.koch.ambeth.event.IBatchedEventListener;
 import com.koch.ambeth.event.IEventListener;
 import com.koch.ambeth.event.IEventQueue;
@@ -33,60 +29,83 @@ import com.koch.ambeth.ioc.IDisposableBean;
 import com.koch.ambeth.ioc.IInitializingBean;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.config.Property;
+import com.koch.ambeth.ioc.extendable.ClassExtendableContainer;
+import com.koch.ambeth.log.ILogger;
+import com.koch.ambeth.log.LogInstance;
+import com.koch.ambeth.util.IClassLoaderProvider;
 import com.koch.ambeth.util.config.IProperties;
+import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.Producer;
+import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.common.serialization.StringSerializer;
 
-public class EventToKafkaPublisher
-		implements IEventListener, IBatchedEventListener, IInitializingBean, IDisposableBean {
-	@Autowired
-	protected IEventQueue eventQueue;
+public class EventToKafkaPublisher implements IEventListener, IBatchedEventListener, IInitializingBean, IDisposableBean {
+    private static final String DEFAULT_EVENTS_TO_PUBLISH = IDataChange.class.getName();
 
-	@Autowired
-	protected EventFromKafkaConsumer eventFromKafkaConsumer;
+    protected final ClassExtendableContainer<Boolean> eventTypeToPublish = new ClassExtendableContainer<>("publishEvent", "eventType");
+    @Autowired
+    protected IClassLoaderProvider classLoaderProvider;
+    @Autowired
+    protected IEventQueue eventQueue;
+    @Autowired
+    protected EventFromKafkaConsumer eventFromKafkaConsumer;
+    @Autowired
+    protected XmlKafkaSerializer xmlKafkaSerializer;
+    @Autowired
+    protected IProperties props;
+    @Property(name = EventKafkaConfigurationConstants.TOPIC_NAME)
+    protected String topicName;
+    @Property(name = EventKafkaConfigurationConstants.EVENTS_TO_PUBLISH, defaultValue = "com.koch.ambeth.datachange.model.IDataChange")
+    protected String[] eventsToPublish;
+    @LogInstance
+    private ILogger log;
+    private Producer<String, Object> producer;
 
-	@Autowired
-	protected XmlKafkaSerializer xmlKafkaSerializer;
+    @Override
+    public void afterPropertiesSet() throws Throwable {
+        producer = new KafkaProducer<>(AmbethKafkaConfiguration.extractKafkaProperties(props), new StringSerializer(), xmlKafkaSerializer);
+        for (var eventToPublish : eventsToPublish) {
+            var classLoader = classLoaderProvider.getClassLoader();
+            try {
+                var eventType = classLoader.loadClass(eventToPublish);
+                eventTypeToPublish.register(Boolean.TRUE, eventType);
+            } catch (ClassNotFoundException e) {
+                log.warn(e);
+            }
+        }
+    }
 
-	@Autowired
-	protected IProperties props;
+    @Override
+    public void destroy() throws Throwable {
+        producer.close();
+    }
 
-	@Property(name = EventKafkaConfigurationConstants.TOPIC_NAME)
-	protected String topicName;
+    @Override
+    public void enableBatchedEventDispatching() {
+        // intended blank
+    }
 
-	private Producer<String, Object> producer;
+    @Override
+    public void flushBatchedEventDispatching() {
+        producer.flush();
+    }
 
-	@Override
-	public void afterPropertiesSet() throws Throwable {
-		producer = new KafkaProducer<>(AmbethKafkaConfiguration.extractKafkaProperties(props),
-				new StringSerializer(), xmlKafkaSerializer);
-	}
-
-	@Override
-	public void destroy() throws Throwable {
-		producer.close();
-	}
-
-	@Override
-	public void enableBatchedEventDispatching() {
-		// intended blank
-	}
-
-	@Override
-	public void flushBatchedEventDispatching() {
-		producer.flush();
-	}
-
-	@Override
-	public void handleEvent(Object eventObject, long dispatchTime, long sequenceId) throws Exception {
-		if (eventFromKafkaConsumer.isEventFromKafka(eventObject)) {
-			return;
-		}
-		// if (log.isDebugEnabled())
-		// {
-		// log.debug("Publish event of type '" + eventObject.getClass() + "' to kafka...");
-		// }
-		producer.send(new ProducerRecord<String, Object>(topicName, null, eventObject));
-		if (!eventQueue.isDispatchingBatchedEvents()) {
-			producer.flush();
-		}
-	}
+    @Override
+    public void handleEvent(Object eventObject, long dispatchTime, long sequenceId) throws Exception {
+        var doPublish = eventTypeToPublish.getExtension(eventObject.getClass());
+        if (!Boolean.TRUE.equals(doPublish)) {
+            return;
+        }
+        if (eventFromKafkaConsumer.isEventFromKafka(eventObject)) {
+            return;
+        }
+        // if (log.isDebugEnabled())
+        // {
+        // log.debug("Publish event of type '" + eventObject.getClass() + "' to kafka...");
+        // }
+        producer.send(new ProducerRecord<>(topicName, null, eventObject));
+        if (!eventQueue.isDispatchingBatchedEvents()) {
+            producer.flush();
+        }
+    }
 }

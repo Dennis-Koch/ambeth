@@ -27,6 +27,8 @@ import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.function.CheckedRunnable;
+import com.koch.ambeth.util.state.IStateRollback;
+import com.koch.ambeth.util.state.StateRollback;
 
 public class CacheModification implements ICacheModification, IThreadLocalCleanupBean {
     private static final Integer ACTIVE = Integer.valueOf(1), FLUSHING = Integer.valueOf(2);
@@ -72,6 +74,16 @@ public class CacheModification implements ICacheModification, IThreadLocalCleanu
         } else {
             activeTL.set(ACTIVE);
         }
+    }
+
+    @Override
+    public IStateRollback pushActive() {
+        var existingIsActive = isActive();
+        if (existingIsActive) {
+            return StateRollback.empty();
+        }
+        setActive(true);
+        return () -> setActive(false);
     }
 
     @Override

@@ -8,13 +8,23 @@ import java.util.List;
 import java.util.Optional;
 
 public class DeepScanRecursion implements IDeepScanRecursion {
+
     @Override
-    public void handleDeep(Object obj, EntityDelegate entityDelegate) {
-        handleDeep(obj, new DeepScanState(entityDelegate));
+    public void handleDeep(Object obj, EntityDelegate entityDelegate, boolean visitEntityOnlyOnce) {
+        handleDeep(obj, new DeepScanState(entityDelegate, visitEntityOnlyOnce));
     }
 
     protected boolean handleDeep(Object obj, DeepScanState state) {
-        if (obj == null || !state.alreadyHandledObjectsSet.add(obj)) {
+        if (obj == null) {
+            return true;
+        }
+        if (obj instanceof Optional opt) {
+            if (!opt.isPresent()) {
+                return true;
+            }
+            obj = opt.get();
+        }
+        if (state.objectAlreadyHandled(obj)) {
             return true;
         }
         if (obj instanceof List) {
@@ -46,11 +56,6 @@ public class DeepScanRecursion implements IDeepScanRecursion {
                 }
             }
             return true;
-        } else if (obj instanceof Optional opt) {
-            if (!opt.isPresent()) {
-                return true;
-            }
-            return handleDeep(opt.get(), state);
         }
         if (obj instanceof IEntityMetaDataHolder) {
             return state.entityDelegate.visitEntity(obj, state);
@@ -62,12 +67,13 @@ public class DeepScanRecursion implements IDeepScanRecursion {
     }
 
     public class DeepScanState implements Proceed {
-        public final IdentityHashSet<Object> alreadyHandledObjectsSet = new IdentityHashSet<>();
+        private final IdentityHashSet<Object> alreadyHandledObjectsSet;
 
         public EntityDelegate entityDelegate;
 
-        public DeepScanState(EntityDelegate entityDelegate) {
+        public DeepScanState(EntityDelegate entityDelegate, boolean visitEntityOnlyOnce) {
             this.entityDelegate = entityDelegate;
+            alreadyHandledObjectsSet = visitEntityOnlyOnce ? new IdentityHashSet<>() : null;
         }
 
         @Override
@@ -77,16 +83,23 @@ public class DeepScanRecursion implements IDeepScanRecursion {
 
         @Override
         public boolean proceed(Object obj, EntityDelegate entityDelegate) {
-            if (this.entityDelegate == entityDelegate) {
+            var oldEntityDelegate = this.entityDelegate;
+            if (oldEntityDelegate == entityDelegate) {
                 return handleDeep(obj, this);
             }
-            EntityDelegate oldEntityDelegate = this.entityDelegate;
             this.entityDelegate = entityDelegate;
             try {
                 return handleDeep(obj, this);
             } finally {
                 this.entityDelegate = oldEntityDelegate;
             }
+        }
+
+        public boolean objectAlreadyHandled(Object obj) {
+            if (alreadyHandledObjectsSet == null) {
+                return false;
+            }
+            return !alreadyHandledObjectsSet.add(obj);
         }
     }
 }

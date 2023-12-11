@@ -192,6 +192,11 @@ public class CompositeIdMember extends PrimitiveMember implements IPrimitiveMemb
     }
 
     @Override
+    public Annotation[] getAnnotations() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public <V extends Annotation> V getAnnotation(Class<V> annotationType) {
         throw new UnsupportedOperationException();
     }

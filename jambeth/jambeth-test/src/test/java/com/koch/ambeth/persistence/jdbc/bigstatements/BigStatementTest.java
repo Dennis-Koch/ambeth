@@ -58,10 +58,34 @@ public class BigStatementTest extends AbstractInformationBusWithPersistenceTest 
     public void testBigQuery100000() throws Exception {
         var paramName = "paramName";
         var qb = queryBuilderFactory.create(Material.class);
-        var query = qb.build(qb.let(qb.property("Id")).isIn(qb.valueName(paramName)));
+        var query = qb.build(qb.let(qb.property(qb.plan().getId())).isIn(qb.valueName(paramName)));
 
         var bigList = new ArrayList<>();
         for (int a = 100000; a-- > 0; ) {
+            bigList.add(Integer.valueOf(a + 1));
+        }
+        try {
+            var materials = query.param(paramName, bigList).retrieve();
+            Assert.assertNotNull(materials);
+            Assert.assertEquals(90006, materials.size());
+        } catch (MaskingRuntimeException e) {
+            Throwable cause = e.getCause();
+            Assert.assertTrue(cause instanceof PersistenceException);
+            cause = cause.getCause();
+            Assert.assertTrue(cause instanceof SQLSyntaxErrorException);
+            Assert.assertEquals("ORA-01745: invalid host/bind variable name\n", cause.getMessage());
+            throw e;
+        }
+    }
+
+    @Test
+    public void testBigQuery1000000() throws Exception {
+        var paramName = "paramName";
+        var qb = queryBuilderFactory.create(Material.class);
+        var query = qb.build(qb.let(qb.property("Id")).isIn(qb.valueName(paramName)));
+
+        var bigList = new ArrayList<>();
+        for (int a = 1000000; a-- > 0; ) {
             bigList.add(Integer.valueOf(a + 1));
         }
         try {
@@ -106,9 +130,9 @@ public class BigStatementTest extends AbstractInformationBusWithPersistenceTest 
     }
 
     @Test
-    public void testSelectFields100000() throws Exception {
+    public void testSelectFields1000000() throws Exception {
         var bigList = new ArrayList<>();
-        for (int a = 100000; a-- > 0; ) {
+        for (int a = 1000000; a-- > 0; ) {
             bigList.add(Integer.valueOf(a + 1));
         }
         transaction.processAndCommit(persistenceUnitToDatabaseMap -> {
@@ -134,11 +158,11 @@ public class BigStatementTest extends AbstractInformationBusWithPersistenceTest 
     }
 
     @Test
-    public void testMerge100000() throws Exception {
+    public void testMerge1000000() throws Exception {
         var qb = queryBuilderFactory.create(Material.class);
         var query = qb.build(qb.all());
         var materials = query.retrieve();
-        Assert.assertTrue(materials.size() > 100000);
+        Assert.assertTrue(materials.size() > 1000000);
 
         for (var material : materials) {
             material.setName(material.getName() + "2");

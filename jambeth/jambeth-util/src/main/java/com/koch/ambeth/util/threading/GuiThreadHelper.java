@@ -109,10 +109,11 @@ public class GuiThreadHelper implements IGuiThreadHelper {
         return isGuiInitialized() ? EventQueue.isDispatchThread() : false;
     }
 
+    @SneakyThrows
     @Override
     public void invokeInGuiAndWait(final CheckedRunnable runnable) {
         if (!isGuiInitialized() || EventQueue.isDispatchThread()) {
-            CheckedRunnable.invoke(runnable);
+            runnable.run();
         } else {
             try {
                 EventQueue.invokeAndWait(() -> CheckedRunnable.invoke(runnable));
@@ -122,10 +123,11 @@ public class GuiThreadHelper implements IGuiThreadHelper {
         }
     }
 
+    @SneakyThrows
     @Override
     public <R> R invokeInGuiAndWait(final CheckedSupplier<R> supplier) {
         if (!isGuiInitialized() || EventQueue.isDispatchThread()) {
-            return CheckedSupplier.invoke(supplier);
+            return supplier.get();
         } else {
             final ParamHolder<R> ph = new ParamHolder<>();
             try {

@@ -76,6 +76,7 @@ public class ClassGenerator extends ClassVisitor {
     }
 
     public FieldInstance implementStaticAssignedField(String staticFieldName, Object fieldValue) {
+        ParamChecker.assertParamNotNull(staticFieldName, "staticFieldName");
         ParamChecker.assertParamNotNull(fieldValue, "fieldValue");
         var fieldType = fieldValue.getClass();
         if (fieldValue instanceof IValueResolveDelegate) {
