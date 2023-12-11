@@ -310,7 +310,7 @@ public class MergeProcess implements IMergeProcess {
                 latch = null;
             }
             final IOriCollection oriColl;
-            eventDispatcher.enableEventQueue();
+            var queuedEventsRollback = eventDispatcher.enableEventQueue();
             try {
                 var rollback = StateRollback.chain(chain -> {
                     chain.append(eventDispatcher.pause(cache));
@@ -331,7 +331,7 @@ public class MergeProcess implements IMergeProcess {
                     rollback.rollback();
                 }
             } finally {
-                eventDispatcher.flushEventQueue();
+                queuedEventsRollback.rollback();
             }
             if (latch != null) {
                 try {

@@ -188,7 +188,7 @@ public class EventPoller implements IEventPoller, IOfflineListener, IStartingBea
             return currentEventSequence;
         }
         long timeBeforeDispatch = System.currentTimeMillis();
-        eventDispatcher.enableEventQueue();
+        var rollback = eventDispatcher.enableEventQueue();
         try {
             for (int a = 0, size = events.size(); a < size; a++) {
                 IEventItem eventObject = events.get(a);
@@ -196,7 +196,7 @@ public class EventPoller implements IEventPoller, IOfflineListener, IStartingBea
                 currentEventSequence = eventObject.getSequenceNumber();
             }
         } finally {
-            eventDispatcher.flushEventQueue();
+            rollback.rollback();
         }
         if (log.isInfoEnabled()) {
             long timeAfterDispatch = System.currentTimeMillis();

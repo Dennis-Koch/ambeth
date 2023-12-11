@@ -33,6 +33,10 @@
         <appender-ref ref="STDOUT"/>
     </logger>
 
+    <logger name="org.apache.kafka.clients" level="warn" additivity="false">
+        <appender-ref ref="STDOUT"/>
+    </logger>
+
     <logger name="org.burningwave" level="warn" additivity="false">
         <appender-ref ref="STDOUT"/>
     </logger>

@@ -31,6 +31,7 @@ import com.koch.ambeth.persistence.event.DatabaseFailEvent;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.HashMap;
 import com.koch.ambeth.util.collections.IList;
+import com.koch.ambeth.util.state.StateRollback;
 
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -44,8 +45,8 @@ public class LocalToPublicDispatcher implements IEventListener {
     @Override
     public void handleEvent(Object localEventObject, long dispatchTime, long sequenceId) {
         if (localEventObject instanceof DatabaseAcquireEvent) {
-            DatabaseAcquireEvent localEvent = (DatabaseAcquireEvent) localEventObject;
-            Lock writeLock = this.writeLock;
+            var localEvent = (DatabaseAcquireEvent) localEventObject;
+            var writeLock = this.writeLock;
             writeLock.lock();
             try {
                 databaseToChangeDict.put(localEvent.getSessionId(), null);
@@ -53,9 +54,9 @@ public class LocalToPublicDispatcher implements IEventListener {
                 writeLock.unlock();
             }
         } else if (localEventObject instanceof DatabaseCommitEvent) {
-            DatabaseCommitEvent localEvent = (DatabaseCommitEvent) localEventObject;
+            var localEvent = (DatabaseCommitEvent) localEventObject;
             IList<IDataChange> publicDataChanges;
-            Lock writeLock = this.writeLock;
+            var writeLock = this.writeLock;
             writeLock.lock();
             try {
                 publicDataChanges = databaseToChangeDict.remove(localEvent.getSessionId());
@@ -63,24 +64,20 @@ public class LocalToPublicDispatcher implements IEventListener {
                 writeLock.unlock();
             }
             if (publicDataChanges != null) {
-                IEventDispatcher publicEventDispatcher = this.publicEventDispatcher;
-                if (publicDataChanges.size() > 1) {
-                    publicEventDispatcher.enableEventQueue();
-                }
+                var publicEventDispatcher = this.publicEventDispatcher;
+                var rollback = publicDataChanges.size() > 1 ? publicEventDispatcher.enableEventQueue() : StateRollback.empty();
                 try {
                     for (int i = 0; i < publicDataChanges.size(); i++) {
-                        IDataChange publicDataChange = publicDataChanges.get(i);
+                        var publicDataChange = publicDataChanges.get(i);
                         publicEventDispatcher.dispatchEvent(publicDataChange, dispatchTime, sequenceId);
                     }
                 } finally {
-                    if (publicDataChanges.size() > 1) {
-                        publicEventDispatcher.flushEventQueue();
-                    }
+                    rollback.rollback();
                 }
             }
         } else if (localEventObject instanceof DatabaseFailEvent) {
-            DatabaseFailEvent localEvent = (DatabaseFailEvent) localEventObject;
-            Lock writeLock = this.writeLock;
+            var localEvent = (DatabaseFailEvent) localEventObject;
+            var writeLock = this.writeLock;
             writeLock.lock();
             try {
                 databaseToChangeDict.remove(localEvent.getSessionId());
@@ -88,11 +85,11 @@ public class LocalToPublicDispatcher implements IEventListener {
                 writeLock.unlock();
             }
         } else if (localEventObject instanceof IDataChangeOfSession) {
-            IDataChangeOfSession localEvent = (IDataChangeOfSession) localEventObject;
-            Lock writeLock = this.writeLock;
+            var localEvent = (IDataChangeOfSession) localEventObject;
+            var writeLock = this.writeLock;
             writeLock.lock();
             try {
-                ArrayList<IDataChange> dataChanges = databaseToChangeDict.get(localEvent.getSessionId());
+                var dataChanges = databaseToChangeDict.get(localEvent.getSessionId());
                 if (dataChanges == null) {
                     dataChanges = new ArrayList<>();
                     databaseToChangeDict.put(localEvent.getSessionId(), dataChanges);

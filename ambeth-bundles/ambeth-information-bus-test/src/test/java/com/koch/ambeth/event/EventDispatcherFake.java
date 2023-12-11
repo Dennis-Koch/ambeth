@@ -55,7 +55,7 @@ public class EventDispatcherFake implements IEventDispatcher {
     }
 
     @Override
-    public void enableEventQueue() {
+    public IStateRollback enableEventQueue() {
         throw new UnsupportedOperationException();
     }
 

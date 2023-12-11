@@ -20,75 +20,79 @@ limitations under the License.
  * #L%
  */
 
-import java.util.concurrent.CountDownLatch;
-
 import com.koch.ambeth.util.IDisposable;
 
+import java.util.concurrent.CountDownLatch;
+
 public class PausedEventTargetItem implements IDisposable {
-	protected final Object eventTarget;
+    protected final Object eventTarget;
 
-	protected final Thread thread = Thread.currentThread();
+    protected final Thread thread = Thread.currentThread();
 
-	protected int pauseCount;
+    protected int pauseCount;
 
-	protected volatile CountDownLatch latch;
+    protected volatile CountDownLatch latch;
 
-	public PausedEventTargetItem(Object eventTarget) {
-		this.eventTarget = eventTarget;
-	}
+    public PausedEventTargetItem(Object eventTarget) {
+        this.eventTarget = eventTarget;
+    }
 
-	@Override
-	public void dispose() {
-		if (latch != null) {
-			latch.countDown();
-			latch = null;
-		}
-	}
+    @Override
+    public void dispose() {
+        if (latch != null) {
+            latch.countDown();
+            latch = null;
+        }
+    }
 
-	public CountDownLatch addLatch() {
-		if (latch == null) {
-			latch = new CountDownLatch(1);
-		}
-		return latch;
-	}
+    public CountDownLatch addLatch() {
+        if (latch == null) {
+            latch = new CountDownLatch(1);
+        }
+        return latch;
+    }
 
-	public void setLatch(CountDownLatch latch) {
-		if (this.latch != null) {
-			throw new IllegalStateException();
-		}
-		this.latch = latch;
-	}
+    public void setLatch(CountDownLatch latch) {
+        if (this.latch != null) {
+            throw new IllegalStateException();
+        }
+        this.latch = latch;
+    }
 
-	public Object getEventTarget() {
-		return eventTarget;
-	}
+    public Object getEventTarget() {
+        return eventTarget;
+    }
 
-	public int getPauseCount() {
-		return pauseCount;
-	}
+    public int getPauseCount() {
+        return pauseCount;
+    }
 
-	public void setPauseCount(int pauseCount) {
-		this.pauseCount = pauseCount;
-	}
+    public void setPauseCount(int pauseCount) {
+        this.pauseCount = pauseCount;
+    }
 
-	public Thread getThread() {
-		return thread;
-	}
+    public void incrementPauseCount() {
+        pauseCount++;
+    }
 
-	@Override
-	public int hashCode() {
-		return 11 ^ System.identityHashCode(eventTarget);
-	}
+    public Thread getThread() {
+        return thread;
+    }
 
-	@Override
-	public boolean equals(Object obj) {
-		if (obj == this) {
-			return true;
-		}
-		if (!(obj instanceof PausedEventTargetItem)) {
-			return false;
-		}
-		PausedEventTargetItem other = (PausedEventTargetItem) obj;
-		return eventTarget == other.eventTarget;
-	}
+    @Override
+    public int hashCode() {
+        return 11 ^ System.identityHashCode(eventTarget);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) {
+            return true;
+        }
+        if (!(obj instanceof PausedEventTargetItem)) {
+            return false;
+        }
+        PausedEventTargetItem other = (PausedEventTargetItem) obj;
+        return eventTarget == other.eventTarget;
+    }
 }

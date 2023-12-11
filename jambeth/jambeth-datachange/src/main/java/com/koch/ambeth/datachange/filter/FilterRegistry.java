@@ -53,7 +53,7 @@ public class FilterRegistry implements IFilterExtendable, IEventDispatcher {
     }
 
     @Override
-    public void enableEventQueue() {
+    public IStateRollback enableEventQueue() {
         throw new UnsupportedOperationException();
     }
 

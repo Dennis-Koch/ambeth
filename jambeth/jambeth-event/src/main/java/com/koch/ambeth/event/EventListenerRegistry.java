@@ -26,8 +26,6 @@ import com.koch.ambeth.ioc.extendable.ClassExtendableListContainer;
 import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.util.collections.ArrayList;
-import com.koch.ambeth.util.collections.EmptyList;
-import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.ISet;
 import com.koch.ambeth.util.collections.IdentityHashSet;
 import com.koch.ambeth.util.collections.IdentityLinkedMap;
@@ -50,7 +48,7 @@ public class EventListenerRegistry
     protected final ClassExtendableListContainer<IEventListenerMarker> typeToListenersDict = new ClassExtendableListContainer<>("eventListener", "eventType");
     protected final ClassExtendableContainer<IEventBatcher> typeToBatchersDict = new ClassExtendableContainer<>("eventBatcher", "eventType");
     protected final ClassExtendableContainer<IEventTargetExtractor> typeToEventTargetExtractorsDict = new ClassExtendableContainer<>("eventTargetExtractor", "eventType");
-    protected final ThreadLocal<IList<IList<IQueuedEvent>>> eventQueueTL = new SensitiveThreadLocal<>();
+    protected final ThreadLocal<List<List<IQueuedEvent>>> eventQueueTL = new SensitiveThreadLocal<>();
     protected final IdentityLinkedSet<WaitForResumeItem> waitForResumeSet = new IdentityLinkedSet<>();
     protected final IdentityLinkedMap<Object, PausedEventTargetItem> pausedTargets = new IdentityLinkedMap<>();
     protected final Lock listenersReadLock, listenersWriteLock;
@@ -71,14 +69,15 @@ public class EventListenerRegistry
     }
 
     @Override
-    public void enableEventQueue() {
-        IList<IList<IQueuedEvent>> eventQueueList = eventQueueTL.get();
+    public IStateRollback enableEventQueue() {
+        var eventQueueList = eventQueueTL.get();
         if (eventQueueList == null) {
             eventQueueList = new ArrayList<>();
             eventQueueTL.set(eventQueueList);
         }
-        ArrayList<IQueuedEvent> eventQueue = new ArrayList<>();
+        var eventQueue = new ArrayList<IQueuedEvent>();
         eventQueueList.add(eventQueue);
+        return () -> flushEventQueue();
     }
 
     @Override
@@ -129,9 +128,9 @@ public class EventListenerRegistry
     }
 
     @Override
-    public IList<IQueuedEvent> batchEvents(List<IQueuedEvent> eventItems) {
+    public List<IQueuedEvent> batchEvents(List<IQueuedEvent> eventItems) {
         if (eventItems.isEmpty()) {
-            return EmptyList.<IQueuedEvent>getInstance();
+            return List.of();
         }
         if (eventItems.size() == 1) {
             var soleEvent = eventItems.get(0);
@@ -165,15 +164,14 @@ public class EventListenerRegistry
         return outputEvents;
     }
 
-    protected IList<IQueuedEvent> batchEventsIntern(IList<IQueuedEvent> currentBatchableEvents, IEventBatcher currentEventBatcher) {
+    protected List<IQueuedEvent> batchEventsIntern(List<IQueuedEvent> currentBatchableEvents, IEventBatcher currentEventBatcher) {
         if (currentBatchableEvents.isEmpty()) {
-            return EmptyList.<IQueuedEvent>getInstance();
+            return List.of();
         }
         if (currentBatchableEvents.size() == 1 || currentEventBatcher == null) {
             return currentBatchableEvents;
-        } else {
-            return currentEventBatcher.batchEvents(currentBatchableEvents);
         }
+        return currentEventBatcher.batchEvents(currentBatchableEvents);
     }
 
     @Override
@@ -188,7 +186,7 @@ public class EventListenerRegistry
 
     @Override
     public boolean hasListeners(Class<?> eventType) {
-        IList<IEventListenerMarker> listeners = typeToListenersDict.getExtensions(eventType);
+        var listeners = typeToListenersDict.getExtensions(eventType);
         return listeners != null && !listeners.isEmpty();
     }
 
@@ -206,8 +204,8 @@ public class EventListenerRegistry
         handleEventIntern(eventObject, dispatchTime, sequenceId, null);
     }
 
-    private void handleEventIntern(Object eventObject, long dispatchTime, long sequenceId, ISet<IBatchedEventListener> collectedBatchedEventDispatchAwareSet) {
-        IList<IEventListenerMarker> interestedEventListeners;
+    protected void handleEventIntern(Object eventObject, long dispatchTime, long sequenceId, ISet<IBatchedEventListener> collectedBatchedEventDispatchAwareSet) {
+        List<IEventListenerMarker> interestedEventListeners;
         List<Object> pausedEventTargets;
         var listenersReadLock = this.listenersReadLock;
         listenersReadLock.lock();
@@ -362,7 +360,7 @@ public class EventListenerRegistry
                 pauseETI = new PausedEventTargetItem(eventTarget);
                 pausedTargets.put(eventTarget, pauseETI);
             }
-            pauseETI.setPauseCount(pauseETI.getPauseCount() + 1);
+            pauseETI.incrementPauseCount();
             var fEventTarget = eventTarget;
             return () -> resume(fEventTarget);
         } finally {
@@ -457,11 +455,9 @@ public class EventListenerRegistry
                 remainingPausedEventTargetsSet.retainAll(pendingSet);
 
                 if (!remainingPausedEventTargetsSet.isEmpty()) {
-                    // We should wait now but we have to check if we are in the UI thread, which must never
-                    // wait
+                    // We should wait now but we have to check if we are in the UI thread, which must never wait
                     if (guiThreadHelper.isInGuiThread()) {
-                        // This is the trick: We "requeue" the current action in the UI pipeline to prohibit
-                        // blocking
+                        // This is the trick: We "requeue" the current action in the UI pipeline to prohibit blocking
                         guiThreadHelper.invokeInGuiLate(() -> waitEventToResume(eventTargetToResume, maxWaitTime, resumeDelegate, errorDelegate));
                         return;
                     }

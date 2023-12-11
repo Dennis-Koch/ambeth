@@ -12,7 +12,6 @@
 
     <properties>
         <kafka.version>3.6.1</kafka.version>
-        <metrics.version>2.2.0</metrics.version>
     </properties>
 
     <dependencies>
@@ -34,12 +33,6 @@
         <dependency>
             <groupId>jakarta.servlet</groupId>
             <artifactId>jakarta.servlet-api</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>com.yammer.metrics</groupId>
-            <artifactId>metrics-core</artifactId>
-            <version>${metrics.version}</version>
         </dependency>
 
         <dependency>

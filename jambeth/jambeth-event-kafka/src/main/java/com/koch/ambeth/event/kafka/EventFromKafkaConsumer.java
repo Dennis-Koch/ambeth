@@ -70,7 +70,7 @@ public class EventFromKafkaConsumer implements IInitializingBean, IStartingBean,
     public void afterPropertiesSet() throws Throwable {
         pollingThread = new Thread(this);
         pollingThread.setDaemon(true);
-        pollingThread.setName(getClass().getSimpleName() + " topic=" + topicName);
+        pollingThread.setName(getClass().getSimpleName() + "-topic-" + topicName);
     }
 
     @Override
@@ -144,7 +144,7 @@ public class EventFromKafkaConsumer implements IInitializingBean, IStartingBean,
                 } finally {
                     receivedFromKafkaMapLock.unlock();
                 }
-                eventDispatcher.enableEventQueue();
+                var rollback = eventDispatcher.enableEventQueue();
                 try {
                     for (int a = 0, size = events.size(); a < size; a++) {
                         eventDispatcher.dispatchEvent(events.get(a));
@@ -153,7 +153,7 @@ public class EventFromKafkaConsumer implements IInitializingBean, IStartingBean,
                         log.info("Received " + events.size() + " events from kafka. Flushing queue...");
                     }
                 } finally {
-                    eventDispatcher.flushEventQueue();
+                    rollback.rollback();
                 }
             }
         } finally {

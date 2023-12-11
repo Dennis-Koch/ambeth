@@ -20,44 +20,36 @@ limitations under the License.
  * #L%
  */
 
+import com.koch.ambeth.util.state.IStateRollback;
+
 public interface ILightweightEventQueue {
     /**
-     * Used together with {@link #flushEventQueue()} to prepare bulk-dispatching operations. After
-     * invoking this method all dispatching operations to
+     * Used together with {@link #flushEventQueue()} to prepare bulk-dispatching operations. After invoking this method all dispatching operations to
      * {@link com.koch.ambeth.event.IEventDispatcher#dispatchEvent(Object)} and its overloads are queued up and wait for a
      * {@link #flushEventQueue()}.<br>
      * </br>
-     * This method stacks: Multiple "enable" calls need the same amount of "flush" calls till a real
-     * flush is done and the right {@link com.koch.ambeth.event.IEventListener}s are notified. See also
-     * {@link #flushEventQueue()} for more details about whats happening during the flush. It is
-     * recommended to use it consistently in a try-finally statement:
+     * This method stacks: Multiple "enable" calls need the same amount of "flush" calls till a real flush is done and the right {@link com.koch.ambeth.event.IEventListener}s are notified. See also
+     * {@link #flushEventQueue()} for more details about what is happening during the flush. It is recommended to use it consistently in a try-finally statement:
      *
      * <pre>
      * <code>
-     * eventQueue.enableEventQueue();
-     * try
-     * {
+     * var rollback = eventQueue.enableEventQueue();
+     * try {
      *   // do stuff
-     * }
-     * finally
-     * {
-     *   eventQueue.flushEventQueue();
+     * } finally {
+     *   rollback.rollback();
      * }
      * </code>
      * </pre>
      */
-    void enableEventQueue();
+    IStateRollback enableEventQueue();
 
     /**
-     * Used together with {@link #enableEventQueue()} to prepare bulk-dispatching operations. If the
-     * internal stack count (together with {@link #enableEventQueue()}) reaches zero the queued events
-     * are "batched" together: This means some optional compact algorithm may process the events -
-     * e.g. to reduce potential redundancy of events which somehow "outdate" previous events. After
-     * the batch sequence the remaining (or newly created, compacted) events get dispatched to the
-     * registered {@link com.koch.ambeth.event.IEventListener}s.<br>
+     * Used together with {@link #enableEventQueue()} to prepare bulk-dispatching operations. If the internal stack count (together with {@link #enableEventQueue()}) reaches zero the queued events
+     * are "batched" together: This means some optional compact algorithm may process the events in order to reduce potential redundancy between events which somehow "outdate" previous events. After
+     * the batching phase the remaining (or newly created, compacted) events get dispatched to the registered {@link com.koch.ambeth.event.IEventListener}s.<br>
      * <br>
-     * Custom event batchers can be defined by implementing {@link com.koch.ambeth.event.IEventBatcher} and linking them to
-     * {@link com.koch.ambeth.event.IEventBatcherExtendable}
+     * Custom event batchers can be defined by implementing {@link com.koch.ambeth.event.IEventBatcher} and linking them to {@link com.koch.ambeth.event.IEventBatcherExtendable}
      *
      * @see #enableEventQueue()
      */
