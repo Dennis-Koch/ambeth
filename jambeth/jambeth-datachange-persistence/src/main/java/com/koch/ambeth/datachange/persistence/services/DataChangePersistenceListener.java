@@ -27,34 +27,29 @@ import com.koch.ambeth.datachange.persistence.model.EntityType;
 import com.koch.ambeth.event.IEventListener;
 import com.koch.ambeth.ioc.IInitializingBean;
 import com.koch.ambeth.util.ParamChecker;
+import lombok.Setter;
 
 public class DataChangePersistenceListener implements IEventListener, IInitializingBean {
-	private static final Class<?>[] uninterestingTypes = { DataChangeEventBO.class,
-			DataChangeEntryBO.class, EntityType.class };
+    private static final Class<?>[] uninterestingTypes = {
+            DataChangeEventBO.class, DataChangeEntryBO.class, EntityType.class
+    };
 
-	protected IDataChangeEventService dataChangeEventService;
+    @Setter
+    protected IDataChangeEventService dataChangeEventService;
 
-	@Override
-	public void afterPropertiesSet() throws Throwable {
-		ParamChecker.assertNotNull(dataChangeEventService, "dataChangeEventService");
-	}
+    @Override
+    public void afterPropertiesSet() throws Throwable {
+        ParamChecker.assertNotNull(dataChangeEventService, "dataChangeEventService");
+    }
 
-	public void setDataChangeEventService(IDataChangeEventService dataChangeEventService) {
-		this.dataChangeEventService = dataChangeEventService;
-	}
-
-	@Override
-	public void handleEvent(Object eventObject, long dispatchTime, long sequenceId) {
-		if (!(eventObject instanceof IDataChange)) {
-			return;
-		}
-
-		IDataChange dataChange = (IDataChange) eventObject;
-		dataChange = dataChange.deriveNot(uninterestingTypes);
-		if (dataChange.getAll().isEmpty()) {
-			return;
-		}
-
-		dataChangeEventService.save(dataChange);
-	}
+    @Override
+    public void handleEvent(Object eventObject, long dispatchTime, long sequenceId) {
+        if (eventObject instanceof IDataChange dataChange) {
+            dataChange = dataChange.deriveNot(uninterestingTypes);
+            if (dataChange.getAll().isEmpty()) {
+                return;
+            }
+            dataChangeEventService.save(dataChange);
+        }
+    }
 }

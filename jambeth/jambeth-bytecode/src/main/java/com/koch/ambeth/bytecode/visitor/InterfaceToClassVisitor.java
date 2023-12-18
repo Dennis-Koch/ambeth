@@ -28,21 +28,20 @@ import com.koch.ambeth.bytecode.ClassGenerator;
 import com.koch.ambeth.util.collections.HashSet;
 
 public class InterfaceToClassVisitor extends ClassGenerator {
-	public InterfaceToClassVisitor(ClassVisitor cv) {
-		super(cv);
-	}
+    public InterfaceToClassVisitor(ClassVisitor cv) {
+        super(cv);
+    }
 
-	@Override
-	public void visit(int version, int access, String name, String signature, String superName,
-			String[] interfaces) {
-		Class<?> originalType = getState().getOriginalType();
-		access &= ~Opcodes.ACC_ABSTRACT;
-		access &= ~Opcodes.ACC_INTERFACE;
-		if (originalType.isInterface()) {
-			HashSet<String> interfaceSet = new HashSet<>(interfaces);
-			interfaceSet.add(Type.getInternalName(originalType));
-			interfaces = interfaceSet.toArray(String.class);
-		}
-		super.visit(version, access, name, signature, superName, interfaces);
-	}
+    @Override
+    public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
+        Class<?> originalType = getState().getOriginalType();
+        access &= ~Opcodes.ACC_ABSTRACT;
+        access &= ~Opcodes.ACC_INTERFACE;
+        if (originalType.isInterface()) {
+            HashSet<String> interfaceSet = new HashSet<>(interfaces);
+            interfaceSet.add(Type.getInternalName(originalType));
+            interfaces = interfaceSet.toArray(String[]::new);
+        }
+        super.visit(version, access, name, signature, superName, interfaces);
+    }
 }

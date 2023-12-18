@@ -20,29 +20,32 @@ limitations under the License.
  * #L%
  */
 
-import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.config.Property;
 import com.koch.ambeth.query.IOperand;
 import com.koch.ambeth.query.IOperator;
 import com.koch.ambeth.util.appendable.IAppendable;
-import com.koch.ambeth.util.collections.IList;
 
+import java.util.List;
 import java.util.Map;
 
 public class SqlNullCheck implements IOperator {
-    @Autowired
+    public static final String P_IS_NULL = "IsNull";
+
+    public static final String P_OPERAND = "Operand";
+
+    @Property
     protected IOperand operand;
 
     @Property
     protected Boolean isNull;
 
     @Override
-    public void expandQuery(IAppendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, IList<Object> parameters) {
+    public void expandQuery(IAppendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, List<Object> parameters) {
         operate(querySB, nameToValueMap, joinQuery, parameters);
     }
 
     @Override
-    public void operate(IAppendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, IList<Object> parameters) {
+    public void operate(IAppendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, List<Object> parameters) {
         operand.expandQuery(querySB, nameToValueMap, joinQuery, parameters);
         if (isNull) {
             querySB.append(" IS NULL");

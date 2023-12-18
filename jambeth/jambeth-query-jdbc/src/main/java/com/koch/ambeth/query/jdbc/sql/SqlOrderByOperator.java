@@ -21,6 +21,8 @@ limitations under the License.
  */
 
 import com.koch.ambeth.ioc.IInitializingBean;
+import com.koch.ambeth.ioc.annotation.Autowired;
+import com.koch.ambeth.ioc.config.Property;
 import com.koch.ambeth.persistence.filter.QueryConstants;
 import com.koch.ambeth.query.IOperand;
 import com.koch.ambeth.query.IOperator;
@@ -28,7 +30,6 @@ import com.koch.ambeth.query.OrderByType;
 import com.koch.ambeth.util.ParamChecker;
 import com.koch.ambeth.util.appendable.AppendableStringBuilder;
 import com.koch.ambeth.util.appendable.IAppendable;
-import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.objectcollector.IThreadLocalObjectCollector;
 
 import java.util.List;
@@ -36,12 +37,19 @@ import java.util.Map;
 import java.util.regex.Pattern;
 
 public class SqlOrderByOperator implements IOperator, IInitializingBean {
+    public static final String P_COLUMN = "Column";
+
+    public static final String P_ORDER_BY_TYPE = "OrderByType";
+
     protected static final Pattern ignoredColumnNamesPattern = Pattern.compile("([A-Z_]+\\.)?\"?(ID|VERSION)\"?");
 
-    protected IOperand column;
-
+    @Autowired
     protected IThreadLocalObjectCollector objectCollector;
 
+    @Property
+    protected IOperand column;
+
+    @Property
     protected OrderByType orderByType;
 
     @Override
@@ -51,26 +59,14 @@ public class SqlOrderByOperator implements IOperator, IInitializingBean {
         ParamChecker.assertNotNull(orderByType, "orderByType");
     }
 
-    public void setColumn(IOperand column) {
-        this.column = column;
-    }
-
-    public void setObjectCollector(IThreadLocalObjectCollector objectCollector) {
-        this.objectCollector = objectCollector;
-    }
-
-    public void setOrderByType(OrderByType orderByType) {
-        this.orderByType = orderByType;
-    }
-
     @Override
-    public void expandQuery(IAppendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, IList<Object> parameters) {
+    public void expandQuery(IAppendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, List<Object> parameters) {
         operate(querySB, nameToValueMap, joinQuery, parameters);
     }
 
     @Override
     @SuppressWarnings("unchecked")
-    public void operate(IAppendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, IList<Object> parameters) {
+    public void operate(IAppendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, List<Object> parameters) {
         var firstOrderByState = (Boolean) nameToValueMap.get(QueryConstants.FIRST_ORDER_BY_STATE);
         var additionalSelectColumnList = (List<String>) nameToValueMap.get(QueryConstants.ADDITIONAL_SELECT_SQL_SB);
         if (firstOrderByState == null || Boolean.TRUE.equals(firstOrderByState)) {

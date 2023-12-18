@@ -20,10 +20,6 @@ limitations under the License.
  * #L%
  */
 
-import java.lang.reflect.Array;
-import java.util.Collection;
-import java.util.Map;
-
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.config.Property;
 import com.koch.ambeth.persistence.filter.QueryConstants;
@@ -35,11 +31,18 @@ import com.koch.ambeth.service.merge.IEntityMetaDataProvider;
 import com.koch.ambeth.util.IConversionHelper;
 import com.koch.ambeth.util.appendable.IAppendable;
 import com.koch.ambeth.util.collections.ArrayList;
-import com.koch.ambeth.util.collections.IList;
-import com.koch.ambeth.util.collections.IMap;
 import com.koch.ambeth.util.objectcollector.IThreadLocalObjectCollector;
 
+import java.lang.reflect.Array;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+
 public class SimpleValueOperand implements IOperand, IValueOperand, IMultiValueOperand {
+    public static final String P_PARAM_KEY = "ParamKey";
+
+    public static final String P_TRY_ONLY = "TryOnly";
+
     @Autowired
     protected IConversionHelper conversionHelper;
 
@@ -53,7 +56,7 @@ public class SimpleValueOperand implements IOperand, IValueOperand, IMultiValueO
     protected IThreadLocalObjectCollector objectCollector;
 
     @Property
-    protected String paramName;
+    protected Object paramKey;
 
     @Property(mandatory = false)
     protected boolean tryOnly;
@@ -65,7 +68,7 @@ public class SimpleValueOperand implements IOperand, IValueOperand, IMultiValueO
 
     @Override
     public boolean isNullOrEmpty(Map<Object, Object> nameToValueMap) {
-        Object value = getValue(nameToValueMap);
+        var value = getValue(nameToValueMap);
         if (value == null) {
             return true;
         } else if (value instanceof Collection) {
@@ -77,10 +80,10 @@ public class SimpleValueOperand implements IOperand, IValueOperand, IMultiValueO
     }
 
     protected Object getValueIntern(Map<Object, Object> nameToValueMap) {
-        Object value = nameToValueMap.get(paramName);
+        var value = nameToValueMap.get(paramKey);
         if (value == null) {
-            if (!tryOnly && !nameToValueMap.containsKey(paramName)) {
-                throw new IllegalArgumentException("No entry for paramName '" + paramName + "' found to expand query");
+            if (!tryOnly && !nameToValueMap.containsKey(paramKey)) {
+                throw new IllegalArgumentException("No entry for paramName '" + paramKey + "' found to expand query");
             }
         }
         return value;
@@ -88,44 +91,47 @@ public class SimpleValueOperand implements IOperand, IValueOperand, IMultiValueO
 
     @Override
     public Object getValue(Map<Object, Object> nameToValueMap) {
-        Object value = getValueIntern(nameToValueMap);
+        var value = getValueIntern(nameToValueMap);
         return listToSqlUtil.extractValue(value, nameToValueMap);
     }
 
     @Override
-    public IList<Object> getMultiValue(Map<Object, Object> nameToValueMap) {
-        Object value = getValueIntern(nameToValueMap);
-        ArrayList<Object> items = new ArrayList<>();
+    public List<Object> getMultiValue(Map<Object, Object> nameToValueMap) {
+        var value = getValueIntern(nameToValueMap);
+        var items = new ArrayList<>();
         listToSqlUtil.extractValueList(value, items, nameToValueMap);
         return items;
     }
 
     @Override
-    public void expandQuery(IAppendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, IList<Object> parameters) {
-        Object value = getValue(nameToValueMap);
-        Class<?> expectedTypeHint = (Class<?>) nameToValueMap.get(QueryConstants.EXPECTED_TYPE_HINT);
+    public void expandQuery(IAppendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, List<Object> parameters) {
+        var value = getValue(nameToValueMap);
+        var expectedTypeHint = (Class<?>) nameToValueMap.get(QueryConstants.EXPECTED_TYPE_HINT);
         if (expectedTypeHint != null) {
             value = conversionHelper.convertValueToType(expectedTypeHint, value);
         }
         if (parameters != null) {
-            String preValue = (String) nameToValueMap.get(QueryConstants.PRE_VALUE_KEY);
-            String postValue = (String) nameToValueMap.get(QueryConstants.POST_VALUE_KEY);
+            var preValue = (String) nameToValueMap.get(QueryConstants.PRE_VALUE_KEY);
+            var postValue = (String) nameToValueMap.get(QueryConstants.POST_VALUE_KEY);
             if (preValue != null || postValue != null) {
-                IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
-                StringBuilder sb = tlObjectCollector.create(StringBuilder.class);
-                if (preValue != null) {
-                    sb.append(preValue);
+                var tlObjectCollector = objectCollector.getCurrent();
+                var sb = tlObjectCollector.create(StringBuilder.class);
+                try {
+                    if (preValue != null) {
+                        sb.append(preValue);
+                    }
+                    if (value == null) {
+                        sb.append("NULL");
+                    } else {
+                        sb.append(value);
+                    }
+                    if (postValue != null) {
+                        sb.append(postValue);
+                    }
+                    value = sb.toString();
+                } finally {
+                    tlObjectCollector.dispose(sb);
                 }
-                if (value == null) {
-                    sb.append("NULL");
-                } else {
-                    sb.append(value);
-                }
-                if (postValue != null) {
-                    sb.append(postValue);
-                }
-                value = sb.toString();
-                tlObjectCollector.dispose(sb);
             }
             if (value != null) {
                 ParamsUtil.addParam(parameters, value);

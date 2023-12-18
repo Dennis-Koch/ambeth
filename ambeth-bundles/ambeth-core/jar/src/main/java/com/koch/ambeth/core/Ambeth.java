@@ -122,6 +122,7 @@ public class Ambeth implements IAmbethConfiguration, IAmbethConfigurationIntern,
     private IServiceContext rootContext;
 
     private IServiceContext applicationContext;
+    private boolean useCDI;
 
     private Ambeth(boolean scanForFrameworkModules, boolean scanForApplicationModules) {
         this.scanForFrameworkModules = scanForFrameworkModules;
@@ -175,6 +176,11 @@ public class Ambeth implements IAmbethConfiguration, IAmbethConfigurationIntern,
     public IAmbethConfiguration withoutPropertiesFileSearch() {
         scanForPropertiesFile = false;
 
+        return this;
+    }
+
+    public IAmbethConfiguration withCDI() {
+        useCDI = true;
         return this;
     }
 
@@ -298,6 +304,10 @@ public class Ambeth implements IAmbethConfiguration, IAmbethConfigurationIntern,
                 properties.put(IocConfigurationConstants.ExplicitClassLoader, classLoader);
             }
         }
+        if (useCDI) {
+            startCDI(andClose, properties);
+            return;
+        }
         IServiceContext currentApplicationContext = null;
         boolean success = false;
         var rollback = IClassLoaderProvider.pushClassLoader(classLoader);
@@ -327,14 +337,14 @@ public class Ambeth implements IAmbethConfiguration, IAmbethConfigurationIntern,
                         var externalBean = autowiredFrameworkBean.getValue();
                         childContextFactory.registerExternalBean(externalBean).autowireable(typeToPublish);
                     }
-                }, allFrameworkModules.toArray(Class.class));
+                }, allFrameworkModules.toArray(Class[]::new));
 
                 if (!allApplicationModules.isEmpty() || !applicationModuleDelegates.isEmpty()) {
                     currentApplicationContext = currentApplicationContext.createService("application", childContextFactory -> {
                         for (var moduleDelegate : applicationModuleDelegates) {
                             moduleDelegate.accept(childContextFactory);
                         }
-                    }, allApplicationModules.toArray(Class.class));
+                    }, allApplicationModules.toArray(Class[]::new));
                 }
                 success = true;
             } finally {
@@ -347,6 +357,67 @@ public class Ambeth implements IAmbethConfiguration, IAmbethConfigurationIntern,
         }
         this.applicationContext = currentApplicationContext;
         this.rootContext = currentApplicationContext.getRoot();
+    }
+
+    protected void startCDI(boolean andClose, Properties properties) {
+        //        AnnotationConfigApplicationContext currentApplicationContext = null;
+        //        boolean success = false;
+        //        var rollback = IClassLoaderProvider.pushClassLoader(classLoader);
+        //        try {
+        //            try {
+        //                var ctx = new AnnotationConfigApplicationContext();
+        //                var env = new StandardEnvironment();
+        //                var propertySources = env.getPropertySources();
+        //                propertySources.addFirst(new PropertiesPropertySource("ambeth-props", properties));
+        //                ctx.setEnvironment(env);
+        //                ctx.register(properties);
+        //
+        //                ctx.register(AmbethBootstrapSpringConfig.class);
+        //                if (frameworkModules.remove(IocModule.class)) {
+        //                    ctx.register(IocModule.class);
+        //                    ctx.refresh();
+        //                } else {
+        //                    currentApplicationContext = BeanContextFactory.createBootstrap(properties);
+        //                }
+        //                var allFrameworkModules = new HashSet<>(this.frameworkModules);
+        //                var allApplicationModules = new HashSet<>(this.applicationModules);
+        //                scanForModules(currentApplicationContext, allFrameworkModules, allApplicationModules);
+        //
+        //                var ambethApplication = this;
+        //                currentApplicationContext = currentApplicationContext.createService("framework", childContextFactory -> {
+        //                    childContextFactory.registerExternalBean(ambethApplication).autowireable(IAmbethApplication.class);
+        //
+        //                    for (var moduleDelegate : frameworkModuleDelegates) {
+        //                        if (moduleDelegate == null) {
+        //                            continue;
+        //                        }
+        //                        moduleDelegate.accept(childContextFactory);
+        //                    }
+        //                    for (var autowiredFrameworkBean : autowiredFrameworkBeans) {
+        //                        var typeToPublish = autowiredFrameworkBean.getKey();
+        //                        var externalBean = autowiredFrameworkBean.getValue();
+        //                        childContextFactory.registerExternalBean(externalBean).autowireable(typeToPublish);
+        //                    }
+        //                }, allFrameworkModules.toArray(Class[]::new));
+        //
+        //                if (!allApplicationModules.isEmpty() || !applicationModuleDelegates.isEmpty()) {
+        //                    currentApplicationContext = currentApplicationContext.createService("application", childContextFactory -> {
+        //                        for (var moduleDelegate : applicationModuleDelegates) {
+        //                            moduleDelegate.accept(childContextFactory);
+        //                        }
+        //                    }, allApplicationModules.toArray(Class[]::new));
+        //                }
+        //                success = true;
+        //            } finally {
+        //                if (!success && currentApplicationContext != null) {
+        //                    currentApplicationContext.getRoot().dispose();
+        //                }
+        //            }
+        //        } finally {
+        //            rollback.rollback();
+        //        }
+        //        this.applicationContext = currentApplicationContext;
+        //        this.rootContext = currentApplicationContext.getRoot();
     }
 
     @Override

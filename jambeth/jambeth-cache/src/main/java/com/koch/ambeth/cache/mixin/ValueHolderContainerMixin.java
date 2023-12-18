@@ -41,13 +41,13 @@ import com.koch.ambeth.service.metadata.RelationMember;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.EmptyList;
 import com.koch.ambeth.util.collections.HashSet;
-import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.state.IStateRollback;
 import com.koch.ambeth.util.state.StateRollback;
 import com.koch.ambeth.util.threading.IGuiThreadHelper;
 import com.koch.ambeth.util.transaction.ILightweightTransaction;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
@@ -142,32 +142,32 @@ public class ValueHolderContainerMixin implements IDisposableBean, IAsyncLazyLoa
         if (isInGuiThread && initPending) {
             // Content is not really loaded, but instance is available to use (SOLELY for DataBinding in
             // GUI Thread)
-            Object value = ((IValueHolderContainer) entity).get__ValueDirect(relationIndex);
+            var value = ((IValueHolderContainer) entity).get__ValueDirect(relationIndex);
             if (value != null) {
                 return value;
             }
         }
         if (!asynchronousResultAllowed) {
-            IList<Object> results;
+            List<Object> results;
             if (objRefs == null) {
                 final IObjRelation self = getSelf(entity, relationMember.getName());
 
                 if (transaction != null) {
                     results = transaction.runInLazyTransaction(() -> {
-                        IList<IObjRelationResult> objRelResults = targetCache.getObjRelations(Arrays.asList(self), targetCache, cacheDirective);
+                        List<IObjRelationResult> objRelResults = targetCache.getObjRelations(Arrays.asList(self), targetCache, cacheDirective);
                         if (objRelResults.isEmpty()) {
                             return EmptyList.getInstance();
                         } else {
-                            IObjRelationResult objRelResult = objRelResults.get(0);
+                            var objRelResult = objRelResults.get(0);
                             return targetCache.getObjects(new ArrayList<IObjRef>(objRelResult.getRelations()), targetCache, cacheDirective);
                         }
                     });
                 } else {
-                    IList<IObjRelationResult> objRelResults = targetCache.getObjRelations(Arrays.asList(self), targetCache, cacheDirective);
+                    List<IObjRelationResult> objRelResults = targetCache.getObjRelations(Arrays.asList(self), targetCache, cacheDirective);
                     if (objRelResults.isEmpty()) {
                         results = EmptyList.getInstance();
                     } else {
-                        IObjRelationResult objRelResult = objRelResults.get(0);
+                        var objRelResult = objRelResults.get(0);
                         results = targetCache.getObjects(new ArrayList<IObjRef>(objRelResult.getRelations()), targetCache, cacheDirective);
                     }
                 }
@@ -216,7 +216,7 @@ public class ValueHolderContainerMixin implements IDisposableBean, IAsyncLazyLoa
                             continue;
                         }
                         cond.await(queueInterval, TimeUnit.MILLISECONDS);
-                        vhRefs = vhRefToPendingEventHandlersMap.toArray(DirectValueHolderRef.class);
+                        vhRefs = vhRefToPendingEventHandlersMap.toArray(DirectValueHolderRef[]::new);
                         vhRefToPendingEventHandlersMap.clear();
                         if (disposed) {
                             return;

@@ -128,7 +128,7 @@ public class GenericEntityREST extends AbstractServiceREST {
             navigationSteps.add(new NavigationStep(value, metaData, config, member));
             if (value == null) {
                 if (navigationMode == NavigationMode.TRY_ONLY) {
-                    return navigationSteps.toArray(NavigationStep.class);
+                    return navigationSteps.toArray(NavigationStep[]::new);
                 }
                 throw new NotFoundException("Entity '" + pathSB + "' not found");
             }
@@ -179,7 +179,7 @@ public class GenericEntityREST extends AbstractServiceREST {
         }
         navigationSteps.add(new NavigationStep(value, metaData, config, null));
 
-        return navigationSteps.toArray(NavigationStep.class);
+        return navigationSteps.toArray(NavigationStep[]::new);
     }
 
     @GET

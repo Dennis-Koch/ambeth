@@ -28,10 +28,10 @@ import com.koch.ambeth.service.merge.model.IObjRef;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.HashMap;
 import com.koch.ambeth.util.collections.HashSet;
-import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.ISet;
 
 import java.util.EnumSet;
+import java.util.List;
 import java.util.Set;
 
 public class CacheDependencyNode {
@@ -60,7 +60,7 @@ public class CacheDependencyNode {
     public CacheDependencyNode parentNode;
 
     @SuppressWarnings("unused")
-    private IList<Object> privilegedHardRefResult;
+    private List<Object> privilegedHardRefResult;
 
     private boolean pendingChangeOnAnyChildCache;
 
@@ -102,11 +102,11 @@ public class CacheDependencyNode {
         objRefsToLoad.removeAll(objRefsToRemove);
 
         for (int a = childNodes.size(); a-- > 0; ) {
-            CacheDependencyNode childNode = childNodes.get(a);
+            var childNode = childNodes.get(a);
             childNode.removeNotFoundObjRefs(objRefsToRemove);
 
             // Hold cache values as hard ref to prohibit cache loss due to GC
-            IList<IObjRef> hardRefRequest = childNode.hardRefObjRefsToLoad.toList();
+            var hardRefRequest = childNode.hardRefObjRefsToLoad.toList();
             childNode.privilegedHardRefResult = childNode.rootCache.getObjects(hardRefRequest, failInCacheHierarchyAndCacheValueResult);
         }
     }

@@ -25,7 +25,6 @@ import com.koch.ambeth.query.persistence.IEntityCursor;
 import com.koch.ambeth.query.persistence.IVersionCursor;
 import com.koch.ambeth.service.merge.model.IObjRef;
 import com.koch.ambeth.util.IDisposable;
-import com.koch.ambeth.util.collections.IList;
 
 import java.util.List;
 import java.util.Map;
@@ -37,18 +36,14 @@ public interface IQueryIntern<T> extends IDisposable {
 
     IVersionCursor retrieveAsVersions(Map<Object, Object> paramNameToValueMap, boolean retrieveAlternateIds);
 
-    IList<IObjRef> retrieveAsObjRefs(Map<Object, Object> paramNameToValueMap, int idIndex);
-
-    IEntityCursor<T> retrieveAsCursor();
+    List<IObjRef> retrieveAsObjRefs(Map<Object, Object> paramNameToValueMap, int idIndex);
 
     IEntityCursor<T> retrieveAsCursor(Map<Object, Object> paramNameToValueMap);
 
-    IList<T> retrieve();
-
-    IList<T> retrieve(Map<Object, Object> paramNameToValueMap);
+    List<T> retrieve(Map<Object, Object> paramNameToValueMap);
 
     Class<T> getEntityType();
-
+    
     void fillRelatedEntityTypes(List<Class<?>> relatedEntityTypes);
 
     IQueryKey getQueryKey(Map<Object, Object> paramNameToValueMap);

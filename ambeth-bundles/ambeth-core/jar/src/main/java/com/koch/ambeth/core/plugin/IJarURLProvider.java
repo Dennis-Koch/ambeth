@@ -21,14 +21,13 @@ limitations under the License.
  */
 
 import java.net.URL;
-
-import com.koch.ambeth.util.collections.IList;
+import java.util.List;
 
 public interface IJarURLProvider {
-	/**
-	 * supply the URLs for scan and load Class in jar file
-	 *
-	 * @return
-	 */
-	IList<URL> getJarURLs();
+    /**
+     * supply the URLs for scan and load Class in jar file
+     *
+     * @return
+     */
+    List<URL> getJarURLs();
 }

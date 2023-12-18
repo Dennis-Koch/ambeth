@@ -38,7 +38,6 @@ import com.koch.ambeth.service.merge.model.IObjRef;
 import com.koch.ambeth.util.IConversionHelper;
 import com.koch.ambeth.util.IPreparedConverter;
 import com.koch.ambeth.util.collections.ArrayList;
-import com.koch.ambeth.util.collections.IList;
 
 import java.util.List;
 
@@ -173,7 +172,7 @@ public class ServiceUtil implements IServiceUtil {
     }
 
     @Override
-    public IList<IObjRef> loadObjRefs(Class<?> entityType, int idIndex, IVersionCursor cursor) {
+    public List<IObjRef> loadObjRefs(Class<?> entityType, int idIndex, IVersionCursor cursor) {
         try {
             var objRefs = new ArrayList<IObjRef>();
             var preparedObjRefFactory = objRefFactory.prepareObjRefFactory(entityType, idIndex);

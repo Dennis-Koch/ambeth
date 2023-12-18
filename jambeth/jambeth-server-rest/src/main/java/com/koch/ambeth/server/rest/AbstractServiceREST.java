@@ -33,7 +33,6 @@ import com.koch.ambeth.service.transfer.AmbethServiceException;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.EmptyList;
 import com.koch.ambeth.util.collections.HashSet;
-import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.config.IProperties;
 import com.koch.ambeth.util.exception.MaskingRuntimeException;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
@@ -184,7 +183,7 @@ public abstract class AbstractServiceREST {
     }
 
     @SuppressWarnings("unchecked")
-    protected <T> IList<T> createList(Class<T> targetType, List<?> list) {
+    protected <T> List<T> createList(Class<T> targetType, List<?> list) {
         ArrayList<T> targetList = new ArrayList<>(list.size());
         for (int a = 0, size = list.size(); a < size; a++) {
             targetList.add((T) list.get(a));

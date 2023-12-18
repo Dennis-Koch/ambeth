@@ -24,7 +24,6 @@ import com.koch.ambeth.service.cache.model.IObjRelation;
 import com.koch.ambeth.service.cache.model.IObjRelationResult;
 import com.koch.ambeth.service.merge.model.IObjRef;
 import com.koch.ambeth.util.Lock;
-import com.koch.ambeth.util.collections.IList;
 
 import java.util.List;
 import java.util.Set;
@@ -55,35 +54,35 @@ public interface ICache {
     /**
      * Alternative interface for
      * <p>
-     * IList<Object> getObjects(List<IObjRef>, Set<CacheDirective>)
+     * List<Object> getObjects(List<IObjRef>, Set<CacheDirective>)
      *
      * @param type Type of objects to get.
      * @param ids  IDs of objects to get.
      * @return Typed list of loaded objects.
      */
-    <E> IList<E> getObjects(Class<E> type, Object... ids);
+    <E> List<E> getObjects(Class<E> type, Object... ids);
 
     /**
      * Alternative interface for
      * <p>
-     * IList<Object> getObjects(List<IObjRef>, Set<CacheDirective>)
+     * List<Object> getObjects(List<IObjRef>, Set<CacheDirective>)
      *
      * @param type Type of objects to get.
      * @param ids  IDs of objects to get.
      * @return Typed list of loaded objects.
      */
-    <E> IList<E> getObjects(Class<E> type, List<?> ids);
+    <E> List<E> getObjects(Class<E> type, List<?> ids);
 
     /**
      * Alternative interface for
      * <p>
-     * IList<Object> getObjects(List<IObjRef>, Set<CacheDirective>)
+     * List<Object> getObjects(List<IObjRef>, Set<CacheDirective>)
      *
      * @param orisToGetArray Objects references for the objects to get.
      * @param cacheDirective Set of cache directives.
      * @return List of loaded objects.
      */
-    IList<Object> getObjects(IObjRef[] orisToGetArray, Set<CacheDirective> cacheDirective);
+    List<Object> getObjects(IObjRef[] orisToGetArray, Set<CacheDirective> cacheDirective);
 
     /**
      * Getter for objects from cache, identified by object references. The cache may cascade the
@@ -93,7 +92,7 @@ public interface ICache {
      * @param cacheDirective Set of cache directives.
      * @return List of loaded objects.
      */
-    IList<Object> getObjects(List<IObjRef> orisToGet, Set<CacheDirective> cacheDirective);
+    List<Object> getObjects(List<IObjRef> orisToGet, Set<CacheDirective> cacheDirective);
 
     /**
      * Getter for objects from cache, identified by object relation. The cache may cascade the request
@@ -104,7 +103,7 @@ public interface ICache {
      * @param cacheDirective Set of cache directives.
      * @return List of loaded objects.
      */
-    IList<IObjRelationResult> getObjRelations(List<IObjRelation> self, Set<CacheDirective> cacheDirective);
+    List<IObjRelationResult> getObjRelations(List<IObjRelation> self, Set<CacheDirective> cacheDirective);
 
     /**
      * Getter for one object from cache, identified by an object reference. The cache may cascade the

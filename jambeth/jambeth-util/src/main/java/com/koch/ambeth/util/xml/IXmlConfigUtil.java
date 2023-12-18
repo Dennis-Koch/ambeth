@@ -20,42 +20,42 @@ limitations under the License.
  * #L%
  */
 
+import com.koch.ambeth.util.collections.IMap;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import com.koch.ambeth.util.collections.IList;
-import com.koch.ambeth.util.collections.IMap;
+import java.util.List;
 
 public interface IXmlConfigUtil {
-	Document[] readXmlFiles(String xmlFileNames);
+    Document[] readXmlFiles(String xmlFileNames);
 
-	IXmlValidator createValidator(String... xsdFileNames);
+    IXmlValidator createValidator(String... xsdFileNames);
 
-	String readDocumentNamespace(Document doc);
+    String readDocumentNamespace(Document doc);
 
-	IList<Element> nodesToElements(NodeList nodeList);
+    List<Element> nodesToElements(NodeList nodeList);
 
-	IMap<String, IList<Element>> childrenToElementMap(Node parent);
+    IMap<String, List<Element>> childrenToElementMap(Node parent);
 
-	IMap<String, IList<Element>> toElementMap(NodeList nodeList);
+    IMap<String, List<Element>> toElementMap(NodeList nodeList);
 
-	IList<Element> getElementsByName(String name, IMap<String, IList<Element>> elementMap);
+    List<Element> getElementsByName(String name, IMap<String, List<Element>> elementMap);
 
-	Element getChildUnique(Element parent, String childTagName);
+    Element getChildUnique(Element parent, String childTagName);
 
-	String getAttribute(Element entityTag, String type);
+    String getAttribute(Element entityTag, String type);
 
-	String getRequiredAttribute(Element element, String attrName);
+    String getRequiredAttribute(Element element, String attrName);
 
-	String getRequiredAttribute(Element element, String attrName, boolean firstToUpper);
+    String getRequiredAttribute(Element element, String attrName, boolean firstToUpper);
 
-	String getChildElementAttribute(Element node, String childName, String attrName, String error);
+    String getChildElementAttribute(Element node, String childName, String attrName, String error);
 
-	boolean attributeIsTrue(Element element, String attrName);
+    boolean attributeIsTrue(Element element, String attrName);
 
-	Class<?> getTypeForName(String name);
+    Class<?> getTypeForName(String name);
 
-	Class<?> getTypeForName(String name, boolean tryOnly);
+    Class<?> getTypeForName(String name, boolean tryOnly);
 }

@@ -25,8 +25,8 @@ import com.koch.ambeth.ioc.config.Property;
 import com.koch.ambeth.query.IOperand;
 import com.koch.ambeth.util.ParamChecker;
 import com.koch.ambeth.util.appendable.IAppendable;
-import com.koch.ambeth.util.collections.IList;
 
+import java.util.List;
 import java.util.Map;
 
 public class DifferenceOperand implements IOperand, IInitializingBean {
@@ -39,7 +39,7 @@ public class DifferenceOperand implements IOperand, IInitializingBean {
     }
 
     @Override
-    public void expandQuery(IAppendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, IList<Object> parameters) {
+    public void expandQuery(IAppendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, List<Object> parameters) {
         if (operands.length > 1) {
             querySB.append('(');
         }

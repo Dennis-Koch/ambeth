@@ -21,11 +21,12 @@ limitations under the License.
  */
 
 import com.koch.ambeth.service.cache.model.ILoadContainer;
-import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.function.CheckedSupplier;
+
+import java.util.List;
 
 public interface IVerifyOnLoad {
     <R> R verifyEntitiesOnLoad(CheckedSupplier<R> runnable);
 
-    void queueVerifyEntitiesOnLoad(IList<ILoadContainer> loadedEntities);
+    void queueVerifyEntitiesOnLoad(List<ILoadContainer> loadedEntities);
 }

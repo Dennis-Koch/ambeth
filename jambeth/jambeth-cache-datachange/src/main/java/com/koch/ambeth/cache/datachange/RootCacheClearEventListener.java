@@ -25,41 +25,36 @@ import com.koch.ambeth.cache.IRootCache;
 import com.koch.ambeth.cache.ISecondLevelCacheManager;
 import com.koch.ambeth.event.IEventListener;
 import com.koch.ambeth.ioc.annotation.Autowired;
-import com.koch.ambeth.merge.cache.IWritableCache;
 import com.koch.ambeth.service.cache.ClearAllCachesEvent;
-import com.koch.ambeth.util.collections.IList;
 
 public class RootCacheClearEventListener implements IEventListener {
-	@Autowired
-	protected IFirstLevelCacheManager firstLevelCacheManager;
+    @Autowired
+    protected IFirstLevelCacheManager firstLevelCacheManager;
 
-	@Autowired
-	protected ISecondLevelCacheManager secondLevelCacheManager;
+    @Autowired
+    protected ISecondLevelCacheManager secondLevelCacheManager;
 
-	@Autowired
-	protected IRootCache committedRootCache;
+    @Autowired
+    protected IRootCache committedRootCache;
 
-	@Override
-	public void handleEvent(Object eventObject, long dispatchTime, long sequenceId) {
-		if (!(eventObject instanceof ClearAllCachesEvent)) {
-			return;
-		}
-		committedRootCache.clear();
-		IRootCache privilegedSecondLevelCache = secondLevelCacheManager
-				.selectPrivilegedSecondLevelCache(false);
-		if (privilegedSecondLevelCache != null && privilegedSecondLevelCache != committedRootCache) {
-			privilegedSecondLevelCache.clear();
-		}
-		IRootCache nonPrivilegedSecondLevelCache = secondLevelCacheManager
-				.selectNonPrivilegedSecondLevelCache(false);
-		if (nonPrivilegedSecondLevelCache != null && nonPrivilegedSecondLevelCache != committedRootCache
-				&& nonPrivilegedSecondLevelCache != privilegedSecondLevelCache) {
-			nonPrivilegedSecondLevelCache.clear();
-		}
-		IList<IWritableCache> firstLevelCaches = firstLevelCacheManager.selectFirstLevelCaches();
-		for (int a = firstLevelCaches.size(); a-- > 0;) {
-			IWritableCache firstLevelCache = firstLevelCaches.get(a);
-			firstLevelCache.clear();
-		}
-	}
+    @Override
+    public void handleEvent(Object eventObject, long dispatchTime, long sequenceId) {
+        if (!(eventObject instanceof ClearAllCachesEvent)) {
+            return;
+        }
+        committedRootCache.clear();
+        var privilegedSecondLevelCache = secondLevelCacheManager.selectPrivilegedSecondLevelCache(false);
+        if (privilegedSecondLevelCache != null && privilegedSecondLevelCache != committedRootCache) {
+            privilegedSecondLevelCache.clear();
+        }
+        var nonPrivilegedSecondLevelCache = secondLevelCacheManager.selectNonPrivilegedSecondLevelCache(false);
+        if (nonPrivilegedSecondLevelCache != null && nonPrivilegedSecondLevelCache != committedRootCache && nonPrivilegedSecondLevelCache != privilegedSecondLevelCache) {
+            nonPrivilegedSecondLevelCache.clear();
+        }
+        var firstLevelCaches = firstLevelCacheManager.selectFirstLevelCaches();
+        for (int a = firstLevelCaches.size(); a-- > 0; ) {
+            var firstLevelCache = firstLevelCaches.get(a);
+            firstLevelCache.clear();
+        }
+    }
 }

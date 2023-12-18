@@ -376,7 +376,7 @@ public class RESTClientInterceptor extends AbstractSimpleInterceptor implements 
                 }
                 stes.add(new StackTraceElement(declaringClass, methodName, file, lineNumber != null ? Integer.valueOf(lineNumber) : -1));
             }
-            ex.setStackTrace(stes.toArray(StackTraceElement.class));
+            ex.setStackTrace(stes.toArray(StackTraceElement[]::new));
             return ex;
         } catch (Exception ignored) {
             return new IllegalStateException(serviceException.getExceptionType() + ":" + serviceException.getMessage() + "\n" + serviceException.getStackTrace(), cause);

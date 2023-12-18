@@ -20,9 +20,6 @@ limitations under the License.
  * #L%
  */
 
-import java.util.List;
-import java.util.Set;
-
 import com.koch.ambeth.ioc.IInitializingBean;
 import com.koch.ambeth.ioc.IStartingBean;
 import com.koch.ambeth.ioc.annotation.Autowired;
@@ -34,109 +31,111 @@ import com.koch.ambeth.query.IQueryBuilderFactory;
 import com.koch.ambeth.query.OrderByType;
 import com.koch.ambeth.service.proxy.Service;
 
+import java.util.List;
+import java.util.Set;
+
 @Service(IEmployeeService.class)
 @PersistenceContext
 public class EmployeeService implements IInitializingBean, IEmployeeService, IStartingBean {
-	@Autowired
-	protected IQueryBuilderFactory queryBuilderFactory;
+    @Autowired
+    protected IQueryBuilderFactory queryBuilderFactory;
 
-	protected IQuery<Employee> queryEmployeeByName;
+    protected IQuery<Employee> queryEmployeeByName;
 
-	protected IQuery<Employee> queryEmployeeAll;
+    protected IQuery<Employee> queryEmployeeAll;
 
-	protected IQuery<Employee> queryEmployeeByNameOrderedAsc;
+    protected IQuery<Employee> queryEmployeeByNameOrderedAsc;
 
-	protected IQuery<Employee> queryEmployeeByNameOrderedDesc;
+    protected IQuery<Employee> queryEmployeeByNameOrderedDesc;
 
-	@Override
-	public void afterPropertiesSet() throws Throwable {
+    @Override
+    public void afterPropertiesSet() throws Throwable {
 
-	}
+    }
 
-	@Override
-	public void afterStarted() throws Throwable {
-		{
-			IQueryBuilder<Employee> qb = queryBuilderFactory.create(Employee.class);
-			queryEmployeeByName = qb
-					.build(qb.let(qb.property(Employee.Name)).isEqualTo(qb.valueName(Employee.Name)));
-		}
-		{
-			queryEmployeeAll = queryBuilderFactory.create(Employee.class).build();
-		}
-		{
-			IQueryBuilder<Employee> qb = queryBuilderFactory.create(Employee.class);
-			IOperand nameOp = qb.property(Employee.Name);
-			qb.orderBy(nameOp, OrderByType.ASC);
-			queryEmployeeByNameOrderedAsc = qb.build();
-		}
-		{
-			IQueryBuilder<Employee> qb = queryBuilderFactory.create(Employee.class);
-			IOperand nameOp = qb.property(Employee.Name);
-			qb.orderBy(nameOp, OrderByType.DESC);
-			queryEmployeeByNameOrderedDesc = qb.build();
-		}
-	}
+    @Override
+    public void afterStarted() throws Throwable {
+        {
+            IQueryBuilder<Employee> qb = queryBuilderFactory.create(Employee.class);
+            queryEmployeeByName = qb.build(qb.let(qb.property(Employee.Name)).isEqualTo(qb.parameterValue(Employee.Name)));
+        }
+        {
+            queryEmployeeAll = queryBuilderFactory.create(Employee.class).build();
+        }
+        {
+            IQueryBuilder<Employee> qb = queryBuilderFactory.create(Employee.class);
+            IOperand nameOp = qb.property(Employee.Name);
+            qb.orderBy(nameOp, OrderByType.ASC);
+            queryEmployeeByNameOrderedAsc = qb.build();
+        }
+        {
+            IQueryBuilder<Employee> qb = queryBuilderFactory.create(Employee.class);
+            IOperand nameOp = qb.property(Employee.Name);
+            qb.orderBy(nameOp, OrderByType.DESC);
+            queryEmployeeByNameOrderedDesc = qb.build();
+        }
+    }
 
-	@Override
-	public List<Employee> getAll() {
-		return queryEmployeeAll.retrieve();
-	}
+    @Override
+    public List<Employee> getAll() {
+        return queryEmployeeAll.retrieve();
+    }
 
-	@Override
-	public Employee getByName(String name) {
-		return queryEmployeeByName.param(Employee.Name, name).retrieveSingle();
-	}
+    @Override
+    public Employee getByName(String name) {
+        return queryEmployeeByName.param(Employee.Name, name).retrieveSingle();
+    }
 
-	@Override
-	public List<Employee> retrieve(List<String> names) {
-		throw new UnsupportedOperationException();
-	}
+    @Override
+    public List<Employee> retrieve(List<String> names) {
+        throw new UnsupportedOperationException();
+    }
 
-	@Override
-	public void save(Employee employee) {
-		throw new UnsupportedOperationException();
-	}
+    @Override
+    public void save(Employee employee) {
+        throw new UnsupportedOperationException();
+    }
 
-	@Override
-	public void save(List<Employee> employees) {
-		throw new UnsupportedOperationException();
-	}
+    @Override
+    public void save(List<Employee> employees) {
+        throw new UnsupportedOperationException();
+    }
 
-	@Override
-	public void delete(Employee employee) {
-		throw new UnsupportedOperationException();
-	}
+    @Override
+    public void delete(Employee employee) {
+        throw new UnsupportedOperationException();
+    }
 
-	@Override
-	public void delete(List<Employee> employees) {
-		throw new UnsupportedOperationException();
-	}
+    @Override
+    public void delete(List<Employee> employees) {
+        throw new UnsupportedOperationException();
+    }
 
-	@Override
-	public void delete(Set<Employee> employees) {
-		throw new UnsupportedOperationException();
-	}
+    @Override
+    public void delete(Set<Employee> employees) {
+        throw new UnsupportedOperationException();
+    }
 
-	@Override
-	public void delete(Employee[] employees) {
-		throw new UnsupportedOperationException();
-	}
+    @Override
+    public void delete(Employee[] employees) {
+        throw new UnsupportedOperationException();
+    }
 
-	@Override
-	public void delete(String name) {
-		throw new UnsupportedOperationException();
-	}
+    @Override
+    public void delete(String name) {
+        throw new UnsupportedOperationException();
+    }
 
-	@Override
-	public List<Employee> retrieveOrderedByName(boolean reverse) {
-		if (reverse) {
-			return queryEmployeeByNameOrderedDesc.retrieve();
-		}
-		return queryEmployeeByNameOrderedAsc.retrieve();
-	}
+    @Override
+    public List<Employee> retrieveOrderedByName(boolean reverse) {
+        if (reverse) {
+            return queryEmployeeByNameOrderedDesc.retrieve();
+        }
+        return queryEmployeeByNameOrderedAsc.retrieve();
+    }
 
-	@Override
-	public Boat saveBoat(Boat boat) {
-		throw new UnsupportedOperationException();
-	}
+    @Override
+    public Boat saveBoat(Boat boat) {
+        throw new UnsupportedOperationException();
+    }
 }

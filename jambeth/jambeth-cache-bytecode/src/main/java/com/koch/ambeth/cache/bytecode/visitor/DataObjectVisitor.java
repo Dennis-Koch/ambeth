@@ -256,7 +256,7 @@ public class DataObjectVisitor extends ClassGenerator {
             for (Member itemMember : ((CompositeIdMember) idMember).getMembers()) {
                 names.add(itemMember.getName());
             }
-            p_toBeCreated.addAnnotation(c_fireThisOPC, new Object[] { names.toArray(String.class) });
+            p_toBeCreated.addAnnotation(c_fireThisOPC, new Object[] { names.toArray(String[]::new) });
         } else {
             p_toBeCreated.addAnnotation(c_fireThisOPC, idMember.getName());
         }

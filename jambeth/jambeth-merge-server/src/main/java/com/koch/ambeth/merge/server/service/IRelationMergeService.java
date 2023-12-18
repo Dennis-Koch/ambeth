@@ -30,55 +30,37 @@ import com.koch.ambeth.merge.server.change.ITableChange;
 import com.koch.ambeth.persistence.api.IDirectedLink;
 import com.koch.ambeth.persistence.api.ITable;
 import com.koch.ambeth.service.merge.model.IObjRef;
-import com.koch.ambeth.util.collections.HashSet;
-import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.IMap;
 import com.koch.ambeth.util.collections.ISet;
 
+import java.util.List;
+import java.util.Set;
+
 public interface IRelationMergeService {
-	ITableChange getTableChange(IMap<String, ITableChange> tableChangeMap, Object entityHandler,
-			String entityHandlerName);
+    ITableChange getTableChange(IMap<String, ITableChange> tableChangeMap, Object entityHandler, String entityHandlerName);
 
-	IList<IChangeContainer> processCreateDependencies(IObjRef reference, ITable table,
-			IRelationUpdateItem[] ruis,
-			IMap<CheckForPreviousParentKey, IList<IObjRef>> previousParentToMovedOrisMap,
-			HashSet<IObjRef> allAddedORIs, IMap<IObjRef, IChangeContainer> objRefToChangeContainerMap,
-			IRootCache rootCache);
+    List<IChangeContainer> processCreateDependencies(IObjRef reference, ITable table, IRelationUpdateItem[] ruis, IMap<CheckForPreviousParentKey, List<IObjRef>> previousParentToMovedOrisMap,
+            Set<IObjRef> allAddedORIs, IMap<IObjRef, IChangeContainer> objRefToChangeContainerMap, IRootCache rootCache);
 
-	IList<IChangeContainer> processUpdateDependencies(IObjRef reference, ITable table,
-			IRelationUpdateItem[] ruis, IMap<IObjRef, RootCacheValue> toDeleteMap,
-			IMap<CheckForPreviousParentKey, IList<IObjRef>> previousParentToMovedOrisMap,
-			HashSet<IObjRef> allAddedORIs, IMap<IObjRef, IChangeContainer> objRefToChangeContainerMap,
-			IRootCache rootCache);
+    List<IChangeContainer> processUpdateDependencies(IObjRef reference, ITable table, IRelationUpdateItem[] ruis, IMap<IObjRef, RootCacheValue> toDeleteMap,
+            IMap<CheckForPreviousParentKey, List<IObjRef>> previousParentToMovedOrisMap, Set<IObjRef> allAddedORIs, IMap<IObjRef, IChangeContainer> objRefToChangeContainerMap, IRootCache rootCache);
 
-	IList<IChangeContainer> processDeleteDependencies(IObjRef reference, ITable table,
-			IMap<IObjRef, RootCacheValue> toDeleteMap,
-			IMap<OutgoingRelationKey, IList<IObjRef>> outgoingRelationToReferenceMap,
-			IMap<IncomingRelationKey, IList<IObjRef>> incomingRelationToReferenceMap,
-			IMap<CheckForPreviousParentKey, IList<IObjRef>> previousParentToMovedOrisMap,
-			HashSet<IObjRef> allAddedORIs, IMap<IObjRef, IChangeContainer> objRefToChangeContainerMap,
-			IRootCache rootCache);
+    List<IChangeContainer> processDeleteDependencies(IObjRef reference, ITable table, IMap<IObjRef, RootCacheValue> toDeleteMap,
+            IMap<OutgoingRelationKey, List<IObjRef>> outgoingRelationToReferenceMap, IMap<IncomingRelationKey, List<IObjRef>> incomingRelationToReferenceMap,
+            IMap<CheckForPreviousParentKey, List<IObjRef>> previousParentToMovedOrisMap, Set<IObjRef> allAddedORIs, IMap<IObjRef, IChangeContainer> objRefToChangeContainerMap, IRootCache rootCache);
 
-	IList<IChangeContainer> checkForPreviousParent(IList<IObjRef> oris, Class<?> entityType,
-			String memberName, IMap<IObjRef, IChangeContainer> objRefToChangeContainerMap,
-			IIncrementalMergeState incrementalState);
+    List<IChangeContainer> checkForPreviousParent(List<IObjRef> oris, Class<?> entityType, String memberName, IMap<IObjRef, IChangeContainer> objRefToChangeContainerMap,
+            IIncrementalMergeState incrementalState);
 
-	IList<IChangeContainer> handleOutgoingRelation(IList<IObjRef> references, byte idIndex,
-			ITable table, IDirectedLink link, IMap<IObjRef, RootCacheValue> toDeleteMap,
-			ISet<EntityLinkKey> alreadyHandled, ISet<RootCacheValue> alreadyPrefetched,
-			IMap<IObjRef, IChangeContainer> objRefToChangeContainerMap, IRootCache rootCache);
+    List<IChangeContainer> handleOutgoingRelation(List<IObjRef> references, byte idIndex, ITable table, IDirectedLink link, IMap<IObjRef, RootCacheValue> toDeleteMap,
+            ISet<EntityLinkKey> alreadyHandled, ISet<RootCacheValue> alreadyPrefetched, IMap<IObjRef, IChangeContainer> objRefToChangeContainerMap, IRootCache rootCache);
 
-	IList<IChangeContainer> handleIncomingRelation(IList<IObjRef> references, byte idIndex,
-			ITable table, IDirectedLink link, IMap<IObjRef, RootCacheValue> toDeleteMap,
-			IMap<IObjRef, IChangeContainer> objRefToChangeContainerMap, IRootCache rootCache,
-			IIncrementalMergeState incrementalState);
+    List<IChangeContainer> handleIncomingRelation(List<IObjRef> references, byte idIndex, ITable table, IDirectedLink link, IMap<IObjRef, RootCacheValue> toDeleteMap,
+            IMap<IObjRef, IChangeContainer> objRefToChangeContainerMap, IRootCache rootCache, IIncrementalMergeState incrementalState);
 
-	void handleUpdateNotifications(Class<?> parentType, IRelationUpdateItem[] ruis,
-			IMap<String, ITableChange> tableChangeMap);
+    void handleUpdateNotifications(Class<?> parentType, IRelationUpdateItem[] ruis, IMap<String, ITableChange> tableChangeMap);
 
-	void handleUpdateNotifications(ILinkChangeCommand changeCommand,
-			IMap<String, ITableChange> tableChangeMap);
+    void handleUpdateNotifications(ILinkChangeCommand changeCommand, IMap<String, ITableChange> tableChangeMap);
 
-	void checkForCorrectIdIndex(ILinkChangeCommand changeCommand,
-			IMap<Byte, IList<IObjRef>> toChange);
+    void checkForCorrectIdIndex(ILinkChangeCommand changeCommand, IMap<Byte, List<IObjRef>> toChange);
 }

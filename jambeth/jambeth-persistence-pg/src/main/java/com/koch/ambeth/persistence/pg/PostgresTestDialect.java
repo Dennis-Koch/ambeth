@@ -16,7 +16,6 @@ import com.koch.ambeth.persistence.pg.RandomUserScript.RandomUserModule;
 import com.koch.ambeth.util.appendable.AppendableStringBuilder;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.HashSet;
-import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.config.IProperties;
 import lombok.SneakyThrows;
 
@@ -26,6 +25,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.List;
 import java.util.regex.Pattern;
 
 public class PostgresTestDialect extends AbstractConnectionTestDialect {
@@ -178,7 +178,7 @@ public class PostgresTestDialect extends AbstractConnectionTestDialect {
                 sql.add(sb.toString());
             }
         }
-        return sql.toArray(String.class);
+        return sql.toArray(String[]::new);
     }
 
     @SneakyThrows
@@ -268,26 +268,26 @@ public class PostgresTestDialect extends AbstractConnectionTestDialect {
     }
 
     @Override
-    protected IList<String> queryForAllTables(Connection connection) {
+    protected List<String> queryForAllTables(Connection connection) {
         return connectionDialect.queryDefault(connection, "FULL_NAME",
                 "SELECT DISTINCT n.nspname || '.' || c.relname AS FULL_NAME FROM pg_trigger t JOIN pg_class c ON t.tgrelid=c.oid JOIN pg_namespace n ON c.relnamespace=n.oid WHERE n.nspname='" +
                         schemaNames[0] + "'");
     }
 
     @Override
-    protected IList<String> queryForAllTriggers(Connection connection) {
+    protected List<String> queryForAllTriggers(Connection connection) {
         return connectionDialect.queryDefault(connection, "TRIGGER_NAME", "SELECT t.tgname AS TRIGGER_NAME FROM pg_trigger t");
     }
 
     @Override
-    protected IList<String> queryForAllPermissionGroupNeedingTables(Connection connection) {
+    protected List<String> queryForAllPermissionGroupNeedingTables(Connection connection) {
         return connectionDialect.queryDefault(connection, "TNAME",
                 "SELECT c.table_name AS TNAME FROM information_schema.columns c WHERE LOWER(c.column_name)=LOWER('" + PermissionGroup.permGroupIdNameOfData + "') AND LOWER(table_schema)=LOWER('" +
                         schemaNames[0] + "')");
     }
 
     @Override
-    protected IList<String> queryForAllPotentialPermissionGroups(Connection connection) {
+    protected List<String> queryForAllPotentialPermissionGroups(Connection connection) {
         return connectionDialect.queryDefault(connection, "PERM_GROUP_NAME", "SELECT t.table_name AS PERM_GROUP_NAME FROM information_schema.tables t");
     }
 
@@ -340,7 +340,7 @@ public class PostgresTestDialect extends AbstractConnectionTestDialect {
         // JdbcUtil.close(pstm, rs);
         // }
 
-        return sql.toArray(String.class);
+        return sql.toArray(String[]::new);
     }
 
     @SneakyThrows

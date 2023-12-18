@@ -45,7 +45,6 @@ import com.koch.ambeth.service.metadata.RelationMember;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.HashMap;
 import com.koch.ambeth.util.collections.HashSet;
-import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.IMap;
 import com.koch.ambeth.util.collections.ISet;
 import com.koch.ambeth.util.collections.IdentityHashSet;
@@ -57,6 +56,7 @@ import com.koch.ambeth.util.typeinfo.IPropertyInfoProvider;
 import com.koch.ambeth.util.typeinfo.IRelationProvider;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
@@ -244,9 +244,9 @@ public class EntityMetaDataReader implements IEntityMetaDataReader {
         }
         filterWrongRelationMappings(relationMembers);
         // Order of setter calls is important
-        var primitives = primitiveMembers.toArray(PrimitiveMember.class);
-        var alternateIds = alternateIdMembers.toArray(PrimitiveMember.class);
-        var relations = relationMembers.toArray(RelationMember.class);
+        var primitives = primitiveMembers.toArray(PrimitiveMember[]::new);
+        var alternateIds = alternateIdMembers.toArray(PrimitiveMember[]::new);
+        var relations = relationMembers.toArray(RelationMember[]::new);
         Arrays.sort(primitives);
         Arrays.sort(alternateIds);
         Arrays.sort(relations);
@@ -388,7 +388,7 @@ public class EntityMetaDataReader implements IEntityMetaDataReader {
         return member;
     }
 
-    protected void fillNameCollections(IEntityConfig entityConfig, ISet<String> memberNamesToIgnore, HashSet<String> explicitBasicMemberNames, IList<IMemberConfig> embeddedMembers,
+    protected void fillNameCollections(IEntityConfig entityConfig, ISet<String> memberNamesToIgnore, HashSet<String> explicitBasicMemberNames, List<IMemberConfig> embeddedMembers,
             IMap<String, IMemberConfig> nameToMemberConfig, IMap<String, IRelationConfig> nameToRelationConfig) {
         for (var memberConfig : entityConfig.getMemberConfigIterable()) {
             if (!(memberConfig instanceof MemberConfig) && !(memberConfig instanceof CompositeMemberConfig)) {

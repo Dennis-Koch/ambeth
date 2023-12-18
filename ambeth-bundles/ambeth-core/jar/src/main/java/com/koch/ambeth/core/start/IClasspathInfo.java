@@ -22,11 +22,10 @@ limitations under the License.
 
 import java.net.URL;
 import java.nio.file.Path;
-
-import com.koch.ambeth.util.collections.IList;
+import java.util.List;
 
 public interface IClasspathInfo {
-	IList<URL> getJarURLs();
+    List<URL> getJarURLs();
 
-	Path openAsFile(URL url) throws Exception;
+    Path openAsFile(URL url) throws Exception;
 }

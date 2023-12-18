@@ -20,15 +20,13 @@ limitations under the License.
  * #L%
  */
 
-import java.util.Map;
-
 import com.koch.ambeth.query.IMultiValueOperand;
 import com.koch.ambeth.query.IOperand;
 import com.koch.ambeth.query.IValueOperand;
 import com.koch.ambeth.util.appendable.IAppendable;
-import com.koch.ambeth.util.collections.EmptyList;
-import com.koch.ambeth.util.collections.IList;
-import com.koch.ambeth.util.collections.IMap;
+
+import java.util.List;
+import java.util.Map;
 
 public class NullValueOperand implements IOperand, IValueOperand, IMultiValueOperand {
     public static final NullValueOperand INSTANCE = new NullValueOperand();
@@ -49,12 +47,12 @@ public class NullValueOperand implements IOperand, IValueOperand, IMultiValueOpe
     }
 
     @Override
-    public IList<Object> getMultiValue(Map<Object, Object> nameToValueMap) {
-        return EmptyList.createTypedEmptyList(Object.class);
+    public List<Object> getMultiValue(Map<Object, Object> nameToValueMap) {
+        return List.of();
     }
 
     @Override
-    public void expandQuery(IAppendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, IList<Object> parameters) {
+    public void expandQuery(IAppendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, List<Object> parameters) {
         querySB.append("NULL");
     }
 }

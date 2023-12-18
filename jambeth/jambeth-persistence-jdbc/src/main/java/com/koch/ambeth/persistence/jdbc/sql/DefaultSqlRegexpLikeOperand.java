@@ -25,8 +25,8 @@ import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.query.IOperand;
 import com.koch.ambeth.util.appendable.IAppendable;
-import com.koch.ambeth.util.collections.IList;
 
+import java.util.List;
 import java.util.Map;
 
 public class DefaultSqlRegexpLikeOperand implements IOperand {
@@ -40,7 +40,7 @@ public class DefaultSqlRegexpLikeOperand implements IOperand {
     private ILogger log;
 
     @Override
-    public void expandQuery(IAppendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, IList<Object> parameters) {
+    public void expandQuery(IAppendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, List<Object> parameters) {
         querySB.append("REGEXP_LIKE").append('(');
         sourceString.expandQuery(querySB, nameToValueMap, joinQuery, parameters);
         querySB.append(',');

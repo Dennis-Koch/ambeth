@@ -21,19 +21,20 @@ limitations under the License.
  */
 
 import com.koch.ambeth.util.collections.ArrayList;
-import com.koch.ambeth.util.collections.IList;
+
+import java.util.List;
 
 public class TestXmlPostProcessor implements IXmlPostProcessor {
-	public final IList<String> handledTags = new ArrayList<>();
+    public final List<String> handledTags = new ArrayList<>();
 
-	@Override
-	public Object processWrite(IPostProcessWriter writer) {
-		return "";
-	}
+    @Override
+    public Object processWrite(IPostProcessWriter writer) {
+        return "";
+    }
 
-	@Override
-	public void processRead(IPostProcessReader reader) {
-		String elementName = reader.getElementName();
-		handledTags.add(elementName);
-	}
+    @Override
+    public void processRead(IPostProcessReader reader) {
+        String elementName = reader.getElementName();
+        handledTags.add(elementName);
+    }
 }

@@ -30,13 +30,10 @@ import com.koch.ambeth.persistence.xml.model.IProjectService;
 import com.koch.ambeth.persistence.xml.model.ProjectService;
 
 public class TestServicesModule implements IInitializingModule {
-	@Override
-	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
-		beanContextFactory.registerBean("employeeService", EmployeeService.class)
-				.autowireable(IEmployeeService.class);
-		beanContextFactory.registerBean("projectService", ProjectService.class)
-				.autowireable(IProjectService.class);
-		beanContextFactory.registerBean("businessService", BusinessService.class)
-				.autowireable(IBusinessService.class);
-	}
+    @Override
+    public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
+        beanContextFactory.registerBean("employeeService", EmployeeService.class).autowireable(IEmployeeService.class);
+        beanContextFactory.registerBean("projectService", ProjectService.class).autowireable(IProjectService.class);
+        beanContextFactory.registerBean("businessService", BusinessService.class).autowireable(IBusinessService.class);
+    }
 }

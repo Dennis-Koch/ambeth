@@ -1,11 +1,7 @@
 package com.koch.ambeth.util.proxy;
 
 public interface Factory {
-    Callback[] getCallbacks();
+    MethodInterceptor getInterceptor();
 
-    void setCallbacks(Callback[] callbacks);
-
-    Callback getCallback(int index);
-
-    void setCallback(int index, Callback callback);
+    void setInterceptor(MethodInterceptor interceptor);
 }

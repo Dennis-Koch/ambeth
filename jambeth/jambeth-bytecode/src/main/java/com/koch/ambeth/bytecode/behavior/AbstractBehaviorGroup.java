@@ -20,49 +20,43 @@ limitations under the License.
  * #L%
  */
 
-import java.util.List;
-
-import org.objectweb.asm.ClassVisitor;
-
 import com.koch.ambeth.ioc.IInitializingBean;
 import com.koch.ambeth.ioc.IServiceContext;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.LinkedHashSet;
+import org.objectweb.asm.ClassVisitor;
+
+import java.util.List;
 
 public abstract class AbstractBehaviorGroup implements IBytecodeBehavior, IInitializingBean {
-	@Autowired
-	protected IServiceContext beanContext;
+    protected final ArrayList<IBytecodeBehavior> childBehaviors = new ArrayList<>();
+    protected final LinkedHashSet<Class<?>> supportedEnhancements = new LinkedHashSet<>(0.5f);
+    @Autowired
+    protected IServiceContext beanContext;
 
-	protected final ArrayList<IBytecodeBehavior> childBehaviors = new ArrayList<>();
+    @Override
+    public void afterPropertiesSet() throws Throwable {
+        // Intended blank
+    }
 
-	protected final LinkedHashSet<Class<?>> supportedEnhancements = new LinkedHashSet<>(0.5f);
+    protected void addDefaultChildBehavior(Class<? extends IBytecodeBehavior> behaviorType) {
+        var behavior = beanContext.registerBean(behaviorType).finish();
+        childBehaviors.add(behavior);
+        supportedEnhancements.addAll(behavior.getEnhancements());
+    }
 
-	@Override
-	public void afterPropertiesSet() throws Throwable {
-		// Intended blank
-	}
+    @Override
+    public ClassVisitor extend(ClassVisitor visitor, IBytecodeBehaviorState state, List<IBytecodeBehavior> remainingPendingBehaviors, List<IBytecodeBehavior> cascadePendingBehaviors) {
+        for (int a = 0, size = childBehaviors.size(); a < size; a++) {
+            var childBehavior = childBehaviors.get(a);
+            visitor = childBehavior.extend(visitor, state, remainingPendingBehaviors, cascadePendingBehaviors);
+        }
+        return visitor;
+    }
 
-	protected void addDefaultChildBehavior(Class<? extends IBytecodeBehavior> behaviorType) {
-		IBytecodeBehavior behavior = beanContext.registerBean(behaviorType).finish();
-		childBehaviors.add(behavior);
-		supportedEnhancements.addAll(behavior.getEnhancements());
-	}
-
-	@Override
-	public ClassVisitor extend(ClassVisitor visitor, IBytecodeBehaviorState state,
-			List<IBytecodeBehavior> remainingPendingBehaviors,
-			List<IBytecodeBehavior> cascadePendingBehaviors) {
-		for (int a = 0, size = childBehaviors.size(); a < size; a++) {
-			IBytecodeBehavior childBehavior = childBehaviors.get(a);
-			visitor = childBehavior.extend(visitor, state, remainingPendingBehaviors,
-					cascadePendingBehaviors);
-		}
-		return visitor;
-	}
-
-	@Override
-	public Class<?>[] getEnhancements() {
-		return supportedEnhancements.toArray(Class.class);
-	}
+    @Override
+    public Class<?>[] getEnhancements() {
+        return supportedEnhancements.toArray(Class[]::new);
+    }
 }

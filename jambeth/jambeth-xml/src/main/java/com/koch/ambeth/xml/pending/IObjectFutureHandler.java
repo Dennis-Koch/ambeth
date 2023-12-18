@@ -20,8 +20,8 @@ limitations under the License.
  * #L%
  */
 
-import com.koch.ambeth.util.collections.IList;
+import java.util.List;
 
 public interface IObjectFutureHandler {
-	void handle(IList<IObjectFuture> objectFutures);
+    void handle(List<IObjectFuture> objectFutures);
 }

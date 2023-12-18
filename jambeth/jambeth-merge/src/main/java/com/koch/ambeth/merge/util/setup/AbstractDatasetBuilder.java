@@ -20,8 +20,6 @@ limitations under the License.
  * #L%
  */
 
-import java.util.Collection;
-
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
@@ -30,53 +28,65 @@ import com.koch.ambeth.merge.IMergeProcess;
 import com.koch.ambeth.service.merge.IEntityMetaDataProvider;
 import com.koch.ambeth.util.collections.IdentityHashSet;
 
+import java.util.Collection;
+import java.util.List;
+
 public abstract class AbstractDatasetBuilder implements IDatasetBuilder {
-	@LogInstance
-	private ILogger log;
+    protected final ThreadLocal<Collection<Object>> initialTestDatasetTL = new ThreadLocal<>();
+    @Autowired
+    protected IEntityFactory entityFactory;
 
-	@Autowired
-	protected IEntityFactory entityFactory;
+    @Autowired
+    protected IEntityMetaDataProvider entityMetaDataProvider;
 
-	@Autowired
-	protected IEntityMetaDataProvider entityMetaDataProvider;
+    @Autowired
+    protected IMergeProcess mergeProcess;
+    @LogInstance
+    private ILogger log;
 
-	@Autowired
-	protected IMergeProcess mergeProcess;
+    @Override
+    public Collection<Object> buildDataset() {
+        beforeBuildDataset();
+        try {
+            buildDatasetInternal();
+            return initialTestDatasetTL.get();
+        } finally {
+            afterBuildDataset();
+        }
+    }
 
-	protected final ThreadLocal<Collection<Object>> initialTestDatasetTL = new ThreadLocal<>();
+    protected abstract void buildDatasetInternal();
 
-	@Override
-	public Collection<Object> buildDataset() {
-		beforeBuildDataset();
-		try {
-			buildDatasetInternal();
-			return initialTestDatasetTL.get();
-		}
-		finally {
-			afterBuildDataset();
-		}
-	}
+    protected void beforeBuildDataset() {
+        IdentityHashSet<Object> initialTestDataset = new IdentityHashSet<>();
+        initialTestDatasetTL.set(initialTestDataset);
+    }
 
-	protected abstract void buildDatasetInternal();
+    protected void afterBuildDataset() {
+        initialTestDatasetTL.remove();
+    }
 
-	protected void beforeBuildDataset() {
-		IdentityHashSet<Object> initialTestDataset = new IdentityHashSet<>();
-		initialTestDatasetTL.set(initialTestDataset);
-	}
+    protected <V> V createEntity(Class<V> entityType) {
+        var entity = entityFactory.createEntity(entityType);
+        var initialTestDataset = initialTestDatasetTL.get();
+        // if the set is null it is not considered an error. it is assumed that someone called a
+        // convenience method from a concrete class to create an entity. this is e.g. the case in JUnit
+        // tests
+        if (initialTestDataset != null) {
+            initialTestDataset.add(entity);
+        }
+        return entity;
+    }
 
-	protected void afterBuildDataset() {
-		initialTestDatasetTL.remove();
-	}
-
-	protected <V> V createEntity(Class<V> entityType) {
-		V entity = entityFactory.createEntity(entityType);
-		Collection<Object> initialTestDataset = initialTestDatasetTL.get();
-		// if the set is null it is not considered an error. it is assumed that someone called a
-		// convenience method from a concrete class to create an entity. this is e.g. the case in JUnit
-		// tests
-		if (initialTestDataset != null) {
-			initialTestDataset.add(entity);
-		}
-		return entity;
-	}
+    protected <V> List<V> createEntity(Class<V> entityType, int amount) {
+        var entities = entityFactory.createEntity(entityType, amount);
+        var initialTestDataset = initialTestDatasetTL.get();
+        // if the set is null it is not considered an error. it is assumed that someone called a
+        // convenience method from a concrete class to create an entity. this is e.g. the case in JUnit
+        // tests
+        if (initialTestDataset != null) {
+            initialTestDataset.addAll(entities);
+        }
+        return entities;
+    }
 }

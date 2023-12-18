@@ -53,7 +53,6 @@ import com.koch.ambeth.util.ParamChecker;
 import com.koch.ambeth.util.annotation.AnnotationCache;
 import com.koch.ambeth.util.annotation.AnnotationUtil;
 import com.koch.ambeth.util.collections.ArrayList;
-import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.objectcollector.IThreadLocalObjectCollector;
 import com.koch.ambeth.util.proxy.Factory;
@@ -105,20 +104,20 @@ public class CacheService implements ICacheService, IInitializingBean, ExecuteSe
     }
 
     @Override
-    public IList<IObjRelationResult> getRelations(List<IObjRelation> objRelations) {
+    public List<IObjRelationResult> getRelations(List<IObjRelation> objRelations) {
         ParamChecker.assertParamNotNull(objRelations, "objRelations");
 
         return cache.getObjRelations(objRelations, CacheDirective.none());
     }
 
     @Override
-    public IList<ILoadContainer> getEntities(List<IObjRef> orisToLoad) {
+    public List<ILoadContainer> getEntities(List<IObjRef> orisToLoad) {
         ParamChecker.assertParamNotNull(orisToLoad, "orisToLoad");
 
-        IThreadLocalObjectCollector current = objectCollector.getCurrent();
+        var current = objectCollector.getCurrent();
 
         if (log.isDebugEnabled()) {
-            StringBuilder sb = current.create(StringBuilder.class);
+            var sb = current.create(StringBuilder.class);
             try {
                 int count = orisToLoad.size();
                 sb.append("List<IObjRef> : ").append(count).append(" item");
@@ -252,14 +251,13 @@ public class CacheService implements ICacheService, IInitializingBean, ExecuteSe
     protected Object getRealTargetOfService(Object service) {
         Object realTarget = service;
 
-        while (realTarget instanceof Factory) {
-            Factory factory = (Factory) realTarget;
-            Object callback = factory.getCallback(0);
-            boolean breakLoop = true;
-            while (callback instanceof ICascadedInterceptor) {
+        while (realTarget instanceof Factory factory) {
+            Object callback = factory.getInterceptor();
+            var breakLoop = true;
+            while (callback instanceof ICascadedInterceptor cascadedInterceptor) {
                 breakLoop = false;
                 // Move the target-pointer to the target of the interceptor
-                realTarget = ((ICascadedInterceptor) callback).getTarget();
+                realTarget = cascadedInterceptor.getTarget();
                 // Move callback pointer to support interceptor-chains
                 callback = realTarget;
             }

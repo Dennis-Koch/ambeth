@@ -38,7 +38,6 @@ import com.koch.ambeth.merge.proxy.IEntityMetaDataHolder;
 import com.koch.ambeth.util.annotation.FireTargetOnPropertyChange;
 import com.koch.ambeth.util.annotation.FireThisOnPropertyChange;
 import com.koch.ambeth.util.annotation.ParentChild;
-import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.SmartCopyMap;
 import com.koch.ambeth.util.collections.specialized.INotifyCollectionChanged;
 import com.koch.ambeth.util.collections.specialized.NotifyCollectionChangedEvent;
@@ -56,6 +55,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 public class PropertyChangeMixin implements IPropertyChangeExtensionExtendable, ICollectionChangeExtensionExtendable, IPropertyChangeItemListenerExtendable, ICollectionChangeProcessor {
@@ -182,17 +182,12 @@ public class PropertyChangeMixin implements IPropertyChangeExtensionExtendable, 
         if (base == null) {
             throw new IllegalStateException("Must never happen");
         }
-        var cacheModification = this.cacheModification;
         var oldCacheModification = cacheModification.isActive();
-        var cacheModificationUsed = false;
         try {
             collectionChangeProcessor.processCollectionChangeEvent(obj, property, evnt, parentChildProperty);
         } finally {
             if (!oldCacheModification) {
                 setToBeUpdated(obj, true);
-            }
-            if (cacheModificationUsed) {
-                cacheModification.setActive(oldCacheModification);
             }
         }
     }
@@ -344,7 +339,7 @@ public class PropertyChangeMixin implements IPropertyChangeExtensionExtendable, 
         }
     }
 
-    public void firePropertyChange(final INotifyPropertyChangedSource obj, final String[] propertyNames, final Object[] oldValues, final Object[] currentValues) {
+    public void firePropertyChange(INotifyPropertyChangedSource obj, String[] propertyNames, Object[] oldValues, Object[] currentValues) {
         var propertyChangeSupport = obj.getPropertyChangeSupport();
         var extensions = propertyChangeExtensions.getExtensions(obj.getClass());
         if (propertyChangeSupport == null && extensions == null && !(obj instanceof PropertyChangeListener)) {
@@ -360,8 +355,8 @@ public class PropertyChangeMixin implements IPropertyChangeExtensionExtendable, 
         executeFirePropertyChange(propertyChangeSupport, extensions, obj, propertyNames, oldValues, currentValues);
     }
 
-    protected void executeFirePropertyChange(final PropertyChangeSupport propertyChangeSupport, final IList<IPropertyChangeExtension> extensions, final Object obj, final String[] propertyNames,
-            final Object[] oldValues, final Object[] currentValues) {
+    protected void executeFirePropertyChange(PropertyChangeSupport propertyChangeSupport, List<IPropertyChangeExtension> extensions, Object obj, String[] propertyNames, Object[] oldValues,
+            Object[] currentValues) {
         if (asyncPropertyChangeActive) {
             guiThreadHelper.invokeInGui(() -> executeFirePropertyChangeIntern(propertyChangeSupport, extensions, obj, propertyNames, oldValues, currentValues));
         } else {
@@ -369,7 +364,7 @@ public class PropertyChangeMixin implements IPropertyChangeExtensionExtendable, 
         }
     }
 
-    protected void executeFirePropertyChangeIntern(PropertyChangeSupport propertyChangeSupport, IList<IPropertyChangeExtension> extensions, Object obj, String[] propertyNames, Object[] oldValues,
+    protected void executeFirePropertyChangeIntern(PropertyChangeSupport propertyChangeSupport, List<IPropertyChangeExtension> extensions, Object obj, String[] propertyNames, Object[] oldValues,
             Object[] currentValues) {
         var debugEnabled = log.isDebugEnabled();
         var pcl = (PropertyChangeListener) (obj instanceof PropertyChangeListener ? obj : null);

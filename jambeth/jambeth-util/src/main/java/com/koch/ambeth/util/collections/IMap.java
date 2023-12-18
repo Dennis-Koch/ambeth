@@ -21,8 +21,10 @@ limitations under the License.
  */
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.function.IntFunction;
 
 /**
@@ -42,7 +44,7 @@ public interface IMap<K, V> extends Map<K, V>, Iterable<Entry<K, V>> {
     @Override
     ISet<Entry<K, V>> entrySet();
 
-    void entrySet(ISet<Entry<K, V>> targetEntrySet);
+    void entrySet(Set<Entry<K, V>> targetEntrySet);
 
     @Override
     V get(Object key);
@@ -55,7 +57,7 @@ public interface IMap<K, V> extends Map<K, V>, Iterable<Entry<K, V>> {
 
     void keySet(Collection<K> targetKeySet);
 
-    IList<K> keyList();
+    List<K> keyList();
 
     @Override
     V put(K key, V value);
@@ -64,15 +66,13 @@ public interface IMap<K, V> extends Map<K, V>, Iterable<Entry<K, V>> {
     V remove(Object key);
 
     @Override
-    IList<V> values();
+    List<V> values();
 
     K getKey(K key);
 
     boolean putIfNotExists(K key, V value);
 
     boolean removeIfValue(K key, V value);
-
-    V[] toArray(Class<V> arrayType);
 
     V[] toArray(V[] targetArray);
 

@@ -42,7 +42,6 @@ import com.koch.ambeth.merge.util.IPrefetchConfig;
 import com.koch.ambeth.merge.util.IPrefetchHelper;
 import com.koch.ambeth.merge.util.IPrefetchState;
 import com.koch.ambeth.service.cache.model.IObjRelation;
-import com.koch.ambeth.service.cache.model.IObjRelationResult;
 import com.koch.ambeth.service.merge.IEntityMetaDataProvider;
 import com.koch.ambeth.service.merge.model.IEntityMetaData;
 import com.koch.ambeth.service.merge.model.IObjRef;
@@ -54,7 +53,6 @@ import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.HashMap;
 import com.koch.ambeth.util.collections.HashSet;
 import com.koch.ambeth.util.collections.ILinkedMap;
-import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.IMap;
 import com.koch.ambeth.util.collections.ISet;
 import com.koch.ambeth.util.collections.IdentityLinkedMap;
@@ -68,10 +66,8 @@ import com.koch.ambeth.util.transaction.ILightweightTransaction;
 
 import java.util.Collection;
 import java.util.EnumSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 
@@ -176,20 +172,14 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
         if (objects == null) {
             return null;
         }
-        ICacheModification cacheModification = this.cacheModification;
-        boolean oldActive = cacheModification.isActive();
-        if (!oldActive) {
-            cacheModification.setActive(true);
-        }
+        var rollback = cacheModification.pushActive();
         try {
             if (!lazyTransactionActive || transaction == null || transaction.isActive()) {
                 return ensureInitializedRelationsIntern2(objects, entityTypeToPrefetchPaths);
             }
             return transaction.runInLazyTransaction(() -> ensureInitializedRelationsIntern2(objects, entityTypeToPrefetchPaths));
         } finally {
-            if (!oldActive) {
-                cacheModification.setActive(false);
-            }
+            rollback.rollback();
         }
     }
 
@@ -286,7 +276,7 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
         loadAndAddOris(cacheToOrisToLoad, hardRefList, cacheToOrisLoadedHistory);
 
         while (!pendingPrefetchCommands.isEmpty()) {
-            final PrefetchCommand[] currentPrefetchCommands = pendingPrefetchCommands.toArray(PrefetchCommand.class);
+            final PrefetchCommand[] currentPrefetchCommands = pendingPrefetchCommands.toArray(PrefetchCommand[]::new);
             // Clear the items to be ready for cascaded items in new batch recursion step
             pendingPrefetchCommands.clear();
             if (!prioMembers.isEmpty()) {
@@ -300,12 +290,8 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
                 }
             }
             guiThreadHelper.invokeInGuiAndWait(() -> {
-                ICacheModification cacheModification = CacheHelper.this.cacheModification;
                 ValueHolderContainerMixin valueHolderContainerMixin = CacheHelper.this.valueHolderContainerMixin;
-                boolean oldActive = cacheModification.isActive();
-                if (!oldActive) {
-                    cacheModification.setActive(true);
-                }
+                var rollback = cacheModification.pushActive();
                 try {
                     for (PrefetchCommand prefetchCommand : currentPrefetchCommands) {
                         if (prefetchCommand == null) {
@@ -338,9 +324,7 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
                                 alreadyHandledSet, pendingPrefetchCommands);
                     }
                 } finally {
-                    if (!oldActive) {
-                        cacheModification.setActive(false);
-                    }
+                    rollback.rollback();
                 }
             });
             // Remove all oris which have already been tried to load before
@@ -354,11 +338,11 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
     }
 
     protected void loadAndAddOris(ILinkedMap<ICacheIntern, ISet<IObjRef>> cacheToOrisToLoad, List<Object> hardRefList, IMap<ICacheIntern, ISet<IObjRef>> cacheToOrisLoadedHistory) {
-        Iterator<Entry<ICacheIntern, ISet<IObjRef>>> iter = cacheToOrisToLoad.iterator();
+        var iter = cacheToOrisToLoad.iterator();
         while (iter.hasNext()) {
-            Entry<ICacheIntern, ISet<IObjRef>> entry = iter.next();
-            ICacheIntern cache = entry.getKey();
-            ISet<IObjRef> orisToLoad = entry.getValue();
+            var entry = iter.next();
+            var cache = entry.getKey();
+            var orisToLoad = entry.getValue();
             iter.remove();
 
             loadAndAddOris(cache, orisToLoad, hardRefList, cacheToOrisLoadedHistory);
@@ -366,9 +350,9 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
     }
 
     protected void loadAndAddOris(ICacheIntern cache, ISet<IObjRef> orisToLoad, List<Object> hardRefList, IMap<ICacheIntern, ISet<IObjRef>> cacheToOrisLoadedHistory) {
-        IList<Object> result = cache.getObjects(orisToLoad.toList(), cache, CacheDirective.none());
+        var result = cache.getObjects(orisToLoad.toList(), cache, CacheDirective.none());
         hardRefList.add(result);
-        ISet<IObjRef> orisLoadedHistory = cacheToOrisLoadedHistory.get(cache);
+        var orisLoadedHistory = cacheToOrisLoadedHistory.get(cache);
         if (orisLoadedHistory == null) {
             orisLoadedHistory = new HashSet<>();
             cacheToOrisLoadedHistory.put(cache, orisLoadedHistory);
@@ -378,11 +362,11 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 
     protected void loadAndAddOrels(ILinkedMap<ICacheIntern, IMap<IObjRelation, Boolean>> cacheToOrelsToLoad, List<Object> hardRefList, IMap<ICacheIntern, ISet<IObjRelation>> cacheToOrelsLoadedHistory,
             ILinkedMap<ICacheIntern, ISet<IObjRef>> cacheToOrisToLoad, IdentityLinkedSet<Member> prioMembers) {
-        Iterator<Entry<ICacheIntern, IMap<IObjRelation, Boolean>>> iter = cacheToOrelsToLoad.iterator();
+        var iter = cacheToOrelsToLoad.iterator();
         while (iter.hasNext()) {
-            Entry<ICacheIntern, IMap<IObjRelation, Boolean>> entry = iter.next();
-            ICacheIntern cache = entry.getKey();
-            IMap<IObjRelation, Boolean> orelsToLoad = entry.getValue();
+            var entry = iter.next();
+            var cache = entry.getKey();
+            var orelsToLoad = entry.getValue();
 
             loadAndAddOrels(cache, orelsToLoad, hardRefList, cacheToOrelsLoadedHistory, cacheToOrisToLoad, prioMembers);
             if (orelsToLoad.isEmpty()) {
@@ -393,14 +377,14 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 
     protected void loadAndAddOrels(ICacheIntern cache, IMap<IObjRelation, Boolean> orelsToLoad, List<Object> hardRefList, IMap<ICacheIntern, ISet<IObjRelation>> cacheToOrelsLoadedHistory,
             ILinkedMap<ICacheIntern, ISet<IObjRef>> cacheToOrisToLoad, IdentityLinkedSet<Member> prioMembers) {
-        IList<IObjRelation> objRelList;
+        List<IObjRelation> objRelList;
         if (!prioMembers.isEmpty()) {
             objRelList = new ArrayList<>(orelsToLoad.size());
-            IEntityMetaDataProvider entityMetaDataProvider = this.entityMetaDataProvider;
-            for (Entry<IObjRelation, Boolean> entry : orelsToLoad) {
-                IObjRelation objRel = entry.getKey();
-                IEntityMetaData metaData = entityMetaDataProvider.getMetaData(objRel.getRealType());
-                RelationMember memberByName = (RelationMember) metaData.getMemberByName(objRel.getMemberName());
+            var entityMetaDataProvider = this.entityMetaDataProvider;
+            for (var entry : orelsToLoad) {
+                var objRel = entry.getKey();
+                var metaData = entityMetaDataProvider.getMetaData(objRel.getRealType());
+                var memberByName = (RelationMember) metaData.getMemberByName(objRel.getMemberName());
                 if (!prioMembers.contains(memberByName)) {
                     continue;
                 }
@@ -409,17 +393,17 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
         } else {
             objRelList = orelsToLoad.keyList();
         }
-        IList<IObjRelationResult> objRelResults = cache.getObjRelations(objRelList, cache, CacheDirective.returnMisses());
+        var objRelResults = cache.getObjRelations(objRelList, cache, CacheDirective.returnMisses());
 
         ISet<IObjRef> orisToLoad = null;
         for (int a = 0, size = objRelResults.size(); a < size; a++) {
-            IObjRelation objRel = objRelList.get(a);
-            IObjRelationResult objRelResult = objRelResults.get(a);
-            Boolean objRefsOnly = orelsToLoad.remove(objRel);
+            var objRel = objRelList.get(a);
+            var objRelResult = objRelResults.get(a);
+            var objRefsOnly = orelsToLoad.remove(objRel);
             if (objRelResult == null) {
                 continue;
             }
-            IObjRef[] relations = objRelResult.getRelations();
+            var relations = objRelResult.getRelations();
 
             if (relations.length == 0 || objRefsOnly.booleanValue()) {
                 // fetch only the objRefs, not the objects themselves
@@ -434,7 +418,7 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
             }
             orisToLoad.addAll(relations);
         }
-        ISet<IObjRelation> orelsLoadedHistory = cacheToOrelsLoadedHistory.get(cache);
+        var orelsLoadedHistory = cacheToOrelsLoadedHistory.get(cache);
         if (orelsLoadedHistory == null) {
             orelsLoadedHistory = new HashSet<>();
             cacheToOrelsLoadedHistory.put(cache, orelsLoadedHistory);
@@ -525,19 +509,19 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
     protected boolean handleValueHolder(DirectValueHolderRef vhr, PrefetchPath[] cachePaths, Map<ICacheIntern, ISet<IObjRef>> cacheToOrisToLoad,
             Map<ICacheIntern, IMap<IObjRelation, Boolean>> cacheToOrelsToLoad, Map<ICacheIntern, ISet<IObjRef>> cacheToOrisLoadedHistory,
             Map<ICacheIntern, ISet<IObjRelation>> cacheToOrelsLoadedHistory, List<PrefetchCommand> cascadeLoadItems) {
-        RelationMember member = vhr.getMember();
-        boolean newOriToLoad = false;
+        var member = vhr.getMember();
+        var newOriToLoad = false;
         if (vhr instanceof IndirectValueHolderRef) {
-            RootCacheValue rcv = (RootCacheValue) vhr.getVhc();
-            ICacheIntern rootCache = ((IndirectValueHolderRef) vhr).getRootCache();
-            IEntityMetaData metaData = entityMetaDataProvider.getMetaData(rcv.getEntityType());
-            int relationIndex = metaData.getIndexByRelationName(member.getName());
-            IObjRef[] rcvObjRefs = rcv.getRelation(relationIndex);
+            var rcv = (RootCacheValue) vhr.getVhc();
+            var rootCache = ((IndirectValueHolderRef) vhr).getRootCache();
+            var metaData = entityMetaDataProvider.getMetaData(rcv.getEntityType());
+            var relationIndex = metaData.getIndexByRelationName(member.getName());
+            var rcvObjRefs = rcv.getRelation(relationIndex);
             if (rcvObjRefs == null) {
-                IObjRelation self = valueHolderContainerMixin.getSelf(rcv, member.getName());
-                ISet<IObjRelation> orelsLoadedHistory = cacheToOrelsLoadedHistory.get(rootCache);
+                var self = valueHolderContainerMixin.getSelf(rcv, member.getName());
+                var orelsLoadedHistory = cacheToOrelsLoadedHistory.get(rootCache);
                 if (orelsLoadedHistory == null || !orelsLoadedHistory.contains(self)) {
-                    IMap<IObjRelation, Boolean> orelsToLoad = cacheToOrelsToLoad.get(rootCache);
+                    var orelsToLoad = cacheToOrelsToLoad.get(rootCache);
                     if (orelsToLoad == null) {
                         orelsToLoad = new HashMap<>();
                         cacheToOrelsToLoad.put(rootCache, orelsToLoad);
@@ -547,9 +531,9 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
                 }
                 return false;
             } else if (!vhr.isObjRefsOnly() && rcvObjRefs.length > 0) {
-                ISet<IObjRef> orisLoadedHistory = cacheToOrisLoadedHistory.get(rootCache);
+                var orisLoadedHistory = cacheToOrisLoadedHistory.get(rootCache);
                 for (int b = rcvObjRefs.length; b-- > 0; ) {
-                    IObjRef ori = rcvObjRefs[b];
+                    var ori = rcvObjRefs[b];
                     if (orisLoadedHistory != null && orisLoadedHistory.contains(ori)) {
                         // Object has been tried to load before but it is obviously not in the cache
                         // So the load must have been failed somehow. It is assumed that the entity
@@ -559,7 +543,7 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
                         rcvObjRefs[b] = null;
                         continue;
                     }
-                    ISet<IObjRef> orisToLoad = cacheToOrisToLoad.get(rootCache);
+                    var orisToLoad = cacheToOrisToLoad.get(rootCache);
                     if (orisToLoad == null) {
                         orisToLoad = new HashSet<>();
                         cacheToOrisToLoad.put(rootCache, orisToLoad);
@@ -573,24 +557,24 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
             }
             return false;
         }
-        IValueHolderContainer vhc = (IValueHolderContainer) vhr.getVhc();
-        int relationIndex = vhc.get__EntityMetaData().getIndexByRelationName(member.getName());
+        var vhc = (IValueHolderContainer) vhr.getVhc();
+        var relationIndex = vhc.get__EntityMetaData().getIndexByRelationName(member.getName());
 
         if (ValueHolderState.INIT == vhc.get__State(relationIndex)) {
             return true;
         }
-        ICacheIntern cache = vhc.get__TargetCache();
-        IObjRef[] objRefs = vhc.get__ObjRefs(relationIndex);
+        var cache = vhc.get__TargetCache();
+        var objRefs = vhc.get__ObjRefs(relationIndex);
         if (objRefs == null) {
-            IObjRelation self = vhc.get__Self(relationIndex);
-            ArrayList<IObjRelation> orels = new ArrayList<>();
+            var self = vhc.get__Self(relationIndex);
+            var orels = new ArrayList<IObjRelation>();
             orels.add(self);
-            IList<IObjRelationResult> orelResults = cache.getObjRelations(orels, cache, failEarlyReturnMisses);
-            IObjRelationResult orelResult = orelResults.get(0);
+            var orelResults = cache.getObjRelations(orels, cache, failEarlyReturnMisses);
+            var orelResult = orelResults.get(0);
             if (orelResult == null) {
-                ISet<IObjRelation> orelsLoadedHistory = cacheToOrelsLoadedHistory.get(cache);
+                var orelsLoadedHistory = cacheToOrelsLoadedHistory.get(cache);
                 if (orelsLoadedHistory == null || !orelsLoadedHistory.contains(self)) {
-                    IMap<IObjRelation, Boolean> orelsToLoad = cacheToOrelsToLoad.get(cache);
+                    var orelsToLoad = cacheToOrelsToLoad.get(cache);
                     if (orelsToLoad == null) {
                         orelsToLoad = new HashMap<>();
                         cacheToOrelsToLoad.put(cache, orelsToLoad);
@@ -606,15 +590,15 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
             }
         }
         if (!vhr.isObjRefsOnly() && objRefs != null && objRefs.length > 0) {
-            List<Object> loadedObjects = cache.getObjects(new ArrayList<IObjRef>(objRefs), cache, failEarlyReturnMisses);
+            var loadedObjects = cache.getObjects(new ArrayList<>(objRefs), cache, failEarlyReturnMisses);
             try {
                 for (int b = objRefs.length; b-- > 0; ) {
-                    IObjRef ori = objRefs[b];
-                    Object loadedObject = loadedObjects.get(b);
+                    var ori = objRefs[b];
+                    var loadedObject = loadedObjects.get(b);
                     if (loadedObject != null) {
                         continue;
                     }
-                    ISet<IObjRef> orisLoadedHistory = cacheToOrisLoadedHistory.get(cache);
+                    var orisLoadedHistory = cacheToOrisLoadedHistory.get(cache);
                     if (orisLoadedHistory != null && orisLoadedHistory.contains(ori)) {
                         // Object has been tried to load before but it is obviously not in the cache
                         // So the load must have been failed somehow. It is assumed that the entity
@@ -624,7 +608,7 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
                         objRefs[b] = null;
                         continue;
                     }
-                    ISet<IObjRef> orisToLoad = cacheToOrisToLoad.get(cache);
+                    var orisToLoad = cacheToOrisToLoad.get(cache);
                     if (orisToLoad == null) {
                         orisToLoad = new HashSet<>();
                         cacheToOrisToLoad.put(cache, orisToLoad);
@@ -646,7 +630,7 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 
     protected void addCascadeLoadItem(DirectValueHolderRef vhr, PrefetchPath[] cachePaths, List<PrefetchCommand> cascadeLoadItems) {
         if (cachePaths != null || !vhr.isObjRefsOnly()) {
-            PrefetchCommand cascadeLoadItem = new PrefetchCommand(vhr, cachePaths);
+            var cascadeLoadItem = new PrefetchCommand(vhr, cachePaths);
             cascadeLoadItems.add(cascadeLoadItem);
         }
     }
@@ -701,7 +685,7 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 
     @Override
     public Object[] extractPrimitives(IEntityMetaData metaData, Object obj) {
-        Member[] primitiveMembers = metaData.getPrimitiveMembers();
+        var primitiveMembers = metaData.getPrimitiveMembers();
         Object[] primitives;
 
         if (primitiveMembers.length == 0) {
@@ -709,9 +693,9 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
         } else {
             primitives = new Object[primitiveMembers.length];
             for (int a = primitiveMembers.length; a-- > 0; ) {
-                Member primitiveMember = primitiveMembers[a];
+                var primitiveMember = primitiveMembers[a];
 
-                Object primitiveValue = primitiveMember.getValue(obj, true);
+                var primitiveValue = primitiveMember.getValue(obj, true);
 
                 if (primitiveValue != null && java.util.Date.class.isAssignableFrom(primitiveValue.getClass())) {
                     primitiveValue = ((java.util.Date) primitiveValue).getTime();
@@ -763,7 +747,7 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T, S> IList<T> extractTargetEntities(List<S> sourceEntities, String sourceToTargetEntityPropertyPath, Class<S> sourceEntityType) {
+    public <T, S> List<T> extractTargetEntities(List<S> sourceEntities, String sourceToTargetEntityPropertyPath, Class<S> sourceEntityType) {
         // Einen Accessor ermitteln, der die gesamte Hierachie aus dem propertyPath ('A.B.C')
         // selbststaendig traversiert
         var member = memberTypeProvider.getMember(sourceEntityType, sourceToTargetEntityPropertyPath);
@@ -863,7 +847,7 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
             memberTypesOnDescendants.add(clonedChild.memberType);
             memberTypesOnDescendants.addAll(clonedChild.memberTypesOnDescendants);
         }
-        return new PrefetchPath(cachePath.memberType, cachePath.memberIndex, cachePath.memberName, clonedChildren, memberTypesOnDescendants.toArray(Class.class));
+        return new PrefetchPath(cachePath.memberType, cachePath.memberIndex, cachePath.memberName, clonedChildren, memberTypesOnDescendants.toArray(Class[]::new));
     }
 
     @Override

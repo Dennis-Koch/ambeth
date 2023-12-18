@@ -25,6 +25,7 @@ import com.koch.ambeth.ioc.config.IBeanConfiguration;
 import com.koch.ambeth.ioc.exception.BeanContextInitException;
 import com.koch.ambeth.ioc.factory.BeanContextFactory;
 import com.koch.ambeth.ioc.factory.BeanContextInitializer;
+import com.koch.ambeth.ioc.factory.BeanContextKey;
 import com.koch.ambeth.ioc.factory.IBeanContextFactory;
 import com.koch.ambeth.ioc.hierarchy.IBeanContextHolder;
 import com.koch.ambeth.ioc.hierarchy.SearchType;
@@ -41,7 +42,6 @@ import com.koch.ambeth.util.ReadWriteLock;
 import com.koch.ambeth.util.StringBuilderUtil;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.HashSet;
-import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.ISet;
 import com.koch.ambeth.util.collections.IdentityHashSet;
 import com.koch.ambeth.util.collections.LinkedHashMap;
@@ -59,6 +59,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
 
@@ -71,19 +72,19 @@ public class ServiceContext implements IServiceContext, IServiceContextIntern, I
         return new IllegalArgumentException("A bean is already bound to name " + beanName + ".\nBean 1: " + bean1 + "\nBean 2: " + bean2);
     }
 
-    protected final Integer usedIocIdentifier;
+    protected final BeanContextKey beanContextKey;
     protected final Lock readLock, writeLock;
     protected LinkedHashMap<String, Object> nameToServiceDict;
 
     protected LinkedHashMap<Class<?>, Object> typeToServiceDict;
 
-    protected IList<ILinkContainer> linkContainers;
+    protected List<ILinkContainer> linkContainers;
 
     protected ArrayList<Object> disposableObjects;
 
-    protected IList<IBeanPreProcessor> preProcessors;
+    protected List<IBeanPreProcessor> preProcessors;
 
-    protected IList<IBeanPostProcessor> postProcessors;
+    protected List<IBeanPostProcessor> postProcessors;
 
     protected List<IBeanInstantiationProcessor> instantiationProcessors;
 
@@ -99,9 +100,9 @@ public class ServiceContext implements IServiceContext, IServiceContextIntern, I
     protected ITypeInfoProvider typeInfoProvider;
     protected String name;
 
-    public ServiceContext(String name, Integer usedIocIdentifier, IObjectCollector objectCollector, IExternalServiceContext externalServiceContext) {
+    public ServiceContext(String name, BeanContextKey beanContextKey, IObjectCollector objectCollector, IExternalServiceContext externalServiceContext) {
         this.name = name;
-        this.usedIocIdentifier = usedIocIdentifier;
+        this.beanContextKey = Objects.requireNonNull(beanContextKey, "beanContextKey must be valid");
         this.externalServiceContext = externalServiceContext;
         ParamChecker.assertNotNull(objectCollector, "objectCollector");
 
@@ -116,11 +117,10 @@ public class ServiceContext implements IServiceContext, IServiceContextIntern, I
         typeToServiceDict.put(IServiceContextIntern.class, this);
     }
 
-    public ServiceContext(String name, Integer usedIocIdentifier, IServiceContextIntern parent) {
+    public ServiceContext(String name, BeanContextKey beanContextKey, IServiceContextIntern parent) {
         this.name = name;
-        this.usedIocIdentifier = usedIocIdentifier;
-        ParamChecker.assertNotNull(parent, "parent");
-        this.parent = parent;
+        this.beanContextKey = Objects.requireNonNull(beanContextKey, "beanContextKey must be valid");
+        this.parent = Objects.requireNonNull(parent, "parent must be valid");
 
         objectCollector = parent.getService(IThreadLocalObjectCollector.class);
 
@@ -973,12 +973,12 @@ public class ServiceContext implements IServiceContext, IServiceContextIntern, I
     }
 
     @Override
-    public <T> IList<T> getObjects(final Class<T> type) {
+    public <T> List<T> getObjects(final Class<T> type) {
         checkNotDisposed();
 
         final IdentityHashSet<T> result = new IdentityHashSet<>();
 
-        IList<T> parentResult = parent != null ? parent.getObjects(type) : null;
+        List<T> parentResult = parent != null ? parent.getObjects(type) : null;
         if (parentResult != null) {
             result.addAll(parentResult);
         }
@@ -997,7 +997,7 @@ public class ServiceContext implements IServiceContext, IServiceContextIntern, I
     }
 
     @Override
-    public <T extends Annotation> IList<Object> getAnnotatedObjects(final Class<T> annoType) {
+    public <T extends Annotation> List<Object> getAnnotatedObjects(final Class<T> annoType) {
         var set = new IdentityHashSet<>();
         var readLock = this.readLock;
         readLock.lock();
@@ -1015,7 +1015,7 @@ public class ServiceContext implements IServiceContext, IServiceContextIntern, I
     }
 
     @Override
-    public <T> IList<T> getImplementingObjects(final Class<T> interfaceType) {
+    public <T> List<T> getImplementingObjects(final Class<T> interfaceType) {
         var set = new IdentityHashSet<T>();
         var readLock = this.readLock;
         readLock.lock();

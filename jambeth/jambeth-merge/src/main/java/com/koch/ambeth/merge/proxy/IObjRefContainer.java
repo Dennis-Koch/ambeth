@@ -25,15 +25,17 @@ import com.koch.ambeth.merge.cache.ValueHolderState;
 import com.koch.ambeth.service.merge.model.IObjRef;
 
 public interface IObjRefContainer extends IEntityMetaDataHolder {
-	ICache get__Cache();
+    ICache get__Cache();
 
-	void detach();
+    void set__Cache(ICache cache);
 
-	ValueHolderState get__State(int relationIndex);
+    void detach();
 
-	boolean is__Initialized(int relationIndex);
+    ValueHolderState get__State(int relationIndex);
 
-	IObjRef[] get__ObjRefs(int relationIndex);
+    boolean is__Initialized(int relationIndex);
 
-	void set__ObjRefs(int relationIndex, IObjRef[] objRefs);
+    IObjRef[] get__ObjRefs(int relationIndex);
+
+    void set__ObjRefs(int relationIndex, IObjRef[] objRefs);
 }

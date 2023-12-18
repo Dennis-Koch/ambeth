@@ -106,7 +106,7 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
 
     public static final ThreadLocal<ILinkedMap<Object, IBeanConfiguration>> pendingConfigurationMapTL = new SensitiveThreadLocal<>();
 
-    private static final WeakHashSet<Integer> usedIocIdentifiersSet = new WeakHashSet<>(0.5f);
+    private static final WeakHashSet<BeanContextKey> usedIocIdentifiersSet = new WeakHashSet<>(0.5f);
 
     /**
      * Creates an IoC context. The content is defined by the bootstrap modules.
@@ -211,6 +211,8 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
             proxyFactory.setClassLoaderProvider(classLoaderProvider);
             threadLocalCleanupPreProcessor.setExtendableRegistry(extendableRegistry);
             threadLocalCleanupPreProcessor.setExtendableType(IThreadLocalCleanupBeanExtendable.class);
+            threadLocalCleanupPreProcessor.setLoggerCache(loggerInstancePreProcessor);
+            threadLocalCleanupPreProcessor.setProps(properties);
 
             classLoaderProvider.afterPropertiesSet();
             loggerInstancePreProcessor.afterPropertiesSet();
@@ -256,11 +258,13 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
             parentContextFactory.registerWithLifecycle(immutableTypeSet).autowireable(IImmutableTypeSet.class, IImmutableTypeExtendable.class);
 
             if (objectCollector == tlObjectCollector) {
-                parentContextFactory.registerWithLifecycle(objectCollector).autowireable(IObjectCollector.class, ICollectableControllerExtendable.class, IThreadLocalObjectCollector.class);
+                parentContextFactory.registerWithLifecycle(ThreadLocalObjectCollector.BEAN_NAME, objectCollector)
+                                    .autowireable(IObjectCollector.class, ICollectableControllerExtendable.class, IThreadLocalObjectCollector.class);
+                parentContextFactory.registerAlias(ObjectCollector.BEAN_NAME, ThreadLocalObjectCollector.BEAN_NAME);
             } else {
-                parentContextFactory.registerWithLifecycle(objectCollector).autowireable(IObjectCollector.class, ICollectableControllerExtendable.class);
+                parentContextFactory.registerWithLifecycle(ObjectCollector.BEAN_NAME, objectCollector).autowireable(IObjectCollector.class, ICollectableControllerExtendable.class);
 
-                parentContextFactory.registerWithLifecycle(tlObjectCollector).autowireable(IThreadLocalObjectCollector.class);
+                parentContextFactory.registerWithLifecycle(ThreadLocalObjectCollector.BEAN_NAME, tlObjectCollector).autowireable(IThreadLocalObjectCollector.class);
             }
 
             parentContextFactory.registerExternalBean(classCache).autowireable(IClassCache.class);
@@ -313,11 +317,11 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
         beanPreProcessor.preProcessProperties(null, null, properties, null, bean, bean.getClass(), null, EmptySet.<String>emptySet(), props);
     }
 
-    private static Integer generateUniqueIdentifier() {
+    private static BeanContextKey acquireBeanContextKey() {
         synchronized (usedIocIdentifiersSet) {
             while (true) {
                 // yes it is important to create a NEW instance here, not a shared one!
-                var value = new Integer((int) Math.abs(Math.random() * Integer.MAX_VALUE));
+                var value = new BeanContextKey((int) Math.abs(Math.random() * Integer.MAX_VALUE));
                 if (usedIocIdentifiersSet.add(value)) {
                     return value;
                 }
@@ -508,14 +512,14 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
         }
     }
 
-    protected String generateUniqueContextName(String contextName, ServiceContext parent, Integer uniqueIdentifier) {
+    protected String generateUniqueContextName(String contextName, ServiceContext parent, BeanContextKey beanContextKey) {
         if (contextName == null) {
             contextName = "c";
         }
         if (parent != null) {
-            return parent.getName() + "/" + contextName + " " + Integer.toHexString(uniqueIdentifier);
+            return parent.getName() + "/" + contextName + " " + Integer.toHexString(beanContextKey.getId());
         }
-        return contextName + " " + Integer.toHexString(uniqueIdentifier);
+        return contextName + " " + Integer.toHexString(beanContextKey.getId());
     }
 
     public IServiceContext create(String contextName, CheckedConsumer<IBeanContextFactory> registerPhaseDelegate, List<IBeanInstantiationProcessor> instantiationProcessors,
@@ -527,8 +531,8 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
     public IServiceContext create(String contextName, CheckedConsumer<IBeanContextFactory> registerPhaseDelegate, List<IBeanInstantiationProcessor> instantiationProcessors,
             List<IBeanPreProcessor> preProcessors, List<IBeanPostProcessor> postProcessors, IExternalServiceContext externalServiceContext, Class<?>... serviceModuleTypes) {
 
-        var uniqueIdentifier = generateUniqueIdentifier();
-        var context = new ServiceContext(generateUniqueContextName(contextName, null, uniqueIdentifier), uniqueIdentifier, objectCollector, externalServiceContext);
+        var beanContextKey = acquireBeanContextKey();
+        var context = new ServiceContext(generateUniqueContextName(contextName, null, beanContextKey), beanContextKey, objectCollector, externalServiceContext);
 
         if (registerPhaseDelegate != null) {
             registerPhaseDelegate.accept(this);
@@ -561,8 +565,8 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
 
     @SneakyThrows
     public IServiceContext create(String contextName, ServiceContext parent, CheckedConsumer<IBeanContextFactory> registerPhaseDelegate, Class<?>... serviceModuleTypes) {
-        var uniqueIdentifier = generateUniqueIdentifier();
-        var context = new ServiceContext(generateUniqueContextName(contextName, parent, uniqueIdentifier), uniqueIdentifier, parent);
+        var beanContextKey = acquireBeanContextKey();
+        var context = new ServiceContext(generateUniqueContextName(contextName, parent, beanContextKey), beanContextKey, parent);
 
         if (registerPhaseDelegate != null) {
             registerPhaseDelegate.accept(this);

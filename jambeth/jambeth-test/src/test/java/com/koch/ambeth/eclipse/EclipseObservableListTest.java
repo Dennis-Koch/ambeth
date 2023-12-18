@@ -1,15 +1,5 @@
 package com.koch.ambeth.eclipse;
 
-import java.beans.BeanInfo;
-import java.beans.IntrospectionException;
-import java.beans.Introspector;
-import java.util.List;
-
-import org.eclipse.core.databinding.observable.Realm;
-import org.eclipse.core.databinding.observable.list.WritableList;
-import org.junit.Assert;
-import org.junit.Test;
-
 import com.koch.ambeth.eclipse.EclipseObservableListTest.EclipseObservableListTestPropertiesProvider;
 import com.koch.ambeth.eclipse.databinding.IListChangeListenerSource;
 import com.koch.ambeth.eclipse.databinding.config.EclipseDatabindingConfigurationConstants;
@@ -29,70 +19,76 @@ import com.koch.ambeth.testutil.AbstractInformationBusWithPersistenceTest;
 import com.koch.ambeth.testutil.TestFrameworkModule;
 import com.koch.ambeth.testutil.TestProperties;
 import com.koch.ambeth.testutil.TestPropertiesList;
-import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.model.IDataObject;
+import org.eclipse.core.databinding.observable.Realm;
+import org.eclipse.core.databinding.observable.list.WritableList;
+import org.junit.Assert;
+import org.junit.Test;
+
+import java.beans.BeanInfo;
+import java.beans.IntrospectionException;
+import java.beans.Introspector;
+import java.util.List;
 
 @TestPropertiesList({
-		@TestProperties(name = ServiceConfigurationConstants.mappingFile,
-				value = "com/koch/ambeth/lazyload/lazyloadtest_orm.xml"),
-		@TestProperties(type = EclipseObservableListTestPropertiesProvider.class),
-		@TestProperties(name = "ambeth.log.level.*",
-				value = "debug")})
+        @TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "com/koch/ambeth/lazyload/lazyloadtest_orm.xml"),
+        @TestProperties(type = EclipseObservableListTestPropertiesProvider.class),
+        @TestProperties(name = "ambeth.log.level.*", value = "debug")
+})
 @TestFrameworkModule(EclipseDatabindingModule.class)
 @SQLData("com/koch/ambeth/lazyload/lazyloadtest_data.sql")
 @SQLStructure("com/koch/ambeth/lazyload/lazyloadtest_structure.sql")
 public class EclipseObservableListTest extends AbstractInformationBusWithPersistenceTest {
 
-	static Realm realm = new Realm() {
-		@Override
-		public boolean isCurrent() {
-			return true;
-		}
-	};
+    static Realm realm = new Realm() {
+        @Override
+        public boolean isCurrent() {
+            return true;
+        }
+    };
+    @Autowired
+    protected IRevertChangesHelper revertChangesHelper;
 
-	public static class EclipseObservableListTestPropertiesProvider implements IPropertiesProvider {
-		@Override
-		public void fillProperties(Properties props) {
-			props.putIfUndefined(EclipseDatabindingConfigurationConstants.Realm, realm);
-		}
-	}
+    @Test
+    public void testGenericInterface() throws IntrospectionException {
+        Class<?> enhancedType = entityMetaDataProvider.getMetaData(EntityA.class).getEnhancedType();
+        BeanInfo beanInfo = Introspector.getBeanInfo(enhancedType);
+        Assert.assertNotNull(beanInfo);
+    }
 
-	@Autowired
-	protected IRevertChangesHelper revertChangesHelper;
+    @Test
+    public void test() {
+        for (int a = 100; a-- > 0; ) {
+            IQueryBuilder<EntityA> qb = queryBuilderFactory.create(EntityA.class);
+            IQuery<EntityA> query = qb.build();
+            final List<EntityA> entityAs = query.retrieve();
 
-	@Test
-	public void testGenericInterface() throws IntrospectionException {
-		Class<?> enhancedType = entityMetaDataProvider.getMetaData(EntityA.class).getEnhancedType();
-		BeanInfo beanInfo = Introspector.getBeanInfo(enhancedType);
-		Assert.assertNotNull(beanInfo);
-	}
+            EntityA entityA = entityAs.get(0);
 
-	@Test
-	public void test() {
-		for (int a = 100; a-- > 0;) {
-			IQueryBuilder<EntityA> qb = queryBuilderFactory.create(EntityA.class);
-			IQuery<EntityA> query = qb.build();
-			final IList<EntityA> entityAs = query.retrieve();
+            Assert.assertTrue(entityA instanceof IListChangeListenerSource);
 
-			EntityA entityA = entityAs.get(0);
+            List<EntityC> entityCs = entityA.getEntityCs();
 
-			Assert.assertTrue(entityA instanceof IListChangeListenerSource);
+            WritableList list = (WritableList) entityCs;
 
-			List<EntityC> entityCs = entityA.getEntityCs();
+            Assert.assertFalse(((IDataObject) entityA).isToBeUpdated());
+            list.add(null); // modifying the relational collection marks the owner of the collection as
+            // "dirty"
+            Assert.assertTrue(((IDataObject) entityA).isToBeUpdated());
+            Assert.assertEquals(3, list.size());
 
-			WritableList list = (WritableList) entityCs;
+            revertChangesHelper.revertChanges(entityA);
 
-			Assert.assertFalse(((IDataObject) entityA).isToBeUpdated());
-			list.add(null); // modifying the relational collection marks the owner of the collection as
-											// "dirty"
-			Assert.assertTrue(((IDataObject) entityA).isToBeUpdated());
-			Assert.assertEquals(3, list.size());
+            Assert.assertFalse(((IDataObject) entityA).isToBeUpdated());
 
-			revertChangesHelper.revertChanges(entityA);
+            Assert.assertEquals(2, list.size());
+        }
+    }
 
-			Assert.assertFalse(((IDataObject) entityA).isToBeUpdated());
-
-			Assert.assertEquals(2, list.size());
-		}
-	}
+    public static class EclipseObservableListTestPropertiesProvider implements IPropertiesProvider {
+        @Override
+        public void fillProperties(Properties props) {
+            props.putIfUndefined(EclipseDatabindingConfigurationConstants.Realm, realm);
+        }
+    }
 }

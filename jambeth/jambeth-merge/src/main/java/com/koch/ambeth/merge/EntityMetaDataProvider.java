@@ -40,7 +40,6 @@ import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.HashMap;
 import com.koch.ambeth.util.collections.HashSet;
 import com.koch.ambeth.util.collections.ILinkedMap;
-import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.IMap;
 import com.koch.ambeth.util.collections.ISet;
 import com.koch.ambeth.util.collections.IdentityHashSet;
@@ -152,7 +151,7 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
         }
     }
 
-    protected IList<Class<?>> addLoadedMetaData(List<Class<?>> entityTypes, List<IEntityMetaData> loadedMetaData) {
+    protected List<Class<?>> addLoadedMetaData(List<Class<?>> entityTypes, List<IEntityMetaData> loadedMetaData) {
         HashSet<Class<?>> cascadeMissingEntityTypes = null;
         Lock writeLock = getWriteLock();
         writeLock.lock();
@@ -280,7 +279,7 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
     }
 
     @Override
-    public IList<Class<?>> findMappableEntityTypes() {
+    public List<Class<?>> findMappableEntityTypes() {
         ILinkedMap<Class<?>, IValueObjectConfig> targetExtensionMap = valueObjectMap.getExtensions();
         HashSet<Class<?>> mappableEntitiesSet = HashSet.create(targetExtensionMap.size());
         for (Entry<Class<?>, IValueObjectConfig> entry : targetExtensionMap) {
@@ -336,7 +335,7 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
     }
 
     @Override
-    public IList<IEntityMetaData> getExtensions(Class<?> key) {
+    public List<IEntityMetaData> getExtensions(Class<?> key) {
         throw new UnsupportedOperationException();
     }
 
@@ -380,11 +379,11 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
     }
 
     @Override
-    public IList<IEntityMetaData> getMetaData(List<Class<?>> entityTypes) {
+    public List<IEntityMetaData> getMetaData(List<Class<?>> entityTypes) {
         return getMetaData(entityTypes, true);
     }
 
-    protected IList<IEntityMetaData> getMetaData(List<Class<?>> entityTypes, boolean askRemoteOnMiss) {
+    protected List<IEntityMetaData> getMetaData(List<Class<?>> entityTypes, boolean askRemoteOnMiss) {
         var result = new ArrayList<IEntityMetaData>(entityTypes.size());
         var missingEntityTypes = checkMissingEntityTypes(entityTypes, askRemoteOnMiss, result);
         if (missingEntityTypes == null || remoteEntityMetaDataProvider == null) {
@@ -467,8 +466,8 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
         }
     }
 
-    private IList<Class<?>> checkMissingEntityTypes(List<Class<?>> entityTypes, boolean askRemoteOnMiss, ArrayList<IEntityMetaData> result) {
-        IList<Class<?>> missingEntityTypes = null;
+    private List<Class<?>> checkMissingEntityTypes(List<Class<?>> entityTypes, boolean askRemoteOnMiss, ArrayList<IEntityMetaData> result) {
+        List<Class<?>> missingEntityTypes = null;
         for (int a = entityTypes.size(); a-- > 0; ) {
             var entityType = entityTypes.get(a);
             var metaDataItem = getExtension(entityType);
@@ -575,7 +574,7 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
             if (relatedByTypes == null) {
                 relatedByTypes = new HashSet<>();
             }
-            ((EntityMetaData) metaData).setTypesRelatingToThis(relatedByTypes.toArray(Class.class));
+            ((EntityMetaData) metaData).setTypesRelatingToThis(relatedByTypes.toArray(Class[]::new));
             refreshMembers(metaData);
         }
     }
@@ -866,7 +865,7 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
             remoteEntityMetaDataProvider.toDotGraph(writer);
             return;
         }
-        var extensions = new IdentityHashSet<>(getExtensions().values()).toArray(IEntityMetaData.class);
+        var extensions = new IdentityHashSet<>(getExtensions().values()).toArray(IEntityMetaData[]::new);
 
         Arrays.sort(extensions, new Comparator<IEntityMetaData>() {
             @Override
@@ -1100,6 +1099,6 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
             var extension = beanContext.registerBean(PostLoadMethodLifecycleExtension.class).propertyValue("Method", postLoadMethod).finish();
             allExtensions.add(extension);
         }
-        ((EntityMetaData) entityMetaData).setEntityLifecycleExtensions(allExtensions.toArray(IEntityLifecycleExtension.class));
+        ((EntityMetaData) entityMetaData).setEntityLifecycleExtensions(allExtensions.toArray(IEntityLifecycleExtension[]::new));
     }
 }

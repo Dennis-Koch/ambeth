@@ -23,41 +23,37 @@ limitations under the License.
 import com.koch.ambeth.merge.transfer.PrimitiveUpdateItem;
 import com.koch.ambeth.merge.transfer.RelationUpdateItem;
 import com.koch.ambeth.service.merge.model.IObjRef;
-import com.koch.ambeth.util.collections.IList;
+
+import java.util.List;
 
 public final class MergeUtil {
-	public static PrimitiveUpdateItem createPrimitiveUpdateItem(String propertyName,
-			Object newValue) {
-		PrimitiveUpdateItem primitive = new PrimitiveUpdateItem();
-		primitive.setMemberName(propertyName);
-		primitive.setNewValue(newValue);
-		return primitive;
-	}
+    public static PrimitiveUpdateItem createPrimitiveUpdateItem(String propertyName, Object newValue) {
+        var primitive = new PrimitiveUpdateItem();
+        primitive.setMemberName(propertyName);
+        primitive.setNewValue(newValue);
+        return primitive;
+    }
 
-	public static RelationUpdateItem createRelationUpdateItem(String propertyName,
-			IList<IObjRef> addedORIs, IList<IObjRef> removedORIs) {
-		IObjRef[] addedORIsArray =
-				(addedORIs != null && !addedORIs.isEmpty()) ? addedORIs.toArray(IObjRef.class) : null;
-		IObjRef[] removedORIsArray =
-				(removedORIs != null && !removedORIs.isEmpty()) ? removedORIs.toArray(IObjRef.class) : null;
-		return createRelationUpdateItem(propertyName, addedORIsArray, removedORIsArray);
-	}
+    public static RelationUpdateItem createRelationUpdateItem(String propertyName, List<IObjRef> addedORIs, List<IObjRef> removedORIs) {
+        var addedORIsArray = (addedORIs != null && !addedORIs.isEmpty()) ? addedORIs.toArray(IObjRef[]::new) : null;
+        var removedORIsArray = (removedORIs != null && !removedORIs.isEmpty()) ? removedORIs.toArray(IObjRef[]::new) : null;
+        return createRelationUpdateItem(propertyName, addedORIsArray, removedORIsArray);
+    }
 
-	public static RelationUpdateItem createRelationUpdateItem(String propertyName,
-			IObjRef[] addedORIs, IObjRef[] removedORIs) {
-		RelationUpdateItem relation = new RelationUpdateItem();
-		relation.setMemberName(propertyName);
-		if (addedORIs != null) {
-			relation.setAddedORIs(addedORIs);
-		}
-		if (removedORIs != null) {
-			relation.setRemovedORIs(removedORIs);
-		}
+    public static RelationUpdateItem createRelationUpdateItem(String propertyName, IObjRef[] addedORIs, IObjRef[] removedORIs) {
+        var relation = new RelationUpdateItem();
+        relation.setMemberName(propertyName);
+        if (addedORIs != null) {
+            relation.setAddedORIs(addedORIs);
+        }
+        if (removedORIs != null) {
+            relation.setRemovedORIs(removedORIs);
+        }
 
-		return relation;
-	}
+        return relation;
+    }
 
-	private MergeUtil() {
-		// Intended blank
-	}
+    private MergeUtil() {
+        // Intended blank
+    }
 }

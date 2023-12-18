@@ -87,7 +87,7 @@ public class InformationBus implements IBundleModule {
                 var parentBundleModules = parentBundle.getBundleModules();
                 allModules.addAll(parentBundleModules);
             }
-            resultingBundleModules = allModules.toArray(Class.class);
+            resultingBundleModules = allModules.toArray(Class[]::new);
         } catch (Exception e) {
             throw RuntimeExceptionUtil.mask(e);
         }

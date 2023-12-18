@@ -38,7 +38,6 @@ import com.koch.ambeth.util.state.StateRollback;
 
 import java.lang.ref.Reference;
 import java.lang.ref.WeakReference;
-import java.lang.reflect.Field;
 import java.util.concurrent.locks.Lock;
 
 public class ThreadLocalCleanupController implements IInitializingBean, IDisposableBean, IThreadLocalCleanupBeanExtendable, IThreadLocalCleanupController {
@@ -57,7 +56,7 @@ public class ThreadLocalCleanupController implements IInitializingBean, IDisposa
             writeLock.unlock();
         }
     };
-    protected IServiceContext beanContext;
+
     protected ThreadLocalObjectCollector objectCollector;
 
     @Override
@@ -74,13 +73,9 @@ public class ThreadLocalCleanupController implements IInitializingBean, IDisposa
         this.objectCollector = objectCollector;
     }
 
-    public void setBeanContext(IServiceContext beanContext) {
-        this.beanContext = beanContext;
-    }
-
     @Override
     public void cleanupThreadLocal() {
-        for (IThreadLocalCleanupBean extension : listeners.getExtensionsShared()) {
+        for (var extension : listeners.getExtensionsShared()) {
             extension.cleanupThreadLocal();
         }
         if (objectCollector != null) {
@@ -89,11 +84,11 @@ public class ThreadLocalCleanupController implements IInitializingBean, IDisposa
     }
 
     protected ForkStateEntry[] getForkStateEntries() {
-        ForkStateEntry[] cachedForkStateEntries = this.cachedForkStateEntries;
+        var cachedForkStateEntries = this.cachedForkStateEntries;
         if (cachedForkStateEntries != null) {
             return cachedForkStateEntries;
         }
-        Lock writeLock = listeners.getWriteLock();
+        var writeLock = listeners.getWriteLock();
         writeLock.lock();
         try {
             // check again: concurrent thread might have been faster
@@ -111,11 +106,11 @@ public class ThreadLocalCleanupController implements IInitializingBean, IDisposa
     }
 
     protected ForkStateEntry[] getThreadLocalStateEntries() {
-        ForkStateEntry[] cachedThreadLocalStateEntries = this.cachedThreadLocalStateEntries;
+        var cachedThreadLocalStateEntries = this.cachedThreadLocalStateEntries;
         if (cachedThreadLocalStateEntries != null) {
             return cachedThreadLocalStateEntries;
         }
-        Lock writeLock = listeners.getWriteLock();
+        var writeLock = listeners.getWriteLock();
         writeLock.lock();
         try {
             // check again: concurrent thread might have been faster
@@ -134,59 +129,59 @@ public class ThreadLocalCleanupController implements IInitializingBean, IDisposa
 
     @SuppressWarnings("resource")
     private void acquireStateEntries() throws IllegalArgumentException, IllegalAccessException {
-        IThreadLocalCleanupBean[] extensions = listeners.getExtensionsShared();
-        ArrayList<ForkStateEntry> forkedStateEntries = new ArrayList<>(extensions.length);
-        ArrayList<ForkStateEntry> threadLocalStateEntries = new ArrayList<>(extensions.length);
-        for (IThreadLocalCleanupBean extension : extensions) {
-            Field[] fields = ReflectUtil.getDeclaredFieldsInHierarchy(extension.getClass());
-            for (Field field : fields) {
+        var extensions = listeners.getExtensionsShared();
+        var forkedStateEntries = new ArrayList<ForkStateEntry>(extensions.length);
+        var threadLocalStateEntries = new ArrayList<ForkStateEntry>(extensions.length);
+        for (var extension : extensions) {
+            var fields = ReflectUtil.getDeclaredFieldsInHierarchy(extension.getClass());
+            for (var field : fields) {
                 if (!ThreadLocal.class.isAssignableFrom(field.getType())) {
                     continue;
                 }
-                ThreadLocal<?> valueTL = (ThreadLocal<?>) field.get(extension);
+                var valueTL = (ThreadLocal<?>) field.get(extension);
                 if (valueTL == null) {
                     continue;
                 }
                 IForkProcessor forkProcessor = null;
-                ForkableType forkableType = ForkableType.REFERENCE;
-                Forkable forkable = field.getAnnotation(Forkable.class);
+                var forkableType = ForkableType.REFERENCE;
+                var forkable = field.getAnnotation(Forkable.class);
                 if (forkable == null) {
                     threadLocalStateEntries.add(new ForkStateEntry(extension, field.getName(), valueTL, forkableType, forkProcessor));
                     continue;
                 }
                 forkableType = forkable.value();
-                Class<? extends IForkProcessor> forkProcessorType = forkable.processor();
+                var forkProcessorType = forkable.processor();
                 if (forkProcessorType != null && !IForkProcessor.class.equals(forkProcessorType)) {
-                    Reference<IServiceContext> beanContextOfExtensionR = extensionToContextMap.get(extension);
-                    IServiceContext beanContextOfExtension = beanContextOfExtensionR != null ? beanContextOfExtensionR.get() : null;
+                    var beanContextOfExtensionR = extensionToContextMap.get(extension);
+                    var beanContextOfExtension = beanContextOfExtensionR != null ? beanContextOfExtensionR.get() : null;
                     if (beanContextOfExtension == null) {
-                        beanContextOfExtension = beanContext;
+                        throw new IllegalStateException("Not supported, yet");
                     }
                     forkProcessor = beanContextOfExtension.registerBean(forkProcessorType).finish();
                 }
-                ForkStateEntry forkStateEntry = new ForkStateEntry(extension, field.getName(), valueTL, forkableType, forkProcessor);
+                var forkStateEntry = new ForkStateEntry(extension, field.getName(), valueTL, forkableType, forkProcessor);
                 forkedStateEntries.add(forkStateEntry);
                 threadLocalStateEntries.add(forkStateEntry);
             }
         }
-        cachedForkStateEntries = forkedStateEntries.size() > 0 ? forkedStateEntries.toArray(ForkStateEntry.class) : ForkStateEntry.EMPTY_ENTRIES;
-        cachedThreadLocalStateEntries = threadLocalStateEntries.size() > 0 ? threadLocalStateEntries.toArray(ForkStateEntry.class) : ForkStateEntry.EMPTY_ENTRIES;
+        cachedForkStateEntries = forkedStateEntries.size() > 0 ? forkedStateEntries.toArray(ForkStateEntry[]::new) : ForkStateEntry.EMPTY_ENTRIES;
+        cachedThreadLocalStateEntries = threadLocalStateEntries.size() > 0 ? threadLocalStateEntries.toArray(ForkStateEntry[]::new) : ForkStateEntry.EMPTY_ENTRIES;
     }
 
     @Override
     public IForkState createForkState() {
         ForkStateEntry[] forkStateEntries = getForkStateEntries();
 
-        IForkedValueResolver[] oldValues = new IForkedValueResolver[forkStateEntries.length];
+        var oldValues = new IForkedValueResolver[forkStateEntries.length];
         for (int a = 0, size = forkStateEntries.length; a < size; a++) {
-            ForkStateEntry forkStateEntry = forkStateEntries[a];
-            IForkProcessor forkProcessor = forkStateEntry.forkProcessor;
+            var forkStateEntry = forkStateEntries[a];
+            var forkProcessor = forkStateEntry.forkProcessor;
             if (forkProcessor != null) {
-                Object value = forkProcessor.resolveOriginalValue(forkStateEntry.tlBean, forkStateEntry.fieldName, forkStateEntry.valueTL);
+                var value = forkProcessor.resolveOriginalValue(forkStateEntry.tlBean, forkStateEntry.fieldName, forkStateEntry.valueTL);
                 oldValues[a] = new ForkProcessorValueResolver(value, forkProcessor);
                 continue;
             }
-            Object value = forkStateEntry.valueTL.get();
+            var value = forkStateEntry.valueTL.get();
             if (value != null && ForkableType.SHALLOW_COPY.equals(forkStateEntry.forkableType)) {
                 if (value instanceof Cloneable) {
                     oldValues[a] = new ShallowCopyValueResolver(value);

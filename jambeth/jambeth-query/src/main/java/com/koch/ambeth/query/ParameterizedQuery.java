@@ -25,18 +25,17 @@ import com.koch.ambeth.query.persistence.IEntityCursor;
 import com.koch.ambeth.query.persistence.IVersionCursor;
 import com.koch.ambeth.service.merge.model.IObjRef;
 import com.koch.ambeth.util.collections.HashMap;
-import com.koch.ambeth.util.collections.IList;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 
 import java.util.List;
-import java.util.Map;
 
-public class StatefulQuery<T> implements IQuery<T> {
+@RequiredArgsConstructor
+public class ParameterizedQuery<T> implements IQuery<T> {
     protected final HashMap<Object, Object> paramMap = new HashMap<>();
-    protected IQueryIntern<T> query;
 
-    public StatefulQuery(IQueryIntern<T> query) {
-        this.query = query;
-    }
+    @NonNull
+    protected IQueryIntern<T> query;
 
     @Override
     public Class<T> getEntityType() {
@@ -46,11 +45,6 @@ public class StatefulQuery<T> implements IQuery<T> {
     @Override
     public void fillRelatedEntityTypes(List<Class<?>> relatedEntityTypes) {
         query.fillRelatedEntityTypes(relatedEntityTypes);
-    }
-
-    @Override
-    public IQueryKey getQueryKey(Map<Object, Object> nameToValueMap) {
-        return query.getQueryKey(nameToValueMap);
     }
 
     @Override
@@ -75,12 +69,7 @@ public class StatefulQuery<T> implements IQuery<T> {
     }
 
     @Override
-    public IVersionCursor retrieveAsVersions(Map<Object, Object> nameToValueMap) {
-        throw new UnsupportedOperationException("Only retrieveAsVersions() allowed");
-    }
-
-    @Override
-    public IList<IObjRef> retrieveAsObjRefs(int idIndex) {
+    public List<IObjRef> retrieveAsObjRefs(int idIndex) {
         return query.retrieveAsObjRefs(paramMap, idIndex);
     }
 
@@ -90,18 +79,8 @@ public class StatefulQuery<T> implements IQuery<T> {
     }
 
     @Override
-    public IEntityCursor<T> retrieveAsCursor(Map<Object, Object> nameToValueMap) {
-        throw new UnsupportedOperationException("Only retrieveAsCursor() allowed");
-    }
-
-    @Override
-    public IList<T> retrieve() {
+    public List<T> retrieve() {
         return query.retrieve(paramMap);
-    }
-
-    @Override
-    public IList<T> retrieve(Map<Object, Object> nameToValueMap) {
-        throw new UnsupportedOperationException();
     }
 
     @Override

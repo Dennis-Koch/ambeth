@@ -66,10 +66,11 @@ public class ResultSetPkVersionCursorBase implements IInitializingBean, IVersion
     }
 
     public IVersionItem next() {
+        var resultSetIter = this.resultSetIter;
         if (resultSetIter == null) {
             resultSetIter = resultSet.iterator();
+            this.resultSetIter = resultSetIter;
         }
-        var resultSetIter = this.resultSetIter;
         var current = resultSetIter.next();
         processResultSetItem(current);
         return this;

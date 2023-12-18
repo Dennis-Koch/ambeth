@@ -21,10 +21,10 @@ limitations under the License.
  */
 
 import com.koch.ambeth.util.appendable.IAppendable;
-import com.koch.ambeth.util.collections.IList;
 
+import java.util.List;
 import java.util.Map;
 
 public interface IOperator extends IOperand {
-    void operate(IAppendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, IList<Object> parameters);
+    void operate(IAppendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, List<Object> parameters);
 }

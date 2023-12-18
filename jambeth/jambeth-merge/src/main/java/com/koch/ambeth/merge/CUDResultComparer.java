@@ -34,10 +34,10 @@ import com.koch.ambeth.service.merge.IEntityMetaDataProvider;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.EmptyList;
 import com.koch.ambeth.util.collections.HashMap;
-import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.IdentityHashMap;
 import com.koch.ambeth.util.collections.LinkedHashSet;
 
+import java.util.List;
 import java.util.Objects;
 
 public class CUDResultComparer implements ICUDResultComparer {
@@ -356,9 +356,9 @@ public class CUDResultComparer implements ICUDResultComparer {
 
         public final ICUDResult right;
 
-        public final IList<IChangeContainer> diffChanges;
+        public final List<IChangeContainer> diffChanges;
 
-        public final IList<Object> originalRefs;
+        public final List<Object> originalRefs;
         private final ICUDResultHelper cudResultHelper;
         private final IEntityMetaDataProvider entityMetaDataProvider;
         public String memberName;

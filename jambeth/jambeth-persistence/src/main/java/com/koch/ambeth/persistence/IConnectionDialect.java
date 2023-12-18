@@ -26,7 +26,6 @@ import com.koch.ambeth.query.IOperand;
 import com.koch.ambeth.query.IValueOperand;
 import com.koch.ambeth.util.appendable.IAppendable;
 import com.koch.ambeth.util.collections.ILinkedMap;
-import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.IMap;
 import com.koch.ambeth.util.state.IStateRollback;
 import jakarta.persistence.PersistenceException;
@@ -66,9 +65,9 @@ public interface IConnectionDialect {
 
     void preProcessConnection(Connection connection, String[] schemaNames, boolean forcePreProcessing);
 
-    IList<IMap<String, String>> getExportedKeys(Connection connection, String[] schemaNames);
+    List<IMap<String, String>> getExportedKeys(Connection connection, String[] schemaNames);
 
-    ILinkedMap<String, IList<String>> getFulltextIndexes(Connection connection, String schemaName);
+    ILinkedMap<String, List<String>> getFulltextIndexes(Connection connection, String schemaName);
 
     boolean isSystemTable(String tableName);
 
@@ -102,9 +101,9 @@ public interface IConnectionDialect {
 
     List<String> getAllFullqualifiedSequences(Connection connection, String... schemaNames);
 
-    IList<IColumnEntry> getAllFieldsOfTable(Connection connection, String fqTableName);
+    List<IColumnEntry> getAllFieldsOfTable(Connection connection, String fqTableName);
 
-    IList<String> queryDefault(Connection connection, String resultColumnName, String sql, Object... args);
+    List<String> queryDefault(Connection connection, String resultColumnName, String sql, Object... args);
 
     int getBatchSize();
 
@@ -122,9 +121,9 @@ public interface IConnectionDialect {
 
     void appendIsInOperatorClause(IAppendable appendable);
 
-    boolean isCompactMultiValueRecommended(IList<Object> values);
+    boolean isCompactMultiValueRecommended(List<Object> values);
 
-    void handleWithMultiValueLeftField(IAppendable querySB, Map<Object, Object> nameToValueMap, IList<Object> parameters, IList<IList<Object>> splitValues, boolean caseSensitive,
+    void handleWithMultiValueLeftField(IAppendable querySB, Map<Object, Object> nameToValueMap, List<Object> parameters, List<List<Object>> splitValues, boolean caseSensitive,
             Class<?> leftOperandFieldType);
 
     /**
@@ -137,7 +136,7 @@ public interface IConnectionDialect {
      * @param splittedIds
      * @param idDecompositor
      */
-    void appendListClause(List<Object> parameters, IAppendable sb, Class<?> fieldType, IList<Object> splittedIds, Function<Object, Object> idDecompositor);
+    void appendListClause(List<Object> parameters, IAppendable sb, Class<?> fieldType, List<Object> splittedIds, Function<Object, Object> idDecompositor);
 
     /**
      * Replace Oracle SQL with connection dialect specific SQL

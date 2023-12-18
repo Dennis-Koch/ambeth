@@ -20,8 +20,6 @@ limitations under the License.
  * #L%
  */
 
-import org.junit.Assert;
-
 import com.koch.ambeth.cache.annotation.QueryBehavior;
 import com.koch.ambeth.cache.annotation.QueryBehaviorType;
 import com.koch.ambeth.ioc.IStartingBean;
@@ -31,54 +29,51 @@ import com.koch.ambeth.query.IQuery;
 import com.koch.ambeth.query.IQueryBuilder;
 import com.koch.ambeth.query.IQueryBuilderFactory;
 import com.koch.ambeth.service.proxy.Service;
+import org.junit.Assert;
 
 @Service(IQueryBehaviorService.class)
 public class QueryBehaviorService implements IStartingBean, IQueryBehaviorService {
-	private static final String QueryParamKey = "Key";
+    private static final String QueryParamKey = "Key";
 
-	@Autowired
-	protected IQueryBuilderFactory queryBuilderFactory;
+    @Autowired
+    protected IQueryBuilderFactory queryBuilderFactory;
 
-	protected IQuery<Material> getMaterialByIdQuery;
+    protected IQuery<Material> getMaterialByIdQuery;
 
-	protected IQuery<Material> getAllMaterialsQuery;
+    protected IQuery<Material> getAllMaterialsQuery;
 
-	protected IQuery<Material> getMaterialByNameQuery;
+    protected IQuery<Material> getMaterialByNameQuery;
 
-	@Override
-	public void afterStarted() throws Throwable {
-		IQueryBuilder<Material> getMaterialQB = queryBuilderFactory.create(Material.class);
-		getMaterialByIdQuery =
-				getMaterialQB.build(getMaterialQB.let(getMaterialQB.property("Id")).isEqualTo(
-						getMaterialQB.valueName(QueryParamKey)));
+    @Override
+    public void afterStarted() throws Throwable {
+        IQueryBuilder<Material> getMaterialQB = queryBuilderFactory.create(Material.class);
+        getMaterialByIdQuery = getMaterialQB.build(getMaterialQB.let(getMaterialQB.property("Id")).isEqualTo(getMaterialQB.parameterValue(QueryParamKey)));
 
-		IQueryBuilder<Material> getAllMaterialsQB = queryBuilderFactory.create(Material.class);
-		getAllMaterialsQuery = getAllMaterialsQB.build();
+        IQueryBuilder<Material> getAllMaterialsQB = queryBuilderFactory.create(Material.class);
+        getAllMaterialsQuery = getAllMaterialsQB.build();
 
-		IQueryBuilder<Material> getMaterialByNameQB = queryBuilderFactory.create(Material.class);
-		getMaterialByNameQuery = getMaterialByNameQB.build(getMaterialByNameQB.let(
-				getMaterialByNameQB.property("Name"))
-				.isEqualTo(getMaterialByNameQB.valueName(QueryParamKey)));
-	}
+        IQueryBuilder<Material> getMaterialByNameQB = queryBuilderFactory.create(Material.class);
+        getMaterialByNameQuery = getMaterialByNameQB.build(getMaterialByNameQB.let(getMaterialByNameQB.property("Name")).isEqualTo(getMaterialByNameQB.parameterValue(QueryParamKey)));
+    }
 
-	@Override
-	public Material getMaterialByName(String name) {
-		return getMaterialByNameQuery.param(QueryParamKey, name).retrieveSingle();
-	}
+    @Override
+    public Material getMaterialByName(String name) {
+        return getMaterialByNameQuery.param(QueryParamKey, name).retrieveSingle();
+    }
 
-	@Override
-	@QueryBehavior(QueryBehaviorType.OBJREF_ONLY)
-	public Material getMaterialByNameObjRefMode(String name) {
-		Material material = getMaterialByName(name);
-		Assert.assertNull(material);
-		return material;
-	}
+    @Override
+    @QueryBehavior(QueryBehaviorType.OBJREF_ONLY)
+    public Material getMaterialByNameObjRefMode(String name) {
+        Material material = getMaterialByName(name);
+        Assert.assertNull(material);
+        return material;
+    }
 
-	@Override
-	@QueryBehavior(QueryBehaviorType.DEFAULT)
-	public Material getMaterialByNameDefaultMode(String name) {
-		Material material = getMaterialByName(name);
-		Assert.assertNotNull(material);
-		return material;
-	}
+    @Override
+    @QueryBehavior(QueryBehaviorType.DEFAULT)
+    public Material getMaterialByNameDefaultMode(String name) {
+        Material material = getMaterialByName(name);
+        Assert.assertNotNull(material);
+        return material;
+    }
 }

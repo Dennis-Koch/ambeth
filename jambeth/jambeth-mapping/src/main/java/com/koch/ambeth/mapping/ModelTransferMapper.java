@@ -46,7 +46,6 @@ import com.koch.ambeth.merge.transfer.ObjRef;
 import com.koch.ambeth.merge.util.DirectValueHolderRef;
 import com.koch.ambeth.merge.util.ICacheHelper;
 import com.koch.ambeth.merge.util.IPrefetchHelper;
-import com.koch.ambeth.merge.util.IPrefetchState;
 import com.koch.ambeth.service.merge.IEntityMetaDataProvider;
 import com.koch.ambeth.service.merge.IValueObjectConfig;
 import com.koch.ambeth.service.merge.ValueObjectMemberType;
@@ -63,7 +62,6 @@ import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.EmptyList;
 import com.koch.ambeth.util.collections.HashMap;
 import com.koch.ambeth.util.collections.HashSet;
-import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.IMap;
 import com.koch.ambeth.util.collections.ISet;
 import com.koch.ambeth.util.collections.IdentityHashMap;
@@ -71,6 +69,7 @@ import com.koch.ambeth.util.collections.IdentityHashSet;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.model.IDataObject;
 import com.koch.ambeth.util.objectcollector.IThreadLocalObjectCollector;
+import com.koch.ambeth.util.state.StateRollback;
 import com.koch.ambeth.util.typeinfo.IPropertyInfoProvider;
 import com.koch.ambeth.util.typeinfo.ITypeInfoItem;
 import com.koch.ambeth.util.typeinfo.ITypeInfoProvider;
@@ -146,7 +145,7 @@ public class ModelTransferMapper implements IMapperService, IDisposable {
         if (valueObject == null) {
             return null;
         }
-        List<Object> valueObjects = Arrays.asList(new Object[] { valueObject });
+        var valueObjects = Arrays.asList(valueObject);
         List<T> results = mapToBusinessObjectList(valueObjects);
         return results.get(0);
     }
@@ -167,13 +166,14 @@ public class ModelTransferMapper implements IMapperService, IDisposable {
         if (valueObjectList.isEmpty()) {
             return (T) Collections.emptyList();
         }
-        ICacheIntern cache = (ICacheIntern) this.cache.getCurrentCache();
-        IEntityMetaDataProvider entityMetaDataProvider = this.entityMetaDataProvider;
-        IdentityHashMap<Object, Object> voToBoMap = this.voToBoMap;
-        ArrayList<Object> allValueObjects = new ArrayList<>(valueObjectList.size());
-        boolean acquiredHardRefs = cache.acquireHardRefTLIfNotAlready();
-        boolean oldActive = cacheModification.isActive();
-        cacheModification.setActive(true);
+        var cache = (ICacheIntern) this.cache.getCurrentCache();
+        var entityMetaDataProvider = this.entityMetaDataProvider;
+        var voToBoMap = this.voToBoMap;
+        var allValueObjects = new ArrayList<>(valueObjectList.size());
+        var rollback = StateRollback.chain(chain -> {
+            chain.append(cacheModification.pushActive());
+            chain.append(cache.acquireHardRefTLIfNotAlready());
+        });
         try {
             resolveAllValueObjectsDirectly(valueObjectList, allValueObjects, IdentityHashSet.create(valueObjectList.size()), null);
 
@@ -183,24 +183,24 @@ public class ModelTransferMapper implements IMapperService, IDisposable {
                 resolvePrimitiveProperties(allValueObjects.get(i), cache);
             }
 
-            ArrayList<DirectValueHolderRef> boToPendingRelationsList = new ArrayList<>();
-            HashSet<IObjRef> referencedBOsSet = new HashSet<>();
-            HashMap<IObjRef, IObjRef> alreadyCreatedObjRefMap = new HashMap<>();
+            var boToPendingRelationsList = new ArrayList<DirectValueHolderRef>();
+            var referencedBOsSet = new HashSet<IObjRef>();
+            var alreadyCreatedObjRefMap = new HashMap<IObjRef, IObjRef>();
             try {
                 for (int i = allValueObjects.size(); i-- > 0; ) {
                     collectReferencedBusinessObjects(allValueObjects.get(i), referencedBOsSet, boToPendingRelationsList, alreadyCreatedObjRefMap, cache);
                 }
-                IList<IObjRef> referencedBOsList = referencedBOsSet.toList();
+                var referencedBOsList = referencedBOsSet.toList();
 
                 if (initDirectRelationsInBusinessObjects) {
-                    IPrefetchState prefetchState = prefetchHelper.prefetch(boToPendingRelationsList);
+                    var prefetchState = prefetchHelper.prefetch(boToPendingRelationsList);
                     // Store retrieved BOs to hard ref to suppress Weak GC handling of cache
                     allBOsToKeepInCache.add(prefetchState);
 
-                    IList<Object> referencedBOs = cache.getObjects(referencedBOsList, CacheDirective.failEarlyAndReturnMisses());
+                    var referencedBOs = cache.getObjects(referencedBOsList, CacheDirective.failEarlyAndReturnMisses());
 
                     for (int a = referencedBOs.size(); a-- > 0; ) {
-                        Object referencedBO = referencedBOs.get(a);
+                        var referencedBO = referencedBOs.get(a);
                         if (referencedBO == null) {
                             throw new MappingException("At least one entity could not be found: " + referencedBOsList.get(a).toString());
                         }
@@ -211,11 +211,11 @@ public class ModelTransferMapper implements IMapperService, IDisposable {
                     // PendingRelation pendingRelation = boToPendingRelationsList.get(a);
                     // Object businessObject = pendingRelation.getBusinessObject();
                     // IRelationInfoItem member = pendingRelation.getMember();
-                    // IList<IObjRef> pendingObjRefs = pendingRelation.getPendingObjRefs();
+                    // List<IObjRef> pendingObjRefs = pendingRelation.getPendingObjRefs();
                     //
                     // // Everything which gets missed by now does not exist in the DB.
                     // // FailEarly is important to suppress redundant tries of previously failed loadings
-                    // IList<Object> pendingObjects = childCache.getObjects(pendingObjRefs,
+                    // List<Object> pendingObjects = childCache.getObjects(pendingObjRefs,
                     // CacheDirective.failEarly());
                     //
                     // Object convertedPendingObjects = convertPrimitiveValue(pendingObjects,
@@ -227,14 +227,14 @@ public class ModelTransferMapper implements IMapperService, IDisposable {
                 alreadyCreatedObjRefMap = null;
             }
 
-            ArrayList<Object> allBusinessObjects = new ArrayList<>(allValueObjects.size());
+            var allBusinessObjects = new ArrayList<>(allValueObjects.size());
 
-            ArrayList<DirectValueHolderRef> objRefContainers = new ArrayList<>(allValueObjects.size());
+            var objRefContainers = new ArrayList<DirectValueHolderRef>(allValueObjects.size());
             for (int i = allValueObjects.size(); i-- > 0; ) {
-                Object valueObject = allValueObjects.get(i);
-                Object businessObject = voToBoMap.get(valueObject);
+                var valueObject = allValueObjects.get(i);
+                var businessObject = voToBoMap.get(valueObject);
 
-                IDedicatedMapper dedicatedMapper = mapperExtensionRegistry.getDedicatedMapper(businessObject.getClass());
+                var dedicatedMapper = mapperExtensionRegistry.getDedicatedMapper(businessObject.getClass());
                 if (dedicatedMapper != null) {
                     dedicatedMapper.applySpecialMapping(businessObject, valueObject, CopyDirection.VO_TO_BO);
                 }
@@ -243,12 +243,12 @@ public class ModelTransferMapper implements IMapperService, IDisposable {
                 if (!initDirectRelationsInBusinessObjects) {
                     continue;
                 }
-                IEntityMetaData metaData = getMetaData(businessObject);
-                RelationMember[] relationMembers = metaData.getRelationMembers();
+                var metaData = getMetaData(businessObject);
+                var relationMembers = metaData.getRelationMembers();
                 if (relationMembers.length == 0) {
                     continue;
                 }
-                IValueHolderContainer vhc = (IValueHolderContainer) businessObject;
+                var vhc = (IValueHolderContainer) businessObject;
                 for (int relationIndex = relationMembers.length; relationIndex-- > 0; ) {
                     if (ValueHolderState.INIT == vhc.get__State(relationIndex)) {
                         continue;
@@ -259,33 +259,30 @@ public class ModelTransferMapper implements IMapperService, IDisposable {
             if (!objRefContainers.isEmpty()) {
                 prefetchHelper.prefetch(objRefContainers);
             }
-            ArrayList<IObjRef> orisToGet = new ArrayList<>(valueObjectList.size());
+            var orisToGet = new ArrayList<IObjRef>(valueObjectList.size());
 
             for (int i = 0, size = valueObjectList.size(); i < size; i++) {
-                Object rootValueObject = valueObjectList.get(i);
-                IValueObjectConfig config = getValueObjectConfig(rootValueObject.getClass());
-                IEntityMetaData metaData = entityMetaDataProvider.getMetaData(config.getEntityType());
-                Map<String, ITypeInfoItem> boNameToVoMember = getTypeInfoMapForVo(config);
-                Object id = getIdFromValueObject(rootValueObject, metaData, boNameToVoMember, config);
+                var rootValueObject = valueObjectList.get(i);
+                var config = getValueObjectConfig(rootValueObject.getClass());
+                var metaData = entityMetaDataProvider.getMetaData(config.getEntityType());
+                var boNameToVoMember = getTypeInfoMapForVo(config);
+                var id = getIdFromValueObject(rootValueObject, metaData, boNameToVoMember, config);
 
-                ObjRef objRef = new ObjRef(metaData.getEntityType(), ObjRef.PRIMARY_KEY_INDEX, id, null);
+                var objRef = new ObjRef(metaData.getEntityType(), ObjRef.PRIMARY_KEY_INDEX, id, null);
                 orisToGet.add(objRef);
             }
-            List<Object> businessObjectList = cache.getObjects(orisToGet, CacheDirective.failEarlyAndReturnMisses());
+            var businessObjectList = cache.getObjects(orisToGet, CacheDirective.failEarlyAndReturnMisses());
             clearObjectsWithTempIds((IWritableCache) cache);
 
             for (int a = allBusinessObjects.size(); a-- > 0; ) {
-                Object businessObject = allBusinessObjects.get(a);
-                if (businessObject instanceof IDataObject) {
-                    ((IDataObject) businessObject).setToBeUpdated(true);
+                var businessObject = allBusinessObjects.get(a);
+                if (businessObject instanceof IDataObject dataObject) {
+                    dataObject.setToBeUpdated(true);
                 }
             }
             return (T) businessObjectList;
-        } catch (Exception e) {
-            throw RuntimeExceptionUtil.mask(e);
         } finally {
-            cacheModification.setActive(oldActive);
-            cache.clearHardRefs(acquiredHardRefs);
+            rollback.rollback();
         }
     }
 
@@ -294,29 +291,21 @@ public class ModelTransferMapper implements IMapperService, IDisposable {
         if (businessObject == null) {
             return null;
         }
-        List<Object> businessObjects = Arrays.asList(new Object[] { businessObject });
+        var businessObjects = Arrays.asList(businessObject);
         List<T> results = mapToValueObjectList(businessObjects, valueObjectType);
         return results.get(0);
     }
 
     @Override
     public <L> L mapToValueObjectListType(List<?> businessObjectList, Class<?> valueObjectType, Class<L> listType) {
-        try {
-            List<Object> valueObjectList = mapToValueObjectList(businessObjectList, valueObjectType);
-            return listTypeHelper.packInListType(valueObjectList, listType);
-        } catch (Exception e) {
-            throw RuntimeExceptionUtil.mask(e);
-        }
+        List<Object> valueObjectList = mapToValueObjectList(businessObjectList, valueObjectType);
+        return listTypeHelper.packInListType(valueObjectList, listType);
     }
 
     @Override
     public <L> L mapToValueObjectRefListType(List<?> businessObjectList, Class<L> valueObjectRefListType) {
-        try {
-            List<Object> valueObjectList = mapToValueObjectRefList(businessObjectList);
-            return listTypeHelper.packInListType(valueObjectList, valueObjectRefListType);
-        } catch (Exception e) {
-            throw RuntimeExceptionUtil.mask(e);
-        }
+        var valueObjectList = mapToValueObjectRefList(businessObjectList);
+        return listTypeHelper.packInListType(valueObjectList, valueObjectRefListType);
     }
 
     @SuppressWarnings("unchecked")
@@ -325,22 +314,22 @@ public class ModelTransferMapper implements IMapperService, IDisposable {
         if (businessObjectList.isEmpty()) {
             return (T) Collections.emptyList();
         }
-        ICache cache = this.cache.getCurrentCache();
+        var cache = this.cache.getCurrentCache();
         // Checking for correct types
-        Object bo = businessObjectList.get(0);
-        IEntityMetaData boMetaData = getMetaData(bo);
-        Class<?> businessObjectType = boMetaData.getEntityType();
-        IValueObjectConfig config = getValueObjectConfig(valueObjectType);
+        var bo = businessObjectList.get(0);
+        var boMetaData = getMetaData(bo);
+        var businessObjectType = boMetaData.getEntityType();
+        var config = getValueObjectConfig(valueObjectType);
         if (!config.getEntityType().equals(businessObjectType)) {
             throw new IllegalArgumentException("'" + businessObjectType.getName() + "' cannot be mapped to '" + valueObjectType.getName() + "'");
         }
 
-        ArrayList<Object> pendingValueHolders = new ArrayList<>();
-        ArrayList<Runnable> runnables = new ArrayList<>();
-        List<Object> valueObjectList = new java.util.ArrayList<>(businessObjectList.size());
+        var pendingValueHolders = new ArrayList<>();
+        var runnables = new ArrayList<Runnable>();
+        var valueObjectList = new java.util.ArrayList<>(businessObjectList.size());
         for (int i = 0; i < businessObjectList.size(); i++) {
-            Object businessObject = businessObjectList.get(i);
-            Object valueObject = subMapToCachedValueObject(businessObject, valueObjectType, pendingValueHolders, runnables);
+            var businessObject = businessObjectList.get(i);
+            var valueObject = subMapToCachedValueObject(businessObject, valueObjectType, pendingValueHolders, runnables);
 
             valueObjectList.add(valueObject);
         }
@@ -349,7 +338,7 @@ public class ModelTransferMapper implements IMapperService, IDisposable {
                 prefetchHelper.prefetch(pendingValueHolders);
                 pendingValueHolders.clear();
             }
-            ArrayList<Runnable> runnablesClone = new ArrayList<>(runnables);
+            var runnablesClone = new ArrayList<>(runnables);
 
             // Reset ORIGINAL lists because they may have been referenced from within cascading runnables
             runnables.clear();
@@ -368,17 +357,17 @@ public class ModelTransferMapper implements IMapperService, IDisposable {
     @SuppressWarnings("unchecked")
     protected <T> List<T> mapToValueObjectRefList(List<?> businessObjectList) {
         if (businessObjectList.isEmpty()) {
-            return (List<T>) Collections.emptyList();
+            return List.of();
         }
         // Checking for correct types
-        ArrayList<T> refList = new ArrayList<>(businessObjectList.size());
+        var refList = new ArrayList<T>(businessObjectList.size());
 
         for (int a = 0, size = businessObjectList.size(); a < size; a++) {
-            Object businessObject = businessObjectList.get(a);
-            IEntityMetaData metaData = getMetaData(businessObject);
+            var businessObject = businessObjectList.get(a);
+            var metaData = getMetaData(businessObject);
 
-            Member idMember = selectIdMember(metaData);
-            Object id = idMember.getValue(businessObject, false);
+            var idMember = selectIdMember(metaData);
+            var id = idMember.getValue(businessObject, false);
             if (id == null) {
                 throw new IllegalArgumentException("BusinessObject '" + businessObject + "' at index " + a + " does not have a valid ID");
             }
@@ -388,42 +377,38 @@ public class ModelTransferMapper implements IMapperService, IDisposable {
     }
 
     protected void resolveProperties(Object businessObject, final Object valueObject, final Collection<Object> pendingValueHolders, final Collection<Runnable> runnables) {
-        IEntityMetaData businessObjectMetaData = getMetaData(businessObject);
-        final IValueObjectConfig config = entityMetaDataProvider.getValueObjectConfig(valueObject.getClass());
-        Map<String, ITypeInfoItem> boNameToVoMember = getTypeInfoMapForVo(config);
+        var businessObjectMetaData = getMetaData(businessObject);
+        var config = entityMetaDataProvider.getValueObjectConfig(valueObject.getClass());
+        var boNameToVoMember = getTypeInfoMapForVo(config);
 
         copyPrimitives(businessObject, valueObject, config, CopyDirection.BO_TO_VO, businessObjectMetaData, boNameToVoMember);
 
-        RelationMember[] relationMembers = businessObjectMetaData.getRelationMembers();
+        var relationMembers = businessObjectMetaData.getRelationMembers();
         if (relationMembers.length == 0) {
             return;
         }
         final IObjRefContainer vhc = (IObjRefContainer) businessObject;
 
         for (int relationIndex = relationMembers.length; relationIndex-- > 0; ) {
-            RelationMember boMember = relationMembers[relationIndex];
-            String boMemberName = boMember.getName();
-            String voMemberName = config.getValueObjectMemberName(boMemberName);
+            var boMember = relationMembers[relationIndex];
+            var boMemberName = boMember.getName();
+            var voMemberName = config.getValueObjectMemberName(boMemberName);
             final ITypeInfoItem voMember = boNameToVoMember.get(boMemberName);
             if (config.isIgnoredMember(voMemberName) || voMember == null) {
                 continue;
             }
-            Object voMemberValue = createVOMemberValue(vhc, relationIndex, boMember, config, voMember, pendingValueHolders, runnables);
+            var voMemberValue = createVOMemberValue(vhc, relationIndex, boMember, config, voMember, pendingValueHolders, runnables);
             if (voMemberValue != NOT_YET_READY) {
                 setPropertyValue(valueObject, voMember, voMemberValue);
             } else {
-                final RelationMember fBoMember = boMember;
-                final int fRelationIndex = relationIndex;
-                runnables.add(new Runnable() {
-
-                    @Override
-                    public void run() {
-                        Object voMemberValue = createVOMemberValue(vhc, fRelationIndex, fBoMember, config, voMember, pendingValueHolders, runnables);
-                        if (voMemberValue == NOT_YET_READY) {
-                            throw new IllegalStateException("Must never happen");
-                        }
-                        setPropertyValue(valueObject, voMember, voMemberValue);
+                var fBoMember = boMember;
+                var fRelationIndex = relationIndex;
+                runnables.add(() -> {
+                    var currVoMemberValue = createVOMemberValue(vhc, fRelationIndex, fBoMember, config, voMember, pendingValueHolders, runnables);
+                    if (currVoMemberValue == NOT_YET_READY) {
+                        throw new IllegalStateException("Must never happen");
                     }
+                    setPropertyValue(valueObject, voMember, currVoMemberValue);
                 });
             }
         }
@@ -434,46 +419,46 @@ public class ModelTransferMapper implements IMapperService, IDisposable {
         if (voMember.canWrite()) {
             voMember.setValue(valueObject, voMemberValue);
         } else if (voMember.canRead()) {
-            Object currentValue = voMember.getValue(valueObject);
+            var currentValue = voMember.getValue(valueObject);
             if (currentValue == null) {
                 String msg = "Property has only a getter and is null: " + valueObject.getClass().getName() + "." + voMember.getName();
                 throw new IllegalStateException(msg);
             }
 
-            Class<?> realType = voMember.getRealType();
+            var realType = voMember.getRealType();
             if (Collection.class.isAssignableFrom(realType)) {
-                Collection<Object> col = (Collection<Object>) currentValue;
+                var col = (Collection<Object>) currentValue;
                 col.clear();
                 col.addAll((Collection<? extends Object>) voMemberValue);
             } else {
-                String msg = "Handling of getter-only property type " + realType.getName() + " not yet implemented: " + valueObject.getClass().getName() + "." + voMember.getName();
+                var msg = "Handling of getter-only property type " + realType.getName() + " not yet implemented: " + valueObject.getClass().getName() + "." + voMember.getName();
                 throw new IllegalStateException(msg);
             }
         } else {
-            String msg = "Property not accessible: " + valueObject.getClass().getName() + "." + voMember.getName();
+            var msg = "Property not accessible: " + valueObject.getClass().getName() + "." + voMember.getName();
             throw new IllegalStateException(msg);
         }
     }
 
-    protected void mapBosByVos(final List<Object> valueObjects, ICacheIntern cache) throws Exception {
-        ArrayList<IObjRef> toLoad = new ArrayList<>();
-        ArrayList<Object> waitingVOs = new ArrayList<>();
-        IEntityMetaDataProvider entityMetaDataProvider = this.entityMetaDataProvider;
-        IMap<Object, Object> voToBoMap = this.voToBoMap;
+    protected void mapBosByVos(List<?> valueObjects, ICacheIntern cache) {
+        var toLoad = new ArrayList<IObjRef>();
+        var waitingVOs = new ArrayList<>();
+        var entityMetaDataProvider = this.entityMetaDataProvider;
+        var voToBoMap = this.voToBoMap;
         for (int i = valueObjects.size(); i-- > 0; ) {
-            Object valueObject = valueObjects.get(i);
+            var valueObject = valueObjects.get(i);
             if (valueObject == null || voToBoMap.containsKey(valueObject)) {
                 continue;
             }
-            IValueObjectConfig config = getValueObjectConfig(valueObject.getClass());
-            IEntityMetaData boMetaData = entityMetaDataProvider.getMetaData(config.getEntityType());
-            Map<String, ITypeInfoItem> boNameToVoMember = getTypeInfoMapForVo(config);
+            var config = getValueObjectConfig(valueObject.getClass());
+            var boMetaData = entityMetaDataProvider.getMetaData(config.getEntityType());
+            var boNameToVoMember = getTypeInfoMapForVo(config);
 
             Object businessObject = null;
-            Object id = getIdFromValueObject(valueObject, boMetaData, boNameToVoMember, config);
+            var id = getIdFromValueObject(valueObject, boMetaData, boNameToVoMember, config);
             if (id != null) {
                 if (initDirectRelationsInBusinessObjects) {
-                    IObjRef ori = getObjRef(config.getEntityType(), ObjRef.PRIMARY_KEY_INDEX, id, alreadyCreatedObjRefsMap);
+                    var ori = getObjRef(config.getEntityType(), ObjRef.PRIMARY_KEY_INDEX, id, alreadyCreatedObjRefsMap);
                     toLoad.add(ori);
                     waitingVOs.add(valueObject);
                 } else {
@@ -490,13 +475,13 @@ public class ModelTransferMapper implements IMapperService, IDisposable {
         }
 
         if (!toLoad.isEmpty()) {
-            List<Object> businessObjects = cache.getObjects(toLoad, CacheDirective.returnMisses());
+            var businessObjects = cache.getObjects(toLoad, CacheDirective.returnMisses());
             for (int i = businessObjects.size(); i-- > 0; ) {
-                Object businessObject = businessObjects.get(i);
-                Object valueObject = waitingVOs.get(i);
+                var businessObject = businessObjects.get(i);
+                var valueObject = waitingVOs.get(i);
                 if (businessObject == null) {
-                    IValueObjectConfig config = getValueObjectConfig(valueObject.getClass());
-                    IEntityMetaData boMetaData = entityMetaDataProvider.getMetaData(config.getEntityType());
+                    var config = getValueObjectConfig(valueObject.getClass());
+                    var boMetaData = entityMetaDataProvider.getMetaData(config.getEntityType());
                     businessObject = createBusinessObject(boMetaData, cache);
                 }
                 voToBoMap.put(valueObject, businessObject);
@@ -505,26 +490,26 @@ public class ModelTransferMapper implements IMapperService, IDisposable {
     }
 
     protected Object createBusinessObject(IEntityMetaData boMetaData, ICacheIntern cache) {
-        Object businessObject = entityFactory.createEntity(boMetaData);
+        var businessObject = entityFactory.createEntity(boMetaData);
         cache.assignEntityToCache(businessObject);
         return businessObject;
     }
 
-    protected void resolvePrimitiveProperties(Object valueObject, ICacheIntern cache) throws Exception {
-        IValueObjectConfig config = getValueObjectConfig(valueObject.getClass());
+    protected void resolvePrimitiveProperties(Object valueObject, ICacheIntern cache) {
+        var config = getValueObjectConfig(valueObject.getClass());
 
-        IEntityMetaData boMetaData = entityMetaDataProvider.getMetaData(config.getEntityType());
-        Map<String, ITypeInfoItem> boNameToVoMember = getTypeInfoMapForVo(config);
+        var boMetaData = entityMetaDataProvider.getMetaData(config.getEntityType());
+        var boNameToVoMember = getTypeInfoMapForVo(config);
 
-        Object businessObject = voToBoMap.get(valueObject);
+        var businessObject = voToBoMap.get(valueObject);
         if (businessObject == null) {
             throw new IllegalStateException("Must never happen");
         }
 
-        Object[] primitives = copyPrimitives(businessObject, valueObject, config, CopyDirection.VO_TO_BO, boMetaData, boNameToVoMember);
+        var primitives = copyPrimitives(businessObject, valueObject, config, CopyDirection.VO_TO_BO, boMetaData, boNameToVoMember);
 
-        Object id = getIdFromBusinessObject(businessObject, boMetaData);
-        Object version = getVersionFromBusinessObject(businessObject, boMetaData);
+        var id = getIdFromBusinessObject(businessObject, boMetaData);
+        var version = getVersionFromBusinessObject(businessObject, boMetaData);
         cache.addDirect(boMetaData, id, version, businessObject, primitives, null);// relationValues);
     }
 
@@ -668,7 +653,7 @@ public class ModelTransferMapper implements IMapperService, IDisposable {
                 Object relationValue = cacheHelper.createInstanceOfTargetExpectedType(boMember.getRealType(), boMember.getElementType());
                 boMember.setValue(businessObject, relationValue);
             } else {
-                IObjRef[] objRefs = !pendingRelations.isEmpty() ? pendingRelations.toArray(IObjRef.class) : ObjRef.EMPTY_ARRAY;
+                IObjRef[] objRefs = !pendingRelations.isEmpty() ? pendingRelations.toArray(IObjRef[]::new) : ObjRef.EMPTY_ARRAY;
                 businessObject.set__Uninitialized(relationIndex, objRefs);
                 cache.assignEntityToCache(businessObject);
                 referencedBOsSet.addAll(objRefs);
@@ -1238,7 +1223,7 @@ public class ModelTransferMapper implements IMapperService, IDisposable {
     }
 
     @Override
-    public IList<Object> getAllActiveBusinessObjects() {
+    public List<Object> getAllActiveBusinessObjects() {
         return voToBoMap.values();
     }
 }

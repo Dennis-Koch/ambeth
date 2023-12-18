@@ -20,34 +20,29 @@ limitations under the License.
  * #L%
  */
 
-import java.util.List;
-import java.util.Set;
-
 import com.koch.ambeth.merge.cache.CacheDirective;
 import com.koch.ambeth.merge.cache.ICache;
 import com.koch.ambeth.service.cache.model.IObjRelation;
 import com.koch.ambeth.service.cache.model.IObjRelationResult;
 import com.koch.ambeth.service.merge.model.IEntityMetaData;
 import com.koch.ambeth.service.merge.model.IObjRef;
-import com.koch.ambeth.util.collections.IList;
+import com.koch.ambeth.util.state.IStateRollback;
+
+import java.util.List;
+import java.util.Set;
 
 public interface ICacheIntern extends ICache {
-	Object createCacheValueInstance(IEntityMetaData metaData, Object obj);
+    Object createCacheValueInstance(IEntityMetaData metaData, Object obj);
 
-	void addDirect(IEntityMetaData metaData, Object id, Object version, Object primitiveFilledObject,
-			Object parentCacheValueOrArray, IObjRef[][] relations);
+    void addDirect(IEntityMetaData metaData, Object id, Object version, Object primitiveFilledObject, Object parentCacheValueOrArray, IObjRef[][] relations);
 
-	Object getObject(IObjRef oriToGet, ICacheIntern targetCache, Set<CacheDirective> cacheDirective);
+    Object getObject(IObjRef oriToGet, ICacheIntern targetCache, Set<CacheDirective> cacheDirective);
 
-	IList<Object> getObjects(List<IObjRef> orisToGet, ICacheIntern targetCache,
-			Set<CacheDirective> cacheDirective);
+    List<Object> getObjects(List<IObjRef> orisToGet, ICacheIntern targetCache, Set<CacheDirective> cacheDirective);
 
-	IList<IObjRelationResult> getObjRelations(List<IObjRelation> objRelation,
-			ICacheIntern targetCache, Set<CacheDirective> cacheDirective);
+    List<IObjRelationResult> getObjRelations(List<IObjRelation> objRelation, ICacheIntern targetCache, Set<CacheDirective> cacheDirective);
 
-	boolean acquireHardRefTLIfNotAlready();
+    IStateRollback acquireHardRefTLIfNotAlready();
 
-	void clearHardRefs(boolean acquirementSuccessful);
-
-	void assignEntityToCache(Object entity);
+    void assignEntityToCache(Object entity);
 }

@@ -297,12 +297,11 @@ public class ValueHolderContainerTest extends AbstractInformationBusTest {
         Assert.assertTrue(((IDataObject) obj).hasPendingChanges());
 
         obj = entityFactory.createEntity(Material.class);
-        boolean oldCacheModActive = cacheModification.isActive();
-        cacheModification.setActive(true);
+        var rollback = cacheModification.pushActive();
         try {
             obj.setId(1);
         } finally {
-            cacheModification.setActive(oldCacheModActive);
+            rollback.rollback();
         }
         idNotNull = obj.getClass().getMethod(getIdName).invoke(obj, new Object[0]);
         Assert.assertNotNull(idNotNull);
@@ -746,7 +745,7 @@ public class ValueHolderContainerTest extends AbstractInformationBusTest {
     public void test_PropertyChange_ParentChild_ToOne() {
         var obj2 = entityFactory.createEntity(MaterialType.class);
         var mat = entityFactory.createEntity(Material.class);
-        cacheModification.setActive(true);
+        var rollback = cacheModification.pushActive();
         try {
             obj2.setId(2);
             obj2.setName("name2");
@@ -757,7 +756,7 @@ public class ValueHolderContainerTest extends AbstractInformationBusTest {
             mat.setVersion(1);
             mat.setChildMatType(obj2);
         } finally {
-            cacheModification.setActive(false);
+            rollback.rollback();
         }
         Assert.assertFalse(((IDataObject) mat).hasPendingChanges());
         Assert.assertFalse(((IDataObject) obj2).hasPendingChanges());
@@ -801,7 +800,7 @@ public class ValueHolderContainerTest extends AbstractInformationBusTest {
         var obj3 = entityFactory.createEntity(MaterialType.class);
         var obj4 = entityFactory.createEntity(MaterialType.class);
         var mat = entityFactory.createEntity(Material.class);
-        cacheModification.setActive(true);
+        var rollback = cacheModification.pushActive();
         try {
             obj3.setId(3);
             obj3.setName("name3");
@@ -817,7 +816,7 @@ public class ValueHolderContainerTest extends AbstractInformationBusTest {
             mat.getChildMatTypes().add(obj3);
             mat.getChildMatTypes().add(obj4);
         } finally {
-            cacheModification.setActive(false);
+            rollback.rollback();
         }
         Assert.assertFalse(((IDataObject) mat).hasPendingChanges());
         Assert.assertFalse(((IDataObject) obj3).hasPendingChanges());
@@ -851,12 +850,12 @@ public class ValueHolderContainerTest extends AbstractInformationBusTest {
                 var obj = entityFactory.createEntity(Material.class);
                 ((INotifyPropertyChanged) obj).addPropertyChangeListener(handler);
 
-                cacheModification.setActive(true);
+                var rollback = cacheModification.pushActive();
                 try {
                     obj.setId(1);
                     Assert.assertEquals(0, counter.size());
                 } finally {
-                    cacheModification.setActive(false);
+                    rollback.rollback();
                 }
                 waitForUI();
                 Assert.assertEquals(3, counter.size());

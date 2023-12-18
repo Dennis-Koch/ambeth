@@ -21,17 +21,25 @@ limitations under the License.
  */
 
 import com.koch.ambeth.ioc.IInitializingBean;
+import com.koch.ambeth.ioc.config.Property;
 import com.koch.ambeth.persistence.filter.QueryConstants;
 import com.koch.ambeth.query.IOperand;
 import com.koch.ambeth.util.ParamChecker;
 import com.koch.ambeth.util.appendable.IAppendable;
-import com.koch.ambeth.util.collections.IList;
 
+import java.util.List;
 import java.util.Map;
 
 public class SqlFunctionOperand implements IOperand, IInitializingBean {
+
+    public static final String P_NAME = "Name";
+
+    public static final String P_OPERANDS = "Operands";
+
+    @Property
     protected String name;
 
+    @Property
     protected IOperand[] operands;
 
     @Override
@@ -40,16 +48,8 @@ public class SqlFunctionOperand implements IOperand, IInitializingBean {
         ParamChecker.assertNotNull(operands, "operands");
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public void setOperands(IOperand[] operands) {
-        this.operands = operands;
-    }
-
     @Override
-    public void expandQuery(IAppendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, IList<Object> parameters) {
+    public void expandQuery(IAppendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, List<Object> parameters) {
         var existingHint = nameToValueMap.get(QueryConstants.EXPECTED_TYPE_HINT);
         if (existingHint != null) {
             nameToValueMap.put(QueryConstants.EXPECTED_TYPE_HINT, null);

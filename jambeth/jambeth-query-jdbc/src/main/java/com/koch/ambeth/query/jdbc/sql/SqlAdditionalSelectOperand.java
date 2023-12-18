@@ -27,7 +27,6 @@ import com.koch.ambeth.query.IOperator;
 import com.koch.ambeth.util.ParamChecker;
 import com.koch.ambeth.util.appendable.AppendableStringBuilder;
 import com.koch.ambeth.util.appendable.IAppendable;
-import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.objectcollector.IThreadLocalObjectCollector;
 
 import java.util.List;
@@ -53,13 +52,13 @@ public class SqlAdditionalSelectOperand implements IOperator, IInitializingBean 
     }
 
     @Override
-    public void expandQuery(IAppendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, IList<Object> parameters) {
+    public void expandQuery(IAppendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, List<Object> parameters) {
         operate(querySB, nameToValueMap, joinQuery, parameters);
     }
 
     @Override
     @SuppressWarnings("unchecked")
-    public void operate(IAppendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, IList<Object> parameters) {
+    public void operate(IAppendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, List<Object> parameters) {
         var additionalSelectColumnList = (List<String>) nameToValueMap.get(QueryConstants.ADDITIONAL_SELECT_SQL_SB);
         if (additionalSelectColumnList == null) {
             return;

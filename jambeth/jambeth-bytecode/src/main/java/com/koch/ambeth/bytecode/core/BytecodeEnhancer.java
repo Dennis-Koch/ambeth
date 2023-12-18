@@ -41,7 +41,6 @@ import com.koch.ambeth.util.IClassLoaderProvider;
 import com.koch.ambeth.util.ReflectUtil;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.HashSet;
-import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.IdentityLinkedSet;
 import com.koch.ambeth.util.collections.SmartCopyMap;
 import com.koch.ambeth.util.collections.WeakSmartCopyMap;
@@ -331,7 +330,7 @@ public class BytecodeEnhancer implements IBytecodeEnhancer, IBytecodeBehaviorExt
         }
     }
 
-    protected Class<?> enhanceTypeIntern(Class<?> originalType, String newTypeNamePrefix, IList<IBytecodeBehavior> pendingBehaviors, IEnhancementHint hint, List<Class<?>> enhancedTypesPipeline,
+    protected Class<?> enhanceTypeIntern(Class<?> originalType, String newTypeNamePrefix, List<IBytecodeBehavior> pendingBehaviors, IEnhancementHint hint, List<Class<?>> enhancedTypesPipeline,
             ClassLoader classLoader) {
         if (pendingBehaviors.isEmpty()) {
             return originalType;
@@ -363,7 +362,7 @@ public class BytecodeEnhancer implements IBytecodeEnhancer, IBytecodeBehaviorExt
                 var newTypeHandle = Type.getObjectType(newTypeNamePrefix + "$A" + iterationCount);
                 lastTypeHandleName = newTypeHandle.getClassName();
 
-                var currentPendingBehaviors = pendingBehaviors.toArray(IBytecodeBehavior.class);
+                var currentPendingBehaviors = pendingBehaviors.toArray(IBytecodeBehavior[]::new);
                 pendingBehaviors.clear();
 
                 if (currentPendingBehaviors.length > 0 && log.isDebugEnabled()) {
@@ -424,7 +423,7 @@ public class BytecodeEnhancer implements IBytecodeEnhancer, IBytecodeBehaviorExt
                     remainingPendingBehaviors.add(currPendingBehaviors[b]);
                 }
                 var newCv = currPendingBehaviors[a].extend(cv, state, remainingPendingBehaviors, cascadePendingBehaviors);
-                currPendingBehaviors = remainingPendingBehaviors.toArray(IBytecodeBehavior.class);
+                currPendingBehaviors = remainingPendingBehaviors.toArray(IBytecodeBehavior[]::new);
                 a = -1;
                 if (newCv != null) {
                     cv = newCv;

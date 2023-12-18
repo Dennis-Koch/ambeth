@@ -35,9 +35,6 @@ import com.koch.ambeth.util.state.IStateRollback;
 import lombok.SneakyThrows;
 import org.objectweb.asm.Type;
 
-import java.lang.reflect.Field;
-import java.util.Map.Entry;
-
 public class BytecodeBehaviorState implements IBytecodeBehaviorState {
     private static final ThreadLocal<IBytecodeBehaviorState> stateTL = new ThreadLocal<>();
 
@@ -161,14 +158,14 @@ public class BytecodeBehaviorState implements IBytecodeBehaviorState {
 
     @Override
     public MethodInstance[] getAlreadyImplementedMethodsOnNewType() {
-        return implementedMethods.toArray(MethodInstance.class);
+        return implementedMethods.toArray(MethodInstance[]::new);
     }
 
     @Override
     public FieldInstance getAlreadyImplementedField(String fieldName) {
-        FieldInstance field = implementedFields.get(fieldName);
+        var field = implementedFields.get(fieldName);
         if (field == null) {
-            Field[] declaredFieldInHierarchy = ReflectUtil.getDeclaredFieldInHierarchy(getCurrentType(), fieldName);
+            var declaredFieldInHierarchy = ReflectUtil.getDeclaredFieldInHierarchy(getCurrentType(), fieldName);
             if (declaredFieldInHierarchy != null && declaredFieldInHierarchy.length > 0) {
                 field = new FieldInstance(declaredFieldInHierarchy[0]);
             }
@@ -178,7 +175,7 @@ public class BytecodeBehaviorState implements IBytecodeBehaviorState {
 
     @Override
     public boolean hasMethod(MethodInstance method) {
-        MethodInstance existingMethod = MethodInstance.findByTemplate(method, true);
+        var existingMethod = MethodInstance.findByTemplate(method, true);
         return existingMethod != null && getState().getNewType().equals(existingMethod.getOwner());
     }
 
@@ -188,13 +185,14 @@ public class BytecodeBehaviorState implements IBytecodeBehaviorState {
     }
 
     public void postProcessCreatedType(Class<?> newType) {
-        for (Entry<String, IValueResolveDelegate> entry : initializeStaticFields) {
-            Field[] fields = ReflectUtil.getDeclaredFieldInHierarchy(newType, entry.getKey());
+        for (var entry : initializeStaticFields) {
+            var fieldName = entry.getKey();
+            var fields = ReflectUtil.getDeclaredFieldInHierarchy(newType, fieldName);
             if (fields.length == 0) {
-                throw new IllegalStateException("Field not found: '" + newType.getName() + "." + entry.getKey());
+                throw new IllegalStateException("Field not found: '" + newType.getName() + "." + fieldName);
             }
-            Object value = entry.getValue().invoke(entry.getKey(), newType);
-            for (Field field : fields) {
+            var value = entry.getValue().invoke(fieldName, newType);
+            for (var field : fields) {
                 try {
                     field.set(null, value);
                 } catch (Throwable e) {

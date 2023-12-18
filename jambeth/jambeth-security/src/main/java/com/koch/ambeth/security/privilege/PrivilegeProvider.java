@@ -191,7 +191,7 @@ public class PrivilegeProvider implements IPrivilegeProviderIntern, IInitializin
             throw new SecurityException("No bean of type " + IPrivilegeService.class.getName() + " could be injected. Privilege functionality is deactivated. The current operation is not supported");
         }
         var userSID = authorization != null ? authorization.getSID() : null;
-        var privilegeResults = privilegeService.getPrivileges(missingObjRefs.toArray(IObjRef.class), securityScopes);
+        var privilegeResults = privilegeService.getPrivileges(missingObjRefs.toArray(IObjRef[]::new), securityScopes);
         writeLock.lock();
         try {
             HashMap<PrivilegeKey, IPrivilege> privilegeResultOfNewEntities = null;
@@ -330,7 +330,7 @@ public class PrivilegeProvider implements IPrivilegeProviderIntern, IInitializin
             throw new SecurityException("No bean of type " + IPrivilegeService.class.getName() + " could be injected. Privilege functionality is deactivated. The current operation is not supported");
         }
         var userSID = authorization != null ? authorization.getSID() : null;
-        var privilegeResults = privilegeService.getPrivilegesOfTypes(missingEntityTypes.toArray(Class.class), securityScopes);
+        var privilegeResults = privilegeService.getPrivilegesOfTypes(missingEntityTypes.toArray(Class[]::new), securityScopes);
         writeLock.lock();
         try {
             for (int a = 0, size = privilegeResults.size(); a < size; a++) {

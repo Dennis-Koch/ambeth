@@ -96,17 +96,17 @@ public abstract class AbstractConnectionFactory implements IConnectionFactory, I
         if (!(reusableConnection instanceof Factory)) {
             throw new IllegalArgumentException("Connection is not reusable");
         }
-        var callback = ((Factory) reusableConnection).getCallback(0);
-        if (!(callback instanceof LogConnectionInterceptor)) {
+        var interceptor = ((Factory) reusableConnection).getInterceptor();
+        if (!(interceptor instanceof LogConnectionInterceptor)) {
             throw new IllegalArgumentException("Connection is not reusable");
         }
-        var lci = (LogConnectionInterceptor) callback;
+        var lci = (LogConnectionInterceptor) interceptor;
         if (lci.getConnection() != null) {
             return;
         }
         var connection = createIntern();
         connection.setAutoCommit(false);
-        ((LogConnectionInterceptor) callback).setConnection(connection);
+        ((LogConnectionInterceptor) interceptor).setConnection(connection);
         if (eventDispatcher != null) {
             eventDispatcher.dispatchEvent(new ConnectionCreatedEvent(reusableConnection));
         }

@@ -22,8 +22,11 @@ limitations under the License.
 
 import java.lang.ref.Reference;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 
 /**
  * This special kind of HashMap is intended to be used in high-performance concurrent scenarios with
@@ -179,16 +182,83 @@ public class SmartCopyMap<K, V> extends HashMap<K, V> {
 
     @Override
     public boolean putIfNotExists(K key, V value) {
+        var entry = getEntry(key);
+        if (entry != null) {
+            return false;
+        }
         var writeLock = getWriteLock();
         writeLock.lock();
         try {
+            entry = getEntry(key);
+            if (entry != null) {
+                return false;
+            }
             var backupMap = createCopy();
             // Write new data in the copied structure
             if (!backupMap.putIfNotExists(key, value)) {
-                return false;
+                throw new IllegalStateException("Must never happen has the entry was not existing before while we kept the semaphore");
             }
             saveCopy(backupMap);
             return true;
+        } finally {
+            writeLock.unlock();
+        }
+    }
+
+    @Override
+    public V computeIfAbsent(K key, Function<? super K, ? extends V> mappingFunction) {
+        Objects.requireNonNull(mappingFunction);
+        var value = get(key);
+        if (value != null) {
+            return value;
+        }
+        var writeLock = getWriteLock();
+        writeLock.lock();
+        try {
+            value = get(key);
+            if (value != null) {
+                return value;
+            }
+            var backupMap = createCopy();
+            // Write new data in the copied structure
+            value = backupMap.computeIfAbsent(key, mappingFunction);
+            saveCopy(backupMap);
+            return value;
+        } finally {
+            writeLock.unlock();
+        }
+    }
+
+    @Override
+    public V computeIfPresent(K key, BiFunction<? super K, ? super V, ? extends V> remappingFunction) {
+        Objects.requireNonNull(remappingFunction);
+        var value = get(key);
+        if (value == null) {
+            return value;
+        }
+        var writeLock = getWriteLock();
+        writeLock.lock();
+        try {
+            value = get(key);
+            if (value == null) {
+                return value;
+            }
+            var backupMap = createCopy();
+            // Write new data in the copied structure
+            value = backupMap.computeIfPresent(key, remappingFunction);
+            saveCopy(backupMap);
+            return value;
+        } finally {
+            writeLock.unlock();
+        }
+    }
+
+    @Override
+    public V compute(K key, BiFunction<? super K, ? super V, ? extends V> remappingFunction) {
+        var writeLock = getWriteLock();
+        writeLock.lock();
+        try {
+            return super.compute(key, remappingFunction);
         } finally {
             writeLock.unlock();
         }

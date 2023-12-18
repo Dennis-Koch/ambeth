@@ -20,14 +20,6 @@ limitations under the License.
  * #L%
  */
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-
-import java.util.EnumSet;
-
-import org.junit.Assert;
-import org.junit.Test;
-
 import com.koch.ambeth.informationbus.persistence.setup.SQLData;
 import com.koch.ambeth.informationbus.persistence.setup.SQLStructure;
 import com.koch.ambeth.merge.cache.CacheDirective;
@@ -50,133 +42,133 @@ import com.koch.ambeth.testutil.TestProperties;
 import com.koch.ambeth.testutil.TestPropertiesList;
 import com.koch.ambeth.util.ParamChecker;
 import com.koch.ambeth.util.collections.ArrayList;
-import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.state.IStateRollback;
+import org.junit.Assert;
+import org.junit.Test;
+
+import java.util.EnumSet;
+
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 @TestModule({ TestServicesModule.class })
 @SQLStructure("../persistence/jdbc/JDBCDatabase_structure.sql")
 @SQLData("../persistence/jdbc/Example_data.sql")
 @TestPropertiesList({
-		@TestProperties(name = PersistenceConfigurationConstants.DatabaseTablePrefix, value = "D_"),
-		@TestProperties(name = PersistenceConfigurationConstants.DatabaseFieldPrefix, value = "F_"),
-		@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "orm.xml") })
+        @TestProperties(name = PersistenceConfigurationConstants.DatabaseTablePrefix, value = "D_"),
+        @TestProperties(name = PersistenceConfigurationConstants.DatabaseFieldPrefix, value = "F_"),
+        @TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "orm.xml")
+})
 public class RootCacheInvalidationTest extends AbstractInformationBusWithPersistenceTest {
-	protected ICacheContext cacheContext;
+    protected ICacheContext cacheContext;
 
-	protected ICacheFactory cacheFactory;
+    protected ICacheFactory cacheFactory;
 
-	protected ICache fixture;
+    protected ICache fixture;
 
-	protected IMaterialService materialService;
+    protected IMaterialService materialService;
 
-	@Override
-	public void afterPropertiesSet() throws Throwable {
-		super.afterPropertiesSet();
+    @Override
+    public void afterPropertiesSet() throws Throwable {
+        super.afterPropertiesSet();
 
-		ParamChecker.assertNotNull(cacheContext, "CacheContext");
-		ParamChecker.assertNotNull(cacheFactory, "CacheFactory");
-		ParamChecker.assertNotNull(materialService, "MaterialService");
-		ParamChecker.assertNotNull(fixture, "Fixture");
-	}
+        ParamChecker.assertNotNull(cacheContext, "CacheContext");
+        ParamChecker.assertNotNull(cacheFactory, "CacheFactory");
+        ParamChecker.assertNotNull(materialService, "MaterialService");
+        ParamChecker.assertNotNull(fixture, "Fixture");
+    }
 
-	public void setCacheContext(ICacheContext cacheContext) {
-		this.cacheContext = cacheContext;
-	}
+    public void setCacheContext(ICacheContext cacheContext) {
+        this.cacheContext = cacheContext;
+    }
 
-	public void setCacheFactory(ICacheFactory cacheFactory) {
-		this.cacheFactory = cacheFactory;
-	}
+    public void setCacheFactory(ICacheFactory cacheFactory) {
+        this.cacheFactory = cacheFactory;
+    }
 
-	public void setFixture(ICache fixture) {
-		this.fixture = fixture;
-	}
+    public void setFixture(ICache fixture) {
+        this.fixture = fixture;
+    }
 
-	public void setMaterialService(IMaterialService materialService) {
-		this.materialService = materialService;
-	}
+    public void setMaterialService(IMaterialService materialService) {
+        this.materialService = materialService;
+    }
 
-	@Test
-	public void testRootCacheDataChangePerformance() throws Throwable {
-		IDisposableCache cache = cacheFactory.create(CacheFactoryDirective.SubscribeGlobalDCE, "test");
-		IStateRollback rollback = cacheContext.pushCache(cache);
-		try {
-			MaterialGroup mg = cache.getObject(MaterialGroup.class, "pl");
-			Unit unit = cache.getObject(Unit.class, (long) 1);
-			IList<Material> materials = new ArrayList<>();
-			for (int a = 100; a-- > 0;) {
-				Material material = entityFactory.createEntity(Material.class);
-				material.setName("new material");
-				material.setMaterialGroup(mg);
-				material.setUnit(unit);
-				materials.add(material);
-			}
-			materialService.updateMaterials(materials.toArray(Material.class));
-			for (int a = materials.size(); a-- > 0;) {
-				Material material = materials.get(a);
-				material.setName(material.getName() + "2");
-			}
-			materialService.updateMaterials(materials.toArray(Material.class));
-		}
-		finally {
-			rollback.rollback();
-			cache.dispose();
-		}
-	}
+    @Test
+    public void testRootCacheDataChangePerformance() throws Throwable {
+        IDisposableCache cache = cacheFactory.create(CacheFactoryDirective.SubscribeGlobalDCE, "test");
+        IStateRollback rollback = cacheContext.pushCache(cache);
+        try {
+            MaterialGroup mg = cache.getObject(MaterialGroup.class, "pl");
+            Unit unit = cache.getObject(Unit.class, (long) 1);
+            var materials = new ArrayList<Material>();
+            for (int a = 100; a-- > 0; ) {
+                Material material = entityFactory.createEntity(Material.class);
+                material.setName("new material");
+                material.setMaterialGroup(mg);
+                material.setUnit(unit);
+                materials.add(material);
+            }
+            materialService.updateMaterials(materials.toArray(Material[]::new));
+            for (int a = materials.size(); a-- > 0; ) {
+                Material material = materials.get(a);
+                material.setName(material.getName() + "2");
+            }
+            materialService.updateMaterials(materials.toArray(Material[]::new));
+        } finally {
+            rollback.rollback();
+            cache.dispose();
+        }
+    }
 
-	@Test
-	public void testRootCacheInvalidation() {
-		MaterialGroup mg = fixture.getObject(MaterialGroup.class, "pl");
-		Unit unit = fixture.getObject(Unit.class, (long) 1);
-		rootCacheInvalidation(mg, unit, false);
-	}
+    @Test
+    public void testRootCacheInvalidation() {
+        MaterialGroup mg = fixture.getObject(MaterialGroup.class, "pl");
+        Unit unit = fixture.getObject(Unit.class, (long) 1);
+        rootCacheInvalidation(mg, unit, false);
+    }
 
-	@Test
-	public void testRootCacheInvalidation2() throws Throwable {
-		IDisposableCache cache = cacheFactory.create(CacheFactoryDirective.SubscribeTransactionalDCE,
-				"test");
-		IStateRollback rollback = cacheContext.pushCache(cache);
-		try {
-			MaterialGroup mg = cache.getObject(MaterialGroup.class, "pl");
-			Unit unit = cache.getObject(Unit.class, (long) 1);
-			rootCacheInvalidation(mg, unit, false);
-		}
-		finally {
-			rollback.rollback();
-			cache.dispose();
-		}
-	}
+    @Test
+    public void testRootCacheInvalidation2() throws Throwable {
+        IDisposableCache cache = cacheFactory.create(CacheFactoryDirective.SubscribeTransactionalDCE, "test");
+        IStateRollback rollback = cacheContext.pushCache(cache);
+        try {
+            MaterialGroup mg = cache.getObject(MaterialGroup.class, "pl");
+            Unit unit = cache.getObject(Unit.class, (long) 1);
+            rootCacheInvalidation(mg, unit, false);
+        } finally {
+            rollback.rollback();
+            cache.dispose();
+        }
+    }
 
-	protected void rootCacheInvalidation(MaterialGroup mg, Unit unit, boolean mustBeNull) {
-		assertNotNull(mg);
-		assertNotNull(unit);
+    protected void rootCacheInvalidation(MaterialGroup mg, Unit unit, boolean mustBeNull) {
+        assertNotNull(mg);
+        assertNotNull(unit);
 
-		Material material = entityFactory.createEntity(Material.class);
-		material.setName("new material");
-		material.setMaterialGroup(mg);
-		material.setUnit(unit);
-		materialService.updateMaterial(material);
+        Material material = entityFactory.createEntity(Material.class);
+        material.setName("new material");
+        material.setMaterialGroup(mg);
+        material.setUnit(unit);
+        materialService.updateMaterial(material);
 
-		Object hardRef = fixture.getObject(new ObjRef(Material.class, material.getId(), null),
-				CacheDirective.cacheValueResult());
-		assertNotNull(hardRef);
+        Object hardRef = fixture.getObject(new ObjRef(Material.class, material.getId(), null), CacheDirective.cacheValueResult());
+        assertNotNull(hardRef);
 
-		Object object = fixture.getObject(new ObjRef(Material.class, material.getId(), null),
-				EnumSet.of(CacheDirective.FailInCacheHierarchy, CacheDirective.CacheValueResult));
+        Object object = fixture.getObject(new ObjRef(Material.class, material.getId(), null), EnumSet.of(CacheDirective.FailInCacheHierarchy, CacheDirective.CacheValueResult));
 
-		assertNotNull(object);
-		Assert.assertSame(object, hardRef);
+        assertNotNull(object);
+        Assert.assertSame(object, hardRef);
 
-		material.setName("updated material");
-		materialService.updateMaterial(material);
+        material.setName("updated material");
+        materialService.updateMaterial(material);
 
-		Object object2 = fixture.getObject(new ObjRef(Material.class, material.getId(), null),
-				EnumSet.of(CacheDirective.FailInCacheHierarchy, CacheDirective.CacheValueResult));
+        Object object2 = fixture.getObject(new ObjRef(Material.class, material.getId(), null), EnumSet.of(CacheDirective.FailInCacheHierarchy, CacheDirective.CacheValueResult));
 
-		if (mustBeNull) {
-			assertNull(object2);
-		}
-		else {
-			assertNotNull(object2);
-		}
-	}
+        if (mustBeNull) {
+            assertNull(object2);
+        } else {
+            assertNotNull(object2);
+        }
+    }
 }

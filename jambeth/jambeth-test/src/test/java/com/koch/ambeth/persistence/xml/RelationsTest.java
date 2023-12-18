@@ -178,21 +178,21 @@ public class RelationsTest extends AbstractInformationBusWithPersistenceTest {
 
     @Test
     public void testNewToMany() throws Throwable {
-        Employee employee = entityFactory.createEntity(Employee.class);
+        var employee = entityFactory.createEntity(Employee.class);
         employee.setName("Jane Doe");
         employee.setPrimaryProject(cache.getObject(Project.class, 21));
 
-        Address addr1 = entityFactory.createEntity(Address.class);
+        var addr1 = entityFactory.createEntity(Address.class);
         addr1.setStreet("First Street");
         addr1.setCity("New Town");
         employee.setPrimaryAddress(Optional.of(addr1));
 
-        Address addr2 = entityFactory.createEntity(Address.class);
+        var addr2 = entityFactory.createEntity(Address.class);
         addr2.setStreet("First Street");
         addr2.setCity("New Town");
         employee.getOtherAddresses().add(addr2);
 
-        Address addr3 = entityFactory.createEntity(Address.class);
+        var addr3 = entityFactory.createEntity(Address.class);
         addr3.setStreet("Second Street");
         addr3.setCity("New new Town");
         employee.getOtherAddresses().add(addr3);
@@ -201,7 +201,7 @@ public class RelationsTest extends AbstractInformationBusWithPersistenceTest {
 
         employeeService.save(employee);
 
-        Employee actual = employeeService.getByName(employee.getName());
+        var actual = employeeService.getByName(employee.getName());
         assertEquals(2, actual.getOtherAddresses().size());
     }
 

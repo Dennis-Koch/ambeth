@@ -21,7 +21,7 @@ public class ProxyFactory extends SmartCopyMap<ProxyTypeKey, Class<? extends Fac
     @SneakyThrows
     protected Object createProxyIntern(Class<? extends Factory> proxyType, Callback[] callbacks) {
         var proxy = proxyType.getConstructor().newInstance();
-        proxy.setCallbacks(callbacks);
+        proxy.setInterceptor((MethodInterceptor) callbacks[0]);
         return proxy;
     }
 
@@ -36,9 +36,9 @@ public class ProxyFactory extends SmartCopyMap<ProxyTypeKey, Class<? extends Fac
         }
         DynamicType.Unloaded unloadedType;
         if (type.isInterface()) {
-            unloadedType = FactoryMixin.weave(MethodInterceptorMixin.weave(new ByteBuddy().subclass(Object.class), type)).make();
+            unloadedType = FactoryMixin.weave(MethodInterceptorMixin.weave(new ByteBuddy().subclass(Object.class), Object.class, type)).make();
         } else {
-            unloadedType = FactoryMixin.weave(MethodInterceptorMixin.weave(new ByteBuddy().subclass(type))).make();
+            unloadedType = FactoryMixin.weave(MethodInterceptorMixin.weave(new ByteBuddy().subclass(type), type)).make();
         }
         proxyType = unloadedType.load(classLoaderProvider.getClassLoader()).getLoaded();
         var callbacks = emptyCallbacks;
@@ -84,7 +84,7 @@ public class ProxyFactory extends SmartCopyMap<ProxyTypeKey, Class<? extends Fac
             }
         }
         var interfaceArray = tempList != null ? tempList.toArray(Class[]::new) : interfaces;
-        var unloadedType = (DynamicType.Unloaded) FactoryMixin.weave(MethodInterceptorMixin.weave(new ByteBuddy().subclass(type), interfaceArray)).make();
+        var unloadedType = (DynamicType.Unloaded) FactoryMixin.weave(MethodInterceptorMixin.weave(new ByteBuddy().subclass(type), type, interfaceArray)).make();
         proxyType = unloadedType.load(classLoaderProvider.getClassLoader()).getLoaded();
         var proxy = createProxyIntern(proxyType, interceptors);
         put(key, proxyType);
@@ -110,7 +110,7 @@ public class ProxyFactory extends SmartCopyMap<ProxyTypeKey, Class<? extends Fac
                 return createProxy(interfaceType, newInterfaces, interceptors);
             }
         }
-        var unloadedType = (DynamicType.Unloaded) FactoryMixin.weave(MethodInterceptorMixin.weave(new ByteBuddy().subclass(Object.class), interfaces)).make();
+        var unloadedType = (DynamicType.Unloaded) FactoryMixin.weave(MethodInterceptorMixin.weave(new ByteBuddy().subclass(Object.class), Object.class, interfaces)).make();
         proxyType = unloadedType.load(classLoaderProvider.getClassLoader()).getLoaded();
         var proxy = createProxyIntern(proxyType, interceptors);
         put(key, proxyType);

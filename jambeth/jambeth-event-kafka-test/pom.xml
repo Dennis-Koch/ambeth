@@ -14,26 +14,7 @@
     <dependencies>
         <dependency>
             <groupId>com.koch.ambeth</groupId>
-            <artifactId>jambeth-event-kafka</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>com.koch.ambeth</groupId>
             <artifactId>jambeth-ioc-test</artifactId>
-            <scope>compile</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-engine</artifactId>
-            <version>5.10.1</version>
-            <scope>compile</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.assertj</groupId>
-            <artifactId>assertj-core</artifactId>
-            <version>3.24.2</version>
             <scope>compile</scope>
         </dependency>
 
@@ -41,6 +22,11 @@
             <groupId>org.testcontainers</groupId>
             <artifactId>kafka</artifactId>
             <scope>compile</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.koch.ambeth</groupId>
+            <artifactId>jambeth-event-kafka</artifactId>
         </dependency>
     </dependencies>
 </project>

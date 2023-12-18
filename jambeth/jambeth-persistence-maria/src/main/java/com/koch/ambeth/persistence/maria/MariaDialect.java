@@ -20,18 +20,6 @@ limitations under the License.
  * #L%
  */
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Savepoint;
-import java.sql.Statement;
-import java.util.List;
-import java.util.regex.Pattern;
-
-import jakarta.persistence.OptimisticLockException;
-import jakarta.persistence.PersistenceException;
-
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.config.Property;
 import com.koch.ambeth.persistence.IColumnEntry;
@@ -46,11 +34,21 @@ import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.EmptyMap;
 import com.koch.ambeth.util.collections.HashMap;
 import com.koch.ambeth.util.collections.ILinkedMap;
-import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.IMap;
 import com.koch.ambeth.util.collections.LinkedHashMap;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
+import jakarta.persistence.OptimisticLockException;
+import jakarta.persistence.PersistenceException;
 import lombok.SneakyThrows;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Savepoint;
+import java.sql.Statement;
+import java.util.List;
+import java.util.regex.Pattern;
 
 public class MariaDialect extends AbstractConnectionDialect {
     public static final Pattern BIN_TABLE_NAME = Pattern.compile("BIN\\$.{22}==\\$0", Pattern.CASE_INSENSITIVE);
@@ -97,7 +95,7 @@ public class MariaDialect extends AbstractConnectionDialect {
 
     @SneakyThrows
     @Override
-    public IList<IMap<String, String>> getExportedKeys(Connection connection, String[] schemaNames) {
+    public List<IMap<String, String>> getExportedKeys(Connection connection, String[] schemaNames) {
         PreparedStatement pstm = null;
         ResultSet allForeignKeysRS = null;
         try {
@@ -139,7 +137,7 @@ public class MariaDialect extends AbstractConnectionDialect {
     }
 
     @Override
-    public ILinkedMap<String, IList<String>> getFulltextIndexes(Connection connection, String schemaName) {
+    public ILinkedMap<String, List<String>> getFulltextIndexes(Connection connection, String schemaName) {
         return EmptyMap.emptyMap();
     }
 
@@ -255,7 +253,7 @@ public class MariaDialect extends AbstractConnectionDialect {
 
     @SneakyThrows
     @Override
-    public IList<IColumnEntry> getAllFieldsOfTable(Connection connection, String fqTableName) {
+    public List<IColumnEntry> getAllFieldsOfTable(Connection connection, String fqTableName) {
         String[] names = sqlBuilder.getSchemaAndTableName(fqTableName);
         ResultSet tableColumnsRS = connection.getMetaData().getColumns(null, names[0], names[1], null);
         try {

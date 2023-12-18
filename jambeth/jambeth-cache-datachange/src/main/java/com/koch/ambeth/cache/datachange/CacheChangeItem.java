@@ -22,14 +22,15 @@ limitations under the License.
 
 import com.koch.ambeth.merge.cache.IWritableCache;
 import com.koch.ambeth.service.merge.model.IObjRef;
-import com.koch.ambeth.util.collections.IList;
+
+import java.util.List;
 
 public class CacheChangeItem {
-	public IWritableCache cache;
+    public IWritableCache cache;
 
-	public IList<IObjRef> updatedObjRefs;
+    public List<IObjRef> updatedObjRefs;
 
-	public IList<IObjRef> deletedObjRefs;
+    public List<IObjRef> deletedObjRefs;
 
-	public IList<Object> updatedObjects;
+    public List<Object> updatedObjects;
 }

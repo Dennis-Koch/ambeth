@@ -186,7 +186,7 @@ public class InMemoryQueryBuilder<T> implements IQueryBuilder<T> {
     }
 
     @Override
-    public IOperand valueName(String paramName) {
+    public IOperand parameterValue(Object paramKey) {
         throw new UnsupportedOperationException();
     }
 

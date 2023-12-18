@@ -39,7 +39,6 @@ import com.koch.ambeth.persistence.log.PersistenceWarnUtil;
 import com.koch.ambeth.persistence.oracle.RandomUserScript.RandomUserModule;
 import com.koch.ambeth.util.appendable.AppendableStringBuilder;
 import com.koch.ambeth.util.collections.ArrayList;
-import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.LinkedHashMap;
 import com.koch.ambeth.util.config.IProperties;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
@@ -50,6 +49,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.List;
 import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -329,24 +329,24 @@ public class Oracle10gTestDialect extends AbstractConnectionTestDialect {
     }
 
     @Override
-    protected IList<String> queryForAllTables(Connection connection) {
+    protected List<String> queryForAllTables(Connection connection) {
         return connectionDialect.queryDefault(connection, "FULL_NAME",
                 "SELECT USER || '.' || TNAME FULL_NAME FROM DUAL, TAB T JOIN COLS C ON T.TNAME = C.TABLE_NAME WHERE T.TABTYPE='TABLE' AND C.COLUMN_NAME='VERSION'");
     }
 
     @Override
-    protected IList<String> queryForAllTriggers(Connection connection) {
+    protected List<String> queryForAllTriggers(Connection connection) {
         return connectionDialect.queryDefault(connection, "TRIGGER_NAME", "SELECT TRIGGER_NAME FROM ALL_TRIGGERS");
     }
 
     @Override
-    protected IList<String> queryForAllPermissionGroupNeedingTables(Connection connection) {
+    protected List<String> queryForAllPermissionGroupNeedingTables(Connection connection) {
         return connectionDialect.queryDefault(connection, "TNAME",
                 "SELECT TNAME FROM TAB T JOIN COLS C ON T.TNAME = C.TABLE_NAME WHERE T.TABTYPE='TABLE' AND C.COLUMN_NAME='" + PermissionGroup.permGroupIdNameOfData + "'");
     }
 
     @Override
-    protected IList<String> queryForAllPotentialPermissionGroups(Connection connection) {
+    protected List<String> queryForAllPotentialPermissionGroups(Connection connection) {
         return connectionDialect.queryDefault(connection, "PERM_GROUP_NAME", "SELECT TNAME AS PERM_GROUP_NAME FROM TAB T");
     }
 
@@ -399,7 +399,7 @@ public class Oracle10gTestDialect extends AbstractConnectionTestDialect {
         // JdbcUtil.close(pstm, rs);
         // }
 
-        return sql.toArray(String.class);
+        return sql.toArray(String[]::new);
     }
 
     @Override

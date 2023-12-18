@@ -66,7 +66,7 @@ public class SecurityQueryBuilderExtension implements IQueryBuilderExtension {
             return null;
         }
         IDatabaseMetaData databaseMetaData = this.databaseMetaData;
-        IOperand userIdCriteriaOperand = queryBuilder.valueName(SqlPermissionOperand.USER_ID_CRITERIA_NAME);
+        IOperand userIdCriteriaOperand = queryBuilder.parameterValue(SqlPermissionOperand.USER_ID_CRITERIA_NAME);
         IOperand valueCriteriaOperand = queryBuilder.value(Boolean.TRUE);
         ArrayList<ISqlJoin> permissionGroupJoins = new ArrayList<>();
         ArrayList<IOperand> readPermissionValueColumns = new ArrayList<>();
@@ -96,9 +96,9 @@ public class SecurityQueryBuilderExtension implements IQueryBuilderExtension {
                                .propertyValue("Operand", whereClause)//
                                .propertyValue("UserIdCriteriaOperand", userIdCriteriaOperand)//
                                .propertyValue("ValueCriteriaOperand", valueCriteriaOperand)//
-                               .propertyValue("PermissionGroupJoins", permissionGroupJoins.toArray(ISqlJoin.class))//
-                               .propertyValue("ReadPermissionOperands", readPermissionValueColumns.toArray(IOperand.class))//
-                               .propertyValue("UserIdOperands", readPermissionUserIdColumns.toArray(IOperand.class)).finish();
+                               .propertyValue("PermissionGroupJoins", permissionGroupJoins.toArray(ISqlJoin[]::new))//
+                               .propertyValue("ReadPermissionOperands", readPermissionValueColumns.toArray(IOperand[]::new))//
+                               .propertyValue("UserIdOperands", readPermissionUserIdColumns.toArray(IOperand[]::new)).finish();
     }
 
     protected ISqlJoin createJoin(String tableNameOfJoin, IQueryBuilderIntern<?> queryBuilder, List<IOperand> readPermissionValueColumns, List<IOperand> readPermissionUserIdColumns,

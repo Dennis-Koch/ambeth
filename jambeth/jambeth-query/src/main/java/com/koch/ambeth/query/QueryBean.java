@@ -25,12 +25,10 @@ import com.koch.ambeth.query.persistence.IDataCursor;
 import com.koch.ambeth.query.persistence.IEntityCursor;
 import com.koch.ambeth.query.persistence.IVersionCursor;
 import com.koch.ambeth.service.merge.model.IObjRef;
-import com.koch.ambeth.util.collections.IList;
 
 import java.lang.ref.Reference;
 import java.lang.ref.SoftReference;
 import java.util.List;
-import java.util.Map;
 
 public class QueryBean<T> implements IQuery<T> {
     @Autowired
@@ -55,7 +53,7 @@ public class QueryBean<T> implements IQuery<T> {
             query = queryRef.get();
         }
         if (query == null) {
-            IQueryBuilder<T> queryBuilder = queryBuilderFactory.create(entityType);
+            var queryBuilder = queryBuilderFactory.create(entityType);
             query = queryCreator.createCustomQuery(queryBuilder);
             if (query == null) {
                 throw new IllegalStateException("QueryCreator " + queryCreator + " returned no query handle");
@@ -76,30 +74,7 @@ public class QueryBean<T> implements IQuery<T> {
     }
 
     @Override
-    public IQueryKey getQueryKey(Map<Object, Object> nameToValueMap) {
-        return getQuery().getQueryKey(nameToValueMap);
-    }
-
-    @Override
-    @Deprecated
-    public IVersionCursor retrieveAsVersions(Map<Object, Object> nameToValueMap) {
-        return getQuery().retrieveAsVersions(nameToValueMap);
-    }
-
-    @Override
-    @Deprecated
-    public IEntityCursor<T> retrieveAsCursor(Map<Object, Object> nameToValueMap) {
-        return getQuery().retrieveAsCursor(nameToValueMap);
-    }
-
-    @Override
-    @Deprecated
-    public IList<T> retrieve(Map<Object, Object> nameToValueMap) {
-        return getQuery().retrieve(nameToValueMap);
-    }
-
-    @Override
-    public IList<T> retrieve() {
+    public List<T> retrieve() {
         return getQuery().retrieve();
     }
 
@@ -124,7 +99,7 @@ public class QueryBean<T> implements IQuery<T> {
     }
 
     @Override
-    public IList<IObjRef> retrieveAsObjRefs(int idIndex) {
+    public List<IObjRef> retrieveAsObjRefs(int idIndex) {
         return getQuery().retrieveAsObjRefs(idIndex);
     }
 

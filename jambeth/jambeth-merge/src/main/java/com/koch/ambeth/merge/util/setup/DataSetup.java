@@ -35,7 +35,6 @@ import com.koch.ambeth.service.merge.model.IObjRef;
 import com.koch.ambeth.util.ReflectUtil;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.HashSet;
-import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.IMap;
 import com.koch.ambeth.util.collections.ISet;
 import com.koch.ambeth.util.collections.IdentityHashMap;
@@ -207,7 +206,7 @@ public class DataSetup implements IDataSetup, IDatasetBuilderExtendable {
         for (var cache : cachesToClear) {
             ((IWritableCache) cache).clear();
         }
-        IList<Object> objects = null;
+        List<Object> objects = null;
         if (!objRefs.isEmpty()) {
             objects = cache.getObjects(objRefs, CacheDirective.returnMisses());
             for (int a = objRefs.size(); a-- > 0; ) {
@@ -219,7 +218,7 @@ public class DataSetup implements IDataSetup, IDatasetBuilderExtendable {
             }
         }
         while (!runnables.isEmpty()) {
-            var runnablesArray = runnables.toArray(CheckedRunnable.class);
+            var runnablesArray = runnables.toArray(CheckedRunnable[]::new);
             runnables.clear();
             for (var runnable : runnablesArray) {
                 CheckedRunnable.invoke(runnable);
@@ -228,7 +227,7 @@ public class DataSetup implements IDataSetup, IDatasetBuilderExtendable {
     }
 
     @SneakyThrows
-    protected void refreshEntityReference(final IDatasetBuilder datasetBuilder, IList<IObjRef> objRefs, IList<CheckedRunnable> runnables, final IMap<IObjRef, Object> objRefToEntityMap,
+    protected void refreshEntityReference(final IDatasetBuilder datasetBuilder, List<IObjRef> objRefs, List<CheckedRunnable> runnables, final IMap<IObjRef, Object> objRefToEntityMap,
             boolean isAuthenticated, ISet<ICache> cachesToClear) {
         for (var field : ReflectUtil.getDeclaredFields(datasetBuilder.getClass())) {
             if (Modifier.isStatic(field.getModifiers())) {
@@ -249,7 +248,7 @@ public class DataSetup implements IDataSetup, IDatasetBuilderExtendable {
         }
     }
 
-    protected IObjRef refreshFieldValue(final Object value, IList<IObjRef> objRefs, IList<CheckedRunnable> runnables, final IMap<IObjRef, Object> objRefToEntityMap, boolean isAuthenticated,
+    protected IObjRef refreshFieldValue(final Object value, List<IObjRef> objRefs, List<CheckedRunnable> runnables, final IMap<IObjRef, Object> objRefToEntityMap, boolean isAuthenticated,
             ISet<ICache> cachesToClear) {
         if (value == null) {
             return null;

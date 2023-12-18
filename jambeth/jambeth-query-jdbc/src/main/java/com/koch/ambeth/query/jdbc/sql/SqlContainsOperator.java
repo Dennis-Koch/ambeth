@@ -2,13 +2,13 @@ package com.koch.ambeth.query.jdbc.sql;
 
 import com.koch.ambeth.persistence.filter.QueryConstants;
 import com.koch.ambeth.util.appendable.IAppendable;
-import com.koch.ambeth.util.collections.IList;
 
+import java.util.List;
 import java.util.Map;
 
 public class SqlContainsOperator extends SqlLikeOperator {
     @Override
-    protected void preProcessRightOperand(IAppendable querySB, Map<Object, Object> nameToValueMap, IList<Object> parameters) {
+    protected void preProcessRightOperand(IAppendable querySB, Map<Object, Object> nameToValueMap, List<Object> parameters) {
         if (parameters != null) {
             return;
         }
@@ -17,7 +17,7 @@ public class SqlContainsOperator extends SqlLikeOperator {
     }
 
     @Override
-    protected void postProcessRightOperand(IAppendable querySB, Map<Object, Object> nameToValueMap, IList<Object> parameters) {
+    protected void postProcessRightOperand(IAppendable querySB, Map<Object, Object> nameToValueMap, List<Object> parameters) {
         if (parameters != null) {
             return;
         }
@@ -26,7 +26,7 @@ public class SqlContainsOperator extends SqlLikeOperator {
     }
 
     @Override
-    protected void processRightOperand(IAppendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, Class<?> leftOperandFieldType, IList<Object> parameters) {
+    protected void processRightOperand(IAppendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, Class<?> leftOperandFieldType, List<Object> parameters) {
         nameToValueMap.put(QueryConstants.PRE_VALUE_KEY, "%");
         nameToValueMap.put(QueryConstants.POST_VALUE_KEY, "%");
         super.processRightOperand(querySB, nameToValueMap, joinQuery, leftOperandFieldType, parameters);

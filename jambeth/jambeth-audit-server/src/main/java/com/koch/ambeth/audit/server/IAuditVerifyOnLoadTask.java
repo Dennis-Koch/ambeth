@@ -21,10 +21,11 @@ limitations under the License.
  */
 
 import com.koch.ambeth.service.merge.model.IObjRef;
-import com.koch.ambeth.util.collections.IList;
+
+import java.util.List;
 
 public interface IAuditVerifyOnLoadTask {
-	void verifyEntitiesAsync(IList<IObjRef> objRefsToVerify);
+    void verifyEntitiesAsync(List<IObjRef> objRefsToVerify);
 
-	void verifyEntitiesSync(IList<IObjRef> objRefsToVerify);
+    void verifyEntitiesSync(List<IObjRef> objRefsToVerify);
 }

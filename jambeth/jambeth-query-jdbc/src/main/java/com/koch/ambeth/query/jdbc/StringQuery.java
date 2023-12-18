@@ -27,9 +27,9 @@ import com.koch.ambeth.query.IOperand;
 import com.koch.ambeth.query.ISqlJoin;
 import com.koch.ambeth.query.jdbc.sql.SqlQueryBuilder;
 import com.koch.ambeth.util.appendable.AppendableStringBuilder;
-import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.objectcollector.IThreadLocalObjectCollector;
 
+import java.util.List;
 import java.util.Map;
 
 public class StringQuery implements IStringQuery, IInitializingBean {
@@ -69,12 +69,12 @@ public class StringQuery implements IStringQuery, IInitializingBean {
     }
 
     @Override
-    public String fillQuery(IList<Object> parameters) {
+    public String fillQuery(List<Object> parameters) {
         return fillQuery(null, parameters);
     }
 
     @Override
-    public String fillQuery(Map<Object, Object> nameToValueMap, IList<Object> parameters) {
+    public String fillQuery(Map<Object, Object> nameToValueMap, List<Object> parameters) {
         if (rootOperand == null) {
             return null;
         }
@@ -89,7 +89,7 @@ public class StringQuery implements IStringQuery, IInitializingBean {
     }
 
     @Override
-    public String[] fillJoinQuery(Map<Object, Object> nameToValueMap, IList<Object> parameters) {
+    public String[] fillJoinQuery(Map<Object, Object> nameToValueMap, List<Object> parameters) {
         IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
         AppendableStringBuilder whereSB = tlObjectCollector.create(AppendableStringBuilder.class);
         AppendableStringBuilder joinSB = tlObjectCollector.create(AppendableStringBuilder.class);

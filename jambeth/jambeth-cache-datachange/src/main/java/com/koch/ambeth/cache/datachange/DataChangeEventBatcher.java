@@ -38,7 +38,6 @@ import com.koch.ambeth.service.metadata.Member;
 import com.koch.ambeth.util.IConversionHelper;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.HashSet;
-import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.ISet;
 
 import java.util.Collections;
@@ -52,7 +51,7 @@ public class DataChangeEventBatcher implements IEventBatcher {
     protected IEntityMetaDataProvider entityMetaDataProvider;
 
     @Override
-    public IList<IQueuedEvent> batchEvents(List<IQueuedEvent> batchableEvents) {
+    public List<IQueuedEvent> batchEvents(List<IQueuedEvent> batchableEvents) {
         for (int a = batchableEvents.size(); a-- > 0; ) {
             IQueuedEvent batchableEvent = batchableEvents.get(a);
             if (!(batchableEvent.getEventObject() instanceof IDataChange)) {
@@ -168,7 +167,7 @@ public class DataChangeEventBatcher implements IEventBatcher {
                 deletes.add(new DataChangeEntry(objRef.getRealType(), objRef.getIdNameIndex(), objRef.getId(), objRef.getVersion()));
             }
             DataChangeEvent compositeDataChange = new DataChangeEvent(inserts, updates, deletes, lastDCETime, isLocalSource.booleanValue());
-            compositeDataChange.setCausingUUIDs(causingUuids.size() > 0 ? causingUuids.toArray(String.class) : null);
+            compositeDataChange.setCausingUUIDs(causingUuids.size() > 0 ? causingUuids.toArray(String[]::new) : null);
             targetBatchedEvents.add(new QueuedEvent(compositeDataChange, lastQueuedEventTime, lastSequenceNumber));
         }
     }

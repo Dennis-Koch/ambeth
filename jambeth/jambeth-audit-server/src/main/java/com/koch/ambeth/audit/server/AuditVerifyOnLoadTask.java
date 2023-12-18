@@ -36,12 +36,12 @@ import com.koch.ambeth.merge.cache.ICacheFactory;
 import com.koch.ambeth.merge.security.ISecurityActivation;
 import com.koch.ambeth.service.merge.model.IObjRef;
 import com.koch.ambeth.util.collections.ArrayList;
-import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.state.StateRollback;
 import com.koch.ambeth.util.transaction.ILightweightTransaction;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -77,7 +77,7 @@ public class AuditVerifyOnLoadTask implements Runnable, IAuditVerifyOnLoadTask, 
     }
 
     @Override
-    public void verifyEntitiesAsync(IList<IObjRef> objRefs) {
+    public void verifyEntitiesAsync(List<IObjRef> objRefs) {
         writeLock.lock();
         try {
             queuedObjRefs.addAll(objRefs);
@@ -161,7 +161,7 @@ public class AuditVerifyOnLoadTask implements Runnable, IAuditVerifyOnLoadTask, 
     }
 
     @Override
-    public void verifyEntitiesSync(final IList<IObjRef> objRefsToVerify) {
+    public void verifyEntitiesSync(final List<IObjRef> objRefsToVerify) {
         try {
             transaction.runInLazyTransaction(() -> runInLazyTransaction(objRefsToVerify));
         } catch (Throwable e) {
@@ -172,7 +172,7 @@ public class AuditVerifyOnLoadTask implements Runnable, IAuditVerifyOnLoadTask, 
 
     }
 
-    protected void runInLazyTransaction(final IList<IObjRef> objRefsToVerify) {
+    protected void runInLazyTransaction(final List<IObjRef> objRefsToVerify) {
         var cache = cacheFactory.createPrivileged(CacheFactoryDirective.NoDCE, false, Boolean.FALSE, "AuditEntryVerifier");
         try {
             var rollback = StateRollback.chain(chain -> {

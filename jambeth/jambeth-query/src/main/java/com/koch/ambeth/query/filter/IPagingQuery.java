@@ -22,15 +22,10 @@ limitations under the License.
 
 import com.koch.ambeth.filter.IPagingRequest;
 import com.koch.ambeth.filter.IPagingResponse;
-import com.koch.ambeth.query.IQueryKey;
 import com.koch.ambeth.util.IDisposable;
-
-import java.util.Map;
 
 public interface IPagingQuery<T> extends IDisposable {
     IPagingRequest createRequest(int pageNumber, int sizePerPage);
-
-    IQueryKey getQueryKey(Map<Object, Object> nameToValueMap);
 
     IPagingResponse<T> retrieveRefs(IPagingRequest pagingRequest);
 

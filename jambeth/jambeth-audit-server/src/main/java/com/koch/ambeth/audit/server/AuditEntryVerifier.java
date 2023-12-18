@@ -56,7 +56,6 @@ import com.koch.ambeth.util.collections.EmptySet;
 import com.koch.ambeth.util.collections.HashMap;
 import com.koch.ambeth.util.collections.HashSet;
 import com.koch.ambeth.util.collections.ILinkedMap;
-import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.IMap;
 import com.koch.ambeth.util.collections.ISet;
 import com.koch.ambeth.util.collections.IdentityHashSet;
@@ -215,7 +214,7 @@ public class AuditEntryVerifier implements IAuditEntryVerifier, IVerifyOnLoad, I
         }
     }
 
-    protected IQuery<IAuditedEntity> resolveQuery(ILinkedMap<IEntityMetaData, IList<IObjRef>> bucketSortObjRefs) {
+    protected IQuery<IAuditedEntity> resolveQuery(ILinkedMap<IEntityMetaData, List<IObjRef>> bucketSortObjRefs) {
         IQuery<IAuditedEntity> query = entityTypeCountToQuery.get(Integer.valueOf(bucketSortObjRefs.size()));
         if (query != null) {
             return query;
@@ -227,8 +226,8 @@ public class AuditEntryVerifier implements IAuditEntryVerifier, IVerifyOnLoad, I
         int index = 0;
         IOperator op = null;
         for (int a = bucketSortObjRefs.size(); a-- > 0; ) {
-            IOperator typeMatchOp = qb.let(entityTypeProp).isEqualTo(qb.valueName("param" + index++));
-            IOperator idMatchOp = qb.let(entityIdProp).isIn(qb.valueName("param" + index++));
+            IOperator typeMatchOp = qb.let(entityTypeProp).isEqualTo(qb.parameterValue("param" + index++));
+            IOperator idMatchOp = qb.let(entityIdProp).isIn(qb.parameterValue("param" + index++));
             IOperator matchOp = qb.and(typeMatchOp, idMatchOp);
 
             if (op == null) {
@@ -267,7 +266,7 @@ public class AuditEntryVerifier implements IAuditEntryVerifier, IVerifyOnLoad, I
         return (maxVersionOfAuditTrail.compareTo(versionOfEntity) < 0);
     }
 
-    protected void filterAuditedEntities(IList<IAuditedEntity> auditedEntities, IMap<IObjRef, ISet<String>> objRefToPrimitiveMap, IList<IObjRef> objRefs, boolean[] entitiesDataInvalid,
+    protected void filterAuditedEntities(List<IAuditedEntity> auditedEntities, IMap<IObjRef, ISet<String>> objRefToPrimitiveMap, List<IObjRef> objRefs, boolean[] entitiesDataInvalid,
             ISet<IAuditedEntity> auditedEntitiesToVerify) {
         if (!filterAuditedEntities || auditedEntities.isEmpty()) {
             auditedEntitiesToVerify.addAll(auditedEntities);
@@ -524,7 +523,7 @@ public class AuditEntryVerifier implements IAuditEntryVerifier, IVerifyOnLoad, I
         }
     }
 
-    protected IMap<IObjRef, ISet<String>> fillNameToValueMap(IMap<String, Object> nameToValueMap, ILinkedMap<IEntityMetaData, IList<IObjRef>> bucketSortObjRefs) {
+    protected IMap<IObjRef, ISet<String>> fillNameToValueMap(IMap<String, Object> nameToValueMap, ILinkedMap<IEntityMetaData, List<IObjRef>> bucketSortObjRefs) {
         var remainingPropertyMap = filterAuditedEntities ? new HashMap<IObjRef, ISet<String>>() : null;
 
         for (var entry : bucketSortObjRefs) {
@@ -560,7 +559,7 @@ public class AuditEntryVerifier implements IAuditEntryVerifier, IVerifyOnLoad, I
     }
 
     @Override
-    public void queueVerifyEntitiesOnLoad(IList<ILoadContainer> loadedEntities) {
+    public void queueVerifyEntitiesOnLoad(List<ILoadContainer> loadedEntities) {
         var objRefsToVerify = objRefsToVerifyTL.get();
         if (objRefsToVerify == null) {
             return;
@@ -895,7 +894,7 @@ public class AuditEntryVerifier implements IAuditEntryVerifier, IVerifyOnLoad, I
         entriesToVerify.add(value);
     }
 
-    protected ILinkedMap<IEntityMetaData, IList<IObjRef>> bucketSortObjRefs(List<?> entities, boolean checkConfiguration) {
+    protected ILinkedMap<IEntityMetaData, List<IObjRef>> bucketSortObjRefs(List<?> entities, boolean checkConfiguration) {
         var metaDataToObjRefsDict = new IdentityLinkedMap<IEntityMetaData, ISet<IObjRef>>();
         var hasAtLeastOneNonPrimaryObjRef = false;
         for (int i = entities.size(); i-- > 0; ) {
@@ -940,7 +939,7 @@ public class AuditEntryVerifier implements IAuditEntryVerifier, IVerifyOnLoad, I
 
             for (var entry : metaDataToObjRefsDict) {
                 var objRefs = entry.getValue();
-                HashMap<Byte, IList<IObjRef>> indexToObjRefsMap = null;
+                HashMap<Byte, List<IObjRef>> indexToObjRefsMap = null;
                 var iter = objRefs.iterator();
                 while (iter.hasNext()) {
                     var objRef = iter.next();
@@ -994,8 +993,8 @@ public class AuditEntryVerifier implements IAuditEntryVerifier, IVerifyOnLoad, I
         return convertSetToList(metaDataToObjRefsDict);
     }
 
-    private ILinkedMap<IEntityMetaData, IList<IObjRef>> convertSetToList(IdentityLinkedMap<IEntityMetaData, ISet<IObjRef>> metaDataToObjRefsMap) {
-        var targetMap = IdentityLinkedMap.<IEntityMetaData, IList<IObjRef>>create(metaDataToObjRefsMap.size());
+    private ILinkedMap<IEntityMetaData, List<IObjRef>> convertSetToList(IdentityLinkedMap<IEntityMetaData, ISet<IObjRef>> metaDataToObjRefsMap) {
+        var targetMap = IdentityLinkedMap.<IEntityMetaData, List<IObjRef>>create(metaDataToObjRefsMap.size());
         for (var entry : metaDataToObjRefsMap) {
             targetMap.put(entry.getKey(), entry.getValue().toList());
         }

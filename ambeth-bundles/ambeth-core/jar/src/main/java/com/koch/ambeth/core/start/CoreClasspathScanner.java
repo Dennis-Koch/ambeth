@@ -32,7 +32,6 @@ import com.koch.ambeth.util.ParamChecker;
 import com.koch.ambeth.util.StringBuilderUtil;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.HashSet;
-import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.objectcollector.IObjectCollector;
 import javassist.ClassPool;
@@ -103,7 +102,7 @@ public class CoreClasspathScanner implements IClasspathScanner, IInitializingBea
                     patterns.add(Pattern.compile(packagePattern1));
                 }
             }
-            packageScanPatterns = patterns.toArray(Pattern.class);
+            packageScanPatterns = patterns.toArray(Pattern[]::new);
         }
         return packageScanPatterns;
     }
@@ -111,7 +110,7 @@ public class CoreClasspathScanner implements IClasspathScanner, IInitializingBea
     @Override
     public List<Class<?>> scanClassesAnnotatedWith(Class<?>... annotationTypes) {
         ClassPool pool = getClassPool();
-        IList<String> targetClassNames = scanForClasses(pool);
+        var targetClassNames = scanForClasses(pool);
         try {
             List<CtClass> classNamesFound = new ArrayList<>();
             for (int a = 0, size = targetClassNames.size(); a < size; a++) {
@@ -191,7 +190,7 @@ public class CoreClasspathScanner implements IClasspathScanner, IInitializingBea
         return classLoaderProvider.getClassLoader();
     }
 
-    protected IList<String> scanForClasses(ClassPool pool) {
+    protected List<String> scanForClasses(ClassPool pool) {
         var urls = getJarURLs();
 
         var targetClassNames = new ArrayList<String>();
@@ -214,7 +213,7 @@ public class CoreClasspathScanner implements IClasspathScanner, IInitializingBea
         return targetClassNames;
     }
 
-    protected IList<URL> getJarURLs() {
+    protected List<URL> getJarURLs() {
         return classpathInfo.getJarURLs();
     }
 

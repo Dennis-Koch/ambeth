@@ -27,7 +27,6 @@ import com.koch.ambeth.service.cache.model.IObjRelation;
 import com.koch.ambeth.service.cache.model.IObjRelationResult;
 import com.koch.ambeth.service.merge.model.IObjRef;
 import com.koch.ambeth.util.Lock;
-import com.koch.ambeth.util.collections.IList;
 
 import java.util.List;
 import java.util.Set;
@@ -52,27 +51,27 @@ public class CacheMock implements ICache {
     }
 
     @Override
-    public <E> IList<E> getObjects(Class<E> type, Object... ids) {
+    public <E> List<E> getObjects(Class<E> type, Object... ids) {
         return null;
     }
 
     @Override
-    public <E> IList<E> getObjects(Class<E> type, List<?> ids) {
+    public <E> List<E> getObjects(Class<E> type, List<?> ids) {
         return null;
     }
 
     @Override
-    public IList<Object> getObjects(IObjRef[] orisToGetArray, Set<CacheDirective> cacheDirective) {
+    public List<Object> getObjects(IObjRef[] orisToGetArray, Set<CacheDirective> cacheDirective) {
         return null;
     }
 
     @Override
-    public IList<Object> getObjects(List<IObjRef> orisToGet, Set<CacheDirective> cacheDirective) {
+    public List<Object> getObjects(List<IObjRef> orisToGet, Set<CacheDirective> cacheDirective) {
         return null;
     }
 
     @Override
-    public IList<IObjRelationResult> getObjRelations(List<IObjRelation> self, Set<CacheDirective> cacheDirective) {
+    public List<IObjRelationResult> getObjRelations(List<IObjRelation> self, Set<CacheDirective> cacheDirective) {
         return null;
     }
 

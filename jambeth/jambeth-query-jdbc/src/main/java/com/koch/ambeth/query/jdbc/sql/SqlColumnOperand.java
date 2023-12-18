@@ -20,8 +20,6 @@ limitations under the License.
  * #L%
  */
 
-import java.util.Map;
-
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.config.Property;
 import com.koch.ambeth.persistence.IConnectionDialect;
@@ -31,8 +29,9 @@ import com.koch.ambeth.query.IOperatorAwareOperand;
 import com.koch.ambeth.query.OperandConstants;
 import com.koch.ambeth.util.appendable.IAppendable;
 import com.koch.ambeth.util.collections.ArrayList;
-import com.koch.ambeth.util.collections.IList;
-import com.koch.ambeth.util.collections.IMap;
+
+import java.util.List;
+import java.util.Map;
 
 public class SqlColumnOperand implements IOperand, IOperatorAwareOperand {
     @Property
@@ -90,14 +89,14 @@ public class SqlColumnOperand implements IOperand, IOperatorAwareOperand {
     @SuppressWarnings("unchecked")
     @Override
     public void operatorStart(Map<Object, Object> nameToValueMap) {
-        IList<Class<?>> entityTypeStack = (IList<Class<?>>) nameToValueMap.get(OperandConstants.EntityType);
+        List<Class<?>> entityTypeStack = (List<Class<?>>) nameToValueMap.get(OperandConstants.EntityType);
         if (entityTypeStack == null) {
             entityTypeStack = new ArrayList<>();
             nameToValueMap.put(OperandConstants.EntityType, entityTypeStack);
         }
         entityTypeStack.add(entityType);
 
-        IList<String> propertyNameStack = (IList<String>) nameToValueMap.get(OperandConstants.PropertyName);
+        List<String> propertyNameStack = (List<String>) nameToValueMap.get(OperandConstants.PropertyName);
         if (propertyNameStack == null) {
             propertyNameStack = new ArrayList<>();
             nameToValueMap.put(OperandConstants.PropertyName, propertyNameStack);
@@ -108,12 +107,12 @@ public class SqlColumnOperand implements IOperand, IOperatorAwareOperand {
     @SuppressWarnings("unchecked")
     @Override
     public void operatorEnd(Map<Object, Object> nameToValueMap) {
-        IList<Class<?>> entityTypeStack = (IList<Class<?>>) nameToValueMap.get(OperandConstants.EntityType);
+        List<Class<?>> entityTypeStack = (List<Class<?>>) nameToValueMap.get(OperandConstants.EntityType);
         entityTypeStack.remove(entityTypeStack.size() - 1);
         if (entityTypeStack.isEmpty()) {
             nameToValueMap.remove(OperandConstants.EntityType);
         }
-        IList<String> propertyNameStack = (IList<String>) nameToValueMap.get(OperandConstants.PropertyName);
+        List<String> propertyNameStack = (List<String>) nameToValueMap.get(OperandConstants.PropertyName);
         propertyNameStack.remove(propertyNameStack.size() - 1);
         if (propertyNameStack.isEmpty()) {
             nameToValueMap.remove(OperandConstants.PropertyName);
@@ -121,7 +120,7 @@ public class SqlColumnOperand implements IOperand, IOperatorAwareOperand {
     }
 
     @Override
-    public void expandQuery(IAppendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, IList<Object> parameters) {
+    public void expandQuery(IAppendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, List<Object> parameters) {
         if (joinQuery || Boolean.TRUE.equals(nameToValueMap.get(QueryConstants.USE_TABLE_ALIAS))) {
             if (joinClause != null) {
                 querySB.append(joinClause.getTableAlias());

@@ -190,7 +190,7 @@ public class TransactionalRootCacheInterceptor extends AbstractRootCacheAwareInt
     @Override
     public IRootCache[] selectAllCurrentSecondLevelCaches() {
         synchronized (allRootCaches) {
-            return allRootCaches.toArray(IRootCache.class);
+            return allRootCaches.toArray(IRootCache[]::new);
         }
     }
 }

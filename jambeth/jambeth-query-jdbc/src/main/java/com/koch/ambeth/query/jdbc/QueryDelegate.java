@@ -10,7 +10,6 @@ import com.koch.ambeth.query.persistence.IEntityCursor;
 import com.koch.ambeth.query.persistence.IVersionCursor;
 import com.koch.ambeth.service.merge.model.IObjRef;
 import com.koch.ambeth.util.ReflectUtil;
-import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
 import java.lang.reflect.Field;
@@ -62,7 +61,7 @@ public class QueryDelegate<T> implements IQuery<T>, IQueryIntern<T> {
 
     @Override
     public IQueryKey getQueryKey(Map<Object, Object> nameToValueMap) {
-        return query.getQueryKey(nameToValueMap);
+        return queryIntern.getQueryKey(nameToValueMap);
     }
 
     @Override
@@ -81,22 +80,17 @@ public class QueryDelegate<T> implements IQuery<T>, IQueryIntern<T> {
     }
 
     @Override
-    public IVersionCursor retrieveAsVersions(Map<Object, Object> nameToValueMap) {
-        return queryIntern.retrieveAsVersions(nameToValueMap, true);
-    }
-
-    @Override
     public IVersionCursor retrieveAsVersions(boolean retrieveAlternateIds) {
         return query.retrieveAsVersions(retrieveAlternateIds);
     }
 
     @Override
-    public IList<IObjRef> retrieveAsObjRefs(Map<Object, Object> paramNameToValueMap, int idIndex) {
+    public List<IObjRef> retrieveAsObjRefs(Map<Object, Object> paramNameToValueMap, int idIndex) {
         return queryIntern.retrieveAsObjRefs(paramNameToValueMap, idIndex);
     }
 
     @Override
-    public IList<IObjRef> retrieveAsObjRefs(int idIndex) {
+    public List<IObjRef> retrieveAsObjRefs(int idIndex) {
         return query.retrieveAsObjRefs(idIndex);
     }
 
@@ -116,7 +110,7 @@ public class QueryDelegate<T> implements IQuery<T>, IQueryIntern<T> {
     }
 
     @Override
-    public IList<T> retrieve() {
+    public List<T> retrieve() {
         if (transaction.isActive()) {
             return query.retrieve();
         }
@@ -124,7 +118,7 @@ public class QueryDelegate<T> implements IQuery<T>, IQueryIntern<T> {
     }
 
     @Override
-    public IList<T> retrieve(Map<Object, Object> nameToValueMap) {
+    public List<T> retrieve(Map<Object, Object> nameToValueMap) {
         if (transaction.isActive()) {
             return queryIntern.retrieve(nameToValueMap);
         }

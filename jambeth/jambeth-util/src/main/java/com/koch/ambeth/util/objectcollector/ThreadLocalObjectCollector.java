@@ -20,143 +20,133 @@ limitations under the License.
  * #L%
  */
 
-import java.util.Map.Entry;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
-
 import com.koch.ambeth.util.collections.ILinkedMap;
 import com.koch.ambeth.util.collections.LinkedHashMap;
 
-public class ThreadLocalObjectCollector extends ThreadLocal<SingleThreadCollector>
-		implements IObjectCollector, IThreadLocalObjectCollector {
-	protected final ILinkedMap<Class<?>, ICollectableController> typeToCollectableControllerMap =
-			new LinkedHashMap<>();
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
-	protected int mappingVersion;
+public class ThreadLocalObjectCollector extends ThreadLocal<SingleThreadCollector> implements IObjectCollector, IThreadLocalObjectCollector {
 
-	protected final Lock lock = new ReentrantLock();
+    public static final String BEAN_NAME = "threadLocalObjectCollector";
 
-	public void clearThreadLocal() {
-		SingleThreadCollector stc = get();
-		if (stc == null) {
-			return;
-		}
-		set(null);
-		stc.dispose();
-	}
+    protected final ILinkedMap<Class<?>, ICollectableController> typeToCollectableControllerMap = new LinkedHashMap<>();
 
-	public void clearThreadLocals() {
-		// Intended blank
-	}
+    protected final Lock lock = new ReentrantLock();
+    protected int mappingVersion;
 
-	protected void updateMapping(SingleThreadCollector objectCollector) {
-		objectCollector.clearCollectableControllers();
-		Lock lock = this.lock;
-		lock.lock();
-		try {
-			for (Entry<Class<?>, ICollectableController> entry : typeToCollectableControllerMap) {
-				objectCollector.registerCollectableController(entry.getValue(), entry.getKey());
-			}
-		}
-		finally {
-			lock.unlock();
-		}
-		objectCollector.setMappingVersion(mappingVersion);
-	}
+    public void clearThreadLocal() {
+        SingleThreadCollector stc = get();
+        if (stc == null) {
+            return;
+        }
+        set(null);
+        stc.dispose();
+    }
 
-	@Override
-	public IThreadLocalObjectCollector getCurrent() {
-		return this;
-	}
+    public void clearThreadLocals() {
+        // Intended blank
+    }
 
-	public SingleThreadCollector getCurrentIntern() {
-		SingleThreadCollector current = get();
+    protected void updateMapping(SingleThreadCollector objectCollector) {
+        objectCollector.clearCollectableControllers();
+        var lock = this.lock;
+        lock.lock();
+        try {
+            for (var entry : typeToCollectableControllerMap) {
+                objectCollector.registerCollectableController(entry.getValue(), entry.getKey());
+            }
+        } finally {
+            lock.unlock();
+        }
+        objectCollector.setMappingVersion(mappingVersion);
+    }
 
-		if (current == null) {
-			current = new SingleThreadCollector(this);
+    @Override
+    public IThreadLocalObjectCollector getCurrent() {
+        return this;
+    }
 
-			updateMapping(current);
-			set(current);
-		}
-		if (mappingVersion != current.getMappingVersion()) {
-			updateMapping(current);
-		}
-		return current;
-	}
+    public SingleThreadCollector getCurrentIntern() {
+        var current = get();
 
-	@Override
-	public <T> T create(final Class<T> myClass) {
-		return getCurrentIntern().create(myClass);
-	}
+        if (current == null) {
+            current = new SingleThreadCollector(this);
 
-	@Override
-	public void dispose(final Object object) {
-		SingleThreadCollector current = get();
-		if (current == null) {
-			// Do not dispose anything if no collector is currently instantiated
-			// This means that the object to dispose has not been created by the OC
-			return;
-		}
-		current.dispose(object);
-	}
+            updateMapping(current);
+            set(current);
+        }
+        if (mappingVersion != current.getMappingVersion()) {
+            updateMapping(current);
+        }
+        return current;
+    }
 
-	@Override
-	public <T> void dispose(java.lang.Class<T> type, T object) {
-		SingleThreadCollector current = get();
-		if (current == null) {
-			// Do not dispose anything if no collector is currently instantiated
-			// This means that the object to dispose has not been created by the OC
-			return;
-		}
-		current.dispose(type, object);
-	}
+    @Override
+    public <T> T create(final Class<T> myClass) {
+        return getCurrentIntern().create(myClass);
+    }
 
-	@Override
-	public void cleanUp() {
-		SingleThreadCollector current = get();
-		if (current == null) {
-			return;
-		}
-		current.cleanUp();
-	}
+    @Override
+    public void dispose(final Object object) {
+        var current = get();
+        if (current == null) {
+            // Do not dispose anything if no collector is currently instantiated
+            // This means that the object to dispose has not been created by the OC
+            return;
+        }
+        current.dispose(object);
+    }
 
-	public void registerCollectableController(Class<?> handledType,
-			ICollectableController collectableController) {
-		Lock lock = this.lock;
-		lock.lock();
-		try {
-			if (typeToCollectableControllerMap.containsKey(handledType)) {
-				throw new UnsupportedOperationException(
-						"CollectableController already mapped for type " + handledType);
-			}
-			typeToCollectableControllerMap.put(handledType, collectableController);
-			mappingVersion++;
-		}
-		finally {
-			lock.unlock();
-		}
-	}
+    @Override
+    public <T> void dispose(java.lang.Class<T> type, T object) {
+        var current = get();
+        if (current == null) {
+            // Do not dispose anything if no collector is currently instantiated
+            // This means that the object to dispose has not been created by the OC
+            return;
+        }
+        current.dispose(type, object);
+    }
 
-	public void unregisterCollectableController(Class<?> handledType,
-			ICollectableController collectableController) {
-		Lock lock = this.lock;
-		lock.lock();
-		try {
-			ICollectableController existingCollectableController =
-					typeToCollectableControllerMap.get(handledType);
-			if (existingCollectableController == null) {
-				throw new UnsupportedOperationException(
-						"No collectableController already mapped for type " + handledType);
-			}
-			if (existingCollectableController != collectableController) {
-				throw new UnsupportedOperationException(
-						"Given collectableController is not mapped for type " + handledType);
-			}
-			typeToCollectableControllerMap.remove(handledType);
-			mappingVersion++;
-		}
-		finally {
-			lock.unlock();
-		}
-	}
+    @Override
+    public void cleanUp() {
+        var current = get();
+        if (current == null) {
+            return;
+        }
+        current.cleanUp();
+    }
+
+    public void registerCollectableController(Class<?> handledType, ICollectableController collectableController) {
+        var lock = this.lock;
+        lock.lock();
+        try {
+            if (typeToCollectableControllerMap.containsKey(handledType)) {
+                throw new UnsupportedOperationException("CollectableController already mapped for type " + handledType);
+            }
+            typeToCollectableControllerMap.put(handledType, collectableController);
+            mappingVersion++;
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    public void unregisterCollectableController(Class<?> handledType, ICollectableController collectableController) {
+        var lock = this.lock;
+        lock.lock();
+        try {
+            var existingCollectableController = typeToCollectableControllerMap.get(handledType);
+            if (existingCollectableController == null) {
+                throw new UnsupportedOperationException("No collectableController already mapped for type " + handledType);
+            }
+            if (existingCollectableController != collectableController) {
+                throw new UnsupportedOperationException("Given collectableController is not mapped for type " + handledType);
+            }
+            typeToCollectableControllerMap.remove(handledType);
+            mappingVersion++;
+        } finally {
+            lock.unlock();
+        }
+    }
 }

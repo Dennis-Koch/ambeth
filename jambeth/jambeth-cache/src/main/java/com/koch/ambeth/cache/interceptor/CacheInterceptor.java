@@ -41,7 +41,6 @@ import com.koch.ambeth.util.ListUtil;
 import com.koch.ambeth.util.annotation.Find;
 import com.koch.ambeth.util.annotation.QueryResultType;
 import com.koch.ambeth.util.collections.ArrayList;
-import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.proxy.MethodProxy;
 import com.koch.ambeth.util.state.IStateRollback;
 import com.koch.ambeth.util.state.StateRollback;
@@ -182,7 +181,7 @@ public class CacheInterceptor extends MergeInterceptor {
 
     protected Object createResultObject(IServiceResult serviceResult, Class<?> expectedType, Object[] originalArgs, Annotation annotation) {
         var objRefs = serviceResult.getObjRefs();
-        IList<Object> syncObjects = null;
+        List<Object> syncObjects = null;
         if (!(annotation instanceof Find) || ((Find) annotation).resultType() != QueryResultType.REFERENCES) {
             syncObjects = cache.getObjects(objRefs, CacheDirective.none());
         }
@@ -195,7 +194,7 @@ public class CacheInterceptor extends MergeInterceptor {
     }
 
     @SuppressWarnings({ "rawtypes", "unchecked" })
-    protected Object postProcessCacheResult(List<IObjRef> objRefs, IList<Object> cacheResult, Class<?> expectedType, IServiceResult serviceResult, Object[] originalArgs, Annotation annotation) {
+    protected Object postProcessCacheResult(List<IObjRef> objRefs, List<Object> cacheResult, Class<?> expectedType, IServiceResult serviceResult, Object[] originalArgs, Annotation annotation) {
         var cacheResultSize = cacheResult != null ? cacheResult.size() : objRefs.size();
         if (Collection.class.isAssignableFrom(expectedType)) {
             var targetCollection = ListUtil.createCollectionOfType(expectedType, cacheResultSize);

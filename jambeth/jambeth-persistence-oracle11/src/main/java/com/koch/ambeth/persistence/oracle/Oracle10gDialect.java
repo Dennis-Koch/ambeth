@@ -20,24 +20,6 @@ limitations under the License.
  * #L%
  */
 
-import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Savepoint;
-import java.sql.Statement;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.List;
-import java.util.Map.Entry;
-import java.util.regex.Pattern;
-
-import jakarta.persistence.OptimisticLockException;
-import jakarta.persistence.PersistenceException;
-import jakarta.persistence.PessimisticLockException;
-
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.log.ILoggerHistory;
 import com.koch.ambeth.merge.ITransactionState;
@@ -54,15 +36,30 @@ import com.koch.ambeth.persistence.jdbc.exception.UniqueConstraintException;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.HashMap;
 import com.koch.ambeth.util.collections.ILinkedMap;
-import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.IMap;
 import com.koch.ambeth.util.collections.LinkedHashMap;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.objectcollector.IThreadLocalObjectCollector;
-
+import jakarta.persistence.OptimisticLockException;
+import jakarta.persistence.PersistenceException;
+import jakarta.persistence.PessimisticLockException;
 import lombok.SneakyThrows;
 import oracle.jdbc.OracleConnection;
 import oracle.jdbc.driver.OracleDriver;
+
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Savepoint;
+import java.sql.Statement;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.List;
+import java.util.Map.Entry;
+import java.util.regex.Pattern;
 
 public class Oracle10gDialect extends AbstractConnectionDialect {
 
@@ -76,15 +73,16 @@ public class Oracle10gDialect extends AbstractConnectionDialect {
     protected static final LinkedHashMap<String, Class<?>> arrayTypeNameToTypeMap = new LinkedHashMap<>(128, 0.5f);
     protected static final String[] exportedKeysSql = {
             "SELECT USR.NAME AS OWNER, CONST.NAME AS CONSTRAINT_NAME, RCONST.NAME AS REF_CONSTRAINT_NAME, OBJ.NAME AS TABLE_NAME, COALESCE(ACOL.NAME, COL.NAME) AS COLUMN_NAME, CCOL.POS# AS " +
-					"POSITION, ROBJ.NAME AS REF_TABLE_NAME, COALESCE(RACOL.NAME, RCOL.NAME) AS REF_COLUMN_NAME, RCCOL.POS# AS REF_POSITION FROM SYS.CON$ CONST INNER JOIN SYS.USER$ USR ON CONST" +
-					".OWNER# = USR.USER# INNER JOIN SYS.CDEF$ CDEF ON CDEF.CON# = CONST.CON# INNER JOIN SYS.CCOL$ CCOL ON CCOL.CON# = CONST.CON# INNER JOIN SYS.COL$ COL  ON (CCOL.OBJ# = COL.OBJ#) " +
-					"AND (CCOL.INTCOL# = COL.INTCOL#) INNER JOIN SYS.\"_CURRENT_EDITION_OBJ\" OBJ ON CCOL.OBJ# = OBJ.OBJ# LEFT JOIN SYS.ATTRCOL$ ACOL ON (CCOL.OBJ# = ACOL.OBJ#) AND (CCOL.INTCOL# = " +
-					"ACOL.INTCOL#) INNER JOIN SYS.CON$ RCONST ON RCONST.CON# = CDEF.RCON# INNER JOIN SYS.CCOL$ RCCOL ON RCCOL.CON# = RCONST.CON# INNER JOIN SYS.COL$ RCOL  ON (RCCOL.OBJ# = RCOL.OBJ#)" +
-					" AND (RCCOL.INTCOL# = RCOL.INTCOL#) INNER JOIN SYS.\"_CURRENT_EDITION_OBJ\" ROBJ ON RCCOL.OBJ# = ROBJ.OBJ# LEFT JOIN SYS.ATTRCOL$ RACOL  ON (RCCOL.OBJ# = RACOL.OBJ#) AND (RCCOL" +
-					".INTCOL# = RACOL.INTCOL#) WHERE CDEF.TYPE# = 4 AND USR.NAME ",
+                    "POSITION, ROBJ.NAME AS REF_TABLE_NAME, COALESCE(RACOL.NAME, RCOL.NAME) AS REF_COLUMN_NAME, RCCOL.POS# AS REF_POSITION FROM SYS.CON$ CONST INNER JOIN SYS.USER$ USR ON CONST" +
+                    ".OWNER# = USR.USER# INNER JOIN SYS.CDEF$ CDEF ON CDEF.CON# = CONST.CON# INNER JOIN SYS.CCOL$ CCOL ON CCOL.CON# = CONST.CON# INNER JOIN SYS.COL$ COL  ON (CCOL.OBJ# = COL.OBJ#) " +
+                    "AND (CCOL.INTCOL# = COL.INTCOL#) INNER JOIN SYS.\"_CURRENT_EDITION_OBJ\" OBJ ON CCOL.OBJ# = OBJ.OBJ# LEFT JOIN SYS.ATTRCOL$ ACOL ON (CCOL.OBJ# = ACOL.OBJ#) AND (CCOL.INTCOL# = " +
+                    "ACOL.INTCOL#) INNER JOIN SYS.CON$ RCONST ON RCONST.CON# = CDEF.RCON# INNER JOIN SYS.CCOL$ RCCOL ON RCCOL.CON# = RCONST.CON# INNER JOIN SYS.COL$ RCOL  ON (RCCOL.OBJ# = RCOL" +
+                    ".OBJ#)" +
+                    " AND (RCCOL.INTCOL# = RCOL.INTCOL#) INNER JOIN SYS.\"_CURRENT_EDITION_OBJ\" ROBJ ON RCCOL.OBJ# = ROBJ.OBJ# LEFT JOIN SYS.ATTRCOL$ RACOL  ON (RCCOL.OBJ# = RACOL.OBJ#) AND (RCCOL" +
+                    ".INTCOL# = RACOL.INTCOL#) WHERE CDEF.TYPE# = 4 AND USR.NAME ",
             "SELECT C1.OWNER AS OWNER, C1.CONSTRAINT_NAME, C1.TABLE_NAME AS TABLE_NAME, A1.COLUMN_NAME AS COLUMN_NAME, C2.TABLE_NAME AS REF_TABLE_NAME, A2.COLUMN_NAME AS REF_COLUMN_NAME FROM " +
-					"ALL_CONSTRAINTS C1 JOIN ALL_CONSTRAINTS C2 ON C1.R_CONSTRAINT_NAME = C2.CONSTRAINT_NAME JOIN ALL_CONS_COLUMNS A1 ON C1.CONSTRAINT_NAME = A1.CONSTRAINT_NAME JOIN ALL_CONS_COLUMNS" +
-					" A2 ON C2.CONSTRAINT_NAME = A2.CONSTRAINT_NAME WHERE C1.CONSTRAINT_TYPE = 'R' AND C2.OWNER = C1.OWNER AND C1.OWNER "
+                    "ALL_CONSTRAINTS C1 JOIN ALL_CONSTRAINTS C2 ON C1.R_CONSTRAINT_NAME = C2.CONSTRAINT_NAME JOIN ALL_CONS_COLUMNS A1 ON C1.CONSTRAINT_NAME = A1.CONSTRAINT_NAME JOIN " +
+                    "ALL_CONS_COLUMNS" + " A2 ON C2.CONSTRAINT_NAME = A2.CONSTRAINT_NAME WHERE C1.CONSTRAINT_TYPE = 'R' AND C2.OWNER = C1.OWNER AND C1.OWNER "
     };
     private static final int CONSTRAINT_VIOLATION_ERROR_CODE = 2091;
     private static final int CANNOT_INSERT_NULL_ERROR_CODE = 1400;
@@ -160,7 +158,7 @@ public class Oracle10gDialect extends AbstractConnectionDialect {
     @SuppressWarnings("resource")
     @SneakyThrows
     @Override
-    public IList<IMap<String, String>> getExportedKeys(Connection connection, String[] schemaNames) {
+    public List<IMap<String, String>> getExportedKeys(Connection connection, String[] schemaNames) {
         ArrayList<IMap<String, String>> allForeignKeys = new ArrayList<>();
         Statement stm = null;
         ResultSet allForeignKeysRS = null;
@@ -207,18 +205,19 @@ public class Oracle10gDialect extends AbstractConnectionDialect {
 
     @SneakyThrows
     @Override
-    public ILinkedMap<String, IList<String>> getFulltextIndexes(Connection connection, String schemaName) {
-        LinkedHashMap<String, IList<String>> fulltextIndexes = new LinkedHashMap<>();
+    public ILinkedMap<String, List<String>> getFulltextIndexes(Connection connection, String schemaName) {
+        LinkedHashMap<String, List<String>> fulltextIndexes = new LinkedHashMap<>();
         Statement stmt = connection.createStatement();
         ResultSet fulltextIndexesRS = null;
         try {
             fulltextIndexesRS = stmt.executeQuery(
-                    "SELECT A.TABLE_NAME, A.COLUMN_NAME FROM ALL_IND_COLUMNS A JOIN ALL_INDEXES B ON A.INDEX_NAME = B.INDEX_NAME AND A.TABLE_NAME = B.TABLE_NAME WHERE A.INDEX_OWNER = '" + schemaName + "' AND B.INDEX_TYPE = 'DOMAIN' AND B.ITYP_OWNER = 'CTXSYS' AND B.ITYP_NAME = 'CONTEXT'");
+                    "SELECT A.TABLE_NAME, A.COLUMN_NAME FROM ALL_IND_COLUMNS A JOIN ALL_INDEXES B ON A.INDEX_NAME = B.INDEX_NAME AND A.TABLE_NAME = B.TABLE_NAME WHERE A.INDEX_OWNER = '" + schemaName +
+                            "' AND B.INDEX_TYPE = 'DOMAIN' AND B.ITYP_OWNER = 'CTXSYS' AND B.ITYP_NAME = 'CONTEXT'");
             while (fulltextIndexesRS.next()) {
                 String tableName = fulltextIndexesRS.getString("TABLE_NAME");
                 String columnName = fulltextIndexesRS.getString("COLUMN_NAME");
 
-                IList<String> fulltextColumns = fulltextIndexes.get(tableName);
+                var fulltextColumns = fulltextIndexes.get(tableName);
                 if (fulltextColumns == null) {
                     fulltextColumns = new ArrayList<>();
                     fulltextIndexes.put(tableName, fulltextColumns);
@@ -277,9 +276,8 @@ public class Oracle10gDialect extends AbstractConnectionDialect {
         IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
         StringBuilder sql = tlObjectCollector.create(StringBuilder.class);
         try {
-            sql.append(
-                    "SELECT AI.TABLE_NAME, AI.INDEX_NAME, INDEX_TYPE AS TYPE, COLUMN_POSITION AS ORDINAL_POSITION, COLUMN_NAME FROM ALL_INDEXES AI JOIN ALL_IND_COLUMNS AIC ON AI.INDEX_NAME = AIC" +
-							".INDEX_NAME WHERE AI.OWNER = ? AND AI.TABLE_NAME = ?");
+            sql.append("SELECT AI.TABLE_NAME, AI.INDEX_NAME, INDEX_TYPE AS TYPE, COLUMN_POSITION AS ORDINAL_POSITION, COLUMN_NAME FROM ALL_INDEXES AI JOIN ALL_IND_COLUMNS AIC ON AI.INDEX_NAME = AIC" +
+                    ".INDEX_NAME WHERE AI.OWNER = ? AND AI.TABLE_NAME = ?");
             if (unique) {
                 sql.append(" AND AI.UNIQUENESS = 'UNIQUE'");
             }
@@ -389,7 +387,7 @@ public class Oracle10gDialect extends AbstractConnectionDialect {
 
     @SneakyThrows
     @Override
-    public IList<IColumnEntry> getAllFieldsOfTable(Connection connection, String fqTableName) {
+    public List<IColumnEntry> getAllFieldsOfTable(Connection connection, String fqTableName) {
         String[] names = sqlBuilder.getSchemaAndTableName(fqTableName);
         ResultSet tableColumnsRS = connection.getMetaData().getColumns(null, names[0], names[1], null);
         try {

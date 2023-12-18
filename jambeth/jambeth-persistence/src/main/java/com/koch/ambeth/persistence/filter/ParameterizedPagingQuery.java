@@ -22,19 +22,17 @@ limitations under the License.
 
 import com.koch.ambeth.filter.IPagingRequest;
 import com.koch.ambeth.filter.IPagingResponse;
-import com.koch.ambeth.query.IQueryKey;
 import com.koch.ambeth.query.filter.IPagingQuery;
 import com.koch.ambeth.util.collections.HashMap;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 
-import java.util.Map;
-
-public class StatefulPagingQuery<T> implements IPagingQuery<T> {
+@RequiredArgsConstructor
+public class ParameterizedPagingQuery<T> implements IPagingQuery<T> {
     protected final HashMap<Object, Object> paramMap = new HashMap<>();
-    protected IPagingQueryIntern<T> pagingQuery;
 
-    public StatefulPagingQuery(IPagingQueryIntern<T> pagingQuery) {
-        this.pagingQuery = pagingQuery;
-    }
+    @NonNull
+    protected IPagingQueryIntern<T> pagingQuery;
 
     @Override
     public void dispose() {
@@ -45,11 +43,6 @@ public class StatefulPagingQuery<T> implements IPagingQuery<T> {
     @Override
     public IPagingRequest createRequest(int pageNumber, int sizePerPage) {
         return pagingQuery.createRequest(pageNumber, sizePerPage);
-    }
-
-    @Override
-    public IQueryKey getQueryKey(Map<Object, Object> nameToValueMap) {
-        return pagingQuery.getQueryKey(nameToValueMap);
     }
 
     @Override

@@ -17,7 +17,7 @@ import com.koch.ambeth.query.IQueryBuilderExtension;
 import com.koch.ambeth.query.IQueryIntern;
 import com.koch.ambeth.query.IQueryKey;
 import com.koch.ambeth.query.ISubQuery;
-import com.koch.ambeth.query.StatefulQuery;
+import com.koch.ambeth.query.ParameterizedQuery;
 import com.koch.ambeth.query.jdbc.sql.ITableAliasHolder;
 import com.koch.ambeth.query.persistence.IDataCursor;
 import com.koch.ambeth.query.persistence.IEntityCursor;
@@ -30,7 +30,6 @@ import com.koch.ambeth.util.appendable.IAppendable;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.EmptyList;
 import com.koch.ambeth.util.collections.HashMap;
-import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.IMap;
 import com.koch.ambeth.util.objectcollector.IThreadLocalObjectCollector;
 import lombok.SneakyThrows;
@@ -197,7 +196,7 @@ public class Query<T> implements IQuery<T>, IQueryIntern<T>, ISubQuery<T> {
     }
 
     @Override
-    public String[] getSqlParts(Map<Object, Object> nameToValueMap, IList<Object> parameters, IList<String> additionalSelectColumnList) {
+    public String[] getSqlParts(Map<Object, Object> nameToValueMap, List<Object> parameters, List<String> additionalSelectColumnList) {
         var tlObjectCollector = objectCollector.getCurrent();
 
         var useTableAliasOriginal = nameToValueMap.get(QueryConstants.USE_TABLE_ALIAS);
@@ -233,7 +232,7 @@ public class Query<T> implements IQuery<T>, IQueryIntern<T>, ISubQuery<T> {
         }
     }
 
-    protected void fillOrderBySQL(List<String> additionalSelectColumnList, IAppendable orderBySB, Map<Object, Object> nameToValueMap, boolean joinQuery, IList<Object> parameters) {
+    protected void fillOrderBySQL(List<String> additionalSelectColumnList, IAppendable orderBySB, Map<Object, Object> nameToValueMap, boolean joinQuery, List<Object> parameters) {
         if (orderByOperands.length == 0 && groupByOperands.length == 0) {
             return;
         }
@@ -259,14 +258,14 @@ public class Query<T> implements IQuery<T>, IQueryIntern<T>, ISubQuery<T> {
         }
     }
 
-    protected void fillLimitSQL(List<String> additionalSelectColumnList, IAppendable limitSB, Map<Object, Object> nameToValueMap, boolean joinQuery, IList<Object> parameters) {
+    protected void fillLimitSQL(List<String> additionalSelectColumnList, IAppendable limitSB, Map<Object, Object> nameToValueMap, boolean joinQuery, List<Object> parameters) {
         if (limitOperand == null) {
             return;
         }
         limitOperand.expandQuery(limitSB, nameToValueMap, joinQuery, parameters);
     }
 
-    protected void fillAdditionalFieldsSQL(IList<String> additionalSelectColumnList, IAppendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, IList<Object> parameters) {
+    protected void fillAdditionalFieldsSQL(List<String> additionalSelectColumnList, IAppendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, List<Object> parameters) {
         if (selectOperands.length == 0) {
             return;
         }
@@ -290,8 +289,7 @@ public class Query<T> implements IQuery<T>, IQueryIntern<T>, ISubQuery<T> {
         return (IVersionCursor) buildCursor(null, RetrievalType.VERSION, 0, retrieveAlternateIds);
     }
 
-    @Override
-    public IVersionCursor retrieveAsVersions(Map<Object, Object> nameToValueMap) {
+    protected IVersionCursor retrieveAsVersions(Map<Object, Object> nameToValueMap) {
         return (IVersionCursor) buildCursor(nameToValueMap, RetrievalType.VERSION, 0, true);
     }
 
@@ -301,12 +299,12 @@ public class Query<T> implements IQuery<T>, IQueryIntern<T>, ISubQuery<T> {
     }
 
     @Override
-    public IList<IObjRef> retrieveAsObjRefs(Map<Object, Object> nameToValueMap, int idIndex) {
+    public List<IObjRef> retrieveAsObjRefs(Map<Object, Object> nameToValueMap, int idIndex) {
         return serviceUtil.loadObjRefs(entityType, idIndex, retrieveAsVersions(nameToValueMap, ObjRef.PRIMARY_KEY_INDEX != idIndex));
     }
 
     @Override
-    public IList<IObjRef> retrieveAsObjRefs(int idIndex) {
+    public List<IObjRef> retrieveAsObjRefs(int idIndex) {
         return serviceUtil.loadObjRefs(entityType, idIndex, retrieveAsVersions(null, ObjRef.PRIMARY_KEY_INDEX != idIndex));
     }
 
@@ -332,16 +330,16 @@ public class Query<T> implements IQuery<T>, IQueryIntern<T>, ISubQuery<T> {
     }
 
     @Override
-    public IList<T> retrieve() {
+    public List<T> retrieve() {
         return retrieve(null);
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public IList<T> retrieve(Map<Object, Object> nameToValueMap) {
+    public List<T> retrieve(Map<Object, Object> nameToValueMap) {
         var cursor = retrieveAsVersions(nameToValueMap);
         if (cursor == null) {
-            return (IList<T>) EmptyList.instance;
+            return (List<T>) EmptyList.instance;
         }
         var resultList = new ArrayList<T>();
         serviceUtil.loadObjectsIntoCollection(resultList, entityType, cursor);
@@ -388,8 +386,8 @@ public class Query<T> implements IQuery<T>, IQueryIntern<T>, ISubQuery<T> {
 
     @Override
     public IQuery<T> param(Object paramKey, Object param) {
-        var statefulQuery = new StatefulQuery<>(transactionalQuery);
-        return statefulQuery.param(paramKey, param);
+        var parameterizedQuery = new ParameterizedQuery<>(transactionalQuery);
+        return parameterizedQuery.param(paramKey, param);
     }
 
     @Override

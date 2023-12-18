@@ -32,10 +32,12 @@ import com.koch.ambeth.service.merge.IEntityMetaDataRefresher;
 import com.koch.ambeth.service.merge.model.IEntityMetaData;
 import com.koch.ambeth.service.metadata.Member;
 import com.koch.ambeth.util.ListUtil;
+import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.SmartCopyMap;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
 import java.util.Collection;
+import java.util.List;
 
 public class EntityFactory extends AbstractEntityFactory {
     protected final SmartCopyMap<Class<?>, EntityFactoryConstructor> typeToConstructorMap = new SmartCopyMap<>(0.5f);
@@ -80,20 +82,36 @@ public class EntityFactory extends AbstractEntityFactory {
     @Override
     public <T> T createEntity(Class<T> entityType) {
         var metaData = entityMetaDataProvider.getMetaData(entityType);
-        return (T) createEntityIntern(metaData, true);
-    }
-
-    @Override
-    public Object createEntity(IEntityMetaData metaData) {
         return createEntityIntern(metaData, true);
     }
 
     @Override
-    public Object createEntityNoEmptyInit(IEntityMetaData metaData) {
+    public <T> List<T> createEntity(Class<T> entityType, int amount) {
+        var metaData = entityMetaDataProvider.getMetaData(entityType);
+        return createEntityIntern(metaData, true, amount);
+    }
+
+    @Override
+    public <T> T createEntity(IEntityMetaData metaData) {
+        return createEntityIntern(metaData, true);
+    }
+
+    @Override
+    public <T> List<T> createEntity(IEntityMetaData metaData, int amount) {
+        return createEntityIntern(metaData, true, amount);
+    }
+
+    @Override
+    public <T> T createEntityNoEmptyInit(IEntityMetaData metaData) {
         return createEntityIntern(metaData, false);
     }
 
-    protected Object createEntityIntern(IEntityMetaData metaData, boolean doEmptyInit) {
+    @Override
+    public <T> List<T> createEntityNoEmptyInit(IEntityMetaData metaData, int amount) {
+        return createEntityIntern(metaData, false, amount);
+    }
+
+    protected <T> T createEntityIntern(IEntityMetaData metaData, boolean doEmptyInit) {
         try {
             if (metaData.getEnhancedType() == null) {
                 entityMetaDataRefresher.refreshMembers(metaData);
@@ -101,7 +119,28 @@ public class EntityFactory extends AbstractEntityFactory {
             var constructor = getConstructorEntry(metaData.getEnhancedType());
             var entity = constructor.createEntity();
             postProcessEntity(entity, metaData, doEmptyInit);
-            return entity;
+            return (T) entity;
+        } catch (Throwable e) {
+            if (bytecodePrinter != null) {
+                throw RuntimeExceptionUtil.mask(e, bytecodePrinter.toPrintableBytecode(metaData.getEnhancedType()));
+            }
+            throw RuntimeExceptionUtil.mask(e);
+        }
+    }
+
+    protected <T> List<T> createEntityIntern(IEntityMetaData metaData, boolean doEmptyInit, int amount) {
+        try {
+            if (metaData.getEnhancedType() == null) {
+                entityMetaDataRefresher.refreshMembers(metaData);
+            }
+            var constructor = getConstructorEntry(metaData.getEnhancedType());
+            var list = new ArrayList<T>(amount);
+            for (int a = amount; a-- > 0; ) {
+                var entity = constructor.createEntity();
+                postProcessEntity(entity, metaData, doEmptyInit);
+                list.add((T) entity);
+            }
+            return list;
         } catch (Throwable e) {
             if (bytecodePrinter != null) {
                 throw RuntimeExceptionUtil.mask(e, bytecodePrinter.toPrintableBytecode(metaData.getEnhancedType()));

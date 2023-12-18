@@ -19,7 +19,7 @@ import java.lang.reflect.Type;
 public class MethodInterceptorMixin {
 
     @SneakyThrows
-    public static <T> DynamicType.Builder<T> weave(DynamicType.Builder<T> builder, Type... interfaceTypes) {
+    public static <T> DynamicType.Builder<T> weave(DynamicType.Builder<T> builder, Class<?> superType, Type... interfaceTypes) {
         for (var interfaceType : interfaceTypes) {
             if (Factory.class.equals(interfaceType)) {
                 // already implemented by FactoryMixin
@@ -27,7 +27,7 @@ public class MethodInterceptorMixin {
             }
             builder = builder.implement(interfaceType);
         }
-        return builder.method(ElementMatchers.any()).intercept(MethodDelegation.to(MethodInterceptorMixin.class));
+        return builder.method(ElementMatchers.noneOf(Factory.class.getMethods())).intercept(MethodDelegation.to(MethodInterceptorMixin.class));
     }
 
     @RuntimeType
@@ -35,23 +35,19 @@ public class MethodInterceptorMixin {
             throws Throwable {
         try {
             var result = defaultValue;
-            for (var callback : self.getCallbacks()) {
-                if (callback == null) {
-                    continue;
+            var callback = self.getInterceptor();
+            var methodProxy = new MethodProxy() {
+                @Override
+                public Object invoke(Object target, Object... args) throws InvocationTargetException, IllegalAccessException {
+                    return method.invoke(target, args);
                 }
-                var methodProxy = new MethodProxy() {
-                    @Override
-                    public Object invoke(Object target, Object... args) throws InvocationTargetException, IllegalAccessException {
-                        return method.invoke(target, args);
-                    }
 
-                    @Override
-                    public Object invokeSuper(Object target, Object... args) throws InvocationTargetException, IllegalAccessException {
-                        return superMethod.invoke(target, args);
-                    }
-                };
-                result = ((MethodInterceptor) callback).intercept(self, method, args, methodProxy);
-            }
+                @Override
+                public Object invokeSuper(Object target, Object... args) throws InvocationTargetException, IllegalAccessException {
+                    return superMethod.invoke(target, args);
+                }
+            };
+            result = callback.intercept(self, method, args, methodProxy);
             return result;
         } catch (Throwable e) {
             throw RuntimeExceptionUtil.mask(e, method.getExceptionTypes());

@@ -25,10 +25,10 @@ import com.koch.ambeth.util.ParamChecker;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.EmptyList;
 import com.koch.ambeth.util.collections.ILinkedMap;
-import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.LinkedHashMap;
 import com.koch.ambeth.util.collections.SmartCopyMap;
 
+import java.util.List;
 import java.util.Map;
 
 public class MapExtendableContainer<K, V> extends SmartCopyMap<K, Object> implements IMapExtendableContainer<K, V> {
@@ -72,22 +72,22 @@ public class MapExtendableContainer<K, V> extends SmartCopyMap<K, Object> implem
     }
 
     @Override
-    public ILinkedMap<K, IList<V>> getAllExtensions() {
-        var targetMap = LinkedHashMap.<K, IList<V>>create(size());
+    public ILinkedMap<K, List<V>> getAllExtensions() {
+        var targetMap = LinkedHashMap.<K, List<V>>create(size());
         getAllExtensions(targetMap);
         return targetMap;
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public IList<V> getExtensions(K key) {
+    public List<V> getExtensions(K key) {
         ParamChecker.assertParamNotNull(key, "key");
         var item = get(key);
         if (item == null) {
             return EmptyList.getInstance();
         }
         if (!multiValue) {
-            return new ArrayList<>(new Object[] { item });
+            return new ArrayList<>((V) item);
         }
         return new ArrayList<>((ArrayList<V>) item);
     }
@@ -102,22 +102,22 @@ public class MapExtendableContainer<K, V> extends SmartCopyMap<K, Object> implem
         } else {
             for (var entry : this) {
                 // unregister removes empty value lists -> at least one entry
-                targetMap.put(entry.getKey(), ((IList<V>) entry.getValue()).get(0));
+                targetMap.put(entry.getKey(), ((List<V>) entry.getValue()).get(0));
             }
         }
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public void getAllExtensions(Map<K, IList<V>> targetMap) {
+    public void getAllExtensions(Map<K, List<V>> targetMap) {
         if (!multiValue) {
             for (var entry : this) {
-                targetMap.put(entry.getKey(), new ArrayList<V>(new Object[] { entry.getValue() }));
+                targetMap.put(entry.getKey(), new ArrayList<>((V) entry.getValue()));
             }
         } else {
             for (var entry : this) {
                 // unregister removes empty value lists -> at least one entry
-                targetMap.put(entry.getKey(), (IList<V>) entry.getValue());
+                targetMap.put(entry.getKey(), (List<V>) entry.getValue());
             }
         }
     }

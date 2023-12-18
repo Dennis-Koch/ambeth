@@ -43,7 +43,6 @@ import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.HashMap;
 import com.koch.ambeth.util.collections.HashSet;
 import com.koch.ambeth.util.collections.ILinkedSet;
-import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.ISet;
 import com.koch.ambeth.util.collections.LinkedHashSet;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
@@ -104,7 +103,7 @@ public class QueryResultCache implements IQueryResultCache {
     }
 
     @Override
-    public IList<IObjRef> getQueryResult(IQueryKey queryKey, IQueryResultRetriever queryResultRetriever, byte idIndex, int offset, int length, IParamHolder<Long> totalSize) {
+    public List<IObjRef> getQueryResult(IQueryKey queryKey, IQueryResultRetriever queryResultRetriever, byte idIndex, int offset, int length, IParamHolder<Long> totalSize) {
         ParamChecker.assertParamNotNull(queryKey, "queryKey");
         ParamChecker.assertParamNotNull(queryResultRetriever, "queryResultRetriever");
         var containsPageOnly = queryResultRetriever.containsPageOnly();
@@ -214,7 +213,7 @@ public class QueryResultCache implements IQueryResultCache {
         queryKeys.add(queryKey);
     }
 
-    protected IList<IObjRef> createResult(IQueryResultCacheItem queryResultCacheItem, byte idIndex, int offset, int length, boolean containsPageOnly, IParamHolder<Long> totalSize) {
+    protected List<IObjRef> createResult(IQueryResultCacheItem queryResultCacheItem, byte idIndex, int offset, int length, boolean containsPageOnly, IParamHolder<Long> totalSize) {
         long cachedTotalSize = queryResultCacheItem.getTotalSize();
         if (containsPageOnly) {
             offset = 0;

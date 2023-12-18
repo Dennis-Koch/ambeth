@@ -51,7 +51,6 @@ import com.koch.ambeth.util.appendable.IAppendable;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.HashMap;
 import com.koch.ambeth.util.collections.ILinkedMap;
-import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.IMap;
 import com.koch.ambeth.util.collections.LinkedHashMap;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
@@ -184,7 +183,7 @@ public class PostgresDialect extends AbstractConnectionDialect {
     }
 
     @Override
-    public boolean isCompactMultiValueRecommended(IList<Object> values) {
+    public boolean isCompactMultiValueRecommended(List<Object> values) {
         return true;
     }
 
@@ -199,7 +198,7 @@ public class PostgresDialect extends AbstractConnectionDialect {
     }
 
     @Override
-    public void handleWithMultiValueLeftField(IAppendable querySB, Map<Object, Object> nameToValueMap, IList<Object> parameters, IList<IList<Object>> splitValues, boolean caseSensitive,
+    public void handleWithMultiValueLeftField(IAppendable querySB, Map<Object, Object> nameToValueMap, List<Object> parameters, List<List<Object>> splitValues, boolean caseSensitive,
             Class<?> leftOperandFieldType) {
         if (splitValues.isEmpty()) {
             // Special scenario with EMPTY argument
@@ -335,7 +334,7 @@ public class PostgresDialect extends AbstractConnectionDialect {
     }
 
     @Override
-    public void appendListClause(List<Object> parameters, IAppendable sb, Class<?> fieldType, IList<Object> splittedIds, Function<Object, Object> idDecompositor) {
+    public void appendListClause(List<Object> parameters, IAppendable sb, Class<?> fieldType, List<Object> splittedIds, Function<Object, Object> idDecompositor) {
         sb.append(" = ANY (?)");
         var connectionExtension = serviceContext.getService(IConnectionExtension.class);
 
@@ -367,7 +366,7 @@ public class PostgresDialect extends AbstractConnectionDialect {
 
     @SneakyThrows
     @Override
-    public IList<IMap<String, String>> getExportedKeys(Connection connection, String[] schemaNames) {
+    public List<IMap<String, String>> getExportedKeys(Connection connection, String[] schemaNames) {
         var newSchemaNames = new String[schemaNames.length];
         System.arraycopy(schemaNames, 0, newSchemaNames, 0, schemaNames.length);
         for (int a = newSchemaNames.length; a-- > 0; ) {
@@ -405,8 +404,8 @@ public class PostgresDialect extends AbstractConnectionDialect {
     }
 
     @Override
-    public ILinkedMap<String, IList<String>> getFulltextIndexes(Connection connection, String schemaName) {
-        LinkedHashMap<String, IList<String>> fulltextIndexes = new LinkedHashMap<>();
+    public ILinkedMap<String, List<String>> getFulltextIndexes(Connection connection, String schemaName) {
+        LinkedHashMap<String, List<String>> fulltextIndexes = new LinkedHashMap<>();
         // NOT YET IMPLEMENTED
         return fulltextIndexes;
     }
@@ -576,7 +575,7 @@ public class PostgresDialect extends AbstractConnectionDialect {
 
     @SneakyThrows
     @Override
-    public IList<IColumnEntry> getAllFieldsOfTable(Connection connection, String fqTableName) {
+    public List<IColumnEntry> getAllFieldsOfTable(Connection connection, String fqTableName) {
         String[] names = sqlBuilder.getSchemaAndTableName(fqTableName);
         ResultSet tableColumnsRS = connection.getMetaData().getColumns(null, names[0], names[1], null);
         try {

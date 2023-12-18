@@ -24,16 +24,14 @@ import com.koch.ambeth.merge.model.IDirectObjRef;
 import com.koch.ambeth.persistence.api.IDirectedLink;
 import com.koch.ambeth.service.merge.model.IObjRef;
 import com.koch.ambeth.util.collections.ArrayList;
-import com.koch.ambeth.util.collections.EmptyList;
-import com.koch.ambeth.util.collections.IList;
 
 import java.util.List;
 
 public class LinkChangeCommand extends AbstractChangeCommand implements ILinkChangeCommand {
     protected final IDirectedLink link;
     protected final byte toIdIndex;
-    protected IList<IObjRef> refsToLink = EmptyList.<IObjRef>getInstance();
-    protected IList<IObjRef> refsToUnlink = EmptyList.<IObjRef>getInstance();
+    protected List<IObjRef> refsToLink = List.of();
+    protected List<IObjRef> refsToUnlink = List.of();
 
     public LinkChangeCommand(IObjRef reference, IDirectedLink link) {
         super(reference);

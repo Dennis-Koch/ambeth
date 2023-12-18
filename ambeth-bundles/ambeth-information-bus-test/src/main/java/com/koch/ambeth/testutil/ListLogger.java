@@ -20,67 +20,65 @@ limitations under the License.
  * #L%
  */
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-
-import com.koch.ambeth.log.LogLevel;
 import com.koch.ambeth.log.AmbethLogger;
+import com.koch.ambeth.log.LogLevel;
 import com.koch.ambeth.util.collections.ArrayList;
-import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.List;
+
 public class ListLogger extends AmbethLogger {
-	protected static final DateFormat format = new SimpleDateFormat("HH:mm:ss.SSS");
+    protected static final DateFormat format = new SimpleDateFormat("HH:mm:ss.SSS");
 
-	protected final IList<String> debugEntries = new ArrayList<>(),
-			infoEntries = new ArrayList<>(), warnEntries = new ArrayList<>(),
-			errorEntries = new ArrayList<>();
+    protected final List<String> debugEntries = new ArrayList<>(), infoEntries = new ArrayList<>(), warnEntries = new ArrayList<>(), errorEntries = new ArrayList<>();
 
-	public ListLogger(String source) {
-		super(source);
-	}
+    public ListLogger(String source) {
+        super(source);
+    }
 
-	@Override
-	public DateFormat getFormat() {
-		return format;
-	}
+    @Override
+    public DateFormat getFormat() {
+        return format;
+    }
 
-	public IList<String> getDebugEntries() {
-		return debugEntries;
-	}
+    public List<String> getDebugEntries() {
+        return debugEntries;
+    }
 
-	public IList<String> getInfoEntries() {
-		return infoEntries;
-	}
+    public List<String> getInfoEntries() {
+        return infoEntries;
+    }
 
-	public IList<String> getWarnEntries() {
-		return warnEntries;
-	}
+    public List<String> getWarnEntries() {
+        return warnEntries;
+    }
 
-	public IList<String> getErrorEntries() {
-		return errorEntries;
-	}
+    public List<String> getErrorEntries() {
+        return errorEntries;
+    }
 
-	protected void log(LogLevel logLevel, boolean errorLog, String output) {
-		switch (logLevel) {
-			case INFO: {
-				infoEntries.add(output);
-				break;
-			}
-			case DEBUG: {
-				debugEntries.add(output);
-				break;
-			}
-			case WARN: {
-				warnEntries.add(output);
-				break;
-			}
-			case ERROR: {
-				errorEntries.add(output);
-				break;
-			}
-			default:
-				RuntimeExceptionUtil.createEnumNotSupportedException(logLevel);
-		}
-	}
+    protected void log(LogLevel logLevel, boolean errorLog, String output) {
+        switch (logLevel) {
+            case INFO: {
+                infoEntries.add(output);
+                break;
+            }
+            case DEBUG: {
+                debugEntries.add(output);
+                break;
+            }
+            case WARN: {
+                warnEntries.add(output);
+                break;
+            }
+            case ERROR: {
+                errorEntries.add(output);
+                break;
+            }
+            default:
+                RuntimeExceptionUtil.createEnumNotSupportedException(logLevel);
+        }
+    }
 }

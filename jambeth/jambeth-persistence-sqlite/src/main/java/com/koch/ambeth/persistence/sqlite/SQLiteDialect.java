@@ -20,27 +20,6 @@ limitations under the License.
  * #L%
  */
 
-import java.sql.Blob;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Savepoint;
-import java.sql.Statement;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.List;
-import java.util.WeakHashMap;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import jakarta.persistence.PersistenceException;
-
-import lombok.SneakyThrows;
-import org.sqlite.JDBC;
-
 import com.koch.ambeth.ioc.IServiceContext;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.config.Property;
@@ -62,9 +41,27 @@ import com.koch.ambeth.query.IValueOperand;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.HashMap;
 import com.koch.ambeth.util.collections.ILinkedMap;
-import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.IMap;
 import com.koch.ambeth.util.collections.LinkedHashMap;
+import jakarta.persistence.PersistenceException;
+import lombok.SneakyThrows;
+import org.sqlite.JDBC;
+
+import java.sql.Blob;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Savepoint;
+import java.sql.Statement;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.List;
+import java.util.WeakHashMap;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class SQLiteDialect extends AbstractConnectionDialect {
     // protected static final LinkedHashMap<Class<?>, String[]> typeToArrayTypeNameMap = new
@@ -114,6 +111,7 @@ public class SQLiteDialect extends AbstractConnectionDialect {
         // 54 = RESOURCE BUSY acquiring with NOWAIT (pessimistic lock)
         return 54;
     }
+
     protected final DateFormat defaultDateFormat = new SimpleDateFormat("yyyy-MM-dd HH-mm-ss");
     protected final WeakHashMap<IConnectionKeyHandle, ConnectionKeyValue> connectionToConstraintSqlMap = new WeakHashMap<>();
     protected final Lock readLock, writeLock;
@@ -167,7 +165,7 @@ public class SQLiteDialect extends AbstractConnectionDialect {
 
     @SneakyThrows
     @Override
-    public IList<IMap<String, String>> getExportedKeys(Connection connection, String[] schemaNames) {
+    public List<IMap<String, String>> getExportedKeys(Connection connection, String[] schemaNames) {
         ArrayList<IMap<String, String>> allForeignKeys = new ArrayList<>();
         PreparedStatement pstm = null;
         ResultSet allForeignKeysRS = null;
@@ -211,8 +209,8 @@ public class SQLiteDialect extends AbstractConnectionDialect {
     }
 
     @Override
-    public ILinkedMap<String, IList<String>> getFulltextIndexes(Connection connection, String schemaName) {
-        LinkedHashMap<String, IList<String>> fulltextIndexes = new LinkedHashMap<>();
+    public ILinkedMap<String, List<String>> getFulltextIndexes(Connection connection, String schemaName) {
+        LinkedHashMap<String, List<String>> fulltextIndexes = new LinkedHashMap<>();
         // NOT YET IMPLEMENTED
         return fulltextIndexes;
     }
@@ -392,7 +390,7 @@ public class SQLiteDialect extends AbstractConnectionDialect {
 
     @SneakyThrows
     @Override
-    public IList<IColumnEntry> getAllFieldsOfTable(Connection connection, String fqTableName) {
+    public List<IColumnEntry> getAllFieldsOfTable(Connection connection, String fqTableName) {
         String[] names = sqlBuilder.getSchemaAndTableName(fqTableName);
         ResultSet tableColumnsRS = connection.getMetaData().getColumns(null, names[0], names[1], null);
         try {

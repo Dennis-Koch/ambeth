@@ -115,13 +115,13 @@ public class PersistenceContextInterceptor extends CascadedInterceptor {
 
     @Override
     protected Object interceptIntern(final Object obj, final Method method, final Object[] args, final MethodProxy proxy) throws Throwable {
-        Class<?> declaringClass = method.getDeclaringClass();
+        var declaringClass = method.getDeclaringClass();
         if (declaringClass.equals(Object.class) || declaringClass.equals(IDisposable.class)) {
             return invokeTarget(obj, method, args, proxy);
         }
-        PersistenceContextType behaviourOfMethod = methodLevelBehaviour.getBehaviourOfMethod(method);
+        var behaviourOfMethod = methodLevelBehaviour.getBehaviourOfMethod(method);
 
-        MethodInterceptor logic = resolveLogic(behaviourOfMethod);
+        var logic = resolveLogic(behaviourOfMethod);
         if (logic != null) {
             return logic.intercept(obj, method, args, proxy);
         }

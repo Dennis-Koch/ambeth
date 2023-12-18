@@ -40,7 +40,7 @@ public class ServiceByNameProvider implements IServiceByNameProvider, IServiceEx
 
     @Override
     public String[] getAllRegisteredServiceNames() {
-        return serviceNameToObjectMap.getExtensions().keyList().toArray(String.class);
+        return serviceNameToObjectMap.getExtensions().keyList().toArray(String[]::new);
     }
 
     @Override

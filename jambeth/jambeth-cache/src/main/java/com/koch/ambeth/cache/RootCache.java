@@ -71,7 +71,6 @@ import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.EmptyList;
 import com.koch.ambeth.util.collections.HashMap;
 import com.koch.ambeth.util.collections.HashSet;
-import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.IResizeMapCallback;
 import com.koch.ambeth.util.collections.IdentityHashMap;
 import com.koch.ambeth.util.collections.IdentityHashSet;
@@ -83,6 +82,7 @@ import com.koch.ambeth.util.factory.IEmptyArrayFactory;
 import com.koch.ambeth.util.function.CheckedConsumer;
 import com.koch.ambeth.util.io.FastByteArrayOutputStream;
 import com.koch.ambeth.util.model.IDataObject;
+import com.koch.ambeth.util.state.IStateRollback;
 import com.koch.ambeth.util.state.StateRollback;
 import lombok.SneakyThrows;
 
@@ -149,6 +149,35 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 
     public RootCache() {
         relationOris.setResizeMapCallback(new DoRelationObjRefsRefreshOnResize(this));
+    }
+
+    @Override
+    public void afterPropertiesSet() {
+        super.afterPropertiesSet();
+
+        if (eventQueue == null) {
+            eventQueue = new IEventQueue() {
+                @Override
+                public IStateRollback enableEventQueue() {
+                    return StateRollback.empty();
+                }
+
+                @Override
+                public void flushEventQueue() {
+                    // intended blank
+                }
+
+                @Override
+                public IStateRollback pause(Object eventTarget) {
+                    return StateRollback.empty();
+                }
+
+                @Override
+                public boolean isDispatchingBatchedEvents() {
+                    return false;
+                }
+            };
+        }
     }
 
     @Override
@@ -256,7 +285,7 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
     }
 
     @Override
-    public IList<Object> getObjects(List<IObjRef> orisToGet, Set<CacheDirective> cacheDirective) {
+    public List<Object> getObjects(List<IObjRef> orisToGet, Set<CacheDirective> cacheDirective) {
         checkNotDisposed();
         if (orisToGet == null || orisToGet.isEmpty()) {
             return EmptyList.getInstance();
@@ -289,7 +318,7 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
     }
 
     @Override
-    public IList<Object> getObjects(final List<IObjRef> orisToGet, final ICacheIntern targetCache, final Set<CacheDirective> cacheDirective) {
+    public List<Object> getObjects(final List<IObjRef> orisToGet, final ICacheIntern targetCache, final Set<CacheDirective> cacheDirective) {
         var verifyOnLoad = this.verifyOnLoad;
         if (verifyOnLoad == null) {
             return getObjectsIntern(orisToGet, targetCache, cacheDirective);
@@ -297,7 +326,7 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
         return verifyOnLoad.verifyEntitiesOnLoad(() -> getObjectsIntern(orisToGet, targetCache, cacheDirective));
     }
 
-    protected IList<Object> getObjectsIntern(List<IObjRef> orisToGet, ICacheIntern targetCache, Set<CacheDirective> cacheDirective) {
+    protected List<Object> getObjectsIntern(List<IObjRef> orisToGet, ICacheIntern targetCache, Set<CacheDirective> cacheDirective) {
         checkNotDisposed();
         if (orisToGet == null || orisToGet.isEmpty()) {
             return EmptyList.getInstance();
@@ -306,69 +335,56 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
             cacheDirective = Collections.<CacheDirective>emptySet();
         }
         var isCacheRetrieverCallAllowed = isCacheRetrieverCallAllowed(cacheDirective);
-        var eventQueue = this.eventQueue;
-        var rollback = StateRollback.empty();
-        if (eventQueue != null) {
-            rollback = eventQueue.pause(this);
-        }
+        var rollback = StateRollback.chain(chain -> {
+            chain.append(eventQueue.pause(this));
+            chain.append(acquireHardRefTLIfNotAlready(orisToGet.size()));
+            chain.append(cacheModification.pushActive());
+        });
         try {
             var readLock = getReadLock();
             var writeLock = getWriteLock();
-            var cacheModification = this.cacheModification;
-            var oldCacheModificationValue = cacheModification.isActive();
-            var acquireSuccess = acquireHardRefTLIfNotAlready(orisToGet.size());
-            if (!oldCacheModificationValue) {
-                cacheModification.setActive(true);
-            }
-            try {
-                if (!isCacheRetrieverCallAllowed) {
-                    // if the cascading call is not allowed we need no pre-scanning for cache-misses
-                    // we have to do our best while we create the result directly
-                    readLock.lock();
-                    try {
-                        return createResult(orisToGet, null, cacheDirective, targetCache, true, null);
-                    } finally {
-                        readLock.unlock();
-                    }
-                }
-
-                var lockState = writeLock.releaseAllLocks();
-                var doAnotherRetry = new ParamHolder<Boolean>();
+            if (!isCacheRetrieverCallAllowed) {
+                // if the cascading call is not allowed we need no pre-scanning for cache-misses
+                // we have to do our best while we create the result directly
+                readLock.lock();
                 try {
-                    while (true) {
-                        doAnotherRetry.setValue(Boolean.FALSE);
-                        var neededObjRefs = new LinkedHashSet<IObjRef>();
-                        var pendingValueHolders = new ArrayList<DirectValueHolderRef>();
-                        var result = getObjectsRetry(orisToGet, targetCache, cacheDirective, doAnotherRetry, neededObjRefs, pendingValueHolders);
-                        while (!neededObjRefs.isEmpty()) {
-                            var objRefsToGetCascade = neededObjRefs.toList();
-                            neededObjRefs.clear();
-                            getObjectsRetry(objRefsToGetCascade, targetCache, cacheDirective, doAnotherRetry, neededObjRefs, pendingValueHolders);
-                        }
-                        if (Boolean.TRUE.equals(doAnotherRetry.getValue())) {
-                            continue;
-                        }
-                        if (!pendingValueHolders.isEmpty()) {
-                            prefetchHelper.prefetch(pendingValueHolders);
-                            continue;
-                        }
-                        return result;
-                    }
+                    return createResult(orisToGet, null, cacheDirective, targetCache, true, null);
                 } finally {
-                    writeLock.reacquireLocks(lockState);
+                    readLock.unlock();
+                }
+            }
+
+            var lockState = writeLock.releaseAllLocks();
+            var doAnotherRetry = new ParamHolder<Boolean>();
+            try {
+                while (true) {
+                    doAnotherRetry.setValue(Boolean.FALSE);
+                    var neededObjRefs = new LinkedHashSet<IObjRef>();
+                    var pendingValueHolders = new ArrayList<DirectValueHolderRef>();
+                    var result = getObjectsRetry(orisToGet, targetCache, cacheDirective, doAnotherRetry, neededObjRefs, pendingValueHolders);
+                    while (!neededObjRefs.isEmpty()) {
+                        var objRefsToGetCascade = neededObjRefs.toList();
+                        neededObjRefs.clear();
+                        getObjectsRetry(objRefsToGetCascade, targetCache, cacheDirective, doAnotherRetry, neededObjRefs, pendingValueHolders);
+                    }
+                    if (Boolean.TRUE.equals(doAnotherRetry.getValue())) {
+                        continue;
+                    }
+                    if (!pendingValueHolders.isEmpty()) {
+                        prefetchHelper.prefetch(pendingValueHolders);
+                        continue;
+                    }
+                    return result;
                 }
             } finally {
-                if (!oldCacheModificationValue) {
-                    cacheModification.setActive(oldCacheModificationValue);
-                }
-                clearHardRefs(acquireSuccess);
+                writeLock.reacquireLocks(lockState);
             }
         } finally {
             rollback.rollback();
         }
     }
 
-    protected IList<Object> getObjectsRetry(List<IObjRef> orisToGet, ICacheIntern targetCache, Set<CacheDirective> cacheDirective, ParamHolder<Boolean> doAnotherRetry,
+    protected List<Object> getObjectsRetry(List<IObjRef> orisToGet, ICacheIntern targetCache, Set<CacheDirective> cacheDirective, ParamHolder<Boolean> doAnotherRetry,
             LinkedHashSet<IObjRef> neededObjRefs, ArrayList<DirectValueHolderRef> pendingValueHolders) {
         var orisToLoad = new ArrayList<IObjRef>();
         var readLock = getReadLock();
@@ -442,102 +458,93 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
     }
 
     @Override
-    public IList<IObjRelationResult> getObjRelations(List<IObjRelation> objRels, Set<CacheDirective> cacheDirective) {
+    public List<IObjRelationResult> getObjRelations(List<IObjRelation> objRels, Set<CacheDirective> cacheDirective) {
         return getObjRelations(objRels, null, cacheDirective);
     }
 
     @Override
-    public IList<IObjRelationResult> getObjRelations(final List<IObjRelation> objRels, final ICacheIntern targetCache, final Set<CacheDirective> cacheDirective) {
-        IVerifyOnLoad verifyOnLoad = this.verifyOnLoad;
+    public List<IObjRelationResult> getObjRelations(final List<IObjRelation> objRels, final ICacheIntern targetCache, final Set<CacheDirective> cacheDirective) {
+        var verifyOnLoad = this.verifyOnLoad;
         if (verifyOnLoad == null) {
             return getObjRelationsIntern(objRels, targetCache, cacheDirective);
         }
         return verifyOnLoad.verifyEntitiesOnLoad(() -> getObjRelationsIntern(objRels, targetCache, cacheDirective));
     }
 
-    protected IList<IObjRelationResult> getObjRelationsIntern(List<IObjRelation> objRels, ICacheIntern targetCache, Set<CacheDirective> cacheDirective) {
+    protected List<IObjRelationResult> getObjRelationsIntern(List<IObjRelation> objRels, ICacheIntern targetCache, Set<CacheDirective> cacheDirective) {
         checkNotDisposed();
         var isCacheRetrieverCallAllowed = isCacheRetrieverCallAllowed(cacheDirective);
         var returnMisses = cacheDirective.contains(CacheDirective.ReturnMisses);
 
-        var eventQueue = this.eventQueue;
-        var rollback = StateRollback.empty();
-        if (eventQueue != null) {
-            rollback = eventQueue.pause(this);
-        }
+        var rollback = StateRollback.chain(chain -> {
+            chain.append(eventQueue.pause(this));
+            chain.append(acquireHardRefTLIfNotAlready(objRels.size()));
+            chain.append(cacheModification.pushActive());
+        });
         try {
             var readLock = getReadLock();
             var objRelMisses = new ArrayList<IObjRelation>();
             var objRelToResultMap = new HashMap<IObjRelation, IObjRelationResult>();
             var alreadyClonedObjRefs = new IdentityHashMap<IObjRef, IObjRef>();
 
-            var cacheModification = this.cacheModification;
-            var oldCacheModificationValue = cacheModification.isActive();
-            var acquireSuccess = acquireHardRefTLIfNotAlready(objRels.size());
-            cacheModification.setActive(true);
+            List<IObjRelationResult> result = null;
+            readLock.lock();
             try {
-                IList<IObjRelationResult> result = null;
-                readLock.lock();
-                try {
-                    for (int a = 0, size = objRels.size(); a < size; a++) {
-                        var objRel = objRels.get(a);
-                        if (targetCache != null && targetCache != this) {
-                            var cacheResult = targetCache.getObjects(objRel.getObjRefs(), CacheDirective.failEarly());
-                            if (!cacheResult.isEmpty()) {
-                                IObjRefContainer item = (IObjRefContainer) cacheResult.get(0); // Only one hit is
-                                // necessary of
-                                // given group of
-                                // objRefs
-                                var relationIndex = item.get__EntityMetaData().getIndexByRelationName(objRel.getMemberName());
-                                if (ValueHolderState.INIT == item.get__State(relationIndex) || item.get__ObjRefs(relationIndex) != null) {
-                                    continue;
-                                }
+                for (int a = 0, size = objRels.size(); a < size; a++) {
+                    var objRel = objRels.get(a);
+                    if (targetCache != null && targetCache != this) {
+                        var cacheResult = targetCache.getObjects(objRel.getObjRefs(), CacheDirective.failEarly());
+                        if (!cacheResult.isEmpty()) {
+                            IObjRefContainer item = (IObjRefContainer) cacheResult.get(0); // Only one hit is
+                            // necessary of
+                            // given group of
+                            // objRefs
+                            var relationIndex = item.get__EntityMetaData().getIndexByRelationName(objRel.getMemberName());
+                            if (ValueHolderState.INIT == item.get__State(relationIndex) || item.get__ObjRefs(relationIndex) != null) {
+                                continue;
                             }
                         }
-                        var selfResult = getObjRelationIfValid(objRel, targetCache, null, alreadyClonedObjRefs);
-                        if (selfResult == null && isCacheRetrieverCallAllowed) {
-                            objRelMisses.add(objRel);
-                        }
                     }
-                    if (objRelMisses.isEmpty()) {
-                        // Create result WITHOUT releasing the readlock in the meantime
-                        result = createResult(objRels, targetCache, null, alreadyClonedObjRefs, returnMisses);
+                    var selfResult = getObjRelationIfValid(objRel, targetCache, null, alreadyClonedObjRefs);
+                    if (selfResult == null && isCacheRetrieverCallAllowed) {
+                        objRelMisses.add(objRel);
                     }
+                }
+                if (objRelMisses.isEmpty()) {
+                    // Create result WITHOUT releasing the readlock in the meantime
+                    result = createResult(objRels, targetCache, null, alreadyClonedObjRefs, returnMisses);
+                }
+            } finally {
+                readLock.unlock();
+            }
+            if (!objRelMisses.isEmpty()) {
+                List<IObjRelationResult> loadedObjectRelations;
+                var rollback2 = StateRollback.empty();
+                if (privileged && securityActivation != null && securityActivation.isFilterActivated()) {
+                    rollback2 = securityActivation.pushWithoutFiltering();
+                }
+                try {
+                    loadedObjectRelations = cacheRetriever.getRelations(objRelMisses);
+                } finally {
+                    rollback2.rollback();
+                }
+                loadObjects(loadedObjectRelations, objRelToResultMap);
+                readLock.lock();
+                try {
+                    result = createResult(objRels, targetCache, objRelToResultMap, alreadyClonedObjRefs, returnMisses);
                 } finally {
                     readLock.unlock();
                 }
-                if (!objRelMisses.isEmpty()) {
-                    List<IObjRelationResult> loadedObjectRelations;
-                    var rollback2 = StateRollback.empty();
-                    if (privileged && securityActivation != null && securityActivation.isFilterActivated()) {
-                        rollback2 = securityActivation.pushWithoutFiltering();
-                    }
-                    try {
-                        loadedObjectRelations = cacheRetriever.getRelations(objRelMisses);
-                    } finally {
-                        rollback2.rollback();
-                    }
-                    loadObjects(loadedObjectRelations, objRelToResultMap);
-                    readLock.lock();
-                    try {
-                        result = createResult(objRels, targetCache, objRelToResultMap, alreadyClonedObjRefs, returnMisses);
-                    } finally {
-                        readLock.unlock();
-                    }
-                }
-                if (isFilteringNecessary(targetCache)) {
-                    writeLock.lock();
-                    try {
-                        result = filterObjRelResult(result, targetCache);
-                    } finally {
-                        writeLock.unlock();
-                    }
-                }
-                return result;
-            } finally {
-                cacheModification.setActive(oldCacheModificationValue);
-                clearHardRefs(acquireSuccess);
             }
+            if (isFilteringNecessary(targetCache)) {
+                writeLock.lock();
+                try {
+                    result = filterObjRelResult(result, targetCache);
+                } finally {
+                    writeLock.unlock();
+                }
+            }
+            return result;
         } finally {
             rollback.rollback();
         }
@@ -566,14 +573,14 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
         return objRelResult;
     }
 
-    protected IList<IObjRelationResult> createResult(List<IObjRelation> objRels, ICacheIntern targetCache, HashMap<IObjRelation, IObjRelationResult> objRelToResultMap,
+    protected List<IObjRelationResult> createResult(List<IObjRelation> objRels, ICacheIntern targetCache, HashMap<IObjRelation, IObjRelationResult> objRelToResultMap,
             IdentityHashMap<IObjRef, IObjRef> alreadyClonedObjRefs, boolean returnMisses) {
         var oriHelper = this.oriHelper;
         var objRelResults = new ArrayList<IObjRelationResult>(objRels.size());
 
         for (int a = 0, size = objRels.size(); a < size; a++) {
             var objRel = objRels.get(a);
-            IList<Object> cacheResult = null;
+            List<Object> cacheResult = null;
             if (targetCache != null && targetCache != this) {
                 cacheResult = targetCache.getObjects(objRel.getObjRefs(), CacheDirective.failEarly());
             }
@@ -625,7 +632,7 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
         return objRelResults;
     }
 
-    protected IList<IObjRelationResult> filterObjRelResult(IList<IObjRelationResult> objRelResults, ICacheIntern targetCache) {
+    protected List<IObjRelationResult> filterObjRelResult(List<IObjRelationResult> objRelResults, ICacheIntern targetCache) {
         if (objRelResults.isEmpty() || !isFilteringNecessary(targetCache)) {
             return objRelResults;
         }
@@ -815,7 +822,7 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
     }
 
     @SneakyThrows
-    protected IList<Object> createResult(List<IObjRef> objRefsToGet, RootCacheValue[] rootCacheValuesToGet, Set<CacheDirective> cacheDirective, ICacheIntern targetCache, boolean checkVersion,
+    protected List<Object> createResult(List<IObjRef> objRefsToGet, RootCacheValue[] rootCacheValuesToGet, Set<CacheDirective> cacheDirective, ICacheIntern targetCache, boolean checkVersion,
             List<IObjRef> objRefsToLoad) {
         var loadContainerResult = cacheDirective.contains(CacheDirective.LoadContainerResult);
         var cacheValueResult = cacheDirective.contains(CacheDirective.CacheValueResult) || targetCache == this;
@@ -854,11 +861,7 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
         if (getCount == 0) {
             return new ArrayList<>(0);
         }
-        var eventQueue = this.eventQueue;
-        var rollback = StateRollback.empty();
-        if (targetCacheAccess && eventQueue != null) {
-            rollback = eventQueue.pause(targetCache);
-        }
+        var rollback = targetCacheAccess ? eventQueue.pause(targetCache) : StateRollback.empty();
         try {
             var result = new ArrayList<>(objRefsToGet.size());
             ArrayList<CheckedConsumer<IdentityHashSet<IObjRef>>> runnables = null;
@@ -1197,7 +1200,7 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
                     tempList.add(relationOfMember);
                 }
             }
-            filteredRelations[a] = !tempList.isEmpty() ? tempList.toArray(IObjRef.class) : IObjRef.EMPTY_ARRAY;
+            filteredRelations[a] = !tempList.isEmpty() ? tempList.toArray(IObjRef[]::new) : IObjRef.EMPTY_ARRAY;
         }
         return filteredRelations;
     }
@@ -1644,7 +1647,7 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
     @SuppressWarnings({ "unchecked", "rawtypes" })
     @Override
     public List<ILoadContainer> getEntities(List<IObjRef> orisToLoad) {
-        IList result = getObjects(orisToLoad, CacheDirective.loadContainerResult());
+        List result = getObjects(orisToLoad, CacheDirective.loadContainerResult());
         return result;
     }
 

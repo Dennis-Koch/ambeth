@@ -21,23 +21,18 @@ limitations under the License.
  */
 
 public class ProxyUtil {
-	private ProxyUtil() {
-		// Intended blank
-	}
+    public static <T> T getProxiedBean(T beanOrProxy) {
+        if (beanOrProxy instanceof Factory factory) {
+            Object interceptorOrBean = factory.getInterceptor();
+            while (interceptorOrBean instanceof ICascadedInterceptor cascadedInterceptor) {
+                interceptorOrBean = cascadedInterceptor.getTarget();
+            }
+            return (T) interceptorOrBean;
+        }
+        return beanOrProxy;
+    }
 
-	public static Object getProxiedBean(Object proxy) {
-		Object bean = proxy;
-
-		if (bean instanceof Factory) {
-			Factory factory = (Factory) bean;
-			Callback callback = factory.getCallback(0);
-			bean = callback;
-			while (bean instanceof ICascadedInterceptor) {
-				ICascadedInterceptor cascadedInterceptor = (ICascadedInterceptor) bean;
-				bean = cascadedInterceptor.getTarget();
-			}
-		}
-
-		return bean;
-	}
+    private ProxyUtil() {
+        // Intended blank
+    }
 }

@@ -27,8 +27,8 @@ import com.koch.ambeth.query.ISubQuery;
 import com.koch.ambeth.util.ParamChecker;
 import com.koch.ambeth.util.appendable.IAppendable;
 import com.koch.ambeth.util.collections.EmptyList;
-import com.koch.ambeth.util.collections.IList;
 
+import java.util.List;
 import java.util.Map;
 
 public class SqlSubselectOperand implements IOperand, IInitializingBean {
@@ -63,7 +63,7 @@ public class SqlSubselectOperand implements IOperand, IInitializingBean {
     }
 
     @Override
-    public void expandQuery(IAppendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, IList<Object> parameters) {
+    public void expandQuery(IAppendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, List<Object> parameters) {
         var entityType = subQuery.getEntityType();
         var table = databaseMetaData.getTableByType(entityType);
         var tableName = table.getFullqualifiedEscapedName();

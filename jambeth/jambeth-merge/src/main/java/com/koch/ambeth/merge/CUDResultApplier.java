@@ -108,10 +108,10 @@ public class CUDResultApplier implements ICUDResultApplier {
         }
     }
 
-    protected IList<Object> getAllExistingObjectsFromCache(ICache cache, List<IChangeContainer> allChanges) {
-        ArrayList<IObjRef> existingObjRefs = new ArrayList<>(allChanges.size());
+    protected List<Object> getAllExistingObjectsFromCache(ICache cache, List<IChangeContainer> allChanges) {
+        var existingObjRefs = new ArrayList<IObjRef>(allChanges.size());
         for (int a = 0, size = allChanges.size(); a < size; a++) {
-            IChangeContainer changeContainer = allChanges.get(a);
+            var changeContainer = allChanges.get(a);
             if (changeContainer instanceof CreateContainer) {
                 existingObjRefs.add(null);
                 continue;
@@ -125,30 +125,30 @@ public class CUDResultApplier implements ICUDResultApplier {
     }
 
     protected ICUDResult applyIntern(ICUDResult cudResult, boolean checkBaseState, IncrementalMergeState incrementalState) {
-        ICache stateCache = incrementalState.getStateCache();
-        List<IChangeContainer> allChanges = cudResult.getAllChanges();
-        List<Object> originalRefs = cudResult.getOriginalRefs();
-        IList<Object> allObjects = getAllExistingObjectsFromCache(stateCache, allChanges);
-        ArrayList<Object> hardRefs = new ArrayList<>();
+        var stateCache = incrementalState.getStateCache();
+        var allChanges = cudResult.getAllChanges();
+        var originalRefs = cudResult.getOriginalRefs();
+        var allObjects = getAllExistingObjectsFromCache(stateCache, allChanges);
+        var hardRefs = new ArrayList<>();
         hardRefs.add(allObjects); // add list as item intended. adding each item of the source is NOT
         // needed
 
-        ArrayList<IObjRef> toFetchFromCache = new ArrayList<>();
-        ArrayList<DirectValueHolderRef> toPrefetch = new ArrayList<>();
-        ArrayList<CheckedRunnable> runnables = new ArrayList<>();
+        var toFetchFromCache = new ArrayList<IObjRef>();
+        var toPrefetch = new ArrayList<DirectValueHolderRef>();
+        var runnables = new ArrayList<CheckedRunnable>();
 
-        IEntityFactory entityFactory = this.entityFactory;
+        var entityFactory = this.entityFactory;
 
-        IdentityHashMap<IObjRef, StateEntry> newObjRefToStateEntryMap = new IdentityHashMap<>();
-        IdentityHashMap<IChangeContainer, IChangeContainer> alreadyClonedMap = new IdentityHashMap<>();
+        var newObjRefToStateEntryMap = new IdentityHashMap<IObjRef, StateEntry>();
+        var alreadyClonedMap = new IdentityHashMap<IChangeContainer, IChangeContainer>();
 
-        ArrayList<IChangeContainer> newAllChanges = new ArrayList<>(allChanges.size());
+        var newAllChanges = new ArrayList<IChangeContainer>(allChanges.size());
 
         for (int a = 0, size = allChanges.size(); a < size; a++) {
-            IChangeContainer changeContainer = allChanges.get(a);
-            Object originalEntity = originalRefs != null ? originalRefs.get(a) : null;
+            var changeContainer = allChanges.get(a);
+            var originalEntity = originalRefs != null ? originalRefs.get(a) : null;
 
-            StateEntry stateEntry = originalEntity != null ? incrementalState.entityToStateMap.get(originalEntity) : null;
+            var stateEntry = originalEntity != null ? incrementalState.entityToStateMap.get(originalEntity) : null;
 
             IChangeContainer newChangeContainer;
             if (changeContainer instanceof CreateContainer) {
@@ -162,7 +162,7 @@ public class CUDResultApplier implements ICUDResultApplier {
             alreadyClonedMap.put(changeContainer, newChangeContainer);
 
             if (!(changeContainer instanceof CreateContainer)) {
-                Object stateCacheEntity = allObjects.get(a);
+                var stateCacheEntity = allObjects.get(a);
                 stateEntry = incrementalState.entityToStateMap.get(stateCacheEntity);
                 if (stateEntry == null) {
                     stateEntry = new StateEntry(stateCacheEntity, changeContainer.getReference(), incrementalState.entityToStateMap.size() + 1);
@@ -173,13 +173,13 @@ public class CUDResultApplier implements ICUDResultApplier {
                 // delete & update do not need further handling
                 continue;
             }
-            Class<?> realType = changeContainer.getReference().getRealType();
+            var realType = changeContainer.getReference().getRealType();
 
             Object stateCacheEntity;
             if (stateEntry == null) {
                 stateCacheEntity = entityFactory.createEntity(realType);
 
-                DirectObjRef directObjRef = new DirectObjRef(realType, stateCacheEntity);
+                var directObjRef = new DirectObjRef(realType, stateCacheEntity);
                 directObjRef.setCreateContainerIndex(a);
 
                 stateEntry = new StateEntry(stateCacheEntity, directObjRef, incrementalState.entityToStateMap.size() + 1);
@@ -232,12 +232,11 @@ public class CUDResultApplier implements ICUDResultApplier {
                     toPrefetch.clear();
                 }
                 if (!toFetchFromCache.isEmpty()) {
-                    IList<Object> fetchedObjects = stateCache.getObjects(toFetchFromCache, CacheDirective.none());
-                    hardRefs.add(fetchedObjects); // add list as item intended. adding each item of the source
-                    // is NOT needed
+                    var fetchedObjects = stateCache.getObjects(toFetchFromCache, CacheDirective.none());
+                    hardRefs.add(fetchedObjects); // add list as item intended. adding each item of the source is NOT needed
                     toFetchFromCache.clear();
                 }
-                var runnableArray = runnables.toArray(CheckedRunnable.class);
+                var runnableArray = runnables.toArray(CheckedRunnable[]::new);
                 runnables.clear();
                 for (var runnable : runnableArray) {
                     CheckedRunnable.invoke(runnable);
@@ -399,7 +398,7 @@ public class CUDResultApplier implements ICUDResultApplier {
             if (existingORIsSet.isEmpty()) {
                 newORIs = IObjRef.EMPTY_ARRAY;
             } else {
-                newORIs = existingORIsSet.toArray(IObjRef.class);
+                newORIs = existingORIsSet.toArray(IObjRef[]::new);
             }
         }
         if (!entity.is__Initialized(relationIndex)) {

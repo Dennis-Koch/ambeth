@@ -252,8 +252,8 @@ public class MergeProcess implements IMergeProcess {
         ensureMergeOutOfGui(new Object[] { objectsToMerge1, objectsToMerge2 }, null, null, null, null, true, true);
     }
 
-    protected void ensureMergeOutOfGui(final Object objectToMerge, final Object objectToDelete, final ProceedWithMergeHook proceedHook, final DataChangeReceivedCallback dataChangeReceivedCallback,
-            final MergeFinishedCallback mergeFinishedCallback, final boolean addNewEntitiesToCache, final boolean deepMerge) {
+    protected void ensureMergeOutOfGui(Object objectToMerge, Object objectToDelete, ProceedWithMergeHook proceedHook, DataChangeReceivedCallback dataChangeReceivedCallback,
+            MergeFinishedCallback mergeFinishedCallback, boolean addNewEntitiesToCache, boolean deepMerge) {
         if (guiThreadHelper.isInGuiThread()) {
             guiThreadHelper.invokeOutOfGui(() -> mergeOutOfGui(objectToMerge, objectToDelete, proceedHook, dataChangeReceivedCallback, mergeFinishedCallback, addNewEntitiesToCache, deepMerge));
         } else {
@@ -278,7 +278,8 @@ public class MergeProcess implements IMergeProcess {
             var uuid = UUID.randomUUID().toString();
             final CountDownLatch latch;
             var foreignThreadDCE = new ParamHolder<IDataChange>();
-            if (isNetworkClientMode || dataChangeReceivedCallback != null) {
+
+            if (isDataSubscriptionRequired(dataChangeReceivedCallback, entityToAssociatedCaches)) {
                 if (isNetworkClientMode) {
                     latch = new CountDownLatch(1);
                 } else {
@@ -363,11 +364,18 @@ public class MergeProcess implements IMergeProcess {
             }
             eventDispatcher.dispatchEvent(deleteDataChange);
         }
-        revertChangesHelper.revertChanges(objectToMerge);
+        revertChangesHelper.revertChanges(objectToMerge, null, false, false);
 
         if (dataChange != null && dataChangeReceivedCallback != null) {
             dataChangeReceivedCallback.handleDataChange(dataChange);
         }
+    }
+
+    protected boolean isDataSubscriptionRequired(DataChangeReceivedCallback dataChangeReceivedCallback, Map<Object, ICache> entityToAssociatedCaches) {
+        if (isNetworkClientMode || dataChangeReceivedCallback != null) {
+            return true;
+        }
+        return false;
     }
 
     protected void removeUnpersistedDeletedObjectsFromCudResult(List<IChangeContainer> allChanges, List<Object> originalRefs, List<Object> unpersistedObjectsToDelete) {

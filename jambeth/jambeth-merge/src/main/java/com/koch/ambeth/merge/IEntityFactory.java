@@ -22,16 +22,23 @@ limitations under the License.
 
 import com.koch.ambeth.service.merge.model.IEntityMetaData;
 
+import java.util.List;
+
 /**
  * Creates (enhanced) instances of classes and interfaces.
- *
  */
 public interface IEntityFactory {
-	<T> T createEntity(Class<T> entityType);
+    <T> T createEntity(Class<T> entityType);
 
-	Object createEntity(IEntityMetaData metaData);
+    <T> List<T> createEntity(Class<T> entityType, int amount);
 
-	Object createEntityNoEmptyInit(IEntityMetaData metaData);
+    <T> T createEntity(IEntityMetaData metaData);
 
-	boolean supportsEnhancement(Class<?> enhancementType);
+    <T> List<T> createEntity(IEntityMetaData metaData, int amount);
+
+    <T> T createEntityNoEmptyInit(IEntityMetaData metaData);
+
+    <T> List<T> createEntityNoEmptyInit(IEntityMetaData metaData, int amount);
+
+    boolean supportsEnhancement(Class<?> enhancementType);
 }

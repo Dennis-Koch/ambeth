@@ -95,7 +95,7 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
     protected static final Pattern PATTERN_ALLOWED_SEPARATORS = Pattern.compile("[\\.\\s]+");
     protected static final Pattern PATTERN_ENTITY_NAME_WITH_MARKER = Pattern.compile("([^A-Z]*[A-Z][^\\.]*)#");
     protected final LinkedHashMap<String, ISqlJoin> joinMap = new LinkedHashMap<>();
-    protected final IList<SqlSubselectOperand> subQueries = new ArrayList<>();
+    protected final List<SqlSubselectOperand> subQueries = new ArrayList<>();
     protected final ITableAliasHolder tableAliasHolder = new TableAliasHolder();
     protected final LinkedHashSet<Class<?>> relatedEntityTypes = new LinkedHashSet<>();
     @Autowired
@@ -137,7 +137,7 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
     protected IList<IOperand> groupByOperands;
     protected IList<IOperand> orderByOperands;
     protected IValueOperand limitOperand;
-    protected IList<IOperand> selectOperands;
+    protected List<IOperand> selectOperands;
     protected ThreadLocal<String> lastPropertyPathTL;
     protected boolean disposed = false;
     @LogInstance
@@ -539,7 +539,7 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
         } else {
             table = databaseMetaData.getTableByName(joinClause.getTableName());
         }
-        IFieldMetaData field = table.getFieldByName(columnName);
+        var field = table.getFieldByName(columnName);
         if (field == null) {
             if (log.isDebugEnabled()) {
                 loggerHistory.debugOnce(log, databaseMetaData,
@@ -552,39 +552,34 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 
     protected IOperand columnIntern(String fieldName, IFieldMetaData field, ISqlJoin joinClause) {
         ParamChecker.assertTrue(fieldName != null || field != null, "either fieldName or field must be valid");
-        try {
-            IBeanRuntime<SqlColumnOperand> br =
-                    getBeanContext().registerBean(SqlColumnOperand.class).propertyValue("ColumnName", field == null ? fieldName : field.getName()).propertyValue("TableAliasHolder", tableAliasHolder);
-            if (field != null) {
-                br.propertyValue("ColumnType", field.getFieldType());
-                br.propertyValue("ColumnSubType", field.getFieldSubType());
-                if (field.getMember() != null) {
-                    br.propertyValue("EntityType", field.getTable().getEntityType());
-                    br.propertyValue("PropertyName", field.getMember().getName());
-                }
+        var br = getBeanContext().registerBean(SqlColumnOperand.class).propertyValue("ColumnName", field == null ? fieldName : field.getName()).propertyValue("TableAliasHolder", tableAliasHolder);
+        if (field != null) {
+            br.propertyValue("ColumnType", field.getFieldType());
+            br.propertyValue("ColumnSubType", field.getFieldSubType());
+            if (field.getMember() != null) {
+                br.propertyValue("EntityType", field.getTable().getEntityType());
+                br.propertyValue("PropertyName", field.getMember().getName());
             }
-            if (joinClause != null) {
-                br.propertyValue("JoinClause", joinClause);
-            }
-            return br.finish();
-        } catch (Exception e) {
-            throw RuntimeExceptionUtil.mask(e);
         }
+        if (joinClause != null) {
+            br.propertyValue("JoinClause", joinClause);
+        }
+        return br.finish();
     }
 
     public IOperator isNull(IOperand operand) {
         ParamChecker.assertParamNotNull(operand, "operand");
         return getBeanContext().registerBean(SqlNullCheck.class)//
-                               .propertyValue("Operand", operand)//
-                               .propertyValue("IsNull", Boolean.TRUE)//
+                               .propertyValue(SqlNullCheck.P_OPERAND, operand)//
+                               .propertyValue(SqlNullCheck.P_IS_NULL, Boolean.TRUE)//
                                .finish();
     }
 
     public IOperator isNotNull(IOperand operand) {
         ParamChecker.assertParamNotNull(operand, "operand");
         return getBeanContext().registerBean(SqlNullCheck.class)//
-                               .propertyValue("Operand", operand)//
-                               .propertyValue("IsNull", Boolean.FALSE)//
+                               .propertyValue(SqlNullCheck.P_OPERAND, operand)//
+                               .propertyValue(SqlNullCheck.P_IS_NULL, Boolean.FALSE)//
                                .finish();
     }
 
@@ -608,11 +603,7 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
     public IOperand regexpLike(IOperand sourceString, IOperand pattern, IOperand matchParameter) {
         ParamChecker.assertParamNotNull(sourceString, "sourceString");
         ParamChecker.assertParamNotNull(pattern, "pattern");
-        try {
-            return connectionDialect.getRegexpLikeFunction(sourceString, pattern, matchParameter);
-        } catch (Exception e) {
-            throw RuntimeExceptionUtil.mask(e);
-        }
+        return connectionDialect.getRegexpLikeFunction(sourceString, pattern, matchParameter);
     }
 
     @Override
@@ -620,30 +611,18 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
         if (value == null) {
             return NullValueOperand.INSTANCE;
         }
-        try {
-            return getBeanContext().registerBean(DirectValueOperand.class).propertyValue("Value", value).finish();
-        } catch (Exception e) {
-            throw RuntimeExceptionUtil.mask(e);
-        }
+        return getBeanContext().registerBean(DirectValueOperand.class).propertyValue(DirectValueOperand.P_VALUE, value).finish();
     }
 
     @Override
-    public IOperand valueName(String paramName) {
-        ParamChecker.assertParamNotNull(paramName, "paramName");
-        try {
-            return getBeanContext().registerBean(SimpleValueOperand.class).propertyValue("ParamName", paramName).finish();
-        } catch (Exception e) {
-            throw RuntimeExceptionUtil.mask(e);
-        }
+    public IOperand parameterValue(Object paramKey) {
+        ParamChecker.assertParamNotNull(paramKey, "paramKey");
+        return getBeanContext().registerBean(SimpleValueOperand.class).propertyValue(SimpleValueOperand.P_PARAM_KEY, paramKey).finish();
     }
 
     @Override
     public IOperand all() {
-        try {
-            return getBeanContext().registerBean(SqlAllOperand.class).finish();
-        } catch (Exception e) {
-            throw RuntimeExceptionUtil.mask(e);
-        }
+        return getBeanContext().registerBean(SqlAllOperand.class).finish();
     }
 
     @Override
@@ -658,17 +637,17 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
         ParamChecker.assertParamNotNull(entityType, "entityType");
         ParamChecker.assertParamNotNull(queryOperand, "queryOperand");
 
-        ITableMetaData table = databaseMetaData.getTableByType(entityType);
-        List<IFieldMetaData> fulltextFields = table.getFulltextFields();
+        var table = databaseMetaData.getTableByType(entityType);
+        var fulltextFields = table.getFulltextFields();
 
         IOperator orOperator = null;
 
         for (int a = fulltextFields.size(); a-- > 0; ) {
-            IFieldMetaData fulltextField = fulltextFields.get(a);
+            var fulltextField = fulltextFields.get(a);
 
-            Integer label = Integer.valueOf(a + 1);
-            IOperand containsFunction = function("CONTAINS", columnIntern(fulltextField.getName(), fulltextField, null), queryOperand, value(label));
-            IOperator gtOperator = let(containsFunction).isGreaterThan(value(Integer.valueOf(0)));
+            var label = Integer.valueOf(a + 1);
+            var containsFunction = function("CONTAINS", columnIntern(fulltextField.getName(), fulltextField, null), queryOperand, value(label));
+            var gtOperator = let(containsFunction).isGreaterThan(value(Integer.valueOf(0)));
 
             if (orOperator == null) {
                 orOperator = gtOperator;
@@ -678,17 +657,17 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
             orderBy(function("SCORE", value(label)), OrderByType.DESC);
         }
         if (fulltextFields.isEmpty()) {
-            List<IFieldMetaData> primitiveFields = table.getPrimitiveFields();
+            var primitiveFields = table.getPrimitiveFields();
 
-            IFieldMetaData updatedByField = table.getUpdatedByField();
-            IFieldMetaData createdByField = table.getCreatedByField();
+            var updatedByField = table.getUpdatedByField();
+            var createdByField = table.getCreatedByField();
 
             for (int a = primitiveFields.size(); a-- > 0; ) {
-                IFieldMetaData primitiveField = primitiveFields.get(a);
+                var primitiveField = primitiveFields.get(a);
                 if (!String.class.equals(primitiveField.getFieldType()) || primitiveField.equals(updatedByField) || primitiveField.equals(createdByField)) {
                     continue;
                 }
-                IOperator containsOperator = let(columnIntern(primitiveField.getName(), primitiveField, null)).contains(queryOperand, Boolean.FALSE);
+                var containsOperator = let(columnIntern(primitiveField.getName(), primitiveField, null)).contains(queryOperand, Boolean.FALSE);
 
                 if (orOperator == null) {
                     orOperator = containsOperator;
@@ -714,18 +693,15 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
     public IOperand function(String name, IOperand... operands) {
         ParamChecker.assertParamNotNull(name, "name");
         ParamChecker.assertParamNotNull(operands, "operands");
-        try {
-            return getBeanContext().registerBean(SqlFunctionOperand.class).propertyValue("Name", name).propertyValue("Operands", operands).finish();
-        } catch (Exception e) {
-            throw RuntimeExceptionUtil.mask(e);
-        }
+        return getBeanContext().registerBean(SqlFunctionOperand.class).propertyValue(SqlFunctionOperand.P_NAME, name).propertyValue(SqlFunctionOperand.P_OPERANDS, operands).finish();
     }
 
     @Override
     public IQueryBuilder<T> orderBy(IOperand operand, OrderByType orderByType) {
         ParamChecker.assertParamNotNull(operand, "operand");
         ParamChecker.assertParamNotNull(orderByType, "orderByType");
-        IOperand orderByOperand = getBeanContext().registerBean(SqlOrderByOperator.class).propertyValue("Column", operand).propertyValue("OrderByType", orderByType).finish();
+        var orderByOperand =
+                getBeanContext().registerBean(SqlOrderByOperator.class).propertyValue(SqlOrderByOperator.P_COLUMN, operand).propertyValue(SqlOrderByOperator.P_ORDER_BY_TYPE, orderByType).finish();
 
         if (orderByOperands == null) {
             orderByOperands = new ArrayList<>();
@@ -737,7 +713,7 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
     public IOperand overlaps(IOperand leftOperand, IOperand rightOperand) {
         ParamChecker.assertParamNotNull(leftOperand, "leftOperand");
         ParamChecker.assertParamNotNull(rightOperand, "rightOperand");
-        return beanContext.registerBean(OverlapsOperand.class).propertyValue("LeftOperand", leftOperand).propertyValue("RightOperand", rightOperand).finish();
+        return beanContext.registerBean(OverlapsOperand.class).propertyValue(OverlapsOperand.P_LEFT_OPERAND, leftOperand).propertyValue(OverlapsOperand.P_RIGHT_OPERAND, rightOperand).finish();
     }
 
     @Override
@@ -753,7 +729,7 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
     public IOperand interval(IOperand lowerBoundary, IOperand upperBoundary) {
         ParamChecker.assertParamNotNull(lowerBoundary, "lowerBoundary");
         ParamChecker.assertParamNotNull(upperBoundary, "upperBoundary");
-        return beanContext.registerBean(IntervalOperand.class).propertyValue("LowerBoundary", lowerBoundary).propertyValue("UpperBoundary", upperBoundary).finish();
+        return beanContext.registerBean(IntervalOperand.class).propertyValue(IntervalOperand.P_LOWER_BOUNDARY, lowerBoundary).propertyValue(IntervalOperand.P_UPPER_BOUNDARY, upperBoundary).finish();
     }
 
     @Override
@@ -961,7 +937,10 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
             var metaData = entityMetaDataProvider.getMetaData(entityType);
             self.orderBy(self.property(metaData.getIdMember().getName()), OrderByType.ASC);
         }
-        var limitOperandForFramework = getBeanContext().registerBean(SimpleValueOperand.class).propertyValue("ParamName", QueryConstants.LIMIT_VALUE).propertyValue("TryOnly", Boolean.TRUE).finish();
+        var limitOperandForFramework = getBeanContext().registerBean(SimpleValueOperand.class)
+                                                       .propertyValue(SimpleValueOperand.P_PARAM_KEY, QueryConstants.LIMIT_VALUE)
+                                                       .propertyValue(SimpleValueOperand.P_TRY_ONLY, Boolean.TRUE)
+                                                       .finish();
         IValueOperand[] limitOperands = { limitOperandForFramework, limitOperand };
         var findFirstValueLimitOperand = limitIntern(getBeanContext().registerBean(FindFirstValueOperand.class).propertyValue(FindFirstValueOperand.P_OPERANDS, limitOperands).finish());
         var groupByOperandArray = groupByOperands != null ? groupByOperands.toArray(IOperand[]::new) : emptyOperands;

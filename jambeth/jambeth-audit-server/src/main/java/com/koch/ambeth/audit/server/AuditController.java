@@ -83,7 +83,6 @@ import com.koch.ambeth.stream.chars.ICharacterInputStream;
 import com.koch.ambeth.util.IConversionHelper;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.HashMap;
-import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.IMap;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.format.XmlHint;
@@ -598,7 +597,7 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
         auditEntryToSignature.signAuditEntry(auditEntry, clearTextPassword, signatureOfUser);
     }
 
-    protected ICUDResult buildAuditCUDResult(IList<CreateOrUpdateContainerBuild> auditedChanges) {
+    protected ICUDResult buildAuditCUDResult(List<CreateOrUpdateContainerBuild> auditedChanges) {
         var finalizedAuditChanges = new ArrayList<IChangeContainer>(auditedChanges.size());
         for (int a = 0, size = auditedChanges.size(); a < size; a++) {
             var createOrUpdate = auditedChanges.get(a);

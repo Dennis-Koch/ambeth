@@ -256,8 +256,8 @@ public class AmbethIocRunner extends BlockJUnit4ClassRunner {
         testClassLevelTestModulesList.addAll(buildTestModuleList(testMethod));
         testClassLevelTestFrameworkModulesList.addAll(buildFrameworkTestModuleList(testMethod));
 
-        var frameworkModules = testClassLevelTestFrameworkModulesList.toArray(Class.class);
-        var applicationModules = testClassLevelTestModulesList.toArray(Class.class);
+        var frameworkModules = testClassLevelTestFrameworkModulesList.toArray(Class[]::new);
+        var applicationModules = testClassLevelTestModulesList.toArray(Class[]::new);
 
         var rollback = FileUtil.pushCurrentTypeScope(getTestClass().getJavaClass());
         try {
@@ -382,8 +382,8 @@ public class AmbethIocRunner extends BlockJUnit4ClassRunner {
                         if (method != null) {
                             Method targetMethod = method.getMethod();
 
-                            if (targetMethod.isAnnotationPresent(TestModule.class) || targetMethod.isAnnotationPresent(TestFrameworkModule.class) || targetMethod.isAnnotationPresent(
-                                    TestPropertiesList.class) || targetMethod.isAnnotationPresent(TestProperties.class)) {
+                            if (targetMethod.isAnnotationPresent(TestModule.class) || targetMethod.isAnnotationPresent(TestFrameworkModule.class) ||
+                                    targetMethod.isAnnotationPresent(TestPropertiesList.class) || targetMethod.isAnnotationPresent(TestProperties.class)) {
                                 rebuildContext(method != null ? method.getMethod() : null);
                                 hasContextBeenRebuildForThisTest = true;
                                 isRebuildContextForThisTestRecommended = false;

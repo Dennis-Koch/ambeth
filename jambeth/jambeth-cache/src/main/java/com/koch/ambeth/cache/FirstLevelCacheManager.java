@@ -30,13 +30,13 @@ import com.koch.ambeth.merge.cache.IWritableCache;
 import com.koch.ambeth.util.ParamChecker;
 import com.koch.ambeth.util.StringBuilderUtil;
 import com.koch.ambeth.util.collections.ArrayList;
-import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.LinkedHashMap;
 import com.koch.ambeth.util.objectcollector.IThreadLocalObjectCollector;
 
 import java.lang.ref.Reference;
 import java.lang.ref.WeakReference;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map.Entry;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -219,7 +219,7 @@ public class FirstLevelCacheManager implements IInitializingBean, IFirstLevelCac
     }
 
     @Override
-    public IList<IWritableCache> selectFirstLevelCaches() {
+    public List<IWritableCache> selectFirstLevelCaches() {
         boolean isTransactionActive = false;
         if (transactionState != null) {
             isTransactionActive = transactionState.isTransactionActive();
@@ -236,7 +236,7 @@ public class FirstLevelCacheManager implements IInitializingBean, IFirstLevelCac
         return liveChildCaches;
     }
 
-    protected void addLiveFirstLevelCaches(IList<IWritableCache> liveChildCaches, boolean isTransactionActive) {
+    protected void addLiveFirstLevelCaches(List<IWritableCache> liveChildCaches, boolean isTransactionActive) {
         if (allFLCs.isEmpty()) {
             return;
         }

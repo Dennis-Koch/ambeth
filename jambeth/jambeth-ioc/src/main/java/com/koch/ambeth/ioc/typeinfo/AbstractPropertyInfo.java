@@ -24,8 +24,6 @@ import com.koch.ambeth.util.IPrintable;
 import com.koch.ambeth.util.ParamChecker;
 import com.koch.ambeth.util.ReflectUtil;
 import com.koch.ambeth.util.collections.ILinkedMap;
-import com.koch.ambeth.util.collections.IList;
-import com.koch.ambeth.util.collections.IMap;
 import com.koch.ambeth.util.collections.LinkedHashMap;
 import com.koch.ambeth.util.objectcollector.IThreadLocalObjectCollector;
 import com.koch.ambeth.util.typeinfo.IPropertyInfoIntern;
@@ -120,18 +118,18 @@ public abstract class AbstractPropertyInfo implements IPropertyInfoIntern, IPrin
 
     @Override
     public Annotation[] getAnnotations() {
-        ILinkedMap<Class<? extends Annotation>, Annotation> annotations = this.annotations;
+        var annotations = this.annotations;
         if (annotations == null) {
             return EMPTY_ANNOTATIONS;
         }
-        IList<Annotation> values = annotations.values();
-        return values.toArray(Annotation.class);
+        var values = annotations.values();
+        return values.toArray(Annotation[]::new);
     }
 
     @SuppressWarnings("unchecked")
     @Override
     public <V extends Annotation> V getAnnotation(Class<V> annotationType) {
-        IMap<Class<? extends Annotation>, Annotation> annotations = this.annotations;
+        var annotations = this.annotations;
         if (annotations == null) {
             return null;
         }
@@ -140,7 +138,7 @@ public abstract class AbstractPropertyInfo implements IPropertyInfoIntern, IPrin
 
     @Override
     public <V extends Annotation> boolean isAnnotationPresent(Class<V> annotationType) {
-        IMap<Class<? extends Annotation>, Annotation> annotations = this.annotations;
+        var annotations = this.annotations;
         if (annotations == null) {
             return false;
         }
@@ -164,7 +162,7 @@ public abstract class AbstractPropertyInfo implements IPropertyInfoIntern, IPrin
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder();
+        var sb = new StringBuilder();
         toString(sb);
         return sb.toString();
     }

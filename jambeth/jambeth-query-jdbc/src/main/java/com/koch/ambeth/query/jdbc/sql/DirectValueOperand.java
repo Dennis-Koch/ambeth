@@ -20,14 +20,9 @@ limitations under the License.
  * #L%
  */
 
-import java.lang.reflect.Array;
-import java.util.Collection;
-import java.util.Map;
-
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.config.Property;
 import com.koch.ambeth.persistence.filter.QueryConstants;
-import com.koch.ambeth.persistence.jdbc.IConnectionExtension;
 import com.koch.ambeth.persistence.sql.ParamsUtil;
 import com.koch.ambeth.query.IMultiValueOperand;
 import com.koch.ambeth.query.IOperand;
@@ -35,13 +30,15 @@ import com.koch.ambeth.query.IValueOperand;
 import com.koch.ambeth.util.IConversionHelper;
 import com.koch.ambeth.util.appendable.IAppendable;
 import com.koch.ambeth.util.collections.ArrayList;
-import com.koch.ambeth.util.collections.IList;
-import com.koch.ambeth.util.collections.IMap;
 import com.koch.ambeth.util.objectcollector.IThreadLocalObjectCollector;
 
+import java.lang.reflect.Array;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+
 public class DirectValueOperand implements IOperand, IValueOperand, IMultiValueOperand {
-    @Autowired
-    protected IConnectionExtension connectionExtension;
+    public static final String P_VALUE = "Value";
 
     @Autowired
     protected IConversionHelper conversionHelper;
@@ -78,14 +75,14 @@ public class DirectValueOperand implements IOperand, IValueOperand, IMultiValueO
     }
 
     @Override
-    public IList<Object> getMultiValue(Map<Object, Object> nameToValueMap) {
+    public List<Object> getMultiValue(Map<Object, Object> nameToValueMap) {
         ArrayList<Object> items = new ArrayList<>();
         listToSqlUtil.extractValueList(value, items, nameToValueMap);
         return items;
     }
 
     @Override
-    public void expandQuery(IAppendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, IList<Object> parameters) {
+    public void expandQuery(IAppendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, List<Object> parameters) {
         Object value = getValue(nameToValueMap);
         Class<?> expectedTypeHint = (Class<?>) nameToValueMap.get(QueryConstants.EXPECTED_TYPE_HINT);
         if (expectedTypeHint != null) {

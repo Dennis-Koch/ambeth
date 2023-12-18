@@ -25,17 +25,13 @@ import com.koch.ambeth.query.persistence.IEntityCursor;
 import com.koch.ambeth.query.persistence.IVersionCursor;
 import com.koch.ambeth.service.merge.model.IObjRef;
 import com.koch.ambeth.util.IDisposable;
-import com.koch.ambeth.util.collections.IList;
 
 import java.util.List;
-import java.util.Map;
 
 public interface IQuery<T> extends IDisposable {
     Class<T> getEntityType();
 
     void fillRelatedEntityTypes(List<Class<?>> relatedEntityTypes);
-
-    IQueryKey getQueryKey(Map<Object, Object> nameToValueMap);
 
     IVersionCursor retrieveAsVersions();
 
@@ -43,44 +39,18 @@ public interface IQuery<T> extends IDisposable {
 
     IDataCursor retrieveAsData();
 
-    IList<IObjRef> retrieveAsObjRefs(int idIndex);
+    List<IObjRef> retrieveAsObjRefs(int idIndex);
 
     long count();
 
     boolean isEmpty();
 
-    /**
-     * Please use param(Object, Object) instead
-     *
-     * @param nameToValueMap
-     * @return
-     */
-    @Deprecated
-    IVersionCursor retrieveAsVersions(Map<Object, Object> nameToValueMap);
-
     IEntityCursor<T> retrieveAsCursor();
 
-    /**
-     * Please use param(Object, Object) instead
-     *
-     * @param nameToValueMap
-     * @return
-     */
-    @Deprecated
-    IEntityCursor<T> retrieveAsCursor(Map<Object, Object> nameToValueMap);
 
-    IList<T> retrieve();
+    List<T> retrieve();
 
     T retrieveSingle();
-
-    /**
-     * Please use param(Object, Object) instead
-     *
-     * @param nameToValueMap
-     * @return
-     */
-    @Deprecated
-    IList<T> retrieve(Map<Object, Object> nameToValueMap);
 
     IQuery<T> param(Object paramKey, Object param);
 }

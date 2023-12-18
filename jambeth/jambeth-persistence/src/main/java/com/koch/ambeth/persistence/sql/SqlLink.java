@@ -34,7 +34,6 @@ import com.koch.ambeth.util.IConversionHelper;
 import com.koch.ambeth.util.ParamChecker;
 import com.koch.ambeth.util.appendable.AppendableStringBuilder;
 import com.koch.ambeth.util.collections.ArrayList;
-import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.objectcollector.IThreadLocalObjectCollector;
 
 import java.util.List;
@@ -335,7 +334,7 @@ public class SqlLink extends Link {
         var current = objectCollector.getCurrent();
         var nameAndValueSB = current.create(AppendableStringBuilder.class);
         var whereSB = current.create(AppendableStringBuilder.class);
-        IList<Object> values = null;
+        List<Object> values = null;
         try {
             if (getDirectedLink() != fromLink && getReverseDirectedLink() != fromLink) {
                 throw new IllegalArgumentException("Invalid link " + fromLink);

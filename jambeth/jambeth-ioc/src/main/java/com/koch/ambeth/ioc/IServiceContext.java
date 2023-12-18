@@ -26,16 +26,16 @@ import com.koch.ambeth.ioc.hierarchy.IBeanContextHolder;
 import com.koch.ambeth.ioc.link.ILinkRuntimeExtendable;
 import com.koch.ambeth.util.IDisposable;
 import com.koch.ambeth.util.IPrintable;
-import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.ISet;
 import com.koch.ambeth.util.function.CheckedConsumer;
 
 import java.lang.annotation.Annotation;
+import java.util.List;
 
 /**
  * Interface to access a running jAmbeth IoC context from application code.
  */
-public interface IServiceContext extends IDisposable, ILinkRuntimeExtendable, AutoCloseable, IPrintable {
+public interface IServiceContext extends IDisposable, ILinkRuntimeExtendable, AutoCloseable, IPrintable, IServiceLookup {
 
     /**
      * Builds a set with all types where a bean instance is wired to in this context. This method does
@@ -152,65 +152,12 @@ public interface IServiceContext extends IDisposable, ILinkRuntimeExtendable, Au
     <V> IBeanContextHolder<V> createHolder(String beanName, Class<V> expectedClass);
 
     /**
-     * Service bean lookup by name. Identical to getService(serviceName, true).
-     *
-     * @param serviceName Name of the service bean to lookup.
-     * @return Requested service bean.
-     */
-    Object getService(String serviceName);
-
-    /**
-     * Service bean lookup by name that may return null.
-     *
-     * @param serviceName    Name of the service bean to lookup.
-     * @param checkExistence Flag if bean is required to exist.
-     * @return Requested service bean or null if bean does not exist and existence is not checked.
-     */
-    Object getService(String serviceName, boolean checkExistence);
-
-    /**
-     * Service bean lookup by name with defined return type.
-     *
-     * @param serviceName Name of the service bean to lookup.
-     * @param targetType  Type the service bean is casted to.
-     * @return Requested service bean.
-     */
-    <V> V getService(String serviceName, Class<V> targetType);
-
-    /**
-     * Service bean lookup by name with defined return type.
-     *
-     * @param serviceName    Name of the service bean to lookup.
-     * @param targetType     Type the service bean is casted to.
-     * @param checkExistence Flag if bean is required to exist.
-     * @return Requested service bean or null if bean does not exist and existence is not checked.
-     */
-    <V> V getService(String serviceName, Class<V> targetType, boolean checkExistence);
-
-    /**
-     * Service bean lookup by type. Identical to getService(autowiredType, true)
-     *
-     * @param type Type the service bean is autowired to.
-     * @return Requested service bean.
-     */
-    <T> T getService(Class<T> type);
-
-    /**
-     * Service bean lookup by type that may return null.
-     *
-     * @param type           Type the service bean is autowired to.
-     * @param checkExistence Flag if bean is required to exist.
-     * @return Requested service bean or null if bean does not exist and existence is not checked.
-     */
-    <T> T getService(Class<T> type, boolean checkExistence);
-
-    /**
      * Lookup for all beans assignable to a given type.
      *
      * @param type Lookup type.
      * @return All beans assignable to a given type.
      */
-    <T> IList<T> getObjects(Class<T> type);
+    <T> List<T> getObjects(Class<T> type);
 
     /**
      * Lookup for all beans annotated with a given annotation.
@@ -218,7 +165,7 @@ public interface IServiceContext extends IDisposable, ILinkRuntimeExtendable, Au
      * @param type Annotation type to look for.
      * @return Annotated beans.
      */
-    <T extends Annotation> IList<Object> getAnnotatedObjects(Class<T> type);
+    <T extends Annotation> List<Object> getAnnotatedObjects(Class<T> type);
 
     /**
      * Lookup for all beans implementing a given interface.
@@ -226,7 +173,7 @@ public interface IServiceContext extends IDisposable, ILinkRuntimeExtendable, Au
      * @param interfaceType Interface type to look for.
      * @return Implementing beans.
      */
-    <T> IList<T> getImplementingObjects(Class<T> interfaceType);
+    <T> List<T> getImplementingObjects(Class<T> interfaceType);
 
     /**
      * Links an external bean instance to the contexts dispose life cycle hook.
@@ -296,4 +243,5 @@ public interface IServiceContext extends IDisposable, ILinkRuntimeExtendable, Au
     default void toString(StringBuilder sb) {
         sb.append(getName());
     }
+
 }

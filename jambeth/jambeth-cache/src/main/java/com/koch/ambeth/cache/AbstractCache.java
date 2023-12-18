@@ -48,9 +48,10 @@ import com.koch.ambeth.util.Lock;
 import com.koch.ambeth.util.ReadWriteLock;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.HashSet;
-import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.IdentityHashSet;
 import com.koch.ambeth.util.config.UtilConfigurationConstants;
+import com.koch.ambeth.util.state.IStateRollback;
+import com.koch.ambeth.util.state.StateRollback;
 import com.koch.ambeth.util.threading.IGuiThreadHelper;
 import com.koch.ambeth.util.threading.SensitiveThreadLocal;
 
@@ -76,8 +77,16 @@ public abstract class AbstractCache<V> implements ICache, IInitializingBean, IDi
         return Boolean.TRUE.equals(failInCacheHierarchyModeActiveTL.get());
     }
 
-    public static void setFailInCacheHierarchyModeActive(boolean failInCacheHierarchyModeActive) {
-        failInCacheHierarchyModeActiveTL.set(Boolean.valueOf(failInCacheHierarchyModeActive));
+    public static IStateRollback pushFailInCacheHierarchyModeActive() {
+        var oldFailInCacheHierarchyModeActive = failInCacheHierarchyModeActiveTL.get();
+        if (Boolean.TRUE.equals(oldFailInCacheHierarchyModeActive)) {
+            return StateRollback.empty();
+        }
+        failInCacheHierarchyModeActiveTL.set(Boolean.TRUE);
+        if (Boolean.FALSE.equals(oldFailInCacheHierarchyModeActive)) {
+            return () -> failInCacheHierarchyModeActiveTL.set(Boolean.FALSE);
+        }
+        return () -> failInCacheHierarchyModeActiveTL.remove();
     }
 
     public static void addHardRefTL(Object obj) {
@@ -167,21 +176,21 @@ public abstract class AbstractCache<V> implements ICache, IInitializingBean, IDi
         }
     }
 
-    public boolean acquireHardRefTLIfNotAlready() {
+    public IStateRollback acquireHardRefTLIfNotAlready() {
         return acquireHardRefTLIfNotAlready(0);
     }
 
-    public boolean acquireHardRefTLIfNotAlready(int sizeHint) {
+    public IStateRollback acquireHardRefTLIfNotAlready(int sizeHint) {
         if (!weakEntries) {
-            return false;
+            return StateRollback.empty();
         }
-        IdentityHashSet<Object> hardRefSet = hardRefTL.get();
+        var hardRefSet = hardRefTL.get();
         if (hardRefSet != null) {
-            return false;
+            return StateRollback.empty();
         }
         hardRefSet = sizeHint > 0 ? IdentityHashSet.create(sizeHint) : new IdentityHashSet<>();
         hardRefTL.set(hardRefSet);
-        return true;
+        return () -> hardRefTL.remove();
     }
 
     public void clearHardRefs(boolean acquirementSuccessful) {
@@ -457,7 +466,7 @@ public abstract class AbstractCache<V> implements ICache, IInitializingBean, IDi
         var cascadeNeededORIs = new HashSet<IObjRef>();
         var alreadyHandledSet = new IdentityHashSet<>();
         var hardRefsToCacheValue = new ArrayList<>();
-        var success = acquireHardRefTLIfNotAlready();
+        var rollback = acquireHardRefTLIfNotAlready();
         var writeLock = getWriteLock();
         writeLock.lock();
         try {
@@ -466,7 +475,7 @@ public abstract class AbstractCache<V> implements ICache, IInitializingBean, IDi
             return hardRefsToCacheValue;
         } finally {
             writeLock.unlock();
-            clearHardRefs(success);
+            rollback.rollback();
         }
     }
 
@@ -751,37 +760,37 @@ public abstract class AbstractCache<V> implements ICache, IInitializingBean, IDi
 
     @SuppressWarnings("unchecked")
     @Override
-    public <E> IList<E> getObjects(Class<E> type, Object... ids) {
+    public <E> List<E> getObjects(Class<E> type, Object... ids) {
         var orisToGet = new ArrayList<IObjRef>(ids.length);
         for (int a = 0, size = ids.length; a < size; a++) {
             var id = ids[a];
             var objRef = new ObjRef(type, ObjRef.PRIMARY_KEY_INDEX, id, null);
             orisToGet.add(objRef);
         }
-        return (IList<E>) getObjects(orisToGet, Collections.<CacheDirective>emptySet());
+        return (List<E>) getObjects(orisToGet, Collections.<CacheDirective>emptySet());
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public <E> IList<E> getObjects(Class<E> type, List<?> ids) {
+    public <E> List<E> getObjects(Class<E> type, List<?> ids) {
         var orisToGet = new ArrayList<IObjRef>(ids.size());
         for (int a = 0, size = ids.size(); a < size; a++) {
             orisToGet.add(new ObjRef(type, ObjRef.PRIMARY_KEY_INDEX, ids.get(a), null));
         }
-        return (IList<E>) getObjects(orisToGet, Collections.<CacheDirective>emptySet());
+        return (List<E>) getObjects(orisToGet, Collections.<CacheDirective>emptySet());
     }
 
     @Override
-    public IList<Object> getObjects(IObjRef[] orisToGetArray, Set<CacheDirective> cacheDirective) {
+    public List<Object> getObjects(IObjRef[] orisToGetArray, Set<CacheDirective> cacheDirective) {
         var orisToGet = new ArrayList<IObjRef>(orisToGetArray);
         return getObjects(orisToGet, cacheDirective);
     }
 
     @Override
-    public abstract IList<Object> getObjects(List<IObjRef> orisToGet, Set<CacheDirective> cacheDirective);
+    public abstract List<Object> getObjects(List<IObjRef> orisToGet, Set<CacheDirective> cacheDirective);
 
     @Override
-    public abstract IList<IObjRelationResult> getObjRelations(List<IObjRelation> objRels, Set<CacheDirective> cacheDirective);
+    public abstract List<IObjRelationResult> getObjRelations(List<IObjRelation> objRels, Set<CacheDirective> cacheDirective);
 
     protected void checkForCleanup() {
         if (!weakEntries) {

@@ -181,7 +181,7 @@ public class JdbcTransaction implements ILightweightTransaction, ITransaction, I
 
     protected void notifyRunnables(ArrayList<CheckedRunnable> runnables) {
         while (runnables != null && !runnables.isEmpty()) {
-            var preCommitRunnablesArray = runnables.toArray(CheckedRunnable.class);
+            var preCommitRunnablesArray = runnables.toArray(CheckedRunnable[]::new);
             runnables.clear();
             for (int a = preCommitRunnablesArray.length; a-- > 0; ) {
                 CheckedRunnable.invoke(preCommitRunnablesArray[a]);
@@ -536,12 +536,12 @@ public class JdbcTransaction implements ILightweightTransaction, ITransaction, I
     }
 
     @Override
-    public void runInTransaction(final CheckedRunnable runnable) {
+    public void runInTransaction(CheckedRunnable runnable) {
         processAndCommit(persistenceUnitToDatabaseMap -> runnable.run(), false, false, false);
     }
 
     @Override
-    public <R> R runInTransaction(final CheckedSupplier<R> runnable) {
+    public <R> R runInTransaction(CheckedSupplier<R> runnable) {
         return processAndCommitWithResult(persistenceUnitToDatabaseMap -> runnable.get(), false, false, false);
     }
 
@@ -551,7 +551,7 @@ public class JdbcTransaction implements ILightweightTransaction, ITransaction, I
     }
 
     @Override
-    public <R> R runInLazyTransaction(final CheckedSupplier<R> runnable) {
+    public <R> R runInLazyTransaction(CheckedSupplier<R> runnable) {
         return processAndCommitWithResult(persistenceUnitToDatabaseMap -> runnable.get(), false, false, true);
     }
 

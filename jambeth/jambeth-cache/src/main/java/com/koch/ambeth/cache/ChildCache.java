@@ -57,16 +57,14 @@ import com.koch.ambeth.util.ListUtil;
 import com.koch.ambeth.util.ParamHolder;
 import com.koch.ambeth.util.annotation.CascadeLoadMode;
 import com.koch.ambeth.util.collections.ArrayList;
-import com.koch.ambeth.util.collections.EmptyList;
 import com.koch.ambeth.util.collections.HashSet;
-import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.model.IDataObject;
+import com.koch.ambeth.util.state.IStateRollback;
 import com.koch.ambeth.util.state.StateRollback;
 
 import java.lang.reflect.Method;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -126,6 +124,30 @@ public class ChildCache extends AbstractCache<Object> implements ICacheIntern, I
         keyToAlternateIdsMap = new CacheHashMap(cacheMapEntryTypeProvider);
 
         gcProxy = garbageProxyFactory.createGarbageProxy(this, (IDisposable) null, ICacheIntern.class, ADDITIONAL_GC_PROXY_TYPES);
+
+        if (eventQueue == null) {
+            eventQueue = new IEventQueue() {
+                @Override
+                public IStateRollback enableEventQueue() {
+                    return StateRollback.empty();
+                }
+
+                @Override
+                public void flushEventQueue() {
+                    // intended blank
+                }
+
+                @Override
+                public IStateRollback pause(Object eventTarget) {
+                    return StateRollback.empty();
+                }
+
+                @Override
+                public boolean isDispatchingBatchedEvents() {
+                    return false;
+                }
+            };
+        }
     }
 
     @Property(name = CacheConfigurationConstants.FirstLevelCacheWeakActive, defaultValue = "true")
@@ -269,51 +291,42 @@ public class ChildCache extends AbstractCache<Object> implements ICacheIntern, I
     }
 
     @Override
-    public IList<Object> getObjects(List<IObjRef> orisToGet, Set<CacheDirective> cacheDirective) {
+    public List<Object> getObjects(List<IObjRef> orisToGet, Set<CacheDirective> cacheDirective) {
         return getObjects(orisToGet, this, cacheDirective);
     }
 
     @Override
-    public IList<Object> getObjects(List<IObjRef> orisToGet, ICacheIntern targetCache, Set<CacheDirective> cacheDirective) {
+    public List<Object> getObjects(List<IObjRef> orisToGet, ICacheIntern targetCache, Set<CacheDirective> cacheDirective) {
         checkNotDisposed();
         if (orisToGet == null || orisToGet.isEmpty()) {
-            return EmptyList.getInstance();
+            return List.of();
         }
         if (cacheDirective == null) {
-            cacheDirective = Collections.<CacheDirective>emptySet();
+            cacheDirective = Set.of();
         }
-        var eventQueue = this.eventQueue;
-        var rollback = StateRollback.empty();
-        if (eventQueue != null) {
-            rollback = eventQueue.pause(this);
-        }
+        var rollback = StateRollback.chain(chain -> {
+            chain.append(eventQueue.pause(this));
+            chain.append(cacheModification.pushActive());
+            chain.append(acquireHardRefTLIfNotAlready(orisToGet.size()));
+        });
         try {
-            var cacheModification = this.cacheModification;
-            var oldCacheModificationValue = cacheModification.isActive();
-            var acquireSuccess = acquireHardRefTLIfNotAlready(orisToGet.size());
-            cacheModification.setActive(true);
-            try {
-                if (cacheDirective.contains(CacheDirective.LoadContainerResult) || cacheDirective.contains(CacheDirective.CacheValueResult)) {
-                    return parent.getObjects(orisToGet, this, cacheDirective);
+            if (cacheDirective.contains(CacheDirective.LoadContainerResult) || cacheDirective.contains(CacheDirective.CacheValueResult)) {
+                return parent.getObjects(orisToGet, this, cacheDirective);
+            }
+            var doAnotherRetry = new ParamHolder<Boolean>();
+            while (true) {
+                doAnotherRetry.setValue(Boolean.FALSE);
+                var result = getObjectsRetry(orisToGet, cacheDirective, doAnotherRetry);
+                if (!Boolean.TRUE.equals(doAnotherRetry.getValue())) {
+                    return result;
                 }
-                var doAnotherRetry = new ParamHolder<Boolean>();
-                while (true) {
-                    doAnotherRetry.setValue(Boolean.FALSE);
-                    var result = getObjectsRetry(orisToGet, cacheDirective, doAnotherRetry);
-                    if (!Boolean.TRUE.equals(doAnotherRetry.getValue())) {
-                        return result;
-                    }
-                }
-            } finally {
-                cacheModification.setActive(oldCacheModificationValue);
-                clearHardRefs(acquireSuccess);
             }
         } finally {
             rollback.rollback();
         }
     }
 
-    protected IList<Object> getObjectsRetry(List<IObjRef> orisToGet, Set<CacheDirective> cacheDirective, IParamHolder<Boolean> doAnotherRetry) {
+    protected List<Object> getObjectsRetry(List<IObjRef> orisToGet, Set<CacheDirective> cacheDirective, IParamHolder<Boolean> doAnotherRetry) {
         var readLock = getReadLock();
         if (cacheDirective.contains(CacheDirective.FailEarly)) {
             readLock.lock();
@@ -395,7 +408,7 @@ public class ChildCache extends AbstractCache<Object> implements ICacheIntern, I
         }
     }
 
-    protected IList<Object> createResult(List<IObjRef> orisToGet, Set<CacheDirective> cacheDirective, boolean checkVersion) {
+    protected List<Object> createResult(List<IObjRef> orisToGet, Set<CacheDirective> cacheDirective, boolean checkVersion) {
         var result = new ArrayList<>(orisToGet.size());
 
         var returnMisses = cacheDirective.contains(CacheDirective.ReturnMisses);
@@ -426,12 +439,12 @@ public class ChildCache extends AbstractCache<Object> implements ICacheIntern, I
     }
 
     @Override
-    public IList<IObjRelationResult> getObjRelations(List<IObjRelation> objRels, Set<CacheDirective> cacheDirective) {
+    public List<IObjRelationResult> getObjRelations(List<IObjRelation> objRels, Set<CacheDirective> cacheDirective) {
         return getObjRelations(objRels, this, cacheDirective);
     }
 
     @Override
-    public IList<IObjRelationResult> getObjRelations(List<IObjRelation> objRels, ICacheIntern targetCache, Set<CacheDirective> cacheDirective) {
+    public List<IObjRelationResult> getObjRelations(List<IObjRelation> objRels, ICacheIntern targetCache, Set<CacheDirective> cacheDirective) {
         checkNotDisposed();
         var eventQueue = this.eventQueue;
         var rollback = StateRollback.empty();
@@ -439,10 +452,10 @@ public class ChildCache extends AbstractCache<Object> implements ICacheIntern, I
             rollback = eventQueue.pause(this);
         }
         try {
-            var cacheModification = this.cacheModification;
-            var oldCacheModificationValue = cacheModification.isActive();
-            var acquireSuccess = acquireHardRefTLIfNotAlready(objRels.size());
-            cacheModification.setActive(true);
+            var cacheModRollback = StateRollback.chain(chain -> {
+                chain.append(cacheModification.pushActive());
+                chain.append(acquireHardRefTLIfNotAlready(objRels.size()));
+            });
             try {
                 var rollback2 = StateRollback.empty();
                 if (securityActive && ((targetCache == null && isPrivileged()) || (targetCache != null && targetCache.isPrivileged())//
@@ -455,8 +468,7 @@ public class ChildCache extends AbstractCache<Object> implements ICacheIntern, I
                     rollback2.rollback();
                 }
             } finally {
-                cacheModification.setActive(oldCacheModificationValue);
-                clearHardRefs(acquireSuccess);
+                cacheModRollback.rollback();
             }
         } finally {
             rollback.rollback();

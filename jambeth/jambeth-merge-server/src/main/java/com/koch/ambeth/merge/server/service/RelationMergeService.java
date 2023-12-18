@@ -38,7 +38,6 @@ import com.koch.ambeth.merge.model.CreateOrUpdateContainerBuild;
 import com.koch.ambeth.merge.model.IChangeContainer;
 import com.koch.ambeth.merge.model.IDirectObjRef;
 import com.koch.ambeth.merge.model.IRelationUpdateItem;
-import com.koch.ambeth.merge.model.RelationUpdateItemBuild;
 import com.koch.ambeth.merge.server.change.ILinkChangeCommand;
 import com.koch.ambeth.merge.server.change.ITableChange;
 import com.koch.ambeth.merge.server.change.LinkChangeCommand;
@@ -56,30 +55,20 @@ import com.koch.ambeth.merge.util.OptimisticLockUtil;
 import com.koch.ambeth.persistence.IServiceUtil;
 import com.koch.ambeth.persistence.api.IDatabase;
 import com.koch.ambeth.persistence.api.IDirectedLink;
-import com.koch.ambeth.persistence.api.IDirectedLinkMetaData;
 import com.koch.ambeth.persistence.api.ITable;
 import com.koch.ambeth.query.IOperand;
 import com.koch.ambeth.query.IQuery;
-import com.koch.ambeth.query.IQueryBuilder;
 import com.koch.ambeth.query.IQueryBuilderFactory;
-import com.koch.ambeth.query.persistence.IDataCursor;
-import com.koch.ambeth.query.persistence.IDataItem;
-import com.koch.ambeth.query.persistence.IVersionCursor;
-import com.koch.ambeth.query.persistence.IVersionItem;
 import com.koch.ambeth.service.cache.ClearAllCachesEvent;
 import com.koch.ambeth.service.merge.IEntityMetaDataProvider;
 import com.koch.ambeth.service.merge.model.IEntityMetaData;
 import com.koch.ambeth.service.merge.model.IObjRef;
 import com.koch.ambeth.service.metadata.Member;
-import com.koch.ambeth.service.metadata.PrimitiveMember;
-import com.koch.ambeth.service.metadata.RelationMember;
 import com.koch.ambeth.util.IConversionHelper;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.EmptyList;
 import com.koch.ambeth.util.collections.HashMap;
-import com.koch.ambeth.util.collections.HashSet;
 import com.koch.ambeth.util.collections.ILinkedMap;
-import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.IMap;
 import com.koch.ambeth.util.collections.ISet;
 import com.koch.ambeth.util.collections.LinkedHashMap;
@@ -89,7 +78,6 @@ import com.koch.ambeth.util.objectcollector.IThreadLocalObjectCollector;
 import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
-import java.util.Map.Entry;
 import java.util.Set;
 
 public class RelationMergeService implements IRelationMergeService, IEventListener {
@@ -129,9 +117,9 @@ public class RelationMergeService implements IRelationMergeService, IEventListen
 
     @Override
     public ITableChange getTableChange(IMap<String, ITableChange> tableChangeMap, Object entityHandler, String entityHandlerName) {
-        ITableChange tableChange = tableChangeMap.get(entityHandlerName);
+        var tableChange = tableChangeMap.get(entityHandlerName);
         if (tableChange == null) {
-            Class<? extends ITableChange> tableChangeType = entityHandler != null ? TableChange.class : LinkTableChange.class;
+            var tableChangeType = entityHandler != null ? TableChange.class : LinkTableChange.class;
             tableChange = beanContext.registerBean(tableChangeType)//
                                      .propertyValue("EntityHandlerName", entityHandlerName)//
                                      .propertyValue("Table", entityHandler)//
@@ -146,32 +134,32 @@ public class RelationMergeService implements IRelationMergeService, IEventListen
         if (ruis == null) {
             return;
         }
-        IDatabase database = this.database.getCurrent();
-        IEntityMetaData parentMetaData = entityMetaDataProvider.getMetaData(parentType);
+        var database = this.database.getCurrent();
+        var parentMetaData = entityMetaDataProvider.getMetaData(parentType);
         for (int i = ruis.length; i-- > 0; ) {
-            IRelationUpdateItem rui = ruis[i];
+            var rui = ruis[i];
             if (rui == null) {
                 continue;
             }
-            Member relationMethod = parentMetaData.getMemberByName(rui.getMemberName());
-            Class<?> childType = relationMethod.getElementType();
+            var relationMethod = parentMetaData.getMemberByName(rui.getMemberName());
+            var childType = relationMethod.getElementType();
             if (!parentMetaData.isRelatingToThis(childType)) {
                 continue;
             }
 
             ITableChange tableChange = null;
 
-            IObjRef[] added = rui.getAddedORIs();
+            var added = rui.getAddedORIs();
             if (added != null && added.length > 0) {
-                ITable otherTable = database.getTableByType(added[0].getRealType());
+                var otherTable = database.getTableByType(added[0].getRealType());
                 tableChange = getTableChange(tableChangeMap, otherTable, otherTable.getMetaData().getName());
                 createUpdateNotifications(tableChange, Arrays.asList(added));
             }
 
-            IObjRef[] removed = rui.getRemovedORIs();
+            var removed = rui.getRemovedORIs();
             if (removed != null && removed.length > 0) {
                 if (tableChange == null) {
-                    ITable otherTable = database.getTableByType(removed[0].getRealType());
+                    var otherTable = database.getTableByType(removed[0].getRealType());
                     tableChange = getTableChange(tableChangeMap, otherTable, otherTable.getMetaData().getName());
                 }
                 createUpdateNotifications(tableChange, Arrays.asList(removed));
@@ -181,13 +169,13 @@ public class RelationMergeService implements IRelationMergeService, IEventListen
 
     @Override
     public void handleUpdateNotifications(ILinkChangeCommand changeCommand, IMap<String, ITableChange> tableChangeMap) {
-        IDirectedLink fromLink = changeCommand.getDirectedLink();
-        IDirectedLink toLink = fromLink.getReverseLink();
+        var fromLink = changeCommand.getDirectedLink();
+        var toLink = fromLink.getReverseLink();
 
-        RelationMember member = toLink.getMetaData().getMember();
+        var member = toLink.getMetaData().getMember();
         if (member != null) {
-            ITable table = toLink.getFromTable();
-            ITableChange tableChange = getTableChange(tableChangeMap, table, table.getMetaData().getName());
+            var table = toLink.getFromTable();
+            var tableChange = getTableChange(tableChangeMap, table, table.getMetaData().getName());
             createUpdateNotifications(tableChange, changeCommand.getRefsToLink());
             createUpdateNotifications(tableChange, changeCommand.getRefsToUnlink());
         }
@@ -195,67 +183,65 @@ public class RelationMergeService implements IRelationMergeService, IEventListen
 
     protected void createUpdateNotifications(ITableChange tableChange, List<IObjRef> references) {
         for (int i = references.size(); i-- > 0; ) {
-            IObjRef objRef = references.get(i);
+            var objRef = references.get(i);
             if (objRef instanceof IDirectObjRef) {
                 // newly created entities can not have an update at the same time implied by updates from
                 // foreign relations
                 continue;
             }
-            UpdateCommand command = new UpdateCommand(objRef);
+            var command = new UpdateCommand(objRef);
             tableChange.addChangeCommand(command);
         }
     }
 
     @Override
-    public IList<IChangeContainer> processCreateDependencies(IObjRef reference, ITable table, IRelationUpdateItem[] ruis, IMap<CheckForPreviousParentKey, IList<IObjRef>> previousParentToMovedOrisMap,
-            HashSet<IObjRef> allAddedORIs, IMap<IObjRef, IChangeContainer> objRefToChangeContainerMap, IRootCache rootCache) {
+    public List<IChangeContainer> processCreateDependencies(IObjRef reference, ITable table, IRelationUpdateItem[] ruis, IMap<CheckForPreviousParentKey, List<IObjRef>> previousParentToMovedOrisMap,
+            Set<IObjRef> allAddedORIs, IMap<IObjRef, IChangeContainer> objRefToChangeContainerMap, IRootCache rootCache) {
         return processInsertAndUpdateDependencies(reference, table, ruis, null, previousParentToMovedOrisMap, allAddedORIs, objRefToChangeContainerMap, rootCache);
     }
 
     @Override
-    public IList<IChangeContainer> processUpdateDependencies(IObjRef reference, ITable table, IRelationUpdateItem[] ruis, IMap<IObjRef, RootCacheValue> toDeleteMap,
-            IMap<CheckForPreviousParentKey, IList<IObjRef>> previousParentToMovedOrisMap, HashSet<IObjRef> allAddedORIs, IMap<IObjRef, IChangeContainer> objRefToChangeContainerMap,
-            IRootCache rootCache) {
-        List<IDirectedLink> links = table.getLinks();
+    public List<IChangeContainer> processUpdateDependencies(IObjRef reference, ITable table, IRelationUpdateItem[] ruis, IMap<IObjRef, RootCacheValue> toDeleteMap,
+            IMap<CheckForPreviousParentKey, List<IObjRef>> previousParentToMovedOrisMap, Set<IObjRef> allAddedORIs, IMap<IObjRef, IChangeContainer> objRefToChangeContainerMap, IRootCache rootCache) {
+        var links = table.getLinks();
         if (links.isEmpty() || ruis == null || ruis.length == 0) {
             return EmptyList.getInstance();
         }
         return processInsertAndUpdateDependencies(reference, table, ruis, toDeleteMap, previousParentToMovedOrisMap, allAddedORIs, objRefToChangeContainerMap, rootCache);
     }
 
-    protected IList<IChangeContainer> processInsertAndUpdateDependencies(IObjRef reference, ITable table, IRelationUpdateItem[] ruis, IMap<IObjRef, RootCacheValue> toDeleteMap,
-            IMap<CheckForPreviousParentKey, IList<IObjRef>> previousParentToMovedOrisMap, HashSet<IObjRef> allAddedORIs, IMap<IObjRef, IChangeContainer> objRefToChangeContainerMap,
-            IRootCache rootCache) {
+    protected List<IChangeContainer> processInsertAndUpdateDependencies(IObjRef reference, ITable table, IRelationUpdateItem[] ruis, IMap<IObjRef, RootCacheValue> toDeleteMap,
+            IMap<CheckForPreviousParentKey, List<IObjRef>> previousParentToMovedOrisMap, Set<IObjRef> allAddedORIs, IMap<IObjRef, IChangeContainer> objRefToChangeContainerMap, IRootCache rootCache) {
         if (ruis == null || ruis.length == 0) {
             return EmptyList.getInstance();
         }
-        ArrayList<IChangeContainer> changeContainers = new ArrayList<>();
+        var changeContainers = new ArrayList<IChangeContainer>();
 
-        IEntityMetaDataProvider entityMetaDataProvider = this.entityMetaDataProvider;
-        IEntityMetaData metaData = entityMetaDataProvider.getMetaData(reference.getRealType());
+        var entityMetaDataProvider = this.entityMetaDataProvider;
+        var metaData = entityMetaDataProvider.getMetaData(reference.getRealType());
         for (int a = ruis.length; a-- > 0; ) {
             IRelationUpdateItem rui = ruis[a];
             if (rui == null) {
                 continue;
             }
-            IDirectedLink link = table.getLinkByMemberName(rui.getMemberName());
+            var link = table.getLinkByMemberName(rui.getMemberName());
             if (link == null) {
                 throw new RuntimeException("No link found for member '" + rui.getMemberName() + "' on entity '" + table.getMetaData().getEntityType() + "'");
             }
-            IDirectedLinkMetaData linkMD = link.getMetaData();
+            var linkMD = link.getMetaData();
             if (!linkMD.isPersistingLink()) {
                 continue;
             }
-            IObjRef[] removedORIs = rui.getRemovedORIs();
-            IObjRef[] addedORIs = rui.getAddedORIs();
+            var removedORIs = rui.getRemovedORIs();
+            var addedORIs = rui.getAddedORIs();
             LinkContainer linkContainer = null;
             LinkChangeCommand command = null;
             if (removedORIs != null && removedORIs.length > 0) {
                 if (linkMD.isCascadeDelete()) {
-                    IList<Object> objectsToDelete = rootCache.getObjects(removedORIs, RelationMergeService.cacheValueAndReturnMissesSet);
+                    var objectsToDelete = rootCache.getObjects(removedORIs, RelationMergeService.cacheValueAndReturnMissesSet);
                     for (int b = objectsToDelete.size(); b-- > 0; ) {
-                        Object objectToDelete = objectsToDelete.get(b);
-                        IObjRef removedORI = removedORIs[b];
+                        var objectToDelete = objectsToDelete.get(b);
+                        var removedORI = removedORIs[b];
                         if (allAddedORIs.contains(removedORI)) {
                             // Entity was not orphaned but moved
                             continue;
@@ -263,11 +249,11 @@ public class RelationMergeService implements IRelationMergeService, IEventListen
                         if (objectToDelete == null) {
                             throw new IllegalStateException("Entity could not be retrieved: " + removedORI);
                         }
-                        IChangeContainer existingChangeContainer = objRefToChangeContainerMap.get(removedORI);
+                        var existingChangeContainer = objRefToChangeContainerMap.get(removedORI);
                         if (existingChangeContainer instanceof DeleteContainer) {
                             continue;
                         }
-                        DeleteContainer cascadeDeleteContainer = new DeleteContainer();
+                        var cascadeDeleteContainer = new DeleteContainer();
                         cascadeDeleteContainer.setReference(removedORI);
                         changeContainers.add(cascadeDeleteContainer);
 
@@ -286,7 +272,7 @@ public class RelationMergeService implements IRelationMergeService, IEventListen
             }
             if (addedORIs != null && addedORIs.length > 0) {
                 if (!linkMD.getReverseLink().isStandaloneLink()) {
-                    IList<IObjRef> movedOris = null;
+                    List<IObjRef> movedOris = null;
                     for (IObjRef addedObjRef : addedORIs) {
                         if (addedObjRef.getId() == null) {
                             // this is a newly created entity which will never have a "previous parent"
@@ -321,19 +307,19 @@ public class RelationMergeService implements IRelationMergeService, IEventListen
         return changeContainers;
     }
 
-    protected ILinkedMap<String, IList<Object>> buildPropertyNameToIdsMap(List<IObjRef> oris, Class<?> entityType) {
-        IEntityMetaData metaData = entityMetaDataProvider.getMetaData(entityType);
-        LinkedHashMap<String, IList<Object>> propertyNameToIdsMap = new LinkedHashMap<>();
+    protected ILinkedMap<String, List<Object>> buildPropertyNameToIdsMap(List<IObjRef> oris, Class<?> entityType) {
+        var metaData = entityMetaDataProvider.getMetaData(entityType);
+        var propertyNameToIdsMap = new LinkedHashMap<String, List<Object>>();
 
         // Check for all oris and map the ids to their corresponding member name
         for (int a = oris.size(); a-- > 0; ) {
-            IObjRef ori = oris.get(a);
-            Object id = ori.getId();
+            var ori = oris.get(a);
+            var id = ori.getId();
             if (id == null) {
                 continue;
             }
-            Member idMember = metaData.getIdMemberByIdIndex(ori.getIdNameIndex());
-            IList<Object> idsList = propertyNameToIdsMap.get(idMember.getName());
+            var idMember = metaData.getIdMemberByIdIndex(ori.getIdNameIndex());
+            var idsList = propertyNameToIdsMap.get(idMember.getName());
             if (idsList == null) {
                 idsList = new ArrayList<>();
                 propertyNameToIdsMap.put(idMember.getName(), idsList);
@@ -343,65 +329,65 @@ public class RelationMergeService implements IRelationMergeService, IEventListen
         return propertyNameToIdsMap;
     }
 
-    protected IQuery<?> buildParentChildQuery(IEntityMetaData metaData, String selectingMemberName, ILinkedMap<String, IList<Object>> childMemberNameToIdsMap,
+    protected IQuery<?> buildParentChildQuery(IEntityMetaData metaData, String selectingMemberName, ILinkedMap<String, List<Object>> childMemberNameToIdsMap,
             IMap<String, ChildMember> childMemberNameToDataIndexMap) {
         if (childMemberNameToIdsMap.isEmpty()) {
             throw new IllegalArgumentException("Illegal map");
         }
-        IList<String> childMemberNames = childMemberNameToIdsMap.keyList();
-        ParentChildQueryKey key = new ParentChildQueryKey(metaData.getEntityType(), selectingMemberName, childMemberNames.toArray(String.class));
-        QueryEntry queryEntry = keyToParentChildQuery.get(key);
+        var childMemberNames = childMemberNameToIdsMap.keyList();
+        var key = new ParentChildQueryKey(metaData.getEntityType(), selectingMemberName, childMemberNames.toArray(String[]::new));
+        var queryEntry = keyToParentChildQuery.get(key);
         if (queryEntry != null) {
             childMemberNameToDataIndexMap.putAll(queryEntry.map);
             return queryEntry.query;
         }
-        Member selectingMember = metaData.getMemberByName(selectingMemberName);
-        IEntityMetaData selectingMetaData = entityMetaDataProvider.getMetaData(selectingMember.getElementType());
-        IThreadLocalObjectCollector objectCollector = this.objectCollector.getCurrent();
-        IQueryBuilder<?> qb = queryBuilderFactory.create(metaData.getEntityType());
+        var selectingMember = metaData.getMemberByName(selectingMemberName);
+        var selectingMetaData = entityMetaDataProvider.getMetaData(selectingMember.getElementType());
+        var objectCollector = this.objectCollector.getCurrent();
+        var qb = queryBuilderFactory.create(metaData.getEntityType());
         IOperand operand = null;
-        StringBuilder sb = objectCollector.create(StringBuilder.class);
+        var sb = objectCollector.create(StringBuilder.class);
         try {
             // Build IS IN clauses for each referred member name
             for (int a = 0, size = childMemberNames.size(); a < size; a++) {
-                String childMemberName = childMemberNames.get(a);
+                var childMemberName = childMemberNames.get(a);
                 sb.setLength(0);
-                String propertyName = sb.append(selectingMemberName).append('.').append(childMemberName).toString();
-                IOperand prop = qb.property(propertyName);
-                int propIndex = qb.select(prop);
+                var propertyName = sb.append(selectingMemberName).append('.').append(childMemberName).toString();
+                var prop = qb.property(propertyName);
+                var propIndex = qb.select(prop);
                 childMemberNameToDataIndexMap.put(propertyName,
                         new ChildMember(propIndex, selectingMember, selectingMetaData.getMemberByName(childMemberName), selectingMetaData.getIdIndexByMemberName(childMemberName)));
-                IOperand inOperator = qb.let(prop).isIn(qb.valueName(propertyName));
+                var inOperator = qb.let(prop).isIn(qb.parameterValue(propertyName));
                 if (operand == null) {
                     operand = inOperator;
                 } else {
                     operand = qb.or(operand, inOperator);
                 }
             }
-            int propIndex = qb.selectProperty(metaData.getIdMember().getName());
+            var propIndex = qb.selectProperty(metaData.getIdMember().getName());
             childMemberNameToDataIndexMap.put(metaData.getIdMember().getName(), new ChildMember(propIndex, metaData.getIdMember(), null, ObjRef.UNDEFINED_KEY_INDEX));
-            PrimitiveMember versionMember = metaData.getVersionMember();
+            var versionMember = metaData.getVersionMember();
             if (versionMember != null) {
-                int versionPropIndex = qb.selectProperty(versionMember.getName());
+                var versionPropIndex = qb.selectProperty(versionMember.getName());
                 childMemberNameToDataIndexMap.put(versionMember.getName(), new ChildMember(versionPropIndex, versionMember, null, ObjRef.UNDEFINED_KEY_INDEX));
             }
         } finally {
             objectCollector.dispose(sb);
         }
-        IQuery<?> query = qb.build(operand);
+        var query = qb.build(operand);
         keyToParentChildQuery.put(key, new QueryEntry(query, new HashMap<>(childMemberNameToDataIndexMap)));
         return query;
     }
 
-    protected IQuery<?> parameterizeParentChildQuery(IQuery<?> query, String selectingMemberName, ILinkedMap<String, IList<Object>> childMemberNameToIdsMap) {
-        IThreadLocalObjectCollector objectCollector = this.objectCollector.getCurrent();
-        StringBuilder sb = objectCollector.create(StringBuilder.class);
+    protected IQuery<?> parameterizeParentChildQuery(IQuery<?> query, String selectingMemberName, ILinkedMap<String, List<Object>> childMemberNameToIdsMap) {
+        var objectCollector = this.objectCollector.getCurrent();
+        var sb = objectCollector.create(StringBuilder.class);
         try {
             // Parameterize query for each referred member name
-            for (Entry<String, IList<Object>> entry : childMemberNameToIdsMap) {
-                String childMemberName = entry.getKey();
+            for (var entry : childMemberNameToIdsMap) {
+                var childMemberName = entry.getKey();
                 sb.setLength(0);
-                String propertyName = sb.append(selectingMemberName).append('.').append(childMemberName).toString();
+                var propertyName = sb.append(selectingMemberName).append('.').append(childMemberName).toString();
                 query = query.param(propertyName, entry.getValue());
             }
             return query;
@@ -411,41 +397,41 @@ public class RelationMergeService implements IRelationMergeService, IEventListen
     }
 
     @Override
-    public IList<IChangeContainer> checkForPreviousParent(IList<IObjRef> oris, Class<?> entityType, String memberName, IMap<IObjRef, IChangeContainer> objRefToChangeContainerMap,
+    public List<IChangeContainer> checkForPreviousParent(List<IObjRef> oris, Class<?> entityType, String memberName, IMap<IObjRef, IChangeContainer> objRefToChangeContainerMap,
             IIncrementalMergeState incrementalState) {
-        IEntityMetaDataProvider entityMetaDataProvider = this.entityMetaDataProvider;
-        IEntityMetaData metaData = entityMetaDataProvider.getMetaData(entityType);
-        Member member = metaData.getMemberByName(memberName);
+        var entityMetaDataProvider = this.entityMetaDataProvider;
+        var metaData = entityMetaDataProvider.getMetaData(entityType);
+        var member = metaData.getMemberByName(memberName);
 
-        HashMap<String, ChildMember> childMemberNameToDataIndexMap = new HashMap<>();
+        var childMemberNameToDataIndexMap = new HashMap<String, ChildMember>();
 
-        ArrayList<AbstractChangeContainer> relevantChangeContainers = new ArrayList<>();
+        var relevantChangeContainers = new ArrayList<AbstractChangeContainer>();
 
-        ILinkedMap<String, IList<Object>> childMemberNameToIdsMap = buildPropertyNameToIdsMap(oris, member.getElementType());
-        IQuery<?> query = buildParentChildQuery(metaData, memberName, childMemberNameToIdsMap, childMemberNameToDataIndexMap);
+        var childMemberNameToIdsMap = buildPropertyNameToIdsMap(oris, member.getElementType());
+        var query = buildParentChildQuery(metaData, memberName, childMemberNameToIdsMap, childMemberNameToDataIndexMap);
         query = parameterizeParentChildQuery(query, memberName, childMemberNameToIdsMap);
 
-        IList<IChangeContainer> changeContainers = null;
-        IDataCursor cursor = query.retrieveAsData();
+        List<IChangeContainer> changeContainers = null;
+        var cursor = query.retrieveAsData();
         try {
-            int primaryIdIndex = childMemberNameToDataIndexMap.get(metaData.getIdMember().getName()).dataIndex;
-            int versionIndex = metaData.getVersionMember() != null ? childMemberNameToDataIndexMap.get(metaData.getVersionMember().getName()).dataIndex : -1;
+            var primaryIdIndex = childMemberNameToDataIndexMap.get(metaData.getIdMember().getName()).dataIndex;
+            var versionIndex = metaData.getVersionMember() != null ? childMemberNameToDataIndexMap.get(metaData.getVersionMember().getName()).dataIndex : -1;
 
-            IPreparedObjRefFactory preparedObjRefFactory = objRefFactory.prepareObjRefFactory(metaData.getEntityType(), ObjRef.PRIMARY_KEY_INDEX);
-            for (IDataItem item : cursor) {
-                Object id = item.getValue(primaryIdIndex);
-                Object version = versionIndex >= 0 ? item.getValue(versionIndex) : null;
+            var preparedObjRefFactory = objRefFactory.prepareObjRefFactory(metaData.getEntityType(), ObjRef.PRIMARY_KEY_INDEX);
+            for (var item : cursor) {
+                var id = item.getValue(primaryIdIndex);
+                var version = versionIndex >= 0 ? item.getValue(versionIndex) : null;
 
-                IObjRef objRef = preparedObjRefFactory.createObjRef(id, version);
+                var objRef = preparedObjRefFactory.createObjRef(id, version);
 
-                IChangeContainer changeContainer = objRefToChangeContainerMap.get(objRef);
+                var changeContainer = objRefToChangeContainerMap.get(objRef);
                 if (changeContainer != null) {
                     // DELETE: we have nothing to do
                     // UPDATE: our operation is redundant
                     // CREATE: can never occur because we just selected the key from the persistence layer
                     continue;
                 }
-                AbstractChangeContainer updateContainer = incrementalState != null ? incrementalState.newUpdateContainer(objRef.getRealType()) : new UpdateContainer();
+                var updateContainer = incrementalState != null ? incrementalState.newUpdateContainer(objRef.getRealType()) : new UpdateContainer();
                 updateContainer.setReference(objRef);
                 if (changeContainers == null) {
                     changeContainers = new ArrayList<>();
@@ -463,35 +449,34 @@ public class RelationMergeService implements IRelationMergeService, IEventListen
     }
 
     @Override
-    public IList<IChangeContainer> processDeleteDependencies(IObjRef reference, ITable table, IMap<IObjRef, RootCacheValue> toDeleteMap,
-            IMap<OutgoingRelationKey, IList<IObjRef>> outgoingRelationToReferenceMap, IMap<IncomingRelationKey, IList<IObjRef>> incomingRelationToReferenceMap,
-            IMap<CheckForPreviousParentKey, IList<IObjRef>> previousParentToMovedOrisMap, HashSet<IObjRef> allAddedORIs, IMap<IObjRef, IChangeContainer> objRefToChangeContainerMap,
-            IRootCache rootCache) {
-        List<IDirectedLink> links = table.getLinks();
+    public List<IChangeContainer> processDeleteDependencies(IObjRef reference, ITable table, IMap<IObjRef, RootCacheValue> toDeleteMap,
+            IMap<OutgoingRelationKey, List<IObjRef>> outgoingRelationToReferenceMap, IMap<IncomingRelationKey, List<IObjRef>> incomingRelationToReferenceMap,
+            IMap<CheckForPreviousParentKey, List<IObjRef>> previousParentToMovedOrisMap, Set<IObjRef> allAddedORIs, IMap<IObjRef, IChangeContainer> objRefToChangeContainerMap, IRootCache rootCache) {
+        var links = table.getLinks();
         if (links.isEmpty()) {
             return EmptyList.getInstance();
         }
-        ArrayList<IChangeContainer> changeContainers = new ArrayList<>();
+        var changeContainers = new ArrayList<IChangeContainer>();
         for (int i = links.size(); i-- > 0; ) {
-            IDirectedLink link = links.get(i);
-            IDirectedLinkMetaData linkMD = link.getMetaData();
-            IDirectedLinkMetaData reverseLinkMD = link.getReverseLink().getMetaData();
+            var link = links.get(i);
+            var linkMD = link.getMetaData();
+            var reverseLinkMD = link.getReverseLink().getMetaData();
 
             boolean incomingHandled = false;
             if (reverseLinkMD.getMember() != null) {
-                RelationMember member = reverseLinkMD.getMember();
-                Class<?> entityType = reverseLinkMD.getFromTable().getEntityType();
+                var member = reverseLinkMD.getMember();
+                var entityType = reverseLinkMD.getFromTable().getEntityType();
                 {
-                    CheckForPreviousParentKey key = new CheckForPreviousParentKey(entityType, member.getName());
-                    IList<IObjRef> movedOris = previousParentToMovedOrisMap.get(key);
+                    var key = new CheckForPreviousParentKey(entityType, member.getName());
+                    var movedOris = previousParentToMovedOrisMap.get(key);
                     if (movedOris == null) {
                         movedOris = new ArrayList<>();
                         previousParentToMovedOrisMap.put(key, movedOris);
                     }
                     movedOris.add(reference);
                 }
-                IncomingRelationKey key = new IncomingRelationKey(reference.getIdNameIndex(), table, link);
-                IList<IObjRef> movedOris = incomingRelationToReferenceMap.get(key);
+                var key = new IncomingRelationKey(reference.getIdNameIndex(), table, link);
+                var movedOris = incomingRelationToReferenceMap.get(key);
                 if (movedOris == null) {
                     movedOris = new ArrayList<>();
                     incomingRelationToReferenceMap.put(key, movedOris);
@@ -500,8 +485,8 @@ public class RelationMergeService implements IRelationMergeService, IEventListen
                 incomingHandled = true;
             }
 
-            boolean cascadeDelete = linkMD.isCascadeDelete();
-            boolean selfRelation = link.getToTable().equals(table);
+            var cascadeDelete = linkMD.isCascadeDelete();
+            var selfRelation = link.getToTable().equals(table);
             boolean removeRelations;
             if (selfRelation) {
                 removeRelations = true;
@@ -515,8 +500,8 @@ public class RelationMergeService implements IRelationMergeService, IEventListen
             }
 
             if (linkMD.getMember() != null) {
-                OutgoingRelationKey key = new OutgoingRelationKey(reference.getIdNameIndex(), table, link);
-                IList<IObjRef> movedOris = outgoingRelationToReferenceMap.get(key);
+                var key = new OutgoingRelationKey(reference.getIdNameIndex(), table, link);
+                var movedOris = outgoingRelationToReferenceMap.get(key);
                 if (movedOris == null) {
                     movedOris = new ArrayList<>();
                     outgoingRelationToReferenceMap.put(key, movedOris);
@@ -534,8 +519,8 @@ public class RelationMergeService implements IRelationMergeService, IEventListen
                 becauseOfSelfRelation = Boolean.TRUE;
             }
             if (becauseOfSelfRelation != null) {
-                IncomingRelationKey key = new IncomingRelationKey(reference.getIdNameIndex(), table, link);
-                IList<IObjRef> movedOris = incomingRelationToReferenceMap.get(key);
+                var key = new IncomingRelationKey(reference.getIdNameIndex(), table, link);
+                var movedOris = incomingRelationToReferenceMap.get(key);
                 if (movedOris == null) {
                     movedOris = new ArrayList<>();
                     incomingRelationToReferenceMap.put(key, movedOris);
@@ -546,40 +531,40 @@ public class RelationMergeService implements IRelationMergeService, IEventListen
         return changeContainers;
     }
 
-    protected IList<IChangeContainer> handleOutgoingRelation(IList<IObjRef> references, byte idIndex2, IDirectedLink link, boolean cascadeDelete, boolean removeRelations,
+    protected List<IChangeContainer> handleOutgoingRelation(List<IObjRef> references, byte idIndex2, IDirectedLink link, boolean cascadeDelete, boolean removeRelations,
             IMap<IObjRef, RootCacheValue> toDeleteMap, ISet<EntityLinkKey> alreadyHandled, ISet<RootCacheValue> alreadyPrefetched, IMap<IObjRef, IChangeContainer> objRefToChangeContainerMap,
             IRootCache rootCache) {
-        IObjRefFactory objRefFactory = this.objRefFactory;
-        IDirectedLinkMetaData linkMD = link.getMetaData();
+        var objRefFactory = this.objRefFactory;
+        var linkMD = link.getMetaData();
 
-        IEntityMetaData metadata = entityMetaDataProvider.getMetaData(references.get(0).getRealType());
-        RelationMember member = linkMD.getMember();
-        int relationIndex = metadata.getIndexByRelation(member);
+        var metadata = entityMetaDataProvider.getMetaData(references.get(0).getRealType());
+        var member = linkMD.getMember();
+        var relationIndex = metadata.getIndexByRelation(member);
 
-        ArrayList<IChangeContainer> changeContainers = new ArrayList<>();
+        var changeContainers = new ArrayList<IChangeContainer>();
 
         removeRelations &= linkMD.isNullable();
 
-        byte idIndex = linkMD.getFromIdIndex();
+        var idIndex = linkMD.getFromIdIndex();
 
-        for (IObjRef reference : references) {
-            RootCacheValue entity = toDeleteMap.get(reference);
-            IObjRef[] relatedObjRefs = entity.get__ObjRefs(relationIndex);
+        for (var reference : references) {
+            var entity = toDeleteMap.get(reference);
+            var relatedObjRefs = entity.get__ObjRefs(relationIndex);
 
             if (relatedObjRefs.length == 0) {
                 continue;
             }
-            IObjRef[] relatedObjRefsWithVersion = new IObjRef[relatedObjRefs.length];
-            IList<Object> relatedEntities = rootCache.getObjects(relatedObjRefs, cacheValueAndReturnMissesSet);
+            var relatedObjRefsWithVersion = new IObjRef[relatedObjRefs.length];
+            var relatedEntities = rootCache.getObjects(relatedObjRefs, cacheValueAndReturnMissesSet);
 
             if (cascadeDelete) {
                 for (int j = relatedObjRefs.length; j-- > 0; ) {
-                    RootCacheValue relatedEntity = (RootCacheValue) relatedEntities.get(j);
+                    var relatedEntity = (RootCacheValue) relatedEntities.get(j);
                     if (relatedEntity == null) {
                         throw OptimisticLockUtil.throwDeleted(relatedObjRefs[j]);
                     }
-                    IObjRef primaryObjRef = objRefFactory.createObjRef(relatedEntity, ObjRef.PRIMARY_KEY_INDEX);
-                    IObjRef objRef = idIndex != ObjRef.PRIMARY_KEY_INDEX ? objRefFactory.createObjRef(relatedEntity, idIndex) : primaryObjRef;
+                    var primaryObjRef = objRefFactory.createObjRef(relatedEntity, ObjRef.PRIMARY_KEY_INDEX);
+                    var objRef = idIndex != ObjRef.PRIMARY_KEY_INDEX ? objRefFactory.createObjRef(relatedEntity, idIndex) : primaryObjRef;
                     relatedObjRefsWithVersion[j] = objRef; // use the alternate id objref matching to the link
                     if (!toDeleteMap.putIfNotExists(primaryObjRef, relatedEntity) || (primaryObjRef != objRef && !toDeleteMap.putIfNotExists(objRef, relatedEntity))) {
                         continue;
@@ -588,24 +573,24 @@ public class RelationMergeService implements IRelationMergeService, IEventListen
                         // nothing to do
                         continue;
                     }
-                    DeleteContainer container = new DeleteContainer();
+                    var container = new DeleteContainer();
                     container.setReference(objRef);
                     changeContainers.add(container);
                     objRefToChangeContainerMap.put(container.getReference(), container);
                 }
             } else {
                 for (int j = relatedObjRefs.length; j-- > 0; ) {
-                    AbstractCacheValue relatedEntity = (AbstractCacheValue) relatedEntities.get(j);
+                    var relatedEntity = (AbstractCacheValue) relatedEntities.get(j);
                     if (relatedEntity == null) {
                         throw OptimisticLockUtil.throwDeleted(relatedObjRefs[j]);
                     }
-                    IObjRef objRef = objRefFactory.createObjRef(relatedEntity, idIndex);
+                    var objRef = objRefFactory.createObjRef(relatedEntity, idIndex);
                     relatedObjRefsWithVersion[j] = objRef; // use the alternate id objref matching to the link
                 }
             }
             if (removeRelations) {
-                IObjRef correctIndexReference = oriHelper.entityToObjRef(entity, idIndex);
-                List<IObjRef> fromOris = Arrays.asList(correctIndexReference);
+                var correctIndexReference = oriHelper.entityToObjRef(entity, idIndex);
+                var fromOris = Arrays.asList(correctIndexReference);
                 addLinkChangeContainer(changeContainers, link, fromOris, new ArrayList<IObjRef>(relatedObjRefsWithVersion));
             }
         }
@@ -614,11 +599,11 @@ public class RelationMergeService implements IRelationMergeService, IEventListen
     }
 
     @Override
-    public IList<IChangeContainer> handleOutgoingRelation(IList<IObjRef> references, byte idIndex, ITable table, IDirectedLink link, IMap<IObjRef, RootCacheValue> toDeleteMap,
+    public List<IChangeContainer> handleOutgoingRelation(List<IObjRef> references, byte idIndex, ITable table, IDirectedLink link, IMap<IObjRef, RootCacheValue> toDeleteMap,
             ISet<EntityLinkKey> alreadyHandled, ISet<RootCacheValue> alreadyPrefetched, IMap<IObjRef, IChangeContainer> objRefToChangeContainerMap, IRootCache rootCache) {
-        IDirectedLinkMetaData linkMD = link.getMetaData();
-        boolean cascadeDelete = linkMD.isCascadeDelete();
-        boolean selfRelation = link.getToTable().equals(table);
+        var linkMD = link.getMetaData();
+        var cascadeDelete = linkMD.isCascadeDelete();
+        var selfRelation = link.getToTable().equals(table);
         boolean removeRelations;
         if (selfRelation) {
             removeRelations = true;
@@ -634,11 +619,11 @@ public class RelationMergeService implements IRelationMergeService, IEventListen
     }
 
     @Override
-    public IList<IChangeContainer> handleIncomingRelation(IList<IObjRef> references, byte idIndex, ITable table, IDirectedLink link, IMap<IObjRef, RootCacheValue> toDeleteMap,
+    public List<IChangeContainer> handleIncomingRelation(List<IObjRef> references, byte idIndex, ITable table, IDirectedLink link, IMap<IObjRef, RootCacheValue> toDeleteMap,
             IMap<IObjRef, IChangeContainer> objRefToChangeContainerMap, IRootCache rootCache, IIncrementalMergeState incrementalState) {
-        IDirectedLinkMetaData linkMD = link.getMetaData();
-        boolean cascadeDelete = linkMD.isCascadeDelete();
-        boolean selfRelation = link.getToTable().equals(table);
+        var linkMD = link.getMetaData();
+        var cascadeDelete = linkMD.isCascadeDelete();
+        var selfRelation = link.getToTable().equals(table);
         boolean removeRelations;
         if (selfRelation) {
             removeRelations = true;
@@ -660,47 +645,47 @@ public class RelationMergeService implements IRelationMergeService, IEventListen
         return handleIncomingRelation(references, idIndex, table, link, cascadeDelete, removeRelations, becauseOfSelfRelation, toDeleteMap, objRefToChangeContainerMap, rootCache, incrementalState);
     }
 
-    protected IList<IChangeContainer> handleIncomingRelation(IList<IObjRef> references, byte srcIdIndex, ITable table, IDirectedLink link, boolean cascadeDelete, boolean removeRelations,
+    protected List<IChangeContainer> handleIncomingRelation(List<IObjRef> references, byte srcIdIndex, ITable table, IDirectedLink link, boolean cascadeDelete, boolean removeRelations,
             boolean becauseOfSelfRelation, IMap<IObjRef, RootCacheValue> toDeleteMap, IMap<IObjRef, IChangeContainer> objRefToChangeContainerMap, IRootCache rootCache,
             IIncrementalMergeState incrementalState) {
-        IDirectedLinkMetaData linkMD = link.getMetaData();
-        IEntityMetaDataProvider entityMetaDataProvider = this.entityMetaDataProvider;
-        IObjRefHelper oriHelper = this.oriHelper;
-        IEntityMetaData relatedMetaData = entityMetaDataProvider.getMetaData(link.getToTable().getMetaData().getEntityType());
-        Class<?> relatedType = relatedMetaData.getEntityType();
-        Member member = becauseOfSelfRelation ? linkMD.getMember() : linkMD.getReverseLink().getMember();
+        var linkMD = link.getMetaData();
+        var entityMetaDataProvider = this.entityMetaDataProvider;
+        var oriHelper = this.oriHelper;
+        var relatedMetaData = entityMetaDataProvider.getMetaData(link.getToTable().getMetaData().getEntityType());
+        var relatedType = relatedMetaData.getEntityType();
+        var member = becauseOfSelfRelation ? linkMD.getMember() : linkMD.getReverseLink().getMember();
         removeRelations &= becauseOfSelfRelation ? linkMD.isNullable() : linkMD.getReverseLink().isNullable();
 
-        HashMap<String, ChildMember> childMemberNameToDataIndexMap = new HashMap<>();
+        var childMemberNameToDataIndexMap = new HashMap<String, ChildMember>();
 
-        ILinkedMap<String, IList<Object>> childMemberNameToIdsMap = buildPropertyNameToIdsMap(references, member.getElementType());
-        IQuery<?> query = buildParentChildQuery(relatedMetaData, member.getName(), childMemberNameToIdsMap, childMemberNameToDataIndexMap);
+        var childMemberNameToIdsMap = buildPropertyNameToIdsMap(references, member.getElementType());
+        var query = buildParentChildQuery(relatedMetaData, member.getName(), childMemberNameToIdsMap, childMemberNameToDataIndexMap);
         query = parameterizeParentChildQuery(query, member.getName(), childMemberNameToIdsMap);
 
-        ArrayList<IObjRef> relatingRefs = new ArrayList<>();
+        var relatingRefs = new ArrayList<IObjRef>();
 
-        ArrayList<IChangeContainer> changeContainers = new ArrayList<>();
+        var changeContainers = new ArrayList<IChangeContainer>();
 
         if (cascadeDelete) {
-            ArrayList<IObjRef> criteriaObjRefs = new ArrayList<>();
-            IList<RootCacheValue> relatingEntities = retrieveCacheValues(query, relatedMetaData, childMemberNameToDataIndexMap, criteriaObjRefs, rootCache);
-            byte idIndex = becauseOfSelfRelation ? linkMD.getToField().getIdIndex() : linkMD.getReverseLink().getToField().getIdIndex();
+            var criteriaObjRefs = new ArrayList<IObjRef>();
+            var relatingEntities = retrieveCacheValues(query, relatedMetaData, childMemberNameToDataIndexMap, criteriaObjRefs, rootCache);
+            var idIndex = becauseOfSelfRelation ? linkMD.getToField().getIdIndex() : linkMD.getReverseLink().getToField().getIdIndex();
             for (int j = 0; j < relatingEntities.size(); j++) {
-                RootCacheValue relatingEntity = relatingEntities.get(j);
-                IObjRef criteriaObjRef = criteriaObjRefs.get(j);
+                var relatingEntity = relatingEntities.get(j);
+                var criteriaObjRef = criteriaObjRefs.get(j);
 
-                final IObjRef primaryObjRef = oriHelper.entityToObjRef(relatingEntity, idIndex, relatedMetaData);
-                IObjRef relatingRef = idIndex != ObjRef.PRIMARY_KEY_INDEX ? oriHelper.entityToObjRef(relatingEntity, idIndex, relatedMetaData) : primaryObjRef;
+                var primaryObjRef = oriHelper.entityToObjRef(relatingEntity, idIndex, relatedMetaData);
+                var relatingRef = idIndex != ObjRef.PRIMARY_KEY_INDEX ? oriHelper.entityToObjRef(relatingEntity, idIndex, relatedMetaData) : primaryObjRef;
                 relatingRefs.add(relatingRef);
 
                 if (linkMD.getReverseLink().getMember() != null) {
-                    IChangeContainer changeContainer = objRefToChangeContainerMap.get(criteriaObjRef);
+                    var changeContainer = objRefToChangeContainerMap.get(criteriaObjRef);
                     if (changeContainer == null) {
                         throw new IllegalStateException("Must never happen");
                     }
                     if (changeContainer instanceof CreateOrUpdateContainerBuild) {
-                        CreateOrUpdateContainerBuild createOrUpdate = (CreateOrUpdateContainerBuild) changeContainer;
-                        RelationUpdateItemBuild criteriaRui = createOrUpdate.ensureRelation(linkMD.getReverseLink().getMember().getName());
+                        var createOrUpdate = (CreateOrUpdateContainerBuild) changeContainer;
+                        var criteriaRui = createOrUpdate.ensureRelation(linkMD.getReverseLink().getMember().getName());
                         criteriaRui.removeObjRef(primaryObjRef);
                     }
                 }
@@ -712,27 +697,27 @@ public class RelationMergeService implements IRelationMergeService, IEventListen
                     // nothing to do
                     continue;
                 }
-                DeleteContainer container = new DeleteContainer();
+                var container = new DeleteContainer();
                 container.setReference(primaryObjRef);
                 changeContainers.add(container);
                 objRefToChangeContainerMap.put(container.getReference(), container);
             }
         } else {
-            IVersionCursor cursor = query.retrieveAsVersions(false);
+            var cursor = query.retrieveAsVersions(false);
             try {
-                IPreparedObjRefFactory preparedObjRefFactory = objRefFactory.prepareObjRefFactory(relatedType, ObjRef.PRIMARY_KEY_INDEX);
-                for (IVersionItem versionItem : cursor) {
-                    IObjRef objRef = preparedObjRefFactory.createObjRef(versionItem.getId(), versionItem.getVersion());
+                var preparedObjRefFactory = objRefFactory.prepareObjRefFactory(relatedType, ObjRef.PRIMARY_KEY_INDEX);
+                for (var versionItem : cursor) {
+                    var objRef = preparedObjRefFactory.createObjRef(versionItem.getId(), versionItem.getVersion());
                     relatingRefs.add(objRef);
 
-                    IChangeContainer changeContainer = objRefToChangeContainerMap.get(objRef);
+                    var changeContainer = objRefToChangeContainerMap.get(objRef);
                     if (changeContainer != null) {
                         // DELETE: we have nothing to do
                         // UPDATE: our operation is redundant
                         // CREATE: can never occur because we just selected the key from the persistence layer
                         continue;
                     }
-                    AbstractChangeContainer updateContainer = incrementalState != null ? incrementalState.newUpdateContainer(objRef.getRealType()) : new UpdateContainer();
+                    var updateContainer = incrementalState != null ? incrementalState.newUpdateContainer(objRef.getRealType()) : new UpdateContainer();
                     updateContainer.setReference(objRef);
                     changeContainers.add(updateContainer);
                     objRefToChangeContainerMap.put(updateContainer.getReference(), updateContainer);
@@ -743,28 +728,28 @@ public class RelationMergeService implements IRelationMergeService, IEventListen
         }
 
         if (!relatingRefs.isEmpty()) {
-            IDirectedLink directedLink = becauseOfSelfRelation ? link : link.getReverseLink();
+            var directedLink = becauseOfSelfRelation ? link : link.getReverseLink();
             addLinkChangeContainer(changeContainers, directedLink, relatingRefs, references);
         }
         return changeContainers;
     }
 
     @SuppressWarnings({ "rawtypes", "unchecked" })
-    protected IList<RootCacheValue> retrieveCacheValues(IQuery<?> query, IEntityMetaData metaData, HashMap<String, ChildMember> childMemberNameToDataIndexMap, IList<IObjRef> criteriaObjRefs,
+    protected List<RootCacheValue> retrieveCacheValues(IQuery<?> query, IEntityMetaData metaData, HashMap<String, ChildMember> childMemberNameToDataIndexMap, List<IObjRef> criteriaObjRefs,
             IRootCache rootCache) {
-        ArrayList<IObjRef> objRefs = new ArrayList<>();
+        var objRefs = new ArrayList<IObjRef>();
 
-        IDataCursor cursor = query.retrieveAsData();
+        var cursor = query.retrieveAsData();
         try {
-            int primaryIdIndex = childMemberNameToDataIndexMap.get(metaData.getIdMember().getName()).dataIndex;
-            int versionIndex = metaData.getVersionMember() != null ? childMemberNameToDataIndexMap.get(metaData.getVersionMember().getName()).dataIndex : -1;
+            var primaryIdIndex = childMemberNameToDataIndexMap.get(metaData.getIdMember().getName()).dataIndex;
+            var versionIndex = metaData.getVersionMember() != null ? childMemberNameToDataIndexMap.get(metaData.getVersionMember().getName()).dataIndex : -1;
 
-            int[] dataIndices = new int[childMemberNameToDataIndexMap.size() - (versionIndex != -1 ? 2 : 1)];
-            IPreparedObjRefFactory[] dataIndexObjectRefFactories = new IPreparedObjRefFactory[dataIndices.length];
-            int count = 0;
-            for (Entry<String, ChildMember> entry : childMemberNameToDataIndexMap) {
-                ChildMember childMember = entry.getValue();
-                int dataIndex = childMember.dataIndex;
+            var dataIndices = new int[childMemberNameToDataIndexMap.size() - (versionIndex != -1 ? 2 : 1)];
+            var dataIndexObjectRefFactories = new IPreparedObjRefFactory[dataIndices.length];
+            var count = 0;
+            for (var entry : childMemberNameToDataIndexMap) {
+                var childMember = entry.getValue();
+                var dataIndex = childMember.dataIndex;
                 if (dataIndex == primaryIdIndex || dataIndex == versionIndex) {
                     continue;
                 }
@@ -772,18 +757,18 @@ public class RelationMergeService implements IRelationMergeService, IEventListen
                 dataIndexObjectRefFactories[count] = objRefFactory.prepareObjRefFactory(childMember.member.getElementType(), childMember.idIndex);
                 count++;
             }
-            IPreparedObjRefFactory preparedObjRefFactory = objRefFactory.prepareObjRefFactory(metaData.getEntityType(), ObjRef.PRIMARY_KEY_INDEX);
-            for (IDataItem item : cursor) {
-                Object id = item.getValue(primaryIdIndex);
-                Object version = versionIndex >= 0 ? item.getValue(versionIndex) : null;
+            var preparedObjRefFactory = objRefFactory.prepareObjRefFactory(metaData.getEntityType(), ObjRef.PRIMARY_KEY_INDEX);
+            for (var item : cursor) {
+                var id = item.getValue(primaryIdIndex);
+                var version = versionIndex >= 0 ? item.getValue(versionIndex) : null;
 
-                IObjRef objRef = preparedObjRefFactory.createObjRef(id, version);
+                var objRef = preparedObjRefFactory.createObjRef(id, version);
                 objRefs.add(objRef);
 
-                for (int dataIndex : dataIndices) {
-                    Object criteriaId = item.getValue(dataIndex);
+                for (var dataIndex : dataIndices) {
+                    var criteriaId = item.getValue(dataIndex);
                     if (criteriaId != null) {
-                        IObjRef criteriaObjRef = dataIndexObjectRefFactories[dataIndex].createObjRef(criteriaId, null);
+                        var criteriaObjRef = dataIndexObjectRefFactories[dataIndex].createObjRef(criteriaId, null);
                         criteriaObjRefs.add(criteriaObjRef);
                         break;
                     }
@@ -792,24 +777,23 @@ public class RelationMergeService implements IRelationMergeService, IEventListen
         } finally {
             cursor.dispose();
         }
-        IList<RootCacheValue> result = (IList) rootCache.getObjects(objRefs, cacheValueAndReturnMissesSet);
-
+        var result = (List) rootCache.getObjects(objRefs, cacheValueAndReturnMissesSet);
         return result;
     }
 
-    protected void addLinkChangeContainer(IList<IChangeContainer> changeContainers, IDirectedLink link, List<IObjRef> fromOris, List<IObjRef> toOris) {
-        IDirectedLink directedLink = link.getLink().getDirectedLink();
+    protected void addLinkChangeContainer(List<IChangeContainer> changeContainers, IDirectedLink link, List<IObjRef> fromOris, List<IObjRef> toOris) {
+        var directedLink = link.getLink().getDirectedLink();
         if (!directedLink.equals(link)) {
-            List<IObjRef> temp = fromOris;
+            var temp = fromOris;
             fromOris = toOris;
             toOris = temp;
         }
 
         for (int i = fromOris.size(); i-- > 0; ) {
-            IObjRef fromOri = fromOris.get(i);
-            LinkChangeCommand command = new LinkChangeCommand(fromOri, directedLink);
+            var fromOri = fromOris.get(i);
+            var command = new LinkChangeCommand(fromOri, directedLink);
             command.addRefsToUnlink(toOris);
-            LinkContainer linkContainer = new LinkContainer();
+            var linkContainer = new LinkContainer();
             linkContainer.setReference(fromOri);
             linkContainer.setCommand(command);
             changeContainers.add(linkContainer);
@@ -817,19 +801,19 @@ public class RelationMergeService implements IRelationMergeService, IEventListen
     }
 
     @Override
-    public void checkForCorrectIdIndex(ILinkChangeCommand changeCommand, IMap<Byte, IList<IObjRef>> toChange) {
-        byte idIndex = changeCommand.getDirectedLink().getMetaData().getToIdIndex();
+    public void checkForCorrectIdIndex(ILinkChangeCommand changeCommand, IMap<Byte, List<IObjRef>> toChange) {
+        var idIndex = changeCommand.getDirectedLink().getMetaData().getToIdIndex();
         checkForCorrectIdIndex(changeCommand.getRefsToLink(), idIndex, toChange);
         checkForCorrectIdIndex(changeCommand.getRefsToUnlink(), idIndex, toChange);
     }
 
-    protected void checkForCorrectIdIndex(List<IObjRef> objRefs, byte idIndex, IMap<Byte, IList<IObjRef>> toChange) {
+    protected void checkForCorrectIdIndex(List<IObjRef> objRefs, byte idIndex, IMap<Byte, List<IObjRef>> toChange) {
         if (objRefs.isEmpty()) {
             return;
         }
-        IList<IObjRef> toChangeList = toChange.get(idIndex);
+        var toChangeList = toChange.get(idIndex);
         for (int i = objRefs.size(); i-- > 0; ) {
-            IObjRef objRef = objRefs.get(i);
+            var objRef = objRefs.get(i);
             if (objRef.getIdNameIndex() == idIndex) {
                 continue;
             }

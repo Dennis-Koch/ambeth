@@ -51,6 +51,7 @@ import com.koch.ambeth.util.proxy.IProxyFactory;
 import com.koch.ambeth.util.state.StateRollback;
 
 import java.util.Collections;
+import java.util.List;
 
 public class AuditVerifierJob implements IJob, IStartingBean {
     @Autowired
@@ -157,12 +158,12 @@ public class AuditVerifierJob implements IJob, IStartingBean {
     }
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
-    protected boolean verify(IList<IObjRef> objRefs) {
+    protected boolean verify(List<IObjRef> objRefs) {
         if (objRefs.isEmpty()) {
             return true;
         }
         beanContext.getService(IEventDispatcher.class).dispatchEvent(ClearAllCachesEvent.getInstance());
-        IList<IAuditEntry> auditEntries = (IList) cache.getObjects(objRefs, CacheDirective.none());
+        List<IAuditEntry> auditEntries = (IList) cache.getObjects(objRefs, CacheDirective.none());
         var verificationResult = auditEntryVerifier.verifyAuditEntries(auditEntries);
         var invalidAuditEntries = new ArrayList<IAuditEntry>();
         for (int a = 0, size = verificationResult.length; a < size; a++) {

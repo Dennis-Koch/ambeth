@@ -19,7 +19,6 @@ import com.koch.ambeth.testutil.AbstractInformationBusWithPersistenceTest;
 import com.koch.ambeth.testutil.TestModule;
 import com.koch.ambeth.testutil.TestProperties;
 import com.koch.ambeth.testutil.TestPropertiesList;
-import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.model.IEmbeddedType;
 import com.koch.ambeth.util.model.INotifyPropertyChanged;
 import com.koch.ambeth.util.threading.IGuiThreadHelper;
@@ -30,6 +29,7 @@ import java.awt.*;
 import java.beans.Introspector;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
 @TestPropertiesList({
@@ -58,7 +58,7 @@ public class LazyLoadTest extends AbstractInformationBusWithPersistenceTest {
 
         IQueryBuilder<EntityA> qb = queryBuilderFactory.create(EntityA.class);
         IQuery<EntityA> query = qb.build();
-        final IList<EntityA> entityAs = query.retrieve();
+        final List<EntityA> entityAs = query.retrieve();
 
         Assert.assertEquals(2, entityAs.size());
 

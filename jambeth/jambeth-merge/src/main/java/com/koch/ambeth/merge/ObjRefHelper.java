@@ -32,7 +32,6 @@ import com.koch.ambeth.service.merge.IEntityMetaDataProvider;
 import com.koch.ambeth.service.merge.model.IEntityMetaData;
 import com.koch.ambeth.service.merge.model.IObjRef;
 import com.koch.ambeth.util.collections.ArrayList;
-import com.koch.ambeth.util.collections.IList;
 
 import java.util.List;
 import java.util.Optional;
@@ -298,7 +297,7 @@ public class ObjRefHelper implements IObjRefHelper {
     }
 
     @Override
-    public IList<IObjRef> entityToAllObjRefs(Object id, Object version, Object[] primitives, IEntityMetaData metaData) {
+    public List<IObjRef> entityToAllObjRefs(Object id, Object version, Object[] primitives, IEntityMetaData metaData) {
         var alternateIdCount = metaData.getAlternateIdCount();
 
         var allOris = new ArrayList<IObjRef>();

@@ -30,15 +30,17 @@ import java.io.ObjectOutput;
 import java.lang.reflect.Array;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 /**
  * Abstrakte HashMap als Basisklasse fuer verschiedene spezialisierte Anwendungsfaelle
  *
- * @param <E> Typ der Entrys der Map
- * @param <K> Typ der Keys
- * @param <V> Typ der Values
+ * @param <WrappedK> Typ der Entrys der Map
+ * @param <K>        Typ der Keys
+ * @param <V>        Typ der Values
  * @author kochd
  */
 public abstract class AbstractHashMap<WrappedK, K, V> implements IMap<K, V>, IPrintable, Cloneable {
@@ -212,12 +214,6 @@ public abstract class AbstractHashMap<WrappedK, K, V> implements IMap<K, V>, IPr
                 entry = next;
             }
         }
-    }
-
-    @Override
-    public V[] toArray(Class<V> arrayType) {
-        @SuppressWarnings("unchecked") V[] array = (V[]) Array.newInstance(arrayType, size());
-        return toArray(array);
     }
 
     public V[] toArray(final V[] targetArray) {
@@ -427,24 +423,24 @@ public abstract class AbstractHashMap<WrappedK, K, V> implements IMap<K, V>, IPr
         return removeEntryForKey((K) key);
     }
 
-    protected final V removeEntryForKey(final K key) {
-        final int hash = hash(extractHash(key));
-        IMapEntry<K, V>[] table = this.table;
-        final int i = hash & (table.length - 1);
-        IMapEntry<K, V> entry = table[i];
+    protected final V removeEntryForKey(K key) {
+        var hash = hash(extractHash(key));
+        var table = this.table;
+        var i = hash & (table.length - 1);
+        var entry = table[i];
         if (entry != null) {
             if (equalKeys(key, entry)) {
                 table[i] = entry.getNextEntry();
-                final V value = entry.getValue();
+                var value = entry.getValue();
                 entryRemoved(entry);
                 return value;
             }
-            IMapEntry<K, V> prevEntry = entry;
+            var prevEntry = entry;
             entry = entry.getNextEntry();
             while (entry != null) {
                 if (equalKeys(key, entry)) {
                     setNextEntry(prevEntry, entry.getNextEntry());
-                    final V value = entry.getValue();
+                    var value = entry.getValue();
                     entryRemoved(entry);
                     return value;
                 }
@@ -460,7 +456,12 @@ public abstract class AbstractHashMap<WrappedK, K, V> implements IMap<K, V>, IPr
      */
     @Override
     @SuppressWarnings("unchecked")
-    public V get(final Object key) {
+    public V get(Object key) {
+        var entry = getEntry(key);
+        return entry != null ? entry.getValue() : null;
+    }
+
+    protected Entry<K, V> getEntry(Object key) {
         var realKey = (K) key;
         var hash = hash(extractHash(realKey));
         var table = this.table;
@@ -468,7 +469,7 @@ public abstract class AbstractHashMap<WrappedK, K, V> implements IMap<K, V>, IPr
         var entry = table[i];
         while (entry != null) {
             if (equalKeys(realKey, entry)) {
-                return entry.getValue();
+                return entry;
             }
             entry = entry.getNextEntry();
         }
@@ -477,17 +478,8 @@ public abstract class AbstractHashMap<WrappedK, K, V> implements IMap<K, V>, IPr
 
     @Override
     public K getKey(K key) {
-        var hash = hash(extractHash(key));
-        var table = this.table;
-        var i = hash & (table.length - 1);
-        var entry = table[i];
-        while (entry != null) {
-            if (equalKeys(key, entry)) {
-                return entry.getKey();
-            }
-            entry = entry.getNextEntry();
-        }
-        return null;
+        var entry = getEntry(key);
+        return entry != null ? entry.getKey() : null;
     }
 
     protected boolean isSetValueForEntryAllowed() {
@@ -500,9 +492,9 @@ public abstract class AbstractHashMap<WrappedK, K, V> implements IMap<K, V>, IPr
         return oldValue;
     }
 
-    protected abstract void setNextEntry(final IMapEntry<K, V> entry, final IMapEntry<K, V> nextEntry);
+    protected abstract void setNextEntry(IMapEntry<K, V> entry, IMapEntry<K, V> nextEntry);
 
-    protected abstract IMapEntry<K, V> createEntry(final int hash, final K key, final V value, final IMapEntry<K, V> nextEntry);
+    protected abstract IMapEntry<K, V> createEntry(int hash, K key, V value, IMapEntry<K, V> nextEntry);
 
     /**
      * @see java.util.Map#size()
@@ -525,13 +517,11 @@ public abstract class AbstractHashMap<WrappedK, K, V> implements IMap<K, V>, IPr
 
     @Override
     public ISet<Entry<K, V>> entrySet() {
-        final LinkedHashSet<Entry<K, V>> entrySet = LinkedHashSet.create(size());
-        entrySet(entrySet);
-        return entrySet;
+        return new EntrySet();
     }
 
     @Override
-    public void entrySet(ISet<Entry<K, V>> targetEntrySet) {
+    public void entrySet(Set<Entry<K, V>> targetEntrySet) {
         var table = this.table;
         for (int a = table.length; a-- > 0; ) {
             var entry = table[a];
@@ -565,9 +555,7 @@ public abstract class AbstractHashMap<WrappedK, K, V> implements IMap<K, V>, IPr
 
     @Override
     public ISet<K> keySet() {
-        var keySet = LinkedHashSet.<K>create(size());
-        keySet(keySet);
-        return keySet;
+        return new KeySet();
     }
 
     @Override
@@ -585,14 +573,14 @@ public abstract class AbstractHashMap<WrappedK, K, V> implements IMap<K, V>, IPr
     }
 
     @Override
-    public IList<K> keyList() {
+    public List<K> keyList() {
         var keySet = new ArrayList<K>(size());
         keySet(keySet);
         return keySet;
     }
 
     @Override
-    public IList<V> values() {
+    public List<V> values() {
         var table = this.table;
         var valueList = new ArrayList<V>(size());
         for (int a = table.length; a-- > 0; ) {
@@ -635,5 +623,114 @@ public abstract class AbstractHashMap<WrappedK, K, V> implements IMap<K, V>, IPr
             }
         }
         sb.append(']');
+    }
+
+    public class EntrySet extends AbstractImmutableSet<Map.Entry<K, V>> {
+
+        @Override
+        public Iterator<Entry<K, V>> iterator(boolean removeAllowed) {
+            return new MapIterator<>(AbstractHashMap.this, table, removeAllowed);
+        }
+
+        @Override
+        public Entry<K, V> get(Entry<K, V> key) {
+            return getEntry(key.getKey());
+        }
+
+        public Entry<K, V> getEntry(K key) {
+            var hash = hash(extractHash(key));
+            var table = AbstractHashMap.this.table;
+            var i = hash & (table.length - 1);
+            var entry = table[i];
+            while (entry != null) {
+                if (entry.isValid() && equalKeys(key, entry)) {
+                    return entry;
+                }
+                entry = entry.getNextEntry();
+            }
+            return null;
+        }
+
+        @Override
+        public int size() {
+            return AbstractHashMap.this.size();
+        }
+
+        @Override
+        public boolean isEmpty() {
+            return AbstractHashMap.this.isEmpty();
+        }
+
+        @Override
+        public boolean contains(Object o) {
+            if (o instanceof Entry requestedEntry) {
+                var entry = getEntry((K) requestedEntry.getKey());
+                if (entry != null && Objects.equals(entry.getValue(), requestedEntry.getValue())) {
+                    return true;
+                }
+            }
+            return false;
+        }
+    }
+
+    public class KeySet extends AbstractImmutableSet<K> {
+
+        @Override
+        public Iterator<K> iterator(boolean removeAllowed) {
+            var mapIterator = new MapIterator<>(AbstractHashMap.this, table, removeAllowed);
+            return new Iterator<>() {
+                @Override
+                public boolean hasNext() {
+                    return mapIterator.hasNext();
+                }
+
+                @Override
+                public K next() {
+                    var entry = mapIterator.next();
+                    return entry != null ? entry.getKey() : null;
+                }
+
+                @Override
+                public void remove() {
+                    mapIterator.remove();
+                }
+            };
+        }
+
+        @Override
+        public K get(K key) {
+            var entry = getEntry(key);
+            return entry != null ? entry.getKey() : null;
+        }
+
+        public Entry<K, V> getEntry(K key) {
+            var hash = hash(extractHash(key));
+            var table = AbstractHashMap.this.table;
+            var i = hash & (table.length - 1);
+            var entry = table[i];
+            while (entry != null) {
+                if (entry.isValid() && equalKeys(key, entry)) {
+                    return entry;
+                }
+                entry = entry.getNextEntry();
+            }
+            return null;
+        }
+
+        @Override
+        public int size() {
+            return AbstractHashMap.this.size();
+        }
+
+        @Override
+        public boolean isEmpty() {
+            return AbstractHashMap.this.isEmpty();
+        }
+
+        @Override
+        public boolean contains(Object o) {
+            var entry = getEntry((K) o);
+            return entry != null;
+        }
     }
 }

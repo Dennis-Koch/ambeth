@@ -63,7 +63,6 @@ import com.koch.ambeth.util.IConversionHelper;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.EmptySet;
 import com.koch.ambeth.util.collections.HashSet;
-import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.ISet;
 import com.koch.ambeth.util.collections.IdentityHashMap;
 import com.koch.ambeth.util.collections.IdentityHashSet;
@@ -85,6 +84,7 @@ import java.util.function.Predicate;
 
 public class MergeController implements IMergeController, IMergeExtendable {
     protected static final Set<CacheDirective> failEarlyAndReturnMissesSet = EnumSet.of(CacheDirective.FailEarly, CacheDirective.ReturnMisses);
+    protected static final Object NO_PARENT = new Object();
     protected final ExtendableContainer<IMergeExtension> mergeExtensions = new ExtendableContainer<>(IMergeExtension.class, "mergeExtension");
     @Autowired
     protected ICacheFactory cacheFactory;
@@ -117,7 +117,7 @@ public class MergeController implements IMergeController, IMergeExtendable {
     @Property(name = MergeConfigurationConstants.AlwaysUpdateVersionInChangedEntities, defaultValue = "false")
     protected boolean alwaysUpdateVersionInChangedEntities;
 
-    protected IList<IUpdateItem> addModification(Object obj, MergeHandle handle) {
+    protected List<IUpdateItem> addModification(Object obj, MergeHandle handle) {
         var modItemList = handle.objToModDict.get(obj);
         if (modItemList == null) {
             modItemList = new ArrayList<>();
@@ -372,7 +372,7 @@ public class MergeController implements IMergeController, IMergeExtendable {
                 handle.setCacheToDispose(true);
             }
         }
-        IList<Object> eagerlyLoadedOriginals = cache.getObjects(objRefs, CacheDirective.returnMisses());
+        var eagerlyLoadedOriginals = cache.getObjects(objRefs, CacheDirective.returnMisses());
         for (int a = eagerlyLoadedOriginals.size(); a-- > 0; ) {
             IObjRef existingOri = objRefs.get(a);
             if (eagerlyLoadedOriginals.get(a) == null && existingOri != null && existingOri.getId() != null) {
@@ -380,21 +380,21 @@ public class MergeController implements IMergeController, IMergeExtendable {
                 throw OptimisticLockUtil.throwDeleted(existingOri);
             }
         }
-        ArrayList<IObjRef> objRefsOfVhks = new ArrayList<>(valueHolderKeys.size());
+        var objRefsOfVhks = new ArrayList<IObjRef>(valueHolderKeys.size());
         for (int a = 0, size = valueHolderKeys.size(); a < size; a++) {
             objRefsOfVhks.add(valueHolderKeys.get(a).getObjRef());
         }
-        IList<Object> objectsOfVhks = cache.getObjects(objRefsOfVhks, failEarlyAndReturnMissesSet);
+        var objectsOfVhks = cache.getObjects(objRefsOfVhks, failEarlyAndReturnMissesSet);
         for (int a = valueHolderKeys.size(); a-- > 0; ) {
-            IObjRefContainer objectOfVhk = (IObjRefContainer) objectsOfVhks.get(a);
+            var objectOfVhk = (IObjRefContainer) objectsOfVhks.get(a);
             if (objectOfVhk == null) {
                 continue;
             }
-            ValueHolderRef valueHolderRef = valueHolderKeys.get(a);
+            var valueHolderRef = valueHolderKeys.get(a);
             if (ValueHolderState.INIT == objectOfVhk.get__State(valueHolderRef.getRelationIndex())) {
                 continue;
             }
-            DirectValueHolderRef vhcKey = new DirectValueHolderRef(objectOfVhk, valueHolderRef.getMember());
+            var vhcKey = new DirectValueHolderRef(objectOfVhk, valueHolderRef.getMember());
             handle.getPendingValueHolders().add(vhcKey);
         }
         return eagerlyLoadedOriginals;
@@ -427,10 +427,10 @@ public class MergeController implements IMergeController, IMergeExtendable {
         RelationUpdateItem rui = new RelationUpdateItem();
         rui.setMemberName(memberName);
         if (!oldSet.isEmpty()) {
-            rui.setRemovedORIs(oldSet.toArray(IObjRef.class));
+            rui.setRemovedORIs(oldSet.toArray(IObjRef[]::new));
         }
         if (!newSet.isEmpty()) {
-            rui.setAddedORIs(newSet.toArray(IObjRef.class));
+            rui.setAddedORIs(newSet.toArray(IObjRef[]::new));
         }
         return rui;
     }
@@ -745,7 +745,7 @@ public class MergeController implements IMergeController, IMergeExtendable {
 
     protected void mergeDeepStart(Object obj, MergeHandle handle) {
         if (handle.getPendingValueHolders().size() > 0) {
-            IList<Object> pendingValueHolders = handle.getPendingValueHolders();
+            List<Object> pendingValueHolders = handle.getPendingValueHolders();
             prefetchHelper.prefetch(pendingValueHolders);
             pendingValueHolders.clear();
         }
@@ -896,6 +896,7 @@ public class MergeController implements IMergeController, IMergeExtendable {
                             var cacheOfEntity = ((IObjRefContainer) entity).get__Cache();
                             if (cacheOfEntity == null) {
                                 unownedObjectsToCache.add(entity);
+                                return true;
                             } else if (cacheOfEntity instanceof IGCProxy gcProxy) {
                                 cacheOfEntity = (IWritableCache) gcProxy.getGCProxyTarget();
                             }
@@ -909,7 +910,8 @@ public class MergeController implements IMergeController, IMergeExtendable {
                                 entitiesToRefresh.add(parent);
                                 // clear the relation from parent to this entity as we must refetch it from the correct cache and relink it from the parent entity
                                 if (parentMember.isToMany()) {
-                                    ((Collection<?>) parentMember.getValue(parent, false)).clear();
+                                    var coll = ((Collection<?>) parentMember.getValue(parent, false));
+                                    coll.remove(entity);
                                 } else {
                                     parentMember.setValue(parent, null);
                                 }
@@ -948,24 +950,9 @@ public class MergeController implements IMergeController, IMergeExtendable {
                         }
                     }, false);
 
-                    //                    var entitiesRecursive = scanForInitializedObjects(entities, true, false, null, objRefs, privilegedObjRefs, valueHolderKeys, null);
-
                     var fetchedHardRefs = cache.getObjects(objRefsToFetchFromCache, CacheDirective.cacheValueResult());
 
                     var fixWrongTransitiveCacheReferences = false;
-                    //                    for (var entity : entitiesRecursive) {
-                    //                        var cacheOfEntity = ((IObjRefContainer) entity).get__Cache();
-                    //                        if (cacheOfEntity == null) {
-                    //                            unownedObjectsToCache.add(entity);
-                    //                            continue;
-                    //                        }
-                    //                        if (cacheOfEntity instanceof IGCProxy gcProxy) {
-                    //                            cacheOfEntity = (IWritableCache) gcProxy.getGCProxyTarget();
-                    //                        }
-                    //                        if (cacheOfEntity != cache) {
-                    //                            fixWrongTransitiveCacheReferences = true;
-                    //                        }
-                    //                    }
 
                     if (!unownedObjectsToCache.isEmpty()) {
                         cache.put(unownedObjectsToCache);
@@ -1009,10 +996,12 @@ public class MergeController implements IMergeController, IMergeExtendable {
     }
 
     @Override
-    public IList<Object> scanForInitializedObjects(Object obj, boolean isDeepMerge, boolean dirtyOnly, Map<Class<?>, List<Object>> typeToObjectsToMerge, List<IObjRef> objRefs,
+    public List<Object> scanForInitializedObjects(Object obj, boolean isDeepMerge, boolean dirtyOnly, Map<Class<?>, List<Object>> typeToObjectsToMerge, List<IObjRef> objRefs,
             List<IObjRef> privilegedObjRefs, List<ValueHolderRef> valueHolderKeys, Map<Object, ICache> entityToAssociatedCaches) {
         var objects = new ArrayList<>();
-        var cacheTraversalStack = entityToAssociatedCaches != null ? new ArrayList<ICache>() : null;
+        var entityTraversalStack = entityToAssociatedCaches != null ? new ArrayList<>() : null;
+        var unassociatedEntityToParent = entityToAssociatedCaches != null ? new IdentityHashMap<>() : null;
+
         var isFilterActivated = securityActivation.isFilterActivated();
         Predicate<IDataObject> dataObjectPredicate = dirtyOnly ? dataObject -> dataObject.hasPendingChanges() : dataObject -> true;
         deepScanRecursion.handleDeep(obj, new IDeepScanRecursion.EntityDelegate() {
@@ -1021,34 +1010,60 @@ public class MergeController implements IMergeController, IMergeExtendable {
                 ICache cache = null;
                 if (entityToAssociatedCaches != null) {
                     cache = ((IObjRefContainer) entity).get__Cache();
+                    var parentEntity = entityTraversalStack.peek();
                     if (cache != null) {
                         entityToAssociatedCaches.put(entity, cache);
-                        cacheTraversalStack.add(cache);
-                    } else if (!cacheTraversalStack.isEmpty()) {
+                        while (parentEntity != null) {
+                            var parentOfParentEntity = unassociatedEntityToParent.remove(parentEntity);
+                            if (parentOfParentEntity == null) {
+                                break;
+                            }
+                            ((IObjRefContainer) parentEntity).set__Cache(cache);
+                            entityToAssociatedCaches.put(parentEntity, cache);
+                            if (parentOfParentEntity != NO_PARENT) {
+                                parentEntity = parentOfParentEntity;
+                            } else {
+                                parentEntity = null;
+                            }
+                        }
+                    } else {
                         // this is presumably a new entity which may potentially be referenced by an existing entity owned by an existing cache instance
-                        cache = cacheTraversalStack.peek();
-                        entityToAssociatedCaches.put(entity, cache);
+                        if (parentEntity != null) {
+                            var parentCache = ((IObjRefContainer) parentEntity).get__Cache();
+                            if (parentCache != null) {
+                                ((IObjRefContainer) entity).set__Cache(parentCache);
+                                entityToAssociatedCaches.put(entity, parentCache);
+                                cache = parentCache;
+                            } else {
+                                // even the parent is currently not associated to a cache, so we mark it for post-processing
+                                unassociatedEntityToParent.put(entity, parentEntity);
+                            }
+                        } else {
+                            // this is a root entity in the tree - so we mark it for post-processing
+                            unassociatedEntityToParent.put(entity, NO_PARENT);
+                        }
                     }
                 }
+                IEntityMetaData metaData = null;
+                IObjRef objRef = null;
+                if (objects != null || objRefs != null || privilegedObjRefs != null || valueHolderKeys != null) {
+                    metaData = ((IEntityMetaDataHolder) entity).get__EntityMetaData();
+                    objRef = markObjRef(typeToObjectsToMerge, objRefs, privilegedObjRefs, entity, metaData, objects, isFilterActivated, dataObjectPredicate);
+                }
+                if (!isDeepMerge) {
+                    return true;
+                }
+                if (metaData == null) {
+                    metaData = ((IEntityMetaDataHolder) entity).get__EntityMetaData();
+                }
+                var relationMembers = metaData.getRelationMembers();
+                if (relationMembers.length == 0) {
+                    return true;
+                }
+                if (entityTraversalStack != null) {
+                    entityTraversalStack.add(entity);
+                }
                 try {
-                    IEntityMetaData metaData = null;
-                    IObjRef objRef = null;
-                    if (objects != null || objRefs != null || privilegedObjRefs != null || valueHolderKeys != null) {
-                        metaData = ((IEntityMetaDataHolder) entity).get__EntityMetaData();
-                        objRef = markObjRef(typeToObjectsToMerge, objRefs, privilegedObjRefs, entity, metaData, objects, isFilterActivated, dataObjectPredicate);
-                    } else {
-
-                    }
-                    if (!isDeepMerge) {
-                        return true;
-                    }
-                    if (metaData == null) {
-                        metaData = ((IEntityMetaDataHolder) entity).get__EntityMetaData();
-                    }
-                    var relationMembers = metaData.getRelationMembers();
-                    if (relationMembers.length == 0) {
-                        return true;
-                    }
                     var vhc = (IObjRefContainer) entity;
                     for (int relationIndex = relationMembers.length; relationIndex-- > 0; ) {
                         if (!vhc.is__Initialized(relationIndex)) {
@@ -1066,12 +1081,33 @@ public class MergeController implements IMergeController, IMergeExtendable {
                     }
                     return true;
                 } finally {
-                    if (cacheTraversalStack != null && cache != null) {
-                        cacheTraversalStack.popLastElement();
+                    if (entityTraversalStack != null) {
+                        entityTraversalStack.popLastElement();
                     }
                 }
             }
         }, true);
+        if (unassociatedEntityToParent != null) {
+            var entities = new ArrayList<>(unassociatedEntityToParent.size());
+            unassociatedEntityToParent.keySet(entities);
+            for (var entity : entities) {
+                while (true) {
+                    var parentEntity = unassociatedEntityToParent.remove(entity);
+                    if (parentEntity == null || parentEntity == NO_PARENT) {
+                        // no existing entity related - neither before nor after the depth-first traversal. as a consequence it stays unassociated for now
+                        break;
+                    }
+                    var parentCache = ((IObjRefContainer) parentEntity).get__Cache();
+                    if (parentCache == null) {
+                        break;
+                    }
+                    ((IObjRefContainer) entity).set__Cache(parentCache);
+                    entityToAssociatedCaches.put(entity, parentCache);
+                    entity = parentEntity;
+                }
+            }
+        }
+
         return objects;
     }
 

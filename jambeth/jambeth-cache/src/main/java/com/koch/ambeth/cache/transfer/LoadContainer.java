@@ -20,64 +20,64 @@ limitations under the License.
  * #L%
  */
 
+import com.koch.ambeth.service.cache.model.ILoadContainer;
+import com.koch.ambeth.service.merge.model.IObjRef;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlElement;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import jakarta.xml.bind.annotation.XmlTransient;
 
-import com.koch.ambeth.service.cache.model.ILoadContainer;
-import com.koch.ambeth.service.merge.model.IObjRef;
-import com.koch.ambeth.util.collections.IList;
+import java.util.List;
 
 @XmlRootElement(name = "LoadContainer", namespace = "http://schema.kochdev.com/Ambeth")
 @XmlAccessorType(XmlAccessType.FIELD)
 public class LoadContainer implements ILoadContainer {
-	@XmlElement(required = true)
-	protected IObjRef reference;
+    @XmlElement(required = true)
+    protected IObjRef reference;
 
-	@XmlElement(required = true)
-	protected Object[] primitives;
+    @XmlElement(required = true)
+    protected Object[] primitives;
 
-	@XmlElement(required = true)
-	protected IObjRef[][] relations;
+    @XmlElement(required = true)
+    protected IObjRef[][] relations;
 
-	@XmlTransient
-	protected IList<IObjRef>[] relationBuilds;
+    @XmlTransient
+    protected List<IObjRef>[] relationBuilds;
 
-	@Override
-	public IObjRef getReference() {
-		return reference;
-	}
+    @Override
+    public IObjRef getReference() {
+        return reference;
+    }
 
-	public void setReference(IObjRef reference) {
-		this.reference = reference;
-	}
+    public void setReference(IObjRef reference) {
+        this.reference = reference;
+    }
 
-	@Override
-	public Object[] getPrimitives() {
-		return primitives;
-	}
+    @Override
+    public Object[] getPrimitives() {
+        return primitives;
+    }
 
-	@Override
-	public void setPrimitives(Object[] primitives) {
-		this.primitives = primitives;
-	}
+    @Override
+    public void setPrimitives(Object[] primitives) {
+        this.primitives = primitives;
+    }
 
-	@Override
-	public IObjRef[][] getRelations() {
-		return relations;
-	}
+    @Override
+    public IObjRef[][] getRelations() {
+        return relations;
+    }
 
-	public void setRelations(IObjRef[][] relations) {
-		this.relations = relations;
-	}
+    public void setRelations(IObjRef[][] relations) {
+        this.relations = relations;
+    }
 
-	public IList<IObjRef>[] getRelationBuilds() {
-		return relationBuilds;
-	}
+    public List<IObjRef>[] getRelationBuilds() {
+        return relationBuilds;
+    }
 
-	public void setRelationBuilds(IList<IObjRef>[] relationBuilds) {
-		this.relationBuilds = relationBuilds;
-	}
+    public void setRelationBuilds(List<IObjRef>[] relationBuilds) {
+        this.relationBuilds = relationBuilds;
+    }
 }

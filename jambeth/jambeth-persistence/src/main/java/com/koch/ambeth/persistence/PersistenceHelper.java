@@ -31,7 +31,6 @@ import com.koch.ambeth.service.merge.model.IObjRef;
 import com.koch.ambeth.util.appendable.AppendableStringBuilder;
 import com.koch.ambeth.util.appendable.IAppendable;
 import com.koch.ambeth.util.collections.ArrayList;
-import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.objectcollector.IThreadLocalObjectCollector;
 
 import java.util.Collection;
@@ -69,16 +68,16 @@ public class PersistenceHelper implements IPersistenceHelper, IInitializingBean 
     }
 
     @Override
-    public IList<IList<Object>> splitValues(Collection<?> ids) {
-        int currentBatchSize = 0, batchSize = preparedBatchSize;
+    public List<List<Object>> splitValues(Collection<?> ids) {
+        int currentBatchSize = 0, batchSize = maxInClauseBatchThreshold;
 
-        IList<IList<Object>> splittedLists = new ArrayList<>(ids.size() / batchSize + 1);
+        var splittedLists = new ArrayList<List<Object>>(ids.size() / batchSize + 1);
 
-        IList<Object> splitList = null;
+        ArrayList<Object> splitList = null;
 
         for (Object value : ids) {
-            if (value instanceof IObjRef) {
-                value = ((IObjRef) value).getId();
+            if (value instanceof IObjRef objRef) {
+                value = objRef.getId();
             }
             if (splitList == null || currentBatchSize >= batchSize) {
                 splitList = new ArrayList<>(batchSize);
@@ -92,17 +91,17 @@ public class PersistenceHelper implements IPersistenceHelper, IInitializingBean 
     }
 
     @Override
-    public IList<IList<Object>> splitValues(List<?> values) {
-        return splitValues(values, preparedBatchSize);
+    public List<List<Object>> splitValues(List<?> values) {
+        return splitValues(values, maxInClauseBatchThreshold);
     }
 
     @Override
-    public IList<IList<Object>> splitValues(List<?> values, int batchSize) {
-        var splittedLists = new ArrayList<IList<Object>>(values.size() / batchSize + 1);
+    public List<List<Object>> splitValues(List<?> values, int batchSize) {
+        var splittedLists = new ArrayList<List<Object>>(values.size() / batchSize + 1);
 
         var currentBatchSize = 0;
 
-        IList<Object> splitList = null;
+        ArrayList<Object> splitList = null;
 
         for (int a = 0, size = values.size(); a < size; a++) {
             var value = values.get(a);
@@ -121,7 +120,7 @@ public class PersistenceHelper implements IPersistenceHelper, IInitializingBean 
     }
 
     @Override
-    public IList<String> buildStringListOfValues(List<?> values) {
+    public List<String> buildStringListOfValues(List<?> values) {
         var objectCollector = this.objectCollector.getCurrent();
         var sb = objectCollector.create(AppendableStringBuilder.class);
         try {

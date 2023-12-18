@@ -37,7 +37,6 @@ import com.koch.ambeth.util.IParamHolder;
 import com.koch.ambeth.util.ParamHolder;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.HashSet;
-import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.IMap;
 import com.koch.ambeth.util.collections.ISet;
 import com.koch.ambeth.util.collections.IdentityHashSet;
@@ -45,6 +44,7 @@ import com.koch.ambeth.util.collections.IdentityLinkedMap;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.function.CheckedConsumer;
 import com.koch.ambeth.util.model.IDataObject;
+import com.koch.ambeth.util.state.StateRollback;
 import com.koch.ambeth.util.threading.IGuiThreadHelper;
 import com.koch.ambeth.util.typeinfo.ITypeInfoProvider;
 
@@ -174,7 +174,7 @@ public class RevertChangesHelper implements IRevertChangesHelper {
         }
     }
 
-    private void callWaitEventToResumeInGui(IList<IDataChangeEntry> directObjectDeletes, List<IObjRef> orisToRevert, ISet<Object> persistedObjectsToRevert, List<Object> objectsToRevert,
+    private void callWaitEventToResumeInGui(List<IDataChangeEntry> directObjectDeletes, List<IObjRef> orisToRevert, ISet<Object> persistedObjectsToRevert, List<Object> objectsToRevert,
             List<Object> rootCacheValues, IParamHolder<Boolean> success1, IParamHolder<Boolean> success2, IParamHolder<Boolean> success3, RevertChangesFinishedCallback revertChangesFinishedCallback) {
         guiThreadHelper.invokeInGui(() -> {
             waitEventToResume(processResumeItem -> {
@@ -216,21 +216,20 @@ public class RevertChangesHelper implements IRevertChangesHelper {
                     hardRefs.add(rootCacheValues);
                     hardRefs.add(prefetchHelper.prefetch(relationsToPrefetch));
 
-                    var oldCacheModificationValue = cacheModification.isActive();
-                    var oldFailEarlyModeActive = AbstractCache.isFailInCacheHierarchyModeActive();
-                    cacheModification.setActive(true);
-                    AbstractCache.setFailInCacheHierarchyModeActive(true);
+                    var rollback = StateRollback.chain(chain -> {
+                        chain.append(cacheModification.pushActive());
+                        chain.append(AbstractCache.pushFailInCacheHierarchyModeActive());
+                    });
                     try {
                         for (int a = 0, size = runnables.size(); a < size; a++) {
                             runnables.get(a).run();
                         }
 
                         for (int a = objectsToRevert.size(); a-- > 0; ) {
-                            Object objectToRevert = objectsToRevert.get(a);
-                            if (objectToRevert instanceof IDataObject) {
-                                // Objects which are specified to be reverted loose their
-                                // flags
-                                ((IDataObject) objectToRevert).setToBeDeleted(false);
+                            var objectToRevert = objectsToRevert.get(a);
+                            if (objectToRevert instanceof IDataObject dataObject) {
+                                // Objects which are specified to be reverted loose their flags
+                                dataObject.setToBeDeleted(false);
                             }
                         }
                         if (directObjectDeletes.isEmpty()) {
@@ -238,8 +237,7 @@ public class RevertChangesHelper implements IRevertChangesHelper {
                             return;
                         }
                     } finally {
-                        AbstractCache.setFailInCacheHierarchyModeActive(oldFailEarlyModeActive);
-                        cacheModification.setActive(oldCacheModificationValue);
+                        rollback.rollback();
                     }
                 } finally {
                     if (processResumeItem != null) {

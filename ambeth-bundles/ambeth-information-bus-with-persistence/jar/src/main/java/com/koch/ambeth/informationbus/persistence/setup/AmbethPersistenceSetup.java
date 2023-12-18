@@ -41,7 +41,6 @@ import com.koch.ambeth.util.annotation.AnnotationInfo;
 import com.koch.ambeth.util.annotation.IAnnotationInfo;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.HashMap;
-import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.IMap;
 import com.koch.ambeth.util.collections.LinkedHashMap;
 import com.koch.ambeth.util.collections.LinkedHashSet;
@@ -255,7 +254,7 @@ public class AmbethPersistenceSetup implements Closeable {
     }
 
     protected static void getSchemaRunnable(IServiceContext schemaContext, Class<? extends ISchemaRunnable> schemaRunnableType, Class<? extends ISchemaFileProvider> valueProviderType,
-            String[] schemaFiles, List<ISchemaRunnable> schemaRunnables, final AnnotatedElement callingClass, final boolean doCommitBehavior, IList<String> allSQL, IMap<String, String> sqlToSourceMap,
+            String[] schemaFiles, List<ISchemaRunnable> schemaRunnables, final AnnotatedElement callingClass, final boolean doCommitBehavior, List<String> allSQL, IMap<String, String> sqlToSourceMap,
             final IConnectionDialect connectionDialect, final IProperties properties, final ILogger log, final boolean doExecuteStrict) {
         if (schemaRunnableType != null && !ISchemaRunnable.class.equals(schemaRunnableType)) {
             var schemaRunnable = schemaContext.registerBean(schemaRunnableType).finish();
@@ -266,7 +265,7 @@ public class AmbethPersistenceSetup implements Closeable {
             var additionalSchemaFiles = valueProvider.getSchemaFiles();
             var set = new LinkedHashSet<>(schemaFiles);
             set.addAll(additionalSchemaFiles);
-            schemaFiles = set.toArray(String.class);
+            schemaFiles = set.toArray(String[]::new);
         }
         for (var schemaFile : schemaFiles) {
             if (schemaFile == null || schemaFile.length() == 0) {
@@ -808,7 +807,7 @@ public class AmbethPersistenceSetup implements Closeable {
         return schemaNames;
     }
 
-    protected ISchemaRunnable[] getStructureRunnables(Class<?> annotatedType, IList<String> sqlExecutionOrder) {
+    protected ISchemaRunnable[] getStructureRunnables(Class<?> annotatedType, List<String> sqlExecutionOrder) {
         var schemaRunnables = new ArrayList<ISchemaRunnable>();
 
         var annotations = findAnnotations(annotatedType, SQLStructureList.class, SQLStructure.class);
@@ -920,7 +919,7 @@ public class AmbethPersistenceSetup implements Closeable {
             var connectionTestDialect = schemaContext.getService(IConnectionTestDialect.class);
 
             ensureExistanceOfNeededDatabaseObjects(connection, sqlExecutionOrder, connectionDialect, connectionTestDialect, getLog(), doExecuteStrict);
-            AmbethPersistenceSetup.sqlExecutionOrder = sqlExecutionOrder.toArray(String.class);
+            AmbethPersistenceSetup.sqlExecutionOrder = sqlExecutionOrder.toArray(String[]::new);
 
             connectionDialect.preProcessConnection(connection, null, true);
         } finally {

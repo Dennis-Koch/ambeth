@@ -21,10 +21,11 @@ limitations under the License.
  */
 
 import com.koch.ambeth.util.collections.ILinkedMap;
-import com.koch.ambeth.util.collections.IList;
+
+import java.util.List;
 
 public interface IEntityPermissionRuleProvider {
-	ILinkedMap<Class<?>, IList<IEntityPermissionRule<?>>> getAllEntityPermissionRules();
+    ILinkedMap<Class<?>, List<IEntityPermissionRule<?>>> getAllEntityPermissionRules();
 
-	IList<IEntityPermissionRule<?>> getEntityPermissionRules(Class<?> entityType);
+    List<IEntityPermissionRule<?>> getEntityPermissionRules(Class<?> entityType);
 }

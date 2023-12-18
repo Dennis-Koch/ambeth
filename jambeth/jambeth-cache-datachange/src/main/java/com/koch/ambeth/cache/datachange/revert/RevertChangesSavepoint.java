@@ -1,63 +1,58 @@
 package com.koch.ambeth.cache.datachange.revert;
 
-import java.util.Map.Entry;
-
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.config.Property;
 import com.koch.ambeth.merge.IRevertChangesSavepoint;
 import com.koch.ambeth.merge.cache.ICacheModification;
 import com.koch.ambeth.util.collections.IMap;
 
+import java.time.Instant;
+
 public class RevertChangesSavepoint implements IRevertChangesSavepoint {
-	public static final String P_CHANGES = "Changes";
+    public static final String P_CHANGES = "Changes";
+    protected final Instant savepointTime = Instant.now();
+    @Autowired
+    protected ICacheModification cacheModification;
+    @Property
+    protected IMap<Object, IBackup> changes;
 
-	@Autowired
-	protected ICacheModification cacheModification;
+    @Override
+    public void dispose() {
+        changes = null;
+    }
 
-	@Property
-	protected IMap<Object, IBackup> changes;
+    @Override
+    public Object[] getSavedBusinessObjects() {
+        return changes.keyList().toArray(Object[]::new);
+    }
 
-	protected final long savepointTime = System.currentTimeMillis();
+    @Override
+    public void revertChanges() {
+        if (changes == null) {
+            throw new IllegalStateException("This object has already been disposed");
+        }
+        var rollback = cacheModification.pushActive();
+        try {
+            for (var entry : changes) {
+                entry.getValue().restore(entry.getKey());
+            }
+        } finally {
+            rollback.rollback();
+        }
+    }
 
-	@Override
-	public void dispose() {
-		changes = null;
-	}
-
-	@Override
-	public Object[] getSavedBusinessObjects() {
-		return changes.keyList().toArray(Object.class);
-	}
-
-	@Override
-	public void revertChanges() {
-		if (changes == null) {
-			throw new IllegalStateException("This object has already been disposed");
-		}
-		boolean oldCacheModificationValue = cacheModification.isActive();
-		cacheModification.setActive(true);
-		try {
-			for (Entry<Object, IBackup> entry : changes) {
-				entry.getValue().restore(entry.getKey());
-			}
-		}
-		finally {
-			cacheModification.setActive(oldCacheModificationValue);
-		}
-	}
-
-	@Override
-	public String toString() {
-		StringBuilder sb = new StringBuilder();
-		int index = 1;
-		for (Entry<Object, IBackup> entry : changes) {
-			Object key = entry.getKey();
-			if (index > 1) {
-				sb.append('\n');
-			}
-			sb.append(index).append(") ").append(key);
-			index++;
-		}
-		return sb.toString();
-	}
+    @Override
+    public String toString() {
+        var sb = new StringBuilder();
+        int index = 1;
+        for (var entry : changes) {
+            var key = entry.getKey();
+            if (index > 1) {
+                sb.append('\n');
+            }
+            sb.append(index).append(") ").append(key);
+            index++;
+        }
+        return sb.toString();
+    }
 }

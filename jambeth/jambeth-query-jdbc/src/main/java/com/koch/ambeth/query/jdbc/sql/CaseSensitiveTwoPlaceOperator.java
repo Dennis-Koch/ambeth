@@ -29,8 +29,8 @@ import com.koch.ambeth.persistence.sql.ParamsUtil;
 import com.koch.ambeth.query.IMultiValueOperand;
 import com.koch.ambeth.query.jdbc.TwoPlaceOperator;
 import com.koch.ambeth.util.appendable.IAppendable;
-import com.koch.ambeth.util.collections.IList;
 
+import java.util.List;
 import java.util.Map;
 
 abstract public class CaseSensitiveTwoPlaceOperator extends TwoPlaceOperator {
@@ -56,7 +56,7 @@ abstract public class CaseSensitiveTwoPlaceOperator extends TwoPlaceOperator {
     }
 
     @Override
-    protected void processLeftOperandAspect(IAppendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, IList<Object> parameters) {
+    protected void processLeftOperandAspect(IAppendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, List<Object> parameters) {
         boolean caseSensitive = this.caseSensitive;
         Class<?> leftOperandFieldType = getLeftOperandFieldType();
         if (supportsMultiValueOperand() && java.sql.Array.class.isAssignableFrom(leftOperandFieldType)) {
@@ -88,7 +88,7 @@ abstract public class CaseSensitiveTwoPlaceOperator extends TwoPlaceOperator {
     }
 
     @Override
-    protected void processRightOperandAspect(IAppendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, Class<?> leftOperandFieldType, IList<Object> parameters) {
+    protected void processRightOperandAspect(IAppendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, Class<?> leftOperandFieldType, List<Object> parameters) {
         if (supportsMultiValueOperand() && rightOperand instanceof IMultiValueOperand) {
             preProcessRightOperand(querySB, nameToValueMap, parameters);
             handleMultiValueOperand((IMultiValueOperand) rightOperand, querySB, nameToValueMap, joinQuery, leftOperandFieldType, parameters);
@@ -105,8 +105,8 @@ abstract public class CaseSensitiveTwoPlaceOperator extends TwoPlaceOperator {
     }
 
     protected void handleMultiValueOperand(IMultiValueOperand operand, IAppendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, Class<?> leftOperandFieldType,
-            IList<Object> parameters) {
-        @SuppressWarnings("unchecked") IList<IList<Object>> splitValues = (IList<IList<Object>>) nameToValueMap.get(QueryConstants.REMAINING_RIGHT_OPERAND_HANDLE);
+            List<Object> parameters) {
+        var splitValues = (List<List<Object>>) nameToValueMap.get(QueryConstants.REMAINING_RIGHT_OPERAND_HANDLE);
         if (parameters == null) {
             if (splitValues != null) {
                 throw new IllegalStateException("Must never happen");
@@ -115,7 +115,7 @@ abstract public class CaseSensitiveTwoPlaceOperator extends TwoPlaceOperator {
                 // 'Dirty' hack. This is invalid SQL but we need this only for a paging query-key
                 querySB.append("LOWER(");
             }
-            IList<Object> values = operand.getMultiValue(nameToValueMap);
+            var values = operand.getMultiValue(nameToValueMap);
             listToSqlUtil.expandValue(querySB, values, this, nameToValueMap);
             if (!caseSensitive) {
                 querySB.append(')');
@@ -123,7 +123,7 @@ abstract public class CaseSensitiveTwoPlaceOperator extends TwoPlaceOperator {
             return;
         }
         if (splitValues == null) {
-            IList<Object> values = operand.getMultiValue(nameToValueMap);
+            var values = operand.getMultiValue(nameToValueMap);
             if (connectionDialect.isCompactMultiValueRecommended(values)) {
                 splitValues = persistenceHelper.splitValues(values, maxInClauseBatchThreshold);
                 handleWithMultiValueLeftField(querySB, nameToValueMap, parameters, splitValues);
@@ -139,7 +139,7 @@ abstract public class CaseSensitiveTwoPlaceOperator extends TwoPlaceOperator {
         }
     }
 
-    protected void handleWithSingleValueLeftField(IAppendable querySB, Map<Object, Object> nameToValueMap, IList<Object> parameters, IList<IList<Object>> splitValues) {
+    protected void handleWithSingleValueLeftField(IAppendable querySB, Map<Object, Object> nameToValueMap, List<Object> parameters, List<List<Object>> splitValues) {
         if (splitValues.isEmpty()) {
             return;
         }
@@ -151,7 +151,7 @@ abstract public class CaseSensitiveTwoPlaceOperator extends TwoPlaceOperator {
             placeholder = "LOWER(?)";
         }
 
-        IList<Object> values = splitValues.get(0);
+        var values = splitValues.get(0);
         for (int i = 0, size = values.size(); i < size; i++) {
             if (i != 0) {
                 querySB.append(",");
@@ -168,7 +168,7 @@ abstract public class CaseSensitiveTwoPlaceOperator extends TwoPlaceOperator {
         }
     }
 
-    protected void handleWithMultiValueLeftField(IAppendable querySB, Map<Object, Object> nameToValueMap, IList<Object> parameters, IList<IList<Object>> splitValues) {
+    protected void handleWithMultiValueLeftField(IAppendable querySB, Map<Object, Object> nameToValueMap, List<Object> parameters, List<List<Object>> splitValues) {
         Class<?> leftOperandFieldType = getLeftOperandFieldSubType();
         connectionDialect.handleWithMultiValueLeftField(querySB, nameToValueMap, parameters, splitValues, caseSensitive, leftOperandFieldType);
         nameToValueMap.remove(QueryConstants.REMAINING_RIGHT_OPERAND_HANDLE);

@@ -21,333 +21,319 @@ limitations under the License.
  */
 
 import java.io.Serializable;
-import java.lang.reflect.Array;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 
 public class ReadOnlyList<V> implements IList<V>, Serializable {
-	private static final long serialVersionUID = -9172592637280733333L;
+    private static final long serialVersionUID = -9172592637280733333L;
+    private static final Object[] emptyArray = new Object[0];
+    protected Object[] array;
+    protected int size;
 
-	public static class ReadOnlyIter<V> implements ListIterator<V> {
-		private final ReadOnlyList<V> list;
+    public ReadOnlyList() {
+        // Intended blank
+    }
 
-		private int currIndex;
+    public ReadOnlyList(Collection<V> objects) {
+        if (objects == null || objects.isEmpty()) {
+            array = emptyArray;
+            size = 0;
+        } else {
+            array = new Object[objects.size()];
+            Iterator<V> iter = objects.iterator();
+            int tempSize = 0;
+            while (iter.hasNext()) {
+                V item = iter.next();
+                array[tempSize++] = item;
+            }
+            size = tempSize;
+        }
+    }
 
-		public ReadOnlyIter(ReadOnlyList<V> list) {
-			this.list = list;
-		}
+    public ReadOnlyList(V object) {
+        array = new Object[1];
+        array[0] = object;
+        size = 1;
+    }
 
-		@Override
-		public boolean hasNext() {
-			return list.size > currIndex;
-		}
+    public ReadOnlyList(V[] objects) {
+        array = objects;
+        size = objects.length;
+    }
 
-		@Override
-		public V next() {
-			return list.get(currIndex++);
-		}
+    public ReadOnlyList(List<V> objects, int startIndex, int endIndex) {
+        if (objects == null || objects.isEmpty()) {
+            array = emptyArray;
+            size = 0;
+        } else {
+            if (endIndex < startIndex) {
+                throw new IllegalArgumentException("endIndex must be >= startIndex");
+            }
+            int length = endIndex - startIndex;
+            array = new Object[length];
+            int tempSize = 0;
+            for (int a = startIndex; a <= endIndex; a++) {
+                array[tempSize++] = objects.get(a);
+            }
+            size = tempSize;
+        }
+    }
 
-		@Override
-		public boolean hasPrevious() {
-			return currIndex > 0;
-		}
+    public boolean hasValue(final V value) {
+        for (int a = 0; a < size; a++) {
+            if (array[a] == value) {
+                return true;
+            }
+        }
+        return false;
+    }
 
-		@Override
-		public int nextIndex() {
-			return currIndex + 1;
-		}
+    @Override
+    @SuppressWarnings("unchecked")
+    public V get(final int index) {
+        return (V) array[index];
+    }
 
-		@Override
-		public V previous() {
-			return list.get(--currIndex);
-		}
+    @Override
+    public int size() {
+        return size;
+    }
 
-		@Override
-		public int previousIndex() {
-			return currIndex - 1;
-		}
+    @SuppressWarnings("unchecked")
+    public void copyInto(final ArrayList<V> otherList) {
+        otherList.size = 0;
+        for (int a = 0; a < size; a++) {
+            otherList.add((V) array[a]);
+        }
+    }
 
-		@Override
-		public void remove() {
-			throw new UnsupportedOperationException();
-		}
+    @Override
+    public boolean contains(Object o) {
+        return indexOf(o) != -1;
+    }
 
-		@Override
-		public void add(V arg0) {
-			throw new UnsupportedOperationException();
-		}
+    @Override
+    public boolean isEmpty() {
+        return size() == 0;
+    }
 
-		@Override
-		public void set(V arg0) {
-			throw new UnsupportedOperationException();
-		}
-	}
+    @Override
+    public Object[] toArray() {
+        Object[] targetArray = new Object[size()];
+        return toArray(targetArray);
+    }
 
-	private static final Object[] emptyArray = new Object[0];
+    @Override
+    @SuppressWarnings("unchecked")
+    public <T> T[] toArray(T[] array) {
+        for (int a = size(); a-- > 0; ) {
+            array[a] = (T) this.array[a];
+        }
+        return array;
+    }
 
-	protected Object[] array;
+    @Override
+    public int indexOf(Object o) {
+        if (o == null) {
+            for (int a = 0, size = size(); a < size; a++) {
+                Object item = array[a];
+                if (item == null) {
+                    return a;
+                }
+            }
+        } else {
+            for (int a = 0, size = size(); a < size; a++) {
+                Object item = array[a];
+                if (item != null && item.equals(o)) {
+                    return a;
+                }
+            }
+        }
+        return -1;
+    }
 
-	protected int size;
+    @Override
+    public int lastIndexOf(Object o) {
+        if (o == null) {
+            for (int a = size(); a-- > 0; ) {
+                Object item = array[a];
+                if (item == null) {
+                    return a;
+                }
+            }
+        } else {
+            for (int a = size(); a-- > 0; ) {
+                Object item = array[a];
+                if (item != null && item.equals(o)) {
+                    return a;
+                }
+            }
+        }
+        return -1;
+    }
 
-	public ReadOnlyList() {
-		// Intended blank
-	}
+    @Override
+    public Iterator<V> iterator() {
+        return listIterator();
+    }
 
-	public ReadOnlyList(Collection<V> objects) {
-		if (objects == null || objects.isEmpty()) {
-			array = emptyArray;
-			size = 0;
-		}
-		else {
-			array = new Object[objects.size()];
-			Iterator<V> iter = objects.iterator();
-			int tempSize = 0;
-			while (iter.hasNext()) {
-				V item = iter.next();
-				array[tempSize++] = item;
-			}
-			size = tempSize;
-		}
-	}
+    @Override
+    public ListIterator<V> listIterator() {
+        return new ReadOnlyIter<>(this);
+    }
 
-	public ReadOnlyList(V object) {
-		array = new Object[1];
-		array[0] = object;
-		size = 1;
-	}
+    @Override
+    public IList<V> subList(int startIndex, int endIndex) {
+        return new ReadOnlyList<>(this, startIndex, endIndex);
+    }
 
-	public ReadOnlyList(V[] objects) {
-		array = objects;
-		size = objects.length;
-	}
+    @Override
+    public ListIterator<V> listIterator(int arg0) {
+        throw new UnsupportedOperationException();
+    }
 
-	public ReadOnlyList(List<V> objects, int startIndex, int endIndex) {
-		if (objects == null || objects.isEmpty()) {
-			array = emptyArray;
-			size = 0;
-		}
-		else {
-			if (endIndex < startIndex) {
-				throw new IllegalArgumentException("endIndex must be >= startIndex");
-			}
-			int length = endIndex - startIndex;
-			array = new Object[length];
-			int tempSize = 0;
-			for (int a = startIndex; a <= endIndex; a++) {
-				array[tempSize++] = objects.get(a);
-			}
-			size = tempSize;
-		}
-	}
+    @Override
+    public boolean add(V arg0) {
+        throw new UnsupportedOperationException();
+    }
 
-	public boolean hasValue(final V value) {
-		for (int a = 0; a < size; a++) {
-			if (array[a] == value) {
-				return true;
-			}
-		}
-		return false;
-	}
+    @Override
+    public void add(int arg0, V arg1) {
+        throw new UnsupportedOperationException();
+    }
 
-	@Override
-	@SuppressWarnings("unchecked")
-	public V get(final int index) {
-		return (V) array[index];
-	}
+    @Override
+    public boolean addAll(Collection<? extends V> arg0) {
+        throw new UnsupportedOperationException();
+    }
 
-	@Override
-	public int size() {
-		return size;
-	}
+    @Override
+    public boolean addAll(int arg0, Collection<? extends V> arg1) {
+        throw new UnsupportedOperationException();
+    }
 
-	@SuppressWarnings("unchecked")
-	public void copyInto(final ArrayList<V> otherList) {
-		otherList.size = 0;
-		for (int a = 0; a < size; a++) {
-			otherList.add((V) array[a]);
-		}
-	}
+    @Override
+    public <T extends V> boolean addAll(T[] array) {
+        throw new UnsupportedOperationException();
+    }
 
-	@Override
-	public boolean contains(Object o) {
-		return indexOf(o) != -1;
-	}
+    @Override
+    public <T extends V> boolean addAll(T[] array, int startIndex, int length) {
+        throw new UnsupportedOperationException();
+    }
 
-	@Override
-	public boolean isEmpty() {
-		return size() == 0;
-	}
+    @Override
+    public void clear() {
+        throw new UnsupportedOperationException();
+    }
 
-	@Override
-	public Object[] toArray() {
-		Object[] targetArray = new Object[size()];
-		return toArray(targetArray);
-	}
+    @Override
+    public boolean containsAll(Collection<?> arg0) {
+        throw new UnsupportedOperationException();
+    }
 
-	@Override
-	@SuppressWarnings("unchecked")
-	public <T> T[] toArray(T[] array) {
-		for (int a = size(); a-- > 0;) {
-			array[a] = (T) this.array[a];
-		}
-		return array;
-	}
+    @Override
+    public V peek() {
+        if (size() > 0) {
+            return get(size() - 1);
+        }
+        return null;
+    }
 
-	@SuppressWarnings("unchecked")
-	@Override
-	public <T> T[] toArray(Class<T> componentType) {
-		return toArray((T[]) Array.newInstance(componentType, size()));
-	}
+    @Override
+    public V popLastElement() {
+        throw new UnsupportedOperationException();
+    }
 
-	@Override
-	public int indexOf(Object o) {
-		if (o == null) {
-			for (int a = 0, size = size(); a < size; a++) {
-				Object item = array[a];
-				if (item == null) {
-					return a;
-				}
-			}
-		}
-		else {
-			for (int a = 0, size = size(); a < size; a++) {
-				Object item = array[a];
-				if (item != null && item.equals(o)) {
-					return a;
-				}
-			}
-		}
-		return -1;
-	}
+    @Override
+    public boolean remove(Object arg0) {
+        throw new UnsupportedOperationException();
+    }
 
-	@Override
-	public int lastIndexOf(Object o) {
-		if (o == null) {
-			for (int a = size(); a-- > 0;) {
-				Object item = array[a];
-				if (item == null) {
-					return a;
-				}
-			}
-		}
-		else {
-			for (int a = size(); a-- > 0;) {
-				Object item = array[a];
-				if (item != null && item.equals(o)) {
-					return a;
-				}
-			}
-		}
-		return -1;
-	}
+    @Override
+    public V remove(int arg0) {
+        throw new UnsupportedOperationException();
+    }
 
-	@Override
-	public Iterator<V> iterator() {
-		return listIterator();
-	}
+    @Override
+    public boolean removeAll(Collection<?> arg0) {
+        throw new UnsupportedOperationException();
+    }
 
-	@Override
-	public ListIterator<V> listIterator() {
-		return new ReadOnlyIter<>(this);
-	}
+    @Override
+    public <T extends V> boolean removeAll(T[] array) {
+        throw new UnsupportedOperationException();
+    }
 
-	@Override
-	public IList<V> subList(int startIndex, int endIndex) {
-		return new ReadOnlyList<>(this, startIndex, endIndex);
-	}
+    @Override
+    public <T extends V> boolean removeAll(T[] array, int startIndex, int length) {
+        throw new UnsupportedOperationException();
+    }
 
-	@Override
-	public ListIterator<V> listIterator(int arg0) {
-		throw new UnsupportedOperationException();
-	}
+    @Override
+    public boolean retainAll(Collection<?> arg0) {
+        throw new UnsupportedOperationException();
+    }
 
-	@Override
-	public boolean add(V arg0) {
-		throw new UnsupportedOperationException();
-	}
+    @Override
+    public V set(int arg0, V arg1) {
+        throw new UnsupportedOperationException();
+    }
 
-	@Override
-	public void add(int arg0, V arg1) {
-		throw new UnsupportedOperationException();
-	}
+    public static class ReadOnlyIter<V> implements ListIterator<V> {
+        private final ReadOnlyList<V> list;
 
-	@Override
-	public boolean addAll(Collection<? extends V> arg0) {
-		throw new UnsupportedOperationException();
-	}
+        private int currIndex;
 
-	@Override
-	public boolean addAll(int arg0, Collection<? extends V> arg1) {
-		throw new UnsupportedOperationException();
-	}
+        public ReadOnlyIter(ReadOnlyList<V> list) {
+            this.list = list;
+        }
 
-	@Override
-	public <T extends V> boolean addAll(T[] array) {
-		throw new UnsupportedOperationException();
-	}
+        @Override
+        public boolean hasNext() {
+            return list.size > currIndex;
+        }
 
-	@Override
-	public <T extends V> boolean addAll(T[] array, int startIndex, int length) {
-		throw new UnsupportedOperationException();
-	}
+        @Override
+        public V next() {
+            return list.get(currIndex++);
+        }
 
-	@Override
-	public void clear() {
-		throw new UnsupportedOperationException();
-	}
+        @Override
+        public boolean hasPrevious() {
+            return currIndex > 0;
+        }
 
-	@Override
-	public boolean containsAll(Collection<?> arg0) {
-		throw new UnsupportedOperationException();
-	}
+        @Override
+        public int nextIndex() {
+            return currIndex + 1;
+        }
 
-	@Override
-	public V peek() {
-		if (size() > 0) {
-			return get(size() - 1);
-		}
-		return null;
-	}
+        @Override
+        public V previous() {
+            return list.get(--currIndex);
+        }
 
-	@Override
-	public V popLastElement() {
-		throw new UnsupportedOperationException();
-	}
+        @Override
+        public int previousIndex() {
+            return currIndex - 1;
+        }
 
-	@Override
-	public boolean remove(Object arg0) {
-		throw new UnsupportedOperationException();
-	}
+        @Override
+        public void remove() {
+            throw new UnsupportedOperationException();
+        }
 
-	@Override
-	public V remove(int arg0) {
-		throw new UnsupportedOperationException();
-	}
+        @Override
+        public void add(V arg0) {
+            throw new UnsupportedOperationException();
+        }
 
-	@Override
-	public boolean removeAll(Collection<?> arg0) {
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
-	public <T extends V> boolean removeAll(T[] array) {
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
-	public <T extends V> boolean removeAll(T[] array, int startIndex, int length) {
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
-	public boolean retainAll(Collection<?> arg0) {
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
-	public V set(int arg0, V arg1) {
-		throw new UnsupportedOperationException();
-	}
+        @Override
+        public void set(V arg0) {
+            throw new UnsupportedOperationException();
+        }
+    }
 }

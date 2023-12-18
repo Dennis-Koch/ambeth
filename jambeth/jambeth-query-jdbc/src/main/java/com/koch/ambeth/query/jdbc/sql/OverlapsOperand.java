@@ -23,11 +23,15 @@ limitations under the License.
 import com.koch.ambeth.ioc.config.Property;
 import com.koch.ambeth.query.IOperand;
 import com.koch.ambeth.util.appendable.IAppendable;
-import com.koch.ambeth.util.collections.IList;
 
+import java.util.List;
 import java.util.Map;
 
 public class OverlapsOperand implements IOperand {
+    public static final String P_LEFT_OPERAND = "LeftOperand";
+
+    public static final String P_RIGHT_OPERAND = "RightOperand";
+
     @Property
     protected IOperand leftOperand;
 
@@ -35,7 +39,7 @@ public class OverlapsOperand implements IOperand {
     protected IOperand rightOperand;
 
     @Override
-    public void expandQuery(IAppendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, IList<Object> parameters) {
+    public void expandQuery(IAppendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, List<Object> parameters) {
         querySB.append('(');
         leftOperand.expandQuery(querySB, nameToValueMap, joinQuery, parameters);
         querySB.append(" OVERLAPS ");

@@ -21,8 +21,9 @@ limitations under the License.
  */
 
 import com.koch.ambeth.merge.cache.IWritableCache;
-import com.koch.ambeth.util.collections.IList;
+
+import java.util.List;
 
 public interface IFirstLevelCacheManager {
-	IList<IWritableCache> selectFirstLevelCaches();
+    List<IWritableCache> selectFirstLevelCaches();
 }

@@ -26,8 +26,8 @@ import com.koch.ambeth.query.jdbc.sql.ITableAliasProvider;
 import com.koch.ambeth.query.jdbc.sql.SqlJoinOperator;
 import com.koch.ambeth.query.jdbc.sql.SqlSubselectOperand;
 import com.koch.ambeth.util.IDisposable;
-import com.koch.ambeth.util.collections.IList;
 
+import java.util.List;
 import java.util.Map;
 
 public class SubQuery<T> implements ISubQuery<T>, ISubQueryIntern, IDisposable {
@@ -64,7 +64,7 @@ public class SubQuery<T> implements ISubQuery<T>, ISubQueryIntern, IDisposable {
     }
 
     @Override
-    public String[] getSqlParts(Map<Object, Object> nameToValueMap, IList<Object> parameters, IList<String> additionalSelectColumnList) {
+    public String[] getSqlParts(Map<Object, Object> nameToValueMap, List<Object> parameters, List<String> additionalSelectColumnList) {
         return subQuery.getSqlParts(nameToValueMap, parameters, additionalSelectColumnList);
     }
 

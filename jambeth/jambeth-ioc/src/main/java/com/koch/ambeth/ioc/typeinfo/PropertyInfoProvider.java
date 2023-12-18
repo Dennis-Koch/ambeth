@@ -250,8 +250,7 @@ public class PropertyInfoProvider implements IPropertyInfoProvider, IInitializin
                     fieldAccess = FieldAccess.get(type);
                 }
                 if (fieldAccess != null && (field.getModifiers() & Modifier.PRIVATE) == 0) {
-                    FieldAccess fieldAccessOfDeclaringType =
-                            field.getDeclaringClass() != type ? FieldAccess.get(field.getDeclaringClass()) : fieldAccess;// type.getClassLoader().loadClass("com.koch.ambeth.event.ioc.EventModule")
+                    var fieldAccessOfDeclaringType = field.getDeclaringClass() != type ? FieldAccess.get(field.getDeclaringClass()) : fieldAccess;
                     propertyInfo = new FieldPropertyInfoASM(type, propertyName, field, objectCollector, fieldAccessOfDeclaringType);
                 } else {
                     propertyInfo = new FieldPropertyInfo(type, propertyName, field, objectCollector);

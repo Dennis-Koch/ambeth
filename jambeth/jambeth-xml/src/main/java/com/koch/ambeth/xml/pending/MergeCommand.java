@@ -141,7 +141,7 @@ public class MergeCommand extends AbstractObjectCommand implements IObjectComman
                 if (existingORIsSet.isEmpty()) {
                     newORIs = IObjRef.EMPTY_ARRAY;
                 } else {
-                    newORIs = existingORIsSet.toArray(IObjRef.class);
+                    newORIs = existingORIsSet.toArray(IObjRef[]::new);
                 }
             }
 

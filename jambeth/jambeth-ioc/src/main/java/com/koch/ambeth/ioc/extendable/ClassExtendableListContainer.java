@@ -20,98 +20,97 @@ limitations under the License.
  * #L%
  */
 
-import java.util.concurrent.locks.Lock;
-
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.EmptyList;
-import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.IListElem;
 import com.koch.ambeth.util.collections.IdentityHashSet;
 import com.koch.ambeth.util.collections.InterfaceFastList;
 
+import java.util.List;
+import java.util.concurrent.locks.Lock;
+
 public class ClassExtendableListContainer<V> extends ClassExtendableContainer<V> {
-	public ClassExtendableListContainer(String message, String keyMessage) {
-		super(message, keyMessage, true);
-	}
+    public ClassExtendableListContainer(String message, String keyMessage) {
+        super(message, keyMessage, true);
+    }
 
-	@Override
-	public V getExtension(Class<?> key) {
-		IList<V> extensions = getExtensions(key);
-		return !extensions.isEmpty() ? extensions.get(0) : null;
-	}
+    @Override
+    public V getExtension(Class<?> key) {
+        List<V> extensions = getExtensions(key);
+        return !extensions.isEmpty() ? extensions.get(0) : null;
+    }
 
-	@SuppressWarnings("unchecked")
-	@Override
-	public IList<V> getExtensions(Class<?> key) {
-		if (key == null) {
-			return EmptyList.<V>getInstance();
-		}
-		Object extension = classEntry.get(key);
-		if (extension == null) {
-			Lock writeLock = getWriteLock();
-			writeLock.lock();
-			try {
-				extension = classEntry.get(key);
-				if (extension == null) {
-					ClassEntry<V> classEntry = copyStructure();
+    @SuppressWarnings("unchecked")
+    @Override
+    public List<V> getExtensions(Class<?> key) {
+        if (key == null) {
+            return EmptyList.<V>getInstance();
+        }
+        Object extension = classEntry.get(key);
+        if (extension == null) {
+            Lock writeLock = getWriteLock();
+            writeLock.lock();
+            try {
+                extension = classEntry.get(key);
+                if (extension == null) {
+                    ClassEntry<V> classEntry = copyStructure();
 
-					classEntry.put(key, alreadyHandled);
-					classEntry.typeToDefEntryMap.put(key, alreadyHandled);
-					checkToWeakRegisterExistingExtensions(key, classEntry);
-					this.classEntry = classEntry;
+                    classEntry.put(key, alreadyHandled);
+                    classEntry.typeToDefEntryMap.put(key, alreadyHandled);
+                    checkToWeakRegisterExistingExtensions(key, classEntry);
+                    this.classEntry = classEntry;
 
-					extension = classEntry.get(key);
-					if (extension == null) {
-						return EmptyList.<V>getInstance();
-					}
-				}
-			}
-			finally {
-				writeLock.unlock();
-			}
-		}
-		if (extension == alreadyHandled) {
-			// Already tried
-			return EmptyList.<V>getInstance();
-		}
-		return (IList<V>) extension;
-	}
+                    extension = classEntry.get(key);
+                    if (extension == null) {
+                        return EmptyList.<V>getInstance();
+                    }
+                }
+            } finally {
+                writeLock.unlock();
+            }
+        }
+        if (extension == alreadyHandled) {
+            // Already tried
+            return EmptyList.<V>getInstance();
+        }
+        return (List<V>) extension;
+    }
 
-	@SuppressWarnings("unchecked")
-	@Override
-	protected void typeToDefEntryMapChanged(ClassEntry<V> classEntry, Class<?> key) {
-		Object obj = classEntry.typeToDefEntryMap.get(key);
-		if (obj == null) {
-			classEntry.remove(key);
-			return;
-		}
-		if (obj == alreadyHandled) {
-			classEntry.put(key, alreadyHandled);
-			return;
-		}
-		Object existingItem = classEntry.get(key);
-		ArrayList<V> list = (ArrayList<V>) (existingItem == alreadyHandled ? null : existingItem);
-		if (list == null) {
-			list = new ArrayList<>();
-			classEntry.put(key, list);
-		}
-		if (obj instanceof DefEntry) {
-			V extension = ((DefEntry<V>) obj).extension;
-			if (!list.contains(extension)) {
-				list.add(extension);
-			}
-			return;
-		}
-		IdentityHashSet<Object> usedExtensions = new IdentityHashSet<>();
-		IListElem<DefEntry<V>> pointer = ((InterfaceFastList<DefEntry<V>>) obj).first();
-		while (pointer != null) {
-			V extension = pointer.getElemValue().extension;
-			usedExtensions.add(extension);
-			if (!list.contains(extension)) {
-				list.add(extension);
-			}
-			pointer = pointer.getNext();
-		}
-		list.retainAll(usedExtensions);
-	}
+    @SuppressWarnings("unchecked")
+    @Override
+    protected void typeToDefEntryMapChanged(ClassEntry<V> classEntry, Class<?> key) {
+        Object obj = classEntry.typeToDefEntryMap.get(key);
+        if (obj == null) {
+            classEntry.remove(key);
+            return;
+        }
+        if (obj == alreadyHandled) {
+            classEntry.put(key, alreadyHandled);
+            return;
+        }
+        Object existingItem = classEntry.get(key);
+        ArrayList<V> list = (ArrayList<V>) (existingItem == alreadyHandled ? null : existingItem);
+        if (list == null) {
+            list = new ArrayList<>();
+            classEntry.put(key, list);
+        }
+        if (obj instanceof DefEntry) {
+            V extension = ((DefEntry<V>) obj).extension;
+            if (!list.contains(extension)) {
+                list.add(extension);
+            }
+            return;
+        }
+        IdentityHashSet<Object> usedExtensions = new IdentityHashSet<>();
+        IListElem<DefEntry<V>> pointer = ((InterfaceFastList<DefEntry<V>>) obj).first();
+        while (pointer != null) {
+            V extension = pointer.getElemValue().extension;
+            usedExtensions.add(extension);
+            if (!list.contains(extension)) {
+                list.add(extension);
+            }
+            pointer = pointer.getNext();
+        }
+        list.retainAll(usedExtensions);
+    }
 }

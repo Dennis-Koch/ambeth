@@ -35,7 +35,6 @@ import com.koch.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationConst
 import com.koch.ambeth.persistence.sqlite.RandomUserScript.RandomUserModule;
 import com.koch.ambeth.util.appendable.AppendableStringBuilder;
 import com.koch.ambeth.util.collections.ArrayList;
-import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.config.IProperties;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import lombok.SneakyThrows;
@@ -45,6 +44,7 @@ import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -179,18 +179,18 @@ public class SQLiteTestDialect extends AbstractConnectionTestDialect {
     }
 
     @Override
-    protected IList<String> queryForAllTables(Connection connection) {
+    protected List<String> queryForAllTables(Connection connection) {
         return connectionDialect.queryDefault(connection, "FULL_NAME", "SELECT tbl_name AS FULL_NAME FROM sqlite_master where type='table'");
     }
 
     @Override
-    protected IList<String> queryForAllTriggers(Connection connection) {
+    protected List<String> queryForAllTriggers(Connection connection) {
         return connectionDialect.queryDefault(connection, "FULL_NAME", "SELECT tbl_name AS FULL_NAME FROM sqlite_master where type='trigger'");
     }
 
     @SneakyThrows
     @Override
-    protected IList<String> queryForAllPermissionGroupNeedingTables(Connection connection) {
+    protected List<String> queryForAllPermissionGroupNeedingTables(Connection connection) {
         Statement stmt = null;
         ResultSet rs = null;
         try {
@@ -222,7 +222,7 @@ public class SQLiteTestDialect extends AbstractConnectionTestDialect {
     }
 
     @Override
-    protected IList<String> queryForAllPotentialPermissionGroups(Connection connection) {
+    protected List<String> queryForAllPotentialPermissionGroups(Connection connection) {
         return connectionDialect.queryDefault(connection, "FULL_NAME", "SELECT tbl_name AS FULL_NAME FROM sqlite_master where type='table'");
     }
 
@@ -279,7 +279,7 @@ public class SQLiteTestDialect extends AbstractConnectionTestDialect {
         // // JdbcUtil.close(pstm, rs);
         // // }
         //
-        // return sql.toArray(String.class);
+        // return sql.toArray(String[]::new);
     }
 
     @Override

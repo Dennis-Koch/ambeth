@@ -23,12 +23,11 @@ limitations under the License.
 import com.koch.ambeth.query.IQuery;
 import com.koch.ambeth.query.IQueryIntern;
 import com.koch.ambeth.query.IQueryKey;
-import com.koch.ambeth.query.StatefulQuery;
+import com.koch.ambeth.query.ParameterizedQuery;
 import com.koch.ambeth.query.persistence.IDataCursor;
 import com.koch.ambeth.query.persistence.IEntityCursor;
 import com.koch.ambeth.query.persistence.IVersionCursor;
 import com.koch.ambeth.service.merge.model.IObjRef;
-import com.koch.ambeth.util.collections.IList;
 
 import java.util.List;
 import java.util.Map;
@@ -81,11 +80,6 @@ public class InMemoryQuery<T> implements IQuery<T>, IQueryIntern<T> {
     }
 
     @Override
-    public IVersionCursor retrieveAsVersions(Map<Object, Object> nameToValueMap) {
-        return null;
-    }
-
-    @Override
     public IEntityCursor<T> retrieveAsCursor() {
         return null;
     }
@@ -96,7 +90,7 @@ public class InMemoryQuery<T> implements IQuery<T>, IQueryIntern<T> {
     }
 
     @Override
-    public IList<T> retrieve() {
+    public List<T> retrieve() {
         return null;
     }
 
@@ -106,14 +100,14 @@ public class InMemoryQuery<T> implements IQuery<T>, IQueryIntern<T> {
     }
 
     @Override
-    public IList<T> retrieve(Map<Object, Object> nameToValueMap) {
+    public List<T> retrieve(Map<Object, Object> nameToValueMap) {
         return null;
     }
 
     @Override
     public IQuery<T> param(Object paramKey, Object param) {
-        StatefulQuery<T> statefulQuery = new StatefulQuery<>(this);
-        return statefulQuery.param(paramKey, param);
+        var parameterizedQuery = new ParameterizedQuery<>(this);
+        return parameterizedQuery.param(paramKey, param);
     }
 
     @Override
@@ -122,12 +116,12 @@ public class InMemoryQuery<T> implements IQuery<T>, IQueryIntern<T> {
     }
 
     @Override
-    public IList<IObjRef> retrieveAsObjRefs(int idIndex) {
+    public List<IObjRef> retrieveAsObjRefs(int idIndex) {
         return null;
     }
 
     @Override
-    public IList<IObjRef> retrieveAsObjRefs(Map<Object, Object> paramNameToValueMap, int idIndex) {
+    public List<IObjRef> retrieveAsObjRefs(Map<Object, Object> paramNameToValueMap, int idIndex) {
         return null;
     }
 

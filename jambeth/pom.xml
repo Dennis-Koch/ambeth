@@ -43,6 +43,7 @@
         <module>jambeth-expr-exp4j</module>
         <module>jambeth-filter</module>
         <module>jambeth-ioc</module>
+        <module>jambeth-ioc-cdi</module>
         <module>jambeth-ioc-osgi</module>
         <module>jambeth-jetty</module>
         <module>jambeth-job</module>

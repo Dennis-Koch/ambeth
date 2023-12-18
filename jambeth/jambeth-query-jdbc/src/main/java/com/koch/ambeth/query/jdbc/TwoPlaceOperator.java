@@ -28,9 +28,8 @@ import com.koch.ambeth.query.IValueOperand;
 import com.koch.ambeth.query.jdbc.sql.SqlColumnOperand;
 import com.koch.ambeth.util.ParamChecker;
 import com.koch.ambeth.util.appendable.IAppendable;
-import com.koch.ambeth.util.collections.IList;
-import com.koch.ambeth.util.collections.IMap;
 
+import java.util.List;
 import java.util.Map;
 
 public abstract class TwoPlaceOperator extends BasicTwoPlaceOperator {
@@ -55,12 +54,12 @@ public abstract class TwoPlaceOperator extends BasicTwoPlaceOperator {
     }
 
     @Override
-    protected void processLeftOperand(IAppendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, IList<Object> parameters) {
+    protected void processLeftOperand(IAppendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, List<Object> parameters) {
         leftOperand.expandQuery(querySB, nameToValueMap, joinQuery, parameters);
     }
 
     @Override
-    protected void processRightOperand(IAppendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, Class<?> leftValueOperandType, IList<Object> parameters) {
+    protected void processRightOperand(IAppendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, Class<?> leftValueOperandType, List<Object> parameters) {
         Object existingHint = nameToValueMap.put(QueryConstants.EXPECTED_TYPE_HINT, leftValueOperandType);
         try {
             rightOperand.expandQuery(querySB, nameToValueMap, joinQuery, parameters);
@@ -93,7 +92,7 @@ public abstract class TwoPlaceOperator extends BasicTwoPlaceOperator {
 
     @Override
     protected boolean isRightValueNull(Map<Object, Object> nameToValueMap) {
-        IOperand rightOperand = this.rightOperand;
+        var rightOperand = this.rightOperand;
         if (rightOperand instanceof IValueOperand) {
             return ((IValueOperand) rightOperand).getValue(nameToValueMap) == null;
         } else if (rightOperand instanceof IMultiValueOperand) {
@@ -104,7 +103,7 @@ public abstract class TwoPlaceOperator extends BasicTwoPlaceOperator {
 
     @Override
     protected boolean isRightValueNullOrEmpty(Map<Object, Object> nameToValueMap) {
-        IOperand rightOperand = this.rightOperand;
+        var rightOperand = this.rightOperand;
         if (rightOperand instanceof IMultiValueOperand) {
             return ((IMultiValueOperand) rightOperand).isNullOrEmpty(nameToValueMap);
         } else if (rightOperand instanceof IValueOperand) {
@@ -115,9 +114,9 @@ public abstract class TwoPlaceOperator extends BasicTwoPlaceOperator {
     }
 
     @Override
-    public void operate(IAppendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, IList<Object> parameters) {
-        IOperand leftOperand = this.leftOperand;
-        IOperand rightOperand = this.rightOperand;
+    public void operate(IAppendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, List<Object> parameters) {
+        var leftOperand = this.leftOperand;
+        var rightOperand = this.rightOperand;
         if (leftOperand instanceof IOperatorAwareOperand) {
             ((IOperatorAwareOperand) leftOperand).operatorStart(nameToValueMap);
         }

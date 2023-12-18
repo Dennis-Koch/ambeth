@@ -33,7 +33,6 @@ import com.koch.ambeth.util.ParamHolder;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.HashMap;
 import com.koch.ambeth.util.collections.HashSet;
-import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.IMap;
 import com.koch.ambeth.util.collections.IdentityHashMap;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
@@ -135,7 +134,7 @@ public class MergeServiceRegistry implements IMergeService, IMergeServiceExtensi
                     log.debug("Initial merge [" + System.identityHashCode(state != null ? state : cudResultOfCache) + "]. No Details available");
                 }
             }
-            IList<MergeOperation> mergeOperationSequence;
+            List<MergeOperation> mergeOperationSequence;
             final ICUDResult extendedCudResult;
             if (cudResultOfCache != cudResultOriginal && !isNetworkClientMode) {
                 mergeOperationSequence = new ArrayList<>();
@@ -206,8 +205,8 @@ public class MergeServiceRegistry implements IMergeService, IMergeServiceExtensi
         }
     }
 
-    protected ICUDResult whatIfMerged(ICUDResult cudResult, final IMethodDescription methodDescription, IList<MergeOperation> mergeOperationSequence, final IncrementalMergeState incrementalState) {
-        IList<MergeOperation> lastMergeOperationSequence;
+    protected ICUDResult whatIfMerged(ICUDResult cudResult, final IMethodDescription methodDescription, List<MergeOperation> mergeOperationSequence, final IncrementalMergeState incrementalState) {
+        List<MergeOperation> lastMergeOperationSequence;
         while (true) {
             var sortedChanges = bucketSortChanges(cudResult.getAllChanges());
             lastMergeOperationSequence = createMergeOperationSequence(sortedChanges);
@@ -237,7 +236,7 @@ public class MergeServiceRegistry implements IMergeService, IMergeServiceExtensi
         return cudResult;
     }
 
-    protected IOriCollection intern(String[] causingUuids, ICUDResult cudResult, IMethodDescription methodDescription, IList<MergeOperation> mergeOperationSequence,
+    protected IOriCollection intern(String[] causingUuids, ICUDResult cudResult, IMethodDescription methodDescription, List<MergeOperation> mergeOperationSequence,
             IncrementalMergeState incrementalState) {
         var allChanges = cudResult.getAllChanges();
         var originalRefs = cudResult.getOriginalRefs();
@@ -337,11 +336,11 @@ public class MergeServiceRegistry implements IMergeService, IMergeServiceExtensi
         if (log.isDebugEnabled()) {
             var currHandle = implyingHandle;
             if (currHandle instanceof Factory) {
-                var interceptor = (MethodInterceptor) ((Factory) currHandle).getCallbacks()[0];
-                while (interceptor instanceof ICascadedInterceptor) {
-                    var target = ((ICascadedInterceptor) interceptor).getTarget();
-                    if (target instanceof MethodInterceptor) {
-                        interceptor = ((MethodInterceptor) target);
+                var interceptor = ((Factory) currHandle).getInterceptor();
+                while (interceptor instanceof ICascadedInterceptor cascadedInterceptor) {
+                    var target = cascadedInterceptor.getTarget();
+                    if (target instanceof MethodInterceptor methodInterceptor) {
+                        interceptor = methodInterceptor;
                         continue;
                     }
                     currHandle = target;
@@ -360,7 +359,7 @@ public class MergeServiceRegistry implements IMergeService, IMergeServiceExtensi
         return explAndImplCudResult;
     }
 
-    protected ICUDResult buildCUDResult(IList<IChangeContainer> changesForMergeService, IMap<IChangeContainer, Integer> changeToChangeIndexDict, List<Object> originalRefs) {
+    protected ICUDResult buildCUDResult(List<IChangeContainer> changesForMergeService, IMap<IChangeContainer, Integer> changeToChangeIndexDict, List<Object> originalRefs) {
         var msOriginalRefs = new Object[changesForMergeService.size()];
         for (int b = changesForMergeService.size(); b-- > 0; ) {
             int index = changeToChangeIndexDict.get(changesForMergeService.get(b)).intValue();
@@ -428,14 +427,14 @@ public class MergeServiceRegistry implements IMergeService, IMergeServiceExtensi
         return mse;
     }
 
-    protected IMap<Class<?>, IList<IChangeContainer>> bucketSortChanges(List<IChangeContainer> allChanges) {
-        IMap<Class<?>, IList<IChangeContainer>> sortedChanges = new HashMap<>();
+    protected IMap<Class<?>, List<IChangeContainer>> bucketSortChanges(List<IChangeContainer> allChanges) {
+        IMap<Class<?>, List<IChangeContainer>> sortedChanges = new HashMap<>();
 
         for (int i = allChanges.size(); i-- > 0; ) {
             IChangeContainer changeContainer = allChanges.get(i);
             IObjRef objRef = changeContainer.getReference();
             Class<?> type = objRef.getRealType();
-            IList<IChangeContainer> changeContainers = sortedChanges.get(type);
+            List<IChangeContainer> changeContainers = sortedChanges.get(type);
             if (changeContainers == null) {
                 changeContainers = new ArrayList<>();
                 if (!sortedChanges.putIfNotExists(type, changeContainers)) {
@@ -447,20 +446,20 @@ public class MergeServiceRegistry implements IMergeService, IMergeServiceExtensi
         return sortedChanges;
     }
 
-    protected IList<MergeOperation> createMergeOperationSequence(IMap<Class<?>, IList<IChangeContainer>> sortedChanges) {
+    protected List<MergeOperation> createMergeOperationSequence(IMap<Class<?>, List<IChangeContainer>> sortedChanges) {
         Class<?>[] entityPersistOrder = entityMetaDataProvider.getEntityPersistOrder();
-        final IList<MergeOperation> mergeOperations = new ArrayList<>();
+        final List<MergeOperation> mergeOperations = new ArrayList<>();
 
         if (entityPersistOrder != null) {
             for (int a = entityPersistOrder.length; a-- > 0; ) {
                 Class<?> orderedEntityType = entityPersistOrder[a];
-                IList<IChangeContainer> changes = sortedChanges.get(orderedEntityType);
+                List<IChangeContainer> changes = sortedChanges.get(orderedEntityType);
                 if (changes == null) {
                     // No changes of current type found. Nothing to do here
                     continue;
                 }
-                IList<IChangeContainer> removes = new ArrayList<>(changes.size());
-                IList<IChangeContainer> insertsAndUpdates = new ArrayList<>(changes.size());
+                List<IChangeContainer> removes = new ArrayList<>(changes.size());
+                List<IChangeContainer> insertsAndUpdates = new ArrayList<>(changes.size());
                 for (int b = changes.size(); b-- > 0; ) {
                     IChangeContainer change = changes.get(b);
                     if (change instanceof DeleteContainer) {
@@ -487,7 +486,7 @@ public class MergeServiceRegistry implements IMergeService, IMergeServiceExtensi
             }
             for (int a = 0, size = entityPersistOrder.length; a < size; a++) {
                 Class<?> orderedEntityType = entityPersistOrder[a];
-                IList<IChangeContainer> changes = sortedChanges.get(orderedEntityType);
+                List<IChangeContainer> changes = sortedChanges.get(orderedEntityType);
                 if (changes == null) {
                     // No changes of current type found. Nothing to do here
                     continue;
@@ -519,9 +518,9 @@ public class MergeServiceRegistry implements IMergeService, IMergeServiceExtensi
         // Everything which is left in the sortedChanges map can be merged
         // without global order, so batch together as much as possible
 
-        for (Entry<Class<?>, IList<IChangeContainer>> entry : sortedChanges) {
+        for (Entry<Class<?>, List<IChangeContainer>> entry : sortedChanges) {
             Class<?> type = entry.getKey();
-            IList<IChangeContainer> unorderedChanges = entry.getValue();
+            List<IChangeContainer> unorderedChanges = entry.getValue();
             IMergeServiceExtension mergeServiceExtension = getServiceForType(type, true);
 
             if (mergeServiceExtension == null) {
@@ -530,7 +529,7 @@ public class MergeServiceRegistry implements IMergeService, IMergeServiceExtensi
             boolean cont = false;
             for (MergeOperation existingMergeOperation : mergeOperations) {
                 if (existingMergeOperation.getMergeServiceExtension() == mergeServiceExtension) {
-                    IList<IChangeContainer> orderedChanges = existingMergeOperation.getChangeContainer();
+                    List<IChangeContainer> orderedChanges = existingMergeOperation.getChangeContainer();
                     for (int b = unorderedChanges.size(); b-- > 0; ) {
                         orderedChanges.add(unorderedChanges.get(b));
                     }
@@ -582,7 +581,7 @@ public class MergeServiceRegistry implements IMergeService, IMergeServiceExtensi
     public static class MergeOperation {
         protected IMergeServiceExtension mergeServiceExtension;
 
-        protected IList<IChangeContainer> changeContainer;
+        protected List<IChangeContainer> changeContainer;
 
         public IMergeServiceExtension getMergeServiceExtension() {
             return mergeServiceExtension;
@@ -592,11 +591,11 @@ public class MergeServiceRegistry implements IMergeService, IMergeServiceExtensi
             this.mergeServiceExtension = mergeServiceExtension;
         }
 
-        public IList<IChangeContainer> getChangeContainer() {
+        public List<IChangeContainer> getChangeContainer() {
             return changeContainer;
         }
 
-        public void setChangeContainer(IList<IChangeContainer> changeContainer) {
+        public void setChangeContainer(List<IChangeContainer> changeContainer) {
             this.changeContainer = changeContainer;
         }
     }

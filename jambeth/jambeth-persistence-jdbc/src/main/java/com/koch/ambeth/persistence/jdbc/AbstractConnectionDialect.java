@@ -24,7 +24,6 @@ import com.koch.ambeth.util.IConversionHelper;
 import com.koch.ambeth.util.StringBuilderUtil;
 import com.koch.ambeth.util.appendable.IAppendable;
 import com.koch.ambeth.util.collections.ArrayList;
-import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.config.IProperties;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.objectcollector.IThreadLocalObjectCollector;
@@ -108,7 +107,7 @@ public abstract class AbstractConnectionDialect implements IConnectionDialect, I
     }
 
     @Override
-    public void appendListClause(List<Object> parameters, IAppendable sb, Class<?> fieldType, IList<Object> splittedIds, Function<Object, Object> idDecompositor) {
+    public void appendListClause(List<Object> parameters, IAppendable sb, Class<?> fieldType, List<Object> splittedIds, Function<Object, Object> idDecompositor) {
         sb.append(" IN (");
 
         var preparedConverter = conversionHelper.prepareConverter(fieldType);
@@ -126,7 +125,7 @@ public abstract class AbstractConnectionDialect implements IConnectionDialect, I
     }
 
     @Override
-    public boolean isCompactMultiValueRecommended(IList<Object> values) {
+    public boolean isCompactMultiValueRecommended(List<Object> values) {
         return values.size() > getMaxInClauseBatchThreshold();
     }
 
@@ -262,7 +261,7 @@ public abstract class AbstractConnectionDialect implements IConnectionDialect, I
     }
 
     @Override
-    public void handleWithMultiValueLeftField(IAppendable querySB, Map<Object, Object> nameToValueMap, IList<Object> parameters, IList<IList<Object>> splitValues, boolean caseSensitive,
+    public void handleWithMultiValueLeftField(IAppendable querySB, Map<Object, Object> nameToValueMap, List<Object> parameters, List<List<Object>> splitValues, boolean caseSensitive,
             Class<?> leftOperandFieldType) {
         querySB.append("SELECT COLUMN_VALUE FROM (");
         if (splitValues.isEmpty()) {
@@ -536,7 +535,7 @@ public abstract class AbstractConnectionDialect implements IConnectionDialect, I
 
     @SneakyThrows
     @Override
-    public IList<String> queryDefault(Connection connection, String resultColumnName, String sql, Object... args) {
+    public List<String> queryDefault(Connection connection, String resultColumnName, String sql, Object... args) {
         Statement stmt = null;
         ResultSet rs = null;
         try {

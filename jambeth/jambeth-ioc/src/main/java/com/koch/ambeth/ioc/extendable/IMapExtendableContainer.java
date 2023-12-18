@@ -20,25 +20,25 @@ limitations under the License.
  * #L%
  */
 
+import com.koch.ambeth.util.collections.ILinkedMap;
+
+import java.util.List;
 import java.util.Map;
 
-import com.koch.ambeth.util.collections.ILinkedMap;
-import com.koch.ambeth.util.collections.IList;
-
 public interface IMapExtendableContainer<K, V> {
-	void register(V extension, K key);
+    void register(V extension, K key);
 
-	void unregister(V extension, K key);
+    void unregister(V extension, K key);
 
-	V getExtension(K key);
+    V getExtension(K key);
 
-	IList<V> getExtensions(K key);
+    List<V> getExtensions(K key);
 
-	ILinkedMap<K, V> getExtensions();
+    ILinkedMap<K, V> getExtensions();
 
-	ILinkedMap<K, IList<V>> getAllExtensions();
+    ILinkedMap<K, List<V>> getAllExtensions();
 
-	void getExtensions(Map<K, V> targetExtensionMap);
+    void getExtensions(Map<K, V> targetExtensionMap);
 
-	void getAllExtensions(Map<K, IList<V>> targetExtensionMap);
+    void getAllExtensions(Map<K, List<V>> targetExtensionMap);
 }

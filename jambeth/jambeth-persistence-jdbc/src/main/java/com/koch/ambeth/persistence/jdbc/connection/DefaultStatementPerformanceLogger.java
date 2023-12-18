@@ -33,7 +33,6 @@ import com.koch.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationConst
 import com.koch.ambeth.persistence.jdbc.connection.DefaultStatementPerformanceLogger.StatementInfo;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.ILinkedMap;
-import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.IMap;
 import com.koch.ambeth.util.collections.ISet;
 import com.koch.ambeth.util.collections.LinkedHashMap;
@@ -164,11 +163,11 @@ public class DefaultStatementPerformanceLogger extends ReentrantIntervalSensor<S
             writeLock.unlock();
         }
         ISet<String> keys = sqlToEntryMap.keySet();
-        final LinkedHashMap<String, IList<StatementInfo>> sqlToStatementInfosMap = new LinkedHashMap<>();
+        final LinkedHashMap<String, List<StatementInfo>> sqlToStatementInfosMap = new LinkedHashMap<>();
         for (int a = statementInfos.size(); a-- > 0; ) {
             StatementInfo statementInfo = statementInfos.get(a);
             String sql = statementInfo.sql;
-            IList<StatementInfo> sis = sqlToStatementInfosMap.get(sql);
+            List<StatementInfo> sis = sqlToStatementInfosMap.get(sql);
             if (sis == null) {
                 sis = new ArrayList<>();
                 sqlToStatementInfosMap.put(sql, sis);
@@ -176,7 +175,7 @@ public class DefaultStatementPerformanceLogger extends ReentrantIntervalSensor<S
             sis.add(statementInfo);
             keys.add(sql);
         }
-        IList<String> keysList = keys.toList();
+        List<String> keysList = keys.toList();
         Collections.sort(keysList, new Comparator<String>() {
             @Override
             public int compare(String o1, String o2) {
@@ -252,7 +251,7 @@ public class DefaultStatementPerformanceLogger extends ReentrantIntervalSensor<S
                 }
             });
         }
-        return items.toArray(IStatementPerformanceReportItem.class);
+        return items.toArray(IStatementPerformanceReportItem[]::new);
     }
 
     @Override
@@ -300,7 +299,7 @@ public class DefaultStatementPerformanceLogger extends ReentrantIntervalSensor<S
 
     protected String getRemoteDatabaseInfoSql(String[] schemaNames) {
         return "SELECT sql_text,cpu_time/1000000 cpu_time,elapsed_time/1000000 elapsed_time,executions FROM v_$sqlarea WHERE parsing_schema_name IN (?) AND module='JDBC Thin Client' ORDER BY " +
-				"executions DESC";
+                "executions DESC";
     }
 
     protected IMap<String, StatementEntry> joinRemoteDatabaseInfo(final String... schemaNames) {

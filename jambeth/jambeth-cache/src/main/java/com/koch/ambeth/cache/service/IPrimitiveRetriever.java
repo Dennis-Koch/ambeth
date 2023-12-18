@@ -2,7 +2,8 @@ package com.koch.ambeth.cache.service;
 
 import com.koch.ambeth.service.cache.model.ILoadContainer;
 import com.koch.ambeth.service.cache.model.IObjRelation;
-import com.koch.ambeth.util.collections.IList;
+
+import java.util.List;
 
 /**
  * Extension to provide the value of a primitive (=non-relational) property of an entity. This is
@@ -16,7 +17,7 @@ import com.koch.ambeth.util.collections.IList;
  * rather specify a property type inheriting from {@link com.koch.ambeth.stream.IInputSource} on the
  * entity. See the documentation there for usage details.<br>
  * <br>
- *
+ * <p>
  * An implementation of this extension can link very easily to the provided extension point with the
  * Link-API of the IoC container: <code><br><br>
  * IBeanContextFactory bcf = ...<br>
@@ -25,5 +26,5 @@ import com.koch.ambeth.util.collections.IList;
  * </code><br>
  */
 public interface IPrimitiveRetriever {
-	Object[] getPrimitives(IList<IObjRelation> objPropertyKeys, IList<ILoadContainer> loadContainers);
+    Object[] getPrimitives(List<IObjRelation> objPropertyKeys, List<ILoadContainer> loadContainers);
 }

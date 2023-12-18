@@ -25,8 +25,8 @@ import com.koch.ambeth.query.IMultiValueOperand;
 import com.koch.ambeth.query.IOperand;
 import com.koch.ambeth.util.ParamChecker;
 import com.koch.ambeth.util.appendable.IAppendable;
-import com.koch.ambeth.util.collections.IList;
 
+import java.util.List;
 import java.util.Map;
 
 public class SqlMultiFunctionOperand implements IOperand, IInitializingBean {
@@ -56,7 +56,7 @@ public class SqlMultiFunctionOperand implements IOperand, IInitializingBean {
     }
 
     @Override
-    public void expandQuery(IAppendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, IList<Object> parameters) {
+    public void expandQuery(IAppendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, List<Object> parameters) {
         var items = multiValueOperand.getMultiValue(nameToValueMap);
         var listToSqlUtil = this.listToSqlUtil;
         var name = this.name;

@@ -107,10 +107,7 @@ public class ChangeController implements IChangeController, IChangeControllerExt
                     // Load all new objects from Cache (maybe there have been some created)
                     Collection<Object> objectsToMerge = retrieveChangedObjects(newObjects, cache);
                     // A merge handler that contains a reference to the old cache is needed ...
-                    MergeHandle mergeHandle = beanContext.registerBean(MergeHandle.class)
-                                                         .propertyValue("Cache", oldCache)
-                                                         .propertyValue("PrivilegedCache", oldCache)
-                                                         .finish();
+                    MergeHandle mergeHandle = beanContext.registerBean(MergeHandle.class).propertyValue("Cache", oldCache).propertyValue("PrivilegedCache", oldCache).finish();
                     // ... to create a new CudResult via the mergeController
                     cudResult = mergeController.mergeDeep(objectsToMerge, mergeHandle);
                 }
@@ -201,15 +198,15 @@ public class ChangeController implements IChangeController, IChangeControllerExt
      * @param calledExtensionsSet
      */
     @SuppressWarnings({ "rawtypes", "unchecked" })
-    protected void processChange(Object newEntity, Object oldEntity, boolean toBeDeleted, boolean toBeCreated, IIncrementalMergeState incrementalMergeState, ICacheView views, ISet<IChangeControllerExtension<?>> calledExtensionsSet) {
+    protected void processChange(Object newEntity, Object oldEntity, boolean toBeDeleted, boolean toBeCreated, IIncrementalMergeState incrementalMergeState, ICacheView views,
+            ISet<IChangeControllerExtension<?>> calledExtensionsSet) {
         // Both objects should be of the same class, so we just need one them. We just have to keep in
         // mind that one of them could be null.
         Class<?> entityType = newEntity != null ? newEntity.getClass() : oldEntity.getClass();
         // Search for registered extensions for the implemented classes
         IChangeControllerExtension<?>[] sortedExtensions = typeToSortedExtensions.get(entityType);
         if (sortedExtensions == null) {
-            sortedExtensions = extensions.getExtensions(entityType)
-                                         .toArray(IChangeControllerExtension.class);
+            sortedExtensions = extensions.getExtensions(entityType).toArray(IChangeControllerExtension[]::new);
             Arrays.sort(sortedExtensions);
             typeToSortedExtensions.put(entityType, sortedExtensions);
         }

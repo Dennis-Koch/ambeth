@@ -52,7 +52,6 @@ import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.HashMap;
 import com.koch.ambeth.util.collections.HashSet;
 import com.koch.ambeth.util.collections.ILinkedMap;
-import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.IdentityLinkedMap;
 import com.koch.ambeth.util.function.CheckedConsumer;
 import com.koch.ambeth.util.proxy.Factory;
@@ -183,7 +182,7 @@ public class CacheRetrieverRegistry implements ICacheRetriever, ICacheRetrieverE
         return result;
     }
 
-    protected IList<ILoadContainer> getEntitiesIntern(List<IObjRef> orisToLoad) {
+    protected List<ILoadContainer> getEntitiesIntern(List<IObjRef> orisToLoad) {
         var result = new ArrayList<ILoadContainer>(orisToLoad.size());
 
         var assignedObjRefs = bucketSortObjRefs(orisToLoad);
@@ -252,8 +251,8 @@ public class CacheRetrieverRegistry implements ICacheRetriever, ICacheRetrieverE
         return map.get(propertyName);
     }
 
-    protected ILinkedMap<ICacheRetriever, IList<IObjRef>> bucketSortObjRefs(List<? extends IObjRef> orisToLoad) {
-        var serviceToAssignedObjRefsDict = new IdentityLinkedMap<ICacheRetriever, IList<IObjRef>>();
+    protected ILinkedMap<ICacheRetriever, List<IObjRef>> bucketSortObjRefs(List<? extends IObjRef> orisToLoad) {
+        var serviceToAssignedObjRefsDict = new IdentityLinkedMap<ICacheRetriever, List<IObjRef>>();
 
         for (int i = orisToLoad.size(); i-- > 0; ) {
             var objRef = orisToLoad.get(i);
@@ -270,8 +269,8 @@ public class CacheRetrieverRegistry implements ICacheRetriever, ICacheRetrieverE
         return serviceToAssignedObjRefsDict;
     }
 
-    protected ILinkedMap<IRelationRetriever, IList<IObjRelation>> bucketSortObjRels(List<? extends IObjRelation> orisToLoad) {
-        var retrieverToAssignedObjRelsDict = new IdentityLinkedMap<IRelationRetriever, IList<IObjRelation>>();
+    protected ILinkedMap<IRelationRetriever, List<IObjRelation>> bucketSortObjRels(List<? extends IObjRelation> orisToLoad) {
+        var retrieverToAssignedObjRelsDict = new IdentityLinkedMap<IRelationRetriever, List<IObjRelation>>();
 
         for (int i = orisToLoad.size(); i-- > 0; ) {
             var orelToLoad = orisToLoad.get(i);
@@ -370,18 +369,18 @@ public class CacheRetrieverRegistry implements ICacheRetriever, ICacheRetrieverE
                 }
             }
         }
-        eventDispatcher.dispatchEvent(new RefreshEntitiesOfType(entityTypesToUpdateSet.toArray(Class.class)));
+        eventDispatcher.dispatchEvent(new RefreshEntitiesOfType(entityTypesToUpdateSet.toArray(Class[]::new)));
     }
 
     private Object resolveRemoteSourceIdentifier(Object service) {
-        if (service instanceof IRemoteInterceptor) {
-            return ((IRemoteInterceptor) service).getRemoteSourceIdentifier();
+        if (service instanceof IRemoteInterceptor remoteInterceptor) {
+            return remoteInterceptor.getRemoteSourceIdentifier();
         }
-        var callback = (ICascadedInterceptor) ((Factory) service).getCallback(0);
+        var interceptor = (ICascadedInterceptor) ((Factory) service).getInterceptor();
 
-        while (callback != null) {
-            if (callback instanceof IRemoteInterceptor) {
-                return ((IRemoteInterceptor) callback).getRemoteSourceIdentifier();
+        while (interceptor != null) {
+            if (interceptor instanceof IRemoteInterceptor remoteInterceptor) {
+                return remoteInterceptor.getRemoteSourceIdentifier();
             }
         }
         return null;

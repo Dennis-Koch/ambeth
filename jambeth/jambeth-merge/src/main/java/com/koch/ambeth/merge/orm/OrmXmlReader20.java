@@ -29,7 +29,6 @@ import com.koch.ambeth.merge.IProxyHelper;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.HashMap;
 import com.koch.ambeth.util.collections.HashSet;
-import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.IMap;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.xml.IXmlConfigUtil;
@@ -38,6 +37,7 @@ import com.koch.ambeth.util.xml.XmlConstants;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -205,7 +205,7 @@ public class OrmXmlReader20 implements IOrmXmlReader, IInitializingBean {
             var localEntity = !entityTag.getNodeName().equals(XmlConstants.EXTERNAL_ENTITY);
             entityConfig.setLocal(localEntity);
 
-            IMap<String, IList<Element>> attributeMap = null;
+            IMap<String, List<Element>> attributeMap = null;
 
             var entityDefs = xmlConfigUtil.childrenToElementMap(entityTag);
             if (entityDefs.containsKey(XmlConstants.TABLE)) {
@@ -326,7 +326,7 @@ public class OrmXmlReader20 implements IOrmXmlReader, IInitializingBean {
         }
     }
 
-    protected MemberConfig readUniqueMemberConfig(String tagName, IMap<String, IList<Element>> attributeMap) {
+    protected MemberConfig readUniqueMemberConfig(String tagName, IMap<String, List<Element>> attributeMap) {
         var memberElement = attributeMap.get(tagName).get(0);
         var memberConfig = readMemberConfig(memberElement);
         return memberConfig;

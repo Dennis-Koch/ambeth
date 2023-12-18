@@ -42,99 +42,93 @@ import com.koch.ambeth.util.sensor.ISensorProvider;
 import com.koch.ambeth.util.sensor.Sensor;
 import com.koch.ambeth.util.typeinfo.IPropertyInfo;
 
-public class SensorPreProcessor extends SmartCopyMap<Class<?>, Object[]>
-		implements IBeanPreProcessor, IInitializingBean {
-	protected ISensorProvider sensorProvider;
+public class SensorPreProcessor extends SmartCopyMap<Class<?>, Object[]> implements IBeanPreProcessor, IInitializingBean {
+    protected ISensorProvider sensorProvider;
 
-	@Override
-	public void afterPropertiesSet() throws Throwable {
-		ParamChecker.assertNotNull(sensorProvider, "SensorProvider");
-	}
+    @Override
+    public void afterPropertiesSet() throws Throwable {
+        ParamChecker.assertNotNull(sensorProvider, "SensorProvider");
+    }
 
-	public void setSensorProvider(ISensorProvider sensorProvider) {
-		this.sensorProvider = sensorProvider;
-	}
+    public void setSensorProvider(ISensorProvider sensorProvider) {
+        this.sensorProvider = sensorProvider;
+    }
 
-	@Override
-	public void preProcessProperties(IBeanContextFactory beanContextFactory,
-			IServiceContext beanContext, IProperties props, String beanName, Object service,
-			Class<?> beanType, List<IPropertyConfiguration> propertyConfigs,
-			Set<String> ignoredPropertyNames, IPropertyInfo[] properties) {
-		ISensorProvider sensorProvider = this.sensorProvider;
-		Object[] sensorFields = getSensorFields(beanType);
-		Field[] relevantFields = (Field[]) sensorFields[0];
-		String[] sensorNames = (String[]) sensorFields[1];
-		for (int a = relevantFields.length; a-- > 0;) {
-			ISensor sensor = sensorProvider.lookup(sensorNames[a]);
-			if (sensor == null) {
-				continue;
-			}
-			try {
-				relevantFields[a].set(service, sensor);
-			}
-			catch (IllegalAccessException e) {
-				throw RuntimeExceptionUtil.mask(e);
-			}
-		}
-		for (IPropertyInfo prop : properties) {
-			if (!prop.isWritable()) {
-				continue;
-			}
-			Sensor sensorAttribute = prop.getAnnotation(Sensor.class);
-			if (sensorAttribute == null) {
-				continue;
-			}
-			if (ignoredPropertyNames.contains(prop.getName())) {
-				continue;
-			}
-			String sensorName = sensorAttribute.name();
-			ISensor sensor = sensorProvider.lookup(sensorName);
-			if (sensor == null) {
-				continue;
-			}
-			prop.setValue(service, sensor);
-		}
-	}
+    @Override
+    public void preProcessProperties(IBeanContextFactory beanContextFactory, IServiceContext beanContext, IProperties props, String beanName, Object service, Class<?> beanType,
+            List<IPropertyConfiguration> propertyConfigs, Set<String> ignoredPropertyNames, IPropertyInfo[] properties) {
+        ISensorProvider sensorProvider = this.sensorProvider;
+        Object[] sensorFields = getSensorFields(beanType);
+        Field[] relevantFields = (Field[]) sensorFields[0];
+        String[] sensorNames = (String[]) sensorFields[1];
+        for (int a = relevantFields.length; a-- > 0; ) {
+            ISensor sensor = sensorProvider.lookup(sensorNames[a]);
+            if (sensor == null) {
+                continue;
+            }
+            try {
+                relevantFields[a].set(service, sensor);
+            } catch (IllegalAccessException e) {
+                throw RuntimeExceptionUtil.mask(e);
+            }
+        }
+        for (IPropertyInfo prop : properties) {
+            if (!prop.isWritable()) {
+                continue;
+            }
+            Sensor sensorAttribute = prop.getAnnotation(Sensor.class);
+            if (sensorAttribute == null) {
+                continue;
+            }
+            if (ignoredPropertyNames.contains(prop.getName())) {
+                continue;
+            }
+            String sensorName = sensorAttribute.name();
+            ISensor sensor = sensorProvider.lookup(sensorName);
+            if (sensor == null) {
+                continue;
+            }
+            prop.setValue(service, sensor);
+        }
+    }
 
-	protected Object[] getSensorFields(Class<?> type) {
-		Object[] sensorFields = get(type);
-		if (sensorFields != null) {
-			return sensorFields;
-		}
-		Lock writeLock = getWriteLock();
-		writeLock.lock();
-		try {
-			sensorFields = get(type);
-			if (sensorFields != null) {
-				// Concurrent thread might have been faster
-				return sensorFields;
-			}
-			ArrayList<Field> targetFields = new ArrayList<>();
-			ArrayList<String> targetSensorNames = new ArrayList<>();
-			Class<?> currType = type;
-			while (currType != Object.class && currType != null) {
-				Field[] fields = ReflectUtil.getDeclaredFields(currType);
-				for (Field field : fields) {
-					int modifiers = field.getModifiers();
-					if (Modifier.isStatic(modifiers) || Modifier.isPrivate(modifiers)) {
-						continue;
-					}
-					Sensor sensorAttribute = field.getAnnotation(Sensor.class);
-					if (sensorAttribute == null) {
-						continue;
-					}
-					targetFields.add(field);
-					targetSensorNames.add(sensorAttribute.name());
-				}
-				currType = currType.getSuperclass();
-			}
-			sensorFields =
-					new Object[] {targetFields.toArray(Field.class), targetSensorNames.toArray(String.class)};
-			put(type, sensorFields);
-			return sensorFields;
-		}
-		finally {
-			writeLock.unlock();
-		}
-	}
+    protected Object[] getSensorFields(Class<?> type) {
+        Object[] sensorFields = get(type);
+        if (sensorFields != null) {
+            return sensorFields;
+        }
+        Lock writeLock = getWriteLock();
+        writeLock.lock();
+        try {
+            sensorFields = get(type);
+            if (sensorFields != null) {
+                // Concurrent thread might have been faster
+                return sensorFields;
+            }
+            ArrayList<Field> targetFields = new ArrayList<>();
+            ArrayList<String> targetSensorNames = new ArrayList<>();
+            Class<?> currType = type;
+            while (currType != Object.class && currType != null) {
+                Field[] fields = ReflectUtil.getDeclaredFields(currType);
+                for (Field field : fields) {
+                    int modifiers = field.getModifiers();
+                    if (Modifier.isStatic(modifiers) || Modifier.isPrivate(modifiers)) {
+                        continue;
+                    }
+                    Sensor sensorAttribute = field.getAnnotation(Sensor.class);
+                    if (sensorAttribute == null) {
+                        continue;
+                    }
+                    targetFields.add(field);
+                    targetSensorNames.add(sensorAttribute.name());
+                }
+                currType = currType.getSuperclass();
+            }
+            sensorFields = new Object[] { targetFields.toArray(Field[]::new), targetSensorNames.toArray(String[]::new) };
+            put(type, sensorFields);
+            return sensorFields;
+        } finally {
+            writeLock.unlock();
+        }
+    }
 }

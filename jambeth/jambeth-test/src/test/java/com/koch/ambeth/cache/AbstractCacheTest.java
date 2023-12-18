@@ -42,7 +42,6 @@ import com.koch.ambeth.testutil.AbstractInformationBusTest;
 import com.koch.ambeth.testutil.TestFrameworkModule;
 import com.koch.ambeth.testutil.TestRebuildContext;
 import com.koch.ambeth.util.collections.ArrayList;
-import com.koch.ambeth.util.collections.IList;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -58,7 +57,7 @@ import static org.junit.Assert.*;
 @TestFrameworkModule(AbstractCacheTestModule.class)
 @TestRebuildContext
 public class AbstractCacheTest extends AbstractInformationBusTest {
-    private IList<Object> fakeResults;
+    private List<Object> fakeResults;
     private AbstractCache<AbstractCacheValue> fixture;
 
     @Override
@@ -89,15 +88,15 @@ public class AbstractCacheTest extends AbstractInformationBusTest {
             }
 
             @Override
-            public IList<Object> getObjects(List<IObjRef> orisToGet, Set<CacheDirective> cacheDirective) {
-                IList<Object> results = new ArrayList<>(fakeResults);
+            public List<Object> getObjects(List<IObjRef> orisToGet, Set<CacheDirective> cacheDirective) {
+                List<Object> results = new ArrayList<>(fakeResults);
                 results.addAll(orisToGet);
                 results.add(cacheDirective);
                 return results;
             }
 
             @Override
-            public IList<IObjRelationResult> getObjRelations(List<IObjRelation> objRels, Set<CacheDirective> cacheDirective) {
+            public List<IObjRelationResult> getObjRelations(List<IObjRelation> objRels, Set<CacheDirective> cacheDirective) {
                 throw new UnsupportedOperationException();
             }
 
@@ -107,7 +106,7 @@ public class AbstractCacheTest extends AbstractInformationBusTest {
             }
 
             @Override
-            public <E> IList<E> getObjects(Class<E> type, List<?> ids) {
+            public <E> List<E> getObjects(Class<E> type, List<?> ids) {
                 return null;
             }
 
@@ -239,8 +238,7 @@ public class AbstractCacheTest extends AbstractInformationBusTest {
     @SuppressWarnings("unchecked")
     @Test
     public void testGetObjectsClassOfEObjectArray() {
-        IList<?> actual;
-        actual = fixture.getObjects(Material.class, new Object[0]);
+        List<?> actual = fixture.getObjects(Material.class, new Object[0]);
         assertNotNull(actual);
         assertEquals(1, actual.size());
         assertEquals(0, ((Set<CacheDirective>) actual.get(0)).size());
@@ -264,8 +262,7 @@ public class AbstractCacheTest extends AbstractInformationBusTest {
     @Test
     @Ignore
     public void testGetObjectsClassOfEListOfObject() {
-        IList<?> actual;
-        actual = fixture.getObjects(Material.class, Collections.<Object>emptyList());
+        List<?> actual = fixture.getObjects(Material.class, Collections.<Object>emptyList());
         assertNotNull(actual);
         assertEquals(1, actual.size());
         assertTrue(((Set<CacheDirective>) actual.get(0)).contains(CacheDirective.None));
@@ -287,9 +284,8 @@ public class AbstractCacheTest extends AbstractInformationBusTest {
     @Test
     @Ignore
     public void testGetObjectsIObjRefArraySetOfCacheDirective() {
-        IList<Object> actual;
         IObjRef[] orisToGetArray = IObjRef.EMPTY_ARRAY;
-        actual = fixture.getObjects(orisToGetArray, Collections.<CacheDirective>emptySet());
+        List<Object> actual = fixture.getObjects(orisToGetArray, Collections.<CacheDirective>emptySet());
         assertNotNull(actual);
         assertEquals(1, actual.size());
         assertTrue(((Set<CacheDirective>) actual.get(0)).contains(CacheDirective.None));

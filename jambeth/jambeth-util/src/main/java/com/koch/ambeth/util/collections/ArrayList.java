@@ -46,18 +46,18 @@ public class ArrayList<V> implements IList<V>, Externalizable, IPrintable, Clone
         this(10);
     }
 
-    public ArrayList(final Collection<? extends V> coll) {
+    public ArrayList(Collection<? extends V> coll) {
         init(coll.toArray(), coll.size());
     }
 
-    public ArrayList(final Iterable<? extends V> coll) {
+    public ArrayList(Iterable<? extends V> coll) {
         this(10);
         for (var item : coll) {
             add(item);
         }
     }
 
-    public ArrayList(final Object[] array) {
+    public ArrayList(V... array) {
         init(array, array.length);
     }
 
@@ -505,13 +505,6 @@ public class ArrayList<V> implements IList<V>, Externalizable, IPrintable, Clone
             targetArray[a] = null;
         }
         return targetArray;
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public <T> T[] toArray(final Class<T> componentType) {
-        var array = (T[]) Array.newInstance(componentType, size());
-        return toArray(array);
     }
 
     @Override

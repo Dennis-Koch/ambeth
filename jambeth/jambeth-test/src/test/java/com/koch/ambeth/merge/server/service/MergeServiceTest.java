@@ -27,7 +27,6 @@ import com.koch.ambeth.informationbus.persistence.setup.SQLData;
 import com.koch.ambeth.informationbus.persistence.setup.SQLStructure;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.merge.IMergeServiceExtension;
-import com.koch.ambeth.merge.IProxyHelper;
 import com.koch.ambeth.merge.cache.CacheFactoryDirective;
 import com.koch.ambeth.merge.cache.ICache;
 import com.koch.ambeth.merge.cache.ICacheFactory;
@@ -63,7 +62,6 @@ import com.koch.ambeth.testutil.TestProperties;
 import com.koch.ambeth.testutil.TestPropertiesList;
 import com.koch.ambeth.util.collections.HashMap;
 import com.koch.ambeth.util.collections.ILinkedMap;
-import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.IMap;
 import com.koch.ambeth.util.collections.LinkedHashMap;
 import com.koch.ambeth.util.proxy.Factory;
@@ -94,9 +92,6 @@ public class MergeServiceTest extends AbstractInformationBusWithPersistenceTest 
     @Autowired
     protected ICache cache;
 
-    @Autowired
-    protected IProxyHelper proxyHelper;
-
     protected IMergeServiceExtension fixtureProxy;
 
     protected PersistenceMergeServiceExtension fixture;
@@ -111,7 +106,7 @@ public class MergeServiceTest extends AbstractInformationBusWithPersistenceTest 
 
         fixtureProxy = beanContext.getService(MergeServerModule.MERGE_SERVICE_SERVER, IMergeServiceExtension.class);
         var proxy = (Factory) fixtureProxy;
-        ICascadedInterceptor inter = (ICascadedInterceptor) proxy.getCallbacks()[0];
+        var inter = (ICascadedInterceptor) proxy.getInterceptor();
         fixture = (PersistenceMergeServiceExtension) inter.getTarget();
 
         childCache = (ChildCache) cacheFactory.create(CacheFactoryDirective.SubscribeGlobalDCE, "test");
@@ -229,7 +224,7 @@ public class MergeServiceTest extends AbstractInformationBusWithPersistenceTest 
     public void testFillOriList() {
         List<IObjRef> oriList = new ArrayList<>();
         List<IChangeContainer> allChanges = new ArrayList<>();
-        IList<IObjRef> toLoadForDeletion = new com.koch.ambeth.util.collections.ArrayList<>();
+        List<IObjRef> toLoadForDeletion = new com.koch.ambeth.util.collections.ArrayList<>();
         fixture.fillOriList(oriList, allChanges, toLoadForDeletion);
 
         assertTrue(oriList.isEmpty());
@@ -260,7 +255,7 @@ public class MergeServiceTest extends AbstractInformationBusWithPersistenceTest 
 
     @Test
     public void testLoadEntitiesForDeletion() {
-        IList<IObjRef> toLoadForDeletion = new com.koch.ambeth.util.collections.ArrayList<>();
+        List<IObjRef> toLoadForDeletion = new com.koch.ambeth.util.collections.ArrayList<>();
         IMap<IObjRef, RootCacheValue> toDeleteMap = new HashMap<>();
         fixture.loadEntitiesForDeletion(toLoadForDeletion, toDeleteMap, rootCache);
         assertTrue(toLoadForDeletion.isEmpty());
@@ -292,8 +287,8 @@ public class MergeServiceTest extends AbstractInformationBusWithPersistenceTest 
         allChanges.add(container);
 
         IMap<String, ITableChange> tableChangeMap = new HashMap<>();
-        ILinkedMap<Class<?>, IList<IObjRef>> typeToIdlessReferenceMap = new LinkedHashMap<>();
-        ILinkedMap<ITableChange, IList<ILinkChangeCommand>> linkChangeCommands = new LinkedHashMap<>();
+        ILinkedMap<Class<?>, List<IObjRef>> typeToIdlessReferenceMap = new LinkedHashMap<>();
+        ILinkedMap<ITableChange, List<ILinkChangeCommand>> linkChangeCommands = new LinkedHashMap<>();
         IMap<IObjRef, RootCacheValue> toDeleteMap = new HashMap<>();
         IMap<IObjRef, IChangeContainer> objRefToChangeContainerMap = new HashMap<>();
 

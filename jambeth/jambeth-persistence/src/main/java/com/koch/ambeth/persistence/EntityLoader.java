@@ -66,7 +66,6 @@ import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.HashMap;
 import com.koch.ambeth.util.collections.HashSet;
 import com.koch.ambeth.util.collections.ILinkedMap;
-import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.IMap;
 import com.koch.ambeth.util.collections.IdentityHashMap;
 import com.koch.ambeth.util.collections.IdentityLinkedSet;
@@ -85,7 +84,7 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
     private static final IObjRef[][] EMPTY_RELATIONS_ARRAY = ObjRef.EMPTY_ARRAY_ARRAY;
     private static final Object[] EMPTY_OBJECT_ARRAY = new Object[0];
     @SuppressWarnings("unchecked")
-    private static final IList<IObjRef>[] EMPTY_LIST_ARRAY = new IList[0];
+    private static final List<IObjRef>[] EMPTY_LIST_ARRAY = new List[0];
     @Forkable(processor = EntityLoaderForkProcessor.class)
     protected final ThreadLocal<Maps> loadContainerMapTL = new ThreadLocal<>();
     @Autowired
@@ -294,7 +293,7 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
 
                     var objects = targetingIdsMap.get(fromId);
 
-                    @SuppressWarnings("unchecked") var resultingObjRefs = (IList<IObjRef>) objects[1];
+                    @SuppressWarnings("unchecked") var resultingObjRefs = (List<IObjRef>) objects[1];
                     if (resultingObjRefs == null) {
                         resultingObjRefs = new ArrayList<>();
                         objects[1] = resultingObjRefs;
@@ -311,20 +310,20 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
 
                 targetRelations.add(objRelResult);
 
-                @SuppressWarnings("unchecked") var resultingObjRefs = (IList<IObjRef>) objects[1];
+                @SuppressWarnings("unchecked") var resultingObjRefs = (List<IObjRef>) objects[1];
                 if (resultingObjRefs == null) {
                     objRelResult.setRelations(IObjRef.EMPTY_ARRAY);
                     continue;
                 }
-                objRelResult.setRelations(resultingObjRefs.toArray(IObjRef.class));
+                objRelResult.setRelations(resultingObjRefs.toArray(IObjRef[]::new));
             }
         }
     }
 
-    protected ILinkedMap<ObjRelationType, IList<OrelLoadItem>> bucketSortObjRelations(IDatabaseMetaData database, List<IObjRelation> orisToLoad) {
-        var sortedIObjRefs = new LinkedHashMap<ObjRelationType, IList<OrelLoadItem>>();
-        var typeToMissingOris = new LinkedHashMap<Class<?>, ILinkedMap<Member, IList<Object>>>();
-        var keyToEmptyOris = new HashMap<CacheKey, IList<IObjRef>>();
+    protected ILinkedMap<ObjRelationType, List<OrelLoadItem>> bucketSortObjRelations(IDatabaseMetaData database, List<IObjRelation> orisToLoad) {
+        var sortedIObjRefs = new LinkedHashMap<ObjRelationType, List<OrelLoadItem>>();
+        var typeToMissingOris = new LinkedHashMap<Class<?>, ILinkedMap<Member, List<Object>>>();
+        var keyToEmptyOris = new HashMap<CacheKey, List<IObjRef>>();
 
         for (int i = orisToLoad.size(); i-- > 0; ) {
             var orelToLoad = orisToLoad.get(i);
@@ -347,7 +346,7 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
         return sortedIObjRefs;
     }
 
-    private IObjRef prepareObjRefForObjRelType(IObjRelation orelToLoad, ILinkedMap<Class<?>, ILinkedMap<Member, IList<Object>>> typeToMissingOris, IMap<CacheKey, IList<IObjRef>> keyToEmptyOris,
+    private IObjRef prepareObjRefForObjRelType(IObjRelation orelToLoad, ILinkedMap<Class<?>, ILinkedMap<Member, List<Object>>> typeToMissingOris, IMap<CacheKey, List<IObjRef>> keyToEmptyOris,
             IDatabaseMetaData database) {
         var objRefItems = orelToLoad.getObjRefs();
 
@@ -375,7 +374,7 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
         return objRef;
     }
 
-    protected IObjRef batchMissingORIs(ILinkedMap<Class<?>, ILinkedMap<Member, IList<Object>>> typeToMissingOris, IMap<CacheKey, IList<IObjRef>> keyToEmptyOri, IObjRef[] objRefItems,
+    protected IObjRef batchMissingORIs(ILinkedMap<Class<?>, ILinkedMap<Member, List<Object>>> typeToMissingOris, IMap<CacheKey, List<IObjRef>> keyToEmptyOri, IObjRef[] objRefItems,
             Class<?> targetingRequestType, byte idIndex) {
         // Batch first given ori to resolve the missing one
         var givenOri = objRefItems[0];
@@ -409,7 +408,7 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
         return objRef;
     }
 
-    protected void loadMissingORIs(ILinkedMap<Class<?>, ILinkedMap<Member, IList<Object>>> typeToMissingOris, IMap<CacheKey, IList<IObjRef>> keyToEmptyOris) {
+    protected void loadMissingORIs(ILinkedMap<Class<?>, ILinkedMap<Member, List<Object>>> typeToMissingOris, IMap<CacheKey, List<IObjRef>> keyToEmptyOris) {
         var lookupKey = new CacheKey();
         for (var entry : typeToMissingOris) {
             var entityType = entry.getKey();
@@ -448,8 +447,8 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
         }
     }
 
-    protected void lookupMissingORIs(IMap<CacheKey, IList<IObjRef>> keyToEmptyOris, CacheKey lookupKey, Member idMember, Member[] alternateIdMembers, IVersionItem item, Object[] ids) {
-        int lookupIdIndex = lookupKey.getIdIndex();
+    protected void lookupMissingORIs(IMap<CacheKey, List<IObjRef>> keyToEmptyOris, CacheKey lookupKey, Member idMember, Member[] alternateIdMembers, IVersionItem item, Object[] ids) {
+        var lookupIdIndex = lookupKey.getIdIndex();
         Member lookupIdMember;
         if (lookupIdIndex == ObjRef.PRIMARY_KEY_INDEX) {
             lookupIdMember = idMember;
@@ -676,11 +675,13 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
 
         var typesRelatingToThisCount = metaData.getTypesRelatingToThis().length;
         var idMember = metaData.getIdMemberByIdIndex(idIndex);
+        var preConverter =
+                Object.class.equals(idMember.getElementType()) ? conversionHelper.prepareConverter(tableMD.getIdField().getFieldType()) : conversionHelper.prepareConverter(idMember.getElementType());
         var cacheIdConverter = Object.class.equals(idMember.getElementType()) ? conversionHelper.prepareConverter(tableMD.getIdField().getFieldType()) :
                 compositeIdFactory.prepareCompositeIdFactory(metaData, idMember);
         var cacheIds = new ArrayList<>(ids.size());
         for (var id : ids) {
-            cacheIds.add(cacheIdConverter.convertValue(id, null));
+            cacheIds.add(preConverter.convertValue(id, null));
         }
 
         var versionConverter =
@@ -806,10 +807,10 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
 
                 loadContainer.setPrimitives(primitives);
 
-                IList<IObjRef>[] relationBuilds;
+                List<IObjRef>[] relationBuilds;
                 IObjRef[][] relations;
                 if (relationMemberCount != 0) {
-                    relationBuilds = new IList[relationMemberCount];
+                    relationBuilds = new List[relationMemberCount];
                     relations = new IObjRef[relationMemberCount][];
                 } else {
                     relationBuilds = EMPTY_LIST_ARRAY;

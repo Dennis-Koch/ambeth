@@ -20,40 +20,42 @@ limitations under the License.
  * #L%
  */
 
+import com.koch.ambeth.util.collections.ISet;
+import com.koch.ambeth.util.model.INotifyPropertyChanged;
+
 import java.util.Iterator;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import com.koch.ambeth.util.collections.ISet;
-import com.koch.ambeth.util.model.INotifyPropertyChanged;
-
 public interface IProperties extends INotifyPropertyChanged {
-	IProperties getParent();
+    IProperties getParent();
 
-	<T> T get(String key);
+    boolean containsKey(String key);
 
-	<T> T get(String key, IProperties initiallyCalledProps);
+    <T> T get(String key);
 
-	/**
-	 * Resolve all known properties within a given value string. This will also be done recursively
-	 * for properties which contain other properties.<br>
-	 * Unknown variables will stay in the original string without further modification (to later put a
-	 * string and resolve it)<br>
-	 * Examples: {@link com.koch.ambeth.config.PropertyResolverTest}<br>
-	 * "exampleString with var ${exampleVar} more content ${${recursivelyResolvedVar}} etc..."
-	 *
-	 * @param value
-	 * @return
-	 */
-	String resolvePropertyParts(CharSequence value);
+    <T> T get(String key, IProperties initiallyCalledProps);
 
-	String getString(String key);
+    /**
+     * Resolve all known properties within a given value string. This will also be done recursively
+     * for properties which contain other properties.<br>
+     * Unknown variables will stay in the original string without further modification (to later put a
+     * string and resolve it)<br>
+     * Examples: {@link com.koch.ambeth.config.PropertyResolverTest}<br>
+     * "exampleString with var ${exampleVar} more content ${${recursivelyResolvedVar}} etc..."
+     *
+     * @param value
+     * @return
+     */
+    String resolvePropertyParts(CharSequence value);
 
-	String getString(String key, String defaultValue);
+    String getString(String key);
 
-	Iterator<Entry<String, Object>> iterator();
+    String getString(String key, String defaultValue);
 
-	ISet<String> collectAllPropertyKeys();
+    Iterator<Entry<String, Object>> iterator();
 
-	void collectAllPropertyKeys(Set<String> allPropertiesSet);
+    ISet<String> collectAllPropertyKeys();
+
+    void collectAllPropertyKeys(Set<String> allPropertiesSet);
 }

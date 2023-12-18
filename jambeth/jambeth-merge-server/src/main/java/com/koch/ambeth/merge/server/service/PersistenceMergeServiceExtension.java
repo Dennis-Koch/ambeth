@@ -86,7 +86,6 @@ import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.HashMap;
 import com.koch.ambeth.util.collections.HashSet;
 import com.koch.ambeth.util.collections.ILinkedMap;
-import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.IMap;
 import com.koch.ambeth.util.collections.ISet;
 import com.koch.ambeth.util.collections.IdentityHashMap;
@@ -155,7 +154,7 @@ public class PersistenceMergeServiceExtension implements IMergeServiceExtension 
         return entityMetaDataProvider.getValueObjectConfig(valueType);
     }
 
-    protected IList<IChangeContainer> transformToBuildableCUDResult(ICUDResult cudResult, IIncrementalMergeState incrementalState,
+    protected List<IChangeContainer> transformToBuildableCUDResult(ICUDResult cudResult, IIncrementalMergeState incrementalState,
             IMap<IChangeContainer, IChangeContainer> buildableToOriginalChangeContainerMap) {
         var allChanges = cudResult.getAllChanges();
         var directObjRefReplaceMap = new IdentityHashMap<IDirectObjRef, IDirectObjRef>();
@@ -453,7 +452,7 @@ public class PersistenceMergeServiceExtension implements IMergeServiceExtension 
         }
     }
 
-    protected void ensureCorrectIdIndexOfRelation(final IObjRef[] objRefs, final int expectedIdIndex, ISet<IObjRef> objRefsWithWrongIdIndex, IList<CheckedConsumer<IMap<IObjRef, Object>>> runnables) {
+    protected void ensureCorrectIdIndexOfRelation(final IObjRef[] objRefs, final int expectedIdIndex, ISet<IObjRef> objRefsWithWrongIdIndex, List<CheckedConsumer<IMap<IObjRef, Object>>> runnables) {
         if (objRefs == null) {
             return;
         }
@@ -557,8 +556,8 @@ public class PersistenceMergeServiceExtension implements IMergeServiceExtension 
             var rootCache = this.rootCache.getCurrentRootCache();
 
             var toDeleteMap = new HashMap<IObjRef, RootCacheValue>();
-            var linkChangeCommands = new LinkedHashMap<ITableChange, IList<ILinkChangeCommand>>();
-            var typeToIdlessReferenceMap = new LinkedHashMap<Class<?>, IList<IObjRef>>();
+            var linkChangeCommands = new LinkedHashMap<ITableChange, List<ILinkChangeCommand>>();
+            var typeToIdlessReferenceMap = new LinkedHashMap<Class<?>, List<IObjRef>>();
             var toLoadForDeletion = new ArrayList<IObjRef>();
             fillOriList(oriList, allChanges, toLoadForDeletion);
 
@@ -581,9 +580,9 @@ public class PersistenceMergeServiceExtension implements IMergeServiceExtension 
         }
     }
 
-    protected void fillOriList(List<IObjRef> oriList, List<IChangeContainer> allChanges, IList<IObjRef> toLoadForDeletion) {
+    protected void fillOriList(List<IObjRef> oriList, List<IChangeContainer> allChanges, List<IObjRef> toLoadForDeletion) {
         for (int a = 0, size = allChanges.size(); a < size; a++) {
-            IChangeContainer changeContainer = allChanges.get(a);
+            var changeContainer = allChanges.get(a);
             if (changeContainer instanceof CreateContainer) {
                 oriList.add(changeContainer.getReference());
                 // ((IDirectObjRef) changeContainer.getReference()).setDirect(changeContainer);
@@ -605,7 +604,7 @@ public class PersistenceMergeServiceExtension implements IMergeServiceExtension 
         return table;
     }
 
-    protected void loadEntitiesForDeletion(IList<IObjRef> toLoadForDeletion, IMap<IObjRef, RootCacheValue> toDeleteMap, IRootCache rootCache) {
+    protected void loadEntitiesForDeletion(List<IObjRef> toLoadForDeletion, IMap<IObjRef, RootCacheValue> toDeleteMap, IRootCache rootCache) {
         var conversionHelper = this.conversionHelper;
         var entityMetaDataProvider = this.entityMetaDataProvider;
         var objRefHelper = this.objRefHelper;
@@ -639,7 +638,7 @@ public class PersistenceMergeServiceExtension implements IMergeServiceExtension 
     }
 
     protected void convertChangeContainersToCommands(IDatabase database, List<IChangeContainer> allChanges, IMap<String, ITableChange> tableChangeMap,
-            ILinkedMap<Class<?>, IList<IObjRef>> typeToIdlessReferenceMap, ILinkedMap<ITableChange, IList<ILinkChangeCommand>> linkChangeCommands, final IMap<IObjRef, RootCacheValue> toDeleteMap,
+            ILinkedMap<Class<?>, List<IObjRef>> typeToIdlessReferenceMap, ILinkedMap<ITableChange, List<ILinkChangeCommand>> linkChangeCommands, final IMap<IObjRef, RootCacheValue> toDeleteMap,
             final IMap<IObjRef, IChangeContainer> objRefToChangeContainerMap, final IRootCache rootCache, IIncrementalMergeState incrementalState) {
         var relationMergeService = this.relationMergeService;
 
@@ -647,9 +646,9 @@ public class PersistenceMergeServiceExtension implements IMergeServiceExtension 
 
         changeQueue.pushAllFrom(allChanges);
 
-        var previousParentToMovedOrisMap = new LinkedHashMap<CheckForPreviousParentKey, IList<IObjRef>>();
-        var incomingRelationToReferenceMap = new LinkedHashMap<IncomingRelationKey, IList<IObjRef>>();
-        var outgoingRelationToReferenceMap = new LinkedHashMap<OutgoingRelationKey, IList<IObjRef>>();
+        var previousParentToMovedOrisMap = new LinkedHashMap<CheckForPreviousParentKey, List<IObjRef>>();
+        var incomingRelationToReferenceMap = new LinkedHashMap<IncomingRelationKey, List<IObjRef>>();
+        var outgoingRelationToReferenceMap = new LinkedHashMap<OutgoingRelationKey, List<IObjRef>>();
         var allAddedORIs = new HashSet<IObjRef>();
         var alreadyHandled = new HashSet<EntityLinkKey>();
         var alreadyPrefetched = new IdentityHashSet<RootCacheValue>();
@@ -770,7 +769,7 @@ public class PersistenceMergeServiceExtension implements IMergeServiceExtension 
         }
     }
 
-    protected IPrefetchState prefetchAllReferredMembers(IMap<OutgoingRelationKey, IList<IObjRef>> outgoingRelationToReferenceMap, IMap<IObjRef, RootCacheValue> toDeleteMap,
+    protected IPrefetchState prefetchAllReferredMembers(IMap<OutgoingRelationKey, List<IObjRef>> outgoingRelationToReferenceMap, IMap<IObjRef, RootCacheValue> toDeleteMap,
             HashSet<EntityLinkKey> alreadyHandled, IdentityHashSet<RootCacheValue> alreadyPrefetched, IRootCache rootCache) {
         var toPrefetch = new ArrayList<IndirectValueHolderRef>();
         for (var entry : outgoingRelationToReferenceMap) {
@@ -830,7 +829,7 @@ public class PersistenceMergeServiceExtension implements IMergeServiceExtension 
         }
     }
 
-    protected void aquireAndAssignIds(ILinkedMap<Class<?>, IList<IObjRef>> typeToIdlessReferenceMap) {
+    protected void aquireAndAssignIds(ILinkedMap<Class<?>, List<IObjRef>> typeToIdlessReferenceMap) {
         multithreadingHelper.invokeAndWait(typeToIdlessReferenceMap, entry -> {
             var entityType = entry.getKey();
             var metaData = entityMetaDataProvider.getMetaData(entityType);
@@ -844,7 +843,7 @@ public class PersistenceMergeServiceExtension implements IMergeServiceExtension 
         });
     }
 
-    protected void mockAquireAndAssignIds(ILinkedMap<Class<?>, IList<IObjRef>> typeToIdlessReferenceMap, IMap<Long, IObjRef> mockIdToObjRefMap) {
+    protected void mockAquireAndAssignIds(ILinkedMap<Class<?>, List<IObjRef>> typeToIdlessReferenceMap, IMap<Long, IObjRef> mockIdToObjRefMap) {
         var idMock = -1;
         for (var entry : typeToIdlessReferenceMap) {
             var idlessReferences = entry.getValue();
@@ -865,22 +864,22 @@ public class PersistenceMergeServiceExtension implements IMergeServiceExtension 
         }
     }
 
-    protected void processLinkChangeCommands(ILinkedMap<ITableChange, IList<ILinkChangeCommand>> linkChangeCommands, IMap<String, ITableChange> tableChangeMap, IRootCache rootCache) {
+    protected void processLinkChangeCommands(ILinkedMap<ITableChange, List<ILinkChangeCommand>> linkChangeCommands, IMap<String, ITableChange> tableChangeMap, IRootCache rootCache) {
         ICompositeIdFactory compositeIdFactory = this.compositeIdFactory;
         IEntityMetaDataProvider entityMetaDataProvider = this.entityMetaDataProvider;
         IRelationMergeService relationMergeService = this.relationMergeService;
-        LinkedHashMap<Byte, IList<IObjRef>> toChange = new LinkedHashMap<>();
-        for (Entry<ITableChange, IList<ILinkChangeCommand>> entry : linkChangeCommands) {
-            IList<ILinkChangeCommand> changeCommands = entry.getValue();
+        LinkedHashMap<Byte, List<IObjRef>> toChange = new LinkedHashMap<>();
+        for (Entry<ITableChange, List<ILinkChangeCommand>> entry : linkChangeCommands) {
+            List<ILinkChangeCommand> changeCommands = entry.getValue();
             for (int i = changeCommands.size(); i-- > 0; ) {
                 ILinkChangeCommand changeCommand = changeCommands.get(i);
                 relationMergeService.handleUpdateNotifications(changeCommand, tableChangeMap);
                 relationMergeService.checkForCorrectIdIndex(changeCommand, toChange);
             }
         }
-        for (Entry<Byte, IList<IObjRef>> entry : toChange) {
+        for (Entry<Byte, List<IObjRef>> entry : toChange) {
             byte idIndex = entry.getKey().byteValue();
-            IList<IObjRef> changeList = entry.getValue();
+            List<IObjRef> changeList = entry.getValue();
             for (int i = changeList.size(); i-- > 0; ) {
                 IObjRef ori = changeList.get(i);
                 IEntityMetaData metaData = entityMetaDataProvider.getMetaData(ori.getRealType());
@@ -921,9 +920,9 @@ public class PersistenceMergeServiceExtension implements IMergeServiceExtension 
                 ori.setIdNameIndex(idIndex);
             }
         }
-        for (Entry<ITableChange, IList<ILinkChangeCommand>> entry : linkChangeCommands) {
+        for (Entry<ITableChange, List<ILinkChangeCommand>> entry : linkChangeCommands) {
             ITableChange tableChange = entry.getKey();
-            IList<ILinkChangeCommand> changeCommands = entry.getValue();
+            List<ILinkChangeCommand> changeCommands = entry.getValue();
             for (int i = changeCommands.size(); i-- > 0; ) {
                 tableChange.addChangeCommand(changeCommands.get(i));
             }

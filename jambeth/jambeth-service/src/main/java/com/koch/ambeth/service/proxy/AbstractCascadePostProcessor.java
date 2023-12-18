@@ -64,9 +64,9 @@ public abstract class AbstractCascadePostProcessor implements IBeanPostProcessor
         var proxiedTargetBean = targetBean;
         if (targetBean instanceof Factory) {
             factory = (Factory) targetBean;
-            var callback = factory.getCallback(0);
-            if (callback instanceof ICascadedInterceptor) {
-                cascadedInterceptor = (ICascadedInterceptor) callback;
+            var interceptor = factory.getInterceptor();
+            if (interceptor instanceof ICascadedInterceptor currCascadedInterceptor) {
+                cascadedInterceptor = currCascadedInterceptor;
                 proxiedTargetBean = cascadedInterceptor.getTarget();
             }
         }
@@ -79,8 +79,8 @@ public abstract class AbstractCascadePostProcessor implements IBeanPostProcessor
         }
         if (cascadedInterceptor == null) {
             var lastInterceptor = interceptor;
-            while (lastInterceptor.getTarget() instanceof ICascadedInterceptor) {
-                lastInterceptor = (ICascadedInterceptor) lastInterceptor.getTarget();
+            while (lastInterceptor.getTarget() instanceof ICascadedInterceptor currCascadedInterceptor) {
+                lastInterceptor = currCascadedInterceptor;
             }
             lastInterceptor.setTarget(proxiedTargetBean);
             Object proxy;
@@ -93,7 +93,7 @@ public abstract class AbstractCascadePostProcessor implements IBeanPostProcessor
             return proxy;
         }
         interceptor.setTarget(cascadedInterceptor);
-        factory.setCallback(0, interceptor);
+        factory.setInterceptor(interceptor);
         return targetBean;
     }
 

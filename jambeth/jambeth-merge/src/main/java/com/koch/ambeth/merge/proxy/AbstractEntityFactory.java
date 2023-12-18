@@ -23,21 +23,28 @@ limitations under the License.
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.merge.IEntityFactory;
 import com.koch.ambeth.service.merge.IEntityMetaDataProvider;
-import com.koch.ambeth.service.merge.model.IEntityMetaData;
+
+import java.util.List;
 
 public abstract class AbstractEntityFactory implements IEntityFactory {
-	@Autowired
-	protected IEntityMetaDataProvider entityMetaDataProvider;
+    @Autowired
+    protected IEntityMetaDataProvider entityMetaDataProvider;
 
-	@SuppressWarnings("unchecked")
-	@Override
-	public <T> T createEntity(Class<T> entityType) {
-		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(entityType);
-		return (T) createEntity(metaData);
-	}
+    @SuppressWarnings("unchecked")
+    @Override
+    public <T> T createEntity(Class<T> entityType) {
+        var metaData = entityMetaDataProvider.getMetaData(entityType);
+        return createEntity(metaData);
+    }
 
-	@Override
-	public boolean supportsEnhancement(Class<?> enhancementType) {
-		return false;
-	}
+    @Override
+    public <T> List<T> createEntity(Class<T> entityType, int amount) {
+        var metaData = entityMetaDataProvider.getMetaData(entityType);
+        return createEntity(metaData, amount);
+    }
+
+    @Override
+    public boolean supportsEnhancement(Class<?> enhancementType) {
+        return false;
+    }
 }

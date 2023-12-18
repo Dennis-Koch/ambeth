@@ -111,7 +111,7 @@ public interface IQueryBuilder<T> extends IDisposable {
 
     IOperand value(Object value);
 
-    IOperand valueName(String paramName);
+    IOperand parameterValue(Object paramKey);
 
     IOperand all();
 

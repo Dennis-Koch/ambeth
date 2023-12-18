@@ -36,7 +36,6 @@ import com.koch.ambeth.util.IPreparedConverter;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.EmptyList;
 import com.koch.ambeth.util.collections.HashMap;
-import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.SmartCopyMap;
 
 import java.util.List;
@@ -121,7 +120,7 @@ public abstract class AbstractCachingPrimaryKeyProvider implements IPrimaryKeyPr
         primaryKeyProvider.acquireIds(table, idlessObjRefs);
     }
 
-    protected IList<Object> acquireIdsIntern(ITableMetaData table, int count) {
+    protected List<Object> acquireIdsIntern(ITableMetaData table, int count) {
         if (count == 0) {
             return EmptyList.getInstance();
         }

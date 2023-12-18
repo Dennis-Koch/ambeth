@@ -26,8 +26,8 @@ import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.query.IOperand;
 import com.koch.ambeth.query.IValueOperand;
 import com.koch.ambeth.util.appendable.IAppendable;
-import com.koch.ambeth.util.collections.IList;
 
+import java.util.List;
 import java.util.Map;
 
 public class FindFirstValueOperand implements IValueOperand, IOperand {
@@ -58,7 +58,7 @@ public class FindFirstValueOperand implements IValueOperand, IOperand {
     }
 
     @Override
-    public void expandQuery(IAppendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, IList<Object> parameters) {
+    public void expandQuery(IAppendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, List<Object> parameters) {
         throw new IllegalStateException("expandQuery not implemented yet for FindFirstValueOperand");
     }
 }

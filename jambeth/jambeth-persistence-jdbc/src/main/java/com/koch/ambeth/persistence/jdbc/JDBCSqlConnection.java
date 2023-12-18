@@ -28,7 +28,6 @@ import com.koch.ambeth.persistence.api.ITableMetaData;
 import com.koch.ambeth.persistence.sql.IResultSet;
 import com.koch.ambeth.persistence.sql.SqlConnection;
 import com.koch.ambeth.util.collections.ArrayList;
-import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.sensor.ISensor;
 import com.koch.ambeth.util.sensor.Sensor;
@@ -114,7 +113,7 @@ public class JDBCSqlConnection extends SqlConnection {
         boolean success = false;
         try {
             if (parameters != null) {
-                IList<Object> arraysToDispose = null;
+                List<Object> arraysToDispose = null;
                 var connectionExtension = this.connectionExtension;
                 try {
                     var pstm = connection.prepareStatement(sql);

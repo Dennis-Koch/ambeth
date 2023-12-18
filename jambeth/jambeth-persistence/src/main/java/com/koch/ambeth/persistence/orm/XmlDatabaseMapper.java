@@ -66,7 +66,6 @@ import com.koch.ambeth.util.StringConversionHelper;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.HashMap;
 import com.koch.ambeth.util.collections.HashSet;
-import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.IMap;
 import com.koch.ambeth.util.collections.ISet;
 import com.koch.ambeth.util.collections.ISetEntry;
@@ -80,7 +79,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IDisposableBean, IOrmDatabaseMapper, IOrmConfigGroupExtendable {
@@ -90,7 +88,7 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IDisposa
     public static final Pattern softTableNamePattern = Pattern.compile("[\"`]?(.+?)[\"`]?");
 
     public static String[] splitSchemaAndName(String fqName) {
-        Matcher splitMatcher = XmlDatabaseMapper.fqToSoftTableNamePattern.matcher(fqName);
+        var splitMatcher = XmlDatabaseMapper.fqToSoftTableNamePattern.matcher(fqName);
         String schemaName = null, softName = null;
         if (splitMatcher.matches()) {
             schemaName = splitMatcher.group(1);
@@ -980,7 +978,7 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IDisposa
     @Override
     public void mapFields(IOrmConfigGroup ormConfigGroup) {
         List<ITableMetaData> tables = mapFieldsIntern(databaseMetaData, ormConfigGroup);
-        IList<IDatabaseMappedListener> databaseMappedListeners = serviceContext.getObjects(IDatabaseMappedListener.class);
+        List<IDatabaseMappedListener> databaseMappedListeners = serviceContext.getObjects(IDatabaseMappedListener.class);
 
         for (ITableMetaData table : tables) {
             databaseMetaData.handleTable(table);

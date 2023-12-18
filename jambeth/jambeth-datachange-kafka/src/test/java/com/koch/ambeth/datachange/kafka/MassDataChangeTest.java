@@ -54,7 +54,6 @@ import com.koch.ambeth.testutil.TestPropertiesList;
 import com.koch.ambeth.testutil.category.PerformanceTests;
 import com.koch.ambeth.util.IClasspathScanner;
 import com.koch.ambeth.util.collections.ArrayList;
-import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.config.IProperties;
 import com.koch.ambeth.util.function.CheckedRunnable;
 import com.koch.ambeth.xml.ioc.XmlModule;
@@ -149,7 +148,7 @@ public class MassDataChangeTest extends AbstractIocTest {
      * @param countEntities
      * @param testEntityList
      */
-    private void fillCache(IServiceContext left, int countEntities, final IList<TestEntity> testEntityList) {
+    private void fillCache(IServiceContext left, int countEntities, final List<TestEntity> testEntityList) {
         IRootCache leftRootCache;
         {
             TestEntity testEntity;
@@ -171,7 +170,7 @@ public class MassDataChangeTest extends AbstractIocTest {
     }
 
     private long testDataChangeEventsWithKafka(IServiceContext left, final IServiceContext right, int countEntities) throws Throwable {
-        final IList<TestEntity> testEntityList = new ArrayList<>();
+        final List<TestEntity> testEntityList = new ArrayList<>();
         right.createService(CounterModule.class);
         fillCache(left, countEntities, testEntityList);
         long millis = System.currentTimeMillis();
@@ -201,7 +200,7 @@ public class MassDataChangeTest extends AbstractIocTest {
         return timeSpend;
     }
 
-    private void ensureCacheCleaned(IServiceContext left, final IList<TestEntity> testEntityList) {
+    private void ensureCacheCleaned(IServiceContext left, final List<TestEntity> testEntityList) {
         IRootCache leftRootCache;
         {
             // ensure that entry in "left" is removed
@@ -217,7 +216,7 @@ public class MassDataChangeTest extends AbstractIocTest {
 
     private long testContextsWithout(IServiceContext left, final IServiceContext right1, int countEntities) throws Throwable {
         IRootCache leftRootCache;
-        final IList<TestEntity> testEntityList = new ArrayList<>();
+        final List<TestEntity> testEntityList = new ArrayList<>();
         fillCache(left, countEntities, testEntityList);
         long mills = System.currentTimeMillis();
         log.info("start waiting...");

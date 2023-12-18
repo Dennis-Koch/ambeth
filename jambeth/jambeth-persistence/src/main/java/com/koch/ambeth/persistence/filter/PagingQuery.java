@@ -41,10 +41,10 @@ import com.koch.ambeth.service.merge.IEntityMetaDataProvider;
 import com.koch.ambeth.util.ParamHolder;
 import com.koch.ambeth.util.StringBuilderUtil;
 import com.koch.ambeth.util.collections.HashMap;
-import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.objectcollector.IThreadLocalObjectCollector;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 public class PagingQuery<T> implements IPagingQuery<T>, IPagingQueryIntern<T> {
@@ -145,8 +145,8 @@ public class PagingQuery<T> implements IPagingQuery<T>, IPagingQueryIntern<T> {
             } else {
                 offset = (number - 1) * length;
                 if (!prefetchAllPages) {
-                    currentNameToValueMap.put(QueryConstants.PAGING_INDEX_OBJECT, new Integer(offset));
-                    currentNameToValueMap.put(QueryConstants.PAGING_SIZE_OBJECT, new Integer(length));
+                    currentNameToValueMap.put(QueryConstants.PAGING_INDEX_OBJECT, offset);
+                    currentNameToValueMap.put(QueryConstants.PAGING_SIZE_OBJECT, length);
                 }
             }
 
@@ -185,7 +185,7 @@ public class PagingQuery<T> implements IPagingQuery<T>, IPagingQueryIntern<T> {
         if (alternateIdPropertyName != null) {
             pagingResponse.setRefResult(queryRefResult);
         } else {
-            @SuppressWarnings("unchecked") IList<T> result = (IList<T>) cache.getObjects(queryRefResult, Collections.<CacheDirective>emptySet());
+            @SuppressWarnings("unchecked") List<T> result = (List<T>) cache.getObjects(queryRefResult, Collections.<CacheDirective>emptySet());
             pagingResponse.setResult(result);
         }
         var end = System.currentTimeMillis();
@@ -203,7 +203,7 @@ public class PagingQuery<T> implements IPagingQuery<T>, IPagingQueryIntern<T> {
 
     @Override
     public IPagingQuery<T> param(Object paramKey, Object param) {
-        var statefulQuery = new StatefulPagingQuery<>(this);
-        return statefulQuery.param(paramKey, param);
+        var parameterizedQuery = new ParameterizedPagingQuery<>(this);
+        return parameterizedQuery.param(paramKey, param);
     }
 }

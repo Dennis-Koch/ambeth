@@ -156,6 +156,14 @@ public class Properties implements IProperties, Iterable<Entry<String, Object>> 
     }
 
     @Override
+    public boolean containsKey(String key) {
+        if (dictionary.containsKey(key)) {
+            return true;
+        }
+        return parent != null ? parent.containsKey(key) : false;
+    }
+
+    @Override
     public <T> T get(String key) {
         return get(key, this);
     }

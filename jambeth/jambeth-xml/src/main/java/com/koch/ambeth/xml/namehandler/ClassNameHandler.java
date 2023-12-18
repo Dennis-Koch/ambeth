@@ -153,7 +153,7 @@ public class ClassNameHandler extends AbstractHandler implements INameBasedHandl
                     membersToWrite.add(new SpecifiedMember(member, entry.getValue()));
                 }
                 writer.writeAttribute(classMemberAttribute, sb.toString());
-                writer.putMembersOfType(type, membersToWrite.toArray(SpecifiedMember.class));
+                writer.putMembersOfType(type, membersToWrite.toArray(SpecifiedMember[]::new));
             }
         } finally {
             tlObjectCollector.dispose(sb);

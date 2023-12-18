@@ -28,11 +28,11 @@ limitations under the License.
  * IFactoryBean}.
  */
 public interface IFactoryBean {
-	/**
-	 * Getter for the real bean instance to be used for injections or as lookup result.
-	 *
-	 * @return Real bean instance.
-	 * @throws Throwable
-	 */
-	Object getObject() throws Exception;
+    /**
+     * Getter for the real bean instance to be used for injections or as lookup result.
+     *
+     * @return Real bean instance.
+     * @throws Throwable
+     */
+    Object getObject() throws Exception;
 }

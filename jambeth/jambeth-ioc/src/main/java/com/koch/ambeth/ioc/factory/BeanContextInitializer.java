@@ -25,7 +25,6 @@ import com.koch.ambeth.ioc.IBeanInstantiationProcessor;
 import com.koch.ambeth.ioc.IBeanPostProcessor;
 import com.koch.ambeth.ioc.IBeanPreProcessor;
 import com.koch.ambeth.ioc.IDisposableBean;
-import com.koch.ambeth.ioc.IExternalServiceContext;
 import com.koch.ambeth.ioc.IInitializingBean;
 import com.koch.ambeth.ioc.IInitializingModule;
 import com.koch.ambeth.ioc.IPropertyLoadingBean;
@@ -63,7 +62,6 @@ import com.koch.ambeth.util.collections.HashMap;
 import com.koch.ambeth.util.collections.HashSet;
 import com.koch.ambeth.util.collections.ILinkedMap;
 import com.koch.ambeth.util.collections.ILinkedSet;
-import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.IMap;
 import com.koch.ambeth.util.collections.ISet;
 import com.koch.ambeth.util.collections.IdentityHashMap;
@@ -77,6 +75,7 @@ import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.objectcollector.IThreadLocalObjectCollector;
 import com.koch.ambeth.util.typeinfo.IPropertyInfo;
 import com.koch.ambeth.util.typeinfo.IPropertyInfoProvider;
+import lombok.SneakyThrows;
 
 import javax.management.DynamicMBean;
 import javax.management.MBeanServer;
@@ -435,11 +434,11 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 
     protected void initializeAutowiring(BeanContextInit beanContextInit, IBeanConfiguration beanConfiguration, Object bean, Class<?> beanType, IPropertyInfo[] propertyInfos,
             Set<String> alreadySpecifiedPropertyNamesSet, Set<String> ignoredPropertyNamesSet) {
-        ServiceContext beanContext = beanContextInit.beanContext;
-        IExternalServiceContext externalServiceContext = beanContext.getExternalServiceContext();
-        boolean highPriorityBean = isHighPriorityBean(bean);
-        for (IPropertyInfo prop : propertyInfos) {
-            String propertyName = prop.getName();
+        var beanContext = beanContextInit.beanContext;
+        var externalServiceContext = beanContext.getExternalServiceContext();
+        var highPriorityBean = isHighPriorityBean(bean);
+        for (var prop : propertyInfos) {
+            var propertyName = prop.getName();
             if (alreadySpecifiedPropertyNamesSet.contains(propertyName)) {
                 // Property already explicitly specified. No
                 // auto-wiring necessary here
@@ -453,11 +452,11 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
                 // Property marked as ignored. No auto-wiring wanted here
                 continue;
             }
-            Class<?> propertyType = prop.getPropertyType();
+            var propertyType = prop.getPropertyType();
             if (primitiveSet.contains(propertyType) || propertyType.isArray() && primitiveSet.contains(propertyType.getComponentType())) {
                 continue;
             }
-            Autowired autowired = prop.getAnnotation(Autowired.class);
+            var autowired = prop.getAnnotation(Autowired.class);
             if (autowired == null && externalServiceContext != null) {
                 boolean hasBeenHandled =
                         externalServiceContext.initializeAutowiring(beanContextInit, beanConfiguration, beanContext, beanType, propertyInfos, alreadySpecifiedPropertyNamesSet, ignoredPropertyNamesSet,
@@ -470,18 +469,18 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
                 // Handle fields only if they are explicitly annotated
                 continue;
             }
-            String beanName = autowired != null ? autowired.value() : null;
+            var beanName = autowired != null ? autowired.value() : null;
             if (beanName != null && beanName.length() == 0) {
                 beanName = null;
             }
-            String fromContext = autowired != null ? autowired.fromContext() : null;
+            var fromContext = autowired != null ? autowired.fromContext() : null;
             if (fromContext != null && fromContext.length() == 0) {
                 fromContext = null;
             }
-            Object refBean = resolveBean(fromContext, beanName, propertyType, highPriorityBean, beanContextInit);
+            var refBean = resolveBean(fromContext, beanName, propertyType, highPriorityBean, beanContextInit);
             if (refBean == null) {
                 if (autowired != null && !autowired.optional()) {
-                    StringBuilder sb = new StringBuilder();
+                    var sb = new StringBuilder();
                     sb.append("Could not resolve mandatory autowiring constraint on property '").append(prop.getName()).append("' of type '").append(propertyType.getName()).append('\'');
                     if (fromContext != null) {
                         sb.append(", lookup-context=CURRENT");
@@ -503,18 +502,18 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 
     public Object resolveBean(String fromContext, String beanName, Class<?> propertyType, boolean isHighPriorityBean, BeanContextInit beanContextInit) {
         IServiceContextIntern beanContext = beanContextInit.beanContext;
-        ILinkedMap<Object, IBeanConfiguration> objectToBeanConfigurationMap = beanContextInit.objectToBeanConfigurationMap;
+        var objectToBeanConfigurationMap = beanContextInit.objectToBeanConfigurationMap;
         // Module beans are only allowed to demand beans from the parent
         // context
 
         if (fromContext != null) {
-            IServiceContextIntern refFromContext = (IServiceContextIntern) beanContext.getDirectBean(fromContext);
+            var refFromContext = (IServiceContextIntern) beanContext.getDirectBean(fromContext);
             if (refFromContext == null) {
                 return null;
             }
             beanContext = refFromContext;
         }
-        Object refBean = beanName != null ? beanContext.getDirectBean(beanName) : beanContext.getDirectBean(propertyType);
+        var refBean = beanName != null ? beanContext.getDirectBean(beanName) : beanContext.getDirectBean(propertyType);
         if (refBean != null && objectToBeanConfigurationMap != null && objectToBeanConfigurationMap.containsKey(refBean)) {
             initializeBean(beanContextInit, refBean);
         }
@@ -524,50 +523,47 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
         return beanContext.getServiceIntern(propertyType, isHighPriorityBean ? SearchType.PARENT : SearchType.CASCADE);
     }
 
+    @SneakyThrows
     protected void callInitializingCallbacks(BeanContextInit beanContextInit, Object bean, boolean joinLifecycle) {
-        ServiceContext beanContext = beanContextInit.beanContext;
-        List<Object> initializedOrdering = beanContextInit.initializedOrdering;
+        var beanContext = beanContextInit.beanContext;
+        var initializedOrdering = beanContextInit.initializedOrdering;
 
-        try {
-            if (bean instanceof IInitializingBean) {
-                ((IInitializingBean) bean).afterPropertiesSet();
-            }
-            if (bean instanceof IDisposableBean) {
+        if (bean instanceof IInitializingBean) {
+            ((IInitializingBean) bean).afterPropertiesSet();
+        }
+        if (bean instanceof IDisposableBean) {
+            beanContextInit.toDestroyOnError.add((IDisposableBean) bean);
+        }
+        if (bean instanceof IPropertyLoadingBean) {
+            ((IPropertyLoadingBean) bean).applyProperties(beanContextInit.properties);
+        }
+        if (bean instanceof IInitializingModule) {
+            ((IInitializingModule) bean).afterPropertiesSet(beanContextInit.beanContextFactory);
+            if (bean instanceof IDisposableBean && !(bean instanceof IInitializingBean)) {
+                // it is a module (and only a module) so it has not been added yet
                 beanContextInit.toDestroyOnError.add((IDisposableBean) bean);
             }
-            if (bean instanceof IPropertyLoadingBean) {
-                ((IPropertyLoadingBean) bean).applyProperties(beanContextInit.properties);
+        }
+        if (bean instanceof IBeanInstantiationProcessor) {
+            beanContext.addInstantiationProcessor((IBeanInstantiationProcessor) bean);
+        }
+        if (bean instanceof IBeanPreProcessor) {
+            beanContext.addPreProcessor((IBeanPreProcessor) bean);
+        }
+        if (bean instanceof IBeanPostProcessor) {
+            beanContext.addPostProcessor((IBeanPostProcessor) bean);
+        }
+        if (bean instanceof ILinkContainer) {
+            beanContext.addLinkContainer((ILinkContainer) bean);
+            if (beanContext.isRunning()) {
+                ((ILinkContainer) bean).link();
             }
-            if (bean instanceof IInitializingModule) {
-                ((IInitializingModule) bean).afterPropertiesSet(beanContextInit.beanContextFactory);
-                if (bean instanceof IDisposableBean && !(bean instanceof IInitializingBean)) {
-                    // it is a module (and only a module) so it has not been added yet
-                    beanContextInit.toDestroyOnError.add((IDisposableBean) bean);
-                }
-            }
-            if (bean instanceof IBeanInstantiationProcessor) {
-                beanContext.addInstantiationProcessor((IBeanInstantiationProcessor) bean);
-            }
-            if (bean instanceof IBeanPreProcessor) {
-                beanContext.addPreProcessor((IBeanPreProcessor) bean);
-            }
-            if (bean instanceof IBeanPostProcessor) {
-                beanContext.addPostProcessor((IBeanPostProcessor) bean);
-            }
-            if (bean instanceof ILinkContainer) {
-                beanContext.addLinkContainer((ILinkContainer) bean);
-                if (beanContext.isRunning()) {
-                    ((ILinkContainer) bean).link();
-                }
-            }
-            if (joinLifecycle && bean instanceof IDisposableBean) {
-                beanContext.registerDisposable((IDisposableBean) bean);
-            }
-            if (initializedOrdering != null) {
-                initializedOrdering.add(bean);
-            }
-        } catch (Throwable e) {
-            throw RuntimeExceptionUtil.mask(e);
+        }
+        if (joinLifecycle && bean instanceof IDisposableBean) {
+            beanContext.registerDisposable((IDisposableBean) bean);
+        }
+        if (initializedOrdering != null) {
+            initializedOrdering.add(bean);
         }
     }
 
@@ -1137,7 +1133,7 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
     }
 
     @Override
-    public IList<IBeanConfiguration> fillParentHierarchyIfValid(ServiceContext beanContext, BeanContextFactory beanContextFactory, IBeanConfiguration beanConfiguration) {
+    public List<IBeanConfiguration> fillParentHierarchyIfValid(ServiceContext beanContext, BeanContextFactory beanContextFactory, IBeanConfiguration beanConfiguration) {
         var beanContextInit = new BeanContextInit();
         beanContextInit.beanContext = beanContext;
         beanContextInit.beanContextFactory = beanContextFactory;

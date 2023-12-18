@@ -30,9 +30,9 @@ import com.koch.ambeth.persistence.event.DatabaseCommitEvent;
 import com.koch.ambeth.persistence.event.DatabaseFailEvent;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.HashMap;
-import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.state.StateRollback;
 
+import java.util.List;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -55,7 +55,7 @@ public class LocalToPublicDispatcher implements IEventListener {
             }
         } else if (localEventObject instanceof DatabaseCommitEvent) {
             var localEvent = (DatabaseCommitEvent) localEventObject;
-            IList<IDataChange> publicDataChanges;
+            List<IDataChange> publicDataChanges;
             var writeLock = this.writeLock;
             writeLock.lock();
             try {

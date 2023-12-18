@@ -32,7 +32,6 @@ import com.koch.ambeth.service.cache.IServiceResultHolder;
 import com.koch.ambeth.service.cache.transfer.ServiceResult;
 import com.koch.ambeth.service.merge.model.IObjRef;
 import com.koch.ambeth.util.collections.ArrayList;
-import com.koch.ambeth.util.collections.IList;
 
 import java.util.List;
 
@@ -47,7 +46,7 @@ public class CacheServiceUtil extends ServiceUtil {
             return;
         }
 
-        IList<IObjRef> objRefs;
+        List<IObjRef> objRefs;
         if (cursor != null) {
             objRefs = loadObjRefs(entityType, ObjRef.PRIMARY_KEY_INDEX, cursor);
         } else {

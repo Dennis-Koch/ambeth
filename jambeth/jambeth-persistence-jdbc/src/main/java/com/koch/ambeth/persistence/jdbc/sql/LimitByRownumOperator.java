@@ -24,8 +24,8 @@ import com.koch.ambeth.ioc.config.Property;
 import com.koch.ambeth.query.IOperand;
 import com.koch.ambeth.query.IValueOperand;
 import com.koch.ambeth.util.appendable.IAppendable;
-import com.koch.ambeth.util.collections.IList;
 
+import java.util.List;
 import java.util.Map;
 
 public class LimitByRownumOperator implements IOperand {
@@ -36,7 +36,7 @@ public class LimitByRownumOperator implements IOperand {
     protected IValueOperand valueOperand;
 
     @Override
-    public void expandQuery(IAppendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, IList<Object> parameters) {
+    public void expandQuery(IAppendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, List<Object> parameters) {
         var value = valueOperand.getValue(nameToValueMap);
         if (value == null || ((Number) value).intValue() == 0) {
             return;

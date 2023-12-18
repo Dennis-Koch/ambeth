@@ -55,7 +55,6 @@ import com.koch.ambeth.service.merge.model.IObjRef;
 import com.koch.ambeth.service.metadata.RelationMember;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.HashSet;
-import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.ISet;
 import com.koch.ambeth.util.collections.IdentityHashMap;
 import com.koch.ambeth.util.collections.IdentityHashSet;
@@ -138,7 +137,7 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
         collisionSet.addAll(node.directChildCaches);
     }
 
-    protected void cleanupSecondLevelCaches(CacheDependencyNode node, IList<IObjRef> deletesList, List<IDataChangeEntry> updates, HashSet<Class<?>> occuringTypes) {
+    protected void cleanupSecondLevelCaches(CacheDependencyNode node, List<IObjRef> deletesList, List<IDataChangeEntry> updates, HashSet<Class<?>> occuringTypes) {
         ArrayList<IObjRef> objRefsRemovePriorVersions = new ArrayList<>(updates.size());
         for (int a = updates.size(); a-- > 0; ) {
             IDataChangeEntry updateEntry = updates.get(a);
@@ -149,7 +148,7 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
         cleanupSecondLevelCachesIntern(node, deletesList, objRefsRemovePriorVersions);
     }
 
-    protected void cleanupSecondLevelCachesIntern(CacheDependencyNode node, IList<IObjRef> deletesList, ArrayList<IObjRef> objRefsRemovePriorVersions) {
+    protected void cleanupSecondLevelCachesIntern(CacheDependencyNode node, List<IObjRef> deletesList, ArrayList<IObjRef> objRefsRemovePriorVersions) {
         var rootCache = node.rootCache;
         var writeLock = rootCache.getWriteLock();
         writeLock.lock();
@@ -175,7 +174,7 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
             var occuringTypes = new HashSet<Class<?>>();
             var deletesSet = new HashSet<IObjRef>();
             var directRelatingTypes = new HashSet<Class<?>>();
-            var acquirementSuccessful = rootNode.rootCache.acquireHardRefTLIfNotAlready();
+            var rollback = rootNode.rootCache.acquireHardRefTLIfNotAlready();
             try {
                 for (int a = deletes.size(); a-- > 0; ) {
                     var deleteEntry = deletes.get(a);
@@ -221,17 +220,16 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
 
                 if (rootNode.isPendingChangeOnAnyChildCache()) {
                     guiThreadHelper.invokeInGuiAndWait(() -> {
-                        var oldFailEarlyModeActive = AbstractCache.isFailInCacheHierarchyModeActive();
-                        AbstractCache.setFailInCacheHierarchyModeActive(true);
+                        var failInCacheHierarchyRollback = AbstractCache.pushFailInCacheHierarchyModeActive();
                         try {
                             changeFirstLevelCaches(rootNode, intermediateDeletes);
                         } finally {
-                            AbstractCache.setFailInCacheHierarchyModeActive(oldFailEarlyModeActive);
+                            failInCacheHierarchyRollback.rollback();
                         }
                     });
                 }
             } finally {
-                rootNode.rootCache.clearHardRefs(acquirementSuccessful);
+                rollback.rollback();
             }
         } finally {
             if (processResumeItem != null) {
@@ -516,18 +514,11 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
 
     protected void changeFirstLevelCaches(CacheDependencyNode node, ISet<IObjRef> intermediateDeletes) {
         var deletes = new ArrayList<IDataChangeEntry>();
-        var cacheModification = this.cacheModification;
-
-        var oldCacheModificationValue = cacheModification.isActive();
-        if (!oldCacheModificationValue) {
-            cacheModification.setActive(true);
-        }
+        var rollback = cacheModification.pushActive();
         try {
             changeFirstLevelCachesIntern(node, intermediateDeletes);
         } finally {
-            if (!oldCacheModificationValue) {
-                cacheModification.setActive(oldCacheModificationValue);
-            }
+            rollback.rollback();
         }
         if (!deletes.isEmpty()) {
             var dce = DataChangeEvent.create(0, 0, deletes.size());

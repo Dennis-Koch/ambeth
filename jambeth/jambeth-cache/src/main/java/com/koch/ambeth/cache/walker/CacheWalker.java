@@ -105,7 +105,7 @@ public class CacheWalker implements ICacheWalker {
             allCachesSet.add(firstLevelCache.getCurrentCache());
         }
 
-        var allChildCaches = allCachesSet.toArray(ICache.class);
+        var allChildCaches = allCachesSet.toArray(ICache[]::new);
 
         allCachesSet.add(currentCommittedRootCache);
         for (var childCache : allChildCaches) {

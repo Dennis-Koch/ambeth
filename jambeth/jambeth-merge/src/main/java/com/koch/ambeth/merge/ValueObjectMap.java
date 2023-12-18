@@ -27,7 +27,6 @@ import com.koch.ambeth.service.merge.IEntityMetaDataProvider;
 import com.koch.ambeth.service.merge.IValueObjectConfig;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.ILinkedMap;
-import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.SmartCopyMap;
 
 import java.util.List;
@@ -40,7 +39,7 @@ public class ValueObjectMap extends SmartCopyMap<Class<?>, List<Class<?>>> imple
     protected IEntityMetaDataProvider entityMetaDataProvider;
 
     @Override
-    public IList<IValueObjectConfig> getExtensions(Class<?> key) {
+    public List<IValueObjectConfig> getExtensions(Class<?> key) {
         return typeToValueObjectConfig.getExtensions(key);
     }
 
@@ -77,12 +76,12 @@ public class ValueObjectMap extends SmartCopyMap<Class<?>, List<Class<?>>> imple
     }
 
     @Override
-    public ILinkedMap<Class<?>, IList<IValueObjectConfig>> getAllExtensions() {
+    public ILinkedMap<Class<?>, List<IValueObjectConfig>> getAllExtensions() {
         return typeToValueObjectConfig.getAllExtensions();
     }
 
     @Override
-    public void getAllExtensions(Map<Class<?>, IList<IValueObjectConfig>> targetExtensionMap) {
+    public void getAllExtensions(Map<Class<?>, List<IValueObjectConfig>> targetExtensionMap) {
         typeToValueObjectConfig.getAllExtensions(targetExtensionMap);
     }
 

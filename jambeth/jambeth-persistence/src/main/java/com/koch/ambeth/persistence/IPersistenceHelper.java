@@ -22,23 +22,22 @@ limitations under the License.
 
 import com.koch.ambeth.persistence.sql.ISqlConnection;
 import com.koch.ambeth.util.appendable.IAppendable;
-import com.koch.ambeth.util.collections.IList;
 
 import java.util.Collection;
 import java.util.List;
 
 public interface IPersistenceHelper {
-    IList<String> buildStringListOfValues(List<?> ids);
+    List<String> buildStringListOfValues(List<?> ids);
 
     String buildStringOfValues(List<?> ids);
 
     IAppendable appendStringOfValues(List<?> ids, IAppendable sb);
 
-    IList<IList<Object>> splitValues(List<?> ids);
+    List<List<Object>> splitValues(List<?> ids);
 
-    IList<IList<Object>> splitValues(List<?> values, int batchSize);
+    List<List<Object>> splitValues(List<?> values, int batchSize);
 
-    IList<IList<Object>> splitValues(Collection<?> ids);
+    List<List<Object>> splitValues(Collection<?> ids);
 
     void appendSplittedValues(ISqlConnection.IdContainer idContainer, List<Object> parameters, IAppendable sb);
 }

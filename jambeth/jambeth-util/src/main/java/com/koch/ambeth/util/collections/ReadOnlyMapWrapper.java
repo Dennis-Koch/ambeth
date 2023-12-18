@@ -22,7 +22,9 @@ limitations under the License.
 
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.IntFunction;
 
 public class ReadOnlyMapWrapper<K, V> implements IMap<K, V>, ILinkedMap<K, V> {
@@ -105,7 +107,7 @@ public class ReadOnlyMapWrapper<K, V> implements IMap<K, V>, ILinkedMap<K, V> {
     }
 
     @Override
-    public void entrySet(ISet<Entry<K, V>> targetEntrySet) {
+    public void entrySet(Set<Entry<K, V>> targetEntrySet) {
         hashMap.entrySet(targetEntrySet);
     }
 
@@ -120,13 +122,8 @@ public class ReadOnlyMapWrapper<K, V> implements IMap<K, V>, ILinkedMap<K, V> {
     }
 
     @Override
-    public IList<K> keyList() {
+    public List<K> keyList() {
         return hashMap.keyList();
-    }
-
-    @Override
-    public V[] toArray(Class<V> arrayType) {
-        return hashMap.toArray(arrayType);
     }
 
     @Override
@@ -140,7 +137,7 @@ public class ReadOnlyMapWrapper<K, V> implements IMap<K, V>, ILinkedMap<K, V> {
     }
 
     @Override
-    public IList<V> values() {
+    public List<V> values() {
         return hashMap.values();
     }
 

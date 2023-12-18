@@ -20,14 +20,6 @@ limitations under the License.
  * #L%
  */
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import org.junit.Assert;
-import org.junit.Test;
-
 import com.koch.ambeth.cache.config.CacheNamedBeans;
 import com.koch.ambeth.informationbus.persistence.setup.SQLData;
 import com.koch.ambeth.informationbus.persistence.setup.SQLStructure;
@@ -40,19 +32,21 @@ import com.koch.ambeth.merge.cache.ICache;
 import com.koch.ambeth.merge.cache.ICacheContext;
 import com.koch.ambeth.merge.cache.ICacheFactory;
 import com.koch.ambeth.merge.cache.ICacheProvider;
-import com.koch.ambeth.merge.cache.IDisposableCache;
 import com.koch.ambeth.merge.proxy.IObjRefContainer;
 import com.koch.ambeth.persistence.jdbc.alternateid.AlternateIdTest.AlternateIdModule;
-import com.koch.ambeth.query.IQuery;
-import com.koch.ambeth.query.IQueryBuilder;
 import com.koch.ambeth.service.config.ServiceConfigurationConstants;
 import com.koch.ambeth.service.merge.IEntityMetaDataProvider;
 import com.koch.ambeth.service.merge.model.IEntityMetaData;
 import com.koch.ambeth.testutil.AbstractInformationBusWithPersistenceTest;
 import com.koch.ambeth.testutil.TestModule;
 import com.koch.ambeth.testutil.TestProperties;
-import com.koch.ambeth.util.collections.IList;
-import com.koch.ambeth.util.state.IStateRollback;
+import org.junit.Assert;
+import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 @SQLData("alternateid_data.sql")
 @SQLStructure("alternateid_structure.sql")
@@ -194,17 +188,17 @@ public class AlternateIdTest extends AbstractInformationBusWithPersistenceTest {
 
     @Test
     public void testLazyValueHolderReferringToAlternateId() throws Throwable {
-        ICacheFactory cacheFactory = beanContext.getService(ICacheFactory.class);
-        ICacheContext cacheContext = beanContext.getService(ICacheContext.class);
+        var cacheFactory = beanContext.getService(ICacheFactory.class);
+        var cacheContext = beanContext.getService(ICacheContext.class);
 
-        final AlternateIdEntity aeEntity = entityFactory.createEntity(AlternateIdEntity.class);
-        BaseEntity2 be2 = entityFactory.createEntity(BaseEntity2.class);
+        var aeEntity = entityFactory.createEntity(AlternateIdEntity.class);
+        var be2 = entityFactory.createEntity(BaseEntity2.class);
         aeEntity.getBaseEntities2().add(be2);
 
         aeEntity.setName("AE_1");
         be2.setName("BE_2");
-        IDisposableCache cache = cacheFactory.create(CacheFactoryDirective.NoDCE, "test");
-        IStateRollback rollback = cacheContext.pushCache(cache);
+        var cache = cacheFactory.create(CacheFactoryDirective.NoDCE, "test");
+        var rollback = cacheContext.pushCache(cache);
         try {
             IMergeProcess mergeProcess = beanContext.getService(IMergeProcess.class);
             mergeProcess.process(aeEntity);
@@ -215,16 +209,16 @@ public class AlternateIdTest extends AbstractInformationBusWithPersistenceTest {
         cache = cacheFactory.create(CacheFactoryDirective.NoDCE, "test");
         rollback = cacheContext.pushCache(cache);
         try {
-            IQueryBuilder<AlternateIdEntity> qb = queryBuilderFactory.create(AlternateIdEntity.class);
-            IQuery<AlternateIdEntity> query = qb.build(qb.let(qb.property("Id")).isEqualTo(qb.value(aeEntity.getId())));
-            IList<AlternateIdEntity> result = query.retrieve();
+            var qb = queryBuilderFactory.create(AlternateIdEntity.class);
+            var query = qb.build(qb.let(qb.property("Id")).isEqualTo(qb.value(aeEntity.getId())));
+            var result = query.retrieve();
             Assert.assertEquals(1, result.size());
-            AlternateIdEntity item = result.get(0);
-            IEntityMetaData metaData = entityMetaDataProvider.getMetaData(AlternateIdEntity.class);
-            int relationIndex = metaData.getIndexByRelationName("BaseEntities2");
+            var item = result.get(0);
+            var metaData = entityMetaDataProvider.getMetaData(AlternateIdEntity.class);
+            var relationIndex = metaData.getIndexByRelationName("BaseEntities2");
             Assert.assertTrue(!((IObjRefContainer) item).is__Initialized(relationIndex));
-            List<BaseEntity2> baseEntities2 = item.getBaseEntities2();
-            BaseEntity2 baseEntity2 = baseEntities2.get(0);
+            var baseEntities2 = item.getBaseEntities2();
+            var baseEntity2 = baseEntities2.get(0);
             Assert.assertNotNull(baseEntity2);
         } finally {
             rollback.rollback();

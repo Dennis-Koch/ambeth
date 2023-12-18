@@ -43,6 +43,8 @@ import java.net.SocketException;
 import java.sql.SQLRecoverableException;
 import java.sql.SQLSyntaxErrorException;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 @Category(SlowTests.class)
 @TestPropertiesList({
         @TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "orm.xml"),
@@ -58,7 +60,7 @@ public class BigStatementTest extends AbstractInformationBusWithPersistenceTest 
     public void testBigQuery100000() throws Exception {
         var paramName = "paramName";
         var qb = queryBuilderFactory.create(Material.class);
-        var query = qb.build(qb.let(qb.property(qb.plan().getId())).isIn(qb.valueName(paramName)));
+        var query = qb.build(qb.let(qb.property(qb.plan().getId())).isIn(qb.parameterValue(paramName)));
 
         var bigList = new ArrayList<>();
         for (int a = 100000; a-- > 0; ) {
@@ -82,7 +84,7 @@ public class BigStatementTest extends AbstractInformationBusWithPersistenceTest 
     public void testBigQuery1000000() throws Exception {
         var paramName = "paramName";
         var qb = queryBuilderFactory.create(Material.class);
-        var query = qb.build(qb.let(qb.property("Id")).isIn(qb.valueName(paramName)));
+        var query = qb.build(qb.let(qb.property("Id")).isIn(qb.parameterValue(paramName)));
 
         var bigList = new ArrayList<>();
         for (int a = 1000000; a-- > 0; ) {
@@ -91,7 +93,7 @@ public class BigStatementTest extends AbstractInformationBusWithPersistenceTest 
         try {
             var materials = query.param(paramName, bigList).retrieve();
             Assert.assertNotNull(materials);
-            Assert.assertEquals(90006, materials.size());
+            Assert.assertEquals(990006, materials.size());
         } catch (MaskingRuntimeException e) {
             Throwable cause = e.getCause();
             Assert.assertTrue(cause instanceof PersistenceException);
@@ -107,7 +109,7 @@ public class BigStatementTest extends AbstractInformationBusWithPersistenceTest 
     public void testBigQuery20000() throws Exception {
         var paramName = "paramName";
         var qb = queryBuilderFactory.create(Material.class);
-        var query = qb.build(qb.let(qb.property("Id")).isIn(qb.valueName(paramName)));
+        var query = qb.build(qb.let(qb.property("Id")).isIn(qb.parameterValue(paramName)));
 
         var bigList = new ArrayList<>();
         for (int a = 20000; a-- > 0; ) {
@@ -160,9 +162,9 @@ public class BigStatementTest extends AbstractInformationBusWithPersistenceTest 
     @Test
     public void testMerge1000000() throws Exception {
         var qb = queryBuilderFactory.create(Material.class);
-        var query = qb.build(qb.all());
+        var query = qb.build(qb.let(qb.property(qb.plan().getId())).isLessThan(qb.value(1100000)));
         var materials = query.retrieve();
-        Assert.assertTrue(materials.size() > 1000000);
+        assertThat(materials).hasSizeGreaterThan(1000000);
 
         for (var material : materials) {
             material.setName(material.getName() + "2");

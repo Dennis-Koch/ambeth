@@ -20,9 +20,6 @@ limitations under the License.
  * #L%
  */
 
-import java.util.Collections;
-import java.util.List;
-
 import com.koch.ambeth.datachange.model.IDataChangeEntry;
 import com.koch.ambeth.datachange.model.IDataChangeOfSession;
 import com.koch.ambeth.datachange.transfer.DataChangeEntry;
@@ -36,99 +33,94 @@ import com.koch.ambeth.merge.transfer.ObjRef;
 import com.koch.ambeth.persistence.api.IDatabase;
 import com.koch.ambeth.service.merge.model.IObjRef;
 import com.koch.ambeth.util.collections.ArrayList;
-import com.koch.ambeth.util.collections.IList;
+
+import java.util.Collections;
+import java.util.List;
 
 public class ChangeAggregator implements IChangeAggregator {
-	@Autowired
-	protected IDatabase database;
+    @Autowired
+    protected IDatabase database;
 
-	@Autowired
-	protected IEventDispatcher eventDispatcher;
+    @Autowired
+    protected IEventDispatcher eventDispatcher;
 
-	@Property(name = MergeServerConfigurationConstants.DeleteDataChangesByAlternateIds,
-			defaultValue = "false")
-	protected boolean deleteDataChangesByAlternateIds;
+    @Property(name = MergeServerConfigurationConstants.DeleteDataChangesByAlternateIds, defaultValue = "false")
+    protected boolean deleteDataChangesByAlternateIds;
 
-	protected IList<IDataChangeEntry> inserts;
-	protected IList<IDataChangeEntry> updates;
-	protected IList<IDataChangeEntry> deletes;
+    protected List<IDataChangeEntry> inserts;
+    protected List<IDataChangeEntry> updates;
+    protected List<IDataChangeEntry> deletes;
 
-	@Override
-	public void dataChangeInsert(IObjRef reference) {
-		if (inserts == null) {
-			inserts = new ArrayList<>();
-		}
-		fillDataChange(inserts, reference);
-	}
+    @Override
+    public void dataChangeInsert(IObjRef reference) {
+        if (inserts == null) {
+            inserts = new ArrayList<>();
+        }
+        fillDataChange(inserts, reference);
+    }
 
-	@Override
-	public void dataChangeUpdate(IObjRef reference) {
-		if (updates == null) {
-			updates = new ArrayList<>();
-		}
-		fillDataChange(updates, reference);
-	}
+    @Override
+    public void dataChangeUpdate(IObjRef reference) {
+        if (updates == null) {
+            updates = new ArrayList<>();
+        }
+        fillDataChange(updates, reference);
+    }
 
-	@Override
-	public void dataChangeDelete(IObjRef reference) {
-		if (deletes == null) {
-			deletes = new ArrayList<>();
-		}
-		fillDataChange(deletes, reference);
-	}
+    @Override
+    public void dataChangeDelete(IObjRef reference) {
+        if (deletes == null) {
+            deletes = new ArrayList<>();
+        }
+        fillDataChange(deletes, reference);
+    }
 
-	@Override
-	public void createDataChange(String... causingUuids) {
-		List<IDataChangeEntry> inserts = this.inserts;
-		List<IDataChangeEntry> updates = this.updates;
-		List<IDataChangeEntry> deletes = this.deletes;
-		if (eventDispatcher == null || (inserts == null && updates == null && deletes == null)) {
-			clear();
-			return;
-		}
-		if (inserts == null) {
-			inserts = Collections.emptyList();
-		}
-		else {
-			inserts = new ArrayList<>(inserts);
-		}
-		if (updates == null) {
-			updates = Collections.emptyList();
-		}
-		else {
-			updates = new ArrayList<>(updates);
-		}
-		if (deletes == null) {
-			deletes = Collections.emptyList();
-		}
-		else {
-			deletes = new ArrayList<>(deletes);
-		}
-		// Dispose all current lists in the aggregator
-		clear();
+    @Override
+    public void createDataChange(String... causingUuids) {
+        List<IDataChangeEntry> inserts = this.inserts;
+        List<IDataChangeEntry> updates = this.updates;
+        List<IDataChangeEntry> deletes = this.deletes;
+        if (eventDispatcher == null || (inserts == null && updates == null && deletes == null)) {
+            clear();
+            return;
+        }
+        if (inserts == null) {
+            inserts = Collections.emptyList();
+        } else {
+            inserts = new ArrayList<>(inserts);
+        }
+        if (updates == null) {
+            updates = Collections.emptyList();
+        } else {
+            updates = new ArrayList<>(updates);
+        }
+        if (deletes == null) {
+            deletes = Collections.emptyList();
+        } else {
+            deletes = new ArrayList<>(deletes);
+        }
+        // Dispose all current lists in the aggregator
+        clear();
 
-		Long currentTime = database.getContextProvider().getCurrentTime();
-		DataChangeEvent dataChange = new DataChangeEvent(inserts, updates, deletes,
-				currentTime.longValue(), false);
-		dataChange.setCausingUUIDs(causingUuids);
-		IDataChangeOfSession localDataChange = new DataChangeOfSession(database.getSessionId(),
-				dataChange);
-		eventDispatcher.dispatchEvent(localDataChange);
-	}
+        Long currentTime = database.getContextProvider().getCurrentTime();
+        DataChangeEvent dataChange = new DataChangeEvent(inserts, updates, deletes, currentTime.longValue(), false);
+        dataChange.setCausingUUIDs(causingUuids);
+        IDataChangeOfSession localDataChange = new DataChangeOfSession(database.getSessionId(), dataChange);
+        eventDispatcher.dispatchEvent(localDataChange);
+    }
 
-	@Override
-	public void clear() {
-		inserts = null;
-		updates = null;
-		deletes = null;
-	}
+    @Override
+    public void clear() {
+        inserts = null;
+        updates = null;
+        deletes = null;
+    }
 
-	protected void fillDataChange(List<IDataChangeEntry> dataChangeEntries, IObjRef ori) {
-		if (ori.getIdNameIndex() != ObjRef.PRIMARY_KEY_INDEX && !deleteDataChangesByAlternateIds) {
-			throw new RuntimeException("Implementation error: Only PK references are allowed in events");
-		}
-		DataChangeEntry dataChange = new DataChangeEntry(ori.getRealType(), ori.getIdNameIndex(),
-				ori.getId(), ori.getVersion());
-		dataChangeEntries.add(dataChange);
-	}
+    protected void fillDataChange(List<IDataChangeEntry> dataChangeEntries, IObjRef ori) {
+        if (ori.getIdNameIndex() != ObjRef.PRIMARY_KEY_INDEX && !deleteDataChangesByAlternateIds) {
+            throw new RuntimeException("Implementation error: Only PK references are allowed in events");
+        }
+        DataChangeEntry dataChange = new DataChangeEntry(ori.getRealType(), ori.getIdNameIndex(), ori.getId(), ori.getVersion());
+        dataChangeEntries.add(dataChange);
+    }
 }

@@ -27,12 +27,13 @@ import com.koch.ambeth.merge.model.IUpdateItem;
 import com.koch.ambeth.service.merge.model.IObjRef;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.HashMap;
-import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.IdentityHashMap;
 import com.koch.ambeth.util.collections.IdentityHashSet;
 import com.koch.ambeth.util.collections.IdentityLinkedMap;
 import lombok.Getter;
 import lombok.Setter;
+
+import java.util.List;
 
 public class MergeHandle implements IObjRefHelper.IObjRefHelperState {
     public static final String P_CACHE = "Cache";
@@ -50,7 +51,7 @@ public class MergeHandle implements IObjRefHelper.IObjRefHelperState {
     @Getter
     protected final HashMap<IObjRef, Object> objRefToObjMap = new HashMap<>();
 
-    protected final IdentityLinkedMap<Object, IList<IUpdateItem>> objToModDict = new IdentityLinkedMap<>();
+    protected final IdentityLinkedMap<Object, List<IUpdateItem>> objToModDict = new IdentityLinkedMap<>();
 
     @Getter
     protected final ArrayList<IObjRef> oldOrList = new ArrayList<>();

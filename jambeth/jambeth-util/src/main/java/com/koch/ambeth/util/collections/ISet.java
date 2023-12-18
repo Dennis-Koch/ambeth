@@ -36,8 +36,6 @@ public interface ISet<K> extends Set<K> {
 
     IList<K> toList();
 
-    <T> T[] toArray(Class<T> componentType);
-
     void toList(Collection<K> targetList);
 
     boolean addAll(Iterable<? extends K> c);

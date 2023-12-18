@@ -417,8 +417,8 @@ public class EntityMetaData implements IEntityMetaData {
                 primitiveOptionalMembers.add(primitiveMember);
             }
         }
-        this.primitiveToManyMembers = primitiveToManyMembers.toArray(PrimitiveMember.class);
-        this.primitiveOptionalMembers = primitiveOptionalMembers.toArray(PrimitiveMember.class);
+        this.primitiveToManyMembers = primitiveToManyMembers.toArray(PrimitiveMember[]::new);
+        this.primitiveOptionalMembers = primitiveOptionalMembers.toArray(PrimitiveMember[]::new);
 
         if (relationMembers == null) {
             relationMembers = emptyRelationMembers;

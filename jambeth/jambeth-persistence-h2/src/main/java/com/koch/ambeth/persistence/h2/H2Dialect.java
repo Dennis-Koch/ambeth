@@ -34,7 +34,6 @@ import com.koch.ambeth.util.collections.EmptyMap;
 import com.koch.ambeth.util.collections.HashMap;
 import com.koch.ambeth.util.collections.HashSet;
 import com.koch.ambeth.util.collections.ILinkedMap;
-import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.IMap;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import jakarta.persistence.OptimisticLockException;
@@ -95,7 +94,7 @@ public class H2Dialect extends AbstractConnectionDialect {
                 disableSql.add("ALTER TABLE " + tableName + " SET REFERENTIAL_INTEGRITY FALSE");
                 enableSql.add("ALTER TABLE " + tableName + " SET REFERENTIAL_INTEGRITY TRUE CHECK");
             }
-            return new ConnectionKeyValue(schemaNames, disableSql.toArray(String.class), enableSql.toArray(String.class));
+            return new ConnectionKeyValue(schemaNames, disableSql.toArray(String[]::new), enableSql.toArray(String[]::new));
         } finally {
             JdbcUtil.close(stm, rs);
         }
@@ -111,7 +110,7 @@ public class H2Dialect extends AbstractConnectionDialect {
 
     @SneakyThrows
     @Override
-    public IList<IMap<String, String>> getExportedKeys(Connection connection, String[] schemaNames) {
+    public List<IMap<String, String>> getExportedKeys(Connection connection, String[] schemaNames) {
         Statement stm = null;
         ResultSet rs = null;
         try {
@@ -141,7 +140,7 @@ public class H2Dialect extends AbstractConnectionDialect {
     }
 
     @Override
-    public ILinkedMap<String, IList<String>> getFulltextIndexes(Connection connection, String schemaName) {
+    public ILinkedMap<String, List<String>> getFulltextIndexes(Connection connection, String schemaName) {
         return EmptyMap.emptyMap();
     }
 
@@ -232,7 +231,7 @@ public class H2Dialect extends AbstractConnectionDialect {
 
     @SneakyThrows
     @Override
-    public IList<IColumnEntry> getAllFieldsOfTable(Connection connection, String fqTableName) {
+    public List<IColumnEntry> getAllFieldsOfTable(Connection connection, String fqTableName) {
         String[] names = sqlBuilder.getSchemaAndTableName(fqTableName);
         ResultSet tableColumnsRS = connection.getMetaData().getColumns(null, names[0], names[1], null);
         try {

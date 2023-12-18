@@ -53,7 +53,6 @@ import com.koch.ambeth.testutil.TestPropertiesList;
 import com.koch.ambeth.testutil.TestRebuildContext;
 import com.koch.ambeth.util.ReflectUtil;
 import com.koch.ambeth.util.collections.ArrayList;
-import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.IdentityHashSet;
 import com.koch.ambeth.util.collections.LinkedHashSet;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
@@ -200,9 +199,8 @@ public class RootCacheTest extends AbstractInformationBusTest {
 
     @Test
     public final void testGetObjectsListOfIObjRefSetOfCacheDirective() {
-        IList<Object> actual;
         List<IObjRef> orisToGetArray = Collections.<IObjRef>emptyList();
-        actual = fixture.getObjects(orisToGetArray, CacheDirective.none());
+        List<Object> actual = fixture.getObjects(orisToGetArray, CacheDirective.none());
         assertNotNull(actual);
         assertEquals(0, actual.size());
 
@@ -260,7 +258,7 @@ public class RootCacheTest extends AbstractInformationBusTest {
         assertEquals(0, fixture.getObjects(orisToGet, null, containerEarly).size());
 
         fixture.put(material2);
-        IList<Object> actual = fixture.getObjects(orisToGet, null, containerEarly);
+        List<Object> actual = fixture.getObjects(orisToGet, null, containerEarly);
         assertEquals(1, actual.size());
         assertEquals(LoadContainer.class, actual.get(0).getClass());
         assertEquals(material2.getId(), ((LoadContainer) actual.get(0)).getReference().getId());
@@ -282,7 +280,7 @@ public class RootCacheTest extends AbstractInformationBusTest {
         fixture.put(material2);
 
         assertNull(fixture.createResult(orisToGet, null, Collections.<CacheDirective>emptySet(), null, true, null));
-        IList<Object> actual = fixture.createResult(orisToGet, null, CacheDirective.loadContainerResult(), null, true, null);
+        List<Object> actual = fixture.createResult(orisToGet, null, CacheDirective.loadContainerResult(), null, true, null);
         assertNotNull(actual);
         assertEquals(2, actual.size());
         assertEquals("Wrong result type!", LoadContainer.class, actual.get(0).getClass());

@@ -36,17 +36,13 @@ import com.koch.ambeth.merge.IEntityFactory;
 import com.koch.ambeth.merge.cache.CacheDirective;
 import com.koch.ambeth.merge.cache.ICache;
 import com.koch.ambeth.merge.transfer.ObjRef;
-import com.koch.ambeth.merge.util.IPrefetchHandle;
 import com.koch.ambeth.merge.util.IPrefetchHelper;
 import com.koch.ambeth.service.merge.IEntityMetaDataProvider;
-import com.koch.ambeth.service.merge.model.IEntityMetaData;
 import com.koch.ambeth.service.merge.model.IObjRef;
-import com.koch.ambeth.service.metadata.Member;
 import com.koch.ambeth.util.IConversionHelper;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.HashMap;
 import com.koch.ambeth.util.collections.HashSet;
-import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.IMap;
 import com.koch.ambeth.util.collections.ISet;
 
@@ -82,21 +78,21 @@ public class DataChangeEventService implements IDataChangeEventService, IStartin
     @Override
     public void afterStarted() throws Throwable {
         removeExpired();
-        IList<IDataChange> eventObjects = retrieveAll();
+        List<IDataChange> eventObjects = retrieveAll();
         @SuppressWarnings("unchecked") List<Object> asObjectList = (List<Object>) (Object) eventObjects;
         eventStore.addEvents(asObjectList);
     }
 
     @Override
     public void save(IDataChange dataChange) {
-        HashSet<Class<?>> entityTypes = new HashSet<>();
+        var entityTypes = new HashSet<Class<?>>();
         addAllEntityTypes(entityTypes, dataChange.getInserts());
         addAllEntityTypes(entityTypes, dataChange.getUpdates());
         addAllEntityTypes(entityTypes, dataChange.getDeletes());
 
-        IMap<Class<?>, EntityType> classToEntityType = loadEntityTypes(entityTypes);
+        var classToEntityType = loadEntityTypes(entityTypes);
 
-        DataChangeEventBO bo = entityFactory.createEntity(DataChangeEventBO.class);
+        var bo = entityFactory.createEntity(DataChangeEventBO.class);
         bo.setChangeTime(dataChange.getChangeTime());
         bo.setInserts(toDataChangeEntryList(dataChange.getInserts(), classToEntityType));
         bo.setUpdates(toDataChangeEntryList(dataChange.getUpdates(), classToEntityType));
@@ -105,19 +101,19 @@ public class DataChangeEventService implements IDataChangeEventService, IStartin
         dataChangeEventDAO.save(bo);
     }
 
-    protected IList<IDataChange> retrieveAll() {
-        List<DataChangeEventBO> bos = dataChangeEventDAO.retrieveAll();
-        ArrayList<IDataChange> retrieved = new ArrayList<>();
+    protected List<IDataChange> retrieveAll() {
+        var bos = dataChangeEventDAO.retrieveAll();
+        var retrieved = new ArrayList<IDataChange>();
 
-        IPrefetchHandle prefetchHandle = prefetchHelper.createPrefetch()
-                                                       .add(DataChangeEventBO.class, "Inserts.EntityType")
-                                                       .add(DataChangeEventBO.class, "Updates.EntityType")
-                                                       .add(DataChangeEventBO.class, "Deletes.EntityType")
-                                                       .build();
+        var prefetchHandle = prefetchHelper.createPrefetch()
+                                           .add(DataChangeEventBO.class, "Inserts.EntityType")
+                                           .add(DataChangeEventBO.class, "Updates.EntityType")
+                                           .add(DataChangeEventBO.class, "Deletes.EntityType")
+                                           .build();
         prefetchHandle.prefetch(bos);
         for (int i = 0, size = bos.size(); i < size; i++) {
-            DataChangeEventBO bo = bos.get(i);
-            DataChangeEvent entity = toEntity(bo);
+            var bo = bos.get(i);
+            var entity = toEntity(bo);
             retrieved.add(entity);
         }
 
@@ -137,25 +133,25 @@ public class DataChangeEventService implements IDataChangeEventService, IStartin
             return;
         }
         for (int i = dataChangeEntries.size(); i-- > 0; ) {
-            IDataChangeEntry dataChangeEntry = dataChangeEntries.get(i);
+            var dataChangeEntry = dataChangeEntries.get(i);
             entityTypes.add(dataChangeEntry.getEntityType());
         }
     }
 
     protected IMap<Class<?>, EntityType> loadEntityTypes(ISet<Class<?>> entityTypes) {
-        HashMap<Class<?>, EntityType> classToEntityType = new HashMap<>();
+        var classToEntityType = new HashMap<Class<?>, EntityType>();
 
-        IEntityMetaData metaData = entityMetaDataProvider.getMetaData(EntityType.class);
-        byte idIndex = metaData.getIdIndexByMemberName("Type");
-        IObjRef[] orisToGet = new IObjRef[entityTypes.size()];
-        int index = 0;
-        for (Class<?> entry : entityTypes) {
-            IObjRef objRef = new ObjRef(EntityType.class, idIndex, entry, null);
+        var metaData = entityMetaDataProvider.getMetaData(EntityType.class);
+        var idIndex = metaData.getIdIndexByMemberName("Type");
+        var orisToGet = new IObjRef[entityTypes.size()];
+        var index = 0;
+        for (var entry : entityTypes) {
+            var objRef = new ObjRef(EntityType.class, idIndex, entry, null);
             orisToGet[index++] = objRef;
         }
-        IList<Object> retrieved = cache.getObjects(orisToGet, CacheDirective.none());
+        var retrieved = cache.getObjects(orisToGet, CacheDirective.none());
         for (int i = retrieved.size(); i-- > 0; ) {
-            EntityType entityType = (EntityType) retrieved.get(i);
+            var entityType = (EntityType) retrieved.get(i);
             classToEntityType.put(entityType.getType(), entityType);
         }
 
@@ -166,14 +162,14 @@ public class DataChangeEventService implements IDataChangeEventService, IStartin
         if (dataChangeEntries == null) {
             return null;
         }
-        IEntityFactory entityFactory = this.entityFactory;
-        List<DataChangeEntryBO> dataChangeEntryList = new ArrayList<>(dataChangeEntries.size());
+        var entityFactory = this.entityFactory;
+        var dataChangeEntryList = new ArrayList<DataChangeEntryBO>(dataChangeEntries.size());
         for (int i = 0, size = dataChangeEntries.size(); i < size; i++) {
-            IDataChangeEntry dataChangeEntry = dataChangeEntries.get(i);
+            var dataChangeEntry = dataChangeEntries.get(i);
 
-            DataChangeEntryBO bo = entityFactory.createEntity(DataChangeEntryBO.class);
-            Class<?> entityClass = dataChangeEntry.getEntityType();
-            EntityType entityType = classToEntityType.get(entityClass);
+            var bo = entityFactory.createEntity(DataChangeEntryBO.class);
+            var entityClass = dataChangeEntry.getEntityType();
+            var entityType = classToEntityType.get(entityClass);
             if (entityType == null) {
                 entityType = entityFactory.createEntity(EntityType.class);
                 entityType.setType(entityClass);
@@ -191,7 +187,7 @@ public class DataChangeEventService implements IDataChangeEventService, IStartin
     }
 
     private DataChangeEvent toEntity(DataChangeEventBO bo) {
-        DataChangeEvent dce = new DataChangeEvent();
+        var dce = new DataChangeEvent();
         dce.setChangeTime(bo.getChangeTime());
         dce.setInserts(toDataChangeEntries(bo.getInserts()));
         dce.setUpdates(toDataChangeEntries(bo.getUpdates()));
@@ -201,29 +197,28 @@ public class DataChangeEventService implements IDataChangeEventService, IStartin
     }
 
     private List<IDataChangeEntry> toDataChangeEntries(List<DataChangeEntryBO> bos) {
-        List<IDataChangeEntry> dataChangeEntries = new ArrayList<>(bos.size());
+        var dataChangeEntries = new ArrayList<IDataChangeEntry>(bos.size());
 
         for (int i = 0, size = bos.size(); i < size; i++) {
-            DataChangeEntryBO bo = bos.get(i);
-            DataChangeEntry entry = new DataChangeEntry();
-            Class<?> entityType = bo.getEntityType().getType();
+            var bo = bos.get(i);
+            var entry = new DataChangeEntry();
+            var entityType = bo.getEntityType().getType();
             entry.setEntityType(entityType);
-            byte idIndex = bo.getIdIndex();
+            var idIndex = bo.getIdIndex();
             entry.setIdNameIndex(idIndex);
 
-            IEntityMetaData metaData = entityMetaDataProvider.getMetaData(entityType);
+            var metaData = entityMetaDataProvider.getMetaData(entityType);
             Object id = bo.getObjectId();
-            Member idMember = metaData.getIdMemberByIdIndex(idIndex);
+            var idMember = metaData.getIdMemberByIdIndex(idIndex);
             id = conversionHelper.convertValueToType(idMember.getRealType(), id);
             entry.setId(id);
             Object version = bo.getObjectVersion();
-            Member versionMember = metaData.getVersionMember();
+            var versionMember = metaData.getVersionMember();
             version = conversionHelper.convertValueToType(versionMember.getRealType(), version);
             entry.setVersion(version);
 
             dataChangeEntries.add(entry);
         }
-
         return dataChangeEntries;
     }
 }

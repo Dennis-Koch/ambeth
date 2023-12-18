@@ -8,6 +8,7 @@ import com.koch.ambeth.util.proxy.IProxyFactory;
 import com.koch.ambeth.util.proxy.MethodInterceptor;
 import com.koch.ambeth.util.proxy.MethodProxy;
 import com.koch.ambeth.util.typeinfo.IPropertyInfoProvider;
+import com.koch.ambeth.util.typeinfo.NullEquivalentValueUtil;
 
 import java.lang.reflect.Method;
 import java.util.Optional;
@@ -22,7 +23,7 @@ public class QueryBuilderProxyInterceptor implements MethodInterceptor {
         if (propertyProxy instanceof CharSequence) {
             return ((CharSequence) propertyProxy).toString();
         }
-        String lastPropertyPath = lastPropertyPathTL.get();
+        var lastPropertyPath = lastPropertyPathTL.get();
         lastPropertyPathTL.set(null);
         return lastPropertyPath;
     }
@@ -70,9 +71,6 @@ public class QueryBuilderProxyInterceptor implements MethodInterceptor {
 
         Object childPlan;
 
-        if (elementType.isPrimitive()) {
-            elementType = Integer.class;
-        }
         var propertyPath = this.propertyPath != null ? this.propertyPath + '.' + propertyName : propertyName;
         lastPropertyPathTL.set(propertyPath);
         if (elementType.isEnum()) {
@@ -82,9 +80,14 @@ public class QueryBuilderProxyInterceptor implements MethodInterceptor {
             }
             childPlan = enumConstants[0];
         } else if (Number.class.isAssignableFrom(elementType)) {
-            childPlan = elementType.getConstructor(String.class).newInstance("0");
+            childPlan = NullEquivalentValueUtil.getNullEquivalentValue(elementType);
+            if (childPlan == null) {
+                childPlan = elementType.getConstructor(String.class).newInstance("0");
+            }
         } else if (String.class.isAssignableFrom(elementType)) {
             childPlan = propertyPath;
+        } else if (elementType.isPrimitive()) {
+            childPlan = NullEquivalentValueUtil.getNullEquivalentValue(elementType);
         } else {
             childPlan = proxyFactory.createProxy(elementType, INTERFACES,
                     new QueryBuilderProxyInterceptor(targetMetaData, baseEntityType, propertyPath, lastPropertyPathTL, propertyInfoProvider, entityMetaDataProvider, proxyFactory));

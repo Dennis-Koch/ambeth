@@ -28,96 +28,100 @@ import com.koch.ambeth.service.merge.model.IEntityMetaData;
 import com.koch.ambeth.service.merge.model.IObjRef;
 import com.koch.ambeth.util.collections.IListElem;
 
-public abstract class RootCacheValue extends AbstractCacheValue
-		implements IListElem<RootCacheValue>, IObjRefContainer {
-	protected Object listHandle;
+public abstract class RootCacheValue extends AbstractCacheValue implements IListElem<RootCacheValue>, IObjRefContainer {
+    protected Object listHandle;
 
-	protected IListElem<RootCacheValue> next, prev;
+    protected IListElem<RootCacheValue> next, prev;
 
-	public RootCacheValue(IEntityMetaData metaData) {
-		// Intended blank
-	}
+    public RootCacheValue(IEntityMetaData metaData) {
+        // Intended blank
+    }
 
-	@Override
-	public ICache get__Cache() {
-		return null;
-	}
+    @Override
+    public ICache get__Cache() {
+        throw new UnsupportedOperationException();
+    }
 
-	public abstract void setPrimitives(Object[] primitives);
+    @Override
+    public void set__Cache(ICache cache) {
+        throw new UnsupportedOperationException();
+    }
 
-	public abstract IObjRef[][] getRelations();
+    public abstract void setPrimitives(Object[] primitives);
 
-	public abstract void setRelations(IObjRef[][] relations);
+    public abstract IObjRef[][] getRelations();
 
-	public abstract IObjRef[] getRelation(int relationIndex);
+    public abstract void setRelations(IObjRef[][] relations);
 
-	public abstract void setRelation(int relationIndex, IObjRef[] relationsOfMember);
+    public abstract IObjRef[] getRelation(int relationIndex);
 
-	@Override
-	public Object getListHandle() {
-		return listHandle;
-	}
+    public abstract void setRelation(int relationIndex, IObjRef[] relationsOfMember);
 
-	@Override
-	public void setListHandle(Object listHandle) {
-		if (this.listHandle != null && listHandle != null) {
-			throw new UnsupportedOperationException();
-		}
-		this.listHandle = listHandle;
-	}
+    @Override
+    public Object getListHandle() {
+        return listHandle;
+    }
 
-	@Override
-	public IListElem<RootCacheValue> getNext() {
-		return next;
-	}
+    @Override
+    public void setListHandle(Object listHandle) {
+        if (this.listHandle != null && listHandle != null) {
+            throw new UnsupportedOperationException();
+        }
+        this.listHandle = listHandle;
+    }
 
-	@Override
-	public void setNext(IListElem<RootCacheValue> next) {
-		this.next = next;
-	}
+    @Override
+    public IListElem<RootCacheValue> getNext() {
+        return next;
+    }
 
-	@Override
-	public IListElem<RootCacheValue> getPrev() {
-		return prev;
-	}
+    @Override
+    public void setNext(IListElem<RootCacheValue> next) {
+        this.next = next;
+    }
 
-	@Override
-	public void setPrev(IListElem<RootCacheValue> prev) {
-		this.prev = prev;
-	}
+    @Override
+    public IListElem<RootCacheValue> getPrev() {
+        return prev;
+    }
 
-	@Override
-	public RootCacheValue getElemValue() {
-		return this;
-	}
+    @Override
+    public void setPrev(IListElem<RootCacheValue> prev) {
+        this.prev = prev;
+    }
 
-	@Override
-	public void setElemValue(RootCacheValue value) {
-		throw new UnsupportedOperationException();
-	}
+    @Override
+    public RootCacheValue getElemValue() {
+        return this;
+    }
 
-	@Override
-	public ValueHolderState get__State(int relationIndex) {
-		return ValueHolderState.LAZY;
-	}
+    @Override
+    public void setElemValue(RootCacheValue value) {
+        throw new UnsupportedOperationException();
+    }
 
-	@Override
-	public boolean is__Initialized(int relationIndex) {
-		return false;
-	}
+    @Override
+    public ValueHolderState get__State(int relationIndex) {
+        return ValueHolderState.LAZY;
+    }
 
-	@Override
-	public IObjRef[] get__ObjRefs(int relationIndex) {
-		return getRelation(relationIndex);
-	}
+    @Override
+    public boolean is__Initialized(int relationIndex) {
+        return false;
+    }
 
-	@Override
-	public void set__ObjRefs(int relationIndex, IObjRef[] objRefs) {
-		setRelation(relationIndex, objRefs);
-	}
+    @Override
+    public IObjRef[] get__ObjRefs(int relationIndex) {
+        return getRelation(relationIndex);
+    }
 
-	@Override
-	public void detach() {
-		// intended blank
-	}
+    @Override
+    public void set__ObjRefs(int relationIndex, IObjRef[] objRefs) {
+        setRelation(relationIndex, objRefs);
+    }
+
+    @Override
+    public void detach() {
+        // intended blank
+    }
 }

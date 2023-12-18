@@ -20,10 +20,6 @@ limitations under the License.
  * #L%
  */
 
-import java.util.Collections;
-
-import jakarta.persistence.criteria.JoinType;
-
 import com.koch.ambeth.query.IOperand;
 import com.koch.ambeth.query.IOperator;
 import com.koch.ambeth.query.IQuery;
@@ -34,6 +30,9 @@ import com.koch.ambeth.query.ISubQuery;
 import com.koch.ambeth.query.OrderByType;
 import com.koch.ambeth.query.filter.IPagingQuery;
 import com.koch.ambeth.util.IParamHolder;
+import jakarta.persistence.criteria.JoinType;
+
+import java.util.Collections;
 
 public class QueryBuilderDummy<T> implements IQueryBuilder<T> {
     @Override
@@ -317,8 +316,8 @@ public class QueryBuilderDummy<T> implements IQueryBuilder<T> {
     }
 
     @Override
-    public IOperand valueName(String paramName) {
-        return null;
+    public IOperand parameterValue(Object paramKey) {
+        throw new UnsupportedOperationException();
     }
 
     @Override

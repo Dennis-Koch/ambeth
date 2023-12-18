@@ -20,9 +20,6 @@ limitations under the License.
  * #L%
  */
 
-import java.util.List;
-import java.util.Map.Entry;
-
 import com.koch.ambeth.ioc.IInitializingBean;
 import com.koch.ambeth.ioc.extendable.ClassExtendableContainer;
 import com.koch.ambeth.merge.model.ICUDResult;
@@ -30,190 +27,174 @@ import com.koch.ambeth.merge.model.IChangeContainer;
 import com.koch.ambeth.merge.model.IDirectObjRef;
 import com.koch.ambeth.merge.model.IPrimitiveUpdateItem;
 import com.koch.ambeth.merge.model.IRelationUpdateItem;
-import com.koch.ambeth.merge.model.IUpdateItem;
 import com.koch.ambeth.merge.transfer.CUDResult;
 import com.koch.ambeth.merge.transfer.CreateContainer;
 import com.koch.ambeth.merge.transfer.DeleteContainer;
 import com.koch.ambeth.merge.transfer.UpdateContainer;
 import com.koch.ambeth.service.merge.IEntityMetaDataProvider;
 import com.koch.ambeth.service.merge.model.IEntityMetaData;
-import com.koch.ambeth.service.merge.model.IObjRef;
-import com.koch.ambeth.service.metadata.Member;
 import com.koch.ambeth.util.ParamChecker;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.HashMap;
-import com.koch.ambeth.util.collections.ILinkedMap;
-import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.collections.IMap;
-import com.koch.ambeth.util.collections.IdentityHashSet;
-import com.koch.ambeth.util.collections.IdentityLinkedMap;
 
 public class CUDResultHelper implements IInitializingBean, ICUDResultHelper, ICUDResultExtendable {
-	protected IEntityMetaDataProvider entityMetaDataProvider;
+    protected final ClassExtendableContainer<ICUDResultExtension> extensions = new ClassExtendableContainer<>(ICUDResultExtension.class.getSimpleName(), "entityType");
+    protected IEntityMetaDataProvider entityMetaDataProvider;
+    protected IObjRefHelper oriHelper;
 
-	protected IObjRefHelper oriHelper;
+    @Override
+    public void afterPropertiesSet() {
+        ParamChecker.assertNotNull(entityMetaDataProvider, "entityMetaDataProvider");
+        ParamChecker.assertNotNull(oriHelper, "oriHelper");
+    }
 
-	protected final ClassExtendableContainer<ICUDResultExtension> extensions = new ClassExtendableContainer<>(
-			ICUDResultExtension.class.getSimpleName(), "entityType");
+    public void setOriHelper(IObjRefHelper oriHelper) {
+        this.oriHelper = oriHelper;
+    }
 
-	@Override
-	public void afterPropertiesSet() {
-		ParamChecker.assertNotNull(entityMetaDataProvider, "entityMetaDataProvider");
-		ParamChecker.assertNotNull(oriHelper, "oriHelper");
-	}
+    public void setEntityMetaDataProvider(IEntityMetaDataProvider entityMetaDataProvider) {
+        this.entityMetaDataProvider = entityMetaDataProvider;
+    }
 
-	public void setOriHelper(IObjRefHelper oriHelper) {
-		this.oriHelper = oriHelper;
-	}
+    @Override
+    public ICUDResult createCUDResult(MergeHandle mergeHandle) {
+        var typeToCudResultExtension = extensions.getExtensions();
+        for (var entry : typeToCudResultExtension) {
+            entry.getValue().extend(mergeHandle);
+        }
 
-	public void setEntityMetaDataProvider(IEntityMetaDataProvider entityMetaDataProvider) {
-		this.entityMetaDataProvider = entityMetaDataProvider;
-	}
+        var objToModDict = mergeHandle.objToModDict;
+        var objToDeleteSet = mergeHandle.objToDeleteSet;
 
-	@Override
-	public ICUDResult createCUDResult(MergeHandle mergeHandle) {
-		ILinkedMap<Class<?>, ICUDResultExtension> typeToCudResultExtension = extensions.getExtensions();
-		for (Entry<Class<?>, ICUDResultExtension> entry : typeToCudResultExtension) {
-			entry.getValue().extend(mergeHandle);
-		}
+        var entityTypeToFullPuis = new HashMap<Class<?>, IPrimitiveUpdateItem[]>();
+        var entityTypeToFullRuis = new HashMap<Class<?>, IRelationUpdateItem[]>();
 
-		IdentityLinkedMap<Object, IList<IUpdateItem>> objToModDict = mergeHandle.objToModDict;
-		IdentityHashSet<Object> objToDeleteSet = mergeHandle.objToDeleteSet;
+        var allChanges = new ArrayList<IChangeContainer>(objToModDict.size());
+        var originalRefs = new ArrayList<>(objToModDict.size());
 
-		HashMap<Class<?>, IPrimitiveUpdateItem[]> entityTypeToFullPuis = new HashMap<>();
-		HashMap<Class<?>, IRelationUpdateItem[]> entityTypeToFullRuis = new HashMap<>();
+        for (var objToDelete : objToDeleteSet) {
+            var ori = oriHelper.getCreateObjRef(objToDelete, mergeHandle);
+            if (ori == null) {
+                continue;
+            }
+            var deleteContainer = new DeleteContainer();
+            deleteContainer.setReference(ori);
+            allChanges.add(deleteContainer);
+            originalRefs.add(objToDelete);
+        }
+        var entityMetaDataProvider = this.entityMetaDataProvider;
+        for (var entry : objToModDict) {
+            var obj = entry.getKey();
+            var modItems = entry.getValue();
 
-		ArrayList<IChangeContainer> allChanges = new ArrayList<>(objToModDict.size());
-		ArrayList<Object> originalRefs = new ArrayList<>(objToModDict.size());
+            var metaData = entityMetaDataProvider.getMetaData(obj.getClass());
 
-		for (Object objToDelete : objToDeleteSet) {
-			IObjRef ori = oriHelper.getCreateObjRef(objToDelete, mergeHandle);
-			if (ori == null) {
-				continue;
-			}
-			DeleteContainer deleteContainer = new DeleteContainer();
-			deleteContainer.setReference(ori);
-			allChanges.add(deleteContainer);
-			originalRefs.add(objToDelete);
-		}
-		IEntityMetaDataProvider entityMetaDataProvider = this.entityMetaDataProvider;
-		for (Entry<Object, IList<IUpdateItem>> entry : objToModDict) {
-			Object obj = entry.getKey();
-			List<IUpdateItem> modItems = entry.getValue();
+            var fullPuis = getEnsureFullPUIs(metaData, entityTypeToFullPuis);
+            var fullRuis = getEnsureFullRUIs(metaData, entityTypeToFullRuis);
 
-			IEntityMetaData metaData = entityMetaDataProvider.getMetaData(obj.getClass());
+            int puiCount = 0, ruiCount = 0;
+            for (int a = modItems.size(); a-- > 0; ) {
+                var modItem = modItems.get(a);
 
-			IPrimitiveUpdateItem[] fullPuis = getEnsureFullPUIs(metaData, entityTypeToFullPuis);
-			IRelationUpdateItem[] fullRuis = getEnsureFullRUIs(metaData, entityTypeToFullRuis);
+                var member = metaData.getMemberByName(modItem.getMemberName());
 
-			int puiCount = 0, ruiCount = 0;
-			for (int a = modItems.size(); a-- > 0;) {
-				IUpdateItem modItem = modItems.get(a);
+                if (modItem instanceof IRelationUpdateItem) {
+                    fullRuis[metaData.getIndexByRelation(member)] = (IRelationUpdateItem) modItem;
+                    ruiCount++;
+                } else {
+                    fullPuis[metaData.getIndexByPrimitive(member)] = (IPrimitiveUpdateItem) modItem;
+                    puiCount++;
+                }
+            }
 
-				Member member = metaData.getMemberByName(modItem.getMemberName());
+            var ruis = compactRUIs(fullRuis, ruiCount);
+            var puis = compactPUIs(fullPuis, puiCount);
+            var ori = oriHelper.getCreateObjRef(obj, mergeHandle);
+            originalRefs.add(obj);
 
-				if (modItem instanceof IRelationUpdateItem) {
-					fullRuis[metaData.getIndexByRelation(member)] = (IRelationUpdateItem) modItem;
-					ruiCount++;
-				}
-				else {
-					fullPuis[metaData.getIndexByPrimitive(member)] = (IPrimitiveUpdateItem) modItem;
-					puiCount++;
-				}
-			}
+            if (ori instanceof IDirectObjRef) {
+                var createContainer = new CreateContainer();
 
-			IRelationUpdateItem[] ruis = compactRUIs(fullRuis, ruiCount);
-			IPrimitiveUpdateItem[] puis = compactPUIs(fullPuis, puiCount);
-			IObjRef ori = oriHelper.getCreateObjRef(obj, mergeHandle);
-			originalRefs.add(obj);
+                ((IDirectObjRef) ori).setCreateContainerIndex(allChanges.size());
 
-			if (ori instanceof IDirectObjRef) {
-				CreateContainer createContainer = new CreateContainer();
+                createContainer.setReference(ori);
+                createContainer.setPrimitives(puis);
+                createContainer.setRelations(ruis);
 
-				((IDirectObjRef) ori).setCreateContainerIndex(allChanges.size());
+                allChanges.add(createContainer);
+            } else {
+                var updateContainer = new UpdateContainer();
+                updateContainer.setReference(ori);
+                updateContainer.setPrimitives(puis);
+                updateContainer.setRelations(ruis);
+                allChanges.add(updateContainer);
+            }
+        }
+        return new CUDResult(allChanges, originalRefs);
+    }
 
-				createContainer.setReference(ori);
-				createContainer.setPrimitives(puis);
-				createContainer.setRelations(ruis);
+    @Override
+    public IPrimitiveUpdateItem[] getEnsureFullPUIs(IEntityMetaData metaData, IMap<Class<?>, IPrimitiveUpdateItem[]> entityTypeToFullPuis) {
+        IPrimitiveUpdateItem[] fullPuis = entityTypeToFullPuis.get(metaData.getEntityType());
+        if (fullPuis == null) {
+            fullPuis = new IPrimitiveUpdateItem[metaData.getPrimitiveMembers().length];
+            entityTypeToFullPuis.put(metaData.getEntityType(), fullPuis);
+        }
+        return fullPuis;
+    }
 
-				allChanges.add(createContainer);
-			}
-			else {
-				UpdateContainer updateContainer = new UpdateContainer();
-				updateContainer.setReference(ori);
-				updateContainer.setPrimitives(puis);
-				updateContainer.setRelations(ruis);
-				allChanges.add(updateContainer);
-			}
-		}
-		return new CUDResult(allChanges, originalRefs);
-	}
+    @Override
+    public IRelationUpdateItem[] getEnsureFullRUIs(IEntityMetaData metaData, IMap<Class<?>, IRelationUpdateItem[]> entityTypeToFullRuis) {
+        IRelationUpdateItem[] fullRuis = entityTypeToFullRuis.get(metaData.getEntityType());
+        if (fullRuis == null) {
+            fullRuis = new IRelationUpdateItem[metaData.getRelationMembers().length];
+            entityTypeToFullRuis.put(metaData.getEntityType(), fullRuis);
+        }
+        return fullRuis;
+    }
 
-	@Override
-	public IPrimitiveUpdateItem[] getEnsureFullPUIs(IEntityMetaData metaData,
-			IMap<Class<?>, IPrimitiveUpdateItem[]> entityTypeToFullPuis) {
-		IPrimitiveUpdateItem[] fullPuis = entityTypeToFullPuis.get(metaData.getEntityType());
-		if (fullPuis == null) {
-			fullPuis = new IPrimitiveUpdateItem[metaData.getPrimitiveMembers().length];
-			entityTypeToFullPuis.put(metaData.getEntityType(), fullPuis);
-		}
-		return fullPuis;
-	}
+    @Override
+    public IPrimitiveUpdateItem[] compactPUIs(IPrimitiveUpdateItem[] fullPUIs, int puiCount) {
+        if (puiCount == 0) {
+            return null;
+        }
+        IPrimitiveUpdateItem[] puis = new IPrimitiveUpdateItem[puiCount];
+        for (int a = fullPUIs.length; a-- > 0; ) {
+            IPrimitiveUpdateItem pui = fullPUIs[a];
+            if (pui == null) {
+                continue;
+            }
+            fullPUIs[a] = null;
+            puis[--puiCount] = pui;
+        }
+        return puis;
+    }
 
-	@Override
-	public IRelationUpdateItem[] getEnsureFullRUIs(IEntityMetaData metaData,
-			IMap<Class<?>, IRelationUpdateItem[]> entityTypeToFullRuis) {
-		IRelationUpdateItem[] fullRuis = entityTypeToFullRuis.get(metaData.getEntityType());
-		if (fullRuis == null) {
-			fullRuis = new IRelationUpdateItem[metaData.getRelationMembers().length];
-			entityTypeToFullRuis.put(metaData.getEntityType(), fullRuis);
-		}
-		return fullRuis;
-	}
+    @Override
+    public IRelationUpdateItem[] compactRUIs(IRelationUpdateItem[] fullRUIs, int ruiCount) {
+        if (ruiCount == 0) {
+            return null;
+        }
+        IRelationUpdateItem[] ruis = new IRelationUpdateItem[ruiCount];
+        for (int a = fullRUIs.length; a-- > 0; ) {
+            IRelationUpdateItem rui = fullRUIs[a];
+            if (rui == null) {
+                continue;
+            }
+            fullRUIs[a] = null;
+            ruis[--ruiCount] = rui;
+        }
+        return ruis;
+    }
 
-	@Override
-	public IPrimitiveUpdateItem[] compactPUIs(IPrimitiveUpdateItem[] fullPUIs, int puiCount) {
-		if (puiCount == 0) {
-			return null;
-		}
-		IPrimitiveUpdateItem[] puis = new IPrimitiveUpdateItem[puiCount];
-		for (int a = fullPUIs.length; a-- > 0;) {
-			IPrimitiveUpdateItem pui = fullPUIs[a];
-			if (pui == null) {
-				continue;
-			}
-			fullPUIs[a] = null;
-			puis[--puiCount] = pui;
-		}
-		return puis;
-	}
+    @Override
+    public void registerCUDResultExtension(ICUDResultExtension cudResultExtension, Class<?> entityType) {
+        extensions.register(cudResultExtension, entityType);
+    }
 
-	@Override
-	public IRelationUpdateItem[] compactRUIs(IRelationUpdateItem[] fullRUIs, int ruiCount) {
-		if (ruiCount == 0) {
-			return null;
-		}
-		IRelationUpdateItem[] ruis = new IRelationUpdateItem[ruiCount];
-		for (int a = fullRUIs.length; a-- > 0;) {
-			IRelationUpdateItem rui = fullRUIs[a];
-			if (rui == null) {
-				continue;
-			}
-			fullRUIs[a] = null;
-			ruis[--ruiCount] = rui;
-		}
-		return ruis;
-	}
-
-	@Override
-	public void registerCUDResultExtension(ICUDResultExtension cudResultExtension,
-			Class<?> entityType) {
-		extensions.register(cudResultExtension, entityType);
-	}
-
-	@Override
-	public void unregisterCUDResultExtension(ICUDResultExtension cudResultExtension,
-			Class<?> entityType) {
-		extensions.unregister(cudResultExtension, entityType);
-	}
+    @Override
+    public void unregisterCUDResultExtension(ICUDResultExtension cudResultExtension, Class<?> entityType) {
+        extensions.unregister(cudResultExtension, entityType);
+    }
 }

@@ -76,7 +76,7 @@ public class InformationBusWithPersistence implements IBundleModule {
                 allModules.addAll(parentBundleModules);
             }
 
-            resultingBundleModules = allModules.toArray(Class.class);
+            resultingBundleModules = allModules.toArray(Class[]::new);
         } catch (Exception e) {
             throw RuntimeExceptionUtil.mask(e);
         }

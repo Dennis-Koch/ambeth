@@ -20,17 +20,16 @@ limitations under the License.
  * #L%
  */
 
-import java.net.URL;
-
-import com.koch.ambeth.util.collections.IList;
-
 import javassist.ClassPool;
+
+import java.net.URL;
+import java.util.List;
 
 
 public interface IClasspathScannerServletContext {
 
-	IList<URL> buildUrlsFromClasspath(ClassPool pool);
+    List<URL> buildUrlsFromClasspath(ClassPool pool);
 
-	String lookupExistingPath(String path) throws Throwable;
+    String lookupExistingPath(String path) throws Throwable;
 
 }

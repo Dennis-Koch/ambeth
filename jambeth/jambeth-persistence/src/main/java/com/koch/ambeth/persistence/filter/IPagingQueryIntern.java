@@ -22,11 +22,15 @@ limitations under the License.
 
 import com.koch.ambeth.filter.IPagingRequest;
 import com.koch.ambeth.filter.IPagingResponse;
+import com.koch.ambeth.query.IQueryKey;
 import com.koch.ambeth.query.filter.IPagingQuery;
 
 import java.util.Map;
 
 public interface IPagingQueryIntern<T> extends IPagingQuery<T> {
+
+    IQueryKey getQueryKey(Map<Object, Object> nameToValueMap);
+
     IPagingResponse<T> retrieveRefs(IPagingRequest pagingRequest, Map<Object, Object> paramMap);
 
     IPagingResponse<T> retrieveRefs(IPagingRequest pagingRequest, String alternateIdPropertyName, Map<Object, Object> paramMap);

@@ -22,10 +22,10 @@ limitations under the License.
 
 import com.koch.ambeth.util.IImmutableType;
 
-import java.lang.reflect.Array;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 
 public final class EmptyMap<K, V> implements ILinkedMap<K, V>, IImmutableType {
     @SuppressWarnings("rawtypes")
@@ -81,7 +81,7 @@ public final class EmptyMap<K, V> implements ILinkedMap<K, V>, IImmutableType {
     }
 
     @Override
-    public void entrySet(ISet<Entry<K, V>> targetEntrySet) {
+    public void entrySet(Set<Entry<K, V>> targetEntrySet) {
         // intended blank
     }
 
@@ -138,12 +138,6 @@ public final class EmptyMap<K, V> implements ILinkedMap<K, V>, IImmutableType {
     @Override
     public boolean removeIfValue(K key, V value) {
         throw new UnsupportedOperationException("Map is read-only");
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public V[] toArray(Class<V> arrayType) {
-        return (V[]) Array.newInstance(arrayType, 0);
     }
 
     @Override

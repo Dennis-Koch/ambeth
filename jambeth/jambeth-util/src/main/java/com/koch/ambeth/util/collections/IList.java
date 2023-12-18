@@ -35,8 +35,6 @@ public interface IList<V> extends List<V> {
     @Override
     IList<V> subList(int fromIndex, int toIndex);
 
-    <T> T[] toArray(Class<T> componentType);
-
     V peek();
 
     V popLastElement();

@@ -28,7 +28,6 @@ import com.koch.ambeth.persistence.config.PersistenceConfigurationConstants;
 import com.koch.ambeth.persistence.orm.IOrmPatternMatcher;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.HashSet;
-import com.koch.ambeth.util.collections.IList;
 import com.koch.ambeth.util.config.IProperties;
 import lombok.SneakyThrows;
 
@@ -104,7 +103,7 @@ public abstract class AbstractConnectionTestDialect implements IConnectionTestDi
      * @param connection
      * @return
      */
-    protected abstract IList<String> queryForAllTables(Connection connection);
+    protected abstract List<String> queryForAllTables(Connection connection);
 
     /**
      * An SQL query. there must be column name "TRIGGER_NAME" referred to the found trigger name
@@ -112,7 +111,7 @@ public abstract class AbstractConnectionTestDialect implements IConnectionTestDi
      * @param connection
      * @return
      */
-    protected abstract IList<String> queryForAllTriggers(Connection connection);
+    protected abstract List<String> queryForAllTriggers(Connection connection);
 
     protected boolean isTableNameToIgnore(String tableName) {
         return false;
@@ -151,7 +150,7 @@ public abstract class AbstractConnectionTestDialect implements IConnectionTestDi
         return tableNamesWhichNeedOptimisticLockTrigger;
     }
 
-    protected abstract IList<String> queryForAllPermissionGroupNeedingTables(Connection connection);
+    protected abstract List<String> queryForAllPermissionGroupNeedingTables(Connection connection);
 
     /**
      * Result column must be "PERM_GROUP_NAME"
@@ -159,7 +158,7 @@ public abstract class AbstractConnectionTestDialect implements IConnectionTestDi
      * @param connection
      * @return
      */
-    protected abstract IList<String> queryForAllPotentialPermissionGroups(Connection connection);
+    protected abstract List<String> queryForAllPotentialPermissionGroups(Connection connection);
 
     @SneakyThrows
     @Override
