@@ -20,7 +20,6 @@ limitations under the License.
  * #L%
  */
 
-import io.toolisticon.spiap.api.SpiService;
 import com.koch.ambeth.cache.CacheEventTargetExtractor;
 import com.koch.ambeth.cache.CacheFactory;
 import com.koch.ambeth.cache.CacheProvider;
@@ -79,7 +78,6 @@ import com.koch.ambeth.filter.query.service.IGenericQueryService;
 import com.koch.ambeth.ioc.IFrameworkModule;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.annotation.FrameworkModule;
-import com.koch.ambeth.ioc.config.IBeanConfiguration;
 import com.koch.ambeth.ioc.config.Property;
 import com.koch.ambeth.ioc.factory.IBeanContextFactory;
 import com.koch.ambeth.merge.IProxyHelper;
@@ -100,6 +98,8 @@ import com.koch.ambeth.service.remote.ClientServiceBean;
 import com.koch.ambeth.util.ParamChecker;
 import com.koch.ambeth.util.proxy.IProxyFactory;
 import com.koch.ambeth.util.proxy.MethodInterceptor;
+import io.toolisticon.spiap.api.SpiService;
+import lombok.Setter;
 
 @SpiService(IFrameworkModule.class)
 @FrameworkModule
@@ -124,7 +124,7 @@ public class CacheModule implements IFrameworkModule {
     @Property(name = CacheConfigurationConstants.CacheServiceBeanActive, defaultValue = "true")
     protected boolean isCacheServiceBeanActive;
 
-    @Autowired
+    @Setter(onMethod = @__({ @Autowired, @org.springframework.beans.factory.annotation.Autowired }))
     protected IProxyFactory proxyFactory;
 
     @Property(name = CacheConfigurationConstants.FirstLevelCacheType, mandatory = false)
@@ -140,14 +140,14 @@ public class CacheModule implements IFrameworkModule {
         }
         ParamChecker.assertNotNull(proxyFactory, "proxyFactory");
 
-        IBeanConfiguration serviceResultcache = beanContextFactory.registerBean(ServiceResultCache.class).autowireable(IServiceResultCache.class);
+        var serviceResultcache = beanContextFactory.registerBean(ServiceResultCache.class).autowireable(IServiceResultCache.class);
         beanContextFactory.link(serviceResultcache, "handleClearAllCaches").to(IEventListenerExtendable.class).with(ClearAllCachesEvent.class);
 
         beanContextFactory.registerBean(ValueHolderIEC.class).autowireable(ValueHolderIEC.class, IProxyHelper.class);
 
         beanContextFactory.registerBean(CacheHelper.class).autowireable(ICacheHelper.class, ICachePathHelper.class, IPrefetchHelper.class);
 
-        IBeanConfiguration prioMembersProvider = beanContextFactory.registerBean(PrioMembersProvider.class).autowireable(IPrioMembersProvider.class);
+        var prioMembersProvider = beanContextFactory.registerBean(PrioMembersProvider.class).autowireable(IPrioMembersProvider.class);
         beanContextFactory.link(prioMembersProvider, PrioMembersProvider.handleMetaDataAddedEvent).to(IEventListenerExtendable.class).with(IEntityMetaDataEvent.class);
 
         beanContextFactory.registerBean(CacheWalker.class).autowireable(ICacheWalker.class);
@@ -156,24 +156,24 @@ public class CacheModule implements IFrameworkModule {
 
         beanContextFactory.registerAutowireableBean(IRootCacheValueFactory.class, RootCacheValueFactory.class);
 
-        IBeanConfiguration cacheRetrieverRegistry = beanContextFactory.registerBean(ROOT_CACHE_RETRIEVER, CacheRetrieverRegistry.class)
-                                                                      .autowireable(ICacheServiceByNameExtendable.class, ICacheRetrieverExtendable.class, IRelationRetrieverExtendable.class,
-                                                                              IPrimitiveRetrieverExtendable.class);
+        var cacheRetrieverRegistry = beanContextFactory.registerBean(ROOT_CACHE_RETRIEVER, CacheRetrieverRegistry.class)
+                                                       .autowireable(ICacheServiceByNameExtendable.class, ICacheRetrieverExtendable.class, IRelationRetrieverExtendable.class,
+                                                               IPrimitiveRetrieverExtendable.class);
         beanContextFactory.link(cacheRetrieverRegistry, CacheRetrieverRegistry.HANDLE_EVENT_SESSION_CHANGED).to(IEventListenerExtendable.class).with(EventSessionChanged.class);
 
         beanContextFactory.registerBean("firstLevelCacheManager", FirstLevelCacheManager.class).autowireable(IFirstLevelCacheExtendable.class, IFirstLevelCacheManager.class);
 
-        String rootCacheBridge = "rootCacheBridge";
+        var rootCacheBridge = "rootCacheBridge";
 
         beanContextFactory.registerBean(rootCacheBridge, RootCacheBridge.class).propertyRefs(COMMITTED_ROOT_CACHE, ROOT_CACHE_RETRIEVER);
 
-        TransactionalRootCacheInterceptor txRcInterceptor = new TransactionalRootCacheInterceptor();
+        var txRcInterceptor = new TransactionalRootCacheInterceptor();
 
         beanContextFactory.registerWithLifecycle("txRootCacheInterceptor", txRcInterceptor)
                           .propertyRefs(COMMITTED_ROOT_CACHE, rootCacheBridge)
                           .autowireable(ITransactionalRootCacheManager.class, ISecondLevelCacheManager.class);
 
-        Object txRcProxy = proxyFactory.createProxy(new Class<?>[] { IRootCache.class, ICacheIntern.class, IOfflineListener.class }, txRcInterceptor);
+        var txRcProxy = proxyFactory.createProxy(new Class<?>[] { IRootCache.class, ICacheIntern.class, IOfflineListener.class }, txRcInterceptor);
 
         beanContextFactory.registerExternalBean(ROOT_CACHE, txRcProxy).autowireable(IRootCache.class, ICacheIntern.class);
 
@@ -188,13 +188,13 @@ public class CacheModule implements IFrameworkModule {
             // cleared with each service
             // request. Effectively this means that the root cache itself only lives per-request and does
             // not hold a longer state
-            ThreadLocalRootCacheInterceptor threadLocalRcInterceptor = new ThreadLocalRootCacheInterceptor();
+            var threadLocalRcInterceptor = new ThreadLocalRootCacheInterceptor();
 
             beanContextFactory.registerWithLifecycle("threadLocalRootCacheInterceptor", threadLocalRcInterceptor)
                               .propertyRef("StoredCacheRetriever", CacheModule.ROOT_CACHE_RETRIEVER)
                               .propertyValue("Privileged", Boolean.TRUE);
 
-            IRootCache threadLocalRcProxy = proxyFactory.createProxy(IRootCache.class, threadLocalRcInterceptor);
+            var threadLocalRcProxy = proxyFactory.createProxy(IRootCache.class, threadLocalRcInterceptor);
 
             beanContextFactory.registerExternalBean(COMMITTED_ROOT_CACHE, threadLocalRcProxy);
         }
@@ -203,11 +203,11 @@ public class CacheModule implements IFrameworkModule {
 
         beanContextFactory.registerBean(CacheFactory.class).autowireable(ICacheFactory.class);
 
-        MethodInterceptor cacheProviderInterceptor = (MethodInterceptor) beanContextFactory.registerBean("cacheProviderInterceptor", CacheProviderInterceptor.class)
-                                                                                           .autowireable(ICacheProviderExtendable.class, ICacheProvider.class, ICacheContext.class)
-                                                                                           .getInstance();
+        var cacheProviderInterceptor = (MethodInterceptor) beanContextFactory.registerBean("cacheProviderInterceptor", CacheProviderInterceptor.class)
+                                                                             .autowireable(ICacheProviderExtendable.class, ICacheProvider.class, ICacheContext.class)
+                                                                             .getInstance();
 
-        Object cacheProxy = proxyFactory.createProxy(ICache.class, new Class[] { ICacheProvider.class, IWritableCache.class }, cacheProviderInterceptor);
+        var cacheProxy = proxyFactory.createProxy(ICache.class, new Class[] { ICacheProvider.class, IWritableCache.class }, cacheProviderInterceptor);
         beanContextFactory.registerExternalBean("cache", cacheProxy).autowireable(ICache.class);
 
         beanContextFactory.registerBean("pagingQuerySRP", PagingQueryServiceResultProcessor.class);
@@ -240,16 +240,16 @@ public class CacheModule implements IFrameworkModule {
         beanContextFactory.link(defaultCacheProviderBeanName).to(ICacheProviderExtendable.class);
 
         // CacheContextPostProcessor must be registered AFTER CachePostProcessor...
-        Object cachePostProcessor = beanContextFactory.registerBean(CachePostProcessor.class).getInstance();
+        var cachePostProcessor = beanContextFactory.registerBean(CachePostProcessor.class).getInstance();
         beanContextFactory.registerBean(CacheContextPostProcessor.class).propertyValue("CachePostProcessor", cachePostProcessor);
 
         if (isNetworkClientMode) {
             beanContextFactory.registerBean(ClientServiceBean.class).propertyValue(ClientServiceBean.INTERFACE_PROP_NAME, IGenericQueryService.class).autowireable(IGenericQueryService.class);
 
             if (isCacheServiceBeanActive) {
-                IBeanConfiguration remoteCacheService = beanContextFactory.registerBean(CacheModule.EXTERNAL_CACHE_SERVICE, ClientServiceBean.class)
-                                                                          .propertyValue(ClientServiceBean.INTERFACE_PROP_NAME, ICacheService.class)
-                                                                          .autowireable(ICacheService.class);
+                var remoteCacheService = beanContextFactory.registerBean(CacheModule.EXTERNAL_CACHE_SERVICE, ClientServiceBean.class)
+                                                           .propertyValue(ClientServiceBean.INTERFACE_PROP_NAME, ICacheService.class)
+                                                           .autowireable(ICacheService.class);
 
                 beanContextFactory.registerAlias(CacheModule.DEFAULT_CACHE_RETRIEVER, CacheModule.EXTERNAL_CACHE_SERVICE);
 

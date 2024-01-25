@@ -46,7 +46,6 @@ import com.koch.ambeth.ioc.proxy.ICgLibUtil;
 import com.koch.ambeth.ioc.util.DedicatedConverterUtil;
 import com.koch.ambeth.ioc.util.IMultithreadingHelper;
 import com.koch.ambeth.ioc.util.MultithreadingHelper;
-import com.koch.ambeth.util.JREVersionProvider;
 import com.koch.ambeth.util.appendable.AppendableStringBuilder;
 import com.koch.ambeth.util.converter.BooleanArrayConverter;
 import com.koch.ambeth.util.converter.ByteArrayConverter;
@@ -85,15 +84,13 @@ public class IocModule implements IFrameworkModule {
         beanContextFactory.registerBean("charArrayConverter", CharArrayConverter.class);
         DedicatedConverterUtil.biLink(beanContextFactory, "charArrayConverter", String.class, char[].class);
 
-        if (JREVersionProvider.getVersion() >= 1.7) {
-            var fileToPathConverter = beanContextFactory.registerBean(FileToPathConverter.class);
-            DedicatedConverterUtil.biLink(beanContextFactory, fileToPathConverter, File.class, Path.class);
-            DedicatedConverterUtil.biLink(beanContextFactory, fileToPathConverter, File[].class, Path[].class);
+        var fileToPathConverter = beanContextFactory.registerBean(FileToPathConverter.class);
+        DedicatedConverterUtil.biLink(beanContextFactory, fileToPathConverter, File.class, Path.class);
+        DedicatedConverterUtil.biLink(beanContextFactory, fileToPathConverter, File[].class, Path[].class);
 
-            var stringToPathConverter = beanContextFactory.registerBean(StringToPathConverter.class);
-            DedicatedConverterUtil.link(beanContextFactory, stringToPathConverter, String.class, Path.class);
-            DedicatedConverterUtil.link(beanContextFactory, stringToPathConverter, String.class, Path[].class);
-        }
+        var stringToPathConverter = beanContextFactory.registerBean(StringToPathConverter.class);
+        DedicatedConverterUtil.link(beanContextFactory, stringToPathConverter, String.class, Path.class);
+        DedicatedConverterUtil.link(beanContextFactory, stringToPathConverter, String.class, Path[].class);
 
         beanContextFactory.registerBean(Cancellation.class).autowireable(ICancellation.class, ICancellationWritable.class);
 
@@ -136,7 +133,7 @@ public class IocModule implements IFrameworkModule {
 
         beanContextFactory.registerBean("guiThreadHelper", GuiThreadHelper.class)
                           .propertyRef("Executor", THREAD_POOL_NAME)
-                          .propertyValue("javaUiActive", javaUiActive)
+                          .propertyValue("JavaUiActive", javaUiActive)
                           .autowireable(IGuiThreadHelper.class);
 
         beanContextFactory.registerBean(JAXBContextProvider.class).autowireable(IJAXBContextProvider.class);
@@ -157,8 +154,7 @@ public class IocModule implements IFrameworkModule {
 
         beanContextFactory.registerDisposable(fastThreadPool);
 
-        beanContextFactory.registerBean(MultithreadingHelper.class).autowireable(IMultithreadingHelper.class)//
-                          .propertyRef(fastThreadPoolBean);
+        beanContextFactory.registerBean(MultithreadingHelper.class).autowireable(IMultithreadingHelper.class).propertyRef(fastThreadPoolBean);
 
         beanContextFactory.registerBean(EmptyArrayFactory.class).autowireable(IEmptyArrayFactory.class);
     }

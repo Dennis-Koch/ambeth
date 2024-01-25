@@ -29,13 +29,14 @@ import com.koch.ambeth.util.IPrintable;
 import com.koch.ambeth.util.collections.ISet;
 import com.koch.ambeth.util.function.CheckedConsumer;
 
+import java.io.Closeable;
 import java.lang.annotation.Annotation;
 import java.util.List;
 
 /**
  * Interface to access a running jAmbeth IoC context from application code.
  */
-public interface IServiceContext extends IDisposable, ILinkRuntimeExtendable, AutoCloseable, IPrintable, IServiceLookup {
+public interface IServiceContext extends IDisposable, ILinkRuntimeExtendable, Closeable, IPrintable, IServiceLookup {
 
     /**
      * Builds a set with all types where a bean instance is wired to in this context. This method does

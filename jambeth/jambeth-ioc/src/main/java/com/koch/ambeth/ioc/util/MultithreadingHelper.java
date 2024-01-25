@@ -13,12 +13,15 @@ import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.function.CheckedConsumer;
 import com.koch.ambeth.util.function.CheckedFunction;
+import jakarta.inject.Inject;
+import lombok.Setter;
 import lombok.SneakyThrows;
 import lombok.Value;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -28,16 +31,22 @@ public class MultithreadingHelper implements IMultithreadingHelper {
      * Defines the maximal amount of time threads is given to run a parallel task.
      */
     public static final String TIMEOUT = "ambeth.mth.timeout";
-    @Autowired
+
+    @Setter(onMethod = @__({ @Inject, @Autowired }))
     protected ICancellation cancellation;
-    @Autowired
+
+    @Setter(onMethod = @__({ @Inject, @Autowired }))
     protected IClassLoaderProvider classLoaderProvider;
-    @Autowired(optional = true)
-    protected ExecutorService executor;
-    @Autowired
+
+    @Setter(onMethod = @__({ @Inject, @Autowired }))
+    protected Optional<ExecutorService> executor;
+
+    @Setter(onMethod = @__({ @Inject, @Autowired }))
     protected IThreadLocalCleanupController threadLocalCleanupController;
+
     @Property(name = TIMEOUT, defaultValue = "30000")
     protected long timeout;
+
     @Property(name = IocConfigurationConstants.TransparentParallelizationActive, defaultValue = "true")
     protected boolean transparentParallelizationActive;
 
@@ -94,7 +103,7 @@ public class MultithreadingHelper implements IMultithreadingHelper {
     }
 
     protected boolean isMultiThreadingAllowed() {
-        return transparentParallelizationActive && executor != null;
+        return transparentParallelizationActive && executor.isPresent();
     }
 
     @SneakyThrows
@@ -224,8 +233,8 @@ public class MultithreadingHelper implements IMultithreadingHelper {
     }
 
     protected <V> void queueAndWait(int forkCount, Runnable parallelRunnable, Runnable mainRunnable, AbstractRunnableHandle<V> runnableHandle) {
-        // for n items fork at most n - 1 threads because our main thread behaves like a worker by
-        // itself
+        // for n items fork at most n - 1 threads because our main thread behaves like a worker by itself
+        var executor = this.executor.get();
         for (int a = forkCount; a-- > 0; ) {
             executor.execute(parallelRunnable);
         }

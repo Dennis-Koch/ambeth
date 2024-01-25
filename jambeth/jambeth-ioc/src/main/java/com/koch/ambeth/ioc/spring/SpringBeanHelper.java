@@ -26,10 +26,14 @@ public interface SpringBeanHelper {
 
     AtomicInteger getBeanSequence();
 
+    default String acquireAnonymousBeanName(Class<?> beanType) {
+        var id = getBeanSequence().incrementAndGet();
+        return beanType.getSimpleName() + "#" + id;
+    }
+
     default BeanReference createBeanDefinition(Class<?> beanType) {
         Objects.requireNonNull(beanType, "beanType must be valid");
-        var id = getBeanSequence().incrementAndGet();
-        return createBeanDefinition(beanType.getSimpleName() + "#" + id, beanType, null);
+        return createBeanDefinition(acquireAnonymousBeanName(beanType), beanType, null);
     }
 
     default BeanReference createBeanDefinition(String beanName, Class<?> beanType) {
@@ -41,28 +45,27 @@ public interface SpringBeanHelper {
     default BeanReference createBeanDefinition(Class<?> beanType, BiConsumer<String, GenericBeanDefinition> beanConfigurer) {
         Objects.requireNonNull(beanType, "beanType must be valid");
         Objects.requireNonNull(beanConfigurer, "beanConfigurer must be valid");
-        var id = getBeanSequence().incrementAndGet();
-        return createBeanDefinition(beanType.getSimpleName() + "#" + id, beanType, beanConfigurer);
+        return createBeanDefinition(acquireAnonymousBeanName(beanType), beanType, beanConfigurer);
     }
 
     default BeanReference createBeanDefinition(String beanName, Class<?> beanType, BiConsumer<String, GenericBeanDefinition> beanConfigurer) {
         Objects.requireNonNull(beanName, "beanName must be valid");
         Objects.requireNonNull(beanType, "beanType must be valid");
 
-        var bean = new GenericBeanDefinition();
-        bean.setBeanClass(beanType);
+        var beanDef = new GenericBeanDefinition();
+        beanDef.setBeanClass(beanType);
         if (IInitializingBean.class.isAssignableFrom(beanType) && !InitializingBean.class.isAssignableFrom(beanType)) {
-            bean.setInitMethodName("afterPropertiesSet");
+            beanDef.setInitMethodName("afterPropertiesSet");
         }
         if (IDisposableBean.class.isAssignableFrom(beanType) && !DisposableBean.class.isAssignableFrom(beanType)) {
-            bean.setDestroyMethodName("destroy");
+            beanDef.setDestroyMethodName("destroy");
         }
         if (IFactoryBean.class.isAssignableFrom(beanType)) {
             var factoryBeanName = beanName + "##factory";
             if (beanConfigurer != null) {
-                beanConfigurer.accept(beanName, bean);
+                beanConfigurer.accept(beanName, beanDef);
             }
-            getBeanDefinitionRegistry().registerBeanDefinition(factoryBeanName, bean);
+            getBeanDefinitionRegistry().registerBeanDefinition(factoryBeanName, beanDef);
 
             var targetBean = new GenericBeanDefinition();
             targetBean.setFactoryBeanName(factoryBeanName);
@@ -70,9 +73,9 @@ public interface SpringBeanHelper {
             getBeanDefinitionRegistry().registerBeanDefinition(beanName, targetBean);
         } else {
             if (beanConfigurer != null) {
-                beanConfigurer.accept(beanName, bean);
+                beanConfigurer.accept(beanName, beanDef);
             }
-            getBeanDefinitionRegistry().registerBeanDefinition(beanName, bean);
+            getBeanDefinitionRegistry().registerBeanDefinition(beanName, beanDef);
         }
         return new RuntimeBeanReference(beanName);
     }

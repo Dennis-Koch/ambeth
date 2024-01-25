@@ -25,6 +25,7 @@ import com.koch.ambeth.util.collections.LinkedHashSet;
 import com.koch.ambeth.util.config.IProperties;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.function.CheckedConsumer;
+import lombok.SneakyThrows;
 
 import java.util.List;
 import java.util.Set;
@@ -98,14 +99,14 @@ public class Ambeth implements IAmbethConfiguration, IAmbethConfigurationIntern,
         return ambeth;
     }
 
+    @SneakyThrows
     protected static void setBundleModule(Class<? extends IBundleModule> bundleModule, Ambeth ambeth) {
-        try {
-            IBundleModule bundleModuleInstance = bundleModule.newInstance();
-            Class<? extends IInitializingModule>[] bundleModules = bundleModuleInstance.getBundleModules();
-            ambeth.withFrameworkModules(bundleModules);
-        } catch (Exception e) {
-            throw RuntimeExceptionUtil.mask(e);
-        }
+        var bundleModuleInstance = bundleModule.newInstance();
+        var bundleModules = bundleModuleInstance.getBundleModules();
+        ambeth.withFrameworkModules(bundleModules);
+
+        var bundleModuleInstances = bundleModuleInstance.getBundleModuleInstances();
+        ambeth.withFrameworkModules(bundleModuleInstances);
     }
 
     protected final boolean scanForFrameworkModules;

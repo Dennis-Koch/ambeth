@@ -26,6 +26,7 @@ import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.function.CheckedFunction;
 import com.koch.ambeth.util.function.CheckedRunnable;
 import com.koch.ambeth.util.function.CheckedSupplier;
+import lombok.Setter;
 import lombok.SneakyThrows;
 
 import java.awt.*;
@@ -84,7 +85,10 @@ public class GuiThreadHelper implements IGuiThreadHelper {
 
     protected Executor executor;
 
-    protected boolean isGuiInitialized, skipGuiInitializeCheck, javaUiActive;
+    protected boolean isGuiInitialized, skipGuiInitializeCheck;
+
+    @Setter
+    protected boolean javaUiActive;
 
     public void setExecutor(Executor executor) {
         this.executor = executor;

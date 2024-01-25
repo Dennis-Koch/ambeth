@@ -339,7 +339,7 @@ public class ServiceContext implements IServiceContext, IServiceContextIntern, I
     }
 
     @Override
-    public void close() throws Exception {
+    public void close() {
         dispose();
     }
 

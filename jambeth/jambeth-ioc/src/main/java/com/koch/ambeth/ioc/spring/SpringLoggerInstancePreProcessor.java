@@ -27,8 +27,10 @@ public class SpringLoggerInstancePreProcessor extends LoggerInstancePreProcessor
         var props = applicationContext.getBean(IProperties.class);
         try {
             var beanDefinition = ((BeanDefinitionRegistry) applicationContext.getAutowireCapableBeanFactory()).getBeanDefinition(beanName);
-            var beanType = ((GenericBeanDefinition) beanDefinition).getBeanClass();
-            preProcessPropertiesIntern(props, bean, beanType, bean.getClass(), Set.of());
+            if (beanDefinition instanceof GenericBeanDefinition genBeanDef) {
+                var beanType = genBeanDef.getBeanClass();
+                preProcessPropertiesIntern(props, bean, beanType, bean.getClass(), Set.of());
+            }
             return bean;
         } catch (NoSuchBeanDefinitionException e) {
             throw e;

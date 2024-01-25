@@ -33,6 +33,7 @@ import com.koch.ambeth.service.merge.model.IObjRef;
 import com.koch.ambeth.service.metadata.Member;
 import com.koch.ambeth.util.IInterningFeature;
 import com.koch.ambeth.util.collections.ArrayList;
+import lombok.Setter;
 
 import java.util.EnumSet;
 import java.util.List;
@@ -41,13 +42,13 @@ import java.util.Set;
 public class RootCacheBridge implements ICacheRetriever {
     protected static final Set<CacheDirective> committedRootCacheCD = EnumSet.of(CacheDirective.FailEarly, CacheDirective.ReturnMisses, CacheDirective.LoadContainerResult);
 
-    @Autowired
+    @Setter(onMethod = @__(@Autowired))
     protected IRootCache committedRootCache;
 
     @Autowired
     protected IEntityMetaDataProvider entityMetaDataProvider;
 
-    @Autowired
+    @Setter(onMethod = @__(@Autowired))
     protected ICacheRetriever uncommittedCacheRetriever;
 
     @Autowired

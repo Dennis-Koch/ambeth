@@ -20,7 +20,6 @@ limitations under the License.
  * #L%
  */
 
-import io.toolisticon.spiap.api.SpiService;
 import com.koch.ambeth.ioc.IFrameworkModule;
 import com.koch.ambeth.ioc.annotation.FrameworkModule;
 import com.koch.ambeth.ioc.config.IBeanConfiguration;
@@ -32,12 +31,13 @@ import com.koch.ambeth.merge.changecontroller.ChangeController;
 import com.koch.ambeth.merge.changecontroller.IChangeController;
 import com.koch.ambeth.merge.changecontroller.IChangeControllerExtendable;
 import com.koch.ambeth.merge.config.MergeConfigurationConstants;
+import io.toolisticon.spiap.api.SpiService;
 
 @SpiService(IFrameworkModule.class)
 @FrameworkModule
 public class ChangeControllerModule implements IFrameworkModule {
     public static <T> IBeanConfiguration registerRule(IBeanContextFactory contextFactory, Class<? extends AbstractRule<T>> validatorClass, Class<T> validatedEntity) {
-        IBeanConfiguration beanConfig = contextFactory.registerBean(validatorClass);
+        var beanConfig = contextFactory.registerBean(validatorClass);
         contextFactory.link(beanConfig).to(IChangeControllerExtendable.class).with(validatedEntity);
         return beanConfig;
     }
@@ -48,11 +48,8 @@ public class ChangeControllerModule implements IFrameworkModule {
     @Override
     public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
         if (Boolean.TRUE.equals(edblActive)) {
-            IBeanConfiguration ccBean = beanContextFactory.registerAnonymousBean(ChangeController.class);
-            ccBean.autowireable(IChangeController.class, IChangeControllerExtendable.class);
+            var ccBean = beanContextFactory.registerAnonymousBean(ChangeController.class).autowireable(IChangeController.class, IChangeControllerExtendable.class);
             beanContextFactory.link(ccBean).to(IMergeListenerExtendable.class);
         }
-
     }
-
 }

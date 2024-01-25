@@ -20,7 +20,6 @@ limitations under the License.
  * #L%
  */
 
-import io.toolisticon.spiap.api.SpiService;
 import com.koch.ambeth.bytecode.IBytecodeClassLoader;
 import com.koch.ambeth.bytecode.behavior.IBytecodeBehavior;
 import com.koch.ambeth.bytecode.behavior.IBytecodeBehaviorExtendable;
@@ -34,12 +33,13 @@ import com.koch.ambeth.ioc.config.IBeanConfiguration;
 import com.koch.ambeth.ioc.factory.IBeanContextFactory;
 import com.koch.ambeth.merge.bytecode.IBytecodePrinter;
 import com.koch.ambeth.service.cache.ClearAllCachesEvent;
+import io.toolisticon.spiap.api.SpiService;
 
 @SpiService(IFrameworkModule.class)
 @FrameworkModule
 public class BytecodeModule implements IFrameworkModule {
     public static IBeanConfiguration addDefaultBytecodeBehavior(IBeanContextFactory beanContextFactory, Class<? extends IBytecodeBehavior> behaviorType) {
-        IBeanConfiguration behaviorBC = beanContextFactory.registerBean(behaviorType);
+        var behaviorBC = beanContextFactory.registerBean(behaviorType);
         beanContextFactory.link(behaviorBC).to(IBytecodeBehaviorExtendable.class);
         return behaviorBC;
     }
@@ -48,7 +48,7 @@ public class BytecodeModule implements IFrameworkModule {
     public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable {
         beanContextFactory.registerBean("bytecodeEnhancer", BytecodeEnhancer.class).autowireable(IBytecodeEnhancer.class, IBytecodeBehaviorExtendable.class);
 
-        IBeanConfiguration bytecodeClassLoaderBC = beanContextFactory.registerBean(BytecodeClassLoader.class).autowireable(IBytecodeClassLoader.class, IBytecodePrinter.class);
+        var bytecodeClassLoaderBC = beanContextFactory.registerBean(BytecodeClassLoader.class).autowireable(IBytecodeClassLoader.class, IBytecodePrinter.class);
         beanContextFactory.link(bytecodeClassLoaderBC).to(IEventListenerExtendable.class).with(ClearAllCachesEvent.class).optional();
     }
 }

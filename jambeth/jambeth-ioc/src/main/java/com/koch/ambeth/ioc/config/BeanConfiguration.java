@@ -20,71 +20,70 @@ limitations under the License.
  * #L%
  */
 
-import java.lang.reflect.Modifier;
-
 import com.koch.ambeth.ioc.exception.BeanContextDeclarationException;
 import com.koch.ambeth.ioc.proxy.EmptyInterceptor;
 import com.koch.ambeth.util.config.IProperties;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.proxy.IProxyFactory;
 
+import java.lang.reflect.Modifier;
+import java.util.Objects;
+
 public class BeanConfiguration extends AbstractBeanConfiguration {
-	protected final Class<?> beanType;
+    protected final Class<?> beanType;
+    protected final IProxyFactory proxyFactory;
+    protected Object createdInstance;
+    protected boolean isAbstract;
 
-	protected Object createdInstance;
+    public BeanConfiguration(Class<?> beanType, String beanName, IProxyFactory proxyFactory, IProperties props) {
+        super(beanName, props);
+        this.beanType = Objects.requireNonNull(beanType, "beanType must be valid");
+        this.proxyFactory = Objects.requireNonNull(proxyFactory, "proxyFactory must be valid");
+    }
 
-	protected boolean isAbstract;
+    public BeanConfiguration(Class<?> beanType, String beanName, IProxyFactory proxyFactory, IProperties props, Object createdInstance) {
+        super(beanName, props);
+        this.beanType = Objects.requireNonNull(beanType, "beanType must be valid");
+        this.proxyFactory = Objects.requireNonNull(proxyFactory, "proxyFactory must be valid");
+        this.createdInstance = Objects.requireNonNull(createdInstance, "createdInstance must be valid");
+    }
 
-	protected final IProxyFactory proxyFactory;
+    @Override
+    public IBeanConfiguration template() {
+        isAbstract = true;
+        return this;
+    }
 
-	public BeanConfiguration(Class<?> beanType, String beanName, IProxyFactory proxyFactory,
-			IProperties props) {
-		super(beanName, props);
-		this.beanType = beanType;
-		this.proxyFactory = proxyFactory;
-	}
+    @Override
+    public Class<?> getBeanType() {
+        return beanType;
+    }
 
-	@Override
-	public IBeanConfiguration template() {
-		isAbstract = true;
-		return this;
-	}
+    @Override
+    public boolean isAbstract() {
+        return isAbstract;
+    }
 
-	@Override
-	public Class<?> getBeanType() {
-		return beanType;
-	}
-
-	@Override
-	public boolean isAbstract() {
-		return isAbstract;
-	}
-
-	@Override
-	public Object getInstance(Class<?> instanceType) {
-		if (createdInstance == null) {
-			try {
-				if (instanceType.isInterface() || Modifier.isAbstract(instanceType.getModifiers())) {
-					createdInstance = proxyFactory.createProxy(instanceType, EmptyInterceptor.INSTANCE);
-				}
-				else {
-					createdInstance = instanceType.newInstance();
-					if (declarationStackTrace != null
-							&& createdInstance instanceof IDeclarationStackTraceAware) {
-						((IDeclarationStackTraceAware) createdInstance)
-								.setDeclarationStackTrace(declarationStackTrace);
-					}
-				}
-			}
-			catch (Throwable e) {
-				if (declarationStackTrace != null) {
-					throw new BeanContextDeclarationException(declarationStackTrace, e);
-				}
-				else {
-					throw RuntimeExceptionUtil.mask(e);
-				}
-			}
-		}
-		return createdInstance;
-	}
+    @Override
+    public Object getInstance(Class<?> instanceType) {
+        if (createdInstance == null) {
+            try {
+                if (instanceType.isInterface() || Modifier.isAbstract(instanceType.getModifiers())) {
+                    createdInstance = proxyFactory.createProxy(instanceType, EmptyInterceptor.INSTANCE);
+                } else {
+                    createdInstance = instanceType.newInstance();
+                    if (declarationStackTrace != null && createdInstance instanceof IDeclarationStackTraceAware) {
+                        ((IDeclarationStackTraceAware) createdInstance).setDeclarationStackTrace(declarationStackTrace);
+                    }
+                }
+            } catch (Throwable e) {
+                if (declarationStackTrace != null) {
+                    throw new BeanContextDeclarationException(declarationStackTrace, e);
+                } else {
+                    throw RuntimeExceptionUtil.mask(e);
+                }
+            }
+        }
+        return createdInstance;
+    }
 }

@@ -1,5 +1,6 @@
 package com.koch.ambeth.ioc.spring;
 
+import com.koch.ambeth.ioc.IServiceContext;
 import com.koch.ambeth.ioc.accessor.AccessorTypeProvider;
 import com.koch.ambeth.ioc.bytecode.ClassCache;
 import com.koch.ambeth.ioc.bytecode.SimpleClassLoaderProvider;
@@ -20,7 +21,6 @@ import com.koch.ambeth.util.DelegateFactory;
 import com.koch.ambeth.util.InterningFeature;
 import com.koch.ambeth.util.StringBuilderCollectableController;
 import com.koch.ambeth.util.config.IProperties;
-import com.koch.ambeth.util.objectcollector.ICollectableControllerExtendable;
 import com.koch.ambeth.util.objectcollector.NoOpObjectCollector;
 import com.koch.ambeth.util.objectcollector.ObjectCollector;
 import com.koch.ambeth.util.objectcollector.ThreadLocalObjectCollector;
@@ -30,21 +30,29 @@ import lombok.Setter;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.BeanReference;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.context.EnvironmentAware;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.core.NamedThreadLocal;
 import org.springframework.core.env.Environment;
 
 import java.util.function.Function;
 
-@Configuration
 public class AmbethBootstrapSpringConfig implements BeanDefinitionRegistryPostProcessor, EnvironmentAware {
+
+    public static final String PROXY_FACTORY_BEAN_NAME = "proxyFactory";
+
+    public static final String LINK_CONTROLLER_BEAN_NAME = "linkController";
+    public static final String PROPERTIES_BEAN_NAME = "properties";
+
     private static final ThreadLocal<Function<DefaultListableBeanFactory, IProperties>> factoryPostProcessorTL = new NamedThreadLocal<>("AmbethBootstrapSpringConfig.factoryPostProcessorTL");
+
+    private static final ThreadLocal<AnnotationConfigApplicationContext> applicationContextTL = new NamedThreadLocal<>("AmbethBootstrapSpringConfig.applicationContextTL");
 
     public static IStateRollback pushBeanFactoryPostProcessor(Function<DefaultListableBeanFactory, IProperties> factoryPostProcessor) {
         var oldPostProcessor = factoryPostProcessorTL.get();
@@ -53,6 +61,15 @@ public class AmbethBootstrapSpringConfig implements BeanDefinitionRegistryPostPr
             return () -> factoryPostProcessorTL.remove();
         }
         return () -> factoryPostProcessorTL.set(oldPostProcessor);
+    }
+
+    public static IStateRollback pushApplicationContext(AnnotationConfigApplicationContext applicationContext) {
+        var oldApplicationContext = applicationContextTL.get();
+        applicationContextTL.set(applicationContext);
+        if (oldApplicationContext == null) {
+            return () -> applicationContextTL.remove();
+        }
+        return () -> applicationContextTL.set(oldApplicationContext);
     }
 
     @Setter
@@ -76,19 +93,19 @@ public class AmbethBootstrapSpringConfig implements BeanDefinitionRegistryPostPr
     public void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry registry) throws BeansException {
         var springHelper = AmbethSpringUtil.withContext(registry);
 
+        ThreadLocalObjectCollector threadLocalObjectCollectorRaw;
+
         BeanReference threadLocalObjectCollector;
         if (useObjectCollector) {
+            threadLocalObjectCollectorRaw = new ThreadLocalObjectCollector();
             threadLocalObjectCollector = springHelper.createBeanDefinition(ThreadLocalObjectCollector.BEAN_NAME, ThreadLocalObjectCollector.class, (beanName, bean) -> {
-                //bean.setPrimary(true);
+                bean.setInstanceSupplier(() -> threadLocalObjectCollectorRaw);
             });
         } else {
             threadLocalObjectCollector = springHelper.createBeanDefinition(ThreadLocalObjectCollector.BEAN_NAME, NoOpObjectCollector.class);
+            threadLocalObjectCollectorRaw = null;
         }
         var propertyInfoProvider = springHelper.createBeanDefinition(PropertyInfoProvider.class, "objectCollector", threadLocalObjectCollector);
-
-        var loggerInstancePreProcessor = springHelper.createBeanDefinition(SpringLoggerInstancePreProcessor.class, "objectCollector", threadLocalObjectCollector);
-
-        var callingProxyPostProcessor = springHelper.createBeanDefinition(CallingProxyPostProcessor.class, "propertyInfoProvider", propertyInfoProvider);
 
         var loggerHistory = springHelper.createBeanDefinition(LoggerHistory.class);
 
@@ -112,11 +129,30 @@ public class AmbethBootstrapSpringConfig implements BeanDefinitionRegistryPostPr
 
         var delegatingConversionHelper = springHelper.createBeanDefinition(DelegatingConversionHelper.class, "defaultConversionHelper", conversionHelper);
 
-        var proxyFactory = springHelper.createBeanDefinition(ProxyFactory.class, "classLoaderProvider", classLoaderProvider);
+        var propertiesPreProcessor = springHelper.createBeanDefinition(SpringPropertiesPreProcessor.class, (beanName, bean) -> {
+            bean.getPropertyValues().add("conversionHelper", delegatingConversionHelper);
+            bean.getPropertyValues().add("propertyInfoProvider", propertyInfoProvider);
+        });
 
-        var linkController = springHelper.createBeanDefinition(LinkController.class, (beanName, bean) -> {
+
+        var loggerInstancePreProcessorDef = springHelper.createBeanDefinition(SpringLoggerInstancePreProcessor.class, (beanName, beanDef) -> {
+            beanDef.getPropertyValues().add("beanFactory", registry);
+            beanDef.getPropertyValues().add("objectCollector", threadLocalObjectCollector);
+        });
+        var loggerInstancePreProcessor = ((ConfigurableListableBeanFactory) registry).getBean(loggerInstancePreProcessorDef.getBeanName(), SpringLoggerInstancePreProcessor.class);
+
+        ((ConfigurableBeanFactory) springHelper.getBeanDefinitionRegistry()).addBeanPostProcessor(loggerInstancePreProcessor);
+
+        var callingProxyPostProcessor = springHelper.createBeanDefinition(CallingProxyPostProcessor.class, "propertyInfoProvider", propertyInfoProvider);
+
+        var proxyFactory = springHelper.createBeanDefinition(PROXY_FACTORY_BEAN_NAME, ProxyFactory.class, (beanName, bean) -> {
+            bean.getPropertyValues().add("classLoaderProvider", classLoaderProvider);
+        });
+
+        var linkController = springHelper.createBeanDefinition(LINK_CONTROLLER_BEAN_NAME, LinkController.class, (beanName, bean) -> {
+            bean.getPropertyValues().add("linkContainerType", SpringLinkContainer.class);
             bean.getPropertyValues().add("extendableRegistry", extendableRegistry);
-            bean.getPropertyValues().add("props", new RuntimeBeanReference("properties"));
+            bean.getPropertyValues().add("props", new RuntimeBeanReference(PROPERTIES_BEAN_NAME));
             bean.getPropertyValues().add("proxyFactory", proxyFactory);
         });
 
@@ -132,7 +168,7 @@ public class AmbethBootstrapSpringConfig implements BeanDefinitionRegistryPostPr
             bean.getPropertyValues().add("loggerCache", loggerInstancePreProcessor);
             bean.getPropertyValues().add("extendableRegistry", extendableRegistry);
             bean.getPropertyValues().add("extendableType", IThreadLocalCleanupBeanExtendable.class);
-            bean.getPropertyValues().add("props", new RuntimeBeanReference("properties"));
+            bean.getPropertyValues().add("props", new RuntimeBeanReference(PROPERTIES_BEAN_NAME));
             bean.getPropertyValues().add("proxyFactory", proxyFactory);
             bean.getPropertyValues().add("beanLookup", beanLookup);
             bean.getPropertyValues().add("springLinkManager", springLinkManager);
@@ -141,19 +177,29 @@ public class AmbethBootstrapSpringConfig implements BeanDefinitionRegistryPostPr
         if (useObjectCollector) {
             var threadLocalCleanupController = springHelper.createBeanDefinition(ThreadLocalCleanupController.class, "objectCollector", threadLocalObjectCollector);
 
+            var objectCollectorRaw = new ObjectCollector();
+            objectCollectorRaw.setThreadLocalObjectCollector(threadLocalObjectCollectorRaw);
+
             var objectCollector = springHelper.createBeanDefinition(ObjectCollector.BEAN_NAME, ObjectCollector.class, (beanName, bean) -> {
+                bean.setInstanceSupplier(() -> objectCollectorRaw);
                 bean.setAutowireCandidate(false);
-                bean.getPropertyValues().add("threadLocalObjectCollector", threadLocalObjectCollector);
             });
 
-            var linkContainer = springHelper.createBeanDefinition(SpringLinkContainer.class, (beanName, bean) -> {
-                bean.getPropertyValues().add("extendableRegistry", extendableRegistry);
-                bean.getPropertyValues().add("proxyFactory", proxyFactory);
-                bean.getPropertyValues().add("registryBeanAutowiredType", ICollectableControllerExtendable.class);
-                bean.getPropertyValues().add("beanLookup", beanLookup);
-                bean.getPropertyValues().add("listener", new StringBuilderCollectableController());
-                bean.getPropertyValues().add("arguments", new Object[] { StringBuilder.class });
-            });
+            objectCollectorRaw.registerCollectableController(new StringBuilderCollectableController(), StringBuilder.class);
+            //
+            //                    var linkContainer = springHelper.createBeanDefinition(SpringLinkContainer.class, (beanName, bean) -> {
+            //                bean.getPropertyValues().add("extendableRegistry", extendableRegistry);
+            //                bean.getPropertyValues().add("proxyFactory", proxyFactory);
+            //                bean.getPropertyValues().add("registryBeanAutowiredType", ICollectableControllerExtendable.class);
+            //                bean.getPropertyValues().add("beanLookup", beanLookup);
+            //                bean.getPropertyValues().add("listener", new StringBuilderCollectableController());
+            //                bean.getPropertyValues().add("arguments", new Object[] { StringBuilder.class });
+            //            });
         }
+        var applicationContext = applicationContextTL.get();
+        var serviceContext = springHelper.createBeanDefinition(IServiceContext.class, (beanName, bean) -> {
+            var ambethServiceContext = new SpringServiceContext(applicationContext);
+            bean.setInstanceSupplier(() -> ambethServiceContext);
+        });
     }
 }

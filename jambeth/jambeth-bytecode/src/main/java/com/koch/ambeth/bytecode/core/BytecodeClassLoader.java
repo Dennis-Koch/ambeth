@@ -44,6 +44,7 @@ import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.proxy.ClassLoaderAwareClassWriter;
 import com.koch.ambeth.util.state.IStateRollback;
 import com.koch.ambeth.util.state.StateRollback;
+import lombok.Setter;
 import lombok.SneakyThrows;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
@@ -66,10 +67,13 @@ import java.util.regex.Pattern;
 
 public class BytecodeClassLoader implements IBytecodeClassLoader, IEventListener, IInitializingBean, IDisposableBean {
     protected final WeakSmartCopyMap<ClassLoader, ClassLoaderEntry> typeToContentMap = new WeakSmartCopyMap<>();
-    @Autowired
+
+    @Setter(onMethod = @__({ @Autowired, @org.springframework.beans.factory.annotation.Autowired }))
     protected IServiceContext beanContext;
-    @Autowired
+
+    @Setter(onMethod = @__({ @Autowired, @org.springframework.beans.factory.annotation.Autowired }))
     protected IClassLoaderProvider classLoaderProvider;
+
     @LogInstance
     private ILogger log;
 

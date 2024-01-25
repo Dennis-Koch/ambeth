@@ -183,7 +183,7 @@ public class TransactionalRootCacheInterceptor extends AbstractRootCacheAwareInt
         } else {
             privileged = isCurrentPrivileged();
         }
-        IRootCache rootCache = getCurrentRootCache(privileged);
+        var rootCache = getCurrentRootCache(privileged);
         return proxy.invoke(rootCache, args);
     }
 
