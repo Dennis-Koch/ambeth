@@ -162,7 +162,8 @@ public class AmbethBootstrapSpringConfig implements BeanDefinitionRegistryPostPr
 
         var springLinkManager = springHelper.createBeanDefinition(SpringLinkManager.class);
 
-        var beanLookup = springHelper.createBeanDefinition(SpringBeanLookup.class);
+        var applicationContext = applicationContextTL.get();
+        var beanLookup = new SpringBeanLookup(applicationContext);
 
         var threadLocalCleanupPreProcessor = springHelper.createBeanDefinition(SpringAutoLinkPreProcessor.class, (beanName, bean) -> {
             bean.getPropertyValues().add("loggerCache", loggerInstancePreProcessor);
@@ -196,9 +197,8 @@ public class AmbethBootstrapSpringConfig implements BeanDefinitionRegistryPostPr
             //                bean.getPropertyValues().add("arguments", new Object[] { StringBuilder.class });
             //            });
         }
-        var applicationContext = applicationContextTL.get();
         var serviceContext = springHelper.createBeanDefinition(IServiceContext.class, (beanName, bean) -> {
-            var ambethServiceContext = new SpringServiceContext(applicationContext);
+            var ambethServiceContext = new SpringServiceContext(applicationContext, beanLookup, springHelper);
             bean.setInstanceSupplier(() -> ambethServiceContext);
         });
     }

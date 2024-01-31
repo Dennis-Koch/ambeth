@@ -34,6 +34,7 @@ import com.koch.ambeth.merge.config.MergeConfigurationConstants;
 import com.koch.ambeth.merge.security.ISecurityActivation;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.proxy.MethodProxy;
+import lombok.Setter;
 
 import java.lang.reflect.Method;
 
@@ -45,10 +46,13 @@ public class TransactionalRootCacheInterceptor extends AbstractRootCacheAwareInt
     protected final ThreadLocal<RootCache> rootCacheTL = new ThreadLocal<>();
     @Forkable
     protected final ThreadLocal<Boolean> transactionalRootCacheActiveTL = new ThreadLocal<>();
-    @Autowired
+
+    @Setter(onMethod = @__({ @Autowired, @org.springframework.beans.factory.annotation.Autowired }))
     protected IRootCache committedRootCache;
-    @Autowired(optional = true)
+
+    @Setter(onMethod = @__({ @Autowired(optional = true), @org.springframework.beans.factory.annotation.Autowired(required = false) }))
     protected ISecurityActivation securityActivation;
+
     @Property(name = MergeConfigurationConstants.SecurityActive, defaultValue = "false")
     protected boolean securityActive;
 

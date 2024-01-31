@@ -21,20 +21,21 @@ limitations under the License.
  */
 
 import com.koch.ambeth.ioc.IDisposableBean;
-import com.koch.ambeth.ioc.ServiceContext;
+import com.koch.ambeth.ioc.IServiceContextIntern;
 import com.koch.ambeth.ioc.config.IBeanConfiguration;
 import com.koch.ambeth.log.config.Properties;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.IdentityHashMap;
 import com.koch.ambeth.util.collections.IdentityLinkedMap;
 import com.koch.ambeth.util.collections.IdentityLinkedSet;
+import com.koch.ambeth.util.config.IProperties;
 
 public class BeanContextInit {
 	public Properties properties;
 
-	public ServiceContext beanContext;
+	public IServiceContextIntern beanContext;
 
-	public BeanContextFactory beanContextFactory;
+	public IBeanContextFactoryIntern beanContextFactory;
 
 	public IdentityLinkedMap<Object, IBeanConfiguration> objectToBeanConfigurationMap;
 

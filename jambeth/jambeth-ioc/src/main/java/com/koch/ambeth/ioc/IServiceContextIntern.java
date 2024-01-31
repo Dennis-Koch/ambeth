@@ -20,7 +20,13 @@ limitations under the License.
  * #L%
  */
 
+import com.koch.ambeth.ioc.config.IBeanConfiguration;
+import com.koch.ambeth.ioc.factory.IBeanContextFactory;
+import com.koch.ambeth.ioc.factory.IBeanContextFactoryIntern;
 import com.koch.ambeth.ioc.hierarchy.SearchType;
+import com.koch.ambeth.ioc.link.ILinkContainer;
+
+import java.util.List;
 
 public interface IServiceContextIntern extends IServiceContext {
 	void childContextDisposed(IServiceContext childContext);
@@ -32,4 +38,32 @@ public interface IServiceContextIntern extends IServiceContext {
 	<T> T getServiceIntern(Class<T> serviceType, SearchType searchType);
 
 	<T> T getServiceIntern(String serviceName, Class<T> serviceType, SearchType searchType);
+
+    IBeanContextFactoryIntern getBeanContextFactory();
+
+    List<IBeanInstantiationProcessor> getInstantiationProcessors();
+
+    IExternalServiceContext getExternalServiceContext();
+
+    void addInstantiationProcessor(IBeanInstantiationProcessor bean);
+
+    void addPreProcessor(IBeanPreProcessor bean);
+
+    void addPostProcessor(IBeanPostProcessor bean);
+
+    void addLinkContainer(ILinkContainer bean);
+
+    List<IBeanPreProcessor> getPreProcessors();
+
+    List<IBeanPostProcessor> getPostProcessors();
+
+    IBeanConfiguration getBeanConfiguration(IBeanContextFactoryIntern beanContextFactory, String beanName);
+
+    void addNamedBean(String beanName, Object bean);
+
+    void addAutowiredBean(Class<?> autowireableType, Object bean);
+
+    List<ILinkContainer> getLinkContainers();
+
+    void setRunning();
 }

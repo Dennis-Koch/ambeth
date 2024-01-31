@@ -55,8 +55,8 @@ public class BeanRuntime<V> implements IBeanRuntime<V> {
     }
 
     protected BeanConfiguration createBeanConfiguration(Class<?> beanType) {
-        IProxyFactory proxyFactory = serviceContext.getService(IProxyFactory.class, false);
-        IProperties props = serviceContext.getService(IProperties.class, true);
+        var proxyFactory = serviceContext.getService(IProxyFactory.class, false);
+        var props = serviceContext.getService(IProperties.class, true);
         return new BeanConfiguration(beanType, null, proxyFactory, props);
     }
 
@@ -64,9 +64,9 @@ public class BeanRuntime<V> implements IBeanRuntime<V> {
         if (beanInstance != null) {
             return beanInstance;
         }
-        BeanContextFactory beanContextFactory = serviceContext.getBeanContextFactory();
-        IBeanContextInitializer beanContextInitializer = beanContextFactory.getBeanContextInitializer();
-        List<IBeanConfiguration> beanConfHierarchy = beanContextInitializer.fillParentHierarchyIfValid(serviceContext, beanContextFactory, beanConfiguration);
+        var beanContextFactory = serviceContext.getBeanContextFactory();
+        var beanContextInitializer = beanContextFactory.getBeanContextInitializer();
+        var beanConfHierarchy = beanContextInitializer.fillParentHierarchyIfValid(serviceContext, beanContextFactory, beanConfiguration);
         beanInstance = getInstanceInternal(beanContextFactory, beanContextInitializer, beanConfHierarchy);
         return beanInstance;
     }
@@ -87,11 +87,11 @@ public class BeanRuntime<V> implements IBeanRuntime<V> {
     @SuppressWarnings("unchecked")
     @Override
     public V finish() {
-        BeanContextFactory beanContextFactory = serviceContext.getBeanContextFactory();
-        IBeanContextInitializer beanContextInitializer = beanContextFactory.getBeanContextInitializer();
-        List<IBeanConfiguration> beanConfHierarchy = beanContextInitializer.fillParentHierarchyIfValid(serviceContext, beanContextFactory, beanConfiguration);
+        var beanContextFactory = serviceContext.getBeanContextFactory();
+        var beanContextInitializer = beanContextFactory.getBeanContextInitializer();
+        var beanConfHierarchy = beanContextInitializer.fillParentHierarchyIfValid(serviceContext, beanContextFactory, beanConfiguration);
 
-        V bean = getInstanceInternal(beanContextFactory, beanContextInitializer, beanConfHierarchy);
+        var bean = getInstanceInternal(beanContextFactory, beanContextInitializer, beanConfHierarchy);
         bean = (V) beanContextInitializer.initializeBean(serviceContext, beanContextFactory, beanConfiguration, bean, beanConfHierarchy, joinLifecycle);
         return bean;
     }

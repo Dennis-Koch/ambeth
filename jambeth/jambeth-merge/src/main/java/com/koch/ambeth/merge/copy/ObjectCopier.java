@@ -115,9 +115,9 @@ public class ObjectCopier implements IObjectCopier, IObjectCopierExtendable, ITh
         if (source == null || immutableTypeSet.isImmutableType(source.getClass())) {
             return source;
         }
-        Class<?> objType = source.getClass();
-        IdentityHashMap<Object, Object> objectToCloneDict = ocState.objectToCloneDict;
-        Object clone = objectToCloneDict.get(source);
+        var objType = source.getClass();
+        var objectToCloneDict = ocState.objectToCloneDict;
+        var clone = objectToCloneDict.get(source);
 
         if (clone != null) {
             // Object has already been cloned. Cycle detected - we are finished here
@@ -127,12 +127,12 @@ public class ObjectCopier implements IObjectCopier, IObjectCopierExtendable, ITh
             return (T) cloneArray(source, ocState);
         }
         if (Optional.class.isAssignableFrom(objType)) {
-            Optional<?> opt = (Optional<?>) source;
+            var opt = (Optional<?>) source;
             if (!opt.isPresent()) {
                 return source; // it is an empty optional
             }
-            Object value = opt.get();
-            Object clonedValue = cloneRecursive(value, ocState);
+            var value = opt.get();
+            var clonedValue = cloneRecursive(value, ocState);
             if (value == clonedValue) {
                 return source; // same Optional can be returned
             }
@@ -144,7 +144,7 @@ public class ObjectCopier implements IObjectCopier, IObjectCopierExtendable, ITh
             return (T) cloneCollection(source, ocState);
         }
         // Check whether the object will be copied by custom behavior
-        IObjectCopierExtension extension = extensions.getExtension(objType);
+        var extension = extensions.getExtension(objType);
         if (extension != null) {
             clone = extension.deepClone(source, ocState);
             objectToCloneDict.put(source, clone);
@@ -155,10 +155,10 @@ public class ObjectCopier implements IObjectCopier, IObjectCopierExtendable, ITh
     }
 
     protected Object cloneArray(Object source, ObjectCopierState ocState) {
-        Class<?> objType = source.getClass();
-        Class<?> elementType = objType.getComponentType();
-        int length = Array.getLength(source);
-        Object cloneArray = length == 0 ? emptyArrayFactory.createSharedEmptyArray(elementType) : Array.newInstance(elementType, length);
+        var objType = source.getClass();
+        var elementType = objType.getComponentType();
+        var length = Array.getLength(source);
+        var cloneArray = length == 0 ? emptyArrayFactory.createSharedEmptyArray(elementType) : Array.newInstance(elementType, length);
         ocState.objectToCloneDict.put(source, cloneArray);
         if (length == 0) {
             return cloneArray;
@@ -179,7 +179,7 @@ public class ObjectCopier implements IObjectCopier, IObjectCopierExtendable, ITh
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
     protected Object cloneCollection(Object source, ObjectCopierState ocState) {
-        Class<?> objType = source.getClass();
+        var objType = source.getClass();
         Collection cloneColl;
         try {
             cloneColl = (Collection) objType.newInstance();
@@ -188,16 +188,16 @@ public class ObjectCopier implements IObjectCopier, IObjectCopierExtendable, ITh
         }
         ocState.objectToCloneDict.put(source, cloneColl);
 
-        for (Object item : (Collection) source) {
+        for (var item : (Collection) source) {
             // Clone each item of the Collection
-            Object cloneItem = cloneRecursive(item, ocState);
+            var cloneItem = cloneRecursive(item, ocState);
             cloneColl.add(cloneItem);
         }
         return cloneColl;
     }
 
     protected Object cloneDefault(Object source, ObjectCopierState ocState) {
-        Class<?> objType = source.getClass();
+        var objType = source.getClass();
         Object clone;
         try {
             clone = objType.newInstance();
@@ -210,13 +210,13 @@ public class ObjectCopier implements IObjectCopier, IObjectCopierExtendable, ITh
     }
 
     protected void deepCloneProperties(Object source, Object clone, ObjectCopierState ocState) {
-        IPropertyInfo[] properties = propertyInfoProvider.getPrivateProperties(source.getClass());
-        for (IPropertyInfo property : properties) {
+        var properties = propertyInfoProvider.getPrivateProperties(source.getClass());
+        for (var property : properties) {
             if (!property.isWritable()) {
                 continue;
             }
-            Object objValue = property.getValue(source);
-            Object cloneValue = cloneRecursive(objValue, ocState);
+            var objValue = property.getValue(source);
+            var cloneValue = cloneRecursive(objValue, ocState);
             property.setValue(clone, cloneValue);
         }
     }

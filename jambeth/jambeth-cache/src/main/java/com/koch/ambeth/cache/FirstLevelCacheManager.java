@@ -21,6 +21,7 @@ limitations under the License.
  */
 
 import com.koch.ambeth.ioc.IInitializingBean;
+import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.annotation.MBeanOperation;
 import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
@@ -32,6 +33,7 @@ import com.koch.ambeth.util.StringBuilderUtil;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.LinkedHashMap;
 import com.koch.ambeth.util.objectcollector.IThreadLocalObjectCollector;
+import lombok.Setter;
 
 import java.lang.ref.Reference;
 import java.lang.ref.WeakReference;
@@ -46,14 +48,16 @@ public class FirstLevelCacheManager implements IInitializingBean, IFirstLevelCac
     protected final Lock unboundReadLock, unboundWriteLock;
     protected int changeCount, lastCacheId;
 
+    @Setter(onMethod = @__({ @Autowired, @org.springframework.beans.factory.annotation.Autowired }))
     protected IThreadLocalObjectCollector objectCollector;
 
+    @Setter(onMethod = @__({ @Autowired(optional = true), @org.springframework.beans.factory.annotation.Autowired(required = false) }))
     protected ITransactionState transactionState;
     @LogInstance
     private ILogger log;
 
     public FirstLevelCacheManager() {
-        ReentrantReadWriteLock rwLock = new ReentrantReadWriteLock();
+        var rwLock = new ReentrantReadWriteLock();
         unboundReadLock = rwLock.readLock();
         unboundWriteLock = rwLock.writeLock();
     }
@@ -61,14 +65,6 @@ public class FirstLevelCacheManager implements IInitializingBean, IFirstLevelCac
     @Override
     public void afterPropertiesSet() throws Throwable {
         ParamChecker.assertNotNull(objectCollector, "ObjectCollector");
-    }
-
-    public void setObjectCollector(IThreadLocalObjectCollector objectCollector) {
-        this.objectCollector = objectCollector;
-    }
-
-    public void setTransactionState(ITransactionState transactionState) {
-        this.transactionState = transactionState;
     }
 
     protected <V> Reference<V> createReferenceEntry(V firstLevelCache) {

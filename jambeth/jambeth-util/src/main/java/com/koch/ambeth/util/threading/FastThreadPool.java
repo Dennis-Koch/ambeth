@@ -20,6 +20,8 @@ limitations under the License.
  * #L%
  */
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -79,7 +81,7 @@ public class FastThreadPool implements ExecutorService, IFastThreadPool, IDispos
 		setCoreThreadCount(coreThreadCount);
 	}
 
-	@Override
+    @Override
 	public void dispose() {
 		shutdown();
 	}
@@ -386,7 +388,25 @@ public class FastThreadPool implements ExecutorService, IFastThreadPool, IDispos
 
 	@Override
 	public boolean awaitTermination(long timeout, TimeUnit unit) throws InterruptedException {
-		return false;
+        if (isTerminated()) {
+            return true;
+        }
+        var waitTill = Instant.now().plus(Duration.of(timeout, unit.toChronoUnit()));
+        var lock = this.lock;
+        lock.lock();
+        try {
+            while (!isTerminated()) {
+                var waitPeriod = Duration.between(Instant.now(), waitTill);
+                if (!waitPeriod.isPositive()) {
+                    return false;
+                }
+                syncCond.await(waitPeriod.toMillis(), TimeUnit.MILLISECONDS);
+            }
+            return true;
+        }
+        finally {
+            lock.unlock();
+        }
 	}
 
 	@Override

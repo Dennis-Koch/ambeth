@@ -99,7 +99,7 @@ import lombok.SneakyThrows;
 
 import java.util.List;
 
-public class BeanContextFactory implements IBeanContextFactory, ILinkController, IDisposable {
+public class BeanContextFactory implements IBeanContextFactoryIntern, ILinkController, IDisposable {
     public static final Object[] emptyArgs = new Object[0];
 
     public static final Class<?>[] emptyServiceModules = new Class<?>[0];
@@ -555,7 +555,8 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
                 context.addPostProcessor(postProcessors.get(a));
             }
         }
-        beanContextInitializer.initializeBeanContext(context, this);
+        context.setBeanContextFactory(this);
+        beanContextInitializer.initializeBeanContext(context);
         return context;
     }
 
@@ -592,7 +593,8 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
                 context.addPostProcessor(postProcessors.get(a));
             }
         }
-        beanContextInitializer.initializeBeanContext(context, this);
+        context.setBeanContextFactory(this);
+        beanContextInitializer.initializeBeanContext(context);
         return context;
     }
 

@@ -27,6 +27,7 @@ import com.koch.ambeth.ioc.factory.BeanContextFactory;
 import com.koch.ambeth.ioc.factory.BeanContextInitializer;
 import com.koch.ambeth.ioc.factory.BeanContextKey;
 import com.koch.ambeth.ioc.factory.IBeanContextFactory;
+import com.koch.ambeth.ioc.factory.IBeanContextFactoryIntern;
 import com.koch.ambeth.ioc.hierarchy.IBeanContextHolder;
 import com.koch.ambeth.ioc.hierarchy.SearchType;
 import com.koch.ambeth.ioc.link.ILinkContainer;
@@ -313,9 +314,9 @@ public class ServiceContext implements IServiceContext, IServiceContextIntern, I
         return getBeanConfiguration(beanContextFactory, beanName);
     }
 
-    public IBeanConfiguration getBeanConfiguration(BeanContextFactory beanContextFactory, String beanName) {
+    public IBeanConfiguration getBeanConfiguration(IBeanContextFactoryIntern beanContextFactory, String beanName) {
         checkNotDisposed();
-        IBeanConfiguration beanConfiguration = beanContextFactory.getBeanConfiguration(beanName);
+        var beanConfiguration = beanContextFactory.getBeanConfiguration(beanName);
         if (beanConfiguration == null && parent != null) {
             return parent.getBeanConfiguration(beanName);
         }

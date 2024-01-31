@@ -7,21 +7,35 @@ import com.koch.ambeth.ioc.config.IBeanConfiguration;
 import com.koch.ambeth.ioc.config.IPropertyConfiguration;
 import com.koch.ambeth.ioc.config.PrecedenceType;
 import com.koch.ambeth.ioc.factory.IBeanContextFactory;
+import com.koch.ambeth.ioc.factory.IBeanContextFactoryIntern;
+import com.koch.ambeth.ioc.factory.IBeanContextInitializer;
 import com.koch.ambeth.ioc.link.ILinkController;
 import com.koch.ambeth.ioc.link.ILinkRegistryNeededConfiguration;
 import com.koch.ambeth.ioc.link.LinkConfiguration;
+import com.koch.ambeth.log.config.Properties;
+import com.koch.ambeth.util.IClassLoaderProvider;
 import com.koch.ambeth.util.IDisposable;
 import com.koch.ambeth.util.collections.HashSet;
+import com.koch.ambeth.util.collections.ILinkedMap;
 import com.koch.ambeth.util.config.IProperties;
+import com.koch.ambeth.util.proxy.Factory;
+import com.koch.ambeth.util.proxy.FactoryMixin;
 import com.koch.ambeth.util.proxy.IProxyFactory;
+import com.koch.ambeth.util.proxy.MethodInterceptorMixin;
 import com.koch.ambeth.util.typeinfo.IPropertyInfoProvider;
 import lombok.Getter;
 import lombok.SneakyThrows;
+import net.bytebuddy.ByteBuddy;
+import net.bytebuddy.dynamic.DynamicType;
+import net.bytebuddy.implementation.MethodDelegation;
+import net.bytebuddy.matcher.ElementMatchers;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.GenericBeanDefinition;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
@@ -29,7 +43,23 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
-public class SpringBeanContextFactory implements IBeanContextFactory {
+public class SpringBeanContextFactory implements IBeanContextFactoryIntern {
+
+    @SneakyThrows
+    public static Runnable processModuleInSpring(BeanDefinitionRegistry beanFactory, IInitializingModule module) {
+        var springHelper = AmbethSpringUtil.withContext(beanFactory);
+        var beanName = springHelper.acquireAnonymousBeanName(module.getClass());
+        var beanDef = new GenericBeanDefinition();
+        beanDef.setLazyInit(false);
+        beanDef.setInstanceSupplier(() -> module);
+        beanFactory.registerBeanDefinition(beanName, beanDef);
+
+        var ambethFactory = new SpringBeanContextFactory(beanFactory);
+        ambethFactory.injectProperties(null, module, null);
+        beanFactory.autowireBeanProperties(module, AutowireCapableBeanFactory.AUTOWIRE_BY_TYPE, true);
+        module.afterPropertiesSet(ambethFactory);
+        return () -> ambethFactory.finalizePendingConfigurations();
+    }
 
     @SneakyThrows
     public static Runnable processModuleInSpring(ConfigurableListableBeanFactory beanFactory, IInitializingModule module) {
@@ -42,11 +72,13 @@ public class SpringBeanContextFactory implements IBeanContextFactory {
 
     final ConfigurableListableBeanFactory beanFactory;
 
+    final IClassLoaderProvider classLoaderProvider;
+
     final ILinkController linkController;
 
     final IProxyFactory proxyFactory;
 
-    final IProperties props;
+    final Properties props;
 
     final List<IBeanConfiguration> pendingConfigurations = new ArrayList<>();
 
@@ -61,6 +93,7 @@ public class SpringBeanContextFactory implements IBeanContextFactory {
         linkController = beanFactory.getBean("linkController", ILinkController.class);
         proxyFactory = beanFactory.getBean("proxyFactory", IProxyFactory.class);
         props = beanFactory.getBean("properties", IProperties.class);
+        classLoaderProvider = beanFactory.getBean(IClassLoaderProvider.class);
     }
 
     private SpringBeanHelper createSpringBeanHelper() {
@@ -74,7 +107,10 @@ public class SpringBeanContextFactory implements IBeanContextFactory {
     public void finalizePendingConfigurations() {
         for (var pendingConfiguration : pendingConfigurations) {
             var beanDef = (GenericBeanDefinition) beanFactory.getBeanDefinition(pendingConfiguration.getName());
-
+            var autowireableTypes = pendingConfiguration.getAutowireableTypes();
+            if (autowireableTypes == null || autowireableTypes.isEmpty()) {
+                beanDef.setAutowireCandidate(false);
+            }
             var propertyConfigs = pendingConfiguration.getPropertyConfigurations();
             if (propertyConfigs != null) {
                 for (var propertyConfig : propertyConfigs) {
@@ -220,6 +256,11 @@ public class SpringBeanContextFactory implements IBeanContextFactory {
         var beanConf = instanceToConfiguration(beanName, externalBean, false);
         pendingConfigurations.add(beanConf);
         return beanConf;
+    }
+
+    @Override
+    public IBeanContextInitializer getBeanContextInitializer() {
+        return null;
     }
 
     protected IBeanConfiguration instanceToConfiguration(String beanName, Object beanInstance, boolean withLifecycle) {
@@ -449,5 +490,25 @@ public class SpringBeanContextFactory implements IBeanContextFactory {
     @Override
     public void linkToNamed(String registryBeanName, String listenerBeanName, Class<?> registryClass, Object... arguments) {
         throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public List<IBeanConfiguration> getBeanConfigurations() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public IBeanConfiguration getBeanConfiguration(String beanName) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public ILinkedMap<String, List<String>> getBeanNameToAliasesMap() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Properties getProperties() {
+        return props;
     }
 }

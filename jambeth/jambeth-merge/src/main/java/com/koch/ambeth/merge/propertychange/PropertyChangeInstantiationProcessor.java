@@ -21,12 +21,15 @@ limitations under the License.
  */
 
 import com.koch.ambeth.ioc.IBeanInstantiationProcessor;
+import com.koch.ambeth.ioc.IServiceContextIntern;
+import com.koch.ambeth.ioc.IServiceLookup;
 import com.koch.ambeth.ioc.ServiceContext;
 import com.koch.ambeth.ioc.accessor.IAccessorTypeProvider;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.bytecode.IBytecodeEnhancer;
 import com.koch.ambeth.ioc.config.IBeanConfiguration;
 import com.koch.ambeth.ioc.factory.BeanContextFactory;
+import com.koch.ambeth.ioc.factory.IBeanContextFactoryIntern;
 import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
 import com.koch.ambeth.util.annotation.PropertyChangeAspect;
@@ -40,7 +43,7 @@ public class PropertyChangeInstantiationProcessor implements IBeanInstantiationP
     private ILogger log;
 
     @Override
-    public Object instantiateBean(BeanContextFactory beanContextFactory, ServiceContext beanContext, IBeanConfiguration beanConfiguration, Class<?> beanType,
+    public Object instantiateBean(IBeanContextFactoryIntern beanContextFactory, IServiceContextIntern beanContext, IBeanConfiguration beanConfiguration, Class<?> beanType,
             List<IBeanConfiguration> beanConfHierarchy) {
         if (!beanType.isAnnotationPresent(PropertyChangeAspect.class)) {
             return null;
@@ -50,7 +53,7 @@ public class PropertyChangeInstantiationProcessor implements IBeanInstantiationP
         return accessorTypeProvider.getConstructorType(CreateDelegate.class, beanType).create();
     }
 
-    public static interface CreateDelegate {
+    public interface CreateDelegate {
         Object create();
     }
 }

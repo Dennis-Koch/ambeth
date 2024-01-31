@@ -1,26 +1,45 @@
 package com.koch.ambeth.ioc.spring;
 
+import com.koch.ambeth.ioc.IBeanInstantiationProcessor;
+import com.koch.ambeth.ioc.IBeanPostProcessor;
+import com.koch.ambeth.ioc.IBeanPreProcessor;
 import com.koch.ambeth.ioc.IBeanRuntime;
 import com.koch.ambeth.ioc.IDisposableBean;
+import com.koch.ambeth.ioc.IExternalServiceContext;
 import com.koch.ambeth.ioc.IServiceContext;
+import com.koch.ambeth.ioc.IServiceContextIntern;
+import com.koch.ambeth.ioc.IServiceLookup;
+import com.koch.ambeth.ioc.config.BeanRuntime;
 import com.koch.ambeth.ioc.config.IBeanConfiguration;
 import com.koch.ambeth.ioc.factory.IBeanContextFactory;
+import com.koch.ambeth.ioc.factory.IBeanContextFactoryIntern;
 import com.koch.ambeth.ioc.hierarchy.IBeanContextHolder;
+import com.koch.ambeth.ioc.hierarchy.SearchType;
+import com.koch.ambeth.ioc.link.ILinkContainer;
 import com.koch.ambeth.ioc.link.ILinkRegistryNeededRuntime;
+import com.koch.ambeth.ioc.link.SpringBeanLookup;
 import com.koch.ambeth.util.collections.ISet;
 import com.koch.ambeth.util.function.CheckedConsumer;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.config.BeanReference;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
+import javax.swing.*;
 import java.lang.annotation.Annotation;
 import java.util.List;
 
 @RequiredArgsConstructor
-public class SpringServiceContext implements IServiceContext {
+public class SpringServiceContext implements IServiceContextIntern {
 
     @NonNull
     final AnnotationConfigApplicationContext applicationContext;
+
+    @NonNull
+    final IServiceLookup beanLookup;
+
+    @NonNull
+    final SpringBeanHelper springBeanHelper;
 
     @Override
     public ISet<Class<?>> collectAllTypeWiredServices() {
@@ -114,12 +133,12 @@ public class SpringServiceContext implements IServiceContext {
 
     @Override
     public <V> IBeanRuntime<V> registerWithLifecycle(V object) {
-        throw new UnsupportedOperationException();
+        return new SpringBeanRuntime(this, object, true);
     }
 
     @Override
     public <V> IBeanRuntime<V> registerExternalBean(V externalBean) {
-        throw new UnsupportedOperationException();
+        return new SpringBeanRuntime(this, externalBean, false);
     }
 
     @Override
@@ -144,32 +163,33 @@ public class SpringServiceContext implements IServiceContext {
 
     @Override
     public Object getService(String serviceName) {
-        throw new UnsupportedOperationException();
+        return beanLookup.getService(serviceName);
     }
 
     @Override
     public Object getService(String serviceName, boolean checkExistence) {
-        throw new UnsupportedOperationException();
+        return beanLookup.getService(serviceName, checkExistence);
     }
 
     @Override
     public <V> V getService(String serviceName, Class<V> targetType) {
-        throw new UnsupportedOperationException();
+        return beanLookup.getService(serviceName, targetType);
     }
 
     @Override
     public <V> V getService(String serviceName, Class<V> targetType, boolean checkExistence) {
-        throw new UnsupportedOperationException();
+        return beanLookup.getService(serviceName, targetType, checkExistence);
     }
 
     @Override
-    public <T> T getService(Class<T> type) {
-        throw new UnsupportedOperationException();
+    public <T> T getService(Class<T> type)
+    {
+        return beanLookup.getService(type);
     }
 
     @Override
     public <T> T getService(Class<T> type, boolean checkExistence) {
-        throw new UnsupportedOperationException();
+        return beanLookup.getService(type, checkExistence);
     }
 
     @Override
@@ -203,12 +223,108 @@ public class SpringServiceContext implements IServiceContext {
     }
 
     @Override
-    public void dispose() {
-        throw new UnsupportedOperationException();
+    public void dispose()
+    {
+        close();
     }
 
     @Override
     public void close() {
+        applicationContext.close();
+    }
+
+    @Override
+    public void childContextDisposed(IServiceContext childContext) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Object getDirectBean(String beanName) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Object getDirectBean(Class<?> serviceType) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> T getServiceIntern(Class<T> serviceType, SearchType searchType) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> T getServiceIntern(String serviceName, Class<T> serviceType, SearchType searchType) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public IBeanContextFactoryIntern getBeanContextFactory() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public List<IBeanInstantiationProcessor> getInstantiationProcessors() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public IExternalServiceContext getExternalServiceContext() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void addInstantiationProcessor(IBeanInstantiationProcessor bean) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void addPreProcessor(IBeanPreProcessor bean) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void addPostProcessor(IBeanPostProcessor bean) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void addLinkContainer(ILinkContainer bean) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public List<IBeanPreProcessor> getPreProcessors() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public List<IBeanPostProcessor> getPostProcessors() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public IBeanConfiguration getBeanConfiguration(IBeanContextFactoryIntern beanContextFactory, String beanName) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void addNamedBean(String beanName, Object bean) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void addAutowiredBean(Class<?> autowireableType, Object bean) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public List<ILinkContainer> getLinkContainers() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void setRunning() {
         throw new UnsupportedOperationException();
     }
 }

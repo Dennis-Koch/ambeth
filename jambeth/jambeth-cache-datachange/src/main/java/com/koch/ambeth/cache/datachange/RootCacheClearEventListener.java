@@ -26,15 +26,16 @@ import com.koch.ambeth.cache.ISecondLevelCacheManager;
 import com.koch.ambeth.event.IEventListener;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.service.cache.ClearAllCachesEvent;
+import lombok.Setter;
 
 public class RootCacheClearEventListener implements IEventListener {
-    @Autowired
+    @Setter(onMethod = @__({ @Autowired, @org.springframework.beans.factory.annotation.Autowired }))
     protected IFirstLevelCacheManager firstLevelCacheManager;
 
-    @Autowired
+    @Setter(onMethod = @__({ @Autowired, @org.springframework.beans.factory.annotation.Autowired }))
     protected ISecondLevelCacheManager secondLevelCacheManager;
 
-    @Autowired
+    @Setter(onMethod = @__({ @Autowired, @org.springframework.beans.factory.annotation.Autowired }))
     protected IRootCache committedRootCache;
 
     @Override

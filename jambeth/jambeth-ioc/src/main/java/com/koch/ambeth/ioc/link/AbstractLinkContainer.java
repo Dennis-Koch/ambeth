@@ -112,10 +112,10 @@ public abstract class AbstractLinkContainer implements ILinkContainer, IInitiali
     protected Object resolveRegistry() {
         var beanLookup = this.beanLookup;
         var hasForeignContextBeenUsed = true;
-        if (foreignBeanContext != null) {
+        if (beanLookup == null && foreignBeanContext != null) {
             beanLookup = foreignBeanContext;
             hasForeignContextBeenUsed = false;
-        } else if (foreignBeanContextName != null) {
+        } else if (beanLookup == null && foreignBeanContextName != null) {
             foreignBeanContext = beanLookup.getService(foreignBeanContextName, IServiceContext.class, !optional);
             beanLookup = foreignBeanContext;
             hasForeignContextBeenUsed = false;

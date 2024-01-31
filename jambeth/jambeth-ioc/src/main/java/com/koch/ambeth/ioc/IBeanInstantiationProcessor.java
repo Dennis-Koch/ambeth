@@ -24,9 +24,10 @@ import java.util.List;
 
 import com.koch.ambeth.ioc.config.IBeanConfiguration;
 import com.koch.ambeth.ioc.factory.BeanContextFactory;
+import com.koch.ambeth.ioc.factory.IBeanContextFactoryIntern;
 
 public interface IBeanInstantiationProcessor {
-	Object instantiateBean(BeanContextFactory beanContextFactory, ServiceContext beanContext,
+	Object instantiateBean(IBeanContextFactoryIntern beanContextFactory, IServiceContextIntern beanContext,
 			IBeanConfiguration beanConfiguration, Class<?> beanType,
 			List<IBeanConfiguration> beanConfHierarchy);
 }

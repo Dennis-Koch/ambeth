@@ -237,8 +237,7 @@ public class QueryMassdataTest extends AbstractInformationBusWithPersistenceTest
 
         final int lastPageNumber = (dataCount + size - 1) / size, lastPageNumberSize = dataCount - (lastPageNumber - 1) * size;
 
-        var overallQueryCountIndex = new ParamHolder<Integer>();
-        overallQueryCountIndex.setValue(new Integer(0));
+        var overallQueryCountIndex = new ParamHolder<Integer>(0);
 
         var oqciLock = new ReentrantLock();
 
@@ -289,7 +288,7 @@ public class QueryMassdataTest extends AbstractInformationBusWithPersistenceTest
                         }
                         oqciLock.lock();
                         try {
-                            overallQueryCountIndex.setValue(new Integer(overallQueryCountIndex.getValue().intValue() + 1));
+                            overallQueryCountIndex.setValue(overallQueryCountIndex.getValue().intValue() + 1);
                         } finally {
                             oqciLock.unlock();
                         }
@@ -501,10 +500,9 @@ public class QueryMassdataTest extends AbstractInformationBusWithPersistenceTest
 
         final int lastPageNumber = dataCount / size, lastPageNumberSize = dataCount - lastPageNumber * size;
 
-        final ParamHolder<Integer> overallQueryCountIndex = new ParamHolder<>();
-        overallQueryCountIndex.setValue(new Integer(0));
+        var overallQueryCountIndex = new ParamHolder<>(0);
 
-        final ReentrantLock oqciLock = new ReentrantLock();
+        var oqciLock = new ReentrantLock();
 
         long start = System.currentTimeMillis();
         long startCpuUsage = ProcessIdHelper.getCumulatedCpuUsage();
@@ -583,7 +581,7 @@ public class QueryMassdataTest extends AbstractInformationBusWithPersistenceTest
                             }
                             oqciLock.lock();
                             try {
-                                overallQueryCountIndex.setValue(new Integer(overallQueryCountIndex.getValue().intValue() + 1));
+                                overallQueryCountIndex.setValue(overallQueryCountIndex.getValue().intValue() + 1);
                             } finally {
                                 oqciLock.unlock();
                             }

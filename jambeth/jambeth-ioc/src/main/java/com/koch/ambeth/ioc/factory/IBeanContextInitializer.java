@@ -20,20 +20,21 @@ limitations under the License.
  * #L%
  */
 
+import com.koch.ambeth.ioc.IServiceContextIntern;
 import com.koch.ambeth.ioc.ServiceContext;
 import com.koch.ambeth.ioc.config.IBeanConfiguration;
 
 import java.util.List;
 
 public interface IBeanContextInitializer {
-    void initializeBeanContext(ServiceContext beanContext, BeanContextFactory beanContextFactory);
+    void initializeBeanContext(IServiceContextIntern beanContext);
 
-    Object initializeBean(ServiceContext beanContext, BeanContextFactory beanContextFactory, IBeanConfiguration beanConfiguration, Object bean, List<IBeanConfiguration> beanConfHierarchy,
+    Object initializeBean(IServiceContextIntern beanContext, IBeanContextFactoryIntern beanContextFactory, IBeanConfiguration beanConfiguration, Object bean, List<IBeanConfiguration> beanConfHierarchy,
             boolean joinLifecycle);
 
-    List<IBeanConfiguration> fillParentHierarchyIfValid(ServiceContext beanContext, BeanContextFactory beanContextFactory, IBeanConfiguration beanConfiguration);
+    List<IBeanConfiguration> fillParentHierarchyIfValid(IServiceContextIntern beanContext, IBeanContextFactoryIntern beanContextFactory, IBeanConfiguration beanConfiguration);
 
     Class<?> resolveTypeInHierarchy(List<IBeanConfiguration> beanConfigurations);
 
-    Object instantiateBean(ServiceContext beanContext, BeanContextFactory beanContextFactory, IBeanConfiguration beanConfiguration, Class<?> beanType, List<IBeanConfiguration> beanConfHierarchy);
+    Object instantiateBean(IServiceContextIntern beanContext, IBeanContextFactoryIntern beanContextFactory, IBeanConfiguration beanConfiguration, Class<?> beanType, List<IBeanConfiguration> beanConfHierarchy);
 }

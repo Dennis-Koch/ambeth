@@ -161,7 +161,7 @@ public class CacheModule implements IFrameworkModule {
                                                                IPrimitiveRetrieverExtendable.class);
         beanContextFactory.link(cacheRetrieverRegistry, CacheRetrieverRegistry.HANDLE_EVENT_SESSION_CHANGED).to(IEventListenerExtendable.class).with(EventSessionChanged.class);
 
-        beanContextFactory.registerBean("firstLevelCacheManager", FirstLevelCacheManager.class).autowireable(IFirstLevelCacheExtendable.class, IFirstLevelCacheManager.class);
+        beanContextFactory.registerBean(FirstLevelCacheManager.class).autowireable(IFirstLevelCacheExtendable.class, IFirstLevelCacheManager.class);
 
         var rootCacheBridge = "rootCacheBridge";
 
@@ -198,8 +198,8 @@ public class CacheModule implements IFrameworkModule {
 
             beanContextFactory.registerExternalBean(COMMITTED_ROOT_CACHE, threadLocalRcProxy);
         }
-        beanContextFactory.registerBean("cacheEventTargetExtractor", CacheEventTargetExtractor.class);
-        beanContextFactory.link("cacheEventTargetExtractor").to(IEventTargetExtractorExtendable.class).with(ICache.class).optional();
+        var cacheEventTargetExtractor = beanContextFactory.registerBean(CacheEventTargetExtractor.class);
+        beanContextFactory.link(cacheEventTargetExtractor).to(IEventTargetExtractorExtendable.class).with(ICache.class).optional();
 
         beanContextFactory.registerBean(CacheFactory.class).autowireable(ICacheFactory.class);
 

@@ -179,7 +179,7 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
     }
 
     protected int getBeanConfigurationAmount(BeanContextInit beanContextInit) {
-        List<IBeanConfiguration> beanConfigurations = beanContextInit.beanContextFactory.getBeanConfigurations();
+        var beanConfigurations = beanContextInit.beanContextFactory.getBeanConfigurations();
         if (beanConfigurations == null) {
             return 0;
         }
@@ -187,21 +187,19 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
     }
 
     @Override
-    public void initializeBeanContext(ServiceContext beanContext, BeanContextFactory beanContextFactory) {
-        beanContext.setBeanContextFactory(beanContextFactory);
-
+    public void initializeBeanContext(IServiceContextIntern beanContext) {
+        var beanContextFactory = beanContext.getBeanContextFactory();
         if (beanContextFactory.getBeanConfigurations() == null) {
-            beanContext.setBeanContextFactory(beanContextFactory);
             return;
         }
-        IdentityLinkedMap<Object, IBeanConfiguration> objectToBeanConfigurationMap = new IdentityLinkedMap<>();
-        IdentityHashMap<Object, IBeanConfiguration> objectToHandledBeanConfigurationMap = new IdentityHashMap<>();
-        LinkedHashMap<String, IBeanConfiguration> nameToBeanConfigurationMap = new LinkedHashMap<>();
-        IdentityLinkedSet<Object> allLifeCycledBeansSet = new IdentityLinkedSet<>();
-        IdentityHashSet<IBeanConfiguration> alreadyHandledConfigsSet = new IdentityHashSet<>();
-        ArrayList<Object> initializedOrdering = new ArrayList<>();
-        BeanContextInit beanContextInit = new BeanContextInit();
-        BeanContextInit oldBeanContextInit = currentBeanContextInitTL.get();
+        var objectToBeanConfigurationMap = new IdentityLinkedMap<Object, IBeanConfiguration>();
+        var objectToHandledBeanConfigurationMap = new IdentityHashMap<Object, IBeanConfiguration>();
+        var nameToBeanConfigurationMap = new LinkedHashMap<String, IBeanConfiguration>();
+        var allLifeCycledBeansSet = new IdentityLinkedSet<>();
+        var alreadyHandledConfigsSet = new IdentityHashSet<IBeanConfiguration>();
+        var initializedOrdering = new ArrayList<>();
+        var beanContextInit = new BeanContextInit();
+        var oldBeanContextInit = currentBeanContextInitTL.get();
         try {
             currentBeanContextInitTL.set(beanContextInit);
             beanContextInit.beanContext = beanContext;
@@ -211,7 +209,7 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
             beanContextInit.allLifeCycledBeansSet = allLifeCycledBeansSet;
             beanContextInit.initializedOrdering = initializedOrdering;
 
-            Properties contextProps = beanContextFactory.getProperties();
+            var contextProps = beanContextFactory.getProperties();
             beanContextInit.properties = contextProps;
 
             beanContextFactory.registerExternalBean("properties", contextProps).autowireable(IProperties.class, Properties.class);
@@ -219,14 +217,14 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
             Object priorityBean;
             do {
                 priorityBean = null;
-                int highestPriority = 0;
+                var highestPriority = 0;
 
                 instantiateBeans(beanContextInit, nameToBeanConfigurationMap, alreadyHandledConfigsSet, true);
 
-                for (Entry<Object, IBeanConfiguration> entry : objectToBeanConfigurationMap) {
-                    Object bean = entry.getKey();
+                for (var entry : objectToBeanConfigurationMap) {
+                    var bean = entry.getKey();
 
-                    int priorityOfBean = getPriorityOfBean(bean.getClass());
+                    var priorityOfBean = getPriorityOfBean(bean.getClass());
                     if (priorityOfBean > highestPriority) {
                         highestPriority = priorityOfBean;
                         priorityBean = bean;
@@ -239,7 +237,7 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
             } while (priorityBean != null);
 
             while (true) {
-                int beanConfigurationCountBefore = getBeanConfigurationAmount(beanContextInit);
+                var beanConfigurationCountBefore = getBeanConfigurationAmount(beanContextInit);
                 instantiateBeans(beanContextInit, nameToBeanConfigurationMap, alreadyHandledConfigsSet, false);
 
                 // Now load properties-service from the current context (it may be
@@ -256,18 +254,16 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 
             // Notify first all modules that this context is now ready
             for (int a = 0, size = initializedOrdering.size(); a < size; a++) {
-                Object bean = initializedOrdering.get(a);
-                if (bean instanceof IStartingModule) {
-                    ((IStartingModule) bean).afterStarted(beanContext);
+                var bean = initializedOrdering.get(a);
+                if (bean instanceof IStartingModule startingModule) {
+                    startingModule.afterStarted(beanContext);
                 }
             }
             // Then notify all link containers that this context is now ready for
             // linking
             for (int a = 0, size = initializedOrdering.size(); a < size; a++) {
-                Object bean = initializedOrdering.get(a);
-                if (bean instanceof ILinkContainer) {
-                    ILinkContainer linkContainer = (ILinkContainer) bean;
-
+                var bean = initializedOrdering.get(a);
+                if (bean instanceof ILinkContainer linkContainer) {
                     try {
                         linkContainer.link();
                     } catch (Throwable e) {
@@ -275,10 +271,10 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
                     }
                 }
             }
-            List<ILinkContainer> linkContainers = beanContext.getLinkContainers();
+            var linkContainers = beanContext.getLinkContainers();
             if (linkContainers != null) {
                 for (int a = 0, size = linkContainers.size(); a < size; a++) {
-                    ILinkContainer linkContainer = linkContainers.get(a);
+                    var linkContainer = linkContainers.get(a);
                     if (allLifeCycledBeansSet.contains(linkContainer)) {
                         // Nothing to do because this container has already been handled some lines before
                         continue;
@@ -289,9 +285,9 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
             beanContext.setRunning();
             // Then notify all "normal" beans that this context is now ready
             for (int a = 0, size = initializedOrdering.size(); a < size; a++) {
-                Object bean = initializedOrdering.get(a);
-                if (bean instanceof IStartingBean) {
-                    ((IStartingBean) bean).afterStarted();
+                var bean = initializedOrdering.get(a);
+                if (bean instanceof IStartingBean startingBean) {
+                    startingBean.afterStarted();
                 }
             }
             publishMonitorableBeans(beanContextInit, initializedOrdering);
@@ -340,31 +336,31 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
         if (!monitorBeansActive) {
             return;
         }
-        IPropertyInfoProvider propertyInfoProvider = beanContextInit.beanContext.getService(IPropertyInfoProvider.class, false);
+        var propertyInfoProvider = beanContextInit.beanContext.getService(IPropertyInfoProvider.class, false);
         if (propertyInfoProvider == null) {
             return;
         }
-        IServiceContext beanContext = beanContextInit.beanContext;
-        IdentityHashMap<Object, IBeanConfiguration> objectToHandledBeanConfigurationMap = beanContextInit.objectToHandledBeanConfigurationMap;
-        final MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
+        var beanContext = beanContextInit.beanContext;
+        var objectToHandledBeanConfigurationMap = beanContextInit.objectToHandledBeanConfigurationMap;
+        var mbs = ManagementFactory.getPlatformMBeanServer();
         if (mbs == null) {
             // JMX not activated
             return;
         }
-        final List<ObjectName> mBeans = new ArrayList<>();
-        boolean success = false;
+        var mBeans = new ArrayList<ObjectName>();
+        var success = false;
         try {
-            StringBuilder beanContextName = convertBeanContextName(beanContext.getName());
+            var beanContextName = convertBeanContextName(beanContext.getName());
             for (int a = 0, size = initializedOrdering.size(); a < size; a++) {
-                final Object bean = initializedOrdering.get(a);
-                IBeanConfiguration beanConfiguration = objectToHandledBeanConfigurationMap.get(bean);
+                var bean = initializedOrdering.get(a);
+                var beanConfiguration = objectToHandledBeanConfigurationMap.get(bean);
                 if (beanConfiguration == null || beanConfiguration.getName() == null) {
                     // beans without a name will not be browsable
                     continue;
                 }
                 Object mBean;
                 if (!(bean instanceof DynamicMBean)) {
-                    BeanMonitoringSupport bmSupport = new BeanMonitoringSupport(bean, beanContext);
+                    var bmSupport = new BeanMonitoringSupport(bean, beanContext);
                     if (bmSupport.getMBeanInfo().getAttributes().length == 0) {
                         continue;
                     }
@@ -373,7 +369,7 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
                     mBean = bean;
                 }
                 try {
-                    ObjectName name = createMonitoringNameOfBean(beanContextName, beanConfiguration);
+                    var name = createMonitoringNameOfBean(beanContextName, beanConfiguration);
                     mbs.registerMBean(mBean, name);
                     mBeans.add(name);
                 } catch (Exception e) {
@@ -384,7 +380,7 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
         } finally {
             if (!success) {
                 for (int a = mBeans.size(); a-- > 0; ) {
-                    ObjectName name = mBeans.get(a);
+                    var name = mBeans.get(a);
                     try {
                         mbs.unregisterMBean(name);
                     } catch (Exception e) {
@@ -402,11 +398,11 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
     }
 
     protected void resolveBeansInSequence(BeanContextInit beanContextInit) {
-        ILinkedMap<Object, IBeanConfiguration> objectToBeanConfigurationMap = beanContextInit.objectToBeanConfigurationMap;
+        var objectToBeanConfigurationMap = beanContextInit.objectToBeanConfigurationMap;
 
         while (!objectToBeanConfigurationMap.isEmpty()) {
-            for (Entry<Object, IBeanConfiguration> entry : objectToBeanConfigurationMap) {
-                Object bean = entry.getKey();
+            for (var entry : objectToBeanConfigurationMap) {
+                var bean = entry.getKey();
 
                 initializeBean(beanContextInit, bean);
                 break;
@@ -415,17 +411,17 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
     }
 
     protected void checkIfAllBeanConfigsAreHandledCorrectly(BeanContextInit beanContextInit, Set<IBeanConfiguration> alreadyHandledConfigsSet) {
-        BeanContextFactory beanContextFactory = beanContextInit.beanContextFactory;
+        var beanContextFactory = beanContextInit.beanContextFactory;
         // ServiceContext beanContext = beanContextInit.beanContext;
-        List<IBeanConfiguration> basicBeanConfigurations = beanContextFactory.getBeanConfigurations();
+        var basicBeanConfigurations = beanContextFactory.getBeanConfigurations();
         if (basicBeanConfigurations != null) {
             for (int a = basicBeanConfigurations.size(); a-- > 0; ) {
-                IBeanConfiguration beanConfiguration = basicBeanConfigurations.get(a);
+                var beanConfiguration = basicBeanConfigurations.get(a);
                 if (alreadyHandledConfigsSet.contains(beanConfiguration)) {
                     continue;
                 }
-                List<IBeanConfiguration> hierarchy = new ArrayList<>();
-                String missingBeanName = fillParentHierarchyIfValid(beanContextInit, beanConfiguration, hierarchy);
+                var hierarchy = new ArrayList<IBeanConfiguration>();
+                var missingBeanName = fillParentHierarchyIfValid(beanContextInit, beanConfiguration, hierarchy);
 
                 throw maskBeanBasedException("Parent bean definition '" + missingBeanName + "' not found", beanConfiguration, null);
             }
@@ -568,9 +564,9 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
     }
 
     @Override
-    public Object initializeBean(ServiceContext beanContext, BeanContextFactory beanContextFactory, IBeanConfiguration beanConfiguration, Object bean, List<IBeanConfiguration> beanConfHierarchy,
+    public Object initializeBean(IServiceContextIntern beanContext, IBeanContextFactoryIntern beanContextFactory, IBeanConfiguration beanConfiguration, Object bean, List<IBeanConfiguration> beanConfHierarchy,
             boolean joinLifecycle) {
-        BeanContextInit currentBeanContextInit = currentBeanContextInitTL.get();
+        var currentBeanContextInit = currentBeanContextInitTL.get();
         if (currentBeanContextInit == null) {
             currentBeanContextInit = new BeanContextInit();
             currentBeanContextInit.beanContext = beanContext;
@@ -580,9 +576,9 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
             currentBeanContextInit.objectToHandledBeanConfigurationMap = new IdentityHashMap<>();
         }
         initializeBean(currentBeanContextInit, beanConfiguration, bean, beanConfHierarchy, joinLifecycle);
-        if (joinLifecycle && bean instanceof IStartingBean) {
+        if (joinLifecycle && bean instanceof IStartingBean startingBean) {
             try {
-                ((IStartingBean) bean).afterStarted();
+                startingBean.afterStarted();
             } catch (Throwable e) {
                 throw RuntimeExceptionUtil.mask(e);
             }
@@ -591,11 +587,11 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
     }
 
     public void initializeBean(BeanContextInit beanContextInit, Object bean) {
-        IBeanConfiguration beanConfiguration = beanContextInit.objectToBeanConfigurationMap.remove(bean);
+        var beanConfiguration = beanContextInit.objectToBeanConfigurationMap.remove(bean);
         beanContextInit.objectToHandledBeanConfigurationMap.put(bean, beanConfiguration);
-        ILinkedSet<Object> allLifeCycledBeansSet = beanContextInit.allLifeCycledBeansSet;
+        var allLifeCycledBeansSet = beanContextInit.allLifeCycledBeansSet;
 
-        ArrayList<IBeanConfiguration> beanConfHierarchy = new ArrayList<>(3);
+        var beanConfHierarchy = new ArrayList<IBeanConfiguration>(3);
         if (fillParentHierarchyIfValid(beanContextInit, beanConfiguration, beanConfHierarchy) != null) {
             throw maskBeanBasedException("Must never happen at this point", beanConfiguration, null);
         }
@@ -606,30 +602,30 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 
     public void initializeBean(BeanContextInit beanContextInit, IBeanConfiguration beanConfiguration, Object bean, List<IBeanConfiguration> beanConfHierarchy, boolean joinLifecycle) {
         if (!(bean instanceof IInitializingModule) && !beanConfiguration.isWithLifecycle()) {
-            if (bean instanceof IPropertyLoadingBean) {
-                ((IPropertyLoadingBean) bean).applyProperties(beanContextInit.properties);
+            if (bean instanceof IPropertyLoadingBean propertyLoadingBean) {
+                propertyLoadingBean.applyProperties(beanContextInit.properties);
             }
             return;
         }
-        ServiceContext beanContext = beanContextInit.beanContext;
-        BeanContextFactory beanContextFactory = beanContextInit.beanContextFactory;
-        List<IBeanPreProcessor> preProcessors = beanContext.getPreProcessors();
+        var beanContext = beanContextInit.beanContext;
+        var beanContextFactory = beanContextInit.beanContextFactory;
+        var preProcessors = beanContext.getPreProcessors();
 
-        ArrayList<IPropertyConfiguration> propertyConfigurations = new ArrayList<>();
-        HashSet<String> alreadySpecifiedPropertyNamesSet = new HashSet<>();
+        var propertyConfigurations = new ArrayList<IPropertyConfiguration>();
+        var alreadySpecifiedPropertyNamesSet = new HashSet<String>();
 
         try {
-            Class<?> beanType = resolveTypeInHierarchy(beanConfHierarchy);
+            var beanType = resolveTypeInHierarchy(beanConfHierarchy);
             resolveAllBeanConfInHierarchy(beanConfHierarchy, propertyConfigurations);
-            ISet<String> ignoredPropertyNames = resolveAllIgnoredPropertiesInHierarchy(beanConfHierarchy, beanType);
+            var ignoredPropertyNames = resolveAllIgnoredPropertiesInHierarchy(beanConfHierarchy, beanType);
 
-            IPropertyInfo[] propertyInfos = propertyInfoProvider.getIocProperties(beanType);
+            var propertyInfos = propertyInfoProvider.getIocProperties(beanType);
 
             if (preProcessors != null) {
-                String beanName = beanConfiguration.getName();
-                Properties properties = beanContextInit.properties;
+                var beanName = beanConfiguration.getName();
+                var properties = beanContextInit.properties;
                 for (int a = 0, size = preProcessors.size(); a < size; a++) {
-                    IBeanPreProcessor preProcessor = preProcessors.get(a);
+                    var preProcessor = preProcessors.get(a);
                     preProcessor.preProcessProperties(beanContextFactory, beanContext, properties, beanName, bean, beanType, propertyConfigurations, ignoredPropertyNames, propertyInfos);
                 }
             }
@@ -668,14 +664,14 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
     }
 
     protected RuntimeException maskBeanBasedException(Throwable e, BeanContextInit beanContextInit, IBeanConfiguration beanConfiguration, IPropertyConfiguration propertyConfiguration, Object bean) {
-        IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
-        StringBuilder sb = tlObjectCollector.create(StringBuilder.class);
+        var tlObjectCollector = objectCollector.getCurrent();
+        var sb = tlObjectCollector.create(StringBuilder.class);
         try {
             Class<?> beanType = null;
             if (bean != null) {
                 beanType = bean.getClass();
             } else {
-                ArrayList<IBeanConfiguration> beanConfHierarchy = new ArrayList<>();
+                var beanConfHierarchy = new ArrayList<IBeanConfiguration>();
                 fillParentHierarchyIfValid(beanContextInit, beanConfiguration, beanConfHierarchy);
                 beanType = resolveTypeInHierarchy(beanConfHierarchy);
             }
@@ -699,12 +695,12 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
     protected RuntimeException maskBeanBasedException(CharSequence message, Throwable e, IBeanConfiguration beanConfiguration, IPropertyConfiguration propertyConfiguration) {
         e = createBeanContextDeclarationExceptionIfPossible(e, beanConfiguration, propertyConfiguration);
 
-        IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
-        StringBuilder sb = tlObjectCollector.create(StringBuilder.class);
+        var tlObjectCollector = objectCollector.getCurrent();
+        var sb = tlObjectCollector.create(StringBuilder.class);
         try {
             sb.append(message);
             if (!(e instanceof BeanContextInitException)) {
-                BeanContextInitException beanContextInitException = new BeanContextInitException(sb.toString(), e);
+                var beanContextInitException = new BeanContextInitException(sb.toString(), e);
                 if (e != null) {
                     beanContextInitException.setStackTrace(RuntimeExceptionUtil.EMPTY_STACK_TRACE);
                 }
@@ -712,7 +708,7 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
             }
             sb.insert(0, SystemUtil.lineSeparator());
             sb.insert(0, e.getMessage());
-            BeanContextInitException beanContextInitException = new BeanContextInitException(sb.toString(), e.getCause());
+            var beanContextInitException = new BeanContextInitException(sb.toString(), e.getCause());
             beanContextInitException.setStackTrace(e.getStackTrace());
             return beanContextInitException;
         } finally {
@@ -731,13 +727,13 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 
     protected IPropertyInfo autoResolveAndSetPropertyIntern(Object bean, Class<?> beanType, IPropertyInfo[] properties, IPropertyConfiguration propertyConf, String beanName, Object refBean,
             Set<String> alreadySpecifiedPropertyNamesSet) {
-        String propertyName = propertyConf.getPropertyName();
+        var propertyName = propertyConf.getPropertyName();
         if (propertyName != null) {
-            IPropertyInfo property = propertyInfoProvider.getProperty(beanType, propertyName);
+            var property = propertyInfoProvider.getProperty(beanType, propertyName);
             if (property == null) {
                 property = propertyInfoProvider.getProperty(beanType, StringConversionHelper.upperCaseFirst(objectCollector, propertyName));
                 if (property == null) {
-                    Field[] fields = ReflectUtil.getDeclaredFieldInHierarchy(beanType, propertyName);
+                    var fields = ReflectUtil.getDeclaredFieldInHierarchy(beanType, propertyName);
                     if (fields.length == 0) {
                         throw maskBeanBasedException("Bean property " + beanType.getName() + "." + propertyName + " not found", null, propertyConf);
                     }
@@ -746,10 +742,10 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
             }
             return property;
         }
-        Class<?> refBeanClass = refBean.getClass();
-        boolean atLeastOnePropertyFound = false;
+        var refBeanClass = refBean.getClass();
+        var atLeastOnePropertyFound = false;
         // Autoresolve property name by type of the requested bean
-        for (IPropertyInfo property : properties) {
+        for (var property : properties) {
             if (!property.isWritable()) {
                 continue;
             }
@@ -775,11 +771,11 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
             alreadySpecifiedPropertyNamesSet.add(property.getName());
         }
         if (!atLeastOnePropertyFound) {
-            Class<?> currType = beanType;
+            var currType = beanType;
             while (currType != Object.class) {
-                Field[] fields = ReflectUtil.getDeclaredFields(currType);
-                for (Field field : fields) {
-                    String fieldName = field.getName();
+                var fields = ReflectUtil.getDeclaredFields(currType);
+                for (var field : fields) {
+                    var fieldName = field.getName();
                     if (alreadySpecifiedPropertyNamesSet.contains(fieldName)) {
                         // Ignore all already handled properties for potential
                         // autoresolving
@@ -811,10 +807,10 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
     protected void initializeDefining(BeanContextInit beanContextInit, IBeanConfiguration beanConfiguration, Object bean, Class<?> beanType, IPropertyInfo[] propertyInfos,
             List<IPropertyConfiguration> propertyConfigurations, Set<String> alreadySpecifiedPropertyNamesSet) {
         for (int a = propertyConfigurations.size(); a-- > 0; ) {
-            IPropertyConfiguration propertyConf = propertyConfigurations.get(a);
+            var propertyConf = propertyConfigurations.get(a);
 
             try {
-                String refBeanName = propertyConf.getBeanName();
+                var refBeanName = propertyConf.getBeanName();
                 if (refBeanName == null) {
                     initializePrimitive(beanContextInit, bean, beanType, propertyConf, alreadySpecifiedPropertyNamesSet);
                     continue;
@@ -827,8 +823,8 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
     }
 
     protected void initializePrimitive(BeanContextInit beanContextInit, Object bean, Class<?> beanType, IPropertyConfiguration propertyConf, Set<String> alreadySpecifiedPropertyNamesSet) {
-        Object value = propertyConf.getValue();
-        IProperties properties = beanContextInit.properties;
+        var value = propertyConf.getValue();
+        var properties = beanContextInit.properties;
 
         if (value instanceof String) {
             value = properties.resolvePropertyParts((String) value);
@@ -838,9 +834,9 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
                         null, propertyConf);
             }
         }
-        IPropertyInfo primitiveProperty = autoResolveProperty(beanType, propertyConf, alreadySpecifiedPropertyNamesSet);
+        var primitiveProperty = autoResolveProperty(beanType, propertyConf, alreadySpecifiedPropertyNamesSet);
 
-        Object convertedValue = conversionHelper.convertValueToType(primitiveProperty.getPropertyType(), value);
+        var convertedValue = conversionHelper.convertValueToType(primitiveProperty.getPropertyType(), value);
 
         if (!alreadySpecifiedPropertyNamesSet.add(propertyConf.getPropertyName())) {
             log.debug("Property '" + propertyConf.getPropertyName() + "' already specified by higher priorized configuration. Ignoring setting property with value '" + convertedValue + "'");
@@ -870,14 +866,14 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 
     protected void initializeRelation(BeanContextInit beanContextInit, IBeanConfiguration beanConfiguration, Object bean, Class<?> beanType, IPropertyConfiguration propertyConf,
             IPropertyInfo[] propertyInfos, Set<String> alreadySpecifiedPropertyNamesSet) {
-        ServiceContext beanContext = beanContextInit.beanContext;
-        ILinkedMap<Object, IBeanConfiguration> objectToBeanConfigurationMap = beanContextInit.objectToBeanConfigurationMap;
+        var beanContext = beanContextInit.beanContext;
+        var objectToBeanConfigurationMap = beanContextInit.objectToBeanConfigurationMap;
 
-        String refBeanName = propertyConf.getBeanName();
+        var refBeanName = propertyConf.getBeanName();
 
         Object refBean;
         if (propertyConf.getFromContext() != null) {
-            Object refBeanContext = beanContext.getDirectBean(propertyConf.getFromContext());
+            var refBeanContext = beanContext.getDirectBean(propertyConf.getFromContext());
             if (refBeanContext == null) {
                 throw maskBeanBasedException("IoC context bean '" + propertyConf.getFromContext() + "' not found to look for target bean", beanConfiguration, propertyConf);
             }
@@ -915,7 +911,7 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
             autoResolveAndSetProperties(bean, beanType, propertyInfos, propertyConf, refBeanName, refBean, alreadySpecifiedPropertyNamesSet);
             return;
         }
-        IPropertyInfo refProperty = autoResolveProperty(beanType, propertyConf, alreadySpecifiedPropertyNamesSet);
+        var refProperty = autoResolveProperty(beanType, propertyConf, alreadySpecifiedPropertyNamesSet);
 
         if (!alreadySpecifiedPropertyNamesSet.add(refProperty.getName())) {
             log.debug("Property '" + refProperty.getName() + "' already specified by higher priorized configuration. Ignoring setting property with ref to bean '" + refBeanName + "'");
@@ -931,8 +927,8 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 
     protected void resolveAllBeanConfInHierarchy(List<IBeanConfiguration> beanConfigurations, List<IPropertyConfiguration> propertyConfs) {
         for (int a = 0, size = beanConfigurations.size(); a < size; a++) {
-            IBeanConfiguration beanConfiguration = beanConfigurations.get(a);
-            List<IPropertyConfiguration> propertyConfigurations = beanConfiguration.getPropertyConfigurations();
+            var beanConfiguration = beanConfigurations.get(a);
+            var propertyConfigurations = beanConfiguration.getPropertyConfigurations();
             if (propertyConfigurations != null) {
                 propertyConfs.addAll(propertyConfigurations);
             }
@@ -1010,28 +1006,24 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
     }
 
     @Override
-    public Object instantiateBean(ServiceContext beanContext, BeanContextFactory beanContextFactory, IBeanConfiguration beanConfiguration, Class<?> beanType,
+    public Object instantiateBean(IServiceContextIntern beanContext, IBeanContextFactoryIntern beanContextFactory, IBeanConfiguration beanConfiguration, Class<?> beanType,
             List<IBeanConfiguration> beanConfHierarchy) {
-        Object bean = null;
-
         var beanInstantiationProcessors = beanContext.getInstantiationProcessors();
         if (beanInstantiationProcessors != null) {
             for (int a = 0, size = beanInstantiationProcessors.size(); a < size; a++) {
                 var beanInstantiationProcessor = beanInstantiationProcessors.get(a);
-                bean = beanInstantiationProcessor.instantiateBean(beanContextFactory, beanContext, beanConfiguration, beanType, beanConfHierarchy);
+                var bean = beanInstantiationProcessor.instantiateBean(beanContextFactory, beanContext, beanConfiguration, beanType, beanConfHierarchy);
                 if (bean != null) {
                     return bean;
                 }
             }
         }
         if (beanConfiguration instanceof BeanConfiguration) {
-            bean = beanConfiguration.getInstance(beanType);
+            return beanConfiguration.getInstance(beanType);
         } else if (beanConfiguration instanceof BeanInstanceConfiguration) {
-            bean = beanConfiguration.getInstance();
-        } else {
-            throw maskBeanBasedException("Instance of '" + beanConfiguration.getClass() + "' not supported here", beanConfiguration, null);
+            return beanConfiguration.getInstance();
         }
-        return bean;
+        throw maskBeanBasedException("Instance of '" + beanConfiguration.getClass() + "' not supported here", beanConfiguration, null);
     }
 
     protected Object postProcessBean(BeanContextInit beanContextInit, IBeanConfiguration beanConfiguration, Class<?> beanType, Object bean, List<IBeanConfiguration> beanConfHierarchy) {
@@ -1091,7 +1083,7 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
                 continue;
             }
             var currentBeanType = resolveTypeInHierarchy(beanConfHierarchy);
-            boolean highPriority = isHighPriorityBean(currentBeanType);
+            var highPriority = isHighPriorityBean(currentBeanType);
             if (highPriorityOnly && !highPriority) {
                 continue;
             }
@@ -1133,7 +1125,7 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
     }
 
     @Override
-    public List<IBeanConfiguration> fillParentHierarchyIfValid(ServiceContext beanContext, BeanContextFactory beanContextFactory, IBeanConfiguration beanConfiguration) {
+    public List<IBeanConfiguration> fillParentHierarchyIfValid(IServiceContextIntern beanContext, IBeanContextFactoryIntern beanContextFactory, IBeanConfiguration beanConfiguration) {
         var beanContextInit = new BeanContextInit();
         beanContextInit.beanContext = beanContext;
         beanContextInit.beanContextFactory = beanContextFactory;

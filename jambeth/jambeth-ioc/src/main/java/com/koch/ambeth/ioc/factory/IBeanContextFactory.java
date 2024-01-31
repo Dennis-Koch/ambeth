@@ -85,4 +85,6 @@ public interface IBeanContextFactory extends ILinkExtendable, IAnonymousBeanRegi
 	 * @return The bean configuration instance to add properties and configurations.
 	 */
 	IBeanConfiguration registerExternalBean(String beanName, Object externalBean);
+
+    IBeanContextInitializer getBeanContextInitializer();
 }

@@ -99,7 +99,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class RootCache extends AbstractCache<RootCacheValue> implements IRootCache, IOfflineListener, ICacheRetriever {
+public class RootCache extends AbstractCache<RootCacheValue> implements IRootCache, IOfflineListener {
     public static final String P_EVENT_QUEUE = "EventQueue";
     public static final Set<CacheDirective> failEarlyCacheValueResultSet = EnumSet.of(CacheDirective.FailEarly, CacheDirective.CacheValueResult);
     protected final HashMap<IObjRef, Integer> relationOris = new HashMap<>();
@@ -1642,18 +1642,6 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
             relationsOfMember = IObjRef.EMPTY_ARRAY;
         }
         cacheValue.setRelation(relationIndex, relationsOfMember);
-    }
-
-    @SuppressWarnings({ "unchecked", "rawtypes" })
-    @Override
-    public List<ILoadContainer> getEntities(List<IObjRef> orisToLoad) {
-        List result = getObjects(orisToLoad, CacheDirective.loadContainerResult());
-        return result;
-    }
-
-    @Override
-    public List<IObjRelationResult> getRelations(List<IObjRelation> objRelations) {
-        return getObjRelations(objRelations, CacheDirective.none());
     }
 
     @Override

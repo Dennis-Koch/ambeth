@@ -45,6 +45,7 @@ import com.koch.ambeth.util.collections.IdentityLinkedSet;
 import com.koch.ambeth.util.collections.SmartCopyMap;
 import com.koch.ambeth.util.collections.WeakSmartCopyMap;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
+import lombok.Setter;
 import org.objectweb.asm.Type;
 
 import java.io.File;
@@ -71,16 +72,22 @@ public class BytecodeEnhancer implements IBytecodeEnhancer, IBytecodeBehaviorExt
     protected final HashSet<Class<?>> supportedEnhancements = new HashSet<>(0.5f);
     protected final Lock writeLock = new ReentrantLock();
     protected final IExtendableContainer<IBytecodeBehavior> bytecodeBehaviorExtensions = new ExtendableContainer<>(IBytecodeBehavior.class, "bytecodeBehavior");
-    @Autowired
+
+    @Setter(onMethod = @__({ @Autowired, @org.springframework.beans.factory.annotation.Autowired }))
     protected IServiceContext beanContext;
-    @Autowired
+
+    @Setter(onMethod = @__({ @Autowired, @org.springframework.beans.factory.annotation.Autowired }))
     protected IBytecodeClassLoader bytecodeClassLoader;
-    @Autowired(optional = true)
+
+    @Setter(onMethod = @__({ @Autowired(optional = true), @org.springframework.beans.factory.annotation.Autowired(required = false) }))
     protected IBytecodeStore bytecodeStore;
-    @Autowired
+
+    @Setter(onMethod = @__({ @Autowired, @org.springframework.beans.factory.annotation.Autowired }))
     protected IClassLoaderProvider classLoaderProvider;
+
     @Property(name = BytecodeConfigurationConstants.EnhancementTraceDirectory, mandatory = false)
     protected String traceDir;
+
     protected Map<BytecodeStoreKey, BytecodeStoreItem> enhancedTypes;
     @LogInstance
     private ILogger log;

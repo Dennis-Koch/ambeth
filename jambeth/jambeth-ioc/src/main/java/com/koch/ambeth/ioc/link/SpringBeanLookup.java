@@ -1,13 +1,16 @@
 package com.koch.ambeth.ioc.link;
 
 import com.koch.ambeth.ioc.IServiceLookup;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
-public class SpringBeanLookup implements IServiceLookup, ApplicationContextAware {
+@RequiredArgsConstructor
+public class SpringBeanLookup implements IServiceLookup {
 
-    @Setter
+    @NonNull
     protected ApplicationContext applicationContext;
 
     public Object getService(String serviceName) {

@@ -34,6 +34,7 @@ import com.koch.ambeth.util.Lock;
 import com.koch.ambeth.util.collections.IdentityHashSet;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 import com.koch.ambeth.util.proxy.AbstractSimpleInterceptor;
+import lombok.Setter;
 
 import java.lang.reflect.Method;
 
@@ -51,11 +52,14 @@ public abstract class AbstractRootCacheAwareInterceptor extends AbstractSimpleIn
     }
 
     protected final IdentityHashSet<RootCache> allRootCaches = new IdentityHashSet<>();
-    @Autowired(optional = true)
+
+    @Setter(onMethod = @__({ @Autowired(optional = true), @org.springframework.beans.factory.annotation.Autowired(required = false) }))
     protected IOfflineListenerExtendable offlineListenerExtendable;
-    @Autowired
+
+    @Setter(onMethod = @__({ @Autowired, @org.springframework.beans.factory.annotation.Autowired }))
     protected IServiceContext serviceContext;
-    @Autowired
+
+    @Setter(onMethod = @__({ @Autowired, @org.springframework.beans.factory.annotation.Autowired }))
     protected ICacheRetriever storedCacheRetriever;
 
     protected IRootCache acquireRootCache(boolean privileged, ThreadLocal<RootCache> currentRootCacheTL) {

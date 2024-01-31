@@ -8,15 +8,27 @@ import lombok.SneakyThrows;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.beans.factory.support.BeanDefinitionRegistry;
+import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
 
 @RequiredArgsConstructor
-public class SpringInitializingModule implements BeanFactoryPostProcessor {
+public class SpringInitializingModule implements BeanFactoryPostProcessor, BeanDefinitionRegistryPostProcessor {
 
     @NonNull
     final Object module;
 
     @Getter
     Runnable moduleFinalizer;
+
+    @Override
+    public void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry registry) throws BeansException {
+        if (module instanceof IInitializingModule) {
+            moduleFinalizer = SpringBeanContextFactory.processModuleInSpring(beanFactory, (IInitializingModule) module);
+        } else {
+            var currModule = ((Class<? extends IInitializingModule>) module).getConstructor().newInstance();
+            moduleFinalizer = SpringBeanContextFactory.processModuleInSpring(beanFactory, currModule);
+        }
+    }
 
     @SneakyThrows
     @Override

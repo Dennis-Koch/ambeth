@@ -97,16 +97,16 @@ public class LinkContainer extends AbstractLinkContainer {
         return mappedMethods;
     }
 
-    @Autowired(optional = true)
+    @Setter(onMethod = @__({ @Autowired(optional = true), @org.springframework.beans.factory.annotation.Autowired(required = false) }))
     protected IAccessorTypeProvider accessorTypeProvider;
 
-    @Autowired(optional = true)
+    @Setter(onMethod = @__({ @Autowired(optional = true), @org.springframework.beans.factory.annotation.Autowired(required = false) }))
     protected IBytecodeEnhancer bytecodeEnhancer;
 
-    @Setter
+    @Setter(onMethod = @__({ @Autowired, @org.springframework.beans.factory.annotation.Autowired }))
     protected IExtendableRegistry extendableRegistry;
 
-    @Setter
+    @Setter(onMethod = @__({ @Autowired, @org.springframework.beans.factory.annotation.Autowired }))
     protected IProxyFactory proxyFactory;
 
     protected Method addMethod;
@@ -115,14 +115,6 @@ public class LinkContainer extends AbstractLinkContainer {
 
     @LogInstance
     private ILogger log;
-
-    @Override
-    public void afterPropertiesSet() throws Exception {
-        super.afterPropertiesSet();
-
-        ParamChecker.assertNotNull(extendableRegistry, "ExtendableRegistry");
-        ParamChecker.assertNotNull(proxyFactory, "ProxyFactory");
-    }
 
     @Override
     protected Object resolveRegistryIntern(Object registry) {
