@@ -24,7 +24,9 @@ import com.koch.ambeth.merge.metadata.IMemberTypeProvider;
 import com.koch.ambeth.service.metadata.IPrimitiveMemberWrite;
 import com.koch.ambeth.service.metadata.Member;
 import com.koch.ambeth.service.metadata.PrimitiveMember;
+import com.koch.ambeth.util.IInterningFeature;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.SneakyThrows;
 
 import java.lang.annotation.Annotation;
@@ -57,10 +59,20 @@ public class CompositeIdMember extends PrimitiveMember implements IPrimitiveMemb
     @Getter
     protected final String name;
 
+    @Getter
+    @Setter
     protected boolean technicalMember;
 
+    @Getter
+    @Setter
     protected PrimitiveMember definedBy;
 
+    @Getter
+    @Setter
+    private IInterningFeature interningProcedure;
+
+    @Getter
+    @Setter
     private boolean isTransient;
 
     @SneakyThrows
@@ -78,36 +90,6 @@ public class CompositeIdMember extends PrimitiveMember implements IPrimitiveMemb
             paramTypes[a] = member.getRealType();
         }
         realTypeConstructorAccess = realType.getConstructor(paramTypes);
-    }
-
-    @Override
-    public boolean isTechnicalMember() {
-        return technicalMember;
-    }
-
-    @Override
-    public void setTechnicalMember(boolean technicalMember) {
-        this.technicalMember = technicalMember;
-    }
-
-    @Override
-    public boolean isTransient() {
-        return isTransient;
-    }
-
-    @Override
-    public void setTransient(boolean isTransient) {
-        this.isTransient = isTransient;
-    }
-
-    @Override
-    public PrimitiveMember getDefinedBy() {
-        return definedBy;
-    }
-
-    @Override
-    public void setDefinedBy(PrimitiveMember definedBy) {
-        this.definedBy = definedBy;
     }
 
     @Override

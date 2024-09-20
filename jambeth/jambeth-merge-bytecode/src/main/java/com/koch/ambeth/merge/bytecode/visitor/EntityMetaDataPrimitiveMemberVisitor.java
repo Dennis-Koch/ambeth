@@ -26,6 +26,7 @@ import com.koch.ambeth.bytecode.MethodInstance;
 import com.koch.ambeth.bytecode.visitor.InterfaceAdder;
 import com.koch.ambeth.service.metadata.IPrimitiveMemberWrite;
 import com.koch.ambeth.service.metadata.PrimitiveMember;
+import com.koch.ambeth.util.IInterningFeature;
 import com.koch.ambeth.util.typeinfo.IPropertyInfo;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Opcodes;
@@ -34,6 +35,10 @@ public class EntityMetaDataPrimitiveMemberVisitor extends ClassGenerator {
     protected static final MethodInstance template_m_isTechnicalMember = new MethodInstance(null, PrimitiveMember.class, boolean.class, "isTechnicalMember");
 
     protected static final MethodInstance template_m_setTechnicalMember = new MethodInstance(null, IPrimitiveMemberWrite.class, void.class, "setTechnicalMember", boolean.class);
+
+    protected static final MethodInstance template_m_getInterningProcedure = new MethodInstance(null, PrimitiveMember.class, IInterningFeature.class, "getInterningProcedure");
+
+    protected static final MethodInstance template_m_setInterningProcedure = new MethodInstance(null, IPrimitiveMemberWrite.class, void.class, "setInterningProcedure", IInterningFeature.class);
 
     protected static final MethodInstance template_m_isTransient = new MethodInstance(null, PrimitiveMember.class, boolean.class, "isTransient");
 
@@ -59,6 +64,7 @@ public class EntityMetaDataPrimitiveMemberVisitor extends ClassGenerator {
     @Override
     public void visitEnd() {
         implementTechnicalMember();
+        implementInterningProcedure();
         implementTransient();
         implementDefinedBy();
         super.visitEnd();
@@ -69,6 +75,13 @@ public class EntityMetaDataPrimitiveMemberVisitor extends ClassGenerator {
 
         implementGetter(template_m_isTechnicalMember, f_technicalMember);
         implementSetter(template_m_setTechnicalMember, f_technicalMember);
+    }
+
+    protected void implementInterningProcedure() {
+        var f_interning = implementField(new FieldInstance(Opcodes.ACC_PRIVATE, "__interningProcedure", null, IInterningFeature.class));
+
+        implementGetter(template_m_getInterningProcedure, f_interning);
+        implementSetter(template_m_setInterningProcedure, f_interning);
     }
 
     protected void implementTransient() {

@@ -657,7 +657,6 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
         var database = this.database.getCurrent();
         var conversionHelper = this.conversionHelper;
         var entityMetaDataProvider = this.entityMetaDataProvider;
-        var interningFeature = this.interningFeature;
         var metaData = entityMetaDataProvider.getMetaData(entityType);
         var table = database.getTableByType(entityType);
         var tableMD = table.getMetaData();
@@ -777,8 +776,9 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
                                 throw RuntimeExceptionUtil.mask(e, "Error occured while handling member: " + fieldMember.getDeclaringType().getName() + "." + fieldMember.getName());
                             }
                         }
-                        if (interningFeature != null && (metaData.hasInterningBehavior(fieldMember) || metaData.isAlternateId(fieldMember))) {
-                            primitiveValue = interningFeature.intern(primitiveValue);
+                        var interningProcedure = fieldMember.getInterningProcedure();
+                        if (interningProcedure != null) {
+                            primitiveValue = interningProcedure.intern(primitiveValue);
                         }
                         primitives[primitiveIndex] = primitiveValue;
                     }

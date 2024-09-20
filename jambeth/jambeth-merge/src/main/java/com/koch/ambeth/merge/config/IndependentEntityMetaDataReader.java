@@ -29,15 +29,17 @@ import com.koch.ambeth.service.config.ServiceConfigurationConstants;
 
 public class IndependentEntityMetaDataReader extends AbstractEntityMetaDataReader implements IStartingBean {
     public static final String P_FILE_NAME = "FileName";
+
     @Property(name = ServiceConfigurationConstants.mappingFile, mandatory = false)
     protected String fileName;
+
     @LogInstance
     private ILogger log;
 
     @Override
     public void afterStarted() throws Throwable {
         if (fileName != null) {
-            IOrmConfigGroup ormConfigGroup = ormConfigGroupProvider.getOrmConfigGroup(fileName);
+            var ormConfigGroup = ormConfigGroupProvider.getOrmConfigGroup(fileName);
             readConfig(ormConfigGroup);
         }
     }

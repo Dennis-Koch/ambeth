@@ -344,6 +344,10 @@ public class OrmXmlReader20 implements IOrmXmlReader, IInitializingBean {
         if (!transientValue.isEmpty()) {
             memberConfig.setTransient(Boolean.parseBoolean(transientValue));
         }
+        var interningValue = xmlConfigUtil.getAttribute(memberElement, XmlConstants.INTERNING);
+        if (!interningValue.isEmpty()) {
+            memberConfig.setInterning(Boolean.parseBoolean(interningValue));
+        }
         var definedByValue = xmlConfigUtil.getAttribute(memberElement, XmlConstants.DEFINED_BY);
         if (!definedByValue.isEmpty()) {
             memberConfig.setDefinedBy(definedByValue);

@@ -26,5 +26,13 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ ElementType.TYPE, ElementType.METHOD, ElementType.FIELD })
 public @interface Interning {
+    /**
+     * Distinct bean name implementing {@link com.koch.ambeth.util.IInterningFeature } that allows to fully customize the exact interning procedure. If undefined an implementation is resolved via
+     * autowiring.
+     *
+     * @return
+     */
+    String customizerBean() default "";
+
     boolean value() default true;
 }

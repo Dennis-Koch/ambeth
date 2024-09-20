@@ -87,10 +87,6 @@ public interface IEntityMetaData {
 
     boolean isCascadeDelete(Class<?> other);
 
-    boolean hasInterningBehavior(Member primitiveMember);
-
-    void changeInterningBehavior(Member primitiveMember, boolean state);
-
     void postProcessNewEntity(Object newEntity);
 
     void postLoad(Object entity);

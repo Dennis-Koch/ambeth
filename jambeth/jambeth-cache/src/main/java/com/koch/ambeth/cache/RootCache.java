@@ -232,7 +232,10 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 
     @Override
     public RootCacheValue createCacheValueInstance(IEntityMetaData metaData, Object obj) {
-        return rootCacheValueFactory.createRootCacheValue(metaData);
+        if (lruThreshold == 0) {
+            return rootCacheValueFactory.createRootCacheValue(metaData);
+        }
+        return rootCacheValueFactory.createRootCacheValueLRU(metaData);
     }
 
     @Override

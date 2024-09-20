@@ -28,9 +28,7 @@ import com.koch.ambeth.service.cache.model.ILoadContainer;
 import com.koch.ambeth.service.cache.model.IObjRelation;
 import com.koch.ambeth.service.cache.model.IObjRelationResult;
 import com.koch.ambeth.service.merge.IEntityMetaDataProvider;
-import com.koch.ambeth.service.merge.model.IEntityMetaData;
 import com.koch.ambeth.service.merge.model.IObjRef;
-import com.koch.ambeth.service.metadata.Member;
 import com.koch.ambeth.util.IInterningFeature;
 import com.koch.ambeth.util.collections.ArrayList;
 import lombok.Setter;
@@ -70,7 +68,7 @@ public class RootCacheBridge implements ICacheRetriever {
             for (int a = loadContainers.size(); a-- > 0; ) {
                 result.add((ILoadContainer) loadContainers.get(a));
             }
-            internStrings(result);
+            internPrimitives(result);
             return result;
         }
         var orisToLoadWithVersion = new ArrayList<IObjRef>(orisToLoad.size());
@@ -99,7 +97,7 @@ public class RootCacheBridge implements ICacheRetriever {
             var uncommittedLoadContainer = uncommittedCacheRetriever.getEntities(missedOris);
             result.addAll(uncommittedLoadContainer);
         }
-        internStrings(result);
+        internPrimitives(result);
         return result;
     }
 
@@ -132,30 +130,26 @@ public class RootCacheBridge implements ICacheRetriever {
         return result;
     }
 
-    protected void internStrings(List<ILoadContainer> loadContainers) {
+    protected void internPrimitives(List<ILoadContainer> loadContainers) {
         for (int a = loadContainers.size(); a-- > 0; ) {
             var loadContainer = loadContainers.get(a);
             var metaData = entityMetaDataProvider.getMetaData(loadContainer.getReference().getRealType());
             var primitives = loadContainer.getPrimitives();
-            for (var member : metaData.getPrimitiveMembers()) {
-                if (!metaData.hasInterningBehavior(member)) {
+            var primitiveMembers = metaData.getPrimitiveMembers();
+            for (int index = primitiveMembers.length; index-- > 0;) {
+                var member = primitiveMembers[index];
+                var interningProcedure = member.getInterningProcedure();
+                if (interningProcedure == null) {
                     continue;
                 }
-                internPrimitiveMember(metaData, primitives, member);
-            }
-        }
-    }
-
-    protected void internPrimitiveMember(IEntityMetaData metaData, Object[] primitives, Member member) {
-        if (member == null) {
-            return;
-        }
-        var index = metaData.getIndexByPrimitive(member);
-        var value = primitives[index];
-        if (value instanceof String) {
-            var internValue = interningFeature.intern(value);
-            if (value != internValue) {
-                primitives[index] = internValue;
+                var value = primitives[index];
+                if (value == null) {
+                    continue;
+                }
+                var internValue = interningProcedure.intern(value);
+                if (value != internValue) {
+                    primitives[index] = internValue;
+                }
             }
         }
     }

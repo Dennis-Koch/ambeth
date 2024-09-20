@@ -37,10 +37,10 @@ public class InterningFeature extends WeakHashSet<Object> implements IInterningF
 		if (value == null) {
 			return null;
 		}
-		ReentrantLock writeLock = this.writeLock;
+		var writeLock = this.writeLock;
 		writeLock.lock();
 		try {
-			Object internedValue = get(value);
+            var internedValue = get(value);
 			if (internedValue == null) {
 				internedValue = value;
 				add(internedValue);

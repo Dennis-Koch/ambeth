@@ -20,6 +20,8 @@ limitations under the License.
  * #L%
  */
 
+import lombok.Getter;
+
 public class CompositeMemberConfig extends AbstractMemberConfig {
 	private static String constructName(MemberConfig[] members) {
 		StringBuilder sb = new StringBuilder(members[0].getName());
@@ -30,15 +32,12 @@ public class CompositeMemberConfig extends AbstractMemberConfig {
 		return sb.toString();
 	}
 
+    @Getter
 	private final MemberConfig[] members;
 
 	public CompositeMemberConfig(MemberConfig[] members) {
 		super(constructName(members));
 		this.members = members;
-	}
-
-	public MemberConfig[] getMembers() {
-		return members;
 	}
 
 	@Override

@@ -29,10 +29,6 @@ import com.koch.ambeth.service.merge.model.IObjRef;
 import com.koch.ambeth.util.collections.IListElem;
 
 public abstract class RootCacheValue extends AbstractCacheValue implements IListElem<RootCacheValue>, IObjRefContainer {
-    protected Object listHandle;
-
-    protected IListElem<RootCacheValue> next, prev;
-
     public RootCacheValue(IEntityMetaData metaData) {
         // Intended blank
     }
@@ -58,37 +54,22 @@ public abstract class RootCacheValue extends AbstractCacheValue implements IList
     public abstract void setRelation(int relationIndex, IObjRef[] relationsOfMember);
 
     @Override
-    public Object getListHandle() {
-        return listHandle;
-    }
+    public abstract Object getListHandle();
 
     @Override
-    public void setListHandle(Object listHandle) {
-        if (this.listHandle != null && listHandle != null) {
-            throw new UnsupportedOperationException();
-        }
-        this.listHandle = listHandle;
-    }
+    public abstract void setListHandle(Object listHandle);
 
     @Override
-    public IListElem<RootCacheValue> getNext() {
-        return next;
-    }
+    public abstract IListElem<RootCacheValue> getNext();
 
     @Override
-    public void setNext(IListElem<RootCacheValue> next) {
-        this.next = next;
-    }
+    public abstract void setNext(IListElem<RootCacheValue> next);
 
     @Override
-    public IListElem<RootCacheValue> getPrev() {
-        return prev;
-    }
+    public abstract IListElem<RootCacheValue> getPrev();
 
     @Override
-    public void setPrev(IListElem<RootCacheValue> prev) {
-        this.prev = prev;
-    }
+    public abstract void setPrev(IListElem<RootCacheValue> prev);
 
     @Override
     public RootCacheValue getElemValue() {

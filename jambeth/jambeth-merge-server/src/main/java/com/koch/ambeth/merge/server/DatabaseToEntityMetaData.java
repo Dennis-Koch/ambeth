@@ -393,7 +393,7 @@ public class DatabaseToEntityMetaData implements IDatabaseMappedListener, IDispo
         }
         var elementType = idFields[0].getFieldType();
         var realType = Object.class.equals(idMember.getRealType()) ? elementType : idMember.getRealType();
-        return new IntermediatePrimitiveMember(idMember.getDeclaringType(), idMember.getEntityType(), realType, elementType, idMember.getName(), idMember.getAnnotations());
+        return new IntermediatePrimitiveMember(idMember.getDeclaringType(), idMember.getEntityType(), realType, elementType, idMember.getName(), idMember.getAnnotations(), null);
     }
 
     @Override

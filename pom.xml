@@ -26,6 +26,9 @@
         <checkstyle.file>${jambeth.path.test}/checkstyle_checks.xml</checkstyle.file>
         <checkstyle.properties>${jambeth.path.test}/checkstyle.properties</checkstyle.properties>
         <findbugs.file>${jambeth.path.test}/findbugs_exclude_checks.xml</findbugs.file>
+        <ambeth.version>${project.version}</ambeth.version>
+        <ambeth.extendables.scanner.version>${project.version}</ambeth.extendables.scanner.version>
+        <ambeth.integrity.version>${project.version}</ambeth.integrity.version>
     </properties>
 
     <licenses>
@@ -80,17 +83,17 @@
             <dependency>
                 <groupId>org.ow2.asm</groupId>
                 <artifactId>asm</artifactId>
-                <version>9.6</version>
+                <version>9.7</version>
             </dependency>
             <dependency>
                 <groupId>org.ow2.asm</groupId>
                 <artifactId>asm-commons</artifactId>
-                <version>9.6</version>
+                <version>9.7</version>
             </dependency>
             <dependency>
                 <groupId>org.ow2.asm</groupId>
                 <artifactId>asm-util</artifactId>
-                <version>9.6</version>
+                <version>9.7</version>
             </dependency>
             <dependency>
                 <groupId>org.testcontainers</groupId>
@@ -179,7 +182,7 @@
             <dependency>
                 <groupId>commons-io</groupId>
                 <artifactId>commons-io</artifactId>
-                <version>2.15.0</version>
+                <version>2.17.0</version>
             </dependency>
 
             <dependency>
@@ -427,9 +430,9 @@
                     <version>3.4.1</version>
                 </plugin>
                 <plugin>
-                    <groupId>de.akquinet.maven</groupId>
-                    <artifactId>maven-latex-plugin</artifactId>
-                    <version>1.4.1</version>
+                    <groupId>com.github.fracpete</groupId>
+                    <artifactId>latex-maven-plugin</artifactId>
+                    <version>1.4.5</version>
                 </plugin>
                 <plugin>
                     <groupId>org.jacoco</groupId>
@@ -719,7 +722,6 @@
             <id>all</id>
             <modules>
                 <module>ambeth-integrity</module>
-                <module>chemspider</module>
                 <module>doc</module>
                 <module>jambeth</module>
                 <module>junit-categories</module>
@@ -742,12 +744,7 @@
         </profile>
 
         <profile>
-            <id>jenkins</id>
-            <activation>
-                <property>
-                    <name>env.JENKINS_HOME</name>
-                </property>
-            </activation>
+            <id>ci</id>
             <build>
                 <plugins>
                     <plugin>

@@ -1,7 +1,5 @@
 package com.koch.ambeth.extscanner;
 
-import java.util.Map.Entry;
-
 import com.koch.ambeth.extscanner.model.AnnotationEntry;
 import com.koch.ambeth.extscanner.model.ConfigurationEntry;
 import com.koch.ambeth.extscanner.model.ExtendableEntry;
@@ -11,6 +9,8 @@ import com.koch.ambeth.extscanner.model.TypeEntry;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.HashMap;
 import com.koch.classbrowser.java.TypeDescription;
+
+import java.util.Map.Entry;
 
 public class Model implements IModel {
 	protected final HashMap<String, ModuleEntry> nameToModuleMap = new HashMap<>();
@@ -176,6 +176,6 @@ public class Model implements IModel {
 		//
 		// return null;
 
-		return featureEntries.toArray(FeatureEntry.class);
+		return featureEntries.toArray(FeatureEntry[]::new);
 	}
 }

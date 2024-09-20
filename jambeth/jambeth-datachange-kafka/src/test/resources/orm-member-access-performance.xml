@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<or-mappings xmlns="http://schema.kochdev.com/ambeth/ambeth_orm_2_0">
+	<link-mappings>
+		<independent-link alias="A-B" left="com.koch.ambeth.datachange.kafka.MemberAccessPerformanceTest$A" right="com.koch.ambeth.datachange.kafka.MemberAccessPerformanceTest$B"/>
+        <independent-link alias="B-C" left="com.koch.ambeth.datachange.kafka.MemberAccessPerformanceTest$B" right="com.koch.ambeth.datachange.kafka.MemberAccessPerformanceTest$C"/>
+        <independent-link alias="C-D" left="com.koch.ambeth.datachange.kafka.MemberAccessPerformanceTest$C" right="com.koch.ambeth.datachange.kafka.MemberAccessPerformanceTest$D"/>
+	</link-mappings>
+
+	<entity-mappings>
+		<external-entity class="com.koch.ambeth.datachange.kafka.MemberAccessPerformanceTest$A">
+			<attributes>
+				<relation name="B" link="A-B" />
+			</attributes>
+		</external-entity>
+
+        <external-entity class="com.koch.ambeth.datachange.kafka.MemberAccessPerformanceTest$B">
+            <attributes>
+                <relation name="C" link="B-C" />
+            </attributes>
+        </external-entity>
+
+        <external-entity class="com.koch.ambeth.datachange.kafka.MemberAccessPerformanceTest$C">
+            <attributes>
+                <relation name="D" link="C-D" />
+            </attributes>
+        </external-entity>
+
+        <external-entity class="com.koch.ambeth.datachange.kafka.MemberAccessPerformanceTest$D">
+            <attributes>
+            </attributes>
+        </external-entity>
+    </entity-mappings>
+</or-mappings>

@@ -51,13 +51,13 @@ public class CacheMapEntryVisitor extends ClassGenerator {
         if (member == null) {
             // NoOp implementation
             {
-                MethodGenerator mv = cv.visitMethod(m_get);
+                var mv = cv.visitMethod(m_get);
                 mv.pushNull();
                 mv.returnValue();
                 mv.endMethod();
             }
             {
-                MethodGenerator mv = cv.visitMethod(m_set);
+                var mv = cv.visitMethod(m_set);
                 mv.returnValue();
                 mv.endMethod();
             }
@@ -65,19 +65,19 @@ public class CacheMapEntryVisitor extends ClassGenerator {
         }
         if (member instanceof CompositeIdMember || (!member.getRealType().isPrimitive() && WrapperTypeSet.getUnwrappedType(member.getRealType()) == null)) {
             // no business case for any complex efforts
-            FieldInstance f_id = cv.implementField(new FieldInstance(Opcodes.ACC_PRIVATE, getFieldName(member), null, Object.class));
+            var f_id = cv.implementField(new FieldInstance(Opcodes.ACC_PRIVATE, getFieldName(member), null, Object.class));
             m_get = cv.implementGetter(m_get, f_id);
             m_set = cv.implementSetter(m_set, f_id);
             return f_id;
         }
 
-        Class<?> nativeType = member.getRealType();
+        var nativeType = member.getRealType();
         if (!nativeType.isPrimitive()) {
             nativeType = WrapperTypeSet.getUnwrappedType(nativeType);
         }
-        FieldInstance f_id = cv.implementField(new FieldInstance(Opcodes.ACC_PRIVATE, getFieldName(member), null, nativeType));
+        var f_id = cv.implementField(new FieldInstance(Opcodes.ACC_PRIVATE, getFieldName(member), null, nativeType));
 
-        final Type nativeTypeHandle = Type.getType(nativeType);
+        var nativeTypeHandle = Type.getType(nativeType);
         {
             MethodGenerator mv = cv.visitMethod(m_get);
             mv.getThisField(f_id);
@@ -86,12 +86,12 @@ public class CacheMapEntryVisitor extends ClassGenerator {
             mv.endMethod();
         }
         {
-            MethodGenerator mv = cv.visitMethod(m_set);
+            var mv = cv.visitMethod(m_set);
             mv.putThisField(f_id, new Script() {
                 @Override
                 public void execute(MethodGenerator mg) {
-                    Label l_isNotNull = mg.newLabel();
-                    Label l_finish = mg.newLabel();
+                    var l_isNotNull = mg.newLabel();
+                    var l_finish = mg.newLabel();
 
                     mg.loadArg(0);
                     mg.ifNonNull(l_isNotNull);
@@ -120,28 +120,28 @@ public class CacheMapEntryVisitor extends ClassGenerator {
 
     @Override
     public void visitEnd() {
-        Type entityType = Type.getType(metaData.getEntityType());
+        var entityType = Type.getType(metaData.getEntityType());
         {
-            MethodGenerator mv = visitMethod(template_m_getEntityType);
+            var mv = visitMethod(template_m_getEntityType);
             mv.push(entityType);
             mv.returnValue();
             mv.endMethod();
         }
 
         {
-            MethodGenerator mv = visitMethod(template_m_getIdIndex);
+            var mv = visitMethod(template_m_getIdIndex);
             mv.push(idIndex);
             mv.returnValue();
             mv.endMethod();
         }
 
-        FieldInstance f_id = implementNativeField(this, metaData.getIdMemberByIdIndex(idIndex), template_m_getId, template_m_setId);
+        var f_id = implementNativeField(this, metaData.getIdMemberByIdIndex(idIndex), template_m_getId, template_m_setId);
 
         if (f_id.getType().getOpcode(Opcodes.IRETURN) != Opcodes.ARETURN) {
             // id is a primitive type. So we use an improved version of the 3-tuple equals without boxing
             // the id
-            MethodGenerator mv = visitMethod(template_m_isEqualTo);
-            Label l_notEqual = mv.newLabel();
+            var mv = visitMethod(template_m_isEqualTo);
+            var l_notEqual = mv.newLabel();
 
             mv.push(entityType);
             mv.loadArg(0);

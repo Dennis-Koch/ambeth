@@ -20,210 +20,207 @@ limitations under the License.
  * #L%
  */
 
+import java.util.Collection;
 import java.util.LinkedHashSet;
 
 public class EntityConfig implements IEntityConfig {
-	private final Class<?> entityType, realType;
+    private final Class<?> entityType, realType;
 
-	private boolean local;
+    private boolean local;
 
-	private String tableName;
+    private String tableName;
 
-	private String permissionGroupName;
+    private String permissionGroupName;
 
-	private String sequenceName;
+    private String sequenceName;
 
-	private IMemberConfig idMemberConfig;
+    private IMemberConfig idMemberConfig;
 
-	private IMemberConfig versionMemberConfig;
+    private IMemberConfig versionMemberConfig;
 
-	private boolean versionRequired = true;
+    private boolean versionRequired = true;
 
-	private IMemberConfig createdByMemberConfig;
+    private IMemberConfig createdByMemberConfig;
 
-	private IMemberConfig createdOnMemberConfig;
+    private IMemberConfig createdOnMemberConfig;
 
-	private IMemberConfig updatedByMemberConfig;
+    private IMemberConfig updatedByMemberConfig;
 
-	private IMemberConfig updatedOnMemberConfig;
+    private IMemberConfig updatedOnMemberConfig;
 
-	private final LinkedHashSet<IMemberConfig> memberConfigs = new LinkedHashSet<>();
+    private final LinkedHashSet<IMemberConfig> memberConfigs = new LinkedHashSet<>();
 
-	private final LinkedHashSet<IRelationConfig> relationConfigs =
-			new LinkedHashSet<>();
+    private final LinkedHashSet<IRelationConfig> relationConfigs = new LinkedHashSet<>();
 
-	private String descriminatorName;
+    private String descriminatorName;
 
-	@Deprecated
-	public EntityConfig(Class<?> entityType) {
-		this(entityType, entityType);
-	}
+    @Deprecated
+    public EntityConfig(Class<?> entityType) {
+        this(entityType, entityType);
+    }
 
-	public EntityConfig(Class<?> entityType, Class<?> realType) {
-		this.entityType = entityType;
-		this.realType = realType;
-	}
+    public EntityConfig(Class<?> entityType, Class<?> realType) {
+        this.entityType = entityType;
+        this.realType = realType;
+    }
 
-	@Override
-	public Class<?> getEntityType() {
-		return entityType;
-	}
+    @Override
+    public Class<?> getEntityType() {
+        return entityType;
+    }
 
-	@Override
-	public Class<?> getRealType() {
-		return realType;
-	}
+    @Override
+    public Class<?> getRealType() {
+        return realType;
+    }
 
-	@Override
-	public boolean isLocal() {
-		return local;
-	}
+    @Override
+    public boolean isLocal() {
+        return local;
+    }
 
-	public void setLocal(boolean local) {
-		this.local = local;
-	}
+    public void setLocal(boolean local) {
+        this.local = local;
+    }
 
-	@Override
-	public String getTableName() {
-		return tableName;
-	}
+    @Override
+    public String getTableName() {
+        return tableName;
+    }
 
-	public void setTableName(String tableName) {
-		this.tableName = tableName;
-	}
+    public void setTableName(String tableName) {
+        this.tableName = tableName;
+    }
 
-	@Override
-	public String getPermissionGroupName() {
-		return permissionGroupName;
-	}
+    @Override
+    public String getPermissionGroupName() {
+        return permissionGroupName;
+    }
 
-	public void setPermissionGroupName(String permissionGroupName) {
-		this.permissionGroupName = permissionGroupName;
-	}
+    public void setPermissionGroupName(String permissionGroupName) {
+        this.permissionGroupName = permissionGroupName;
+    }
 
-	@Override
-	public String getSequenceName() {
-		return sequenceName;
-	}
+    @Override
+    public String getSequenceName() {
+        return sequenceName;
+    }
 
-	public void setSequenceName(String sequenceName) {
-		this.sequenceName = sequenceName;
-	}
+    public void setSequenceName(String sequenceName) {
+        this.sequenceName = sequenceName;
+    }
 
-	@Override
-	public IMemberConfig getIdMemberConfig() {
-		return idMemberConfig;
-	}
+    @Override
+    public IMemberConfig getIdMemberConfig() {
+        return idMemberConfig;
+    }
 
-	public void setIdMemberConfig(IMemberConfig idMemberInfo) {
-		idMemberConfig = idMemberInfo;
-	}
+    public void setIdMemberConfig(IMemberConfig idMemberInfo) {
+        idMemberConfig = idMemberInfo;
+    }
 
-	@Override
-	public IMemberConfig getVersionMemberConfig() {
-		return versionMemberConfig;
-	}
+    @Override
+    public IMemberConfig getVersionMemberConfig() {
+        return versionMemberConfig;
+    }
 
-	public void setVersionMemberConfig(IMemberConfig versionMemberInfo) {
-		versionMemberConfig = versionMemberInfo;
-	}
+    public void setVersionMemberConfig(IMemberConfig versionMemberInfo) {
+        versionMemberConfig = versionMemberInfo;
+    }
 
-	@Override
-	public String getDescriminatorName() {
-		return descriminatorName;
-	}
+    @Override
+    public String getDescriminatorName() {
+        return descriminatorName;
+    }
 
-	public void setDescriminatorName(String descriminatorName) {
-		this.descriminatorName = descriminatorName;
-	}
+    public void setDescriminatorName(String descriminatorName) {
+        this.descriminatorName = descriminatorName;
+    }
 
-	@Override
-	public boolean isVersionRequired() {
-		return versionRequired;
-	}
+    @Override
+    public boolean isVersionRequired() {
+        return versionRequired;
+    }
 
-	public void setVersionRequired(boolean versionRequired) {
-		this.versionRequired = versionRequired;
-	}
+    public void setVersionRequired(boolean versionRequired) {
+        this.versionRequired = versionRequired;
+    }
 
-	@Override
-	public IMemberConfig getCreatedByMemberConfig() {
-		return createdByMemberConfig;
-	}
+    @Override
+    public IMemberConfig getCreatedByMemberConfig() {
+        return createdByMemberConfig;
+    }
 
-	public void setCreatedByMemberConfig(IMemberConfig createdByMemberConfig) {
-		this.createdByMemberConfig = createdByMemberConfig;
-	}
+    public void setCreatedByMemberConfig(IMemberConfig createdByMemberConfig) {
+        this.createdByMemberConfig = createdByMemberConfig;
+    }
 
-	@Override
-	public IMemberConfig getCreatedOnMemberConfig() {
-		return createdOnMemberConfig;
-	}
+    @Override
+    public IMemberConfig getCreatedOnMemberConfig() {
+        return createdOnMemberConfig;
+    }
 
-	public void setCreatedOnMemberConfig(IMemberConfig createdOnMemberConfig) {
-		this.createdOnMemberConfig = createdOnMemberConfig;
-	}
+    public void setCreatedOnMemberConfig(IMemberConfig createdOnMemberConfig) {
+        this.createdOnMemberConfig = createdOnMemberConfig;
+    }
 
-	@Override
-	public IMemberConfig getUpdatedByMemberConfig() {
-		return updatedByMemberConfig;
-	}
+    @Override
+    public IMemberConfig getUpdatedByMemberConfig() {
+        return updatedByMemberConfig;
+    }
 
-	public void setUpdatedByMemberConfig(IMemberConfig updatedByMemberConfig) {
-		this.updatedByMemberConfig = updatedByMemberConfig;
-	}
+    public void setUpdatedByMemberConfig(IMemberConfig updatedByMemberConfig) {
+        this.updatedByMemberConfig = updatedByMemberConfig;
+    }
 
-	@Override
-	public IMemberConfig getUpdatedOnMemberConfig() {
-		return updatedOnMemberConfig;
-	}
+    @Override
+    public IMemberConfig getUpdatedOnMemberConfig() {
+        return updatedOnMemberConfig;
+    }
 
-	public void setUpdatedOnMemberConfig(IMemberConfig updatedOnMemberConfig) {
-		this.updatedOnMemberConfig = updatedOnMemberConfig;
-	}
+    public void setUpdatedOnMemberConfig(IMemberConfig updatedOnMemberConfig) {
+        this.updatedOnMemberConfig = updatedOnMemberConfig;
+    }
 
-	@Override
-	public Iterable<IMemberConfig> getMemberConfigIterable() {
-		return memberConfigs;
-	}
+    @Override
+    public Collection<IMemberConfig> getMemberConfigs() {
+        return memberConfigs;
+    }
 
-	public void addMemberConfig(IMemberConfig memberConfig) {
-		if (!memberConfigs.add(memberConfig)) {
-			throw new IllegalStateException("Duplicate member configuration for '" + entityType.getName()
-					+ "'.'" + memberConfig.getName() + "'");
-		}
-	}
+    public void addMemberConfig(IMemberConfig memberConfig) {
+        if (!memberConfigs.add(memberConfig)) {
+            throw new IllegalStateException("Duplicate member configuration for '" + entityType.getName() + "'.'" + memberConfig.getName() + "'");
+        }
+    }
 
-	@Override
-	public Iterable<IRelationConfig> getRelationConfigIterable() {
-		return relationConfigs;
-	}
+    @Override
+    public Collection<IRelationConfig> getRelationConfigs() {
+        return relationConfigs;
+    }
 
-	public void addRelationConfig(IRelationConfig relationConfig) {
-		if (!relationConfigs.add(relationConfig)) {
-			throw new IllegalStateException("Duplicate relation configuration for '"
-					+ entityType.getName() + "'.'" + relationConfig.getName() + "'");
-		}
-	}
+    public void addRelationConfig(IRelationConfig relationConfig) {
+        if (!relationConfigs.add(relationConfig)) {
+            throw new IllegalStateException("Duplicate relation configuration for '" + entityType.getName() + "'.'" + relationConfig.getName() + "'");
+        }
+    }
 
-	@Override
-	public int hashCode() {
-		return entityType.hashCode();
-	}
+    @Override
+    public int hashCode() {
+        return entityType.hashCode();
+    }
 
-	@Override
-	public boolean equals(Object obj) {
-		if (obj instanceof EntityConfig) {
-			IEntityConfig other = (IEntityConfig) obj;
-			return entityType.equals(other.getEntityType());
-		}
-		else {
-			return false;
-		}
-	}
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof EntityConfig) {
+            IEntityConfig other = (IEntityConfig) obj;
+            return entityType.equals(other.getEntityType());
+        } else {
+            return false;
+        }
+    }
 
-	@Override
-	public String toString() {
-		return getClass().getSimpleName() + ": " + getEntityType();
-	}
+    @Override
+    public String toString() {
+        return getClass().getSimpleName() + ": " + getEntityType();
+    }
 }

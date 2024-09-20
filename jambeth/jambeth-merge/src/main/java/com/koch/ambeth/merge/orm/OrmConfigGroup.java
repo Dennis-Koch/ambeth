@@ -21,25 +21,23 @@ limitations under the License.
  */
 
 import com.koch.ambeth.util.collections.ISet;
+import lombok.RequiredArgsConstructor;
 
+import java.util.Collection;
+
+@RequiredArgsConstructor
 public class OrmConfigGroup implements IOrmConfigGroup {
-	protected final ISet<IEntityConfig> localEntityConfigs;
+    protected final ISet<IEntityConfig> localEntityConfigs;
 
-	protected final ISet<IEntityConfig> externalEntityConfigs;
+    protected final ISet<IEntityConfig> externalEntityConfigs;
 
-	public OrmConfigGroup(ISet<IEntityConfig> localEntityConfigs,
-			ISet<IEntityConfig> externalEntityConfigs) {
-		this.localEntityConfigs = localEntityConfigs;
-		this.externalEntityConfigs = externalEntityConfigs;
-	}
+    @Override
+    public Collection<IEntityConfig> getExternalEntityConfigs() {
+        return externalEntityConfigs;
+    }
 
-	@Override
-	public Iterable<IEntityConfig> getExternalEntityConfigs() {
-		return externalEntityConfigs;
-	}
-
-	@Override
-	public Iterable<IEntityConfig> getLocalEntityConfigs() {
-		return localEntityConfigs;
-	}
+    @Override
+    public Collection<IEntityConfig> getLocalEntityConfigs() {
+        return localEntityConfigs;
+    }
 }

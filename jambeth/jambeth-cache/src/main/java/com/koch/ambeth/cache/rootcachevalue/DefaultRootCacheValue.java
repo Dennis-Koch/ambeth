@@ -22,9 +22,19 @@ limitations under the License.
 
 import com.koch.ambeth.service.merge.model.IEntityMetaData;
 import com.koch.ambeth.service.merge.model.IObjRef;
+import com.koch.ambeth.util.collections.IListElem;
+import lombok.Getter;
+import lombok.Setter;
 
 public class DefaultRootCacheValue extends RootCacheValue {
-	protected Object[] primitives;
+    @Getter
+    protected Object listHandle;
+
+    @Getter
+    @Setter
+    protected IListElem<RootCacheValue> next, prev;
+
+    protected Object[] primitives;
 
 	protected IObjRef[][] relations;
 
@@ -39,7 +49,15 @@ public class DefaultRootCacheValue extends RootCacheValue {
 		this.metaData = metaData;
 	}
 
-	@Override
+    @Override
+    public void setListHandle(Object listHandle) {
+        if (this.listHandle != null && listHandle != null) {
+            throw new UnsupportedOperationException();
+        }
+        this.listHandle = listHandle;
+    }
+
+    @Override
 	public IEntityMetaData get__EntityMetaData() {
 		return metaData;
 	}
