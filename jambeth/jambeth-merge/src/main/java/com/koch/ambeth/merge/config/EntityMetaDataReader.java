@@ -20,6 +20,7 @@ limitations under the License.
  * #L%
  */
 
+import com.koch.ambeth.ioc.IServiceContext;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.typeinfo.MethodPropertyInfo;
 import com.koch.ambeth.ioc.typeinfo.TypeInfoItemUtil;
@@ -42,6 +43,7 @@ import com.koch.ambeth.service.metadata.IPrimitiveMemberWrite;
 import com.koch.ambeth.service.metadata.Member;
 import com.koch.ambeth.service.metadata.PrimitiveMember;
 import com.koch.ambeth.service.metadata.RelationMember;
+import com.koch.ambeth.util.IInterningFeature;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.HashMap;
 import com.koch.ambeth.util.collections.HashSet;
@@ -62,14 +64,22 @@ import java.util.regex.Pattern;
 
 public class EntityMetaDataReader implements IEntityMetaDataReader {
     private static final Pattern containsDot = Pattern.compile("\\.");
+
+    @Autowired
+    protected IServiceContext beanContext;
+
     @Autowired
     protected ICompositeIdFactory compositeIdFactory;
+
     @Autowired
     protected IIntermediateMemberTypeProvider intermediateMemberTypeProvider;
+
     @Autowired
     protected IPropertyInfoProvider propertyInfoProvider;
+
     @Autowired
     protected IRelationProvider relationProvider;
+
     @LogInstance
     private ILogger log;
 
@@ -101,14 +111,14 @@ public class EntityMetaDataReader implements IEntityMetaDataReader {
         // Resolve members for all explicit configurations - both simple and composite ones, each with
         // embedded
         // functionality (dot-member-path)
-        for (var memberConfig : entityConfig.getMemberConfigIterable()) {
+        for (var memberConfig : entityConfig.getMemberConfigs()) {
             putNameToConfigMap(memberConfig, nameToConfigMap);
             if (memberConfig.isIgnore()) {
                 continue;
             }
             handleMemberConfig(metaData, realType, memberConfig, explicitlyConfiguredMemberNameToMember, nameToMemberMap);
         }
-        for (var relationConfig : entityConfig.getRelationConfigIterable()) {
+        for (var relationConfig : entityConfig.getRelationConfigs()) {
             putNameToConfigMap(relationConfig, nameToConfigMap);
             handleRelationConfig(realType, relationConfig, explicitlyConfiguredMemberNameToMember);
         }
@@ -349,13 +359,14 @@ public class EntityMetaDataReader implements IEntityMetaDataReader {
         if (!(memberConfig instanceof CompositeMemberConfig)) {
             var member = handleMemberConfigIfNew(realType, memberConfig.getName(), allMemberNameToMember);
             explicitMemberNameToMember.put(memberConfig.getName(), member);
+            var interningProcedure = resolveInterningProcedure(memberConfig);
+            ((IPrimitiveMemberWrite) member).setInterningProcedure(interningProcedure);
             ((IPrimitiveMemberWrite) member).setTransient(memberConfig.isTransient());
 
-            PrimitiveMember definedBy = memberConfig.getDefinedBy() != null ? handleMemberConfigIfNew(realType, memberConfig.getDefinedBy(), allMemberNameToMember) : null;
+            var definedBy = memberConfig.getDefinedBy() != null ? handleMemberConfigIfNew(realType, memberConfig.getDefinedBy(), allMemberNameToMember) : null;
             ((IPrimitiveMemberWrite) member).setDefinedBy(definedBy);
             return member;
-        }
-        var memberConfigs = ((CompositeMemberConfig) memberConfig).getMembers();
+        } var memberConfigs = ((CompositeMemberConfig) memberConfig).getMembers();
         var members = new PrimitiveMember[memberConfigs.length];
         for (int a = memberConfigs.length; a-- > 0; ) {
             var memberPart = memberConfigs[a];
@@ -365,6 +376,8 @@ public class EntityMetaDataReader implements IEntityMetaDataReader {
         var compositeIdMember = compositeIdFactory.createCompositeIdMember(metaData, members);
         explicitMemberNameToMember.put(memberConfig.getName(), compositeIdMember);
         allMemberNameToMember.put(memberConfig.getName(), compositeIdMember);
+        var interningProcedure = resolveInterningProcedure(memberConfig);
+        ((IPrimitiveMemberWrite) compositeIdMember).setInterningProcedure(interningProcedure);
         ((IPrimitiveMemberWrite) compositeIdMember).setTransient(memberConfig.isTransient());
 
         PrimitiveMember definedBy = memberConfig.getDefinedBy() != null ? handleMemberConfigIfNew(realType, memberConfig.getDefinedBy(), allMemberNameToMember) : null;
@@ -390,7 +403,7 @@ public class EntityMetaDataReader implements IEntityMetaDataReader {
 
     protected void fillNameCollections(IEntityConfig entityConfig, ISet<String> memberNamesToIgnore, HashSet<String> explicitBasicMemberNames, List<IMemberConfig> embeddedMembers,
             IMap<String, IMemberConfig> nameToMemberConfig, IMap<String, IRelationConfig> nameToRelationConfig) {
-        for (var memberConfig : entityConfig.getMemberConfigIterable()) {
+        for (var memberConfig : entityConfig.getMemberConfigs()) {
             if (!(memberConfig instanceof MemberConfig) && !(memberConfig instanceof CompositeMemberConfig)) {
                 throw new IllegalStateException("Member configurations of type '" + memberConfig.getClass().getName() + "' not yet supported");
             }
@@ -417,10 +430,21 @@ public class EntityMetaDataReader implements IEntityMetaDataReader {
             nameToMemberConfig.put(memberName, memberConfig);
         }
 
-        for (var relationConfig : entityConfig.getRelationConfigIterable()) {
+        for (var relationConfig : entityConfig.getRelationConfigs()) {
             var relationName = relationConfig.getName();
 
             nameToRelationConfig.put(relationName, relationConfig);
         }
+    }
+
+    protected IInterningFeature resolveInterningProcedure(IMemberConfig memberConfig) {
+        if (!memberConfig.isInterning()) {
+            return null;
+        }
+        var beanName = memberConfig.getInterningBeanName();
+        if (beanName == null || beanName.isEmpty()) {
+            return beanContext.getService(IInterningFeature.class);
+        }
+        return beanContext.getService(beanName, IInterningFeature.class);
     }
 }

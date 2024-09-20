@@ -20,7 +20,12 @@ limitations under the License.
  * #L%
  */
 
+import com.koch.ambeth.util.IInterningFeature;
+
 public abstract class PrimitiveMember extends Member {
+
+    public abstract IInterningFeature getInterningProcedure();
+
 	public abstract boolean isTechnicalMember();
 
 	public abstract boolean isTransient();

@@ -21,6 +21,8 @@ limitations under the License.
  */
 
 
+import java.util.Collection;
+
 public interface IEntityConfig {
 	Class<?> getEntityType();
 
@@ -50,7 +52,7 @@ public interface IEntityConfig {
 
 	IMemberConfig getUpdatedOnMemberConfig();
 
-	Iterable<IMemberConfig> getMemberConfigIterable();
+    Collection<IMemberConfig> getMemberConfigs();
 
-	Iterable<IRelationConfig> getRelationConfigIterable();
+    Collection<IRelationConfig> getRelationConfigs();
 }

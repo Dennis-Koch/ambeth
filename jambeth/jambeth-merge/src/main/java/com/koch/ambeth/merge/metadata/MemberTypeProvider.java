@@ -20,6 +20,7 @@ limitations under the License.
  * #L%
  */
 
+import com.koch.ambeth.ioc.IServiceContext;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.bytecode.IBytecodeEnhancer;
 import com.koch.ambeth.ioc.typeinfo.FieldPropertyInfo;
@@ -34,9 +35,11 @@ import com.koch.ambeth.service.metadata.IntermediateRelationMember;
 import com.koch.ambeth.service.metadata.Member;
 import com.koch.ambeth.service.metadata.PrimitiveMember;
 import com.koch.ambeth.service.metadata.RelationMember;
+import com.koch.ambeth.util.IInterningFeature;
 import com.koch.ambeth.util.ReflectUtil;
 import com.koch.ambeth.util.annotation.Cascade;
 import com.koch.ambeth.util.annotation.CascadeLoadMode;
+import com.koch.ambeth.util.annotation.Interning;
 import com.koch.ambeth.util.collections.Tuple3KeyEntry;
 import com.koch.ambeth.util.collections.Tuple3KeyHashMap;
 import com.koch.ambeth.util.config.IProperties;
@@ -44,6 +47,7 @@ import com.koch.ambeth.util.typeinfo.IPropertyInfo;
 import com.koch.ambeth.util.typeinfo.IPropertyInfoProvider;
 import lombok.SneakyThrows;
 
+import java.lang.annotation.Annotation;
 import java.lang.ref.Reference;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Constructor;
@@ -80,6 +84,9 @@ public class MemberTypeProvider implements IMemberTypeProvider, IIntermediateMem
     protected final TypeAndStringWeakMap<Member> typeToMemberMap = new TypeAndStringWeakMap<>();
     protected final TypeAndStringWeakMap<RelationMember> typeToRelationMemberMap = new TypeAndStringWeakMap<>();
     protected final Lock writeLock = new ReentrantLock();
+
+    @Autowired
+    protected IServiceContext beanContext;
     @Autowired
     protected IBytecodeEnhancer bytecodeEnhancer;
     @Autowired
@@ -193,6 +200,22 @@ public class MemberTypeProvider implements IMemberTypeProvider, IIntermediateMem
         return bytecodeEnhancer.getEnhancedType(baseType, new MemberEnhancementHint(targetType, propertyName, forcedElementType));
     }
 
+    protected IInterningFeature resolveInterningProcedure(Annotation[] annotations) {
+        for (var annotation : annotations) {
+            if (annotation instanceof Interning interning) {
+                if (!interning.value()) {
+                    return null;
+                }
+                var beanName = interning.customizerBean();
+                if (beanName.isEmpty()) {
+                    return beanContext.getService(IInterningFeature.class);
+                }
+                return beanContext.getService(beanName, IInterningFeature.class);
+            }
+        }
+        return null;
+    }
+
     @Override
     public IntermediatePrimitiveMember getIntermediatePrimitiveMember(Class<?> entityType, String propertyName) {
         var memberNamePath = EmbeddedMember.split(propertyName);
@@ -203,14 +226,17 @@ public class MemberTypeProvider implements IMemberTypeProvider, IIntermediateMem
             if (property == null) {
                 return null;
             }
-            members[a] = new IntermediatePrimitiveMember(currDeclaringType, entityType, property.getPropertyType(), property.getElementType(), property.getName(), property.getAnnotations());
+            var interningProcedure = resolveInterningProcedure(property.getAnnotations());
+            members[a] = new IntermediatePrimitiveMember(currDeclaringType, entityType, property.getPropertyType(), property.getElementType(), property.getName(), property.getAnnotations(),
+                    interningProcedure);
             currDeclaringType = property.getPropertyType();
         }
         if (members.length > 1) {
             var memberPath = new Member[members.length - 1];
             System.arraycopy(members, 0, memberPath, 0, memberPath.length);
             var lastMember = (PrimitiveMember) members[memberPath.length];
-            return new IntermediateEmbeddedPrimitiveMember(entityType, lastMember.getRealType(), lastMember.getElementType(), propertyName, memberPath, lastMember);
+            var interningProcedure = resolveInterningProcedure(lastMember.getAnnotations());
+            return new IntermediateEmbeddedPrimitiveMember(entityType, lastMember.getRealType(), lastMember.getElementType(), propertyName, memberPath, lastMember, interningProcedure);
         }
         return (IntermediatePrimitiveMember) members[0];
     }

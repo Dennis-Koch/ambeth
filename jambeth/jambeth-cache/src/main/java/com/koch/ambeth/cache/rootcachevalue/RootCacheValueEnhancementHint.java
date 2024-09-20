@@ -20,60 +20,56 @@ limitations under the License.
  * #L%
  */
 
-import java.io.Serializable;
-
-import org.objectweb.asm.Type;
-
 import com.koch.ambeth.ioc.bytecode.IEnhancementHint;
 import com.koch.ambeth.ioc.bytecode.ITargetNameEnhancementHint;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import org.objectweb.asm.Type;
 
-public class RootCacheValueEnhancementHint
-		implements IEnhancementHint, ITargetNameEnhancementHint, Serializable {
-	private static final long serialVersionUID = 5722369699026975653L;
+import java.io.Serializable;
 
-	protected final Class<?> entityType;
+@RequiredArgsConstructor
+@Getter
+public class RootCacheValueEnhancementHint implements IEnhancementHint, ITargetNameEnhancementHint, Serializable {
+    private static final long serialVersionUID = 5722369699026975653L;
 
-	public RootCacheValueEnhancementHint(Class<?> entityType) {
-		this.entityType = entityType;
-	}
+    protected final Class<?> entityType;
 
-	public Class<?> getEntityType() {
-		return entityType;
-	}
+    protected final boolean lruMode;
 
-	@Override
-	public boolean equals(Object obj) {
-		if (obj == this) {
-			return true;
-		}
-		if (!(obj instanceof RootCacheValueEnhancementHint)) {
-			return false;
-		}
-		RootCacheValueEnhancementHint other = (RootCacheValueEnhancementHint) obj;
-		return getEntityType().equals(other.getEntityType());
-	}
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) {
+            return true;
+        }
+        if (!(obj instanceof RootCacheValueEnhancementHint)) {
+            return false;
+        }
+        var other = (RootCacheValueEnhancementHint) obj;
+        return getEntityType().equals(other.getEntityType()) && Boolean.compare(lruMode, other.lruMode) == 0;
+    }
 
-	@Override
-	public int hashCode() {
-		return RootCacheValueEnhancementHint.class.hashCode() ^ getEntityType().hashCode();
-	}
+    @Override
+    public int hashCode() {
+        return RootCacheValueEnhancementHint.class.hashCode() ^ getEntityType().hashCode() ^ (lruMode ? 1 : 0);
+    }
 
-	@SuppressWarnings("unchecked")
-	@Override
-	public <T extends IEnhancementHint> T unwrap(Class<T> includedHintType) {
-		if (RootCacheValueEnhancementHint.class.isAssignableFrom(includedHintType)) {
-			return (T) this;
-		}
-		return null;
-	}
+    @SuppressWarnings("unchecked")
+    @Override
+    public <T extends IEnhancementHint> T unwrap(Class<T> includedHintType) {
+        if (RootCacheValueEnhancementHint.class.isAssignableFrom(includedHintType)) {
+            return (T) this;
+        }
+        return null;
+    }
 
-	@Override
-	public String toString() {
-		return getClass().getSimpleName() + ": " + getTargetName(null);
-	}
+    @Override
+    public String toString() {
+        return getClass().getSimpleName() + ": " + getTargetName(null);
+    }
 
-	@Override
-	public String getTargetName(Class<?> typeToEnhance) {
-		return Type.getInternalName(entityType) + "$" + RootCacheValue.class.getSimpleName();
-	}
+    @Override
+    public String getTargetName(Class<?> typeToEnhance) {
+        return Type.getInternalName(entityType) + "$" + RootCacheValue.class.getSimpleName() + (lruMode ? "LRU" : "");
+    }
 }

@@ -742,12 +742,7 @@
         </profile>
 
         <profile>
-            <id>jenkins</id>
-            <activation>
-                <property>
-                    <name>env.JENKINS_HOME</name>
-                </property>
-            </activation>
+            <id>ci</id>
             <build>
                 <plugins>
                     <plugin>

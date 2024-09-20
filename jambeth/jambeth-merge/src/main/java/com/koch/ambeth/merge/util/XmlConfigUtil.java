@@ -83,29 +83,33 @@ public class XmlConfigUtil implements IXmlConfigUtil, IInitializingBean {
         if (xmlFileNames == null || xmlFileNames.isEmpty()) {
             return new Document[0];
         }
-        String[] fileNames = FileUtil.splitConfigFileNames(xmlFileNames);
-        Document[] docs = new Document[fileNames.length];
+        var fileNames = FileUtil.splitConfigFileNames(xmlFileNames);
+        return readXmlFiles(fileNames);
+    }
 
-        for (int i = fileNames.length; i-- > 0; ) {
-            String fileName = fileNames[i];
+    public Document[] readXmlFiles(String... xmlFileNames) {
+        if (xmlFileNames == null || xmlFileNames.length == 0) {
+            return new Document[0];
+        }
+        var docs = new Document[xmlFileNames.length];
+
+        for (int i = xmlFileNames.length; i-- > 0; ) {
+            var fileName = xmlFileNames[i];
             if (fileName == null || fileName.isEmpty() || STRING_NULL.equals(fileName)) {
                 if (log.isWarnEnabled()) {
                     log.warn("Possible wrong argument to resolve xml files: '" + xmlFileNames + "' at element index " + i + ". Maybe an embedded property resolved to null previously?");
                 }
-                continue;
             }
         }
 
-        InputStream[] streams = FileUtil.openFileStreams(fileNames, true, log);
-
+        var streams = FileUtil.openFileStreams(xmlFileNames, true, log);
         docs = readXmlStreams(streams);
-
         return docs;
     }
 
     @Override
     public IXmlValidator createValidator(String... xsdFileNames) {
-        Source[] sources = new Source[xsdFileNames.length];
+        var sources = new Source[xsdFileNames.length];
         for (int i = xsdFileNames.length; i-- > 0; ) {
             sources[i] = openConfigAsSource(xsdFileNames[i]);
         }
@@ -113,24 +117,23 @@ public class XmlConfigUtil implements IXmlConfigUtil, IInitializingBean {
         try {
             schema = schemaFactory.newSchema(sources);
         } catch (SAXException e) {
-            IThreadLocalObjectCollector oc = objectCollector.getCurrent();
+            var oc = objectCollector.getCurrent();
             throw RuntimeExceptionUtil.mask(e, "Error while reading schema file '" + Arrays.toString(oc, xsdFileNames) + "'");
         }
-        IXmlValidator validator = new XmlValidator(schema.newValidator());
-
+        var validator = new XmlValidator(schema.newValidator());
         return validator;
     }
 
     protected Source openConfigAsSource(String name) {
-        InputStream schemaStream = FileUtil.openFileStream(name, log);
-        Source source = new StreamSource(schemaStream);
+        var schemaStream = FileUtil.openFileStream(name, log);
+        var source = new StreamSource(schemaStream);
         return source;
     }
 
     protected Document[] readXmlStreams(InputStream[] xmlStreams) {
-        Document[] docs = new Document[xmlStreams.length];
+        var docs = new Document[xmlStreams.length];
         for (int i = xmlStreams.length; i-- > 0; ) {
-            InputStream stream = xmlStreams[i];
+            var stream = xmlStreams[i];
             docs[i] = readXmlStream(stream);
         }
         return docs;
@@ -170,11 +173,11 @@ public class XmlConfigUtil implements IXmlConfigUtil, IInitializingBean {
 
     @Override
     public List<Element> nodesToElements(NodeList nodeList) {
-        List<Element> elements = new ArrayList<>();
+        var elements = new ArrayList<Element>();
 
         // Order is semantically important
         for (int i = 0, size = nodeList.getLength(); i < size; i++) {
-            Node node = nodeList.item(i);
+            var node = nodeList.item(i);
             if (node != null && node.getNodeType() == Node.ELEMENT_NODE) {
                 elements.add((Element) node);
             }
@@ -185,7 +188,7 @@ public class XmlConfigUtil implements IXmlConfigUtil, IInitializingBean {
 
     @Override
     public Element getChildUnique(Element parent, String childTagName) {
-        List<Element> matchingChildren = nodesToElements(parent.getElementsByTagName(childTagName));
+        var matchingChildren = nodesToElements(parent.getElementsByTagName(childTagName));
         if (matchingChildren.isEmpty()) {
             return null;
         } else if (matchingChildren.size() == 1) {
@@ -197,7 +200,7 @@ public class XmlConfigUtil implements IXmlConfigUtil, IInitializingBean {
 
     @Override
     public List<Element> getElementsByName(String name, IMap<String, List<Element>> elementMap) {
-        List<Element> elements = elementMap.get(name);
+        var elements = elementMap.get(name);
         if (elements != null) {
             return elements;
         }
@@ -211,14 +214,14 @@ public class XmlConfigUtil implements IXmlConfigUtil, IInitializingBean {
 
     @Override
     public IMap<String, List<Element>> toElementMap(NodeList nodeList) {
-        HashMap<String, List<Element>> elementMap = new HashMap<>();
+        var elementMap = new HashMap<String, List<Element>>();
 
         // Order is semantically important
         for (int i = 0, size = nodeList.getLength(); i < size; i++) {
-            Node node = nodeList.item(i);
+            var node = nodeList.item(i);
             if (node != null && node.getNodeType() == Node.ELEMENT_NODE) {
-                String nodeName = node.getNodeName();
-                List<Element> elements = elementMap.get(nodeName);
+                var nodeName = node.getNodeName();
+                var elements = elementMap.get(nodeName);
                 if (elements == null) {
                     elements = new ArrayList<>();
                     elementMap.put(nodeName, elements);
@@ -226,7 +229,6 @@ public class XmlConfigUtil implements IXmlConfigUtil, IInitializingBean {
                 elements.add((Element) node);
             }
         }
-
         return elementMap;
     }
 
@@ -246,7 +248,7 @@ public class XmlConfigUtil implements IXmlConfigUtil, IInitializingBean {
     }
 
     protected String getRequiredAttribute(Element element, String attrName, boolean required, boolean firstToUpper) {
-        String value = element.getAttribute(attrName);
+        var value = element.getAttribute(attrName);
         if (required && value.isEmpty()) {
             throw new IllegalArgumentException("Attribute '" + attrName + "' has to be set on tag '" + element.getNodeName() + "'");
         }
@@ -260,7 +262,7 @@ public class XmlConfigUtil implements IXmlConfigUtil, IInitializingBean {
     @Override
     public String getChildElementAttribute(Element parent, String childName, String attrName, String error) {
         String value = null;
-        List<Element> tags = nodesToElements(parent.getElementsByTagName(childName));
+        var tags = nodesToElements(parent.getElementsByTagName(childName));
         if (tags.size() == 1) {
             value = getAttribute(tags.get(0), attrName);
             value = value.trim();
@@ -273,7 +275,7 @@ public class XmlConfigUtil implements IXmlConfigUtil, IInitializingBean {
 
     @Override
     public boolean attributeIsTrue(Element element, String attrName) {
-        String attrValue = getAttribute(element, attrName);
+        var attrValue = getAttribute(element, attrName);
         return attrValue.equals(XmlConstants.TRUE);
     }
 
@@ -286,7 +288,7 @@ public class XmlConfigUtil implements IXmlConfigUtil, IInitializingBean {
     public Class<?> getTypeForName(String name, boolean tryOnly) {
         writeLock.lock();
         try {
-            Reference<Class<?>> typeR = nameToTypeMap.get(name);
+            var typeR = nameToTypeMap.get(name);
             Class<?> type = null;
             if (typeR != null) {
                 type = typeR.get();

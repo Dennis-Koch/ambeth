@@ -27,5 +27,9 @@ public interface IMemberConfig extends IOrmConfig {
 
 	boolean isTransient();
 
+    boolean isInterning();
+
+    String getInterningBeanName();
+
 	String getDefinedBy();
 }

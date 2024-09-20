@@ -27,11 +27,11 @@ import com.koch.ambeth.merge.bytecode.EntityEnhancementHint;
 
 public class EntityUtil {
 	public static Class<?> getEntityType(IEnhancementHint hint) {
-		EntityEnhancementHint entityEnhancementHint = hint.unwrap(EntityEnhancementHint.class);
+		var entityEnhancementHint = hint.unwrap(EntityEnhancementHint.class);
 		if (entityEnhancementHint != null) {
 			return BytecodeBehaviorState.getState().getOriginalType();
 		}
-		EmbeddedEnhancementHint embeddedEnhancementHint = hint.unwrap(EmbeddedEnhancementHint.class);
+        var embeddedEnhancementHint = hint.unwrap(EmbeddedEnhancementHint.class);
 		if (embeddedEnhancementHint != null) {
 			return embeddedEnhancementHint.getRootEntityType();
 		}

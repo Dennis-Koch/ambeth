@@ -21,7 +21,12 @@ limitations under the License.
  */
 
 import com.koch.ambeth.ioc.typeinfo.AbstractPropertyInfo;
+import com.koch.ambeth.util.IInterningFeature;
+import com.koch.ambeth.util.annotation.Interning;
 import com.koch.ambeth.util.collections.HashMap;
+import com.koch.ambeth.util.typeinfo.Transient;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.lang.annotation.Annotation;
 import java.util.Collection;
@@ -29,36 +34,57 @@ import java.util.Collection;
 public class IntermediatePrimitiveMember extends PrimitiveMember implements IPrimitiveMemberWrite {
     protected final String propertyName;
 
+    @Getter
     protected final Class<?> entityType;
 
+    @Getter
     protected final Class<?> declaringType;
 
+    @Getter
     protected final Class<?> realType;
 
+    @Getter
     protected final Class<?> elementType;
 
+    @Getter
     protected final Annotation[] annotations;
 
     protected final HashMap<Class<?>, Annotation> annotationMap;
 
+    @Getter
+    @Setter
     protected boolean technicalMember;
 
+    @Getter
+    @Setter
+    protected IInterningFeature interningProcedure;
+
+    @Getter
+    @Setter
     protected boolean isTransient;
 
+    @Getter
+    @Setter
     protected PrimitiveMember definedBy;
 
-    public IntermediatePrimitiveMember(Class<?> declaringType, Class<?> entityType, Class<?> realType, Class<?> elementType, String propertyName, Annotation[] annotations) {
+    public IntermediatePrimitiveMember(Class<?> declaringType, Class<?> entityType, Class<?> realType, Class<?> elementType, String propertyName, Annotation[] annotations,
+            IInterningFeature interningProcedure) {
         this.declaringType = declaringType;
         this.entityType = entityType;
         this.realType = realType;
         this.elementType = elementType;
         this.propertyName = propertyName;
+        this.interningProcedure = interningProcedure;
         if (annotations != null) {
             annotationMap = new HashMap<>();
             for (var annotation : annotations) {
                 annotationMap.put(annotation.annotationType(), annotation);
             }
             this.annotations = annotations;
+
+            if (getAnnotation(Transient.class) != null) {
+                this.isTransient = true;
+            }
         } else {
             annotationMap = null;
             this.annotations = AbstractPropertyInfo.EMPTY_ANNOTATIONS;
@@ -80,21 +106,6 @@ public class IntermediatePrimitiveMember extends PrimitiveMember implements IPri
         return propertyName;
     }
 
-    @Override
-    public Class<?> getDeclaringType() {
-        return declaringType;
-    }
-
-    @Override
-    public Class<?> getRealType() {
-        return realType;
-    }
-
-    @Override
-    public Annotation[] getAnnotations() {
-        return annotations;
-    }
-
     @SuppressWarnings("unchecked")
     @Override
     public <V extends Annotation> V getAnnotation(Class<V> annotationType) {
@@ -106,36 +117,6 @@ public class IntermediatePrimitiveMember extends PrimitiveMember implements IPri
     }
 
     @Override
-    public boolean isTechnicalMember() {
-        return technicalMember;
-    }
-
-    @Override
-    public void setTechnicalMember(boolean technicalMember) {
-        this.technicalMember = technicalMember;
-    }
-
-    @Override
-    public boolean isTransient() {
-        return isTransient;
-    }
-
-    @Override
-    public void setTransient(boolean isTransient) {
-        this.isTransient = isTransient;
-    }
-
-    @Override
-    public PrimitiveMember getDefinedBy() {
-        return definedBy;
-    }
-
-    @Override
-    public void setDefinedBy(PrimitiveMember definedBy) {
-        this.definedBy = definedBy;
-    }
-
-    @Override
     public Object getNullEquivalentValue() {
         throw createException();
     }
@@ -143,16 +124,6 @@ public class IntermediatePrimitiveMember extends PrimitiveMember implements IPri
     @Override
     public boolean isToMany() {
         return Collection.class.isAssignableFrom(getRealType());
-    }
-
-    @Override
-    public Class<?> getElementType() {
-        return elementType;
-    }
-
-    @Override
-    public Class<?> getEntityType() {
-        return entityType;
     }
 
     @Override

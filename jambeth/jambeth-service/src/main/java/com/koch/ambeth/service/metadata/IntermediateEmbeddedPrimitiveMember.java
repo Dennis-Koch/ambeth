@@ -20,79 +20,85 @@ limitations under the License.
  * #L%
  */
 
+import com.koch.ambeth.util.IInterningFeature;
+
 import java.lang.annotation.Annotation;
 
-public class IntermediateEmbeddedPrimitiveMember extends IntermediatePrimitiveMember
-		implements IEmbeddedMember {
-	protected final Member[] memberPath;
+public class IntermediateEmbeddedPrimitiveMember extends IntermediatePrimitiveMember implements IEmbeddedMember {
+    protected final Member[] memberPath;
 
-	protected final PrimitiveMember childMember;
+    protected final PrimitiveMember childMember;
 
-	protected final String[] memberPathToken;
+    protected final String[] memberPathToken;
 
-	protected final String memberPathString;
+    protected final String memberPathString;
 
-	public IntermediateEmbeddedPrimitiveMember(Class<?> entityType, Class<?> realType,
-			Class<?> elementType, String propertyName, Member[] memberPath, PrimitiveMember childMember) {
-		super(entityType, entityType, realType, elementType, propertyName, null);
-		this.memberPath = memberPath;
-		this.childMember = childMember;
-		memberPathToken = EmbeddedMember.buildMemberPathToken(memberPath);
-		memberPathString = EmbeddedMember.buildMemberPathString(memberPath);
-	}
+    public IntermediateEmbeddedPrimitiveMember(Class<?> entityType, Class<?> realType, Class<?> elementType, String propertyName, Member[] memberPath, PrimitiveMember childMember,
+            IInterningFeature interningProcedure) {
+        super(entityType, entityType, realType, elementType, propertyName, null, interningProcedure);
+        this.memberPath = memberPath;
+        this.childMember = childMember;
+        memberPathToken = EmbeddedMember.buildMemberPathToken(memberPath);
+        memberPathString = EmbeddedMember.buildMemberPathString(memberPath);
+    }
 
-	@Override
-	public boolean isToMany() {
-		return childMember.isToMany();
-	}
+    @Override
+    public boolean isToMany() {
+        return childMember.isToMany();
+    }
 
-	@Override
-	public <V extends Annotation> V getAnnotation(Class<V> annotationType) {
-		return childMember.getAnnotation(annotationType);
-	}
+    @Override
+    public <V extends Annotation> V getAnnotation(Class<V> annotationType) {
+        return childMember.getAnnotation(annotationType);
+    }
 
-	@Override
-	public boolean isTechnicalMember() {
-		return childMember.isTechnicalMember();
-	}
+    @Override
+    public IInterningFeature getInterningProcedure() {
+        return childMember.getInterningProcedure();
+    }
 
-	@Override
-	public boolean isTransient() {
-		return childMember.isTransient();
-	}
+    @Override
+    public boolean isTechnicalMember() {
+        return childMember.isTechnicalMember();
+    }
 
-	@Override
-	public void setTechnicalMember(boolean technicalMember) {
-		((IPrimitiveMemberWrite) childMember).setTechnicalMember(technicalMember);
-	}
+    @Override
+    public boolean isTransient() {
+        return childMember.isTransient();
+    }
 
-	@Override
-	public void setTransient(boolean isTransient) {
-		((IPrimitiveMemberWrite) childMember).setTransient(isTransient);
-	}
+    @Override
+    public void setTechnicalMember(boolean technicalMember) {
+        ((IPrimitiveMemberWrite) childMember).setTechnicalMember(technicalMember);
+    }
 
-	@Override
-	public void setDefinedBy(PrimitiveMember definedBy) {
-		((IPrimitiveMemberWrite) childMember).setDefinedBy(definedBy);
-	}
+    @Override
+    public void setTransient(boolean isTransient) {
+        ((IPrimitiveMemberWrite) childMember).setTransient(isTransient);
+    }
 
-	@Override
-	public Member[] getMemberPath() {
-		return memberPath;
-	}
+    @Override
+    public void setDefinedBy(PrimitiveMember definedBy) {
+        ((IPrimitiveMemberWrite) childMember).setDefinedBy(definedBy);
+    }
 
-	@Override
-	public String getMemberPathString() {
-		return memberPathString;
-	}
+    @Override
+    public Member[] getMemberPath() {
+        return memberPath;
+    }
 
-	@Override
-	public String[] getMemberPathToken() {
-		return memberPathToken;
-	}
+    @Override
+    public String getMemberPathString() {
+        return memberPathString;
+    }
 
-	@Override
-	public Member getChildMember() {
-		return childMember;
-	}
+    @Override
+    public String[] getMemberPathToken() {
+        return memberPathToken;
+    }
+
+    @Override
+    public Member getChildMember() {
+        return childMember;
+    }
 }

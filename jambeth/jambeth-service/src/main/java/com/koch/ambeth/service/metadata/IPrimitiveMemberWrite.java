@@ -20,7 +20,12 @@ limitations under the License.
  * #L%
  */
 
+import com.koch.ambeth.util.IInterningFeature;
+
 public interface IPrimitiveMemberWrite {
+
+    void setInterningProcedure(IInterningFeature interningProcedure);
+
 	void setTechnicalMember(boolean technicalMember);
 
 	void setTransient(boolean isTransient);

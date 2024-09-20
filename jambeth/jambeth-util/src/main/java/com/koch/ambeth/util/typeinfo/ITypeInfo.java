@@ -27,6 +27,8 @@ public interface ITypeInfo {
 
 	ITypeInfoItem[] getMembers();
 
+    ITypeInfoItem[] getAllMembers();
+
 	ITypeInfoItem getMemberByName(String memberName);
 
 	ITypeInfoItem getMemberByXmlName(String xmlMemberName);

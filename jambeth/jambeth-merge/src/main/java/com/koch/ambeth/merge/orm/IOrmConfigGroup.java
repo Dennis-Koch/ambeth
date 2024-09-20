@@ -20,8 +20,10 @@ limitations under the License.
  * #L%
  */
 
-public interface IOrmConfigGroup {
-	Iterable<IEntityConfig> getLocalEntityConfigs();
+import java.util.Collection;
 
-	Iterable<IEntityConfig> getExternalEntityConfigs();
+public interface IOrmConfigGroup {
+    Collection<IEntityConfig> getLocalEntityConfigs();
+
+    Collection<IEntityConfig> getExternalEntityConfigs();
 }

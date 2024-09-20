@@ -11,8 +11,8 @@ import com.koch.ambeth.service.metadata.IPrimitiveMemberWrite;
 import com.koch.ambeth.service.metadata.Member;
 import com.koch.ambeth.service.metadata.PrimitiveMember;
 import com.koch.ambeth.service.metadata.RelationMember;
+import com.koch.ambeth.util.IInterningFeature;
 import com.koch.ambeth.util.ListUtil;
-import com.koch.ambeth.util.annotation.Interning;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.HashMap;
 import com.koch.ambeth.util.collections.HashSet;
@@ -83,6 +83,8 @@ public class EntityMetaData implements IEntityMetaData {
     protected ICacheModification cacheModification;
 
     protected IEntityFactory entityFactory;
+
+    protected IInterningFeature defaultInterningProcedure;
 
     @Override
     public Class<?> getEntityType() {
@@ -181,20 +183,6 @@ public class EntityMetaData implements IEntityMetaData {
             throw new IllegalArgumentException("No alternate id index found for member name '" + getEntityType().getName() + "." + memberName + "'");
         }
         return value.byteValue();
-    }
-
-    @Override
-    public boolean hasInterningBehavior(Member primitiveMember) {
-        return interningMemberSet.contains(primitiveMember);
-    }
-
-    @Override
-    public void changeInterningBehavior(Member primitiveMember, boolean state) {
-        if (state) {
-            interningMemberSet.add(primitiveMember);
-        } else {
-            interningMemberSet.remove(primitiveMember);
-        }
     }
 
     @Override
@@ -400,9 +388,10 @@ public class EntityMetaData implements IEntityMetaData {
         this.entityLifecycleExtensions = entityLifecycleExtensions;
     }
 
-    public void initialize(ICacheModification cacheModification, IEntityFactory entityFactory) {
+    public void initialize(ICacheModification cacheModification, IEntityFactory entityFactory, IInterningFeature defaultInterningProcedure) {
         this.cacheModification = cacheModification;
         this.entityFactory = entityFactory;
+        this.defaultInterningProcedure = defaultInterningProcedure;
         if (primitiveMembers == null) {
             primitiveMembers = emptyPrimitiveMembers;
         } else {
@@ -511,18 +500,25 @@ public class EntityMetaData implements IEntityMetaData {
         if (typesRelatingToThis != null && typesRelatingToThis.length > 0) {
             typesRelatingToThisSet.addAll(Arrays.asList(typesRelatingToThis));
         }
-        if (getCreatedByMember() != null) {
-            changeInterningBehavior(getCreatedByMember(), true);
+        interningMemberSet.clear();
+        var createdByMember = getCreatedByMember();
+        if (createdByMember != null) {
+            if (createdByMember.getInterningProcedure() == null) {
+                ((IPrimitiveMemberWrite)createdByMember).setInterningProcedure(defaultInterningProcedure);
+            }
+            interningMemberSet.add(createdByMember);
         }
-        if (getUpdatedByMember() != null) {
-            changeInterningBehavior(getUpdatedByMember(), true);
+        var updatedByMember = getUpdatedByMember();
+        if (updatedByMember != null) {
+            if (updatedByMember.getInterningProcedure() == null) {
+                ((IPrimitiveMemberWrite)updatedByMember).setInterningProcedure(defaultInterningProcedure);
+            }
+            interningMemberSet.add(updatedByMember);
         }
         for (var primitiveMember : getPrimitiveMembers()) {
-            var interning = primitiveMember.getAnnotation(Interning.class);
-            if (interning == null) {
-                continue;
+            if (primitiveMember.getInterningProcedure() != null) {
+                interningMemberSet.add(primitiveMember);
             }
-            changeInterningBehavior(primitiveMember, interning.value());
         }
         setTechnicalMember(getIdMember());
         setTechnicalMember(getVersionMember());

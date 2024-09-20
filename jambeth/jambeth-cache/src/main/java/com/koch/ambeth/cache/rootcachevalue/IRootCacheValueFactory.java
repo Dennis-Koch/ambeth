@@ -24,4 +24,6 @@ import com.koch.ambeth.service.merge.model.IEntityMetaData;
 
 public interface IRootCacheValueFactory {
 	RootCacheValue createRootCacheValue(IEntityMetaData metaData);
+
+    RootCacheValue createRootCacheValueLRU(IEntityMetaData metaData);
 }

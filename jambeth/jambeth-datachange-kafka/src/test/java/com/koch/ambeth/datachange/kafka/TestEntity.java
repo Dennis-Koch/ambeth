@@ -20,6 +20,7 @@ limitations under the License.
  * #L%
  */
 
+import com.koch.ambeth.util.annotation.Interning;
 import jakarta.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement
@@ -27,4 +28,9 @@ public interface TestEntity {
 	int getId();
 
 	int getVersion();
+
+    @Interning
+    String getStringValue1();
+
+    void setStringValue1(String stringValue1);
 }

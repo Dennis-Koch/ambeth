@@ -30,9 +30,10 @@ import com.koch.ambeth.util.typeinfo.FastConstructorAccess;
 import lombok.SneakyThrows;
 
 public class EmbeddedMemberMixin {
-    protected final SmartCopyMap<Class<?>, FastConstructorAccess> typeToEmbbeddedParamConstructorMap = new SmartCopyMap<>(0.5f);
+    protected final SmartCopyMap<Class<?>, FastConstructorAccess> typeToEmbeddedParamConstructorMap = new SmartCopyMap<>(0.5f);
     @Autowired
     protected IBytecodeEnhancer bytecodeEnhancer;
+
     @Autowired(optional = true)
     protected IBytecodePrinter bytecodePrinter;
 
@@ -45,7 +46,7 @@ public class EmbeddedMemberMixin {
     }
 
     protected FastConstructorAccess getEmbeddedParamConstructor(Class<?> embeddedType, Class<?> parentObjectType) {
-        var constructor = typeToEmbbeddedParamConstructorMap.get(embeddedType);
+        var constructor = typeToEmbeddedParamConstructorMap.get(embeddedType);
         if (constructor == null) {
             try {
                 constructor = FastConstructorAccess.get(embeddedType.getConstructor(new Class<?>[] { parentObjectType }));
@@ -55,7 +56,7 @@ public class EmbeddedMemberMixin {
                 }
                 throw RuntimeExceptionUtil.mask(e);
             }
-            typeToEmbbeddedParamConstructorMap.put(embeddedType, constructor);
+            typeToEmbeddedParamConstructorMap.put(embeddedType, constructor);
         }
         return constructor;
     }

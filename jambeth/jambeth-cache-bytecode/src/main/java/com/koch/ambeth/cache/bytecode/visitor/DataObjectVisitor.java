@@ -75,14 +75,14 @@ public class DataObjectVisitor extends ClassGenerator {
 
     @Override
     public void visitEnd() {
-        PropertyInstance p_toBeCreated = implementToBeCreated(template_p_toBeCreated);
+        var p_toBeCreated = implementToBeCreated(template_p_toBeCreated);
 
-        PropertyInstance p_toBeUpdated = implementToBeUpdated();
+        var p_toBeUpdated = implementToBeUpdated();
 
         // ToBeDeleted
-        final FieldInstance f_toBeDeleted = implementField(new FieldInstance(Opcodes.ACC_PRIVATE, "$toBeDeleted", null, template_p_toBeDeleted.getPropertyType()));
+        var f_toBeDeleted = implementField(new FieldInstance(Opcodes.ACC_PRIVATE, "$toBeDeleted", null, template_p_toBeDeleted.getPropertyType()));
 
-        PropertyInstance p_toBeDeleted = implementProperty(template_p_toBeDeleted, new Script() {
+        var p_toBeDeleted = implementProperty(template_p_toBeDeleted, new Script() {
             @Override
             public void execute(MethodGenerator mg) {
                 mg.getThisField(f_toBeDeleted);
@@ -108,13 +108,13 @@ public class DataObjectVisitor extends ClassGenerator {
     }
 
     protected PropertyInstance implementToBeUpdated() {
-        final PropertyInstance p_dataObjectTemplate = getDataObjectTemplatePI(this);
+        var p_dataObjectTemplate = getDataObjectTemplatePI(this);
 
-        final FieldInstance f_toBeUpdated = implementField(new FieldInstance(Opcodes.ACC_PRIVATE, "$toBeUpdated", null, template_p_toBeUpdated.getPropertyType()));
+        var f_toBeUpdated = implementField(new FieldInstance(Opcodes.ACC_PRIVATE, "$toBeUpdated", null, template_p_toBeUpdated.getPropertyType()));
 
-        boolean atLeastOneToManyMember = false;
-        final ArrayList<RelationMember> parentChildMembers = new ArrayList<>();
-        for (RelationMember relationMember : metaData.getRelationMembers()) {
+        var atLeastOneToManyMember = false;
+        var parentChildMembers = new ArrayList<RelationMember>();
+        for (var relationMember : metaData.getRelationMembers()) {
             if (relationMember.getAnnotation(ParentChild.class) != null) {
                 parentChildMembers.add(relationMember);
                 if (relationMember.isToMany()) {
@@ -122,8 +122,8 @@ public class DataObjectVisitor extends ClassGenerator {
                 }
             }
         }
-        final boolean fAtLeastOneToManyMember = atLeastOneToManyMember;
-        PropertyInstance p_toBeUpdated = implementProperty(template_p_toBeUpdated, new Script() {
+        var fAtLeastOneToManyMember = atLeastOneToManyMember;
+        var p_toBeUpdated = implementProperty(template_p_toBeUpdated, new Script() {
             @Override
             public void execute(MethodGenerator mg) {
                 if (parentChildMembers.isEmpty()) {
@@ -131,21 +131,21 @@ public class DataObjectVisitor extends ClassGenerator {
                     mg.returnValue();
                     return;
                 }
-                int loc_iterator = -1;
+                var loc_iterator = -1;
                 if (fAtLeastOneToManyMember) {
                     loc_iterator = mg.newLocal(Iterator.class);
                 }
                 // we have to check the toBeUpdated-State for our "parentChild" members to decide our own
                 // toBeUpdate-State by OR-concatenation
-                int loc_parentChildValue = mg.newLocal(Object.class);
-                Label trueLabel = mg.newLabel();
+                var loc_parentChildValue = mg.newLocal(Object.class);
+                var trueLabel = mg.newLabel();
 
                 mg.getThisField(f_toBeUpdated);
                 mg.ifZCmp(GeneratorAdapter.NE, trueLabel);
 
-                for (RelationMember parentChildMember : parentChildMembers) {
-                    int relationIndex = metaData.getIndexByRelationName(parentChildMember.getName());
-                    Label l_valueIsNull = mg.newLabel();
+                for (var parentChildMember : parentChildMembers) {
+                    var relationIndex = metaData.getIndexByRelationName(parentChildMember.getName());
+                    var l_valueIsNull = mg.newLabel();
                     // load this RelationMember at runtime to be able to call its "getValue(Object obj)"
 
                     mg.loadThis();
@@ -168,8 +168,8 @@ public class DataObjectVisitor extends ClassGenerator {
                     mg.loadLocal(loc_parentChildValue);
 
                     if (parentChildMember.isToMany()) {
-                        Label l_startLoop = mg.newLabel();
-                        Label l_endLoop = mg.newLabel();
+                        var l_startLoop = mg.newLabel();
+                        var l_endLoop = mg.newLabel();
 
                         mg.checkCast(Collection.class);
                         mg.invokeInterface(new MethodInstance(null, Collection.class, Iterator.class, "iterator"));
@@ -207,8 +207,8 @@ public class DataObjectVisitor extends ClassGenerator {
         }, new Script() {
             @Override
             public void execute(MethodGenerator mv) {
-                int loc_existingValue = mv.newLocal(boolean.class);
-                Label l_finish = mv.newLabel();
+                var loc_existingValue = mv.newLocal(boolean.class);
+                var l_finish = mv.newLabel();
                 mv.getThisField(f_toBeUpdated);
                 mv.storeLocal(loc_existingValue);
 
@@ -248,12 +248,12 @@ public class DataObjectVisitor extends ClassGenerator {
      * @param p_toBeCreated
      */
     protected PropertyInstance implementToBeCreated(PropertyInstance p_toBeCreated) {
-        MethodGenerator mg = visitMethod(p_toBeCreated.getGetter());
+        var mg = visitMethod(p_toBeCreated.getGetter());
         p_toBeCreated = PropertyInstance.findByTemplate(p_toBeCreated, false);
-        Member idMember = metaData.getIdMember();
+        var idMember = metaData.getIdMember();
         if (idMember instanceof CompositeIdMember) {
-            ArrayList<String> names = new ArrayList<>();
-            for (Member itemMember : ((CompositeIdMember) idMember).getMembers()) {
+            var names = new ArrayList<String>();
+            for (var itemMember : ((CompositeIdMember) idMember).getMembers()) {
                 names.add(itemMember.getName());
             }
             p_toBeCreated.addAnnotation(c_fireThisOPC, new Object[] { names.toArray(String[]::new) });
@@ -261,7 +261,7 @@ public class DataObjectVisitor extends ClassGenerator {
             p_toBeCreated.addAnnotation(c_fireThisOPC, idMember.getName());
         }
 
-        Label trueLabel = mg.newLabel();
+        var trueLabel = mg.newLabel();
 
         mg.loadThis();
         mg.invokeVirtual(GetIdMethodCreator.getGetId());
@@ -297,7 +297,7 @@ public class DataObjectVisitor extends ClassGenerator {
             // p_hasPendingChanges.addAnnotation(c_ftopc, p_ToBeUpdated.getName());
             // p_hasPendingChanges.addAnnotation(c_ftopc, p_ToBeDeleted.getName());
 
-            Label trueLabel = mg.newLabel();
+            var trueLabel = mg.newLabel();
 
             mg.loadThis();
             mg.invokeVirtual(p_ToBeUpdated.getGetter());

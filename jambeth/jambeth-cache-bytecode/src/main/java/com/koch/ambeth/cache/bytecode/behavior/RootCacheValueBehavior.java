@@ -35,21 +35,18 @@ import com.koch.ambeth.service.merge.IEntityMetaDataProvider;
 import com.koch.ambeth.service.merge.model.IEntityMetaData;
 
 public class RootCacheValueBehavior extends AbstractBehavior {
-	@Autowired
-	protected IEntityMetaDataProvider entityMetaDataProvider;
+    @Autowired
+    protected IEntityMetaDataProvider entityMetaDataProvider;
 
-	@Override
-	public ClassVisitor extend(ClassVisitor visitor, IBytecodeBehaviorState state,
-			List<IBytecodeBehavior> remainingPendingBehaviors,
-			List<IBytecodeBehavior> cascadePendingBehaviors) {
-		final RootCacheValueEnhancementHint hint = state
-				.getContext(RootCacheValueEnhancementHint.class);
-		if (hint == null) {
-			return visitor;
-		}
-		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(hint.getEntityType());
-		visitor = new RootCacheValueVisitor(visitor, metaData);
-		visitor = new EntityMetaDataHolderVisitor(visitor, metaData);
-		return visitor;
-	}
+    @Override
+    public ClassVisitor extend(ClassVisitor visitor, IBytecodeBehaviorState state, List<IBytecodeBehavior> remainingPendingBehaviors, List<IBytecodeBehavior> cascadePendingBehaviors) {
+        var hint = state.getContext(RootCacheValueEnhancementHint.class);
+        if (hint == null) {
+            return visitor;
+        }
+        var metaData = entityMetaDataProvider.getMetaData(hint.getEntityType());
+        visitor = new RootCacheValueVisitor(visitor, metaData, hint.isLruMode());
+        visitor = new EntityMetaDataHolderVisitor(visitor, metaData);
+        return visitor;
+    }
 }

@@ -11,7 +11,7 @@
 	</parent>
 
 	<properties>
-		<ambeth.extendables.scanner.version>1.0.4-SNAPSHOT</ambeth.extendables.scanner.version>
+		<ambeth.extendables.scanner.version>{1.0.4-SNAPSHOT</ambeth.extendables.scanner.version>
 		<ambeth.integrity.version>1.0.4-SNAPSHOT</ambeth.integrity.version>
 	</properties>
 

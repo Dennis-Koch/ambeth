@@ -212,7 +212,7 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IDisposa
                 }
 
                 var ignoredMembers = new HashSet<String>();
-                var memberIter = entityConfig.getMemberConfigIterable();
+                var memberIter = entityConfig.getMemberConfigs();
                 for (var memberConfig : memberIter) {
                     if (memberConfig.isTransient()) {
                         continue;
@@ -313,14 +313,14 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IDisposa
             }
         }
 
-        DatabaseMetaData databaseImpl = (DatabaseMetaData) database;
+        var databaseImpl = (DatabaseMetaData) database;
         for (var ormConfigGroup : ormConfigGroups.getExtensionsShared()) {
             for (var entityConfig : ormConfigGroup.getLocalEntityConfigs()) {
                 var entityType = entityConfig.getEntityType();
 
                 var table = getTableByType(database, entityType);
 
-                var relationIter = entityConfig.getRelationConfigIterable();
+                var relationIter = entityConfig.getRelationConfigs();
                 for (var relationConfig : relationIter) {
                     if (relationConfig instanceof RelationConfigLegathy) {
                         var relationConfigLegathy = (RelationConfigLegathy) relationConfig;

@@ -25,7 +25,6 @@ import com.koch.ambeth.cache.mixin.ValueHolderContainerMixin;
 import com.koch.ambeth.cache.proxy.IValueHolderContainer;
 import com.koch.ambeth.cache.rootcachevalue.RootCacheValue;
 import com.koch.ambeth.ioc.IServiceContext;
-import com.koch.ambeth.ioc.accessor.IAccessorTypeProvider;
 import com.koch.ambeth.ioc.annotation.Autowired;
 import com.koch.ambeth.ioc.config.Property;
 import com.koch.ambeth.merge.IObjRefHelper;
@@ -77,27 +76,35 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
     private static final Set<CacheDirective> failEarlyReturnMisses = EnumSet.of(CacheDirective.FailEarly, CacheDirective.ReturnMisses);
     protected final ThreadLocal<AlreadyHandledSet> alreadyHandledSetTL = new ThreadLocal<>();
     @Autowired
-    protected IAccessorTypeProvider accessorTypeProvider;
-    @Autowired
     protected IServiceContext beanContext;
+
     @Autowired
     protected ICacheModification cacheModification;
+
     @Autowired
     protected IEntityMetaDataProvider entityMetaDataProvider;
+
     @Autowired
     protected IGuiThreadHelper guiThreadHelper;
+
     @Autowired
     protected IMemberTypeProvider memberTypeProvider;
+
     @Autowired
     protected IObjRefHelper objRefHelper;
+
     @Autowired
     protected IPrioMembersProvider prioMembersProvider;
+
     @Autowired(optional = true)
     protected IRelationalCollectionFactory relationalCollectionFactory;
+
     @Autowired(optional = true)
     protected ILightweightTransaction transaction;
+
     @Autowired
     protected ValueHolderContainerMixin valueHolderContainerMixin;
+
     @Property(name = MergeConfigurationConstants.PrefetchInLazyTransactionActive, defaultValue = "true")
     protected boolean lazyTransactionActive;
 
@@ -686,24 +693,27 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
     @Override
     public Object[] extractPrimitives(IEntityMetaData metaData, Object obj) {
         var primitiveMembers = metaData.getPrimitiveMembers();
-        Object[] primitives;
 
         if (primitiveMembers.length == 0) {
-            primitives = emptyObjectArray;
-        } else {
-            primitives = new Object[primitiveMembers.length];
-            for (int a = primitiveMembers.length; a-- > 0; ) {
-                var primitiveMember = primitiveMembers[a];
-
-                var primitiveValue = primitiveMember.getValue(obj, true);
-
-                if (primitiveValue != null && java.util.Date.class.isAssignableFrom(primitiveValue.getClass())) {
-                    primitiveValue = ((java.util.Date) primitiveValue).getTime();
-                }
-                primitives[a] = primitiveValue;
-            }
+            return emptyObjectArray;
         }
+        var primitives = new Object[primitiveMembers.length];
+        for (int a = primitiveMembers.length; a-- > 0; ) {
+            var primitiveMember = primitiveMembers[a];
 
+            var primitiveValue = primitiveMember.getValue(obj, true);
+
+            if (primitiveValue != null) {
+                if (primitiveValue instanceof java.util.Date date) {
+                    primitiveValue = date.getTime();
+                }
+                var interningProcedure = primitiveMember.getInterningProcedure();
+                if (interningProcedure != null) {
+                    primitiveValue = interningProcedure.intern(primitiveValue);
+                }
+            }
+            primitives[a] = primitiveValue;
+        }
         return primitives;
     }
 

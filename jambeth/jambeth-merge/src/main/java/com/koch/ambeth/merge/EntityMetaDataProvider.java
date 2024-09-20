@@ -35,6 +35,7 @@ import com.koch.ambeth.service.metadata.Member;
 import com.koch.ambeth.service.metadata.PrimitiveMember;
 import com.koch.ambeth.service.metadata.RelationMember;
 import com.koch.ambeth.service.xml.IXmlTypeHelper;
+import com.koch.ambeth.util.IInterningFeature;
 import com.koch.ambeth.util.ReflectUtil;
 import com.koch.ambeth.util.collections.ArrayList;
 import com.koch.ambeth.util.collections.HashMap;
@@ -76,35 +77,47 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
     protected final ClassExtendableListContainer<IEntityLifecycleExtension> entityLifecycleExtensions = new ClassExtendableListContainer<>("entityLifecycleExtension", "entityType");
     protected final MapExtendableContainer<Class<?>, Class<?>> technicalEntityTypes = new MapExtendableContainer<>("technicalEntityType", "entityType");
     @Autowired
-    protected IAccessorTypeProvider accessorTypeProvider;
-    @Autowired
     protected IServiceContext beanContext;
+
     @Autowired
     protected IBytecodeEnhancer bytecodeEnhancer;
+
     @Autowired
     protected ICacheModification cacheModification;
+
     @Autowired(optional = true)
     protected IEntityFactory entityFactory;
+
     @Autowired
     protected IEventDispatcher eventDispatcher;
+
+    @Autowired
+    protected IInterningFeature interningFeature;
+
     @Autowired
     protected IImmutableTypeSet immutableTypeSet;
+
     @Autowired
     protected IMemberTypeProvider memberTypeProvider;
-    @Autowired
-    protected IThreadLocalObjectCollector objectCollector;
+
     @Autowired
     protected IPropertyInfoProvider propertyInfoProvider;
+
     @Autowired
     protected IProxyFactory proxyFactory;
+
     @Autowired(value = MergeModule.REMOTE_ENTITY_METADATA_PROVIDER, optional = true)
     protected IEntityMetaDataProvider remoteEntityMetaDataProvider;
+
     @Autowired
     protected ITypeInfoProvider typeInfoProvider;
+
     @Autowired
     protected IXmlTypeHelper xmlTypeHelper;
+
     @Autowired
     protected ValueObjectMap valueObjectMap;
+
     protected IEntityMetaData alreadyHandled;
     protected Class<?>[] businessObjectSaveOrder;
     protected Lock alreadyLoadingLock = new ReentrantLock();
@@ -731,6 +744,7 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
         }
         var refreshedMember = memberTypeProvider.getPrimitiveMember(metaData.getEnhancedType(), member.getName(), member.getElementType());
         ((IPrimitiveMemberWrite) refreshedMember).setTechnicalMember(((PrimitiveMember) member).isTechnicalMember());
+        ((IPrimitiveMemberWrite) refreshedMember).setInterningProcedure(((PrimitiveMember) member).getInterningProcedure());
         ((IPrimitiveMemberWrite) refreshedMember).setTransient(((PrimitiveMember) member).isTransient());
         ((IPrimitiveMemberWrite) refreshedMember).setDefinedBy(((PrimitiveMember) member).getDefinedBy());
         return refreshedMember;
@@ -739,7 +753,7 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
     @Override
     public void refreshMembers(IEntityMetaData metaData) {
         if (metaData.getEnhancedType() == null) {
-            ((EntityMetaData) metaData).initialize(cacheModification, entityFactory);
+            ((EntityMetaData) metaData).initialize(cacheModification, entityFactory, interningFeature);
             var eie = entityInstantiationExtensions.getExtension(metaData.getEntityType());
             var baseType = eie != null ? eie.getMappedEntityType(metaData.getEntityType()) : metaData.getEntityType();
             ((EntityMetaData) metaData).setEnhancedType(bytecodeEnhancer.getEnhancedType(baseType, EntityEnhancementHint.Instance));
@@ -778,7 +792,7 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
             refreshDefinedBy(alternateIdMembers[a], nameToPrimitiveMember);
         }
         updateEntityMetaDataWithLifecycleExtensions(metaData);
-        ((EntityMetaData) metaData).initialize(cacheModification, entityFactory);
+        ((EntityMetaData) metaData).initialize(cacheModification, entityFactory, interningFeature);
     }
 
     @Override

@@ -214,6 +214,6 @@ public class PropertyInfoItem extends TypeInfoItem {
 
 	@Override
 	public String toString() {
-		return "Property " + getName() + "/" + getXMLName();
+		return getName();
 	}
 }

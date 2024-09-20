@@ -30,7 +30,7 @@ public class DefaultRootCacheValueFactoryDelegate extends RootCacheValueFactoryD
 	protected final FastConstructorAccess constructor;
 
 	public DefaultRootCacheValueFactoryDelegate() {
-		AccessorClassLoader classLoader = AccessorClassLoader.get(DefaultRootCacheValue.class);
+		// AccessorClassLoader classLoader = AccessorClassLoader.get(DefaultRootCacheValue.class);
 		try {
 			constructor = FastConstructorAccess.get(DefaultRootCacheValue.class.getConstructor(IEntityMetaData.class));
 		}

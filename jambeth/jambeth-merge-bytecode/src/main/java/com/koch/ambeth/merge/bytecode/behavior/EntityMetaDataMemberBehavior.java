@@ -60,9 +60,7 @@ public class EntityMetaDataMemberBehavior extends AbstractBehavior {
 
     @Override
     public Class<?>[] getEnhancements() {
-        return new Class<?>[] {
-                IRelationMemberWrite.class, IPrimitiveMemberWrite.class, IEmbeddedMember.class
-        };
+        return new Class<?>[] { IRelationMemberWrite.class, IPrimitiveMemberWrite.class, IEmbeddedMember.class };
     }
 
     @Override

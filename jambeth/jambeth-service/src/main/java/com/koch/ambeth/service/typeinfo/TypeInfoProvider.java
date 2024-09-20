@@ -24,7 +24,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.concurrent.locks.Lock;
 import java.util.regex.Pattern;
 
 import com.koch.ambeth.ioc.IInitializingBean;
@@ -44,7 +43,6 @@ import com.koch.ambeth.util.typeinfo.ITypeInfo;
 import com.koch.ambeth.util.typeinfo.ITypeInfoItem;
 import com.koch.ambeth.util.typeinfo.ITypeInfoProvider;
 import com.koch.ambeth.util.typeinfo.Transient;
-import com.koch.ambeth.util.typeinfo.TypeInfo;
 
 public class TypeInfoProvider extends SmartCopyMap<Class<?>, TypeInfo> implements ITypeInfoProvider, IInitializingBean {
     private static final NamedItemComparator typeInfoItemComparator = new NamedItemComparator();
@@ -152,12 +150,12 @@ public class TypeInfoProvider extends SmartCopyMap<Class<?>, TypeInfo> implement
 
     @Override
     public ITypeInfo getTypeInfo(Class<?> type) {
-        TypeInfo typeInfo = get(type);
+        var typeInfo = get(type);
         if (typeInfo != null) {
             return typeInfo;
         }
-        boolean tempTypeInfoMapCreated = false;
-        Lock writeLock = getWriteLock();
+        var tempTypeInfoMapCreated = false;
+        var writeLock = getWriteLock();
         writeLock.lock();
         try {
             typeInfo = get(type);
@@ -165,7 +163,7 @@ public class TypeInfoProvider extends SmartCopyMap<Class<?>, TypeInfo> implement
                 // Concurrent thread might have been faster
                 return typeInfo;
             }
-            LinkedHashMap<Class<?>, TypeInfo> tempTypeInfoMap = tempTypeInfoMapTL.get();
+            var tempTypeInfoMap = tempTypeInfoMapTL.get();
             if (tempTypeInfoMap != null) {
                 typeInfo = tempTypeInfoMap.get(type);
                 if (typeInfo != null) {
@@ -177,25 +175,26 @@ public class TypeInfoProvider extends SmartCopyMap<Class<?>, TypeInfo> implement
                 tempTypeInfoMapTL.set(tempTypeInfoMap);
                 tempTypeInfoMapCreated = true;
             }
-            ArrayList<Field> allFields = new ArrayList<>(0);
-            ArrayList<IPropertyInfo> allProperties = new ArrayList<>();
+            var allFields = new ArrayList<Field>(0);
+            var allProperties = new ArrayList<IPropertyInfo>();
 
             allFields.addAll(Arrays.asList(type.getFields()));
             for (int a = allFields.size(); a-- > 0; ) {
-                Field field = allFields.get(a);
+                var field = allFields.get(a);
                 if ((Modifier.STATIC & field.getModifiers()) != 0) {
                     allFields.remove(a);
                 }
             }
             allProperties.addAll(Arrays.asList(propertyInfoProvider.getProperties(type)));
 
-            ArrayList<ITypeInfoItem> memberList = new ArrayList<>(allProperties.size() + allFields.size());
+            var members = new ArrayList<ITypeInfoItem>(allProperties.size() + allFields.size());
+            var allMembers = new ArrayList<ITypeInfoItem>(allProperties.size() + allFields.size());
 
             for (int a = allFields.size(); a-- > 0; ) {
-                Field field = allFields.get(a);
+                var field = allFields.get(a);
 
-                String fieldNameLower = field.getName().toLowerCase();
-                for (IPropertyInfo property : allProperties) {
+                var fieldNameLower = field.getName().toLowerCase();
+                for (var property : allProperties) {
                     if (property.getPropertyType().equals(field.getType()) && fieldNameLower.equals(property.getName().toLowerCase())) {
                         allFields.remove(a);
                         break;
@@ -205,30 +204,32 @@ public class TypeInfoProvider extends SmartCopyMap<Class<?>, TypeInfo> implement
             typeInfo = new TypeInfo(type);
             tempTypeInfoMap.put(type, typeInfo);
 
-            for (IPropertyInfo property : allProperties) {
+            for (var property : allProperties) {
                 int modifiers = property.getModifiers();
                 if (Modifier.isTransient(modifiers) || property.getAnnotation(Transient.class) != null) {
                     continue; // Can not handle non datamember properties
                 }
-                if (Modifier.isFinal(modifiers) || Modifier.isNative(modifiers)) {
-                    continue;
-                }
                 if (!Modifier.isPublic(modifiers)) {
                     continue;
                 }
-                memberList.add(getMember(type, property));
+                allMembers.add(getMember(type, property));
+                if (Modifier.isFinal(modifiers) || Modifier.isNative(modifiers)) {
+                    continue;
+                }
+                members.add(getMember(type, property));
             }
-            for (Field field : allFields) {
+            for (var field : allFields) {
                 if (field.getAnnotation(Transient.class) != null) {
                     continue; // Can not handle non datamember fields
                 }
-                memberList.add(getMember(field));
+                allMembers.add(getMember(field));
+                members.add(getMember(field));
             }
 
-            Collections.sort(memberList, typeInfoItemComparator);
+            Collections.sort(members, typeInfoItemComparator);
+            Collections.sort(allMembers, typeInfoItemComparator);
 
-            ITypeInfoItem[] members = memberList.toArray(ITypeInfoItem[]::new);
-            typeInfo.postInit(members);
+            typeInfo.postInit(members.toArray(ITypeInfoItem[]::new), allMembers.toArray(ITypeInfoItem[]::new));
 
             putAll(tempTypeInfoMap);
             return typeInfo;
