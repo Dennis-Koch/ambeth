@@ -88,6 +88,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Pattern;
 
@@ -754,7 +755,7 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
                 // autoresolving
                 continue;
             }
-            if (!property.getPropertyType().isAssignableFrom(refBeanClass)) {
+            if (!property.getElementType().isAssignableFrom(refBeanClass)) {
                 continue;
             }
             // At this point the property WILL match and we intend to see this
@@ -762,7 +763,11 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
             // even if it has already been matched (and done) by another
             // propertyRef-definition before
             try {
-                property.setValue(bean, refBean);
+                if (Optional.class.equals(property.getPropertyType())) {
+                    property.setValue(bean, Optional.of(refBean));
+                } else {
+                    property.setValue(bean, refBean);
+                }
                 atLeastOnePropertyFound = true;
             } catch (Throwable e) {
                 throw maskBeanBasedException("Propertyrefs did not work on type \"" + beanType + "\". Tried to set refbean \"" + refBean + "\" of type: \"" + refBeanClass + "\"", e, null,

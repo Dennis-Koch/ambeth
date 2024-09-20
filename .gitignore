@@ -4,8 +4,14 @@
 .project
 .settings
 .svn
+.flattened-pom.xml
+.git-versioned-pom.xml
 *.csproj.user
 *.iml
+*.gz
+*.jar
+*.tar
+*.zip
 *.suo
 *.launch
 *.pdsync
@@ -16,6 +22,7 @@ ambeth-log.txt
 LICENSE.txt
 META-INF
 OSGI-INF
+/.mvn/maven.config
 
 /*/target
 

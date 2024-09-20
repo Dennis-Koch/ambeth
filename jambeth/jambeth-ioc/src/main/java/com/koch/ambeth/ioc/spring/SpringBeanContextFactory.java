@@ -6,7 +6,6 @@ import com.koch.ambeth.ioc.config.BeanConfiguration;
 import com.koch.ambeth.ioc.config.IBeanConfiguration;
 import com.koch.ambeth.ioc.config.IPropertyConfiguration;
 import com.koch.ambeth.ioc.config.PrecedenceType;
-import com.koch.ambeth.ioc.factory.IBeanContextFactory;
 import com.koch.ambeth.ioc.factory.IBeanContextFactoryIntern;
 import com.koch.ambeth.ioc.factory.IBeanContextInitializer;
 import com.koch.ambeth.ioc.link.ILinkController;
@@ -18,24 +17,15 @@ import com.koch.ambeth.util.IDisposable;
 import com.koch.ambeth.util.collections.HashSet;
 import com.koch.ambeth.util.collections.ILinkedMap;
 import com.koch.ambeth.util.config.IProperties;
-import com.koch.ambeth.util.proxy.Factory;
-import com.koch.ambeth.util.proxy.FactoryMixin;
 import com.koch.ambeth.util.proxy.IProxyFactory;
-import com.koch.ambeth.util.proxy.MethodInterceptorMixin;
 import com.koch.ambeth.util.typeinfo.IPropertyInfoProvider;
 import lombok.Getter;
 import lombok.SneakyThrows;
-import net.bytebuddy.ByteBuddy;
-import net.bytebuddy.dynamic.DynamicType;
-import net.bytebuddy.implementation.MethodDelegation;
-import net.bytebuddy.matcher.ElementMatchers;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
-import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.GenericBeanDefinition;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
@@ -54,9 +44,10 @@ public class SpringBeanContextFactory implements IBeanContextFactoryIntern {
         beanDef.setInstanceSupplier(() -> module);
         beanFactory.registerBeanDefinition(beanName, beanDef);
 
-        var ambethFactory = new SpringBeanContextFactory(beanFactory);
+        var ambethFactory = new SpringBeanContextFactory((ConfigurableListableBeanFactory) beanFactory);
         ambethFactory.injectProperties(null, module, null);
-        beanFactory.autowireBeanProperties(module, AutowireCapableBeanFactory.AUTOWIRE_BY_TYPE, true);
+
+        ((AutowireCapableBeanFactory)beanFactory).autowireBeanProperties(module, AutowireCapableBeanFactory.AUTOWIRE_BY_TYPE, true);
         module.afterPropertiesSet(ambethFactory);
         return () -> ambethFactory.finalizePendingConfigurations();
     }
@@ -92,7 +83,7 @@ public class SpringBeanContextFactory implements IBeanContextFactoryIntern {
         this.beanFactory = Objects.requireNonNull(beanFactory, "beanFactory must be valid");
         linkController = beanFactory.getBean("linkController", ILinkController.class);
         proxyFactory = beanFactory.getBean("proxyFactory", IProxyFactory.class);
-        props = beanFactory.getBean("properties", IProperties.class);
+        props = (Properties) beanFactory.getBean("properties", IProperties.class);
         classLoaderProvider = beanFactory.getBean(IClassLoaderProvider.class);
     }
 

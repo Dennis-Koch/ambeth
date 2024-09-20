@@ -32,6 +32,7 @@ import com.koch.ambeth.ioc.exception.LinkException;
 import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.util.IDelegateFactory;
 import com.koch.ambeth.util.ParamChecker;
+import jakarta.inject.Inject;
 import lombok.Setter;
 
 import java.lang.ref.WeakReference;
@@ -50,46 +51,49 @@ public abstract class AbstractLinkContainer implements ILinkContainer, IInitiali
     public static final String P_FOREIGN_BEAN_CONTEXT = "ForeignBeanContext";
     public static final String P_FOREIGN_BEAN_CONTEXT_NAME = "ForeignBeanContextName";
     protected static final Object[] emptyArgs = new Object[0];
-    @Setter
-    @Property(mandatory = false)
+
+    @Setter(onMethod = @__(@Property(mandatory = false)))
     protected Object listener;
-    @Setter
-    @Property(mandatory = false)
+
+    @Setter(onMethod = @__(@Property(mandatory = false)))
     protected IBeanConfiguration listenerBean;
-    @Setter
-    @Property(mandatory = false)
+
+    @Setter(onMethod = @__(@Property(mandatory = false)))
     protected String listenerBeanName;
-    @Setter
-    @Property(mandatory = false)
+
+    @Setter(onMethod = @__(@Property(mandatory = false)))
     protected String listenerMethodName;
-    @Setter
-    @Autowired
+
+    @Setter(onMethod = @__({ @Autowired }))
+    protected IServiceContext beanContext;
+
+    @Setter(onMethod = @__({ @Autowired(optional = true) }))
     protected IServiceLookup beanLookup;
-    @Setter
-    @Property(mandatory = false)
+
+    @Setter(onMethod = @__(@Property(mandatory = false)))
     protected IServiceContext foreignBeanContext;
-    @Setter
-    @Property(mandatory = false)
+
+    @Setter(onMethod = @__(@Property(mandatory = false)))
     protected String foreignBeanContextName;
-    @Setter
-    @Autowired
+
+    @Setter(onMethod = @__({ @Autowired }))
     protected IDelegateFactory delegateFactory;
 
-    @Setter
-    @Property(mandatory = false)
+    @Setter(onMethod = @__(@Property(mandatory = false)))
     protected Object registry;
-    @Setter
-    @Property(mandatory = false)
+
+    @Setter(onMethod = @__(@Property(mandatory = false)))
     protected Class<?> registryBeanAutowiredType;
-    @Setter
-    @Property(mandatory = false)
+
+    @Setter(onMethod = @__(@Property(mandatory = false)))
     protected String registryPropertyName;
-    @Setter
-    @Property(mandatory = false)
+
+    @Setter(onMethod = @__(@Property(mandatory = false)))
     protected Object[] arguments;
-    @Setter
-    @Property(mandatory = false)
+
+    @Setter(onMethod = @__(@Property(mandatory = false)))
     protected boolean optional;
+
     protected Object resolvedListener;
     protected StackTraceElement[] declarationStackTrace;
     protected boolean linked;
@@ -120,8 +124,8 @@ public abstract class AbstractLinkContainer implements ILinkContainer, IInitiali
             beanLookup = foreignBeanContext;
             hasForeignContextBeenUsed = false;
         }
-        if (beanLookup == null && registry == null) {
-            return null;
+        if (beanLookup == null) {
+            beanLookup = beanContext;
         }
         var registry = this.registry;
         if (registry instanceof Class) {
@@ -154,7 +158,11 @@ public abstract class AbstractLinkContainer implements ILinkContainer, IInitiali
     }
 
     protected Object resolveListener() {
-        Object listener = this.listener;
+        var listener = this.listener;
+        var beanLookup = this.beanLookup;
+        if (beanLookup == null) {
+            beanLookup = beanContext;
+        }
         if (listener != null) {
             listener = resolveListenerIntern(listener);
             this.listener = listener;

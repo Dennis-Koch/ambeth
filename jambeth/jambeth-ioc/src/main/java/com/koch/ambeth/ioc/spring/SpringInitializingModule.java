@@ -20,8 +20,9 @@ public class SpringInitializingModule implements BeanFactoryPostProcessor, BeanD
     @Getter
     Runnable moduleFinalizer;
 
+    @SneakyThrows
     @Override
-    public void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry registry) throws BeansException {
+    public void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry beanFactory) throws BeansException {
         if (module instanceof IInitializingModule) {
             moduleFinalizer = SpringBeanContextFactory.processModuleInSpring(beanFactory, (IInitializingModule) module);
         } else {
