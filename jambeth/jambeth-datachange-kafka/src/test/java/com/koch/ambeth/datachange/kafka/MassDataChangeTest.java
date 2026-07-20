@@ -64,6 +64,7 @@ import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
+import org.testcontainers.dockerclient.DockerClientProviderStrategy;
 
 import java.util.EnumSet;
 import java.util.Iterator;
