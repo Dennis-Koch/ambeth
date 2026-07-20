@@ -20,10 +20,16 @@ limitations under the License.
  * #L%
  */
 
+import com.koch.ambeth.util.IInterningFeature;
 import com.koch.ambeth.util.annotation.CascadeLoadMode;
 
 public abstract class RelationMember extends Member {
-	@Override
+    @Override
+    public IInterningFeature getInterningProcedure() {
+        return null;
+    }
+
+    @Override
 	public Object getNullEquivalentValue() {
 		return null;
 	}

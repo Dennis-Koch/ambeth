@@ -4,18 +4,13 @@
 
 	<groupId>com.koch.ambeth.integrity</groupId>
 	<artifactId>ambeth-integrity-pom</artifactId>
-	<version>1.0.4-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<parent>
 		<groupId>com.koch.ambeth</groupId>
 		<artifactId>base-pom</artifactId>
-		<version>1.0.3-SNAPSHOT</version>
+		<version>0.0.0-SNAPSHOT</version>
 	</parent>
-
-	<properties>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-	</properties>
 
 	<modules>
 		<module>com.koch.classbrowser.compare</module>

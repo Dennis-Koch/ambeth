@@ -1,5 +1,20 @@
 package com.koch.ambeth.extscanner;
 
+import com.koch.ambeth.extscanner.model.IMultiPlatformFeature;
+import com.koch.ambeth.extscanner.model.ISourceFileAware;
+import com.koch.ambeth.ioc.IInitializingBean;
+import com.koch.ambeth.ioc.IStartingBean;
+import com.koch.ambeth.ioc.annotation.Autowired;
+import com.koch.ambeth.ioc.config.Property;
+import com.koch.ambeth.log.ILogger;
+import com.koch.ambeth.log.LogInstance;
+import com.koch.ambeth.util.collections.HashMap;
+import com.koch.ambeth.util.collections.IMap;
+import com.koch.ambeth.util.collections.LinkedHashMap;
+import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
+import com.koch.classbrowser.java.TypeDescription;
+import org.apache.commons.io.Charsets;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -16,22 +31,6 @@ import java.nio.file.attribute.FileTime;
 import java.util.SortedMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import org.apache.commons.io.Charsets;
-
-import com.koch.ambeth.extscanner.model.IMultiPlatformFeature;
-import com.koch.ambeth.extscanner.model.ISourceFileAware;
-import com.koch.ambeth.ioc.IInitializingBean;
-import com.koch.ambeth.ioc.IStartingBean;
-import com.koch.ambeth.ioc.annotation.Autowired;
-import com.koch.ambeth.ioc.config.Property;
-import com.koch.ambeth.log.ILogger;
-import com.koch.ambeth.log.LogInstance;
-import com.koch.ambeth.util.collections.HashMap;
-import com.koch.ambeth.util.collections.IMap;
-import com.koch.ambeth.util.collections.LinkedHashMap;
-import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
-import com.koch.classbrowser.java.TypeDescription;
 
 public abstract class AbstractLatexScanner implements IInitializingBean, IStartingBean {
 	public static final Pattern labelNamePattern = Pattern
@@ -128,6 +127,7 @@ public abstract class AbstractLatexScanner implements IInitializingBean, IStarti
 	protected void searchForFiles(String baseDirs,
 			IMap<String, IFileFoundDelegate> nameToFileFoundDelegates,
 			IFileFoundDelegate... allMatchDelegates) {
+        System.out.println("baseDir='" + baseDirs + "'");
 		String[] pathItems = baseDirs.split(";");
 		for (String pathItem : pathItems) {
 			File rootDir;

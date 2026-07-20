@@ -21,10 +21,14 @@ limitations under the License.
  */
 
 import com.koch.ambeth.ioc.accessor.AbstractAccessor;
+import com.koch.ambeth.util.IInterningFeature;
 
 import java.lang.annotation.Annotation;
 
 public abstract class Member extends AbstractAccessor implements Comparable<Member> {
+
+    public abstract IInterningFeature getInterningProcedure();
+
     public abstract Class<?> getElementType();
 
     public abstract Class<?> getDeclaringType();
