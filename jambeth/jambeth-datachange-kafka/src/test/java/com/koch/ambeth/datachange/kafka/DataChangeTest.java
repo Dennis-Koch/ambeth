@@ -53,10 +53,8 @@ import com.koch.ambeth.testutil.AbstractIocTest;
 import com.koch.ambeth.testutil.TestProperties;
 import com.koch.ambeth.testutil.TestPropertiesList;
 import com.koch.ambeth.testutil.category.SlowTests;
-import com.koch.ambeth.util.IClasspathScanner;
 import com.koch.ambeth.util.config.IProperties;
 import com.koch.ambeth.xml.ioc.XmlModule;
-import com.koch.ambeth.xml.util.ClasspathScanner;
 
 import java.util.List;
 
@@ -102,6 +100,7 @@ public class DataChangeTest extends AbstractIocTest {
         }
     }
 
+    @SuppressWarnings("unchecked")
     protected IAmbethApplication createAmbethKafkaApp(IProperties props) {
         return Ambeth.createEmptyBundle(InformationBus.class)
                      .withFrameworkModules(EventKafkaModule.class, DataChangeKafkaModule.class, KafkaTestModule.class, XmlModule.class)
@@ -148,6 +147,7 @@ public class DataChangeTest extends AbstractIocTest {
             Object cacheValue = leftRootCache.getObject(TestEntity.class, testEntity.getId(), CacheDirective.cacheValueResult());
             Object cacheValue2 = leftRootCache.getObject(TestEntity.class, testEntity2.getId(), CacheDirective.cacheValueResult());
 
+            assertThat(cacheValue).isSameAs(cacheValue2);
 
             left.link((IEventListener) (eventObject, dispatchTime, sequenceId) -> {
                 if (eventObject instanceof IDataChange && !((IDataChange) eventObject).isLocalSource()) {

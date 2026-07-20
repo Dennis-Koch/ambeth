@@ -25,6 +25,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.net.URI;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -56,8 +57,8 @@ public class SystemClasspathInfoTest {
 
     @Test
     public void testOpenAsFile_pathWithSpace() throws Throwable {
-        String filePath = "file:/home/user/name with space/lib";
-        URL url = new URL(filePath);
+        var filePath = "file:/home/user/name with space/lib";
+        var url = new URI(filePath).toURL();
 
         Path file = systemClasspathInfo.openAsFile(url);
         Assert.assertNotNull(file);

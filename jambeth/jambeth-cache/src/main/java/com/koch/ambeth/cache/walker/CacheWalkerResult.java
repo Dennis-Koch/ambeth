@@ -31,6 +31,7 @@ import com.koch.ambeth.util.IPrintable;
 import com.koch.ambeth.util.StringBuilderUtil;
 import com.koch.ambeth.util.model.IDataObject;
 
+@SuppressWarnings("unused")
 public class CacheWalkerResult implements IPrintable, ICacheWalkerResult {
     protected static final char pipe = "\u2514".toCharArray()[0];
     public final Object childEntries;

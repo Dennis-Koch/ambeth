@@ -101,6 +101,7 @@ public class MassDataChangeTest extends AbstractIocTest {
     @LogInstance
     private ILogger log;
 
+    @SuppressWarnings("unchecked")
     @Test
     public void test() throws Throwable {
         var props = new Properties(properties);

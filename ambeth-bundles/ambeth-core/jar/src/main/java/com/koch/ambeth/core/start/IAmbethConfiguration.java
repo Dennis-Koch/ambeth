@@ -85,6 +85,7 @@ public interface IAmbethConfiguration {
      * @param frameworkModuleTypes Ambeth modules
      * @return This configuration object
      */
+    @SuppressWarnings("unchecked")
     IAmbethConfiguration withFrameworkModules(Class<? extends IInitializingModule>... frameworkModuleTypes);
 
     /**
@@ -110,6 +111,7 @@ public interface IAmbethConfiguration {
      * @param applicationModuleTypes Application modules
      * @return This configuration object
      */
+    @SuppressWarnings("unchecked")
     IAmbethConfiguration withApplicationModules(Class<? extends IInitializingModule>... applicationModuleTypes);
 
 

@@ -159,8 +159,8 @@ public class PrioMembersProvider implements IPrioMembersProvider {
 					// already priorized
 					continue;
 				}
-				if (touchedTypesInPriority.contains(member.getEntityType())
-						|| touchedTypesInPriority.contains(member.getElementType())) {
+				if (touchedTypesInPriority != null && (touchedTypesInPriority.contains(member.getEntityType())
+						|| touchedTypesInPriority.contains(member.getElementType()))) {
 					continue;
 				}
 				prioMembersMap.add(member);

@@ -108,6 +108,7 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
     @Property(name = MergeConfigurationConstants.PrefetchInLazyTransactionActive, defaultValue = "true")
     protected boolean lazyTransactionActive;
 
+    @SuppressWarnings("null")
     @Override
     public void buildCachePath(Class<?> entityType, String memberToInitialize, ISet<AppendableCachePath> cachePaths) {
         Class<?> currentType = entityType;

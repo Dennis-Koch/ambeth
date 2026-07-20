@@ -28,8 +28,10 @@ import com.koch.ambeth.util.function.CheckedConsumer;
  * Interface for bundle modules that defines the module list for a specific bundle.
  */
 public interface IBundleModule {
+    @SuppressWarnings("unchecked")
     Class<? extends IInitializingModule>[] EMPTY_BUNDLE_MODULES = new Class[0];
 
+    @SuppressWarnings("unchecked")
     CheckedConsumer<IBeanContextFactory>[] EMPTY_BUNDLE_MODULE_INSTANCES = new CheckedConsumer[0];
 
     default Class<? extends IInitializingModule>[] getBundleModules() {

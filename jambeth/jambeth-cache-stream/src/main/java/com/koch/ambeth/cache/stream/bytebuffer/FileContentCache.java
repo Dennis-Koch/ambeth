@@ -41,6 +41,7 @@ import com.koch.ambeth.ioc.config.Property;
 import com.koch.ambeth.ioc.log.ILoggerCache;
 import com.koch.ambeth.log.ILogger;
 import com.koch.ambeth.log.LogInstance;
+import com.koch.ambeth.repackaged.com.esotericsoftware.reflectasm.MethodAccess;
 import com.koch.ambeth.service.cache.ClearAllCachesEvent;
 import com.koch.ambeth.util.IClassLoaderProvider;
 import com.koch.ambeth.util.collections.ArrayList;
@@ -50,12 +51,33 @@ import com.koch.ambeth.util.collections.LinkedHashSet;
 import com.koch.ambeth.util.collections.SmartCopyMap;
 import com.koch.ambeth.util.exception.RuntimeExceptionUtil;
 
-import sun.nio.ch.DirectBuffer;
-
-@SuppressWarnings("restriction")
 public class FileContentCache implements IInitializingBean, IDisposableBean, IFileContentCache, Runnable {
     public static final String HANDLE_CLEAR_ALL_CACHES = "handleClearAllCaches";
     private final static Random random = new Random();
+
+    private final static Class<?> directBufferClass;
+
+    private final static MethodAccess directBufferMethodAccess;
+
+    private static final int attachmentMethodIndex;
+
+    static {
+        Class<?> cl = null;
+        try {
+            cl = Thread.currentThread().getContextClassLoader().loadClass("sun.nio.ch.DirectBuffer");
+        } catch (ClassNotFoundException e) {
+            // intended blank
+        }
+        directBufferClass = cl;
+        if (directBufferClass != null) {
+            directBufferMethodAccess = MethodAccess.get(directBufferClass);
+            attachmentMethodIndex = directBufferMethodAccess.getIndex("attachment");
+        } else {
+            directBufferMethodAccess = null;
+            attachmentMethodIndex = -1;
+        }
+    }
+
     protected final HashMap<ChunkKey, Reference<ByteBuffer>> fileToContentMap = new HashMap<>();
     protected final IdentityWeakHashMap<ByteBuffer, Counter> contentToUsageCounterMap = new IdentityWeakHashMap<>();
     protected final SmartCopyMap<FileKey, IByteBuffer> fileToVtdNavMap = new SmartCopyMap<>();
@@ -271,16 +293,16 @@ public class FileContentCache implements IInitializingBean, IDisposableBean, IFi
      */
     @Override
     public void releaseByteBuffer(ByteBuffer byteBuffer) {
-        if (!(byteBuffer instanceof DirectBuffer)) {
+        if (!directBufferClass.isAssignableFrom(byteBuffer.getClass())) {
             return;
         }
-        DirectBuffer directBuffer = (DirectBuffer) byteBuffer;
-        ByteBuffer attachment = (ByteBuffer) directBuffer.attachment();
-        Lock writeLock = this.writeLock;
+        var attachment = (ByteBuffer) directBufferMethodAccess.invoke(byteBuffer, attachmentMethodIndex);
+        var writeLock = this.writeLock;
         writeLock.lock();
         try {
             decreaseUsage(attachment);
-            if (Math.min(contentToUsageCounterMap.size(), fileToContentMap.size()) - inUseCounter >= cleanupCounterThreshold) {
+            if (Math.min(contentToUsageCounterMap.size(), fileToContentMap.size())
+                    - inUseCounter >= cleanupCounterThreshold) {
                 prc.cleanup();
             }
         } finally {
@@ -375,10 +397,12 @@ public class FileContentCache implements IInitializingBean, IDisposableBean, IFi
         try {
             ensureThread();
             long paddedPosition = key.getPaddedPosition();
-            // First we look whether the preceeding chunk is cached. If it exists we expect a serialized
+            // First we look whether the preceeding chunk is cached. If it exists we expect
+            // a serialized
             // access and prefetch following chunks
             if (paddedPosition == 0) {
-                // First chunk has no preceeding chunk so no prefetch intended. We just fetch the requested
+                // First chunk has no preceeding chunk so no prefetch intended. We just fetch
+                // the requested
                 // chunk
                 return requestChunk(key, true);
             }
@@ -393,7 +417,8 @@ public class FileContentCache implements IInitializingBean, IDisposableBean, IFi
             for (int a = 0, size = chunkPrefetchCount; a < size; a++) {
                 long prefetchPosition = paddedPosition + chunkSize * (a + 1);
                 if (length > prefetchPosition) {
-                    // File is big enough that the next chunk has a size of at least 1. So it exists and we
+                    // File is big enough that the next chunk has a size of at least 1. So it exists
+                    // and we
                     // therefore prefetch it
                     ChunkKey prefetchChunkKey = new ChunkKey(key.getFileKey(), prefetchPosition);
                     requestChunk(prefetchChunkKey, false);

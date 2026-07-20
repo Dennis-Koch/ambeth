@@ -30,6 +30,7 @@ import lombok.SneakyThrows;
 import java.util.List;
 import java.util.Set;
 
+@SuppressWarnings("unused")
 public class Ambeth implements IAmbethConfiguration, IAmbethConfigurationIntern, IAmbethApplication {
 
     protected static final Set<IServiceContext> ACTIVE_APPLICATIONS = new HashSet<>();
@@ -101,7 +102,7 @@ public class Ambeth implements IAmbethConfiguration, IAmbethConfigurationIntern,
 
     @SneakyThrows
     protected static void setBundleModule(Class<? extends IBundleModule> bundleModule, Ambeth ambeth) {
-        var bundleModuleInstance = bundleModule.newInstance();
+        var bundleModuleInstance = bundleModule.getConstructor().newInstance();
         var bundleModules = bundleModuleInstance.getBundleModules();
         ambeth.withFrameworkModules(bundleModules);
 
@@ -208,6 +209,7 @@ public class Ambeth implements IAmbethConfiguration, IAmbethConfigurationIntern,
     /**
      * {@inheritDoc}
      */
+    @SuppressWarnings("unchecked")
     @Override
     public IAmbethConfiguration withFrameworkModules(Class<? extends IInitializingModule>... frameworkModuleTypes) {
         frameworkModules.addAll(frameworkModuleTypes);
@@ -233,6 +235,7 @@ public class Ambeth implements IAmbethConfiguration, IAmbethConfigurationIntern,
     /**
      * {@inheritDoc}
      */
+    @SuppressWarnings("unchecked")
     @Override
     public IAmbethConfiguration withApplicationModules(Class<? extends IInitializingModule>... applicationModuleTypes) {
         applicationModules.addAll(applicationModuleTypes);
@@ -261,7 +264,7 @@ public class Ambeth implements IAmbethConfiguration, IAmbethConfigurationIntern,
     @Override
     public <E extends IAmbethConfigurationExtension> E withExtension(Class<E> extensionType) {
         try {
-            E extension = extensionType.newInstance();
+            E extension = extensionType.getConstructor().newInstance();
             extension.setAmbethConfiguration(this);
             return extension;
         } catch (Exception e) {
@@ -453,6 +456,7 @@ public class Ambeth implements IAmbethConfiguration, IAmbethConfigurationIntern,
         autowiredFrameworkBeans.put(autowiring, instance);
     }
 
+    @SuppressWarnings("unchecked")
     protected void scanForModules(IServiceContext currentContext, Set<Class<? extends IInitializingModule>> frameworkModules, Set<Class<? extends IInitializingModule>> applicationModules) {
         if (!scanForFrameworkModules && !scanForApplicationModules) {
             return;
