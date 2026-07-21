@@ -64,13 +64,14 @@ import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
-import org.testcontainers.dockerclient.DockerClientProviderStrategy;
 
 import java.util.EnumSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 @TestPropertiesList({
         // producer
@@ -83,9 +84,12 @@ import java.util.concurrent.TimeUnit;
 
         // consumer
         @TestProperties(name = AmbethKafkaConfiguration.AMBETH_KAFKA_PROP_PREFIX + "group.id", value = "groupId"), //
-        @TestProperties(name = AmbethKafkaConfiguration.AMBETH_KAFKA_PROP_PREFIX + "enable.auto.commit", value = "true"), //
-        @TestProperties(name = AmbethKafkaConfiguration.AMBETH_KAFKA_PROP_PREFIX + "auto.commit.interval.ms", value = "1"), //
-        @TestProperties(name = AmbethKafkaConfiguration.AMBETH_KAFKA_PROP_PREFIX + "session.timeout.ms", value = "30000"), //
+        @TestProperties(name = AmbethKafkaConfiguration.AMBETH_KAFKA_PROP_PREFIX
+                + "enable.auto.commit", value = "true"), //
+        @TestProperties(name = AmbethKafkaConfiguration.AMBETH_KAFKA_PROP_PREFIX
+                + "auto.commit.interval.ms", value = "1"), //
+        @TestProperties(name = AmbethKafkaConfiguration.AMBETH_KAFKA_PROP_PREFIX
+                + "session.timeout.ms", value = "30000"), //
         @TestProperties(name = AmbethKafkaConfiguration.AMBETH_KAFKA_PROP_PREFIX + "buffer.memory", value = "33554432"),//
         // @TestProperties(name = "ambeth.log.level", value = "DEBUG"),//
 })
@@ -93,7 +97,7 @@ import java.util.concurrent.TimeUnit;
 public class MassDataChangeTest extends AbstractIocTest {
     private static final int NUM_ENTITIES = 1000;
 
-    public static FutureTask<String> future = new FutureTask<>(() -> null);
+    public static CountDownLatch latch = new CountDownLatch(NUM_ENTITIES);
 
     @Rule
     public AmbethKafkaJUnitRuleLegacy kafkaRule = new AmbethKafkaJUnitRuleLegacy(this);
@@ -116,22 +120,27 @@ public class MassDataChangeTest extends AbstractIocTest {
         props.put(ServiceConfigurationConstants.mappingFile, "orm.xml");
 
         var app1 = Ambeth.createBundle(InformationBus.class)
-                         .withFrameworkModules(EventKafkaModule.class, DataChangeKafkaModule.class, KafkaTestModule.class, XmlModule.class)
-                         .withoutPropertiesFileSearch()
-                         .withProperties(props)
-                         .start();
+                .withFrameworkModules(EventKafkaModule.class, DataChangeKafkaModule.class, KafkaTestModule.class,
+                        XmlModule.class)
+                .withoutPropertiesFileSearch()
+                .withProperties(props)
+                .start();
         try {
             var app2 = Ambeth.createBundle(InformationBus.class)
-                             .withFrameworkModules(EventKafkaModule.class, DataChangeKafkaModule.class, KafkaTestModule.class, XmlModule.class)
-                             .withoutPropertiesFileSearch()
-                             .withProperties(props)
-                             .start();
+                    .withFrameworkModules(EventKafkaModule.class, DataChangeKafkaModule.class, KafkaTestModule.class,
+                            XmlModule.class)
+                    .withoutPropertiesFileSearch()
+                    .withProperties(props)
+                    .start();
             try {
                 // Measure processing time with Kafka
-                long kafkaTime = testDataChangeEventsWithKafka(app1.getApplicationContext(), app2.getApplicationContext(), NUM_ENTITIES);
+                long kafkaTime = testDataChangeEventsWithKafka(app1.getApplicationContext(),
+                        app2.getApplicationContext(), NUM_ENTITIES);
                 // Measure processing time without Kafka
-                long withoutKafkaTime = testContextsWithout(app1.getApplicationContext(), app2.getApplicationContext(), NUM_ENTITIES);
-                log.info("Kafka - processing time:" + (kafkaTime - withoutKafkaTime) + "ms " + Math.round(kafkaTime / (withoutKafkaTime / 100) - 100) + " %");
+                long withoutKafkaTime = testContextsWithout(app1.getApplicationContext(), app2.getApplicationContext(),
+                        NUM_ENTITIES);
+                log.info("Kafka - processing time:" + (kafkaTime - withoutKafkaTime) + "ms "
+                        + Math.round(kafkaTime / (withoutKafkaTime / 100) - 100) + " %");
             } finally {
                 app2.close();
             }
@@ -141,7 +150,8 @@ public class MassDataChangeTest extends AbstractIocTest {
     }
 
     protected Object lookupCacheEntry(IRootCache rootCache, TestEntity testEntity) {
-        return rootCache.getObject(new ObjRef(TestEntity.class, ObjRef.PRIMARY_KEY_INDEX, testEntity.getId(), null), EnumSet.of(CacheDirective.FailEarly, CacheDirective.LoadContainerResult));
+        return rootCache.getObject(new ObjRef(TestEntity.class, ObjRef.PRIMARY_KEY_INDEX, testEntity.getId(), null),
+                EnumSet.of(CacheDirective.FailEarly, CacheDirective.LoadContainerResult));
     }
 
     /**
@@ -152,48 +162,51 @@ public class MassDataChangeTest extends AbstractIocTest {
      * @param testEntityList
      */
     private void fillCache(IServiceContext left, int countEntities, final List<TestEntity> testEntityList) {
-        IRootCache leftRootCache;
-        {
-            TestEntity testEntity;
-            for (int i = countEntities; i > 0; i--) {
+        for (int i = countEntities; i > 0; i--) {
 
-                // create cache entry in "left"
-                testEntity = left.getService(IEntityFactory.class).createEntity(TestEntity.class);
-                IEntityMetaData metaData = left.getService(IEntityMetaDataProvider.class).getMetaData(TestEntity.class);
-                metaData.getIdMember().setIntValue(testEntity, i);
-                metaData.getVersionMember().setIntValue(testEntity, 1);
+            // create cache entry in "left"
+            var testEntity = left.getService(IEntityFactory.class).createEntity(TestEntity.class);
+            IEntityMetaData metaData = left.getService(IEntityMetaDataProvider.class).getMetaData(TestEntity.class);
+            metaData.getIdMember().setIntValue(testEntity, i);
+            metaData.getVersionMember().setIntValue(testEntity, 1);
 
-                leftRootCache = left.getService(CacheModule.COMMITTED_ROOT_CACHE, IRootCache.class);
-                leftRootCache.put(testEntity);
-                testEntityList.add(testEntity);
-                Assert.assertNotNull(lookupCacheEntry(leftRootCache, testEntity));
+            var leftRootCache = left.getService(CacheModule.COMMITTED_ROOT_CACHE, IRootCache.class);
+            leftRootCache.put(testEntity);
+            testEntityList.add(testEntity);
+            Assert.assertNotNull(lookupCacheEntry(leftRootCache, testEntity));
 
-            }
         }
     }
 
-    private long testDataChangeEventsWithKafka(IServiceContext left, final IServiceContext right, int countEntities) throws Throwable {
-        final List<TestEntity> testEntityList = new ArrayList<>();
+    private long testDataChangeEventsWithKafka(IServiceContext left, final IServiceContext right, int countEntities)
+            throws Throwable {
+        var testEntityList = new ArrayList<TestEntity>();
         right.createService(CounterModule.class);
         fillCache(left, countEntities, testEntityList);
         long millis = System.currentTimeMillis();
 
-        {
-            final CheckedRunnable worker = () -> {
-                // fire the DCE in "right"
-                for (Iterator<TestEntity> iterator = testEntityList.iterator(); iterator.hasNext(); ) {
+        var fireDoneLatch = new CountDownLatch(1);
+        new Thread(() -> {
+            // fire the DCE in "right"
+            try {
+                for (Iterator<TestEntity> iterator = testEntityList.iterator(); iterator.hasNext();) {
                     TestEntity testEntity = iterator.next();
                     DataChangeEvent dce = DataChangeEvent.create(0, 1, 0);
-                    dce.getUpdates().add(new DataChangeEntry(TestEntity.class, ObjRef.PRIMARY_KEY_INDEX, testEntity.getId(), testEntity.getVersion() + 1));
+                    dce.getUpdates()
+                            .add(new DataChangeEntry(TestEntity.class, ObjRef.PRIMARY_KEY_INDEX, testEntity.getId(),
+                                    testEntity.getVersion() + 1));
                     right.getService(IEventDispatcher.class).dispatchEvent(dce);
                 }
-            };
-            new Thread(() -> CheckedRunnable.invoke(worker)).start();
-        }
+            } finally {
+                fireDoneLatch.countDown();
+            }
+        }).start();
         log.info("start waiting...");
         // wait for all DCE events to arrive in the right context
         // TODO: is this correct?
-        future.get(2, TimeUnit.MINUTES);
+        if (!latch.await(2, TimeUnit.MINUTES)) {
+            throw new TimeoutException("Timeout waiting for all DCE events to arrive in the right context");
+        }
 
         long timeSpend = System.currentTimeMillis() - millis;
         Thread.sleep(2000); // TODO: this should not be needed because the feature "should" only be
@@ -204,33 +217,30 @@ public class MassDataChangeTest extends AbstractIocTest {
     }
 
     private void ensureCacheCleaned(IServiceContext left, final List<TestEntity> testEntityList) {
-        IRootCache leftRootCache;
-        {
-            // ensure that entry in "left" is removed
-            leftRootCache = left.getService(CacheModule.COMMITTED_ROOT_CACHE, IRootCache.class);
+        // ensure that entry in "left" is removed
+        var leftRootCache = left.getService(CacheModule.COMMITTED_ROOT_CACHE, IRootCache.class);
 
-            for (Iterator<TestEntity> iterator = testEntityList.iterator(); iterator.hasNext(); ) {
-                TestEntity testEntity = iterator.next();
+        for (Iterator<TestEntity> iterator = testEntityList.iterator(); iterator.hasNext();) {
+            TestEntity testEntity = iterator.next();
 
-                Assert.assertNull("Expect entitiy: " + testEntity.getId() + " to be removed from the cache.", lookupCacheEntry(leftRootCache, testEntity));
-            }
+            Assert.assertNull("Expect entitiy: " + testEntity.getId() + " to be removed from the cache.",
+                    lookupCacheEntry(leftRootCache, testEntity));
         }
     }
 
-    private long testContextsWithout(IServiceContext left, final IServiceContext right1, int countEntities) throws Throwable {
-        IRootCache leftRootCache;
-        final List<TestEntity> testEntityList = new ArrayList<>();
+    private long testContextsWithout(IServiceContext left, final IServiceContext right1, int countEntities)
+            throws Throwable {
+        var testEntityList = new ArrayList<TestEntity>();
         fillCache(left, countEntities, testEntityList);
         long mills = System.currentTimeMillis();
         log.info("start waiting...");
-        {
-            // fire the DCE in "right"
-            for (Iterator<TestEntity> iterator = testEntityList.iterator(); iterator.hasNext(); ) {
-                TestEntity testEntity = iterator.next();
-                DataChangeEvent dce = DataChangeEvent.create(0, 1, 0);
-                dce.getUpdates().add(new DataChangeEntry(TestEntity.class, ObjRef.PRIMARY_KEY_INDEX, testEntity.getId(), testEntity.getVersion() + 1));
-                left.getService(IEventDispatcher.class).dispatchEvent(dce);
-            }
+        // fire the DCE in "right"
+        for (Iterator<TestEntity> iterator = testEntityList.iterator(); iterator.hasNext();) {
+            TestEntity testEntity = iterator.next();
+            DataChangeEvent dce = DataChangeEvent.create(0, 1, 0);
+            dce.getUpdates().add(new DataChangeEntry(TestEntity.class, ObjRef.PRIMARY_KEY_INDEX, testEntity.getId(),
+                    testEntity.getVersion() + 1));
+            left.getService(IEventDispatcher.class).dispatchEvent(dce);
         }
         long timeSpend = System.currentTimeMillis() - mills;
         Thread.sleep(2000); // TODO: this should not be needed because the feature "should" only be
@@ -255,19 +265,15 @@ public class MassDataChangeTest extends AbstractIocTest {
 
             IBeanConfiguration registerExternalBean = beanContextFactory.registerExternalBean(new IEventListener() {
 
-                private int globalCounter = 0;
-
                 @Override
                 public void handleEvent(Object eventObject, long dispatchTime, long sequenceId) throws Exception {
                     // wait until all DCE's arrive in the "right" cache.
-                    if (globalCounter >= NUM_ENTITIES - 1) {
-                        future.run();
-                    }
-                    globalCounter++;
+                    latch.countDown();
 
                 }
             });
-            beanContextFactory.link(registerExternalBean).to(IEventListenerExtendable.class).with(DataChangeEvent.class);
+            beanContextFactory.link(registerExternalBean).to(IEventListenerExtendable.class)
+                    .with(DataChangeEvent.class);
         }
     }
 }

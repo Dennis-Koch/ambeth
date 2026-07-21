@@ -19,7 +19,7 @@
         <tstamp>${maven.build.timestamp}</tstamp>
         <junit-categories.version>${project.version}</junit-categories.version>
         <bytebuddy.version>1.15.1</bytebuddy.version>
-        <lombok.version>1.18.34</lombok.version>
+        <lombok.version>1.18.46</lombok.version>
         <spring.version>6.1.13</spring.version>
         <spi-ap.version>0.11.0</spi-ap.version>
         <testcontainers.version>2.0.5</testcontainers.version>
@@ -188,6 +188,11 @@
             <dependency>
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-lang3</artifactId>
+                <version>3.13.0</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-text</artifactId>
                 <version>3.13.0</version>
             </dependency>
 
