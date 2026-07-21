@@ -22,7 +22,7 @@ limitations under the License.
 
 import java.util.regex.Matcher;
 
-import org.apache.commons.lang3.text.StringEscapeUtils;
+import org.apache.commons.text.StringEscapeUtils;
 
 import com.koch.ambeth.ioc.IStartingBean;
 import com.koch.ambeth.ioc.annotation.Autowired;
@@ -111,8 +111,7 @@ public class ShellContextImpl implements ShellContext, IStartingBean {
 			Object value = variables.get(key);
 			if (value != null && key instanceof String) {
 				String escapeJava = StringEscapeUtils.escapeJava((String) key);
-				input = input.replaceAll("\\" + VAR_MARKER + escapeJava,
-						Matcher.quoteReplacement(value.toString()));
+				input = input.replaceAll("\\" + VAR_MARKER + escapeJava, Matcher.quoteReplacement(value.toString()));
 			}
 		}
 		return input;

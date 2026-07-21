@@ -17,6 +17,7 @@
 *.pdsync
 *.pdsyncu
 *.testsettings
+*.versionsBackup
 *.vsmdi
 ambeth-log.txt
 LICENSE.txt
