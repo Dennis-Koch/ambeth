@@ -38,6 +38,7 @@ import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.errors.WakeupException;
 import org.apache.kafka.common.serialization.StringDeserializer;
 
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -57,7 +58,7 @@ public class EventFromKafkaConsumer implements IInitializingBean, IStartingBean,
     protected XmlKafkaSerializer xmlKafkaSerializer;
     @Property(name = EventKafkaConfigurationConstants.TOPIC_NAME)
     protected String topicName;
-    protected long timeout = 5000;
+    protected Duration timeout = Duration.ofMillis(5000);
 
     protected volatile boolean destroyed;
 
